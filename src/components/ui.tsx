@@ -164,7 +164,7 @@ export function Tip({ text }: { text: string }) {
       </span>
       <span
         role="tooltip"
-        className="pointer-events-none absolute top-full left-1/2 z-40 mt-1.5 w-56 -translate-x-1/2 whitespace-normal bg-[var(--aw-ink)] px-2.5 py-1.5 text-left font-sans text-[12px] leading-snug font-normal tracking-normal text-white opacity-0 shadow-aw-sm transition-opacity group-hover/tip:opacity-100"
+        className="aw-tip pointer-events-none absolute top-full left-1/2 z-40 mt-1.5 w-56 -translate-x-1/2 whitespace-normal text-left opacity-0 transition-opacity group-hover/tip:opacity-100"
       >
         {text}
       </span>
@@ -185,23 +185,20 @@ export function SidePanel({ title, kicker, onClose, children, narrow = false }: 
     };
   }, [onClose]);
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-[rgba(16,20,30,0.45)] print:hidden" onClick={onClose}>
-      <div
-        role="dialog"
-        aria-modal="true"
-        onClick={(e) => e.stopPropagation()}
-        className={`flex h-full w-full flex-col gap-6 overflow-y-auto bg-white px-6 py-6 shadow-aw-sm ${narrow ? "max-w-[960px] md:px-8" : "max-w-[1320px] md:w-[calc(100%-240px)] md:px-10"}`}
-      >
-        <div className="flex items-start justify-between gap-6">
-          <div className="flex min-w-0 flex-col gap-1.5">
+    <div className="tw-side-overlay print:hidden" onClick={onClose}>
+      <div role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()} className={`tw-side-panel ${narrow ? "tw-side-panel--narrow" : ""}`}>
+        <div className="tw-side-panel__bar">
+          <div className="tw-side-panel__title">
             {kicker ? <span className="aw-micro">{kicker}</span> : null}
-            <h2 className="text-[24px] leading-snug font-medium break-words text-ink">{title}</h2>
+            <h2>{title}</h2>
           </div>
-          <button type="button" aria-label="Close" title="Close (Esc)" onClick={onClose} className="shrink-0 px-2 py-1 text-[26px] leading-none text-body hover:text-ink">
-            ×
+          <button type="button" aria-label="Close" title="Close (Esc)" onClick={onClose} className="aw-iconbtn shrink-0">
+            <svg className="aw-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
           </button>
         </div>
-        {children}
+        <div className="tw-side-panel__body">{children}</div>
       </div>
     </div>
   );

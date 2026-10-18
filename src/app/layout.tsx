@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Funnel_Display, Geist, Geist_Mono, IBM_Plex_Mono, Inter } from "next/font/google";
+import { DM_Mono, Funnel_Display, Geist, Geist_Mono, IBM_Plex_Mono, Inter } from "next/font/google";
 import "./globals.css";
 
 // The Arro game's pixel-style text.
@@ -14,6 +14,13 @@ const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
   weight: ["400", "500", "600"],
+});
+
+// Code, API names and variables, as in Twenty.
+const dmMono = DM_Mono({
+  variable: "--font-dm-mono",
+  subsets: ["latin"],
+  weight: ["400", "500"],
 });
 
 // Long-form pages that still use Geist.
@@ -47,7 +54,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${plex.variable} ${inter.variable} ${geist.variable} ${display.variable} ${mono.variable} h-full`}
+      className={`${plex.variable} ${inter.variable} ${geist.variable} ${display.variable} ${mono.variable} ${dmMono.variable} h-full`}
     >
       <body className="min-h-full">
         <div className="aw flex min-h-screen flex-col">{children}</div>
