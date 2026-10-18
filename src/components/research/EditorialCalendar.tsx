@@ -12,7 +12,8 @@ import { Sheet, type Col, type Edit } from "../Sheet";
 import { Confirm } from "../reports/Dialog";
 import { SidePanel, Thinking } from "../ui";
 import { CalendarGrid, TopicSidebar } from "./CalendarGrid";
-import { ContentPiece, STATUSES, type WriterAccess } from "./ContentPiece";
+import { STATUSES, type WriterAccess } from "./ContentPiece";
+import { KeywordDeepDive } from "./KeywordDeepDive";
 import { DayPanel } from "./DayPanel";
 import { byStage, CalendarViewIcon, Difficulty, downloadCsv, FIELD, ListViewIcon, post, slugify, slugOf, STAGE_LABEL, StageTag, STATUS_PICK, statusLabel, ViewSwitch } from "./shared";
 import { PlanProgress, planRows } from "./AgenticResearch";
@@ -101,7 +102,6 @@ export function EditorialCalendar({
   site,
   canEdit,
   writer,
-  brandName,
   onSite,
   refresh,
 }: {
@@ -453,6 +453,29 @@ export function EditorialCalendar({
   };
   const openPiece = (id: string) => setPanel({ day: items.find((i) => i.id === id)?.due_date ?? null, piece: id });
 
+
+  // A keyword opens as its own screen, the Keyword Deep Dive.
+  if (openItem) {
+    const back = () => setPanel(panel?.day && view !== "list" ? { day: panel.day, piece: null } : null);
+    return (
+      <>
+        <KeywordDeepDive
+          key={openItem.id}
+          sb={sb}
+          auth={auth}
+          site={site}
+          item={openItem}
+          canEdit={canEdit}
+          writer={writer}
+          onPatch={(p) => patch(openItem.id, p)}
+          onRemove={() => removeItems([openItem.id], back)}
+          onBack={back}
+          onImport={() => importToWriter([openItem.id])}
+        />
+        {toast}
+      </>
+    );
+  }
   return (
     <div className="flex flex-col gap-5">
       {error ? <p className="aw-error">{error}</p> : null}
@@ -509,45 +532,7 @@ export function EditorialCalendar({
         </div>
       )}
 
-      {openItem ? (
-        <SidePanel
-          title={openItem.keyword}
-          kicker={
-            panel?.day && view !== "list" ? (
-              <button type="button" className="aw-text-link" onClick={() => setPanel({ day: panel.day, piece: null })}>
-                ← {dayLabel(panel.day)}
-              </button>
-            ) : (
-              "Content piece"
-            )
-          }
-          onClose={() => setPanel(null)}
-        >
-          {canEdit || inWriterAt(openItem) ? (
-            <div className="mb-4 flex items-center gap-2">
-              {inWriterAt(openItem) ? (
-                <span className="aw-chip aw-chip--brand">In writer</span>
-              ) : openItem.status !== "published" ? (
-                <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => toWriter([openItem.id])}>
-                  Import to Agentic Writer
-                </button>
-              ) : null}
-            </div>
-          ) : null}
-          <ContentPiece
-            key={openItem.id}
-            sb={sb}
-            auth={auth}
-            site={site}
-            brandName={brandName}
-            item={openItem}
-            canEdit={canEdit}
-            onPatch={(p) => patch(openItem.id, p)}
-            onRemove={() => removeItems([openItem.id], () => setPanel(panel?.day && view !== "list" ? { day: panel.day, piece: null } : null))}
-            writer={writer}
-          />
-        </SidePanel>
-      ) : panel?.day ? (
+      {panel?.day ? (
         <SidePanel title={dayLabel(panel.day)} kicker="Editorial Calendar" onClose={() => setPanel(null)}>
           <DayPanel
             items={items.filter((i) => i.due_date === panel.day)}

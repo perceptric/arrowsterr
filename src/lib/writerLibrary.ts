@@ -46,6 +46,14 @@ export async function listTopics(sb: SupabaseClient, siteId: string): Promise<To
     .sort((x, y) => y.added.localeCompare(x.added));
 }
 
+/** One topic's brief and draft, for the Keyword Deep Dive. Null when the writer has none yet. */
+export async function writerStateFor(sb: SupabaseClient, itemId: string): Promise<{ brief: BriefLite | null; draft: DraftLite | null }> {
+  const [briefs, drafts] = await Promise.all([sb.from("writer_briefs").select(BRIEF_COLS).eq("item_id", itemId).limit(1), sb.from("writer_drafts").select(DRAFT_COLS).eq("item_id", itemId).limit(1)]);
+  const b = (check(briefs) ?? []) as unknown as BriefLite[];
+  const d = (check(drafts) ?? []) as unknown as DraftLite[];
+  return { brief: b[0] ?? null, draft: d[0] ?? null };
+}
+
 export type FullBrief = BriefLite & { keyword: string; brief: WriterBrief | null; notes: string; note: string | null; approved_at: string | null };
 export const getBrief = async (sb: SupabaseClient, id: string) =>
   check(await sb.from("writer_briefs").select("id, item_id, status, step, error, version, research_run_id, updated_at, keyword, brief, notes, note, approved_at").eq("id", id).maybeSingle()) as FullBrief | null;

@@ -1,0 +1,423 @@
+"use client";
+
+import { DateField, Dropdown } from "../Pickers";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { Serp } from "@/lib/briefTypes";
+import { getSerp, listMembers, type CalendarItem, type CalendarStatus, type Site } from "@/lib/db";
+import { insights, recommendations, workflowStep, WORKFLOW, type Insight } from "@/lib/library";
+import { inWriterAt } from "@/lib/writerImport";
+import { writerStateFor, type BriefLite, type DraftLite } from "@/lib/writerLibrary";
+import type { RunAuth } from "@/lib/runner";
+import { nextMonday, STAGES } from "@/lib/research";
+import { AiIcon } from "../ui";
+import { openInLibrary, openInWriter } from "../writer/parts";
+import type { WriterAccess } from "./ContentPiece";
+import { Difficulty, FIELD, fmtCpc, fmtNum, post, slugify, slugOf, STAGE_LABEL, StageTag, STATUS_PICK, statusLabel, StopButton, stopped, Tick } from "./shared";
+
+const isoDay = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+/**
+ * The Keyword Deep Dive: one screen with the keyword's numbers, where it stands, its details and what to do about it.
+ * Briefs and drafts are made in the Agentic Writer and kept in the Library.
+ */
+export function KeywordDeepDive({
+  sb,
+  auth,
+  site,
+  item,
+  canEdit,
+  writer = { open: true },
+  onPatch,
+  onRemove,
+  onBack,
+  onImport,
+  autoSerp = false,
+}: {
+  sb: SupabaseClient;
+  auth: RunAuth;
+  site: Site;
+  item: CalendarItem;
+  canEdit: boolean;
+  writer?: WriterAccess;
+  onPatch: (p: Partial<CalendarItem>) => void;
+  onRemove: () => void;
+  onBack: () => void;
+  /** Import to the Agentic Writer. Safe to call again. */
+  onImport: () => Promise<void> | void;
+  /** Run the SERP analysis as soon as the screen opens, when it has none yet. */
+  autoSerp?: boolean;
+}) {
+  const [serp, setSerp] = useState<{ serp: Serp | null; serp_at: string | null; missing?: boolean } | null>(null);
+  const [serpBusy, setSerpBusy] = useState(false);
+  const [ws, setWs] = useState<{ brief: BriefLite | null; draft: DraftLite | null } | null>(null);
+  const [members, setMembers] = useState<string[]>([]);
+  const [busy, setBusy] = useState<"" | "import" | "brief">("");
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    listMembers(sb, auth.workspaceId)
+      .then((m) => setMembers(m.map((x) => x.email).filter((e): e is string => Boolean(e))))
+      .catch(() => {});
+  }, [sb, auth.workspaceId]);
+
+  const loadWriter = useCallback(async () => {
+    try {
+      setWs(await writerStateFor(sb, item.id));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    }
+  }, [sb, item.id]);
+
+  useEffect(() => {
+    // Loading the writer's brief and draft and the SERP analysis when the keyword opens is the point of this effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadWriter();
+    getSerp(sb, item.id).then(setSerp).catch(() => setSerp({ serp: null, serp_at: null }));
+  }, [sb, item.id, loadWriter]);
+
+  const making = ws?.brief?.status === "generating" || ws?.draft?.status === "generating";
+  useEffect(() => {
+    if (!making) return;
+    const t = setInterval(loadWriter, 5000);
+    return () => clearInterval(t);
+  }, [making, loadWriter]);
+
+  const serpStop = useRef<AbortController | null>(null);
+  async function runSerp() {
+    setError("");
+    setSerpBusy(true);
+    const ctl = new AbortController();
+    serpStop.current = ctl;
+    try {
+      const out = await post<{ serp: Serp; at: string }>(auth, "/api/research/serp", { itemId: item.id }, ctl.signal);
+      setSerp({ serp: out.serp, serp_at: out.at });
+    } catch (e) {
+      if (!stopped(e)) setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSerpBusy(false);
+    }
+  }
+  const autoRan = useRef(false);
+  useEffect(() => {
+    if (!autoSerp || autoRan.current || !serp || serp.serp || serp.missing || !canEdit) return;
+    autoRan.current = true;
+    runSerp();
+    // Runs once, when the saved SERP has loaded and there is none.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoSerp, serp]);
+
+  /** Generate the brief in the Agentic Writer. The keyword is imported first when it isn't there yet. */
+  async function generateBrief() {
+    setError("");
+    if (!writer.open) return writer.onUpgrade?.();
+    setBusy("brief");
+    try {
+      if (!inWriterAt(item)) await onImport();
+      await post(auth, "/api/agentic-writer", { action: "brief", itemId: item.id });
+      await loadWriter();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy("");
+    }
+  }
+
+  const step = workflowStep(item.status, ws?.brief ?? null, ws?.draft ?? null);
+  const stepAt = WORKFLOW.findIndex((w) => w.id === step);
+  const found = insights(item, serp?.serp ?? null, null);
+  const recs = recommendations(item, serp?.serp ?? null, null);
+  const features = serp?.serp?.features.length ?? null;
+  const brandId = site.brand_id;
+  const brief = ws?.brief ?? null;
+  const draft = ws?.draft ?? null;
+
+  return (
+    <div className="flex flex-col gap-4">
+      <nav className="flex items-center gap-1.5 text-[13px] text-muted" aria-label="Breadcrumb">
+        <button type="button" className="aw-text-link" onClick={onBack}>
+          Editorial Calendar
+        </button>
+        <span aria-hidden="true">/</span>
+        <span className="truncate text-ink">{item.keyword}</span>
+      </nav>
+
+      <header className="flex flex-wrap items-center gap-3">
+        <h1 className="aw-h2 mr-1 min-w-0 truncate">{item.keyword}</h1>
+        <StageTag stage={item.stage} />
+        <span className="aw-status aw-status--pending">{statusLabel(item)}</span>
+        <span className="ml-auto flex flex-wrap items-center gap-2">
+          {inWriterAt(item) ? (
+            <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={!brandId} onClick={() => brandId && openInWriter(brandId, item.id)}>
+              <Tick /> In Agentic Writer
+            </button>
+          ) : canEdit && item.status !== "published" ? (
+            <button
+              type="button"
+              className="aw-btn aw-btn--secondary aw-btn--sm"
+              disabled={busy !== ""}
+              onClick={async () => {
+                setError("");
+                if (!writer.open) return writer.onUpgrade?.();
+                setBusy("import");
+                try {
+                  await onImport();
+                } finally {
+                  setBusy("");
+                }
+              }}
+            >
+              {busy === "import" ? "Importing..." : "Import to Agentic Writer"}
+            </button>
+          ) : null}
+          {draft?.status === "ready" && brandId ? (
+            <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => openInLibrary(brandId, { kind: "draft", id: draft.id })}>
+              Open draft
+            </button>
+          ) : null}
+          {brief && (brief.status === "ready" || brief.status === "approved") && brandId ? (
+            <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => openInLibrary(brandId, { kind: "brief", id: brief.id })}>
+              Open brief
+            </button>
+          ) : brief?.status === "generating" ? (
+            <span className="aw-status aw-status--warn">Generating brief...</span>
+          ) : canEdit ? (
+            <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" disabled={busy !== ""} onClick={generateBrief}>
+              <AiIcon />
+              {busy === "brief" ? "Starting..." : brief?.status === "failed" ? "Generate brief again" : "Generate Brief"}
+            </button>
+          ) : null}
+        </span>
+      </header>
+      {error ? <p className="aw-error">{error}</p> : null}
+      {brief?.status === "failed" && brief.error ? <p className="aw-error">{brief.error}</p> : null}
+
+      <ol className="aw-frame grid grid-cols-5 gap-0 bg-white px-4 py-3" aria-label="Workflow">
+        {WORKFLOW.map((w, n) => {
+          const done = n < stepAt;
+          const now = n === stepAt;
+          return (
+            <li key={w.id} className="flex min-w-0 flex-col gap-1.5" aria-current={now ? "step" : undefined}>
+              <span className="flex items-center">
+                <span
+                  className={`aw-num flex h-6 w-6 shrink-0 items-center justify-center border text-[12px] ${done ? "border-brand bg-brand text-white" : now ? "border-brand text-brand" : "border-rule text-muted"}`}
+                >
+                  {done ? "✓" : n + 1}
+                </span>
+                {n < WORKFLOW.length - 1 ? <span className={`h-px flex-1 ${done ? "bg-brand" : "bg-rule"}`} /> : null}
+              </span>
+              <span className={`truncate text-[13px] ${now ? "font-semibold text-brand" : done ? "text-ink" : "text-muted"}`}>{w.label}</span>
+            </li>
+          );
+        })}
+      </ol>
+
+      <div className="grid grid-cols-2 gap-px overflow-hidden border border-rule bg-rule sm:grid-cols-3 lg:grid-cols-6">
+        <Stat label="Search volume" value={<span className="aw-num">{fmtNum(item.volume)} / mo</span>} />
+        <Stat label="Keyword difficulty" value={<Difficulty kd={item.difficulty} />} />
+        <Stat label="CPC" value={<span className="aw-num">{fmtCpc(item.cpc)}</span>} />
+        <Stat label="Search intent" value={<span className="capitalize">{item.intent ?? "–"}</span>} />
+        <Stat label="Current ranking" value={item.current_rank ? <span className="aw-num">#{item.current_rank}</span> : <span className="text-muted">Not ranking</span>} />
+        <Stat label="SERP features" value={<span className="aw-num">{features ?? "–"}</span>} />
+      </div>
+
+      <Details item={item} site={site} members={members} canEdit={canEdit} onPatch={onPatch} />
+
+      <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
+        <section className="aw-frame flex flex-col gap-3 bg-white p-4">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="aw-h4">Optimization insights</h2>
+            {serpBusy ? (
+              <span className="flex items-center gap-2">
+                <span className="text-[12px] text-muted">Reading Google...</span>
+                <StopButton onStop={() => serpStop.current?.abort()} />
+              </span>
+            ) : canEdit && !serp?.serp && !serp?.missing ? (
+              <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={runSerp}>
+                Run SERP analysis
+              </button>
+            ) : null}
+          </div>
+          {serp?.missing ? <p className="aw-error">Run supabase/027_serp.sql in Supabase to save SERP analyses.</p> : null}
+          <div className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+            {found.map((x) => (
+              <InsightRow key={x.id} insight={x} />
+            ))}
+          </div>
+        </section>
+        <section className="aw-frame flex flex-col gap-3 bg-white p-4">
+          <h2 className="aw-h4">SEO recommendations</h2>
+          <ul className="flex flex-col gap-2">
+            {recs.map((r) => (
+              <li key={r} className="flex gap-2 text-[13px] text-ink">
+                <span className="mt-0.5 text-pos">
+                  <Tick />
+                </span>
+                <span>{r}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <span className="text-[12px] text-muted">Added {item.created_at ? new Date(item.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "–"}</span>
+        {canEdit ? (
+          <button type="button" className="aw-text-link text-[13px] text-neg!" onClick={onRemove}>
+            Remove from Editorial Calendar
+          </button>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-1 bg-white px-4 py-2.5">
+      <span className="aw-label">{label}</span>
+      <span className="text-[15px] text-ink">{value}</span>
+    </div>
+  );
+}
+
+const INSIGHT_ICON: Record<Insight["id"], string> = {
+  intent: "M12 3v18M3 12h18",
+  serp: "M4 20V10M10 20V4M16 20v-7",
+  type: "M6 3h9l4 4v14H6zM14 3v5h5",
+  gap: "M4 12h6M14 12h6M10 8v8M14 8v8",
+  related: "M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1",
+};
+
+function InsightRow({ insight }: { insight: Insight }) {
+  return (
+    <div className="flex gap-2.5">
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center bg-brand-pale text-brand" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+          <path d={INSIGHT_ICON[insight.id]} />
+        </svg>
+      </span>
+      <span className="flex min-w-0 flex-col">
+        <span className="text-[13px] font-semibold text-ink">{insight.title}</span>
+        <span className="text-[12px] text-muted">{insight.text}</span>
+      </span>
+    </div>
+  );
+}
+
+/** Every detail of a piece, the same as its row in the Content Plan list, editable where the list is. */
+function Details({ item, site, members, canEdit, onPatch }: { item: CalendarItem; site: Site; members: string[]; canEdit: boolean; onPatch: (p: Partial<CalendarItem>) => void }) {
+  const [keyword, setKeyword] = useState(item.keyword);
+  const [slug, setSlug] = useState(slugOf(item));
+  const [theme, setTheme] = useState(item.theme ?? "");
+  const [also, setAlso] = useState(item.secondary.join(", "));
+  const [notes, setNotes] = useState(item.notes ?? "");
+  const [url, setUrl] = useState(item.url ?? "");
+  const [extra, setExtra] = useState<Record<string, string>>(() => Object.fromEntries((site.profile.columns ?? []).map((c) => [c.id, String(item.extra?.[c.id] ?? "")])));
+  const field = (label: string, input: React.ReactNode, wide = false) => (
+    <label className={`flex min-w-0 flex-col gap-1 ${wide ? "sm:col-span-2 lg:col-span-3" : ""}`}>
+      <span className="aw-label">{label}</span>
+      {input}
+    </label>
+  );
+  const box = `${FIELD} h-9 w-full rounded-md text-[13px]!`;
+  const status = item.status === "planned" && !item.due_date ? "idea" : item.status;
+  const owners = [...new Set([...(item.owner ? [item.owner] : []), ...members])];
+
+  return (
+    <section className="aw-frame grid gap-x-4 gap-y-3 bg-white p-4 sm:grid-cols-2 lg:grid-cols-3">
+      {field("Keyword", <input value={keyword} disabled={!canEdit} onChange={(e) => setKeyword(e.target.value)} onBlur={() => keyword.trim() && keyword !== item.keyword && onPatch({ keyword: keyword.trim() })} className={box} />)}
+      {field(
+        "Suggested slug",
+        <input
+          value={slug}
+          disabled={!canEdit}
+          onChange={(e) => setSlug(e.target.value)}
+          onBlur={() => {
+            const next = slug.trim() ? `/${slugify(slug)}` : null;
+            if (next !== slugOf(item)) onPatch({ extra: { ...(item.extra ?? {}), slug: next } });
+            setSlug(next ?? slugOf({ ...item, extra: { ...(item.extra ?? {}), slug: null } }));
+          }}
+          className={`${box} font-mono text-[12px]!`}
+        />,
+      )}
+      {field(
+        "Funnel stage",
+        <Dropdown label="Funnel stage" value={item.stage ?? ""} disabled={!canEdit} onChange={(v) => onPatch({ stage: (v || null) as CalendarItem["stage"] })} className={box} options={[...STAGES.map((x) => ({ id: x.id as string, label: STAGE_LABEL[x.id] })), { id: "", label: "None" }]} />,
+      )}
+      {field(
+        "Content status",
+        <Dropdown
+          label="Content status"
+          value={status}
+          disabled={!canEdit}
+          onChange={(v) => {
+            if (v === "idea") onPatch({ status: "planned", due_date: null });
+            else onPatch(v === "planned" && !item.due_date ? { status: "planned", due_date: isoDay(nextMonday()) } : { status: v as CalendarStatus });
+          }}
+          className={box}
+          options={STATUS_PICK.map((x) => ({ id: x.id as string, label: x.label }))}
+        />,
+      )}
+      {field("Publish date", <DateField label="Publish date" value={item.due_date ?? ""} disabled={!canEdit} onChange={(v) => onPatch({ due_date: v })} className={box} placeholder="Not scheduled" />)}
+      {field("Owner", <Dropdown label="Owner" value={item.owner ?? ""} disabled={!canEdit} onChange={(v) => onPatch({ owner: v || null })} className={box} options={[{ id: "", label: "Unassigned" }, ...owners.map((m) => ({ id: m, label: m }))]} />)}
+      {field(
+        "Job",
+        <Dropdown label="Job" value={item.action} disabled={!canEdit} onChange={(v) => onPatch({ action: v })} className={box} options={[{ id: "new" as const, label: "New page" }, { id: "update" as const, label: "Update page" }]} />,
+      )}
+      {field("Theme", <input value={theme} disabled={!canEdit} onChange={(e) => setTheme(e.target.value)} onBlur={() => theme !== (item.theme ?? "") && onPatch({ theme: theme.trim() || null })} className={box} />)}
+      {field(
+        "Live URL",
+        <input
+          value={url}
+          disabled={!canEdit}
+          onChange={(e) => setUrl(e.target.value)}
+          onBlur={() => url !== (item.url ?? "") && onPatch(url && item.action === "new" ? { url, status: "published" } : { url: url || null })}
+          placeholder="https://"
+          className={box}
+        />,
+      )}
+      {item.action === "update" && item.current_url
+        ? field(
+            "Page to update",
+            <a href={item.current_url} target="_blank" rel="noopener noreferrer" className="flex h-9 items-center truncate text-[13px]">
+              {item.current_url.replace(/^https?:\/\/(www\.)?/, "")} ↗
+            </a>,
+          )
+        : null}
+      {field(
+        "Related keywords",
+        <input
+          value={also}
+          disabled={!canEdit}
+          onChange={(e) => setAlso(e.target.value)}
+          onBlur={() => {
+            const list = also.split(",").map((x) => x.trim()).filter(Boolean);
+            if (list.join("|") !== item.secondary.join("|")) onPatch({ secondary: list });
+          }}
+          placeholder="Other keywords this page covers, with commas"
+          className={box}
+        />,
+        true,
+      )}
+      {(site.profile.columns ?? []).map((c) =>
+        field(
+          c.name,
+          <input
+            type={c.type === "date" ? "date" : c.type === "number" ? "number" : "text"}
+            value={extra[c.id] ?? ""}
+            disabled={!canEdit}
+            onChange={(e) => setExtra((x) => ({ ...x, [c.id]: e.target.value }))}
+            onBlur={() => {
+              const v = extra[c.id] ?? "";
+              if (v === String(item.extra?.[c.id] ?? "")) return;
+              onPatch({ extra: { ...(item.extra ?? {}), [c.id]: v === "" ? null : c.type === "number" ? Number(v) : v } });
+            }}
+            className={box}
+          />,
+        ),
+      )}
+      {field("Notes", <textarea value={notes} disabled={!canEdit} onChange={(e) => setNotes(e.target.value)} onBlur={() => notes !== (item.notes ?? "") && onPatch({ notes: notes || null })} rows={2} className="aw-textarea text-[13px]!" />, true)}
+    </section>
+  );
+}

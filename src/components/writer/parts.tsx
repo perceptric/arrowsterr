@@ -65,6 +65,13 @@ export function openInLibrary(brandId: string, open: LibraryOpen) {
   window.dispatchEvent(new PopStateEvent("popstate"));
 }
 
+/** Go to the Agentic Writer with one topic open. */
+export function openInWriter(brandId: string, itemId: string) {
+  putStash(`writer:${brandId}:open`, itemId);
+  window.history.pushState(null, "", `/agentic-writer${window.location.search}`);
+  window.dispatchEvent(new PopStateEvent("popstate"));
+}
+
 const RUN_STEP: Record<string, string> = { queued: "Starting research", searching: "Reading Google and the AI answers", reading: "Reading the top pages", waiting: "Waiting to read more pages", done: "Research done" };
 
 /** Where a brief stands while it's made: the research, then the writing. */
