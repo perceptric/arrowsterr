@@ -8,23 +8,19 @@ import { answered, brandStats } from "@/lib/metrics";
 import type { View } from "@/lib/view";
 import type { RunAuth } from "@/lib/runner";
 import { Thinking } from "../ui";
-import { ContentCalendar, type Refresh } from "./ContentCalendar";
+import { EditorialCalendar, type Refresh } from "./EditorialCalendar";
 import { DomainResearch, type SeoStart } from "./DomainResearch";
 import { KeywordGap } from "./KeywordGap";
 import { KeywordOverview } from "./KeywordOverview";
 import { AnalyzeSeo, ResearchKeyword } from "./shared";
-import { ContentIntel } from "./ContentIntel";
-import type { LibraryTarget, WriterAccess } from "./ContentPiece";
-import { Library } from "./Library";
+import type { WriterAccess } from "./ContentPiece";
 
-export type Tool = "keywords" | "domain" | "gap" | "calendar" | "library" | "intel";
+export type Tool = "keywords" | "domain" | "gap" | "calendar";
 const TITLES: Record<Tool, string> = {
   keywords: "Keyword Research",
   domain: "Domain Research",
   gap: "Competitive Analysis",
-  calendar: "Content Plan",
-  library: "Library",
-  intel: "Content Intelligence",
+  calendar: "Editorial Calendar",
 };
 
 /** The Research tools for the website picked in the top bar. */
@@ -85,8 +81,8 @@ export function ResearchPage({
       }
     >
     <div className="flex flex-col gap-5">
-      {/* The Content Plan and the Library draw their own headers. */}
-      {tool === "calendar" || tool === "library" ? null : <h1 className="aw-h2">{TITLES[tool]}</h1>}
+      {/* The Editorial Calendar draws its own header, with its actions beside the title. */}
+      {tool === "calendar" ? null : <h1 className="aw-h2">{TITLES[tool]}</h1>}
       {error ? <p className="aw-error">{error}</p> : null}
       {site === undefined ? (
         <Thinking text={`Loading ${brand.domain}...`} />
@@ -105,26 +101,8 @@ export function ResearchPage({
           stats={brandStats(answered(view.current, view.filter), { name: brand.name, domain: brand.domain })}
           me={{ name: brand.name, logo: brand.logo }}
         />
-      ) : tool === "intel" ? (
-        <ContentIntel sb={sb} auth={auth} site={site} canEdit={canEdit} brandId={brand.id} days={view.days} chats={answered(view.current, view.filter)} onPlan={() => onTool("calendar")} />
-      ) : tool === "library" ? (
-        <Library sb={sb} auth={auth} site={site} brandName={brand.name} canEdit={canEdit} writer={writer} />
       ) : (
-        <ContentCalendar
-          sb={sb}
-          auth={auth}
-          site={site}
-          canEdit={canEdit}
-          refresh={refresh}
-          writer={writer}
-          onImport={() => onTool("keywords")}
-          onLibrary={(t: LibraryTarget) => {
-            putStash(`lib:${site.id}:open`, t);
-            onTool("library");
-          }}
-          results={{ brandId: brand.id, brandName: brand.name, days: view.days, chats: answered(view.current, view.filter) }}
-          onSite={setSite}
-        />
+        <EditorialCalendar sb={sb} auth={auth} site={site} canEdit={canEdit} refresh={refresh} writer={writer} brandName={brand.name} onSite={setSite} />
       )}
     </div>
     </ResearchKeyword.Provider>

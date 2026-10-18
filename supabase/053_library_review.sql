@@ -1,5 +1,5 @@
--- Library: a keyword's brief and draft as their own documents, and a Review step before Published.
--- Run this once in Supabase → SQL Editor, after 046_report_files.sql. Safe to run again.
+-- A Review status, a Library import date on calendar items, and saved draft versions.
+-- Applied to the production database on 18 Oct 2026. The app doesn't use these yet. Safe to run again.
 
 -- ─────────────── review status ───────────────
 alter table public.calendar_items drop constraint if exists calendar_items_status_check;

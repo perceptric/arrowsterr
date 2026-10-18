@@ -1,13 +1,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { briefDocHtml, BRIEF_SECTIONS, htmlToText } from "../src/lib/briefDoc.ts";
 import type { Brief, Serp } from "../src/lib/briefTypes.ts";
-import { briefState, cleanDraftHtml, draftState, insights, pageType, recommendations, statusAfter, workflowStep } from "../src/lib/library.ts";
+import { insights, pageType, recommendations, workflowStep } from "../src/lib/library.ts";
 
 const piece = (p: Partial<Parameters<typeof insights>[0]> = {}): Parameters<typeof insights>[0] => ({
   keyword: "semrush alternatives",
   status: "planned",
-  brief_status: null,
   stage: "bofu",
   intent: "commercial",
   difficulty: 62,
@@ -37,36 +35,6 @@ const brief: Brief = {
   at: "2026-10-01T00:00:00Z",
   cost: 0,
 };
-
-test("the workflow follows real records: a draft moves past Brief, Review needs a draft, Published wins", () => {
-  assert.equal(workflowStep({ status: "planned", brief_status: null }, false), "planned");
-  assert.equal(workflowStep({ status: "planned", brief_status: "done" }, false), "brief");
-  // A status set by hand never skips a missing document.
-  assert.equal(workflowStep({ status: "writing", brief_status: null }, false), "planned");
-  assert.equal(workflowStep({ status: "review", brief_status: "done" }, false), "brief");
-  assert.equal(workflowStep({ status: "brief", brief_status: "done" }, true), "draft");
-  assert.equal(workflowStep({ status: "review", brief_status: "done" }, true), "review");
-  assert.equal(workflowStep({ status: "published", brief_status: null }, false), "published");
-});
-
-test("work moving on never moves a piece's status back", () => {
-  assert.equal(statusAfter("planned", "brief"), "brief");
-  assert.equal(statusAfter("planned", "draft"), "writing");
-  assert.equal(statusAfter("brief", "draft"), "writing");
-  assert.equal(statusAfter("writing", "brief"), "writing");
-  assert.equal(statusAfter("review", "draft"), "review");
-  assert.equal(statusAfter("published", "draft"), "published");
-});
-
-test("Library states for a brief and a draft", () => {
-  assert.equal(briefState({ brief_status: null }).label, "Not generated");
-  assert.equal(briefState({ brief_status: "running" }).label, "Generating");
-  assert.equal(briefState({ brief_status: "done" }).label, "Ready to edit");
-  assert.equal(draftState({ status: "brief" }, null).label, "Not generated");
-  assert.equal(draftState({ status: "writing" }, { words: 0 }).label, "Empty");
-  assert.equal(draftState({ status: "writing" }, { words: 900 }).label, "Draft");
-  assert.equal(draftState({ status: "review" }, { words: 900 }).label, "In review");
-});
 
 test("insights use only saved data and skip what is missing", () => {
   const bare = insights(piece({ intent: null, stage: null, difficulty: null, secondary: [] }), null, null);
@@ -99,18 +67,15 @@ test("recommendations come from the SERP and brief, at most 6, no repeats", () =
   assert.equal(update[0], "Update the page that ranks #14 instead of starting a new one.");
 });
 
-test("the brief document has the seven sections in order", () => {
-  const html = briefDocHtml({ keyword: "semrush alternatives", secondary: [], action: "new", current_url: null }, brief, { name: "Arrowsterr" }, null);
-  const heads = [...html.matchAll(/<h2>(\d)\. ([^<]+)<\/h2>/g)].map((m) => m[2]);
-  assert.deepEqual(heads, [...BRIEF_SECTIONS]);
-});
-
-test("the edited brief reaches the prompt as text with its shape", () => {
-  const t = htmlToText('<h2>6. Article Outline</h2><table><tr><td><p><strong>H2: Pricing</strong></p></td><td><p>Show &amp; compare</p></td></tr></table><ul><li><p>Use <a href="https://a.com">our page</a></p></li></ul><script>alert(1)</script>');
-  assert.equal(t, "## 6. Article Outline\nH2: Pricing | Show & compare\n\n- Use our page (https://a.com)");
-});
-
-test("a generated draft keeps its tags and loses scripts, styles, handlers and fences", () => {
-  const out = cleanDraftHtml('Here you go:\n```html\n<h1 class="x">Title</h1><p onclick="steal()" style="color:red">Hi <a href="javascript:alert(1)">x</a></p><script>bad()</script><style>p{}</style>\n```');
-  assert.equal(out, '<h1>Title</h1><p>Hi <a href="#">x</a></p>');
+test("the workflow follows the writer's real records, and Published wins", () => {
+  assert.equal(workflowStep("planned", null, null), "planned");
+  // A status set by hand never skips a missing brief.
+  assert.equal(workflowStep("writing", null, null), "planned");
+  assert.equal(workflowStep("planned", { status: "failed" }, null), "planned");
+  assert.equal(workflowStep("planned", { status: "generating" }, null), "brief");
+  assert.equal(workflowStep("brief", { status: "approved" }, null), "brief");
+  assert.equal(workflowStep("brief", { status: "approved" }, { status: "failed" }), "brief");
+  assert.equal(workflowStep("writing", { status: "approved" }, { status: "generating" }), "draft");
+  assert.equal(workflowStep("writing", { status: "approved" }, { status: "ready" }), "review");
+  assert.equal(workflowStep("published", null, null), "published");
 });

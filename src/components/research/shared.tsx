@@ -20,9 +20,9 @@ export function byStage<T extends { stage: Stage | null; due_date?: string | nul
 }
 
 /** A piece with no date is still an idea. It turns Planned once it is on the calendar. */
-export function statusLabel(i: { status: "planned" | "brief" | "writing" | "review" | "published"; due_date: string | null }) {
+export function statusLabel(i: { status: "planned" | "brief" | "writing" | "published"; due_date: string | null }) {
   if (i.status === "planned") return i.due_date ? "Planned" : "Idea";
-  return i.status === "brief" ? "Brief ready" : i.status === "writing" ? "Writing" : i.status === "review" ? "In review" : "Published";
+  return i.status === "brief" ? "Brief ready" : i.status === "writing" ? "Writing" : "Published";
 }
 
 /** Status choices for a piece. Idea means planned with no day yet. */
@@ -31,7 +31,6 @@ export const STATUS_PICK = [
   { id: "planned", label: "Planned", tone: "aw-status--warn" },
   { id: "brief", label: "Brief ready", tone: "aw-status--warn", aliases: ["Brief"] },
   { id: "writing", label: "Writing", tone: "aw-status--warn" },
-  { id: "review", label: "In review", tone: "aw-status--warn", aliases: ["Review"] },
   { id: "published", label: "Published", tone: "aw-status--ranked" },
 ];
 export const slugify = (s: string) => s.toLowerCase().replace(/^\/+/, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -94,11 +93,8 @@ export function Difficulty({ kd }: { kd: number | null }) {
   const word = kd < 30 ? "Easy" : kd < 50 ? "Medium" : kd < 70 ? "Hard" : "Very hard";
   const color = kd < 30 ? "var(--aw-pos)" : kd < 50 ? "var(--aw-warn)" : "var(--aw-neg)";
   return (
-    <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
-      <span className="aw-num text-ink">{kd}</span>
-      <span className="text-[12px]" style={{ color }}>
-        {word}
-      </span>
+    <span className="aw-num whitespace-nowrap font-semibold" style={{ color }} title={word}>
+      {kd}
     </span>
   );
 }

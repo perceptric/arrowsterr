@@ -432,6 +432,8 @@ export function Sheet<T>({
   showFilters = true,
   label,
   toolbar,
+  tools = true,
+  counts = true,
 }: {
   /** Saves this sheet's column layout in the browser. */
   id?: string;
@@ -457,6 +459,10 @@ export function Sheet<T>({
   label: string;
   /** Extra controls at the start of the bar above the sheet, like a view switch. */
   toolbar?: React.ReactNode;
+  /** False hides the Shortcuts and Columns chips. */
+  tools?: boolean;
+  /** False hides the row count above the sheet. */
+  counts?: boolean;
 }) {
   const [sort, setSort] = useSort(initial.key, initial.desc);
   const [per, setPer] = useState(pageSize ?? 0);
@@ -936,7 +942,7 @@ export function Sheet<T>({
     <div className="flex flex-col">
       <div className="flex flex-wrap items-center gap-3 px-4 py-2 text-[12px] text-muted">
         {toolbar}
-        <span className="aw-num">{sorted.length === rows.length ? `${rows.length} rows` : `${sorted.length} of ${rows.length} rows`}</span>
+        {counts ? <span className="aw-num">{sorted.length === rows.length ? `${rows.length} rows` : `${sorted.length} of ${rows.length} rows`}</span> : null}
         {box && (box.r1 > box.r0 || box.c1 > box.c0) ? <span className="aw-num text-ink">{(box.r1 - box.r0 + 1) * (box.c1 - box.c0 + 1)} cells selected</span> : null}
         {active.length ? (
           <button
@@ -955,6 +961,7 @@ export function Sheet<T>({
             {flash}
           </span>
         ) : null}
+        {tools ? (
         <span className="ml-auto flex items-center gap-2">
           <div className="relative">
             <button type="button" className={`aw-chip aw-chip--btn ${keysOpen ? "is-on" : ""}`} onClick={() => setKeysOpen(!keysOpen)} aria-expanded={keysOpen} title="Keyboard shortcuts (Ctrl /)">
@@ -1036,6 +1043,7 @@ export function Sheet<T>({
             ) : null}
           </div>
         </span>
+        ) : null}
       </div>
       <div
         ref={wrapRef}

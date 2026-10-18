@@ -1,6 +1,8 @@
-// The keyword-to-content workflow: where a piece stands, what its Library documents show,
-// and the insights the Keyword Deep Dive draws from data already saved. Pure functions, shared by the browser and tests.
+// The Keyword Deep Dive: where a piece stands in the writer, and the insights it draws from data already saved.
+// Pure functions, shared by the browser and tests.
 import type { Brief, Serp } from "./briefTypes.ts";
+import type { BriefStatus } from "./writerBrief.ts";
+import type { DraftStatus } from "./writerDraft.ts";
 
 export const WORKFLOW = [
   { id: "planned", label: "Planned" },
@@ -13,8 +15,7 @@ export type WorkflowStep = (typeof WORKFLOW)[number]["id"];
 
 type Piece = {
   keyword: string;
-  status: "planned" | "brief" | "writing" | "review" | "published";
-  brief_status: "running" | "done" | "failed" | null;
+  status: "planned" | "brief" | "writing" | "published";
   stage: "bofu" | "mofu" | "tofu" | null;
   intent: string | null;
   difficulty: number | null;
@@ -24,39 +25,16 @@ type Piece = {
 };
 
 /**
- * Where a piece stands, from its real records: a saved brief, a saved draft, and the status a person set.
- * Review counts only once a draft exists. Published always wins.
+ * Where a piece stands, from its real records in the Agentic Writer: a brief, then a draft being written,
+ * then a finished draft waiting for review. Published, set on the Editorial Calendar or by Publish, always wins.
+ * A brief or draft that failed counts as not there.
  */
-export function workflowStep(i: Pick<Piece, "status" | "brief_status">, hasDraft: boolean): WorkflowStep {
-  if (i.status === "published") return "published";
-  if (hasDraft) return i.status === "review" ? "review" : "draft";
-  if (i.brief_status === "done") return "brief";
+export function workflowStep(status: Piece["status"], brief: { status: BriefStatus } | null, draft: { status: DraftStatus } | null): WorkflowStep {
+  if (status === "published") return "published";
+  if (draft?.status === "ready") return "review";
+  if (draft?.status === "generating") return "draft";
+  if (brief && brief.status !== "failed") return "brief";
   return "planned";
-}
-
-/** The status a piece gets when its work moves on. Never moves a piece back, and never past Review on its own. */
-export function statusAfter(current: Piece["status"], event: "brief" | "draft"): Piece["status"] {
-  const order: Piece["status"][] = ["planned", "brief", "writing", "review", "published"];
-  const next = event === "brief" ? "brief" : "writing";
-  return order.indexOf(next) > order.indexOf(current) ? next : current;
-}
-
-export type DocState = { label: string; tone: "pending" | "warn" | "ranked" | "missed" };
-
-/** The brief's state in the Library. */
-export function briefState(i: Pick<Piece, "brief_status">): DocState {
-  if (i.brief_status === "done") return { label: "Ready to edit", tone: "ranked" };
-  if (i.brief_status === "running") return { label: "Generating", tone: "warn" };
-  if (i.brief_status === "failed") return { label: "Failed", tone: "missed" };
-  return { label: "Not generated", tone: "pending" };
-}
-
-/** The draft's state in the Library. */
-export function draftState(i: Pick<Piece, "status">, draft: { words: number } | null): DocState {
-  if (!draft) return { label: "Not generated", tone: "pending" };
-  if (i.status === "published") return { label: "Published", tone: "ranked" };
-  if (i.status === "review") return { label: "In review", tone: "warn" };
-  return { label: draft.words ? "Draft" : "Empty", tone: "warn" };
 }
 
 export type Insight = { id: "intent" | "serp" | "type" | "gap" | "related"; title: string; text: string };
@@ -134,16 +112,4 @@ export function recommendations(i: Piece, serp: Serp | null, brief: Brief | null
   for (const tip of brief?.brief.aiTips ?? []) out.push(tip);
   out.push("Link to related pages on your site.");
   return uniq(out).slice(0, 6);
-}
-
-/** Keep only the tags a draft uses. Scripts, styles, classes and event handlers go. */
-export function cleanDraftHtml(raw: string): string {
-  const t = raw.replace(/```(?:html)?/g, "");
-  const start = t.search(/<(h1|h2|p|ul|ol|table)\b/i);
-  return (start >= 0 ? t.slice(start) : t)
-    .replace(/<(script|style|iframe|object|embed)[^>]*>[\s\S]*?<\/\1>/gi, "")
-    .replace(/<(script|style|iframe|object|embed)[^>]*\/?>/gi, "")
-    .replace(/\s(on\w+|class|style|id)="[^"]*"/gi, "")
-    .replace(/href="\s*javascript:[^"]*"/gi, 'href="#"')
-    .trim();
 }

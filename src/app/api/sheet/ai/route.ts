@@ -26,7 +26,7 @@ async function handle(request: Request) {
     kind === "plan"
       ? `- {"op":"select","ids":[...]} ticks rows so the user can review them.
 - {"op":"approve","ids":[...]} adds rows to the content calendar.`
-      : `- {"op":"update","ids":[...],"set":{...}} changes rows. Fields: status ("planned", "brief", "writing", "review", "published"), due_date ("YYYY-MM-DD" or null), owner, stage ("bofu", "mofu", "tofu"), theme, notes, keyword${custom.length ? `, and these custom columns by id: ${custom.map((c: { id: string; name: string }) => `${c.id} (${String(c.name).slice(0, 40)})`).join(", ")}` : ""}. Use one update per row when rows get different values, like dates.
+      : `- {"op":"update","ids":[...],"set":{...}} changes rows. Fields: status ("planned", "brief", "writing", "published"), due_date ("YYYY-MM-DD" or null), owner, stage ("bofu", "mofu", "tofu"), theme, notes, keyword${custom.length ? `, and these custom columns by id: ${custom.map((c: { id: string; name: string }) => `${c.id} (${String(c.name).slice(0, 40)})`).join(", ")}` : ""}. Use one update per row when rows get different values, like dates.
 - {"op":"delete","ids":[...]} removes rows.
 - {"op":"add","keywords":["..."]} adds new keywords.
 - {"op":"select","ids":[...]} ticks rows so the user can review them.`;

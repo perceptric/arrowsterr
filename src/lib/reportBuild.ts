@@ -139,7 +139,7 @@ export async function buildClientReport(input: BuildInput): Promise<Built> {
     content: items
       ? {
           published: list.filter((i) => i.status === "published" && inRange(i.due_date)).length,
-          writing: list.filter((i) => i.status === "writing" || i.status === "review").length,
+          writing: list.filter((i) => i.status === "writing").length,
           briefs: list.filter((i) => i.status === "brief").length,
           planned: list.filter((i) => i.status === "planned").length,
           pages: contentRows({ items: list, citedPaths: chats.length ? citedPathsOf(chats, brand.domain) : null, traffic: tr, visitors }),
