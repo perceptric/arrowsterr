@@ -1,0 +1,521 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   ARROWSTERR PRODUCT UI · v8, Twenty's design system (docs/ui-twenty.md)
+   Loaded last, so it wins over brand.css, brand-v2.css, twenty.css and
+   brand-v5.css. Every value is a Twenty token: Inter at 13px, near-mono
+   greys, indigo blue (#3E63DD) for the one next action, 4px controls,
+   8px panels, 16px modals, pill tags, hairline borders, faint shadows only
+   on floating layers. Source: twentyhq/twenty packages/twenty-ui/src/theme.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ─────────────── 1. Twenty tokens ─────────────── */
+:root, [data-theme="light"] {
+  --accent-3: #EDF2FE; --accent-5: #D2DEFF; --accent-9: #3E63DD; --accent-10: #3358D4; --accent-11: #3A5BC7;
+  --bg-primary: #FFFFFF; --bg-secondary: #FCFCFC; --bg-tertiary: #F1F1F1; --bg-quaternary: #EBEBEB;
+  --bg-inverted: #333333; --bg-danger: #FEEBEC; --overlay: rgba(0, 0, 0, 0.72);
+  --text-primary: #333333; --text-secondary: #666666; --text-tertiary: #999999; --text-light: #B3B3B3;
+  --text-extra-light: #CCCCCC; --text-inverted: #FFFFFF; --text-on-accent: #FFFFFF; --text-danger: #E5484D;
+  --border-strong: #D6D6D6; --border-medium: #EBEBEB; --border-light: #F1F1F1; --border-blue: #ABBDF9; --border-danger: #FFCDCE;
+  --status-success: #12A594; --status-error: #E5484D; --status-warning: #F76A15; --status-info: #3E63DD;
+  --status-success-bg: #00A43319; --status-error-bg: #F3000D14; --status-warning-bg: #FF9C0029; --status-info-bg: #0047F112;
+  --red-3: #FEEBEC; --red-9: #E5484D; --red-11: #CE2C31;
+  --orange-3: #FFEFD6; --orange-9: #F76A15; --orange-11: #D14E00;
+  --yellow-3: #FFFAB8; --yellow-9: #FFEA00; --yellow-11: #A06E00;
+  --green-3: #E6F6EB; --green-9: #30A46C; --green-11: #00824D;
+  --turquoise-3: #E0F8F3; --turquoise-9: #12A594; --turquoise-11: #00826D;
+  --sky-3: #E1F6FD; --sky-9: #7CE2FE; --sky-11: #00749E;
+  --blue-3: #EDF2FE; --blue-9: #3E63DD; --blue-11: #3A5BC7;
+  --purple-3: #F7EDFD; --purple-9: #8E4EC6; --purple-11: #8145B5;
+  --pink-3: #FEE9F6; --pink-9: #D6409F; --pink-11: #C2298A;
+  --gray-3: #F9F9F9; --gray-9: #999999; --gray-11: #666666;
+  --shadow-light: 0px 2px 4px 0px rgba(0, 0, 0, 0.04), 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+  --shadow-strong: 2px 4px 16px 0px rgba(0, 0, 0, 0.16), 0px 2px 4px 0px rgba(0, 0, 0, 0.08);
+  --shadow-super-heavy: 0px 0px 8px 0px rgba(0, 0, 0, 0.16), 0px 8px 64px -16px rgba(0, 0, 0, 0.48), 0px 24px 56px -16px rgba(0, 0, 0, 0.08);
+  --shadow-bottom-panel: 0px 0px 20px 0px rgba(0, 0, 0, 0.1);
+  --shadow-underline: 0px 1px 0px 0px rgba(0, 0, 0, 0.36);
+}
+[data-theme="dark"] {
+  --accent-3: #182449; --accent-5: #253974; --accent-10: #5472E4; --accent-11: #9DB1FF;
+  --bg-primary: #171717; --bg-secondary: #1B1B1B; --bg-tertiary: #1D1D1D; --bg-quaternary: #222222;
+  --bg-inverted: #EBEBEB; --bg-danger: #3B1219;
+  --text-primary: #EBEBEB; --text-secondary: #B3B3B3; --text-tertiary: #818181; --text-light: #666666;
+  --text-extra-light: #4C4C4C; --text-inverted: #171717;
+  --border-strong: #484848; --border-medium: #222222; --border-light: #1D1D1D; --border-blue: #3A4F97; --border-danger: #611623;
+  --status-success-bg: #11FF992D;
+  --red-3: #3B1219; --red-11: #FF8A88; --orange-3: #331E0B; --orange-11: #FF9B52;
+  --yellow-3: #2C2305; --yellow-11: #F5E147; --green-3: #132D21; --green-11: #3DD68C;
+  --turquoise-3: #0D2D2A; --turquoise-11: #0AD8B6; --sky-3: #112840; --sky-11: #75C7F0;
+  --blue-3: #182449; --blue-11: #9DB1FF; --purple-3: #2F1C3B; --purple-11: #D59CFF;
+  --pink-3: #37172F; --pink-11: #FF80CA; --gray-3: #191919; --gray-9: #818181; --gray-11: #B3B3B3;
+  --shadow-super-heavy: 2px 4px 16px 0px rgba(0, 0, 0, 0.12), 0px 2px 4px 0px rgba(0, 0, 0, 0.04);
+  --shadow-underline: 0px 1px 0px 0px rgba(0, 0, 0, 0.32);
+}
+:root {
+  --font-sans: var(--font-inter), Inter, system-ui, sans-serif;
+  --font-mono: var(--font-dm-mono), "DM Mono", ui-monospace, monospace;
+  --space-0_5: 2px; --space-1: 4px; --space-1_5: 6px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+  --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px; --space-12: 48px; --space-16: 64px;
+  --radius-xs: 2px; --radius-sm: 4px; --radius-md: 8px; --radius-lg: 16px; --radius-xl: 20px;
+  --radius-xxl: 40px; --radius-pill: 999px; --radius-rounded: 100%;
+  --icon-sm: 14px; --icon-md: 16px; --icon-lg: 20px; --icon-xl: 24px;
+  --duration-instant: 75ms; --duration-fast: 150ms; --duration-normal: 300ms; --duration-slow: 1.5s;
+  --sidebar-width: 220px; --side-panel-width: 500px; --header-height: 48px; --row-height: 32px;
+}
+
+/* ─────────────── 2. Arrowsterr tokens point at Twenty's ───────────────
+   Tailwind colors (bg-brand, text-ink, border-rule...) read these, so every
+   screen follows without touching its markup. */
+:root .aw {
+  --aw-font: var(--font-sans);
+  --aw-read: var(--font-sans);
+  --aw-display: var(--font-sans);
+  --aw-mono: var(--font-sans);
+
+  --aw-brand: var(--accent-9);
+  --aw-brand-deep: var(--accent-10);
+  --aw-brand-lift: var(--accent-11);
+  --aw-brand-bg: var(--accent-3);
+  --aw-brand-pale: var(--accent-3);
+  --aw-brand-mist: var(--accent-5);
+  --aw-brand-glow: var(--accent-5);
+  --aw-tick: var(--accent-9);
+  --aw-sky: var(--accent-9);
+  --aw-night: var(--text-primary);
+  --aw-spark: var(--orange-9);
+  --aw-spark-tint: var(--orange-3);
+
+  --aw-ink: var(--text-primary);
+  --aw-ink-hover: var(--text-primary);
+  --aw-body: var(--text-secondary);
+  --aw-muted: var(--text-secondary);
+  --aw-faint: var(--text-light);
+  --aw-on-dark: var(--text-inverted);
+
+  --aw-paper: var(--bg-secondary);
+  --aw-surface: var(--bg-primary);
+  --aw-surface-2: var(--bg-tertiary);
+  --aw-surface-3: var(--bg-quaternary);
+  --aw-dark: var(--bg-inverted);
+  --aw-dark-2: var(--bg-inverted);
+  --aw-rule: var(--border-medium);
+  --aw-rule-faint: var(--border-light);
+  --aw-rule-strong: var(--border-strong);
+
+  --aw-pos: var(--green-11);
+  --aw-pos-bg: var(--green-3);
+  --aw-pos-rule: var(--green-3);
+  --aw-neg: var(--red-11);
+  --aw-neg-bg: var(--red-3);
+  --aw-neg-rule: var(--border-danger);
+  --aw-warn: var(--orange-11);
+  --aw-warn-bg: var(--orange-3);
+  --aw-warn-rule: var(--orange-3);
+
+  --aw-r-xs: var(--radius-xs);
+  --aw-r-sm: var(--radius-sm);
+  --aw-r-md: var(--radius-md);
+  --aw-r-lg: var(--radius-md);
+  --aw-r-pill: var(--radius-pill);
+  --aw-shadow-xs: none;
+  --aw-shadow-sm: none;
+  --aw-shadow-control: none;
+  --aw-shadow-md: var(--shadow-strong);
+  --aw-shadow-lg: var(--shadow-strong);
+  --aw-ring: 0 0 0 3px var(--accent-5);
+
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  -webkit-font-smoothing: antialiased;
+}
+html, body { background: var(--bg-secondary); }
+
+/* ─────────────── 3. Type: Inter only, 400 to 600, no tracking ─────────────── */
+:root .aw, :root .aw h1, :root .aw h2, :root .aw h3, :root .aw h4, :root .aw h5, :root .aw h6, :root .aw button, :root .aw input, :root .aw textarea, :root .aw select { font-family: var(--font-sans); letter-spacing: 0; }
+:root .aw .aw-hero, :root .aw .aw-display, :root .aw .aw-intro__title, :root .aw .aw-onb__title {
+  font-family: var(--font-sans) !important; font-size: 24px !important; line-height: 1.1 !important; font-weight: 600 !important; letter-spacing: 0 !important; color: var(--text-primary) !important;
+}
+:root .aw .aw-h1, :root .aw .aw-h2 { font-family: var(--font-sans) !important; font-size: 20px !important; line-height: 1.1 !important; font-weight: 600 !important; letter-spacing: 0 !important; color: var(--text-primary) !important; }
+:root .aw .aw-h3 { font-family: var(--font-sans) !important; font-size: 16px !important; line-height: 1.1 !important; font-weight: 600 !important; letter-spacing: 0 !important; color: var(--text-primary) !important; }
+:root .aw .aw-h4 { font-family: var(--font-sans) !important; font-size: 13px !important; line-height: 1.5 !important; font-weight: 600 !important; letter-spacing: 0 !important; color: var(--text-primary) !important; }
+:root .aw .aw-lede, :root .aw .aw-lg { font-size: 13px !important; line-height: 1.5 !important; color: var(--text-secondary) !important; }
+:root .aw .aw-text { font-size: 13px !important; color: var(--text-primary); }
+:root .aw .aw-small, :root .aw .aw-sm { font-size: 12px !important; color: var(--text-secondary) !important; }
+:root .aw .aw-micro, :root .aw .aw-eyebrow, :root .aw .aw-onb__kicker, :root .aw .aw-intro__n {
+  font-family: var(--font-sans) !important; font-size: 11px !important; font-weight: 500 !important; letter-spacing: 0 !important; text-transform: none !important; color: var(--text-secondary) !important;
+}
+:root .aw .aw-label, :root .aw label > .aw-label { font-family: var(--font-sans) !important; font-size: 12px !important; font-weight: 500 !important; line-height: 1.1 !important; letter-spacing: 0 !important; text-transform: none !important; color: var(--text-secondary) !important; }
+:root .aw .aw-label--brand { color: var(--accent-11) !important; }
+:root .aw .aw-num, :root .aw .aw-stat__num, :root .aw .aw-kpi__num, :root .aw .aw-rank { font-family: var(--font-sans) !important; font-variant-numeric: tabular-nums; letter-spacing: 0 !important; }
+:root .aw .aw-mono, :root .aw code, :root .aw kbd, :root .aw .font-mono { font-family: var(--font-mono) !important; letter-spacing: 0 !important; }
+:root .aw code { font-size: 12px; background: var(--bg-tertiary); border-radius: var(--radius-xs); padding: 0 var(--space-1); }
+:root .aw strong, :root .aw b, :root .aw .font-bold, :root .aw .font-extrabold, :root .aw .font-black { font-weight: 600 !important; }
+:root .aw .uppercase:not(svg) { text-transform: none !important; letter-spacing: 0 !important; }
+:root .aw .text-ink { color: var(--text-primary) !important; }
+:root .aw .text-body { color: var(--text-secondary) !important; }
+:root .aw .text-muted { color: var(--text-secondary) !important; }
+
+/* Links and focus */
+:root .aw a, :root .aw a:link, :root .aw a:visited { color: var(--accent-11) !important; text-decoration: none; }
+:root .aw a:hover { color: var(--accent-11) !important; text-decoration: underline; }
+:root .aw .aw-text-link, :root .aw a.aw-text-link:link, :root .aw a.aw-text-link:visited {
+  color: var(--accent-11) !important; font-weight: 500 !important; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: none;
+}
+:root .aw .aw-text-link:hover { text-decoration: underline; }
+:root .aw :focus-visible { outline: 2px solid var(--border-blue) !important; outline-offset: 1px !important; }
+
+/* Icons: Tabler-weight strokes */
+:root .aw .aw-icon, :root .aw .tw-icon { width: var(--icon-md); height: var(--icon-md); flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ─────────────── 4. Buttons ───────────────
+   32px (24px small), 12px medium label, 4px corners, no notch, no lift.
+   Primary blue for the one next action; secondary white with a hairline;
+   tertiary has no fill until hover; danger is red on a red tint.
+   Disabled turns grey instead of fading. */
+:root .aw .aw-btn, :root .aw a.aw-btn, :root .aw a.aw-btn:link, :root .aw a.aw-btn:visited {
+  display: inline-flex !important; align-items: center !important; justify-content: center; gap: var(--space-1_5) !important;
+  height: 32px !important; min-height: 32px !important; padding: 0 var(--space-3) !important;
+  font-family: var(--font-sans) !important; font-size: 12px !important; font-weight: 500 !important; line-height: 1 !important; letter-spacing: 0 !important; text-transform: none !important;
+  border: 1px solid transparent !important; border-radius: var(--radius-sm) !important; box-shadow: none !important;
+  clip-path: none !important; transform: none !important; text-decoration: none !important;
+  cursor: pointer; white-space: nowrap; transition: background 0.1s ease, border-color 0.1s ease, color 0.1s ease !important;
+}
+:root .aw .aw-btn::before, :root .aw .aw-btn::after { display: none !important; }
+:root .aw .aw-btn:hover, :root .aw .aw-btn:active { transform: none !important; box-shadow: none !important; }
+:root .aw .aw-btn svg { width: var(--icon-md); height: var(--icon-md); }
+
+:root .aw .aw-btn--primary, :root .aw .aw-btn--accent, :root .aw .aw-btn--brand, :root .aw a.aw-btn--primary:link, :root .aw a.aw-btn--primary:visited, :root .aw a.aw-btn--accent:link, :root .aw a.aw-btn--accent:visited {
+  background: var(--accent-9) !important; color: var(--text-on-accent) !important; border-color: var(--accent-9) !important;
+}
+:root .aw .aw-btn--primary:hover, :root .aw .aw-btn--accent:hover, :root .aw .aw-btn--brand:hover { background: var(--accent-10) !important; border-color: var(--accent-10) !important; color: var(--text-on-accent) !important; }
+
+:root .aw .aw-btn--secondary, :root .aw a.aw-btn--secondary:link, :root .aw a.aw-btn--secondary:visited, :root .aw .aw-ctl {
+  background: var(--bg-primary) !important; color: var(--text-secondary) !important; border-color: var(--border-medium) !important;
+}
+:root .aw .aw-btn--secondary:hover, :root .aw .aw-ctl:hover { background: var(--bg-tertiary) !important; color: var(--text-primary) !important; }
+:root .aw .aw-btn--secondary:active { background: var(--bg-quaternary) !important; }
+
+:root .aw .aw-btn--ghost, :root .aw .aw-btn--tertiary, :root .aw .aw-btn--text {
+  background: transparent !important; color: var(--text-secondary) !important; border-color: transparent !important;
+}
+:root .aw .aw-btn--ghost:hover, :root .aw .aw-btn--tertiary:hover, :root .aw .aw-btn--text:hover { background: var(--bg-tertiary) !important; color: var(--text-primary) !important; }
+
+:root .aw .aw-btn--danger, :root .aw .aw-btn.bg-neg\!, :root .aw .aw-btn--primary.bg-neg\! { background: var(--bg-danger) !important; color: var(--red-11) !important; border-color: var(--border-danger) !important; }
+:root .aw .aw-btn--danger:hover, :root .aw .aw-btn.bg-neg\!:hover { background: var(--red-3) !important; color: var(--red-11) !important; }
+
+:root .aw .aw-btn--sm { height: 24px !important; min-height: 24px !important; padding: 0 var(--space-2) !important; }
+:root .aw .aw-btn--lg { height: 32px !important; min-height: 32px !important; padding: 0 var(--space-4) !important; font-size: 13px !important; }
+:root .aw .aw-btn--block { width: 100%; }
+:root .aw .aw-btn:disabled, :root .aw .aw-btn[aria-disabled="true"] {
+  opacity: 1 !important; color: var(--text-light) !important; background: var(--bg-tertiary) !important; border-color: transparent !important; cursor: not-allowed !important;
+}
+
+/* Icon-only buttons: tertiary, square */
+:root .aw .aw-iconbtn, :root .aw .aw-icon-btn, :root .aw .aw-nav-toggle, :root .aw .aw-rail__btn {
+  display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0;
+  border: 0 !important; border-radius: var(--radius-sm) !important; background: transparent !important; color: var(--text-secondary) !important;
+  box-shadow: none !important; cursor: pointer; transition: background 0.1s ease, color 0.1s ease;
+}
+:root .aw .aw-icon-btn, :root .aw .aw-nav-toggle { width: 24px; height: 24px; }
+:root .aw .aw-iconbtn:hover, :root .aw .aw-icon-btn:hover, :root .aw .aw-nav-toggle:hover, :root .aw .aw-rail__btn:hover { background: var(--bg-tertiary) !important; color: var(--text-primary) !important; }
+:root .aw .aw-iconbtn[aria-pressed="true"], :root .aw .aw-rail__btn.is-on { background: var(--bg-quaternary) !important; color: var(--text-primary) !important; }
+:root .aw .aw-iconbtn svg, :root .aw .aw-icon-btn svg { width: var(--icon-md); height: var(--icon-md); }
+
+/* Editor toolbar tools */
+:root .aw .aw-tool { min-width: 24px; height: 24px; padding: 0 var(--space-1_5); border: 0 !important; border-radius: var(--radius-sm) !important; background: transparent !important; color: var(--text-secondary) !important; font-size: 12px !important; font-weight: 500 !important; }
+:root .aw .aw-tool:hover { background: var(--bg-tertiary) !important; color: var(--text-primary) !important; }
+:root .aw .aw-tool.is-on, :root .aw .aw-tool[aria-pressed="true"] { background: var(--accent-3) !important; color: var(--accent-11) !important; }
+
+/* ─────────────── 5. Inputs ───────────────
+   32px, grey fill, hairline border. Hover darkens the border; focus turns
+   the field white with a blue border and a soft blue halo. */
+:root .aw .aw-input, :root .aw .aw-textarea, :root .aw .aw-select, :root .aw .aw-dropdown--field, :root .aw .aw-pop__field, :root .aw .aw-pop__search,
+:root .aw input:is([type="text"], [type="email"], [type="url"], [type="search"], [type="password"], [type="number"], [type="tel"], [type="date"], [type="time"], :not([type])):not(.aw-sheet__input):not(.aw-docs__title):not(.tw-bare),
+:root .aw textarea:not(.aw-sheet__input):not(.tw-bare), :root .aw select {
+  min-height: 32px; padding: 0 var(--space-2); font-family: var(--font-sans) !important; font-size: 13px !important; color: var(--text-primary) !important;
+  background: var(--bg-tertiary) !important; border: 1px solid var(--border-medium) !important; border-radius: var(--radius-sm) !important; box-shadow: none !important;
+  transition: background 0.1s ease, border-color 0.1s ease, box-shadow 0.1s ease;
+}
+:root .aw .aw-textarea, :root .aw textarea:not(.aw-sheet__input):not(.tw-bare) { padding: var(--space-2) !important; line-height: 1.5 !important; }
+:root .aw input::placeholder, :root .aw textarea::placeholder { color: var(--text-tertiary) !important; }
+:root .aw .aw-input:hover, :root .aw .aw-textarea:hover, :root .aw .aw-dropdown--field:hover,
+:root .aw input:is([type="text"], [type="email"], [type="url"], [type="search"], [type="password"], [type="number"], [type="tel"], [type="date"], :not([type])):not(.aw-sheet__input):not(.aw-docs__title):not(.tw-bare):hover,
+:root .aw textarea:not(.aw-sheet__input):not(.tw-bare):hover { border-color: var(--border-strong) !important; }
+:root .aw .aw-input:focus, :root .aw .aw-textarea:focus, :root .aw .aw-select:focus, :root .aw .aw-pop__field:focus, :root .aw .aw-pop__search:focus,
+:root .aw input:is([type="text"], [type="email"], [type="url"], [type="search"], [type="password"], [type="number"], [type="tel"], [type="date"], :not([type])):not(.aw-sheet__input):not(.aw-docs__title):not(.tw-bare):focus,
+:root .aw textarea:not(.aw-sheet__input):not(.tw-bare):focus, :root .aw select:focus {
+  outline: none !important; background: var(--bg-primary) !important; border-color: var(--accent-9) !important; box-shadow: 0 0 0 3px var(--accent-5) !important;
+}
+:root .aw input:disabled, :root .aw textarea:disabled, :root .aw select:disabled, :root .aw .aw-input:disabled { color: var(--text-light) !important; background: var(--bg-tertiary) !important; border-color: var(--border-light) !important; cursor: not-allowed; }
+:root .aw input[aria-invalid="true"], :root .aw textarea[aria-invalid="true"] { border-color: var(--border-danger) !important; }
+:root .aw .aw-input--hero, :root .aw .aw-input--lg { min-height: 40px; font-size: 13px !important; }
+
+/* Picker buttons that look like fields */
+:root .aw .aw-dropdown, :root .aw .aw-dropdown--field, :root .aw .aw-dropdown--sm {
+  display: inline-flex; align-items: center; justify-content: space-between; gap: var(--space-1_5); height: 32px; padding: 0 var(--space-2) !important;
+  border-radius: var(--radius-sm) !important; font-size: 13px !important; color: var(--text-primary) !important; cursor: pointer;
+}
+:root .aw .aw-dropdown--sm { height: 24px; }
+:root .aw .aw-dropdown__chev { color: var(--text-tertiary); }
+
+/* Checkboxes: 14px, blue when on */
+:root .aw input[type="checkbox"] { accent-color: var(--accent-9); border-radius: var(--radius-xs); }
+:root .aw input[type="checkbox"]:checked { background-color: var(--accent-9) !important; border-color: var(--accent-9) !important; }
+
+/* Toggle: a small pill switch */
+:root .aw .aw-toggle {
+  appearance: none; width: 28px !important; height: 16px !important; margin: 0; padding: 0; border: 0 !important;
+  border-radius: var(--radius-pill) !important; background: var(--border-strong) !important; position: relative; cursor: pointer; transition: background 0.15s ease;
+}
+:root .aw .aw-toggle::after { content: ""; position: absolute; top: 2px !important; left: 2px !important; width: 12px !important; height: 12px !important; border: 0 !important; border-radius: var(--radius-rounded) !important; background: #FFFFFF !important; transition: transform 0.15s ease, left 0s; }
+:root .aw .aw-toggle.is-on, :root .aw .aw-toggle[aria-checked="true"] { background: var(--accent-9) !important; }
+:root .aw .aw-toggle.is-on::after, :root .aw .aw-toggle[aria-checked="true"]::after { left: 2px !important; transform: translateX(12px); }
+
+/* ─────────────── 6. Tags ───────────────
+   20px pills, 12px medium, step 3 fill with step 11 text. */
+:root .aw .aw-chip, :root .aw .aw-status, :root .aw .aw-sbadge, :root .aw .aw-badge, :root .aw .aw-tag, :root .aw .aw-pill, :root .aw .aw-pri, :root .aw .aw-engine {
+  display: inline-flex !important; align-items: center; gap: var(--space-1); height: 20px !important; padding: 0 var(--space-2) !important;
+  font-family: var(--font-sans) !important; font-size: 12px !important; font-weight: 500 !important; line-height: 1 !important; letter-spacing: 0 !important; text-transform: none !important;
+  border: 0 !important; border-radius: var(--radius-pill) !important; box-shadow: none !important; white-space: nowrap;
+  background: var(--gray-3) !important; color: var(--gray-11) !important;
+}
+:root .aw .aw-status--pending { background: var(--gray-3) !important; color: var(--gray-11) !important; box-shadow: inset 0 0 0 1px var(--border-medium) !important; }
+:root .aw .aw-status--ranked, :root .aw .aw-sbadge--success { background: var(--green-3) !important; color: var(--green-11) !important; }
+:root .aw .aw-status--missed, :root .aw .aw-sbadge--danger { background: var(--red-3) !important; color: var(--red-11) !important; }
+:root .aw .aw-status--warn, :root .aw .aw-sbadge--warning { background: var(--orange-3) !important; color: var(--orange-11) !important; }
+:root .aw .aw-chip--brand, :root .aw .aw-badge, :root .aw .aw-status--info { background: var(--blue-3) !important; color: var(--blue-11) !important; }
+:root .aw .aw-chip--btn { background: var(--bg-primary) !important; color: var(--text-secondary) !important; box-shadow: inset 0 0 0 1px var(--border-medium) !important; cursor: pointer; transition: background 0.1s ease; }
+:root .aw .aw-chip--btn:hover { background: var(--bg-tertiary) !important; color: var(--text-primary) !important; }
+:root .aw .aw-chip--btn.is-on, :root .aw .aw-chip--btn[aria-pressed="true"] { background: var(--accent-3) !important; color: var(--accent-11) !important; box-shadow: inset 0 0 0 1px var(--border-blue) !important; }
+:root .aw .aw-rank { color: var(--text-primary) !important; font-weight: 500 !important; }
+
+/* ─────────────── 7. Surfaces ───────────────
+   Panels and cards: white, 8px, hairline border, no shadow in the page flow. */
+:root .aw .aw-frame, :root .aw .aw-card, :root .aw .aw-stats, :root .aw .aw-table-wrap, :root .aw .aw-kpi, :root .aw .aw-card-stat, :root .aw .aw-intro__card, :root .aw .aw-tile {
+  background: var(--bg-primary) !important; border: 1px solid var(--border-medium) !important; border-radius: var(--radius-md) !important; box-shadow: none !important;
+}
+:root .aw .aw-frame::before, :root .aw .aw-frame::after { display: none !important; }
+:root .aw .aw-frame__head { min-height: 40px; padding: var(--space-2) var(--space-3) !important; border-bottom: 1px solid var(--border-medium) !important; font-size: 13px; font-weight: 500; }
+:root .aw .aw-frame__body { padding: var(--space-4) !important; }
+:root .aw .aw-frame__foot { border-top: 1px solid var(--border-medium) !important; }
+:root .aw .aw-stat { padding: var(--space-3) var(--space-4) !important; }
+:root .aw .aw-stat__lab { font-size: 12px !important; font-weight: 500 !important; color: var(--text-secondary) !important; text-transform: none !important; letter-spacing: 0 !important; }
+:root .aw .aw-stat__num { font-size: 20px !important; line-height: 1.1 !important; font-weight: 600 !important; color: var(--text-primary) !important; }
+
+/* Notes and errors: tinted bars, no borders, never shouting */
+:root .aw .aw-callout { background: var(--bg-tertiary) !important; color: var(--text-secondary) !important; border: 0 !important; border-radius: var(--radius-sm) !important; padding: var(--space-2) var(--space-3) !important; font-size: 13px !important; box-shadow: none !important; }
+:root .aw .aw-callout--warn { background: var(--orange-3) !important; color: var(--orange-11) !important; }
+:root .aw .aw-error { background: var(--bg-danger) !important; color: var(--red-11) !important; border: 1px solid var(--border-danger) !important; border-radius: var(--radius-sm) !important; padding: var(--space-2) var(--space-3) !important; font-size: 13px !important; box-shadow: none !important; }
+
+/* Progress bars */
+:root .aw .aw-progress, :root .aw .aw-taskbar__track { height: 4px !important; border-radius: var(--radius-pill) !important; background: var(--bg-quaternary) !important; overflow: hidden; }
+:root .aw .aw-progress__fill, :root .aw .aw-taskbar__fill { border-radius: var(--radius-pill) !important; background: var(--accent-9) !important; }
+:root .aw .aw-taskbar__fill.is-low { background: var(--red-9) !important; }
+
+/* ─────────────── 8. Tables and the sheet ───────────────
+   32px rows, 8px cell padding, grey 500 headers, hairline grid, grey row hover,
+   blue tint on selected rows. */
+:root .aw .aw-table, :root .aw .aw-sheet table { width: 100%; border-collapse: collapse; font-size: 13px; }
+:root .aw .aw-table th, :root .aw .aw-sheet thead th, :root .aw table thead th {
+  height: 32px !important; padding: 0 var(--space-2) !important; text-align: left;
+  font-family: var(--font-sans) !important; font-size: 13px !important; font-weight: 500 !important; letter-spacing: 0 !important; text-transform: none !important; color: var(--text-secondary) !important;
+  background: var(--bg-primary) !important; border-bottom: 1px solid var(--border-medium) !important; border-right: 1px solid var(--border-light) !important; white-space: nowrap;
+}
+:root .aw .aw-table td, :root .aw .aw-sheet tbody td, :root .aw table tbody td {
+  height: 32px; padding: 0 var(--space-2) !important; font-size: 13px !important; color: var(--text-primary);
+  border-bottom: 1px solid var(--border-light) !important; border-right: 1px solid var(--border-light) !important;
+}
+:root .aw .aw-table th:last-child, :root .aw .aw-table td:last-child, :root .aw table th:last-child, :root .aw table td:last-child { border-right: 0 !important; }
+:root .aw .aw-table tbody tr:hover > td, :root .aw .aw-sheet tbody tr:hover > td, :root .aw table tbody tr:hover > td { background: var(--bg-tertiary) !important; }
+:root .aw tr[aria-selected="true"] > td, :root .aw .aw-sheet tr.is-picked > td, :root .aw .aw-table tr.is-you > td { background: var(--accent-3) !important; }
+:root .aw .aw-table--compact th, :root .aw .aw-table--dense th, :root .aw .aw-table--tight th { height: 32px !important; font-size: 12px !important; }
+:root .aw .aw-table--compact td, :root .aw .aw-table--dense td, :root .aw .aw-table--tight td { height: 32px; padding: var(--space-1) var(--space-2) !important; }
+:root .aw .aw-sheet td.aw-sheet__n, :root .aw .aw-sheet th.aw-sheet__n { width: 32px; background: var(--bg-primary) !important; color: var(--text-tertiary) !important; font-size: 12px !important; text-align: center; }
+:root .aw .aw-sheet__input { font-family: var(--font-sans) !important; font-size: 13px !important; border: 0 !important; outline: 2px solid var(--accent-9) !important; outline-offset: -2px; border-radius: 0 !important; box-shadow: none !important; background: var(--bg-primary) !important; }
+:root .aw .aw-cellpick__caret { color: var(--text-tertiary); }
+:root .aw .aw-sort__arrow { color: var(--text-tertiary); }
+:root .aw .aw-sheet__flash { background: var(--accent-3) !important; }
+:root .aw .bg-surface-2 > td { background: var(--bg-secondary) !important; }
+
+/* ─────────────── 9. Tabs and segmented switches ───────────────
+   Text tabs on a hairline; the picked one is primary text with a 1px underline. */
+:root .aw .aw-tabs, :root .aw .aw-seg {
+  display: inline-flex !important; align-items: stretch; gap: var(--space-4) !important; flex-wrap: wrap;
+  padding: 0 !important; border: 0 !important; border-radius: 0 !important; background: none !important;
+  box-shadow: inset 0 -1px 0 var(--border-medium) !important;
+}
+:root .aw .aw-tabs > button, :root .aw .aw-seg > button, :root .aw .aw-seg button {
+  position: relative; display: inline-flex; align-items: center; gap: var(--space-1_5);
+  height: 40px !important; min-height: 40px !important; padding: 0 var(--space-1) !important; margin: 0;
+  border: 0 !important; border-radius: 0 !important; background: none !important; box-shadow: none !important;
+  font-size: 13px !important; font-weight: 500 !important; color: var(--text-secondary) !important; cursor: pointer; transition: color 0.1s ease;
+}
+:root .aw .aw-tabs > button:hover, :root .aw .aw-seg > button:hover { color: var(--text-primary) !important; }
+:root .aw .aw-tabs > button[aria-selected="true"], :root .aw .aw-seg > button.is-on, :root .aw .aw-seg > button[aria-selected="true"], :root .aw .aw-seg button.is-on { color: var(--text-primary) !important; box-shadow: none !important; }
+:root .aw .aw-tabs > button[aria-selected="true"]::after, :root .aw .aw-seg > button.is-on::after, :root .aw .aw-seg > button[aria-selected="true"]::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px !important; background: var(--text-primary) !important;
+}
+:root .aw .aw-viewbar { min-height: 40px; padding: var(--space-1) var(--space-2); border-bottom: 1px solid var(--border-medium) !important; }
+:root .aw .aw-viewbtn { height: 24px; padding: 0 var(--space-2); border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; color: var(--text-secondary); background: transparent; transition: background 0.1s ease; }
+:root .aw .aw-viewbtn:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+:root .aw .aw-viewbtn.is-on, :root .aw .aw-viewbtn[aria-pressed="true"] { background: var(--bg-quaternary); color: var(--text-primary); }
+
+/* ─────────────── 10. Menus and pop-ups ───────────────
+   8px, hairline, strong shadow, 32px items with 4px corners. */
+:root .aw .aw-pop { background: var(--bg-primary) !important; border: 1px solid var(--border-medium) !important; border-radius: var(--radius-md) !important; box-shadow: var(--shadow-strong) !important; padding: var(--space-1) !important; }
+:root .aw .aw-pop__list { display: flex; flex-direction: column; gap: var(--space-0_5); }
+:root .aw .aw-pop__item, :root .aw .aw-pop__opt {
+  display: flex; align-items: center; gap: var(--space-2); width: 100%; min-height: 32px; margin: 0 !important; padding: 0 var(--space-2) !important;
+  border: 0; border-radius: var(--radius-sm) !important; background: transparent; font-size: 13px !important; font-weight: 400; color: var(--text-primary) !important; text-align: left; cursor: pointer; transition: background 0.1s ease;
+}
+:root .aw .aw-pop__item:hover, :root .aw .aw-pop__opt:hover, :root .aw .aw-pop__opt.is-hot { background: var(--bg-tertiary) !important; }
+:root .aw .aw-pop__opt[aria-selected="true"], :root .aw .aw-pop__item.is-on { background: var(--bg-quaternary) !important; font-weight: 500; }
+:root .aw .aw-pop__check { color: var(--accent-9); }
+:root .aw .aw-pop__day[aria-selected="true"], :root .aw .aw-pop__day.is-on { background: var(--accent-9) !important; color: var(--text-on-accent) !important; border-radius: var(--radius-sm) !important; }
+
+/* Tooltips: dark glass */
+:root .aw .aw-tip, :root .aw .tw-tooltip {
+  max-width: 240px; padding: var(--space-1) var(--space-2) !important; border-radius: var(--radius-sm) !important; background: var(--overlay) !important; color: #FFFFFF !important;
+  font-family: var(--font-sans) !important; font-size: 12px !important; line-height: 1.5 !important; letter-spacing: 0 !important; text-transform: none !important;
+  backdrop-filter: blur(12px) saturate(200%); box-shadow: none !important;
+}
+:root .aw .aw-tip span { color: #FFFFFF !important; }
+
+/* Snack bars (the undo and done notes at the bottom) */
+:root .aw .aw-undo, :root .aw .tw-snack {
+  display: flex; align-items: center; gap: var(--space-3); max-width: 400px; padding: var(--space-3) !important;
+  border: 0 !important; border-radius: var(--radius-md) !important; color: var(--text-primary) !important; font-size: 13px !important;
+  background: var(--bg-primary) !important; box-shadow: var(--shadow-strong) !important;
+  background-image: linear-gradient(var(--status-info-bg), var(--status-info-bg)) !important;
+}
+:root .aw .aw-undo button { height: 24px; padding: 0 var(--space-2); border: 1px solid var(--border-medium); border-radius: var(--radius-sm); background: var(--bg-primary); color: var(--text-secondary); font-size: 12px; font-weight: 500; cursor: pointer; }
+:root .aw .aw-undo button:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+
+/* ─────────────── 11. Modals and the side panel ─────────────── */
+:root .aw .tw-overlay { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: var(--space-4); background: var(--overlay); }
+:root .aw .tw-modal {
+  display: flex; flex-direction: column; gap: var(--space-4); width: 400px; max-width: 100%; max-height: 90vh; overflow-y: auto;
+  padding: var(--space-6); background: var(--bg-primary); border: 0; border-radius: var(--radius-lg); box-shadow: var(--shadow-super-heavy);
+}
+:root .aw .tw-modal--sm { width: 300px; } :root .aw .tw-modal--compact { width: 360px; } :root .aw .tw-modal--md { width: 560px; } :root .aw .tw-modal--lg { width: min(53%, 960px); min-width: min(100%, 560px); }
+:root .aw .tw-modal__title { margin: 0; font-size: 16px; font-weight: 600; line-height: 1.1; color: var(--text-primary); }
+:root .aw .tw-modal__body { margin: 0; color: var(--text-secondary); font-size: 13px; }
+:root .aw .tw-modal__actions { display: flex; justify-content: flex-end; gap: var(--space-2); }
+
+:root .aw .tw-side-overlay { position: fixed; inset: 0; z-index: 50; display: flex; justify-content: flex-end; background: transparent; }
+:root .aw .tw-side-panel {
+  display: flex; flex-direction: column; width: 100%; height: 100%; overflow-y: auto;
+  background: var(--bg-primary); box-shadow: var(--shadow-strong);
+}
+@media (min-width: 768px) {
+  :root .aw .tw-side-panel { width: min(var(--side-wide, 960px), calc(100% - 236px)); height: calc(100% - 16px); margin: var(--space-2); border: 1px solid var(--border-medium); border-radius: var(--radius-md); }
+  :root .aw .tw-side-panel--narrow { --side-wide: 720px; }
+}
+:root .aw .tw-side-panel__bar { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); min-height: 48px; padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4); border-bottom: 1px solid var(--border-medium); background: var(--bg-primary); }
+:root .aw .tw-side-panel__title { display: flex; min-width: 0; flex-direction: column; gap: var(--space-0_5); }
+:root .aw .tw-side-panel__title h2 { margin: 0; font-size: 16px; font-weight: 600; line-height: 1.1; color: var(--text-primary); overflow-wrap: anywhere; }
+:root .aw .tw-side-panel__body { display: flex; flex-direction: column; gap: var(--space-6); padding: var(--space-4); }
+:root .aw .aw-side-panel { background: var(--bg-primary) !important; box-shadow: var(--shadow-strong) !important; border-color: var(--border-medium) !important; border-radius: var(--radius-md) !important; }
+:root .aw .aw-side-panel__bar { min-height: 48px !important; border-bottom: 1px solid var(--border-medium) !important; }
+
+/* ─────────────── 12. App shell ───────────────
+   220px sidebar on the canvas grey; the page floats in a white panel 8px
+   from the edges; a 48px header with the breadcrumb on the left. */
+:root .aw .aw-sidebar, :root .aw .aw-rail { background: var(--bg-secondary) !important; border: 0 !important; box-shadow: none !important; }
+:root .aw .aw-nav-section {
+  height: auto !important; margin-top: var(--space-2) !important; padding: var(--space-4) var(--space-2) var(--space-1) !important;
+  font-size: 11px !important; font-weight: 500 !important; color: var(--text-secondary) !important; text-transform: none !important; letter-spacing: 0 !important;
+}
+:root .aw .aw-nav-section:hover { color: var(--text-primary) !important; background: transparent !important; }
+:root .aw .aw-nav-link, :root .aw .aw-mod, :root .aw .aw-mod--sm, :root .aw .aw-mod__item {
+  display: flex; align-items: center; gap: var(--space-2) !important; width: 100%; height: 32px !important; min-height: 32px !important; padding: 0 var(--space-2) !important;
+  border: 0 !important; border-radius: var(--radius-sm) !important; background: transparent !important; box-shadow: none !important;
+  font-size: 13px !important; font-weight: 400 !important; color: var(--text-secondary) !important; text-align: left; text-decoration: none !important; transition: background 0.1s ease;
+}
+:root .aw .aw-nav-link:hover, :root .aw .aw-mod:hover, :root .aw .aw-mod__item:hover { background: var(--bg-tertiary) !important; color: var(--text-secondary) !important; }
+:root .aw .aw-nav-link.is-on, :root .aw .aw-nav-link[aria-current="page"], :root .aw .aw-mod.is-on, :root .aw .aw-mod--sm.is-on, :root .aw .aw-mod__item.is-on {
+  background: var(--bg-tertiary) !important; color: var(--text-primary) !important; font-weight: 500 !important;
+}
+:root .aw .aw-mod__item.is-on::before { display: none !important; }
+:root .aw .aw-nav-link .aw-nav__icon, :root .aw .aw-nav__icon { width: var(--icon-md) !important; height: var(--icon-md) !important; color: var(--text-secondary) !important; stroke-width: 2 !important; }
+:root .aw .aw-nav-link.is-on .aw-nav__icon, :root .aw .aw-nav-link[aria-current="page"] .aw-nav__icon { color: var(--text-primary) !important; }
+:root .aw .aw-ws-switch { height: 32px; padding: 0 var(--space-2); border-radius: var(--radius-sm); font-weight: 500 !important; color: var(--text-primary) !important; transition: background 0.1s ease; }
+:root .aw .aw-ws-switch:hover { background: var(--bg-tertiary) !important; }
+:root .aw .aw-taskbar { gap: var(--space-1_5) !important; padding: var(--space-2) !important; border-radius: var(--radius-sm) !important; }
+:root .aw .aw-taskbar:hover { background: var(--bg-tertiary) !important; }
+
+:root .aw .aw-page-head { min-height: 48px !important; padding: var(--space-2) var(--space-1) !important; gap: var(--space-2) !important; }
+:root .aw .aw-page-title { font-size: 13px !important; font-weight: 500 !important; color: var(--text-primary) !important; gap: var(--space-1) !important; }
+:root .aw .aw-page-title__group { color: var(--text-secondary) !important; font-weight: 400 !important; }
+:root .aw .aw-page-title__sep { color: var(--text-light) !important; }
+:root .aw .aw-page-body { background: var(--bg-primary) !important; }
+@media (min-width: 768px) {
+  :root .aw .aw-page-body { border: 1px solid var(--border-medium) !important; border-radius: var(--radius-md) !important; }
+}
+:root .aw .aw-live { font-size: 12px !important; color: var(--text-secondary) !important; }
+
+/* ─────────────── 13. Tool intros and empty states ─────────────── */
+:root .aw .aw-intro { gap: var(--space-6) !important; }
+:root .aw .aw-intro__lead { font-size: 13px !important; line-height: 1.5 !important; color: var(--text-secondary) !important; }
+:root .aw .aw-intro__t { font-size: 13px !important; line-height: 1.5 !important; font-weight: 600 !important; color: var(--text-primary) !important; }
+:root .aw .aw-intro__x { font-size: 13px !important; color: var(--text-secondary) !important; }
+:root .aw .aw-intro__vis { background: var(--bg-secondary) !important; border-bottom: 1px solid var(--border-medium) !important; }
+:root .aw .aw-try { height: 24px; padding: 0 var(--space-2); border: 1px solid var(--border-medium) !important; border-radius: var(--radius-pill) !important; background: var(--bg-primary) !important; color: var(--text-secondary) !important; font-size: 12px !important; font-weight: 500 !important; cursor: pointer; }
+:root .aw .aw-try:hover { background: var(--bg-tertiary) !important; color: var(--text-primary) !important; }
+:root .aw .aw-dotgrid, :root .aw .tw-canvas { background-color: var(--bg-secondary); background-image: radial-gradient(var(--border-strong) 1px, transparent 1px) !important; background-size: 16px 16px !important; }
+
+/* ─────────────── 14. Thinking, loaders and the writer ─────────────── */
+:root .aw .aw-think__icon { color: var(--accent-9) !important; }
+:root .aw .aw-think__bar { background: var(--accent-9) !important; }
+:root .aw .aw-shimmer { background: linear-gradient(90deg, var(--bg-tertiary), var(--bg-quaternary), var(--bg-tertiary)) !important; background-size: 200% 100%; animation-duration: var(--duration-slow) !important; }
+:root .aw .aw-docs__bar, :root .aw .aw-docs__briefbar { background: var(--bg-primary) !important; border-color: var(--border-medium) !important; }
+:root .aw .aw-docs__desk { background: var(--bg-secondary) !important; }
+:root .aw .aw-docs__page { border-color: var(--border-medium) !important; box-shadow: var(--shadow-light) !important; }
+
+/* Charts follow the accent */
+:root .aw .aw-chart-bar--hl, :root .aw .aw-chart-area { fill: var(--accent-9); }
+:root .aw .aw-chart-line, :root .aw .aw-chart-dot { stroke: var(--accent-9); }
+:root .aw .aw-chart-dot--end { fill: var(--accent-9); }
+:root .aw .aw-chart-label { font-family: var(--font-sans) !important; letter-spacing: 0 !important; text-transform: none !important; font-size: 11px; fill: var(--text-secondary); }
+
+/* ─────────────── 15. Twenty component classes for new markup ─────────────── */
+:root .aw .tw-btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-1_5); height: 32px; padding: 0 var(--space-3); font: 500 12px/1 var(--font-sans); border: 1px solid transparent; border-radius: var(--radius-sm); cursor: pointer; white-space: nowrap; transition: background 0.1s ease, border-color 0.1s ease; }
+:root .aw .tw-btn--primary { background: var(--accent-9); color: var(--text-on-accent); }
+:root .aw .tw-btn--primary:hover { background: var(--accent-10); }
+:root .aw .tw-btn--secondary { background: var(--bg-primary); color: var(--text-secondary); border-color: var(--border-medium); }
+:root .aw .tw-btn--secondary:hover { background: var(--bg-tertiary); }
+:root .aw .tw-btn--tertiary { background: transparent; color: var(--text-secondary); }
+:root .aw .tw-btn--tertiary:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+:root .aw .tw-btn--danger { background: var(--bg-danger); color: var(--red-11); border-color: var(--border-danger); }
+:root .aw .tw-btn--sm { height: 24px; padding: 0 var(--space-2); }
+:root .aw .tw-btn--icon { width: 32px; padding: 0; }
+:root .aw .tw-btn:disabled { color: var(--text-light); background: var(--bg-tertiary); border-color: transparent; cursor: not-allowed; }
+:root .aw .tw-tag { display: inline-flex; align-items: center; gap: var(--space-1); height: 20px; padding: 0 var(--space-2); font: 500 12px/1 var(--font-sans); border-radius: var(--radius-pill); background: var(--gray-3); color: var(--gray-11); }
+:root .aw .tw-tag--red { background: var(--red-3); color: var(--red-11); }
+:root .aw .tw-tag--orange { background: var(--orange-3); color: var(--orange-11); }
+:root .aw .tw-tag--yellow { background: var(--yellow-3); color: var(--yellow-11); }
+:root .aw .tw-tag--green { background: var(--green-3); color: var(--green-11); }
+:root .aw .tw-tag--turquoise { background: var(--turquoise-3); color: var(--turquoise-11); }
+:root .aw .tw-tag--sky { background: var(--sky-3); color: var(--sky-11); }
+:root .aw .tw-tag--blue { background: var(--blue-3); color: var(--blue-11); }
+:root .aw .tw-tag--purple { background: var(--purple-3); color: var(--purple-11); }
+:root .aw .tw-tag--pink { background: var(--pink-3); color: var(--pink-11); }
+:root .aw .tw-tag--square { border-radius: var(--radius-sm); height: 18px; padding: 0 var(--space-1); }
+:root .aw .tw-card { background: var(--bg-primary); border: 1px solid var(--border-medium); border-radius: var(--radius-md); padding: var(--space-3); box-shadow: var(--shadow-light); }
+:root .aw .tw-field { display: flex; flex-direction: column; gap: var(--space-1_5); }
+:root .aw .tw-field__label { font-size: 12px; font-weight: 500; color: var(--text-secondary); }
+:root .aw .tw-field__hint { font-size: 11px; color: var(--text-secondary); }
+:root .aw .tw-field__error { font-size: 11px; color: var(--red-11); }
+:root .aw .tw-breadcrumb { display: flex; align-items: center; gap: var(--space-1); color: var(--text-secondary); }
+:root .aw .tw-breadcrumb [aria-current="page"] { color: var(--text-primary); font-weight: 500; }
+
+/* Squircle corners where the browser draws them, as Twenty ships */
+@supports (corner-shape: squircle) {
+  :root { --radius-xs: 4px; --radius-sm: 8px; --radius-md: 16px; --radius-lg: 32px; --radius-xl: 40px; --radius-xxl: 80px; }
+  :root .aw *, :root .aw *::before, :root .aw *::after { corner-shape: var(--corner-shape, superellipse(2.2)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root .aw .aw-btn, :root .aw .tw-btn, :root .aw .aw-toggle, :root .aw .aw-toggle::after, :root .aw .aw-nav-link, :root .aw .aw-pop__opt, :root .aw .aw-pop__item { transition: none !important; }
+}

@@ -1,30 +1,20 @@
-# Product UI in the style of Twenty
+# Product UI: Twenty's design system
 
-The app follows Twenty's light theme (packages/twenty-ui/src/theme in twentyhq/twenty), with Arrowsterr's logo and blue. All of it lives in `src/app/twenty.css`, loaded after `brand.css` and `brand-v2.css`.
+The app follows Twenty's design system (twentyhq/twenty, `packages/twenty-ui/src/theme`) with Arrowsterr's logo. It all lives in `src/app/twenty-ui.css`, loaded last, so it wins over `brand.css`, `brand-v2.css`, `twenty.css` and `brand-v5.css`. Every value is a Twenty token. The `--aw-*` tokens and the Tailwind colors point at them, so screens follow without markup changes.
 
 ## The rules
-- **Type:** Inter at 13px. Headings are 600 weight with no negative tracking. Numbers use tabular figures.
-- **Greys:**
-  - Text: #333, #666, #999 and #B3B3B3.
-  - Lines: #EBEBEB and #F1F1F1.
-  - Page: #FCFCFC.
-  - Hover: black at 4%.
-- **Blue:** Arrowsterr Blue (#0943B0), only on the one main button of a view and on the selected nav icon.
-- **Shapes:**
-  - 4px corners on buttons, inputs and tags, 8px on panels.
-  - No shadows on cards. One shadow for menus and the side panel.
-- **Shell:**
-  - The sidebar sits on the page grey, with the workspace switcher on top and sections that fold.
-  - On a phone the sidebar folds into a menu button.
-  - The page header shows "Section / Page" and the pickers.
-  - The page itself is a white panel with a hairline border.
-- **Tables:** 32px rows, grey header labels, hairline grid lines.
-- **Tags:** 20px high, 4px corners.
-- **Side panel:**
-  - A record opens on the right, over the page: `.aw-side-panel` with an `.aw-side-panel__bar`.
-  - Prompts use it now.
-- **Views:**
-  - `.aw-viewbar` and `.aw-viewbtn` switch a list between views.
+- **Type:** Inter only, 13px body, weights 400 to 600, no tracking, no all-caps. DM Mono for code. Display 24px, title 20px (`aw-h2`), heading 16px (`aw-h3`), `aw-h4` 13px semibold, labels 12px medium.
+- **Color:** about 90% grey. Indigo blue `accent-9` (#3E63DD) marks the one next action, links and focus. Status and tags pair step 3 fills with step 11 text.
+- **Buttons:** 32px (24px small), 12px medium, 4px corners. Primary blue, secondary white with a hairline, ghost with no fill until hover, danger red on a red tint. Disabled turns grey. Icon buttons are 32px with no fill until hover.
+- **Inputs:** 32px, grey fill and hairline. Hover darkens the border; focus turns white with a blue border and a 3px soft blue halo.
+- **Tags:** 20px pills, 12px medium.
+- **Surfaces:** white panels and cards, 8px corners, hairline border, no shadow in the page flow. Menus 8px with a strong shadow; modals 16px on a dark overlay; the side panel floats 8px from the edges.
+- **Tables:** 32px rows, 8px padding, grey medium headers, hairline grid, grey row hover, blue tint on selected rows.
+- **Shell:** 220px sidebar on the canvas grey; nav items 32px, grey, the current one on a grey fill with primary text; the page sits in a white panel with a 48px breadcrumb header.
+- **Tabs:** text tabs on a hairline; the picked one is primary text with a 1px underline.
+- **Motion:** `background 0.1s ease` on clickable fills, off under reduced motion.
+- **New markup** can use Twenty's own classes: `tw-btn`, `tw-tag`, `tw-card`, `tw-field`, `tw-modal`, `tw-side-panel`, `tw-tooltip`, `tw-snack`.
+- **Dark theme:** the tokens carry dark values under `data-theme="dark"`. Nothing switches it on yet.
 
 ## Running cost
-None. This is styling only: no new servers or paid services, so the Beta (50 teams) and Growth (500 teams) totals stay $0.
+None. This is styling only, with one free Google font (DM Mono). Beta (50 teams): $0. Growth (500 teams): $0.
