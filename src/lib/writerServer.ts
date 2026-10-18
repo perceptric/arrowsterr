@@ -21,11 +21,25 @@ const must = <T>(r: { data: T; error: { message: string } | null }) => {
 };
 const stamp = () => new Date().toISOString();
 
+/**
+ * Keep the Editorial Calendar's status in step with the writer: a finished brief moves a planned piece to Brief ready,
+ * a finished draft moves it to Writing. Never moves a piece back, and never past Writing on its own.
+ */
+async function advanceItem(db: SupabaseClient, table: "writer_briefs" | "writer_drafts", id: string) {
+  const row = must(await db.from(table).select("item_id").eq("id", id).maybeSingle()) as { item_id: string } | null;
+  if (!row) return;
+  const [to, from] = table === "writer_briefs" ? ["brief", ["planned"]] : ["writing", ["planned", "brief"]];
+  await db.from("calendar_items").update({ status: to }).eq("id", row.item_id).in("status", from);
+}
+
 // ─────────────── stores ───────────────
 export function briefStore(db: SupabaseClient): BriefStore {
   return {
     brief: async (id) => must(await db.from("writer_briefs").select("*").eq("id", id).maybeSingle()) as BriefRow | null,
-    update: async (id, patch) => void must(await db.from("writer_briefs").update({ ...patch, updated_at: stamp() }).eq("id", id)),
+    update: async (id, patch) => {
+      must(await db.from("writer_briefs").update({ ...patch, updated_at: stamp() }).eq("id", id));
+      if (patch.status === "ready") await advanceItem(db, "writer_briefs", id);
+    },
   };
 }
 
@@ -33,7 +47,10 @@ export function draftStore(db: SupabaseClient): DraftStore {
   return {
     draft: async (id) => must(await db.from("writer_drafts").select("*").eq("id", id).maybeSingle()) as DraftRow | null,
     brief: briefStore(db).brief,
-    update: async (id, patch) => void must(await db.from("writer_drafts").update({ ...patch, updated_at: stamp() }).eq("id", id)),
+    update: async (id, patch) => {
+      must(await db.from("writer_drafts").update({ ...patch, updated_at: stamp() }).eq("id", id));
+      if (patch.status === "ready") await advanceItem(db, "writer_drafts", id);
+    },
     async saveDoc(d, doc, at) {
       type DocRow = { id: string; meta: Record<string, unknown> | null };
       let mine: DocRow | null = null;

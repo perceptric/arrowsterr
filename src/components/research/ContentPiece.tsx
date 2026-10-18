@@ -29,6 +29,7 @@ export const STATUSES: { id: CalendarStatus; label: string }[] = [
   { id: "planned", label: "Planned" },
   { id: "brief", label: "Brief ready" },
   { id: "writing", label: "Writing" },
+  { id: "review", label: "In review" },
   { id: "published", label: "Published" },
 ];
 

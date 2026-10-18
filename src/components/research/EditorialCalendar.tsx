@@ -80,13 +80,13 @@ const icon = (d: React.ReactNode) => (
 );
 const AiIconSmall = () => icon(<path d="M12 3c.6 4.6 1.9 5.9 6.5 6.5-4.6.6-5.9 1.9-6.5 6.5-.6-4.6-1.9-5.9-6.5-6.5C10.1 8.9 11.4 7.6 12 3Z" />);
 
-/** A piece's place in the Agentic Writer: the In writer tag once imported, otherwise the import button. */
+/** A piece's place in the Library: the In Library tag once imported, otherwise the import button. */
 export function WriterAction({ item, canEdit, onImport }: { item: CalendarItem; canEdit: boolean; onImport: () => void }) {
-  if (inWriterAt(item)) return <span className="aw-chip aw-chip--brand whitespace-nowrap">In writer</span>;
+  if (inWriterAt(item)) return <span className="aw-chip aw-chip--brand whitespace-nowrap">In Library</span>;
   if (item.status === "published" || !canEdit) return <span className="text-muted">–</span>;
   return (
     <button type="button" className="aw-chip aw-chip--btn whitespace-nowrap" onClick={onImport}>
-      Import to Agentic Writer
+      Import to Library
     </button>
   );
 }
@@ -94,7 +94,7 @@ export function WriterAction({ item, canEdit, onImport }: { item: CalendarItem; 
 /**
  * The Editorial Calendar: every piece of the Content Plan as a list (a sheet edited like a spreadsheet), a month or
  * a week. In the calendar views every unscheduled piece waits in the sidebar to be dragged onto a day, and
- * Auto-schedule gives them all dates at a set pace. Import to Agentic Writer hands a piece to the writer.
+ * Auto-schedule gives them all dates at a set pace. Import to Library hands a piece to the Library, where its brief and draft are made.
  */
 export function EditorialCalendar({
   sb,
@@ -168,7 +168,7 @@ export function EditorialCalendar({
   if (!items) return <Thinking text="Loading your editorial calendar..." />;
 
   const remove = (ids: string[]) => removeItems(ids, () => setPicked(new Set()));
-  /** Import to Agentic Writer, or the plans page when this workspace has no writer. */
+  /** Import to Library, or the plans page when this workspace has no writer. */
   const toWriter = (ids: string[]) => (writer && !writer.open ? writer.onUpgrade?.() : importToWriter(ids));
 
   async function build() {
@@ -237,10 +237,10 @@ export function EditorialCalendar({
   const ed = <E,>(x: E) => (canEdit ? x : undefined);
   const writerCol: Col<CalendarItem> = {
     id: "writer",
-    label: "Agentic Writer",
+    label: "Library",
     type: "list",
-    value: (i) => (inWriterAt(i) ? "In writer" : ""),
-    options: ["In writer"],
+    value: (i) => (inWriterAt(i) ? "In Library" : ""),
+    options: ["In Library"],
     width: 190,
     cell: (i) => <WriterAction item={i} canEdit={canEdit} onImport={() => toWriter([i.id])} />,
   };
@@ -471,6 +471,7 @@ export function EditorialCalendar({
           onRemove={() => removeItems([openItem.id], back)}
           onBack={back}
           onImport={() => importToWriter([openItem.id])}
+          onRefresh={load}
         />
         {toast}
       </>
@@ -497,7 +498,7 @@ export function EditorialCalendar({
           {picked.size && canEdit ? (
             <div className="flex flex-wrap items-center gap-3 border-b border-rule-faint bg-brand-pale px-5 py-2.5">
               <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => toWriter([...picked])}>
-                Import to Agentic Writer
+                Import to Library
               </button>
               <Dropdown<CalendarStatus | ""> label="Set status" value="" placeholder="Set status" onChange={(st) => st && [...picked].forEach((id) => patch(id, { status: st }))} className={FIELD} options={STATUSES.map((s) => ({ id: s.id, label: s.label }))} />
               <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => remove([...picked])}>

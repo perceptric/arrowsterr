@@ -10,37 +10,40 @@ import type { RunAuth } from "@/lib/runner";
 import { useStash } from "@/lib/stash";
 import { currentSupabase } from "@/lib/supa";
 import type { View } from "@/lib/view";
-import { getBrief, getDraft, listLibrary, type FullBrief, type FullDraft, type LibraryRow } from "@/lib/writerLibrary";
+import { getBrief, getDraft, listTopics, type FullBrief, type FullDraft, type Topic } from "@/lib/writerLibrary";
 import type { BrandGuideline } from "@/lib/writerTypes";
 import { PlainEditor, type SaveState } from "../content/PlainEditor";
 import { Pop } from "../Pickers";
 import { PublishPanel } from "../research/PublishPanel";
+import { post, STATUS_PICK, statusLabel } from "../research/shared";
 import { brandTables } from "../research/Writer";
 import { exportClean } from "../research/writerNodes";
 import { Sheet, type Col } from "../Sheet";
 import { ToolIntro } from "../ToolIntro";
 import { Thinking } from "../ui";
+import { BriefEditor } from "./BriefEditor";
 import { DraftProgress, libraryKey, RegenerateDialog, StateTag, useBrandSite, usePoll, type LibraryOpen } from "./parts";
-import { WriterBriefView } from "./WriterBriefView";
 
-// The Library: every brief and draft of the brand. A brief opens read-only; a draft opens in the plain editor,
+// The Library: every keyword imported from the Editorial Calendar, with its brief and draft.
+// Generate Brief and Generate Draft start here. A finished brief opens editable; a draft opens in the plain editor,
 // with its interactive modules running in sandboxed frames, Export and Publish.
 
-const day = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-const STATE: Record<string, string> = { Generating: "generating", Ready: "ready", Approved: "approved", Failed: "failed" };
+const making = (t: Topic) => t.brief?.status === "generating" || t.draft?.status === "generating";
+const done = (s: string | undefined) => s === "ready" || s === "approved";
 
 export function LibraryPage({ view, auth, canEdit }: { view: View; auth: RunAuth; canEdit: boolean }) {
   const [sb] = useState(() => currentSupabase());
   const brand = view.brand;
   const { site, error: siteError } = useBrandSite(sb, brand, canEdit);
-  const [rows, setRows] = useStash<LibraryRow[] | null>(`library:${brand.id}:rows`, null);
+  const [rows, setRows] = useStash<Topic[] | null>(`library:${brand.id}:topics`, null);
   const [open, setOpen] = useStash<LibraryOpen>(libraryKey(brand.id), null);
+  const [busy, setBusy] = useState<Set<string>>(new Set());
   const [error, setError] = useState("");
 
   const load = useCallback(async () => {
     if (!site) return;
     try {
-      setRows(await listLibrary(sb, site.id));
+      setRows(await listTopics(sb, site.id));
       setError("");
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -52,19 +55,88 @@ export function LibraryPage({ view, auth, canEdit }: { view: View; auth: RunAuth
     // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
   }, [load]);
-  usePoll(Boolean(!open && rows?.some((r) => r.status === "Generating")), 6000, load);
+  usePoll(Boolean(!open && rows?.some(making)), 5000, load);
 
-  const cols = useMemo<Col<LibraryRow>[]>(
-    () => [
-      { id: "kind", label: "Type", type: "list", width: 90, value: (r) => r.kind, cell: (r) => <span className={`aw-status ${r.kind === "Draft" ? "aw-status--ranked" : "aw-status--pending"}`}>{r.kind}</span> },
-      { id: "title", label: "Title", type: "text", width: 340, value: (r) => r.title, cell: (r) => <span className="font-medium text-ink">{r.title}</span> },
-      { id: "keyword", label: "Keyword", type: "text", width: 220, value: (r) => r.keyword },
-      { id: "status", label: "Status", type: "list", width: 120, value: (r) => r.status, cell: (r) => <StateTag status={STATE[r.status] ?? r.status} /> },
-      { id: "words", label: "Words", type: "number", width: 90, value: (r) => r.words },
-      { id: "updated", label: "Updated", type: "date", width: 130, value: (r) => r.updated_at.slice(0, 10), cell: (r) => day(r.updated_at) },
-    ],
-    [],
+  /** Generate Brief or Generate Draft for one topic. Generate Draft approves the brief on the way (the server does it). */
+  const act = useCallback(
+    async (t: Topic, kind: "brief" | "draft") => {
+      setError("");
+      setBusy((b) => new Set(b).add(`${t.id}:${kind}`));
+      try {
+        await post(auth, "/api/agentic-writer", kind === "brief" ? { action: "brief", itemId: t.id } : { action: "draft", briefId: t.brief?.id });
+        await load();
+      } catch (e) {
+        setError(e instanceof Error ? e.message : String(e));
+      } finally {
+        setBusy((b) => {
+          const n = new Set(b);
+          n.delete(`${t.id}:${kind}`);
+          return n;
+        });
+      }
+    },
+    [auth, load],
   );
+
+  const cols = useMemo<Col<Topic>[]>(() => {
+    const stop = (e: React.SyntheticEvent) => e.stopPropagation();
+    const btn = (label: string, run: () => void, working: boolean) => (
+      <button type="button" className="aw-btn aw-btn--primary aw-btn--sm whitespace-nowrap" disabled={working} onMouseDown={stop} onClick={(e) => (stop(e), run())}>
+        {working ? "Starting..." : label}
+      </button>
+    );
+    const link = (label: string, run: () => void) => (
+      <button type="button" className="aw-text-link whitespace-nowrap" onMouseDown={stop} onClick={(e) => (stop(e), run())}>
+        {label}
+      </button>
+    );
+    return [
+      { id: "title", label: "Title", type: "text", width: 320, value: (t) => t.brief?.title || t.keyword, cell: (t) => <span className="font-medium text-ink">{t.brief?.title || t.keyword}</span> },
+      { id: "keyword", label: "Keyword", type: "text", width: 220, value: (t) => t.keyword },
+      {
+        id: "status",
+        label: "Status",
+        type: "list",
+        width: 130,
+        value: (t) => statusLabel(t),
+        cell: (t) => <span className={`aw-status ${STATUS_PICK.find((x) => x.label === statusLabel(t))?.tone ?? "aw-status--pending"}`}>{statusLabel(t)}</span>,
+      },
+      {
+        id: "brief",
+        label: "Brief",
+        type: "list",
+        width: 150,
+        value: (t) => t.brief?.status ?? "",
+        cell: (t) =>
+          done(t.brief?.status) ? (
+            link("View Brief", () => setOpen({ kind: "brief", id: t.brief!.id }))
+          ) : t.brief?.status === "generating" ? (
+            <StateTag status="generating" />
+          ) : canEdit ? (
+            btn(t.brief?.status === "failed" ? "Retry Brief" : "Generate Brief", () => act(t, "brief"), busy.has(`${t.id}:brief`))
+          ) : (
+            <span className="text-muted">–</span>
+          ),
+      },
+      {
+        id: "draft",
+        label: "Draft",
+        type: "list",
+        width: 150,
+        value: (t) => t.draft?.status ?? "",
+        cell: (t) =>
+          t.draft?.status === "ready" ? (
+            link("View Draft", () => setOpen({ kind: "draft", id: t.draft!.id }))
+          ) : t.draft?.status === "generating" ? (
+            link("Writing...", () => setOpen({ kind: "draft", id: t.draft!.id }))
+          ) : canEdit && done(t.brief?.status) ? (
+            btn(t.draft?.status === "failed" ? "Retry Draft" : "Generate Draft", () => act(t, "draft"), busy.has(`${t.id}:draft`))
+          ) : (
+            <span className="text-muted">–</span>
+          ),
+      },
+    ];
+  }, [canEdit, busy, act, setOpen]);
 
   if (site === undefined || (site && rows === null)) return <Thinking text="Opening the Library..." />;
   if (!site) return <p className="aw-error">{siteError || "This brand has no website yet."}</p>;
@@ -73,7 +145,7 @@ export function LibraryPage({ view, auth, canEdit }: { view: View; auth: RunAuth
     setOpen(null);
     load();
   };
-  if (open?.kind === "brief") return <BriefOnly key={open.id} sb={sb} id={open.id} onBack={back} />;
+  if (open?.kind === "brief") return <BriefEditor key={open.id} sb={sb} auth={auth} id={open.id} canEdit={canEdit} onBack={back} onDraft={(id) => setOpen({ kind: "draft", id })} />;
   if (open?.kind === "draft") return <DraftView key={open.id} sb={sb} auth={auth} site={site} id={open.id} canEdit={canEdit} onBack={back} />;
 
   const list = rows ?? [];
@@ -82,19 +154,26 @@ export function LibraryPage({ view, auth, canEdit }: { view: View; auth: RunAuth
       <h1 className="aw-h2">Library</h1>
       {error ? <p className="aw-error">{error}</p> : null}
       {list.length ? (
-        <Sheet<LibraryRow>
-          id={`library:${site.id}`}
+        <Sheet<Topic>
+          id={`library:${site.id}:topics`}
           label="Library"
           rows={list}
           cols={cols}
-          rowKey={(r) => r.key}
-          sort={{ key: "updated", desc: true }}
-          onOpen={(r) => setOpen({ kind: r.kind === "Brief" ? "brief" : "draft", id: r.id })}
+          rowKey={(t) => t.id}
+          onOpen={(t) => (t.draft?.status === "ready" ? setOpen({ kind: "draft", id: t.draft.id }) : done(t.brief?.status) ? setOpen({ kind: "brief", id: t.brief!.id }) : undefined)}
           height="calc(100vh - 210px)"
           tools={false}
         />
       ) : (
-        <ToolIntro title="Library" lead={`Every brief and draft the Agentic Writer makes for ${brand.name} lands here. Open a draft to edit it, export it or publish it to ${brand.name}'s site.`} />
+        <ToolIntro
+          title="Library"
+          lead={`Import keywords from the Editorial Calendar. For each one, Arrowsterr researches Google and the AI answers, writes a brief you can edit, then writes the draft in ${brand.name}'s voice.`}
+          features={[
+            { title: "Brief", text: "Outline, sources, FAQs, internal links and the modules to build, from the top pages and the AI answers." },
+            { title: "Edit", text: "Change the plan, the outline and the FAQs before the draft is written." },
+            { title: "Draft", text: "Written section by section, every claim checked against the sources, with interactive modules in your brand." },
+          ]}
+        />
       )}
     </div>
   );
@@ -110,31 +189,6 @@ function Back({ onBack, title, children }: { onBack: () => void; title: string; 
         <span className="truncate text-[15px] font-medium text-ink">{title}</span>
       </span>
       {children ? <span className="flex flex-wrap items-center gap-2">{children}</span> : null}
-    </div>
-  );
-}
-
-/** A brief, read-only. */
-function BriefOnly({ sb, id, onBack }: { sb: SupabaseClient; id: string; onBack: () => void }) {
-  const [brief, setBrief] = useState<FullBrief | null | undefined>(undefined);
-  useEffect(() => {
-    let live = true;
-    getBrief(sb, id)
-      .then((b) => live && setBrief(b))
-      .catch(() => live && setBrief(null));
-    return () => {
-      live = false;
-    };
-  }, [sb, id]);
-  if (brief === undefined) return <Thinking text="Opening the brief..." />;
-  if (!brief) return <Back onBack={onBack} title="This brief was deleted." />;
-  return (
-    <div className="flex flex-col gap-5">
-      <Back onBack={onBack} title={brief.brief?.h1 || brief.keyword}>
-        <StateTag status={brief.status} />
-      </Back>
-      {brief.error ? <p className="aw-error">{brief.error}</p> : null}
-      {brief.brief ? <WriterBriefView brief={brief.brief} /> : <p className="text-[14px] text-muted">The brief is still being written.</p>}
     </div>
   );
 }

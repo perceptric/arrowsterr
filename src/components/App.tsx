@@ -63,7 +63,6 @@ import { TrafficPage } from "./TrafficPage";
 import { ReportsPage } from "./reports/ReportsPage";
 import { VisitorsPage } from "./VisitorsPage";
 import { ZippieWidget } from "./ZippieWidget";
-import { AgenticWriterPage } from "./writer/AgenticWriterPage";
 import { LibraryPage } from "./writer/LibraryPage";
 import { BrandPage } from "./BrandPage";
 import { CONTENT_ALIASES, CONTENT_SLUGS, type ContentPage } from "@/lib/contentRoutes";
@@ -880,8 +879,6 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
               }}
               onPlans={() => go("billing")}
             />
-          ) : page === "writer" ? (
-            <AgenticWriterPage key={view.brand.id} view={view} auth={auth} canEdit={canEdit} />
           ) : page === "library" ? (
             <LibraryPage key={view.brand.id} view={view} auth={auth} canEdit={canEdit} />
           ) : page === "brand" ? (
@@ -1004,7 +1001,7 @@ function NavIcon({ name }: { name: string }) {
 
 /** The toolset a page belongs to. Starter opens one of them. */
 const trackOf = (page: Page): Track | null =>
-  ["prompts", "competitors", "domains", "urls"].includes(page) ? "visibility" : ["keywords", "domain", "gap", "calendar", "writer", "library"].includes(page) ? "seo" : null;
+  ["prompts", "competitors", "domains", "urls"].includes(page) ? "visibility" : ["keywords", "domain", "gap", "calendar", "library"].includes(page) ? "seo" : null;
 
 /** The big modules of the app. Each opens to its own pages. */
 const NAV: { group: string; icon: string; items: { id: Page; label: string; icon: string; also?: Page[] }[] }[] = [
@@ -1031,7 +1028,6 @@ const NAV: { group: string; icon: string; items: { id: Page; label: string; icon
     icon: "pen",
     items: [
       { id: "calendar", label: "Editorial Calendar", icon: "calendar" },
-      { id: "writer", label: "Agentic Writer", icon: "pen" },
       { id: "library", label: "Library", icon: "book" },
       { id: "brand", label: "Brand", icon: "palette" },
     ],

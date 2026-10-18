@@ -228,7 +228,7 @@ export function PublishPanel({ sb, auth, docId, title, html, onClose }: { sb: Su
   const state = pub?.status ? STATE[pub.status] : null;
 
   return (
-    <SidePanel narrow kicker="Agentic Writer" title="Publish" onClose={onClose}>
+    <SidePanel narrow kicker="Library" title="Publish" onClose={onClose}>
       {!conns || !meta ? (
         <Thinking text="Loading..." />
       ) : (

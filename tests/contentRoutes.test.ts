@@ -4,7 +4,6 @@ import { CONTENT_ALIASES, CONTENT_SLUGS, contentPageFromPath } from "../src/lib/
 
 test("content: each page opens at its own address", () => {
   assert.equal(contentPageFromPath("/editorial-calendar"), "calendar");
-  assert.equal(contentPageFromPath("/agentic-writer"), "writer");
   assert.equal(contentPageFromPath("/library/"), "library");
   assert.equal(contentPageFromPath("/brand"), "brand");
 });
@@ -13,8 +12,10 @@ test("content: old Opportunities, Calendar and Content Plan addresses open the E
   for (const p of ["/opportunities", "/calendar", "/content-plan", "/content-calendar", "/topic-bank", "/agentic-research", "/content-intelligence"]) assert.equal(contentPageFromPath(p), "calendar", p);
 });
 
-test("content: /content opens the Library, the old Brand Voice setting opens Brand", () => {
+test("content: /content and the old Agentic Writer open the Library, the old Brand Voice setting opens Brand", () => {
   assert.equal(contentPageFromPath("/content"), "library");
+  assert.equal(contentPageFromPath("/agentic-writer"), "library");
+  assert.equal(contentPageFromPath("/writer"), "library");
   assert.equal(contentPageFromPath("/settings/brand-voice"), "brand");
 });
 
