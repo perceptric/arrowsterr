@@ -13,7 +13,9 @@ import { Decoration, DecorationSet } from "@tiptap/pm/view";
 import { EditorContent, Extension, useEditor, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { getBrief, getDocMeta, saveDoc, saveDocMeta, saveSite, type Doc, type DocMeta, type Site } from "@/lib/db";
+import { getBrief, getDocMeta, getDocVersion, listDocVersions, replaceDocContent, saveDoc, saveDocMeta, saveSite, type Doc, type DocMeta, type DocVersion, type Site } from "@/lib/db";
+import { Dropdown } from "../Pickers";
+import { Modal } from "../reports/Dialog";
 import type { RunAuth } from "@/lib/runner";
 import type { Brief } from "@/lib/briefTypes";
 import { briefGuides, briefToDoc, guideKey, type Guide } from "@/lib/writer";
@@ -22,7 +24,7 @@ import type { BrandGuideline } from "@/lib/writerTypes";
 import { AiIcon } from "../ui";
 import { bodyOf, railSections, TaskIcon, type RailSection } from "./CommentRail";
 import { PublishPanel } from "./PublishPanel";
-import { post, StopButton, stopped, Tick } from "./shared";
+import { FIELD, post, StopButton, stopped, Tick } from "./shared";
 import { brandTables, draftText, Toolbar } from "./Writer";
 import { Embed, exportClean, Note } from "./writerNodes";
 
@@ -170,6 +172,11 @@ export function DocsEditor({
   onSaved,
   importBrief = false,
   onImported,
+  fixedFull = false,
+  onBack,
+  status,
+  onStatus,
+  onPublished,
 }: {
   sb: SupabaseClient;
   auth: RunAuth;
@@ -181,10 +188,19 @@ export function DocsEditor({
   /** Import the brief into this draft as soon as it opens. The draft before it can be put back. */
   importBrief?: boolean;
   onImported?: () => void;
+  /** Always full screen, as the Library's editor. Escape and the toggle don't leave it. */
+  fixedFull?: boolean;
+  /** Back to where the draft was opened from, like the Library. */
+  onBack?: () => void;
+  /** The piece's workflow status, for a draft tied to a keyword. */
+  status?: "writing" | "review" | "published";
+  onStatus?: (s: "writing" | "review" | "published") => void;
+  onPublished?: () => void;
 }) {
   const [title, setTitle] = useState(doc.title);
   const [state, setState] = useState<"saved" | "saving" | "error">("saved");
-  const [full, setFull] = useState(false);
+  const [full, setFull] = useState(fixedFull);
+  const [versions, setVersions] = useState<DocVersion[] | null>(null);
   const [publishing, setPublishing] = useState(false);
   const [knowing, setKnowing] = useState(false);
   const [profile, setProfile] = useState(site.profile);
@@ -420,7 +436,7 @@ export function DocsEditor({
         targetRef.current = null;
         setTarget(null);
         setCard("idle");
-      } else if (full) setFull(false);
+      } else if (full && !fixedFull) setFull(false);
     };
     window.addEventListener("keydown", onKey);
     if (full) document.body.style.overflow = "hidden";
@@ -428,7 +444,29 @@ export function DocsEditor({
       window.removeEventListener("keydown", onKey);
       if (full) document.body.style.overflow = "";
     };
-  }, [full]);
+  }, [full, fixedFull]);
+
+  /** Put an older version back. The draft as it is now is saved as a version first. */
+  async function restoreVersion(v: DocVersion) {
+    if (!editor) return;
+    try {
+      const old = await getDocVersion(sb, v.id);
+      // Save what is on screen first, so the version kept is the draft exactly as it is now.
+      if (timer.current) clearTimeout(timer.current);
+      await saveDoc(sb, doc.id, { title: titleRef.current || "Untitled", content: editor.getJSON() as Record<string, unknown>, words: countWords(editor) });
+      const nextTitle = old.title || titleRef.current;
+      await replaceDocContent(sb, { id: doc.id, workspace_id: auth.workspaceId }, { title: nextTitle, content: old.content, words: old.words }, "restore");
+      editor.commands.setContent(old.content, false);
+      setTitle(nextTitle);
+      titleRef.current = nextTitle;
+      onSaved({ id: doc.id, site_id: doc.site_id, calendar_item_id: doc.calendar_item_id, title: nextTitle, words: old.words, updated_at: new Date().toISOString() });
+      setVersions(null);
+      setNote("Version restored");
+      setTimeout(() => setNote(""), 2500);
+    } catch (e) {
+      setNote(e instanceof Error ? e.message : String(e));
+    }
+  }
 
   const blockAt = (pos: number | null) => (pos === null ? null : (layout.blocks.find((b) => b.pos === pos) ?? null));
   const targetBlock = target ? blockAt(target.kind === "block" ? target.pos : (editor?.state.doc.resolve(Math.min(target.from, editor.state.doc.content.size)).before(1) ?? null)) : null;
@@ -677,13 +715,43 @@ export function DocsEditor({
             },
           )}
           {icon(
-            full ? "Exit full screen (Esc)" : "Full screen",
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-              {full ? <path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" /> : <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />}
+            "Versions",
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+              <path d="M4 12a8 8 0 1 0 2.3-5.7M4 4v3h3M12 8v4l3 2" />
             </svg>,
-            () => setFull(!full),
-            full,
+            () => {
+              setVersions([]);
+              listDocVersions(sb, doc.id).then(setVersions).catch(() => setVersions([]));
+            },
           )}
+          {fixedFull
+            ? null
+            : icon(
+                full ? "Exit full screen (Esc)" : "Full screen",
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                  {full ? <path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" /> : <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />}
+                </svg>,
+                () => setFull(!full),
+                full,
+              )}
+          {status && onStatus && canEdit ? (
+            <Dropdown
+              label="Status"
+              value={status}
+              onChange={onStatus}
+              className={`${FIELD} h-8`}
+              options={[
+                { id: "writing" as const, label: "Draft" },
+                { id: "review" as const, label: "In review" },
+                { id: "published" as const, label: "Published" },
+              ]}
+            />
+          ) : null}
+          {onBack ? (
+            <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm whitespace-nowrap" onClick={onBack}>
+              Back to Library
+            </button>
+          ) : null}
           {canEdit ? (
             <button type="button" className="aw-btn aw-btn--primary aw-btn--sm ml-1" onClick={() => setPublishing(true)}>
               Publish
@@ -816,7 +884,32 @@ export function DocsEditor({
         </aside>
       </div>
 
-      {publishing ? <PublishPanel sb={sb} auth={auth} docId={doc.id} title={title} html={exportHtml} onClose={() => setPublishing(false)} /> : null}
+      {publishing ? <PublishPanel sb={sb} auth={auth} docId={doc.id} title={title} html={exportHtml} onClose={() => setPublishing(false)} onPublished={onPublished} /> : null}
+      {versions ? (
+        <Modal title="Versions" onClose={() => setVersions(null)}>
+          {versions.length ? (
+            <ul className="flex flex-col divide-y divide-rule-faint">
+              {versions.map((v) => (
+                <li key={v.id} className="flex items-center justify-between gap-3 py-2.5">
+                  <span className="flex min-w-0 flex-col">
+                    <span className="truncate text-[14px] text-ink">{v.title}</span>
+                    <span className="aw-num text-[12px] text-muted">
+                      {new Date(v.created_at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} · {v.words.toLocaleString("en-US")} words · {v.reason === "restore" ? "Before restore" : "Before regenerate"}
+                    </span>
+                  </span>
+                  {canEdit ? (
+                    <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => restoreVersion(v)}>
+                      Restore
+                    </button>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-[14px] text-muted">No versions yet.</p>
+          )}
+        </Modal>
+      ) : null}
       {knowing ? (
         <Knowledge
           profile={profile}

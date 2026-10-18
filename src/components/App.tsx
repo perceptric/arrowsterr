@@ -64,8 +64,8 @@ import { VisitorsPage } from "./VisitorsPage";
 import { ZippiePage } from "./ZippiePage";
 
 export type { Brand } from "@/lib/db";
-type Page = "ask" | "prompts" | "competitors" | "domains" | "urls" | "traffic" | "visitors" | "keywords" | "domain" | "gap" | "calendar" | "intel" | "summary" | SettingsTab;
-const RESEARCH: Page[] = ["keywords", "domain", "gap", "calendar", "intel"];
+type Page = "ask" | "prompts" | "competitors" | "domains" | "urls" | "traffic" | "visitors" | "keywords" | "domain" | "gap" | "calendar" | "library" | "intel" | "summary" | SettingsTab;
+const RESEARCH: Page[] = ["keywords", "domain", "gap", "calendar", "library", "intel"];
 /** Website analytics is still in testing: only this account sees it. */
 const WEBSITE_TESTER = "vincent@perceptric.com";
 const VISIBILITY: Page[] = ["prompts", "competitors", "domains", "urls"];
@@ -85,6 +85,7 @@ const SLUGS: Record<Page, string> = {
   domain: "/domain-research",
   gap: "/competitive-analysis",
   calendar: "/content-plan",
+  library: "/library",
   intel: "/content-intelligence",
   summary: "/reports",
   profile: "/settings/profile",
@@ -118,9 +119,9 @@ const ALIASES: Record<string, Page> = {
   "/industry-research": "gap",
   "/ai-gap": "gap",
   "/planner": "calendar",
-  "/writer": "calendar",
+  "/writer": "library",
   "/inkwell": "calendar",
-  "/agentic-writer": "calendar",
+  "/agentic-writer": "library",
   "/performance": "intel",
   "/content-calendar": "calendar",
   "/reports/content": "calendar",
@@ -963,6 +964,7 @@ const ICONS: Record<string, string> = {
   search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
   globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/>',
   bank: '<path d="M6 4h12v16l-6-4-6 4z"/>',
+  library: '<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/><path d="M4 7v14h11"/>',
   gap: '<circle cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6"/>',
   spark: '<path d="M12 3c.6 4.6 1.9 5.9 6.5 6.5-4.6.6-5.9 1.9-6.5 6.5-.6-4.6-1.9-5.9-6.5-6.5C10.1 8.9 11.4 7.6 12 3Z"/>',
   calendar: '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/>',
@@ -981,7 +983,7 @@ function NavIcon({ name }: { name: string }) {
 
 /** The toolset a page belongs to. Starter opens one of them. */
 const trackOf = (page: Page): Track | null =>
-  ["prompts", "competitors", "domains", "urls"].includes(page) ? "visibility" : ["keywords", "domain", "gap", "calendar", "intel"].includes(page) ? "seo" : null;
+  ["prompts", "competitors", "domains", "urls"].includes(page) ? "visibility" : ["keywords", "domain", "gap", "calendar", "library", "intel"].includes(page) ? "seo" : null;
 
 /** The big modules of the app. Each opens to its own pages. */
 const NAV: { group: string; icon: string; tester?: boolean; items: { id: Page; label: string; icon: string; also?: Page[] }[] }[] = [
@@ -1009,6 +1011,7 @@ const NAV: { group: string; icon: string; tester?: boolean; items: { id: Page; l
     items: [
       { id: "ask", label: "Zippie", icon: "spark" },
       { id: "calendar", label: "Content Plan", icon: "calendar" },
+      { id: "library", label: "Library", icon: "library" },
       { id: "intel", label: "Content Intelligence", icon: "trend" },
     ],
   },

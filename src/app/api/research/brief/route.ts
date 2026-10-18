@@ -37,6 +37,8 @@ async function handle(request: Request) {
   // Before supabase/029_brief_started.sql there is no start time. Start without it.
   if (e2 && /brief_started_at/.test(e2.message)) ({ error: e2 } = await auth.sb.from("calendar_items").update({ brief_status: "running", brief_error: null }).eq("id", item.id));
   if (e2) return Response.json({ error: e2.message }, { status: 500 });
+  // Generating a brief imports the keyword into the Library, once. Before supabase/047_library.sql there is no column, and this does nothing.
+  await auth.sb.from("calendar_items").update({ library_at: new Date().toISOString() }).eq("id", item.id).is("library_at", null);
   if (await queueReady()) {
     const { data: me } = await auth.sb.auth.getUser();
     await enqueue("brief", { itemId: item.id, period: took.period, tasks: TASK_COST.brief, fromPack: took.fromPack ?? 0, userId: me.user?.id ?? null }, { workspaceId: body.workspaceId, key: `brief:${item.id}:${Date.now()}`, maxAttempts: 2 });

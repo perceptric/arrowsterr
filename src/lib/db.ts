@@ -392,7 +392,7 @@ export async function deleteSite(sb: SupabaseClient, id: string) {
   check(await sb.from("sites").delete().eq("id", id));
 }
 
-export type CalendarStatus = "planned" | "brief" | "writing" | "published";
+export type CalendarStatus = "planned" | "brief" | "writing" | "review" | "published";
 export type CalendarItem = {
   id: string;
   site_id: string;
@@ -418,20 +418,45 @@ export type CalendarItem = {
   brief_error: string | null;
   brief_at: string | null;
   extra?: Record<string, string | number | null>; // values for custom columns
+  library_at?: string | null; // when the keyword was imported into the Library
 };
 export type NewCalendarItem = Omit<
   CalendarItem,
-  "id" | "status" | "due_date" | "owner" | "url" | "notes" | "created_at" | "action" | "current_url" | "current_rank" | "brief_status" | "brief_error" | "brief_at" | "extra"
+  "id" | "status" | "due_date" | "owner" | "url" | "notes" | "created_at" | "action" | "current_url" | "current_rank" | "brief_status" | "brief_error" | "brief_at" | "extra" | "library_at"
 > &
   Partial<Pick<CalendarItem, "status" | "action" | "current_url" | "current_rank" | "notes" | "due_date">>;
 const CAL_COLS =
   "id, site_id, keyword, secondary, stage, theme, volume, difficulty, intent, cpc, status, due_date, owner, url, notes, source, created_at, action, current_url, current_rank, brief_status, brief_error, brief_at";
 
 export async function listCalendar(sb: SupabaseClient, siteId: string): Promise<CalendarItem[]> {
-  const res = await sb.from("calendar_items").select(`${CAL_COLS}, extra`).eq("site_id", siteId).order("created_at");
-  // Before 013_calendar_columns.sql the extra column is missing. Load without it.
-  if (res.error && /extra/.test(res.error.message)) return check(await sb.from("calendar_items").select(CAL_COLS).eq("site_id", siteId).order("created_at")) as CalendarItem[];
+  const res = await sb.from("calendar_items").select(`${CAL_COLS}, extra, library_at`).eq("site_id", siteId).order("created_at");
+  // Before 047_library.sql there is no library_at, and before 013_calendar_columns.sql no extra. Load without them.
+  if (res.error && /library_at/.test(res.error.message)) {
+    const r2 = await sb.from("calendar_items").select(`${CAL_COLS}, extra`).eq("site_id", siteId).order("created_at");
+    if (!r2.error || !/extra/.test(r2.error.message)) return check(r2) as CalendarItem[];
+  }
+  if (res.error && /extra|library_at/.test(res.error.message)) return check(await sb.from("calendar_items").select(CAL_COLS).eq("site_id", siteId).order("created_at")) as CalendarItem[];
   return check(res) as CalendarItem[];
+}
+
+/** One Content Plan piece, fresh from the database. */
+export async function getCalendarItem(sb: SupabaseClient, id: string): Promise<CalendarItem | null> {
+  const res = await sb.from("calendar_items").select(`${CAL_COLS}, extra, library_at`).eq("id", id).maybeSingle();
+  if (res.error && /extra|library_at/.test(res.error.message)) return check(await sb.from("calendar_items").select(CAL_COLS).eq("id", id).maybeSingle()) as CalendarItem | null;
+  return check(res) as CalendarItem | null;
+}
+
+/**
+ * Import a keyword into the Library. Safe to call again: the first import time stays.
+ * Returns the import time.
+ */
+export async function importToLibrary(sb: SupabaseClient, id: string): Promise<string> {
+  const now = new Date().toISOString();
+  const { data, error } = await sb.from("calendar_items").update({ library_at: now }).eq("id", id).is("library_at", null).select("library_at");
+  if (error) throw new Error(/library_at/.test(error.message) ? "Run supabase/047_library.sql in Supabase to use the Library." : error.message);
+  if (data?.length) return now;
+  const row = check(await sb.from("calendar_items").select("library_at").eq("id", id).single()) as { library_at: string | null };
+  return row.library_at ?? now;
 }
 
 /** Add pages to the calendar. A keyword already on it is skipped. Returns how many were new. */
@@ -528,8 +553,24 @@ export async function getDoc(sb: SupabaseClient, id: string): Promise<Doc> {
   return check(await sb.from("docs").select(`${DOC_META}, content`).eq("id", id).single()) as Doc;
 }
 
+/** The draft tied to a Content Plan piece, read fresh, or null when it has none. */
+export async function docForItem(sb: SupabaseClient, itemId: string): Promise<DocMeta | null> {
+  return check(await sb.from("docs").select(DOC_META).eq("calendar_item_id", itemId).maybeSingle()) as DocMeta | null;
+}
+
+/** For the Library: each brief's title and when it was last saved, without loading the briefs. */
+export async function listBriefMeta(sb: SupabaseClient, siteId: string): Promise<Record<string, { title: string | null; savedAt: string | null }>> {
+  const rows = check(await sb.from("calendar_items").select("id, brief_at, title:brief->brief->>h1, doc_at:brief->>docAt").eq("site_id", siteId).not("brief", "is", null)) as {
+    id: string;
+    brief_at: string | null;
+    title: string | null;
+    doc_at: string | null;
+  }[];
+  return Object.fromEntries(rows.map((r) => [r.id, { title: r.title, savedAt: [r.doc_at, r.brief_at].filter(Boolean).sort().pop() ?? null }]));
+}
+
 /** A new draft. A calendar item has at most one draft: if it exists already, that one comes back. */
-export async function createDoc(sb: SupabaseClient, d: { workspace_id: string; site_id: string; calendar_item_id?: string | null; title: string; content: Record<string, unknown> }): Promise<Doc> {
+export async function createDoc(sb: SupabaseClient, d: { workspace_id: string; site_id: string; calendar_item_id?: string | null; title: string; content: Record<string, unknown>; words?: number }): Promise<Doc> {
   if (d.calendar_item_id) {
     const { data } = await sb.from("docs").select(`${DOC_META}, content`).eq("calendar_item_id", d.calendar_item_id).maybeSingle();
     if (data) return data as Doc;
@@ -554,6 +595,36 @@ export async function saveDocMeta(sb: SupabaseClient, id: string, meta: DocPubli
 
 export async function deleteDoc(sb: SupabaseClient, id: string) {
   check(await sb.from("docs").delete().eq("id", id));
+}
+
+/** A copy of a draft from before it was generated again. */
+export type DocVersion = { id: string; doc_id: string; title: string; words: number; reason: string; created_at: string };
+
+export async function listDocVersions(sb: SupabaseClient, docId: string): Promise<DocVersion[]> {
+  const { data, error } = await sb.from("doc_versions").select("id, doc_id, title, words, reason, created_at").eq("doc_id", docId).order("created_at", { ascending: false }).limit(20);
+  return error ? [] : (data as DocVersion[]);
+}
+
+export async function getDocVersion(sb: SupabaseClient, id: string): Promise<DocVersion & { content: Record<string, unknown> }> {
+  return check(await sb.from("doc_versions").select("id, doc_id, title, words, reason, created_at, content").eq("id", id).single()) as DocVersion & { content: Record<string, unknown> };
+}
+
+/**
+ * Put new content into a draft. The content it had is saved as a version first, so nothing a person wrote is lost.
+ * Fails, and changes nothing, when the version can't be saved.
+ */
+export async function replaceDocContent(
+  sb: SupabaseClient,
+  doc: { id: string; workspace_id: string },
+  next: { title: string; content: Record<string, unknown>; words: number },
+  reason = "regenerate",
+) {
+  const old = check(await sb.from("docs").select("title, content, words").eq("id", doc.id).single()) as { title: string; content: Record<string, unknown>; words: number };
+  if (old.words > 0 || Object.keys(old.content ?? {}).length) {
+    const { error } = await sb.from("doc_versions").insert({ workspace_id: doc.workspace_id, doc_id: doc.id, title: old.title, content: old.content, words: old.words, reason });
+    if (error) throw new Error(/doc_versions/.test(error.message) ? "Run supabase/047_library.sql in Supabase to keep draft versions." : error.message);
+  }
+  await saveDoc(sb, doc.id, next);
 }
 
 export async function getGuideline(sb: SupabaseClient, siteId: string): Promise<BrandGuideline | null> {

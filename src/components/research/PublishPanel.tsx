@@ -13,7 +13,7 @@ import { downloadCsv, post } from "./shared";
 const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
 
 /** Send a draft to a connected CMS, as a draft or live, with its SEO details. */
-export function PublishPanel({ sb, auth, docId, title, html, onClose }: { sb: SupabaseClient; auth: RunAuth; docId: string; title: string; html: () => string; onClose: () => void }) {
+export function PublishPanel({ sb, auth, docId, title, html, onClose, onPublished }: { sb: SupabaseClient; auth: RunAuth; docId: string; title: string; html: () => string; onClose: () => void; onPublished?: () => void }) {
   const [conns, setConns] = useState<CmsConnection[] | null>(null);
   const [meta, setMeta] = useState<(DocPublishMeta & { published?: Published[] }) | null>(null);
   const [f, setF] = useState({ title, slug: slugify(title), description: "", image: "", schema: "" });
@@ -45,6 +45,7 @@ export function PublishPanel({ sb, auth, docId, title, html, onClose }: { sb: Su
     try {
       const r = await post<{ published: Published }>(auth, "/api/cms", { action: "publish", docId, connectionId: to, live, ...f, html: html() });
       setDone(r.published);
+      if (live) onPublished?.();
       setMeta((m) => ({ ...(m ?? {}), published: [...(m?.published ?? []).filter((p) => p.connectionId !== to), r.published] }));
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));

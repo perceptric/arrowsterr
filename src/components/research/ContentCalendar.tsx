@@ -3,7 +3,7 @@
 import { DateField, Dropdown } from "../Pickers";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { addCalendarItems, deleteCalendarItems, keywordRunResult, restoreCalendarItems, listCalendar, listMembers, saveSite, updateCalendarItem, type BankRow, type CalendarItem, type CalendarStatus, type KeywordRun, type NewCalendarItem, type SheetColumn, type Site } from "@/lib/db";
+import { addCalendarItems, deleteCalendarItems, docForItem, keywordRunResult, restoreCalendarItems, listCalendar, listMembers, saveSite, updateCalendarItem, type BankRow, type CalendarItem, type CalendarStatus, type KeywordRun, type NewCalendarItem, type SheetColumn, type Site } from "@/lib/db";
 import { nextMonday, schedulePlan, slots, STAGES, type Stage } from "@/lib/research";
 import type { RunAuth } from "@/lib/runner";
 import { useStash } from "@/lib/stash";
@@ -12,7 +12,7 @@ import { Sheet, type Col, type Edit } from "../Sheet";
 import type { Chat } from "@/lib/chats";
 import { Card, SidePanel, Thinking } from "../ui";
 import { CalendarGrid } from "./CalendarGrid";
-import { ContentPiece, STATUSES, type WriterAccess } from "./ContentPiece";
+import { KeywordDeepDive, STATUSES, type LibraryTarget, type WriterAccess } from "./ContentPiece";
 import { DayPanel, type NewPiece } from "./DayPanel";
 import { byStage, slugify, slugOf, STATUS_PICK, Difficulty, downloadCsv, FIELD, PLAN_VIEWS, post, STAGE_LABEL, StageTag, statusLabel, ViewSwitch, type PlanView } from "./shared";
 import { PlanProgress, planRows } from "./AgenticResearch";
@@ -74,15 +74,16 @@ export function ContentCalendar({
   auth,
   site,
   canEdit,
-  writer,
   onImport,
-  results,
+  onLibrary,
   onSite,
   refresh,
 }: {
   refresh?: Refresh;
   /** Open Keyword Research to add keywords from there. */
   onImport?: () => void;
+  /** Open the Library, at a brief or a draft. */
+  onLibrary: (t: LibraryTarget) => void;
   onSite: (s: Site) => void;
   sb: SupabaseClient;
   auth: RunAuth;
@@ -110,7 +111,20 @@ export function ContentCalendar({
   const [start, setStart] = useState(() => iso(new Date()));
   const [newKw, setNewKw] = useState("");
   const [picked, setPicked] = useState<Set<string>>(new Set());
-  const [panel, setPanel] = useState<{ day: string | null; piece: string | null; tab?: "serp" | "draft"; run?: boolean } | null>(null);
+  const [panel, setPanel] = useState<{ day: string | null; piece: string | null; run?: boolean } | null>(null);
+  // Whether the open piece has a draft, read fresh each time a piece opens.
+  const [hasDraft, setHasDraft] = useState<{ id: string; has: boolean } | null>(null);
+  const openId = panel?.piece ?? null;
+  useEffect(() => {
+    if (!openId) return;
+    let live = true;
+    docForItem(sb, openId)
+      .then((d) => live && setHasDraft({ id: openId, has: Boolean(d) }))
+      .catch(() => live && setHasDraft({ id: openId, has: false }));
+    return () => {
+      live = false;
+    };
+  }, [sb, openId]);
   const [adding, setAdding] = useState(false);
   const [colName, setColName] = useState("");
   const [colType, setColType] = useState<SheetColumn["type"]>("text");
@@ -422,7 +436,7 @@ export function ContentCalendar({
       value: () => null,
       width: 110,
       cell: (i) => (
-        <button type="button" className="aw-chip aw-chip--btn whitespace-nowrap" onClick={() => setPanel({ day: null, piece: i.id, tab: "serp", run: canEdit })} title={`Read Google's top 10 for "${i.keyword}"`}>
+        <button type="button" className="aw-chip aw-chip--btn whitespace-nowrap" onClick={() => setPanel({ day: null, piece: i.id, run: canEdit })} title={`Read Google's top 10 for "${i.keyword}"`}>
           ⌕ Analyze
         </button>
       ),
@@ -434,7 +448,7 @@ export function ContentCalendar({
       value: () => null,
       width: 100,
       cell: (i) => (
-        <button type="button" className="aw-chip aw-chip--btn whitespace-nowrap" onClick={() => setPanel({ day: null, piece: i.id, tab: "draft" })} title="Open in the Agentic Writer">
+        <button type="button" className="aw-chip aw-chip--btn whitespace-nowrap" onClick={() => setPanel({ day: null, piece: i.id })} title="Open the keyword">
           ✎ Write
         </button>
       ),
@@ -532,6 +546,31 @@ export function ContentCalendar({
     </div>
   ) : null;
   const progress = <PlanProgress sb={sb} site={site} refresh={tick} onRows={onPlan} onStop={canEdit ? (runId) => post(auth, "/api/research/agentic", { action: "stop", runId }).then(() => {}) : undefined} />;
+
+  // A keyword opens as its own screen, the Keyword Deep Dive.
+  if (openItem)
+    return (
+      <>
+        <KeywordDeepDive
+          key={openItem.id}
+          sb={sb}
+          auth={auth}
+          site={site}
+          item={openItem}
+          hasDraft={hasDraft?.id === openItem.id ? hasDraft.has : null}
+          canEdit={canEdit}
+          onPatch={(p) => patch(openItem.id, p)}
+          onRemove={() => {
+            remove([openItem.id]);
+            setPanel(panel?.day ? { day: panel.day, piece: null } : null);
+          }}
+          onBack={() => setPanel(panel?.day ? { day: panel.day, piece: null } : null)}
+          onLibrary={onLibrary}
+          autoSerp={panel?.run}
+        />
+        {undoBar}
+      </>
+    );
 
   // Before the first plan: what it is, a sample, and one button.
   if (!items.length && !lastDone && !running)
@@ -682,39 +721,7 @@ export function ContentCalendar({
       </Card>
       )}
 
-      {openItem ? (
-        <SidePanel
-          title={openItem.keyword}
-          kicker={
-            panel?.day ? (
-              <button type="button" className="aw-text-link" onClick={() => setPanel({ day: panel.day, piece: null })}>
-                ← {dayLabel(panel.day)}
-              </button>
-            ) : (
-              "Content piece"
-            )
-          }
-          onClose={() => setPanel(null)}
-        >
-          <ContentPiece
-            key={openItem.id}
-            sb={sb}
-            auth={auth}
-            site={site}
-            brandName={results.brandName}
-            item={openItem}
-            canEdit={canEdit}
-            onPatch={(p) => patch(openItem.id, p)}
-            onRemove={() => {
-              remove([openItem.id]);
-              setPanel(panel?.day ? { day: panel.day, piece: null } : null);
-            }}
-            writer={writer}
-            startTab={panel?.tab}
-            autoSerp={panel?.run}
-          />
-        </SidePanel>
-      ) : panel?.day ? (
+      {panel?.day ? (
         <SidePanel title={dayLabel(panel.day)} kicker="Editorial Calendar" onClose={() => setPanel(null)}>
           <DayPanel
             items={items.filter((i) => i.due_date === panel.day)}

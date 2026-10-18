@@ -84,6 +84,7 @@ export const TASK_COST = {
   brief: 100, // a full content brief
   serp: 20, // Google's top 10 for one keyword, every page read
   agent: 15, // a writer agent job: a section, a table or links
+  draft: 60, // a full first draft written from the brief
   stats: 30, // a writer agent job that searches the web for stats
   widget: 25, // an interactive element
   ai: 3, // a small AI job: ideas, a summary, prompt suggestions

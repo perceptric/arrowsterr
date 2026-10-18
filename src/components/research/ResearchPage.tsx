@@ -14,14 +14,16 @@ import { KeywordGap } from "./KeywordGap";
 import { KeywordOverview } from "./KeywordOverview";
 import { AnalyzeSeo, ResearchKeyword } from "./shared";
 import { ContentIntel } from "./ContentIntel";
-import type { WriterAccess } from "./ContentPiece";
+import type { LibraryTarget, WriterAccess } from "./ContentPiece";
+import { Library } from "./Library";
 
-export type Tool = "keywords" | "domain" | "gap" | "calendar" | "intel";
+export type Tool = "keywords" | "domain" | "gap" | "calendar" | "library" | "intel";
 const TITLES: Record<Tool, string> = {
   keywords: "Keyword Research",
   domain: "Domain Research",
   gap: "Competitive Analysis",
   calendar: "Content Plan",
+  library: "Library",
   intel: "Content Intelligence",
 };
 
@@ -83,8 +85,8 @@ export function ResearchPage({
       }
     >
     <div className="flex flex-col gap-5">
-      {/* The Content Plan draws its own header, with the view switch beside the title. */}
-      {tool === "calendar" ? null : <h1 className="aw-h2">{TITLES[tool]}</h1>}
+      {/* The Content Plan and the Library draw their own headers. */}
+      {tool === "calendar" || tool === "library" ? null : <h1 className="aw-h2">{TITLES[tool]}</h1>}
       {error ? <p className="aw-error">{error}</p> : null}
       {site === undefined ? (
         <Thinking text={`Loading ${brand.domain}...`} />
@@ -105,8 +107,24 @@ export function ResearchPage({
         />
       ) : tool === "intel" ? (
         <ContentIntel sb={sb} auth={auth} site={site} canEdit={canEdit} brandId={brand.id} days={view.days} chats={answered(view.current, view.filter)} onPlan={() => onTool("calendar")} />
+      ) : tool === "library" ? (
+        <Library sb={sb} auth={auth} site={site} brandName={brand.name} canEdit={canEdit} writer={writer} />
       ) : (
-        <ContentCalendar sb={sb} auth={auth} site={site} canEdit={canEdit} refresh={refresh} writer={writer} onImport={() => onTool("keywords")} results={{ brandId: brand.id, brandName: brand.name, days: view.days, chats: answered(view.current, view.filter) }} onSite={setSite} />
+        <ContentCalendar
+          sb={sb}
+          auth={auth}
+          site={site}
+          canEdit={canEdit}
+          refresh={refresh}
+          writer={writer}
+          onImport={() => onTool("keywords")}
+          onLibrary={(t: LibraryTarget) => {
+            putStash(`lib:${site.id}:open`, t);
+            onTool("library");
+          }}
+          results={{ brandId: brand.id, brandName: brand.name, days: view.days, chats: answered(view.current, view.filter) }}
+          onSite={setSite}
+        />
       )}
     </div>
     </ResearchKeyword.Provider>

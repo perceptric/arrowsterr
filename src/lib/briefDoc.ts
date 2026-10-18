@@ -14,7 +14,10 @@ const lead = (x: string) => {
 
 export type BriefItem = { keyword: string; secondary: string[]; action: "new" | "update"; current_url: string | null };
 
-/** Build the brief document. Brand guideline and positioning come first, then writer guidelines, SERP analysis and the outline. */
+/** The brief's seven sections, in order. The full-screen editor lists them as its outline. */
+export const BRIEF_SECTIONS = ["Editorial Guidelines", "Product Positioning", "Writer Guidelines", "LEMA Framework Answers", "SERP Analysis", "Article Outline", "Additional Notes"] as const;
+
+/** Build the brief document: the key facts, then the seven sections of the agency template. */
 export function briefDocHtml(item: BriefItem, b: Brief, brand: { name: string; country?: string }, guideline: BrandGuideline | null): string {
   const d = b.brief;
   const t = b.template;
@@ -42,7 +45,7 @@ export function briefDocHtml(item: BriefItem, b: Brief, brand: { name: string; c
     `<tr><th><p>URL</p></th><td><p>${esc(d.slug)}</p></td></tr>`,
     `</tbody></table>`,
 
-    `<h2>1. Editorial Guideline</h2>`,
+    `<h2>1. ${BRIEF_SECTIONS[0]}</h2>`,
     guideline
       ? [
           `<p>${esc(guideline.summary)}</p>`,
@@ -53,16 +56,16 @@ export function briefDocHtml(item: BriefItem, b: Brief, brand: { name: string; c
         ].join("")
       : `<p>Add your editorial guideline here, or build one in Agentic Writer's Brand tab.</p>`,
 
-    `<h2>2. ${esc(brand.name)}'s Positioning</h2>`,
+    `<h2>2. ${BRIEF_SECTIONS[1]}</h2>`,
     pos
       ? `<ul><li><p><strong>Who:</strong> ${esc(pos.who)}</p></li><li><p><strong>Where-to:</strong> ${esc(pos.whereTo)}</p></li><li><p><strong>How-to:</strong> ${esc(pos.howTo)}</p></li><li><p><strong>Why-so:</strong> ${esc(pos.whySo)}</p></li></ul>`
       : `<ul><li><p><strong>Who:</strong> </p></li><li><p><strong>Where-to:</strong> </p></li><li><p><strong>How-to:</strong> </p></li><li><p><strong>Why-so:</strong> </p></li></ul>`,
 
-    `<h2>3. Writer Guidelines</h2>`,
+    `<h2>3. ${BRIEF_SECTIONS[2]}</h2>`,
     `<h3>Article Goal</h3>`,
     t?.goals?.length ? `<ol>${t.goals.map((g) => `<li><p>${lead(g)}</p></li>`).join("")}</ol>` : ol(b.analysis.actions.slice(0, 4)),
 
-    `<h3>LEMA Framework Answers</h3>`,
+    `<h2>4. ${BRIEF_SECTIONS[3]}</h2>`,
     `<h4>What does the person who searches for "${esc(item.keyword)}" already know?</h4>`,
     ul(t?.lema.knows ?? []),
     `<h4>What does the person who searches want to know?</h4>`,
@@ -72,18 +75,18 @@ export function briefDocHtml(item: BriefItem, b: Brief, brand: { name: string; c
     `<h4>What action should they take after reading?</h4>`,
     `<p>${esc(t?.lema.action ?? "")}</p>`,
 
-    `<h3>SERP Analysis</h3>`,
+    `<h2>5. ${BRIEF_SECTIONS[4]}</h2>`,
     `<p>Top ${top5.length} articles ranking for the keyword in ${esc(brand.country || "the United States")}:</p>`,
     top5.length ? `<ol>${top5.map((p) => `<li><p><a href="${esc(p.url)}">${esc(p.url)}</a> — ${esc(p.title)}</p></li>`).join("")}</ol>` : "<p></p>",
     `<p><strong>What wins:</strong> ${esc(b.analysis.format)}. ${esc(b.analysis.formatWhy)}</p>`,
     b.analysis.gaps.length ? `<p><strong>Gaps to win on:</strong></p>${ul(b.analysis.gaps)}` : "",
 
-    `<h2>4. Article Outline</h2>`,
+    `<h2>6. ${BRIEF_SECTIONS[5]}</h2>`,
     `<table><tbody><tr><th><p>Section</p></th><th><p>Guide</p></th></tr>`,
     ...outline.map((o) => `<tr><td><p><strong>${esc(o.section)}</strong></p></td><td>${o.guide.split(/\n+/).map((l) => `<p>${esc(l)}</p>`).join("")}</td></tr>`),
     `</tbody></table>`,
 
-    `<h2>Additional Notes</h2>`,
+    `<h2>7. ${BRIEF_SECTIONS[6]}</h2>`,
     d.questions.length ? `<h4>Questions to answer</h4>${ul(d.questions)}` : "",
     d.makeItYours.length ? `<h4>Make it yours</h4>${ul(d.makeItYours)}` : "",
     d.internalLinks.length ? `<h4>Internal links</h4><ul>${d.internalLinks.map((l) => `<li><p><a href="${esc(l.url)}">${esc(l.anchor)}</a></p></li>`).join("")}</ul>` : "",
@@ -96,4 +99,32 @@ export function briefDocHtml(item: BriefItem, b: Brief, brand: { name: string; c
 export function wordFile(title: string, html: string) {
   return `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>${esc(title)}</title>
 <style>body{font-family:Arial,sans-serif;font-size:11pt;line-height:1.5}h1{font-size:20pt}h2{font-size:15pt;margin-top:18pt}h3{font-size:12.5pt}h4{font-size:11pt}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:6pt;vertical-align:top;text-align:left}th{background:#f1f3f6}</style></head><body>${html}</body></html>`;
+}
+
+/**
+ * The brief as plain text for a prompt, keeping its shape: headings become "#" lines, list items "- " lines,
+ * table cells are split by " | ". Works on the edited brief, so the writer's changes are what the AI reads.
+ */
+export function htmlToText(html: string): string {
+  return html
+    .replace(/<(script|style)[^>]*>[\s\S]*?<\/\1>/gi, "")
+    .replace(/<h([1-6])[^>]*>/gi, (_m, n: string) => `\n\n${"#".repeat(Number(n))} `)
+    .replace(/<\/h[1-6]>/gi, "\n")
+    .replace(/<li[^>]*>/gi, "\n- ")
+    .replace(/<\/p>\s*(?=<\/t[dh]>)/gi, "")
+    .replace(/<\/(td|th)>/gi, " | ")
+    .replace(/(?: \| )?<\/tr>/gi, "\n")
+    .replace(/<a [^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/gi, (_m, href: string, text: string) => (text.replace(/<[^>]+>/g, "").trim() === href ? href : `${text} (${href})`))
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, "&")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }
