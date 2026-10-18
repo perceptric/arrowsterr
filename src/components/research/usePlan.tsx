@@ -12,7 +12,7 @@ import type { NewPiece } from "./DayPanel";
 
 /**
  * The Content Plan's pieces for the Editorial Calendar's list and calendar views: load, edit with Undo, add,
- * delete with 10 seconds to undo, and Import to Agentic Writer. Every view reads the same stash.
+ * delete with 10 seconds to undo, and Import to Library. Every view reads the same stash.
  */
 export function usePlan({ sb, auth, site }: { sb: SupabaseClient; auth: RunAuth; site: Site }) {
   const [items, setItems] = useStash<CalendarItem[] | null>(`cal:${site.id}:items`, null);
@@ -134,25 +134,25 @@ export function usePlan({ sb, auth, site }: { sb: SupabaseClient; auth: RunAuth;
   }
 
   /**
-   * Import to Agentic Writer: sets extra.in_writer_at (src/lib/writerImport.ts) and leaves the status alone.
+   * Import to Library: sets extra.in_writer_at (src/lib/writerImport.ts) and leaves the status alone.
    * Pieces already in the writer, and published ones, are skipped. One step for Undo.
    */
   async function importToWriter(ids: string[]) {
     const todo = (items ?? []).filter((i) => ids.includes(i.id) && canImport(i));
     if (!todo.length) {
-      setFlash("Already in the Agentic Writer");
+      setFlash("Already in the Library");
       return;
     }
     const at = new Date().toISOString();
     const before = new Map(todo.map((i) => [i.id, i.extra ?? {}]));
     const send = () => Promise.all(todo.map((i) => patch(i.id, importPatch({ extra: before.get(i.id) }, at))));
     recordUndo({
-      label: todo.length === 1 ? `importing "${todo[0].keyword}"` : "importing to the Agentic Writer",
+      label: todo.length === 1 ? `importing "${todo[0].keyword}"` : "importing to the Library",
       undo: () => Promise.all(todo.map((i) => patch(i.id, { extra: before.get(i.id)! }))),
       redo: send,
     });
     await quietly(send);
-    setFlash(todo.length === 1 ? `Imported "${todo[0].keyword}" to the Agentic Writer` : "Imported to the Agentic Writer");
+    setFlash(todo.length === 1 ? `Imported "${todo[0].keyword}" to the Library` : "Imported to the Library");
   }
 
   const toast = undo ? (

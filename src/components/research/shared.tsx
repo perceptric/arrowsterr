@@ -20,9 +20,9 @@ export function byStage<T extends { stage: Stage | null; due_date?: string | nul
 }
 
 /** A piece with no date is still an idea. It turns Planned once it is on the calendar. */
-export function statusLabel(i: { status: "planned" | "brief" | "writing" | "published"; due_date: string | null }) {
+export function statusLabel(i: { status: "planned" | "brief" | "writing" | "review" | "published"; due_date: string | null }) {
   if (i.status === "planned") return i.due_date ? "Planned" : "Idea";
-  return i.status === "brief" ? "Brief ready" : i.status === "writing" ? "Writing" : "Published";
+  return i.status === "brief" ? "Brief ready" : i.status === "writing" ? "Writing" : i.status === "review" ? "In review" : "Published";
 }
 
 /** Status choices for a piece. Idea means planned with no day yet. */
@@ -31,6 +31,7 @@ export const STATUS_PICK = [
   { id: "planned", label: "Planned", tone: "aw-status--warn" },
   { id: "brief", label: "Brief ready", tone: "aw-status--warn", aliases: ["Brief"] },
   { id: "writing", label: "Writing", tone: "aw-status--warn" },
+  { id: "review", label: "In review", tone: "aw-status--warn", aliases: ["Review"] },
   { id: "published", label: "Published", tone: "aw-status--ranked" },
 ];
 export const slugify = (s: string) => s.toLowerCase().replace(/^\/+/, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");

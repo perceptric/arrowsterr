@@ -18,7 +18,7 @@ export type NewPiece = {
   url?: string | null;
 };
 
-/** One day of the editorial calendar: what is planned, each with Import to Agentic Writer, and a box to add a keyword to it. */
+/** One day of the editorial calendar: what is planned, each with Import to Library, and a box to add a keyword to it. */
 export function DayPanel({
   items,
   canEdit,
@@ -55,10 +55,10 @@ export function DayPanel({
                 </span>
               </button>
               {inWriterAt(i) ? (
-                <span className="aw-chip aw-chip--brand whitespace-nowrap">In writer</span>
+                <span className="aw-chip aw-chip--brand whitespace-nowrap">In Library</span>
               ) : canEdit && onImport && i.status !== "published" ? (
                 <button type="button" className="aw-chip aw-chip--btn whitespace-nowrap" onClick={() => onImport(i.id)}>
-                  Import to Agentic Writer
+                  Import to Library
                 </button>
               ) : null}
             </li>

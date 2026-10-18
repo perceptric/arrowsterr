@@ -392,7 +392,7 @@ export async function deleteSite(sb: SupabaseClient, id: string) {
   check(await sb.from("sites").delete().eq("id", id));
 }
 
-export type CalendarStatus = "planned" | "brief" | "writing" | "published";
+export type CalendarStatus = "planned" | "brief" | "writing" | "review" | "published";
 export type CalendarItem = {
   id: string;
   site_id: string;

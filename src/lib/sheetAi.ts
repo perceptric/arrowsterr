@@ -9,7 +9,7 @@ export type SheetOp =
   | { op: "delete"; ids: string[] }
   | { op: "add"; keywords: string[] };
 
-const STATUS = ["planned", "brief", "writing", "published"];
+const STATUS = ["planned", "brief", "writing", "review", "published"];
 const STAGE = ["bofu", "mofu", "tofu"];
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const BUILT_IN = ["status", "due_date", "owner", "stage", "theme", "notes", "keyword"];

@@ -12,7 +12,7 @@ import { useStash } from "@/lib/stash";
 import { Confirm, Modal } from "../reports/Dialog";
 import { post } from "../research/shared";
 
-// Pieces the Agentic Writer and the Library share.
+// Pieces the Library shares.
 
 const TAG: Record<string, string> = { generating: "aw-status--warn", ready: "aw-status--pending", approved: "aw-status--ranked", failed: "aw-status--missed" };
 
@@ -62,13 +62,6 @@ export type LibraryOpen = { kind: "brief" | "draft"; id: string } | null;
 export function openInLibrary(brandId: string, open: LibraryOpen) {
   putStash(libraryKey(brandId), open);
   window.history.pushState(null, "", `/library${window.location.search}`);
-  window.dispatchEvent(new PopStateEvent("popstate"));
-}
-
-/** Go to the Agentic Writer with one topic open. */
-export function openInWriter(brandId: string, itemId: string) {
-  putStash(`writer:${brandId}:open`, itemId);
-  window.history.pushState(null, "", `/agentic-writer${window.location.search}`);
   window.dispatchEvent(new PopStateEvent("popstate"));
 }
 

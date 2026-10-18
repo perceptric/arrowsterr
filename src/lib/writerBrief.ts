@@ -349,3 +349,45 @@ export async function drive(job: { id: number; attempts: number; max_attempts: n
   if (out.state === "wait") return q.retry(job.id, out.why, out.seconds, { count: false });
   return q.finish(job.id);
 }
+
+// ─────────────── editing ───────────────
+const txt = (v: unknown, n: number, fallback: string) => (typeof v === "string" ? v.slice(0, n) : fallback);
+const lines = (v: unknown, n: number, fallback: string[]) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === "string").map((x) => x.slice(0, 600)).slice(0, n) : fallback);
+const rows = (v: unknown): Record<string, unknown>[] | null => (Array.isArray(v) ? v.filter((x): x is Record<string, unknown> => Boolean(x) && typeof x === "object") : null);
+
+/**
+ * A person's edits to a brief. Only the parts a writer plans with change: titles, the plan fields, the outline,
+ * gaps, entities, FAQs and the CTA. The research, modules, internal links and model stay as the brief was written.
+ * Anything missing or of the wrong type keeps its old value; source numbers must point to sources the research read.
+ */
+export function editBrief(old: WriterBrief, patch: unknown): WriterBrief {
+  const p = patch && typeof patch === "object" ? (patch as Record<string, unknown>) : {};
+  const known = new Set(old.research.sources.map((s) => s.n));
+  const outline = rows(p.outline);
+  const faqs = rows(p.faqs);
+  const cta = p.cta && typeof p.cta === "object" ? (p.cta as Record<string, unknown>) : null;
+  const target = Number(p.wordTarget);
+  return {
+    ...old,
+    titles: lines(p.titles, 10, old.titles),
+    h1: txt(p.h1, 200, old.h1),
+    metaDescription: txt(p.metaDescription, 320, old.metaDescription),
+    slug: txt(p.slug, 120, old.slug).replace(/^\/+/, ""),
+    searchIntent: txt(p.searchIntent, 600, old.searchIntent),
+    reader: txt(p.reader, 600, old.reader),
+    angle: txt(p.angle, 1000, old.angle),
+    wordTarget: Number.isFinite(target) && target >= 100 ? Math.min(Math.round(target), 20000) : old.wordTarget,
+    outline: outline
+      ? outline.slice(0, 30).map((o, i) => ({
+          h2: txt(o.h2, 200, old.outline[i]?.h2 ?? ""),
+          points: lines(o.points, 30, old.outline[i]?.points ?? []),
+          h3: (rows(o.h3) ?? []).slice(0, 15).map((h) => ({ title: txt(h.title, 200, ""), points: lines(h.points, 20, []) })),
+          sources: (Array.isArray(o.sources) ? o.sources : (old.outline[i]?.sources ?? [])).map(Number).filter((n) => known.has(n)),
+        }))
+      : old.outline,
+    gaps: lines(p.gaps, 20, old.gaps),
+    entities: lines(p.entities, 40, old.entities),
+    faqs: faqs ? faqs.slice(0, 20).map((f) => ({ question: txt(f.question, 300, ""), answer: txt(f.answer, 1500, "") })).filter((f) => f.question.trim()) : old.faqs,
+    cta: cta ? { text: txt(cta.text, 300, old.cta.text), where: txt(cta.where, 300, old.cta.where) } : old.cta,
+  };
+}

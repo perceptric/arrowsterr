@@ -21,6 +21,7 @@ export type DraftLite = { id: string; item_id: string; brief_id: string; doc_id:
 export type Topic = {
   id: string;
   keyword: string;
+  status: "planned" | "brief" | "writing" | "review" | "published";
   stage: "bofu" | "mofu" | "tofu" | null;
   due_date: string | null;
   added: string;
@@ -31,18 +32,30 @@ export type Topic = {
 const BRIEF_COLS = "id, item_id, status, step, error, version, research_run_id, updated_at, title:brief->>h1";
 const DRAFT_COLS = "id, item_id, brief_id, doc_id, status, step, error, version, words, ready_at, updated_at";
 
-/** The brand's topics in the writer, newest first, with their brief and draft. */
+/**
+ * The Library's topics, newest first, with their brief and draft: every piece imported from the Editorial Calendar,
+ * and every piece that has a brief or draft even if it was taken out, so nothing written goes missing.
+ */
 export async function listTopics(sb: SupabaseClient, siteId: string): Promise<Topic[]> {
-  const items = check(
-    await sb.from("calendar_items").select("id, keyword, stage, due_date, extra").eq("site_id", siteId).or("extra->>in_writer_at.not.is.null,extra->>write_queued_at.not.is.null"),
-  ) as { id: string; keyword: string; stage: Topic["stage"]; due_date: string | null; extra: Record<string, unknown> | null }[];
-  const ids = items.map((i) => i.id);
-  if (!ids.length) return [];
-  const [briefs, drafts] = await Promise.all([sb.from("writer_briefs").select(BRIEF_COLS).in("item_id", ids), sb.from("writer_drafts").select(DRAFT_COLS).in("item_id", ids)]);
+  const [briefs, drafts] = await Promise.all([sb.from("writer_briefs").select(BRIEF_COLS).eq("site_id", siteId), sb.from("writer_drafts").select(DRAFT_COLS).eq("site_id", siteId)]);
   const b = (check(briefs) ?? []) as unknown as BriefLite[];
   const d = (check(drafts) ?? []) as unknown as DraftLite[];
-  return items
-    .map((i) => ({ id: i.id, keyword: i.keyword, stage: i.stage, due_date: i.due_date, added: inWriterAt(i.extra) ?? "", brief: b.find((x) => x.item_id === i.id) ?? null, draft: d.find((x) => x.item_id === i.id) ?? null }))
+  const written = [...new Set([...b, ...d].map((x) => x.item_id))];
+  const cols = "id, keyword, stage, due_date, status, extra";
+  const [imported, withDocs] = await Promise.all([
+    sb.from("calendar_items").select(cols).eq("site_id", siteId).or("extra->>in_writer_at.not.is.null,extra->>write_queued_at.not.is.null"),
+    written.length ? sb.from("calendar_items").select(cols).in("id", written) : Promise.resolve({ data: [], error: null }),
+  ]);
+  type Row = { id: string; keyword: string; stage: Topic["stage"]; status: Topic["status"]; due_date: string | null; extra: Record<string, unknown> | null };
+  const items = new Map<string, Row>();
+  for (const i of [...((check(imported) ?? []) as Row[]), ...((check(withDocs) ?? []) as Row[])]) items.set(i.id, i);
+  const latest = (x: { updated_at: string } | undefined) => x?.updated_at ?? "";
+  return [...items.values()]
+    .map((i) => {
+      const brief = b.find((x) => x.item_id === i.id) ?? null;
+      const draft = d.find((x) => x.item_id === i.id) ?? null;
+      return { id: i.id, keyword: i.keyword, status: i.status, stage: i.stage, due_date: i.due_date, added: inWriterAt(i.extra) ?? [latest(brief ?? undefined), latest(draft ?? undefined)].sort().pop() ?? "", brief, draft };
+    })
     .sort((x, y) => y.added.localeCompare(x.added));
 }
 
@@ -69,51 +82,6 @@ export async function researchProgress(sb: SupabaseClient, runId: string): Promi
   return { status: run.data.status, error: run.data.error, read: list.filter((p) => p.status === "done").length, total: list.length };
 }
 
-// ─────────────── the Library ───────────────
-export type LibraryRow = {
-  key: string;
-  kind: "Brief" | "Draft";
-  id: string;
-  doc_id: string | null;
-  title: string;
-  keyword: string;
-  status: string;
-  words: number | null;
-  updated_at: string;
-};
-
+// ─────────────── labels ───────────────
 const STATUS: Record<string, string> = { generating: "Generating", ready: "Ready", approved: "Approved", failed: "Failed" };
 export const statusLabel = (s: string) => STATUS[s] ?? s;
-
-type Item = { keyword: string } | { keyword: string }[] | null;
-const kw = (i: Item) => (Array.isArray(i) ? i[0]?.keyword : i?.keyword) ?? "";
-
-/** Every brief and draft of the brand's site, newest first. */
-export async function listLibrary(sb: SupabaseClient, siteId: string): Promise<LibraryRow[]> {
-  const [briefs, drafts] = await Promise.all([
-    sb.from("writer_briefs").select("id, status, updated_at, keyword, title:brief->>h1, target:brief->>wordTarget").eq("site_id", siteId),
-    sb.from("writer_drafts").select("id, status, words, updated_at, doc_id, calendar_items(keyword), docs(title, words, updated_at)").eq("site_id", siteId),
-  ]);
-  type B = { id: string; status: string; updated_at: string; keyword: string; title: string | null; target: string | null };
-  type Doc = { title: string; words: number; updated_at: string };
-  type D = { id: string; status: string; words: number; updated_at: string; doc_id: string | null; calendar_items: Item; docs: Doc | Doc[] | null };
-  const rows: LibraryRow[] = [
-    ...((check(briefs) ?? []) as unknown as B[]).map((b) => ({
-      key: `b:${b.id}`,
-      kind: "Brief" as const,
-      id: b.id,
-      doc_id: null,
-      title: b.title || b.keyword,
-      keyword: b.keyword,
-      status: statusLabel(b.status),
-      words: b.target ? Number(b.target) || null : null,
-      updated_at: b.updated_at,
-    })),
-    ...((check(drafts) ?? []) as unknown as D[]).map((d) => {
-      const doc = Array.isArray(d.docs) ? d.docs[0] : d.docs;
-      const later = doc && doc.updated_at > d.updated_at ? doc.updated_at : d.updated_at;
-      return { key: `d:${d.id}`, kind: "Draft" as const, id: d.id, doc_id: d.doc_id, title: doc?.title || kw(d.calendar_items), keyword: kw(d.calendar_items), status: statusLabel(d.status), words: doc?.words ?? d.words, updated_at: later };
-    }),
-  ];
-  return rows.sort((a, b) => b.updated_at.localeCompare(a.updated_at));
-}
