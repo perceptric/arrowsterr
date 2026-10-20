@@ -15,16 +15,17 @@ from scipy.signal import resample_poly
 
 ROOT = Path(__file__).resolve().parent.parent
 SR = 48000
-PLACEHOLDER = "Zubbleton"  # stands in for a brand name so we can swap in its phonemes
+# Made-up words that stand in for words we spell out by sound, one per word.
+PLACEHOLDERS = ["Zubbleton", "Quorvandix", "Plimsotra", "Brandoxel"]
 
 
 def phonemes_for(text: str, tok: Tokenizer, pronounce: dict[str, str]) -> str:
-    for word in pronounce:
-        text = text.replace(word, PLACEHOLDER)
+    pairs = list(zip(PLACEHOLDERS, pronounce.items()))
+    for stand_in, (word, _) in pairs:
+        text = text.replace(word, stand_in)
     ph = tok.phonemize(text, "en-us")
-    placeholder_ph = tok.phonemize(PLACEHOLDER, "en-us")
-    for spoken in pronounce.values():
-        ph = ph.replace(placeholder_ph, spoken, 1)
+    for stand_in, (_, spoken) in pairs:
+        ph = ph.replace(tok.phonemize(stand_in, "en-us").strip(".").strip(), spoken)
     return ph
 
 

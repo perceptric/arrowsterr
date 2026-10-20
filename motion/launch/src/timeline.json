@@ -1,147 +1,162 @@
 {
   "fps": 30,
   "bpm": 120,
-  "durationSec": 64,
+  "durationSec": 84,
   "voice": "af_heart",
   "pronounce": {
-    "Arrowsterr": "ˈæɹoʊztɚ"
+    "Arrowsterr": "ˈæɹoʊztɚ",
+    "competitor": "kəmpˈɛtɪtɚ"
   },
   "vo": [
     {
       "id": "v01",
-      "at": 0.5,
-      "text": "Quick question."
+      "at": 0.3,
+      "text": "Ninety-two percent of buyers now begin their buying journey by asking AI for product recommendations."
     },
     {
       "id": "v02",
-      "at": 2.0,
-      "text": "When your buyers need new software, what do they do?"
+      "at": 8.0,
+      "text": "Are you part of the AI shortlist?"
     },
     {
       "id": "v03",
-      "at": 6.0,
-      "text": "They ask AI. And AI hands them a shortlist."
-    },
-    {
-      "id": "v04",
-      "at": 10.2,
-      "text": "So. Are you on it?"
-    },
-    {
-      "id": "v05",
-      "at": 14.0,
+      "at": 13.8,
       "text": "They just booked a demo. With your competitor."
     },
     {
-      "id": "v06",
+      "id": "v04",
       "at": 16.8,
       "text": "Let's check."
     },
     {
-      "id": "v07",
-      "at": 18.0,
+      "id": "v05",
+      "at": 17.95,
       "text": "ChatGPT.",
       "speed": 1.2
     },
     {
-      "id": "v08",
+      "id": "v06",
       "at": 19.0,
       "text": "Claude.",
       "speed": 1.2
     },
     {
-      "id": "v09",
+      "id": "v07",
       "at": 20.0,
       "text": "Gemini.",
       "speed": 1.2
     },
     {
-      "id": "v10",
+      "id": "v08",
       "at": 21.0,
       "text": "Perplexity.",
       "speed": 1.2
     },
     {
-      "id": "v11",
+      "id": "v09",
       "at": 22.0,
       "text": "Google's AI.",
       "speed": 1.2
     },
     {
-      "id": "v12",
-      "at": 23.2,
+      "id": "v10",
+      "at": 23.4,
       "text": "Not a single mention."
     },
     {
-      "id": "v13",
-      "at": 25.0,
+      "id": "v11",
+      "at": 25.2,
       "text": "You're invisible."
     },
     {
-      "id": "v14",
-      "at": 28.0,
+      "id": "v12",
+      "at": 28.2,
       "text": "Good news. You just need a navigator."
     },
     {
-      "id": "v15",
-      "at": 32.0,
+      "id": "v13",
+      "at": 32.2,
       "text": "Meet Arrowsterr."
     },
     {
+      "id": "v14",
+      "at": 34.2,
+      "text": "It shows exactly which brands AI recommends in your industry."
+    },
+    {
+      "id": "v15",
+      "at": 38.2,
+      "text": "Pick a topic, and see who gets mentioned most."
+    },
+    {
       "id": "v16",
-      "at": 34.0,
-      "text": "It shows where AI recommends your competitors instead of you."
+      "at": 42.2,
+      "text": "Then it cherry-picks the keywords with the strongest conversion potential, and the biggest lift in AI visibility."
     },
     {
       "id": "v17",
-      "at": 38.0,
-      "text": "Then it turns every gap into keywords people search."
+      "at": 50.2,
+      "text": "Of course, it builds your full editorial calendar, and writes everything for you."
     },
     {
       "id": "v18",
-      "at": 42.0,
-      "text": "Its agent ranks them by revenue and plans your month."
+      "at": 56.2,
+      "text": "And look, it goes way beyond text."
     },
     {
       "id": "v19",
-      "at": 46.0,
-      "text": "And writes the pages. Built for Google. Built for AI."
+      "at": 58.6,
+      "text": "It generates screenshots, tables, even interactive demos."
     },
     {
       "id": "v20",
-      "at": 50.0,
-      "text": "Ship it."
+      "at": 62.6,
+      "text": "Everything to make your article stand out."
     },
     {
       "id": "v21",
-      "at": 51.5,
-      "text": "Next morning. Same question."
+      "at": 67.6,
+      "text": "A few weeks later, check your dashboard."
     },
     {
       "id": "v22",
-      "at": 54.0,
-      "text": "There you are."
+      "at": 71.7,
+      "text": "And voilà. You're part of the AI recommendation."
     },
     {
       "id": "v23",
-      "at": 57.0,
+      "at": 75.6,
       "text": "That one's yours."
     },
     {
       "id": "v24",
-      "at": 58.5,
+      "at": 77.6,
       "text": "Arrowsterr. Get recommended in AI answers. Start free today."
     }
   ],
   "beats": {
-    "cards": [
-      8.0,
-      8.5,
-      9.0
+    "statCount": [
+      0.3,
+      2.2
     ],
-    "ghost": 10.0,
-    "clickCompetitor": 12.5,
-    "demoBookedCompetitor": 13.0,
+    "statType": [
+      1.0,
+      5.6
+    ],
+    "toChat": 6.2,
+    "promptType": [
+      7.0,
+      8.9
+    ],
+    "cards": [
+      10.0,
+      10.5,
+      11.0
+    ],
+    "ghost": 12.0,
+    "clickCompetitor": 13.0,
+    "demoBookedCompetitor": 13.5,
+    "pullBack": 16.6,
     "pings": [
       18.0,
       19.0,
@@ -149,26 +164,59 @@
       21.0,
       22.0
     ],
-    "notMentioned": 23.0,
-    "zero": 25.0,
-    "silence": [
-      27.0,
+    "notMentioned": 23.2,
+    "zero": 25.4,
+    "breakdown": [
+      24.0,
       28.0
     ],
     "arrowhead": 28.0,
     "drop": 32.0,
     "stations": [
       34.0,
-      38.0,
       42.0,
-      46.0
+      50.0,
+      56.0
     ],
-    "ship": 50.0,
-    "nextMorning": 51.5,
-    "finalDrop": 54.0,
-    "clickYou": 56.0,
-    "demoBookedYou": 56.5,
-    "close": 58.0,
-    "end": 64.0
+    "stationEnds": [
+      42.0,
+      50.0,
+      56.0,
+      66.0
+    ],
+    "topicPick": 38.8,
+    "keywordSort": 43.6,
+    "keywordPicks": [
+      45.0,
+      45.5,
+      46.0,
+      46.5
+    ],
+    "calendarFill": [
+      50.3,
+      52.0
+    ],
+    "draftType": [
+      52.8,
+      54.8
+    ],
+    "blocks": [
+      58.9,
+      59.9,
+      60.9
+    ],
+    "standOut": 62.6,
+    "fold": 64.6,
+    "ship": 66.0,
+    "dashboard": 67.3,
+    "climb": [
+      68.0,
+      70.4
+    ],
+    "finalDrop": 72.0,
+    "clickYou": 74.8,
+    "demoBookedYou": 75.2,
+    "close": 77.0,
+    "end": 84.0
   }
 }

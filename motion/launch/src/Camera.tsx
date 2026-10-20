@@ -1,7 +1,7 @@
 import React from 'react';
 import {Easing, interpolate, useVideoConfig} from 'remotion';
-import {INOUT, useT} from './lib';
-import {STATIONS, WIN_B} from './layout';
+import {B, INOUT, useT} from './lib';
+import {DASH, STAT, STATIONS, WIN_B} from './layout';
 import {LOCKUP_CENTER} from './world/LogoReveal';
 
 type Key = {t: number; x: number; y: number; z: number; ease?: (n: number) => number};
@@ -9,41 +9,41 @@ type Key = {t: number; x: number; y: number; z: number; ease?: (n: number) => nu
 const WHIP = Easing.bezier(0.7, 0, 0.18, 1);
 
 // One continuous shot. Each key is where the camera points and how close it is.
-const station = (k: number, arrive: number, leave: number): Key[] => {
+const station = (k: number, arrive: number, leave: number, z = 0.98): Key[] => {
 	const c = STATIONS[k];
 	return [
-		{t: arrive, x: c.x, y: c.y + 90, z: 0.98},
-		{t: leave, x: c.x + 40, y: c.y + 80, z: 1.01},
+		{t: arrive, x: c.x, y: c.y + 90, z},
+		{t: leave, x: c.x + 40, y: c.y + 80, z: z + 0.03},
 	];
 };
 
 export const KEYS: Key[] = [
-	{t: 0, x: 0, y: -220, z: 1.8},
-	{t: 1.9, x: 0, y: -220, z: 1.8},
-	{t: 5.2, x: 0, y: -205, z: 1.95},
-	{t: 7.2, x: 0, y: -20, z: 1.3},
-	{t: 9.6, x: 0, y: 10, z: 1.33},
-	{t: 10.9, x: 0, y: 120, z: 1.5},
-	{t: 11.5, x: 0, y: 118, z: 1.5},
-	{t: 12.3, x: 220, y: -30, z: 1.2},
-	{t: 15.8, x: 240, y: -30, z: 1.25},
-	{t: 17.7, x: 0, y: -130, z: 0.62},
+	{t: 0, x: STAT.x, y: STAT.y - 70, z: 1.12},
+	{t: B.toChat, x: STAT.x + 40, y: STAT.y - 70, z: 1.2},
+	{t: B.promptType[0] + 0.1, x: 0, y: -220, z: 1.8},
+	{t: B.promptType[1] + 0.3, x: 0, y: -210, z: 1.9},
+	{t: B.cards[0] - 0.1, x: 0, y: -20, z: 1.3},
+	{t: B.ghost - 0.4, x: 0, y: 10, z: 1.33},
+	{t: B.ghost + 0.4, x: 0, y: 120, z: 1.5},
+	{t: B.clickCompetitor, x: 220, y: -30, z: 1.2},
+	{t: B.pullBack, x: 240, y: -30, z: 1.25},
+	{t: B.pings[0], x: 0, y: -130, z: 0.62},
 	{t: 22.6, x: 0, y: -110, z: 0.66},
-	{t: 24.0, x: 0, y: -40, z: 0.7},
-	{t: 28.0, x: 0, y: -40, z: 0.72},
-	{t: 29.3, x: 520, y: -10, z: 0.95},
-	{t: 31.7, x: LOCKUP_CENTER.x, y: LOCKUP_CENTER.y + 40, z: 0.96},
-	{t: 33.3, x: LOCKUP_CENTER.x + 20, y: LOCKUP_CENTER.y + 40, z: 1.0},
-	...station(0, 34.2, 37.4),
-	...station(1, 38.2, 41.4),
-	...station(2, 42.2, 45.4),
-	...station(3, 46.2, 49.9),
-	{t: 51.4, x: WIN_B.x, y: WIN_B.y - 200, z: 1.6, ease: WHIP},
-	{t: 52.6, x: WIN_B.x, y: WIN_B.y - 190, z: 1.66},
-	{t: 53.4, x: WIN_B.x - 150, y: WIN_B.y - 80, z: 1.08},
-	{t: 54.0, x: WIN_B.x - 60, y: WIN_B.y - 20, z: 1.12},
-	{t: 55.0, x: WIN_B.x + 180, y: WIN_B.y + 20, z: 1.0},
-	{t: 64, x: WIN_B.x + 240, y: WIN_B.y + 20, z: 1.05},
+	{t: 24.4, x: 0, y: -40, z: 0.7},
+	{t: B.arrowhead, x: 0, y: -40, z: 0.72},
+	{t: B.arrowhead + 1.3, x: 520, y: -10, z: 0.95},
+	{t: B.drop - 0.3, x: LOCKUP_CENTER.x, y: LOCKUP_CENTER.y + 40, z: 0.96},
+	{t: B.drop + 1.3, x: LOCKUP_CENTER.x + 20, y: LOCKUP_CENTER.y + 40, z: 1.0},
+	...station(0, B.stations[0] + 0.2, B.stationEnds[0] - 0.6),
+	...station(1, B.stations[1] + 0.2, B.stationEnds[1] - 0.6),
+	...station(2, B.stations[2] + 0.2, B.stationEnds[2] - 0.6),
+	...station(3, B.stations[3] + 0.2, B.ship, 1.1),
+	{t: B.dashboard, x: DASH.x, y: DASH.y, z: 1.3, ease: WHIP},
+	{t: B.finalDrop - 1.6, x: DASH.x + 40, y: DASH.y - 10, z: 1.36},
+	{t: B.finalDrop - 0.6, x: WIN_B.x - 150, y: WIN_B.y - 80, z: 1.08},
+	{t: B.finalDrop, x: WIN_B.x - 60, y: WIN_B.y - 20, z: 1.12},
+	{t: B.finalDrop + 1.0, x: WIN_B.x + 180, y: WIN_B.y + 20, z: 1.0},
+	{t: B.end, x: WIN_B.x + 240, y: WIN_B.y + 20, z: 1.05},
 ];
 
 export const cameraAt = (t: number) => {

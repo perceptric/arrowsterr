@@ -1,14 +1,19 @@
 import React from 'react';
 import {Img, interpolate, random, staticFile} from 'remotion';
 import {B, life, prog, roll, useT} from '../lib';
-import {BEAM_FROM, CAL_A, CAL_B, COUNTER_A, COUNTER_B, ENGINES} from '../layout';
+import {BEAM_FROM, CAL_A, CAL_B, COUNTER_A, ENGINES} from '../layout';
 import type {Pt} from '../layout';
 import {C, sans} from '../theme';
-import {At, CalIcon, Card, ChevronUp, LogoTile, Num, Sparkle, Tag} from './ui';
+import {At, CalIcon, Card, LogoTile, Num, Sparkle, Tag} from './ui';
 
 const angleTo = (p: Pt) => Math.atan2(p.y - BEAM_FROM.y, p.x - BEAM_FROM.x);
-const ENGINE_ANGLES = ENGINES.map((e) => angleTo(e.at));
-const silenceDim = (t: number) => 1 - 0.7 * prog(t, B.silence[0], B.silence[0] + 0.25);
+// Angles measured one way round, left to right over the top (π is left, 2π is right),
+// so the sweep never turns back to reach an engine that sits just below the horizon.
+const ENGINE_ANGLES = ENGINES.map((e) => {
+	const a = angleTo(e.at);
+	return a < Math.PI / 2 ? a + 2 * Math.PI : a;
+});
+const silenceDim = (t: number) => 1 - 0.7 * prog(t, B.breakdown[0] + 2.2, B.breakdown[0] + 2.6);
 
 /** The radar: rings, a sweep that pings each engine, and a beam to each one. */
 export const Radar: React.FC = () => {
@@ -16,7 +21,7 @@ export const Radar: React.FC = () => {
 	const show = life(t, 16.9, 24.2, 0.5, 0.8);
 	if (show <= 0) return null;
 	const sweepT = [17.4, ...B.pings, 22.7];
-	const sweepA = [Math.PI, ...ENGINE_ANGLES.map((a) => (a < 0 ? a + 2 * Math.PI : a)), 2 * Math.PI];
+	const sweepA = [Math.PI - 0.25, ...ENGINE_ANGLES, 2 * Math.PI + 0.25];
 	const a = interpolate(t, sweepT, sweepA, {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'});
 	const R = 1500;
 	return (
@@ -96,35 +101,19 @@ export const Engines: React.FC = () => {
 	);
 };
 
-/** "AI visibility" stat: rolls down to 0% tonight, up to 60% next morning. */
-export const Counter: React.FC<{v: 'A' | 'B'}> = ({v}) => {
+/** "AI visibility" stat: rolls down to 0% tonight. */
+export const Counter: React.FC = () => {
 	const t = useT();
-	const isA = v === 'A';
-	const p = isA ? COUNTER_A : COUNTER_B;
-	const appear = isA ? prog(t, 23.4, 23.8) : prog(t, B.finalDrop + 0.1, B.finalDrop + 0.5);
+	const appear = prog(t, B.notMentioned + 0.4, B.notMentioned + 0.8);
 	if (appear <= 0) return null;
-	let value: number;
-	if (isA) {
-		value = t < 24 ? Math.floor(random(`c${Math.floor(t * 15)}`) * 90) : roll(t, 24, B.zero, 47, 0);
-	} else {
-		value = roll(t, B.finalDrop + 0.2, B.finalDrop + 1.6, 0, 60);
-	}
+	const value = t < B.zero - 1 ? Math.floor(random(`c${Math.floor(t * 15)}`) * 90) : roll(t, B.zero - 1, B.zero, 47, 0);
 	return (
-		<At p={p} w={460} h={170} style={{opacity: appear * (isA ? silenceDim(t) : 1)}}>
+		<At p={COUNTER_A} w={460} h={170} style={{opacity: appear * silenceDim(t)}}>
 			<Card style={{padding: '24px 30px', display: 'flex', flexDirection: 'column', gap: 6}}>
 				<span style={{fontSize: 22, color: C.ink2, fontWeight: 500}}>AI visibility</span>
-				<div style={{display: 'flex', alignItems: 'baseline', gap: 18}}>
-					<Num size={78} color={C.inkStrong}>
-						{value}%
-					</Num>
-					{!isA && t > B.finalDrop + 1.0 ? (
-						<span style={{opacity: prog(t, B.finalDrop + 1.0, B.finalDrop + 1.3)}}>
-							<Tag kind="pos" size={20} icon={<ChevronUp size={16} color={C.pos} />}>
-								+60 pts
-							</Tag>
-						</span>
-					) : null}
-				</div>
+				<Num size={78} color={C.inkStrong}>
+					{value}%
+				</Num>
 			</Card>
 		</At>
 	);
@@ -137,7 +126,7 @@ export const CalCard: React.FC<{v: 'A' | 'B'}> = ({v}) => {
 	const at = isA ? B.demoBookedCompetitor : B.demoBookedYou;
 	const p = prog(t, at, at + 0.4);
 	if (p <= 0) return null;
-	const name = isA ? 'Revora' : 'tablely.com';
+	const name = isA ? 'Acme' : 'tablely.com';
 	return (
 		<At p={isA ? CAL_A : CAL_B} w={420} h={190} style={{opacity: p * (isA ? silenceDim(t) : 1), translate: `0 ${(1 - p) * 24}px`}}>
 			<Card style={{padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 18, borderColor: isA ? C.line : C.signal}}>

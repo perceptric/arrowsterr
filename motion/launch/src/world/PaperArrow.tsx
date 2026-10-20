@@ -25,7 +25,7 @@ const BOT_TO: Poly = [[-100, 0], [150, 0], [150, 0], [-150, 92]];
 const mix = (a: Poly, b: Poly, p: number) => a.map(([x, y], i) => `${x + (b[i][0] - x) * p},${y + (b[i][1] - y) * p}`).join(' ');
 
 const WHIP = Easing.bezier(0.7, 0, 0.2, 1);
-const LAUNCH_CTRL: Pt = {x: 10600, y: -1750};
+const LAUNCH_CTRL: Pt = {x: 11200, y: -2300};
 
 const bez = (a: Pt, c: Pt, b: Pt, p: number): Pt => ({
 	x: (1 - p) * (1 - p) * a.x + 2 * (1 - p) * p * c.x + p * p * b.x,
@@ -34,7 +34,7 @@ const bez = (a: Pt, c: Pt, b: Pt, p: number): Pt => ({
 
 /** Where the paper arrow is, which way it points (degrees) and its size. */
 const pose = (t: number) => {
-	const fold = B.stations[3] + 2.5;
+	const fold = B.fold;
 	if (t < B.ship) {
 		const p = prog(t, fold, fold + 0.9, INOUT);
 		return {at: FORM, rot: -26 * p, scale: 1 - 0.15 * p, fold: p};
@@ -74,12 +74,12 @@ const Arrow: React.FC<{t: number; opacity?: number}> = ({t, opacity = 1}) => {
 
 export const PaperArrow: React.FC = () => {
 	const t = useT();
-	const fold = B.stations[3] + 2.5;
+	const fold = B.fold;
 	if (t < fold || t > B.finalDrop + 0.15) return null;
 	const gone = 1 - prog(t, B.finalDrop, B.finalDrop + 0.1);
 	const flying = t > B.ship && t < B.ship + 1.3;
 	return (
-		<svg style={{position: 'absolute', left: 8000, top: -3000, overflow: 'visible'}} width={6000} height={4000} viewBox="8000 -3000 6000 4000">
+		<svg style={{position: 'absolute', left: 8000, top: -3000, overflow: 'visible'}} width={8000} height={4000} viewBox="8000 -3000 8000 4000">
 			{flying ? [5, 4, 3, 2, 1].map((k) => <Arrow key={k} t={t - k * 0.018} opacity={0.12 * (6 - k) * 0.4} />) : null}
 			<Arrow t={t} opacity={gone} />
 		</svg>

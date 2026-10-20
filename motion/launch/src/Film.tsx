@@ -9,9 +9,11 @@ import {B, prog, useT} from './lib';
 import {C} from './theme';
 import {AnswerWindow, buyerCursor} from './world/AnswerWindow';
 import {CalCard, Counter, Engines, Radar} from './world/Check';
+import {Dashboard} from './world/Dashboard';
 import {LogoReveal} from './world/LogoReveal';
 import {PaperArrow} from './world/PaperArrow';
 import {Route} from './world/Route';
+import {Stat} from './world/Stat';
 import {Stations} from './world/Stations';
 import {Cursor} from './world/ui';
 import {SparkBurst} from './world/Win';
@@ -39,14 +41,15 @@ const Scene: React.FC = () => {
 				<DotGrid />
 				<Radar />
 				<Engines />
+				<Stat />
 				<AnswerWindow v="A" />
 				<CalCard v="A" />
-				<Counter v="A" />
+				<Counter />
 				<Stations />
 				<LogoReveal />
 				<Route />
+				<Dashboard />
 				<AnswerWindow v="B" />
-				<Counter v="B" />
 				<CalCard v="B" />
 				<SparkBurst />
 				<PaperArrow />

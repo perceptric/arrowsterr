@@ -44,22 +44,9 @@ export const flicker = (t: number, seed: string) => {
 	return r < 0.18 ? 0.08 : r < 0.3 ? 0.9 : 0.45 + r * 0.25;
 };
 
-const GLYPHS = '#%&*+=<>/\\|01{}[]$@';
-
-/** Text that decodes from scrambled characters, left to right. */
-export const decode = (text: string, t: number, start: number, perChar: number, seed = 'd') => {
-	const chars = [...text];
-	const head = (t - start) / perChar;
-	return chars.map((ch, i) => {
-		if (ch === ' ') return {ch, state: head >= i ? 'done' : 'hidden'} as const;
-		if (head >= i + 4) return {ch, state: 'done'} as const;
-		if (head >= i) {
-			const g = GLYPHS[Math.floor(random(`${seed}-${i}-${Math.floor(t * 30)}`) * GLYPHS.length)];
-			return {ch: g, state: 'scramble'} as const;
-		}
-		return {ch, state: 'hidden'} as const;
-	});
-};
+/** How much of a line has been typed, one character at a time. */
+export const typed = (text: string, t: number, start: number, end: number) =>
+	text.slice(0, Math.floor(tw(t, [start, end], [0, text.length], (n) => n)));
 
 /** A number that rolls toward its target. */
 export const roll = (t: number, a: number, b: number, from: number, to: number) =>

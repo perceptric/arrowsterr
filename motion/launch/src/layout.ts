@@ -2,9 +2,14 @@
 
 export type Pt = {x: number; y: number};
 
-// The buyer's AI answer, tonight and next morning.
+// The opening stat, then the buyer's AI answer: tonight and a few weeks later.
+export const STAT: Pt = {x: -2300, y: -160};
 export const WIN_A: Pt = {x: 0, y: 0};
-export const WIN_B: Pt = {x: 12600, y: -1500};
+export const WIN_B: Pt = {x: 14200, y: -1650};
+// The Arrowsterr dashboard, between the last station and the answer.
+export const DASH: Pt = {x: 12100, y: -1250};
+export const DASH_W = 1120;
+export const DASH_H = 640;
 export const WIN_W = 980;
 export const WIN_H = 640;
 // Row centers inside a window, relative to its center.
@@ -39,6 +44,5 @@ export const ROUTE_END: Pt = {x: STATIONS[3].x + STATION_W / 2 + 120, y: pinOf(S
 
 // Where the paper arrow waits before it dives into slot #2.
 export const PERCH: Pt = {x: WIN_B.x - 760, y: WIN_B.y - 420};
-export const COUNTER_B: Pt = {x: WIN_B.x + WIN_W / 2 + 240, y: WIN_B.y + 200};
 export const CAL_A: Pt = {x: WIN_A.x + WIN_W / 2 + 240, y: -60};
 export const CAL_B: Pt = {x: WIN_B.x + WIN_W / 2 + 240, y: WIN_B.y - 40};
