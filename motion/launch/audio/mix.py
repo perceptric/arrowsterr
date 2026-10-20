@@ -78,6 +78,16 @@ def shelf(x: np.ndarray, f0: float, gain_db: float, high: bool) -> np.ndarray:
     return lfilter([b0 / a0, b1 / a0, b2 / a0], [1, a1 / a0, a2 / a0], x, axis=0)
 
 
+def peak_eq(x: np.ndarray, f0: float, gain_db: float, q: float) -> np.ndarray:
+    """RBJ peaking biquad."""
+    a = 10 ** (gain_db / 40)
+    w = 2 * np.pi * f0 / SR
+    alpha = np.sin(w) / (2 * q)
+    b = [1 + alpha * a, -2 * np.cos(w), 1 - alpha * a]
+    den = [1 + alpha / a, -2 * np.cos(w), 1 - alpha / a]
+    return lfilter(np.array(b) / den[0], np.array(den) / den[0], x, axis=0)
+
+
 def saturate(x: np.ndarray, drive: float) -> np.ndarray:
     if drive <= 1.0:
         return x
@@ -209,6 +219,8 @@ def main() -> None:
     wet = fftconvolve(send, reverb_ir(), axes=0)[:N] * 0.6
     wet = filt(wet, 200, 9000)
     music = dry + wet
+    music = peak_eq(music, 260, -2.0, 0.9)  # clear the low mids for the voice
+    music = shelf(music, 5000, 2.5, high=True)  # air
     music = compress(music, thresh_db=-20, ratio=2.5, attack=0.015, release=0.18)
 
     # hard stop at 27.0, silence to 28.0
@@ -237,13 +249,16 @@ def main() -> None:
     mix = music_d + vo + sfx
 
     # master: loudness to -14 LUFS, true peak under -1 dBTP
+    pre = mix * 10 ** ((-14.0 - meter.integrated_loudness(mix)) / 20)
+    mix = pre
     for _ in range(4):
-        mix *= 10 ** ((-14.0 - meter.integrated_loudness(mix)) / 20)
-        pre = mix
         mix = limit(mix, -1.3)
+        mix *= 10 ** ((-14.0 - meter.integrated_loudness(mix)) / 20)
     mix = limit(mix, -1.3)
-    gr = 20 * np.log10((np.abs(mix).max(axis=1) + 1e-9) / (np.abs(pre).max(axis=1) + 1e-9))
-    print(f"limiter: max gain reduction {-gr.min():.1f} dB, >3 dB on {(gr < -3).mean() * 100:.1f}% of samples")
+    ratio = (np.abs(mix).max(axis=1) + 1e-9) / (np.abs(pre).max(axis=1) + 1e-9)
+    gr = 20 * np.log10(ratio[np.abs(pre).max(axis=1) > 1e-3])
+    print(f"limiter: input true peak {true_peak(pre):.1f} dBTP, max gain reduction {-gr.min():.1f} dB, "
+          f">3 dB on {(gr < -3).mean() * 100:.1f}% of sounding samples")
     window(mix, s0, s1)
     fade = np.clip((64.0 - t) / 1.5, 0, 1)
     fade = np.where(t < 62.5, 1.0, 0.5 - 0.5 * np.cos(np.pi * fade))

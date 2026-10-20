@@ -75,7 +75,7 @@ export const Film: React.FC = () => {
 	return (
 		<AbsoluteFill style={{background: C.bg2}}>
 			{whip ? (
-				<CameraMotionBlur shutterAngle={200} samples={6}>
+				<CameraMotionBlur shutterAngle={220} samples={14}>
 					<Scene />
 				</CameraMotionBlur>
 			) : (
