@@ -2,8 +2,8 @@
 /**
  * Plugin Name:       Arrowsterr Twenty Style
  * Plugin URI:        https://arrowsterr.com/
- * Description:       Puts the arrowsterr.com site in Twenty's design system, the same look as the app. Loads Inter and DM Mono and a stylesheet after the theme's own. Turn it off to go back.
- * Version:           1.0.0
+ * Description:       Swaps the arrowsterr.com fonts for Twenty's: Inter for headings and text, DM Mono for numbers and code. Everything else stays as the theme has it. Turn it off to go back.
+ * Version:           1.1.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Arrowsterr
@@ -14,11 +14,11 @@ if (!defined('ABSPATH')) {
 	exit;
 }
 
-define('ARROWSTERR_TWENTY_VERSION', '1.0.0');
+define('ARROWSTERR_TWENTY_VERSION', '1.1.0');
 
 /** Swaps the theme's fonts for Inter and DM Mono, then loads twenty.css after every theme stylesheet. */
 function arrowsterr_twenty_styles() {
-	$fonts = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap';
+	$fonts = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap';
 	// Point the theme's font handle at the new fonts, so stylesheets that depend on it still load.
 	$styles = wp_styles();
 	if (isset($styles->registered['aw-fonts'])) {

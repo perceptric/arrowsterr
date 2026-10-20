@@ -20,8 +20,6 @@ The app follows Twenty's design system (twentyhq/twenty, `packages/twenty-ui/src
 None. This is styling only, with one free Google font (DM Mono). Beta (50 teams): $0. Growth (500 teams): $0.
 
 ## The website (arrowsterr.com)
-The WordPress site gets the same look from the `wp-plugin/arrowsterr-twenty` plugin. It points the theme's Funnel Display and Geist fonts at Inter and DM Mono, then loads `twenty.css` after every theme stylesheet. No theme files change. To install: zip the `arrowsterr-twenty` folder, upload it under Plugins → Add New → Upload, and activate it. Deactivate it to go back to the old look.
-
-The Climb, the Notch, the payoff-word blue and the gold Spark come off. Headings are Inter 600 with no tracking; body text is 15px. Images and illustrations keep their colors.
+The WordPress site takes only Twenty's fonts, from the `wp-plugin/arrowsterr-twenty` plugin: Inter for headings and text in place of Funnel Display and Geist, and DM Mono for numbers and code in place of Geist Mono. Colors (#0943B0), buttons, the Notch, the Climb and the layouts stay as the theme has them. To install: zip the `arrowsterr-twenty` folder, upload it under Plugins → Add New → Upload, and activate it. Deactivate it to go back.
 
 Running cost: none. Beta (50 teams): $0. Growth (500 teams): $0.
