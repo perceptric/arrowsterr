@@ -266,7 +266,7 @@ def main() -> None:
     music_d *= fade[:, None]
 
     sf.write(ROOT / "public/audio/music.wav", music_d.astype(np.float32), SR, subtype="FLOAT")
-    sf.write(ROOT / "public/audio/mix.wav", mix.astype(np.float32), SR, subtype="FLOAT")
+    sf.write(ROOT / "public/audio/mix.wav", mix, SR, subtype="PCM_24")
 
     # report
     lufs = meter.integrated_loudness(mix)

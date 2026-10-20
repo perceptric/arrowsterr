@@ -83,7 +83,7 @@ export const Film: React.FC = () => {
 			)}
 			<Leak />
 			<Close />
-			<Audio src={staticFile('audio/mix.wav')} />
+			<Audio src={staticFile('audio/mix.m4a')} />
 		</AbsoluteFill>
 	);
 };
