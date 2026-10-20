@@ -1,0 +1,26 @@
+{
+  "name": "arrowsterr-launch-film",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts ArrowsterrLaunch out/arrowsterr-launch.mp4",
+    "still": "remotion still src/index.ts ArrowsterrLaunch"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.537",
+    "@remotion/effects": "^4.0.537",
+    "@remotion/fonts": "^4.0.537",
+    "@remotion/media": "^4.0.537",
+    "@remotion/motion-blur": "^4.0.537",
+    "@remotion/noise": "^4.0.537",
+    "@remotion/paths": "^4.0.537",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "remotion": "^4.0.537"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "typescript": "^7.0.2"
+  }
+}
