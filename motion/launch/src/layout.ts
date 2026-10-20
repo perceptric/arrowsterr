@@ -45,4 +45,5 @@ export const ROUTE_END: Pt = {x: STATIONS[3].x + STATION_W / 2 + 120, y: pinOf(S
 // Where the paper arrow waits before it dives into slot #2.
 export const PERCH: Pt = {x: WIN_B.x - 760, y: WIN_B.y - 420};
 export const CAL_A: Pt = {x: WIN_A.x + WIN_W / 2 + 240, y: -60};
+export const MISSED: Pt = {x: WIN_A.x + WIN_W / 2 + 240, y: 170};
 export const CAL_B: Pt = {x: WIN_B.x + WIN_W / 2 + 240, y: WIN_B.y - 40};

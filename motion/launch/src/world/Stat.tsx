@@ -1,6 +1,7 @@
 import React from 'react';
+import {Img, staticFile} from 'remotion';
 import {B, prog, roll, typed, useT} from '../lib';
-import {STAT} from '../layout';
+import {ENGINES, STAT} from '../layout';
 import {C, display, mono} from '../theme';
 
 // The opening claim. The number and the line live here so they're easy to swap.
@@ -31,6 +32,31 @@ export const Stat: React.FC = () => {
 				<span style={{color: C.signalText}}>{payoff}</span>
 				{after}
 				<span style={{display: 'inline-block', width: 4, height: 62, marginLeft: 3, translate: '0 10px', background: C.signal, opacity: caret ? 1 : 0}} />
+			</div>
+			{/* the AI engines buyers ask */}
+			<div style={{marginTop: 40, display: 'flex', justifyContent: 'center', gap: 22}}>
+				{ENGINES.map((e, i) => {
+					const on = prog(t, B.logos[i] - 0.2, B.logos[i]);
+					return (
+						<div
+							key={e.name}
+							style={{
+								display: 'flex',
+								alignItems: 'center',
+								gap: 14,
+								padding: '14px 22px',
+								borderRadius: 8,
+								border: `2px solid ${C.line}`,
+								background: C.bg,
+								opacity: on,
+								translate: `0 ${(1 - on) * 20}px`,
+							}}
+						>
+							<Img src={staticFile(e.file)} style={{width: 48, height: 48, borderRadius: 8, objectFit: 'contain'}} />
+							<span style={{fontFamily: display, fontWeight: 600, fontSize: 28, color: C.inkStrong}}>{e.name}</span>
+						</div>
+					);
+				})}
 			</div>
 		</div>
 	);

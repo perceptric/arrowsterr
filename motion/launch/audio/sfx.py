@@ -14,7 +14,7 @@ from scipy.signal import butter, sosfilt
 
 ROOT = Path(__file__).resolve().parent.parent
 SR = 48000
-END = 84.0
+END = 78.0
 rng = np.random.default_rng(11)
 
 
@@ -158,20 +158,23 @@ def build(tl: dict) -> np.ndarray:
     tr = Track()
     b = tl["beats"]
 
-    # 0.3-2.2: a soft tick per digit as 92% counts up; 1.0-5.6 the stat line types
+    # intro: a soft tick per digit as 92% counts up, the stat line types, a tick as each AI logo pops
     roll_ticks(tr, b["statCount"][0], b["statCount"][1], 30, db=-33)
     typing(tr, b["statType"][0], b["statType"][1], db=-33)
-    # 7.0-8.9: the buyer's prompt
+    for k, at in enumerate(b["logos"]):
+        tr.put(at, norm(bell((D6, E6, FS6, A6, D7)[k], 0.4, 0.08), 1), db=-34, pan=-0.5 + k * 0.25)
+        tr.put(at, click(0.6, 4200), db=-32, pan=-0.5 + k * 0.25)
+    # the buyer's prompt
     typing(tr, b["promptType"][0], b["promptType"][1], db=-31)
 
-    # card snaps 10.0, 10.5, 11.0
+    # card snaps
     for k, at in enumerate(b["cards"]):
         crack = band(noise(0.05), 1200, 6500) * env_ad(int(0.05 * SR), 0.0004, 0.018, 5)
         thump = tone(150, 0.09, 0.03, glide=70)
         x = layer((1.0, norm(crack, 1)), (0.6, norm(thump, 1)))
         tr.put(at - 0.004, norm(x, 1), db=-21, pan=[-0.35, 0.0, 0.35][k])
 
-    # glitch flicker 12.0-12.8, soft
+    # glitch flicker, soft
     for k in range(7):
         d = 0.04
         car = np.sign(np.sin(2 * np.pi * rng.uniform(600, 1400) * secs(d)))
@@ -179,34 +182,24 @@ def build(tl: dict) -> np.ndarray:
         x = (0.4 * car + crush) * env_ad(int(d * SR), 0.001, d * 0.7, 2)
         tr.put(b["ghost"] + k * 0.11 + (0.03 if k % 3 == 2 else 0), norm(x, 1), db=-32 - k * 1.2, pan=rng.uniform(-0.5, 0.5))
 
-    # clicks: your competitor tonight, you later
+    # clicks: your competitor first, you at the end
     for at in (b["clickCompetitor"], b["clickYou"]):
         tr.put(at, click(1.0, 3000), db=-22)
         tr.put(at + 0.075, click(0.7, 3600), db=-25)
 
-    # muted "booked" chime for the competitor (A5 then F#5, dark), bright one for you (A6 then D7)
+    # muted "booked" chime for the competitor (A5 then F#5, dark), bright one for you
     tr.put(b["demoBookedCompetitor"], chime((880.0, 739.99), 0.16, 1.2, 0.35, lp=2000), db=-26)
     tr.put(b["demoBookedYou"], chime((A6 / 2, D6, FS6), 0.09, 1.4, 0.5), db=-23)
 
-    # pull back: a wide whoosh
-    w = whoosh(0.9, 300, 3500, peak_at=0.55)
-    tr.put(b["pullBack"] - 0.2, w, db=-27, pan=np.linspace(0.6, -0.6, len(w)))
+    # the "missed pipeline" counter: low register ticks with a soft thump, speeding up
+    m0, m1 = b["missed"]
+    w = np.cumsum(np.linspace(2.2, 1.0, 34))
+    for at in m0 + (m1 - m0) * (w - w[0]) / (w[-1] - w[0]):
+        tk = layer((1.0, tone(880.0, 0.05, 0.015, ((1, 1.0), (2.7, 0.3)))), (0.6, tone(110.0, 0.06, 0.02)))
+        tk[: int(0.006 * SR)] += click(0.5, 2200)[: int(0.006 * SR)]
+        tr.put(at, norm(tk, 1), db=-31, pan=rng.uniform(-0.2, 0.2))
 
-    # radar pings: D6 with an echo, walking left to right with the sweep
-    for k, at in enumerate(b["pings"]):
-        pg = tone(D6, 0.9, 0.22, ((1, 1.0), (2, 0.18), (3, 0.05)))
-        echo = np.zeros(len(pg) + int(0.14 * SR))
-        echo[: len(pg)] += pg
-        echo[int(0.14 * SR):] += 0.3 * pg
-        tr.put(at, norm(echo, 1), db=-25, pan=-0.7 + k * 0.35)
-
-    # low thud on "Not mentioned"
-    x = tone(73.4, 0.6, 0.22, glide=45) + 0.3 * band(noise(0.6), None, 180) * env_ad(int(0.6 * SR), 0.002, 0.15)
-    tr.put(b["notMentioned"], norm(x, 1), db=-19)
-
-    # the counter rolls down to 0%, then the ghost dissolves
-    roll_ticks(tr, b["zero"] - 0.8, b["zero"], 16, db=-33)
-    tr.put(b["zero"], click(1.0, 2600), db=-27)
+    # the ghost dissolves
     for _ in range(110):
         at = b["zero"] + rng.uniform(0, 1.0) ** 1.6
         g = tone(rng.uniform(3000, 8000), 0.06, 0.02)
@@ -216,7 +209,7 @@ def build(tl: dict) -> np.ndarray:
     tr.put(b["arrowhead"], norm(tone(587.33, 0.14, 0.08, glide=1174.66), 1), db=-24)
     tr.put(b["arrowhead"] + 0.06, norm(tone(D6, 1.4, 0.55, ((1, 1.0), (2, 0.12))), 1), db=-31)
 
-    # 32.0: sub boom on D and a shockwave
+    # the drop: sub boom on D and a shockwave
     tr.put(b["drop"], norm(tone(73.4, 1.8, 0.55, glide=36.7), 1), db=-17)
     wave = sweep_band(noise(1.0), 5000, 400, q=1.2) * env_ad(int(SR), 0.004, 0.45, 3)
     tr.put(b["drop"], norm(wave, 1), db=-25, pan=np.linspace(-0.6, 0.6, int(SR)))
@@ -275,7 +268,7 @@ def build(tl: dict) -> np.ndarray:
     rise = np.sin(2 * np.pi * np.cumsum(f) / SR) * 0.6 + 0.4 * band(noise(d), 3000, 9000)
     tr.put(k0, norm(rise * (t / d) ** 1.5 * np.exp(-np.clip(t - d + 0.15, 0, None) / 0.05), 1), db=-35)
 
-    # 72.0: impact and the gold spark shimmer (D major sparkles)
+    # the final chorus: impact and the gold spark shimmer (D major sparkles)
     imp = norm(tone(73.4, 1.2, 0.4, glide=36.7), 1)
     crack = band(noise(0.3), 300, 4000) * env_ad(int(0.3 * SR), 0.001, 0.07)
     imp[: len(crack)] += 0.45 * norm(crack, 1)

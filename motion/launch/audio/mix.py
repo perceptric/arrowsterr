@@ -20,7 +20,7 @@ from scipy.signal import butter, fftconvolve, lfilter, resample_poly, sosfilt, s
 ROOT = Path(__file__).resolve().parent.parent
 STEMS = ROOT / "audio/build/stems"
 SR = 48000
-END = 84.0
+END = 78.0
 N = int(END * SR)
 
 # stem: gain dB, pan (-1..1, applied as balance), high-pass Hz, low-pass Hz, drive, reverb send
@@ -42,24 +42,27 @@ STEM_MIX = {
     "brass":   (-4.0, -0.2, 80, 9000, 1.1, 0.24),
     "timpani": (-3.0, 0.0, 35, None, 1.0, 0.28),
 }
-REVERSE_CYMBALS = (32.0, 48.0, 64.0, 72.0, 80.0)  # each swell ends exactly on this time
-RISERS = ((24.0, 32.0), (66.0, 72.0))  # noise and tone risers that cut off on the arrival
-# Sections and their loudness against the first chorus block (LU). From 32 s it only climbs.
+REVERSE_CYMBALS = (24.0, 40.0, 56.0, 66.0, 76.0)  # each swell ends exactly on this time
+RISERS = ((18.0, 24.0), (60.0, 66.0))  # noise and tone risers that cut off on the arrival
+# Sections and their loudness against the first chorus block (LU). From the drop it only climbs.
 SECTIONS = [  # (start, end, name, target)
-    (0.0, 8.0, "intro", -7.0), (8.0, 16.0, "verse", -5.0), (16.0, 24.0, "verse 2", -4.0),
-    (24.0, 28.0, "breakdown", -5.5), (28.0, 32.0, "build", -3.0), (32.0, 40.0, "chorus 1", 0.0),
-    (40.0, 48.0, "chorus 2", 1.2), (48.0, 56.0, "chorus 3", 2.4), (56.0, 66.0, "chorus 4", 3.6),
-    (66.0, 68.0, "whip", 4.0), (68.0, 72.0, "pre-chorus", 4.4), (72.0, 80.0, "final chorus", 5.6),
-    (80.0, 84.0, "outro", 5.6),
+    (0.0, 8.0, "intro", -7.0), (8.0, 14.0, "verse", -5.0), (14.0, 18.0, "verse 2", -4.0),
+    (18.0, 20.0, "dip", -5.5), (20.0, 24.0, "build", -3.0), (24.0, 32.0, "chorus 1", 0.0),
+    (32.0, 40.0, "chorus 2", 1.2), (40.0, 48.0, "chorus 3", 2.4), (48.0, 60.0, "chorus 4", 3.6),
+    (60.0, 62.0, "whip", 4.0), (62.0, 66.0, "pre-chorus", 4.4), (66.0, 74.0, "final chorus", 5.6),
+    (74.0, 78.0, "outro", 5.6),
 ]
 REF, PEAK_SECTION, PEAK_LUFS = "chorus 1", "final chorus", -16.5  # the peak sits 6 dB under the voice once ducked
 # how long the level takes to move into each section (s), ending on the boundary
-GLIDE = {8.0: 1.0, 16.0: 1.0, 24.0: 1.0, 28.0: 0.5, 32.0: 2.0, 40.0: 1.0, 48.0: 1.0, 56.0: 1.0,
-         66.0: 0.5, 68.0: 1.0, 72.0: 0.25, 80.0: 0.5}
-DARK = (24.0, 28.0, 32.0)  # the bed is darkened from 24, then opens up from 28 to 32
-THIN = (68.0, 72.0)  # a rising high-pass through the pre-chorus; the low end slams back at 72
+GLIDE = {8.0: 1.0, 14.0: 1.0, 18.0: 0.5, 20.0: 0.5, 24.0: 2.0, 32.0: 1.0, 40.0: 1.0, 48.0: 1.0,
+         60.0: 0.5, 62.0: 1.0, 66.0: 0.25, 74.0: 0.5}
+DARK = (18.0, 20.0, 24.0)  # the bed is darkened in the dip, then opens up through the build
+THIN = (61.3, 66.0)  # a rising high-pass through the pre-chorus; the low end slams back at 66
+CLIMB_FROM = 24.0
+CLIMB = [(24.0, 0.0), (32.0, 1.2), (40.0, 2.4), (48.0, 3.6), (60.0, 4.0), (62.0, 4.4), (66.0, 5.6), (78.0, 5.9)]
+FADE = (76.5, 78.0)
 DUCK_DB, DUCK_ATTACK, DUCK_RELEASE = -5.0, 0.06, 0.6
-LEAD_REST_FROM, LEAD_REST_DB, LEAD_FADE = 32.0, -6.0, 0.12  # the lead steps back while the voice talks
+LEAD_REST_FROM, LEAD_REST_DB, LEAD_FADE = 24.0, -6.0, 0.12  # the lead steps back while the voice talks
 
 
 def lead_rides(tl: dict) -> np.ndarray:
@@ -238,22 +241,19 @@ def section_rides(music: np.ndarray, meter: pyln.Meter) -> tuple[np.ndarray, dic
     return gain, loud
 
 
-CLIMB = [(32.0, 0.0), (40.0, 1.2), (48.0, 2.4), (56.0, 3.6), (66.0, 4.0), (68.0, 4.4), (72.0, 5.6), (84.0, 5.9)]
-
-
 def climb_rides(music: np.ndarray, meter: pyln.Meter, ref: float) -> np.ndarray:
-    """From 32 s, a bar-by-bar gain (dB per sample) so each 2 s bar sits on a line that only rises."""
+    """From the drop, a bar-by-bar gain (dB per sample) so each 2 s bar sits on a line that only rises."""
     t = np.arange(N) / SR
-    starts = np.arange(32.0, 84.0, 2.0)
+    starts = np.arange(CLIMB_FROM, END, 2.0)
     centres = starts + 1.0
     target = ref + np.interp(starts, *zip(*CLIMB))
     gain_db = np.zeros(len(starts))
     for _ in range(3):
-        g = np.interp(t, centres, gain_db) * (t >= 31.0) * np.clip((t - 31.0), 0, 1)
+        g = np.interp(t, centres, gain_db) * np.clip((t - (CLIMB_FROM - 1)), 0, 1)
         x = music * (10 ** (g / 20))[:, None]
         lu = np.array([meter.integrated_loudness(x[int(a * SR):int((a + 2) * SR)]) for a in starts])
         gain_db = np.clip(gain_db + (target - lu), -4.0, 4.0)
-    return np.interp(t, centres, gain_db) * np.clip((t - 31.0), 0, 1)
+    return np.interp(t, centres, gain_db) * np.clip((t - (CLIMB_FROM - 1)), 0, 1)
 
 
 def riser(d: float, seed: int) -> np.ndarray:
@@ -376,7 +376,8 @@ def main() -> None:
     gr = 20 * np.log10(ratio[np.abs(pre).max(axis=1) > 1e-3])
     print(f"limiter: input true peak {true_peak(pre):.1f} dBTP, max gain reduction {-gr.min():.1f} dB, "
           f">3 dB on {(gr < -3).mean() * 100:.1f}% of sounding samples")
-    fade = np.where(t < 82.5, 1.0, 0.5 + 0.5 * np.cos(np.pi * np.clip((t - 82.5) / 1.5, 0, 1)))
+    f0, f1 = FADE
+    fade = np.where(t < f0, 1.0, 0.5 + 0.5 * np.cos(np.pi * np.clip((t - f0) / (f1 - f0), 0, 1)))
     mix *= fade[:, None]
     music_d *= fade[:, None]
     music_bed = music * fade[:, None]
@@ -392,14 +393,16 @@ def main() -> None:
           f"sample peak {20 * np.log10(np.abs(mix).max()):.2f} dBFS")
     print("music bed by section (LUFS, before ducking):")
     for a, b, name, target in SECTIONS:
-        seg = music_bed[int(a * SR):int(min(b, 82.5) * SR)]
+        seg = music_bed[int(a * SR):int(min(b, FADE[0]) * SR)]
         print(f"  {a:5.1f}-{b:5.1f} {name:13s} {meter.integrated_loudness(seg):6.1f}  (target {target:+.1f} vs chorus)")
-    bars = [20 * np.log10(np.sqrt((music_bed[int(k * 2 * SR):int((k + 1) * 2 * SR)] ** 2).mean()) + 1e-12) for k in range(41)]
-    print(f"quietest bar of the music bed before 82 s: {min(bars):.1f} dBFS RMS (bar {int(np.argmin(bars))}, {2 * int(np.argmin(bars))} s)")
-    lu = [meter.integrated_loudness(music_bed[int(k * 2 * SR):int((k + 1) * 2 * SR)]) for k in range(16, 41)]
-    drops = [(32 + 2 * i, round(lu[i] - max(lu[:i]), 1)) for i in range(1, len(lu)) if lu[i] < max(lu[:i]) - 0.5]
-    print("2 s bars from 32 s (LUFS):", " ".join(f"{x:.1f}" for x in lu))
-    print("steps down of more than 0.5 dB after 32 s:", drops or "none")
+    w = int(0.25 * SR)
+    quiet = [20 * np.log10(np.sqrt((music_bed[i:i + w] ** 2).mean()) + 1e-12) for i in range(0, int(FADE[0] * SR) - w, w)]
+    print(f"quietest 0.25 s of the music bed before the fade: {min(quiet):.1f} dBFS RMS at {np.argmin(quiet) * 0.25:.2f} s")
+    first = int(CLIMB_FROM // 2)
+    lu = [meter.integrated_loudness(music_bed[int(k * 2 * SR):int((k + 1) * 2 * SR)]) for k in range(first, int(FADE[0] // 2))]
+    drops = [(CLIMB_FROM + 2 * i, round(lu[i] - max(lu[:i]), 1)) for i in range(1, len(lu)) if lu[i] < max(lu[:i]) - 0.5]
+    print(f"2 s bars from {CLIMB_FROM:.0f} s (LUFS):", " ".join(f"{x:.1f}" for x in lu))
+    print(f"steps down of more than 0.5 dB after {CLIMB_FROM:.0f} s:", drops or "none")
     print(f"ducking: deepest {20 * np.log10(duck.min()):.1f} dB, >3 dB on {(duck < 10 ** (-3 / 20)).mean() * 100:.0f}% of the film")
 
 

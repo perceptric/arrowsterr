@@ -131,7 +131,7 @@ export const AnswerWindow: React.FC<{v: 'A' | 'B'}> = ({v}) => {
 	const typing = isA && t >= typeStart && t < typeEnd + 0.3;
 	const listAt = isA ? typeEnd + 0.7 : 0;
 	const caretOn = isA && t < listAt && (typing || Math.floor(t * 2) % 2 === 0);
-	const dim = isA ? 1 - 0.7 * prog(t, B.breakdown[0] + 2.2, B.breakdown[0] + 2.6) : 1;
+	const dim = isA ? 1 - 0.7 * prog(t, B.dim, B.dim + 0.4) : 1;
 
 	const rowsA: Row[] = [
 		{name: 'Acme', deal: B.cards[0]},
@@ -140,7 +140,7 @@ export const AnswerWindow: React.FC<{v: 'A' | 'B'}> = ({v}) => {
 	];
 	const deal2 = B.finalDrop - 1.6;
 	const rowsB: (Row | null)[] = [{name: 'Acme', deal: deal2}, null, {name: 'Northwind', deal: deal2 + 0.15}, {name: 'Globex', deal: deal2 + 0.3}];
-	const pressedA = isA && t >= B.clickCompetitor - 0.05 && t < B.pullBack;
+	const pressedA = isA && t >= B.clickCompetitor - 0.05 && t < B.dim;
 
 	return (
 		<At p={isA ? WIN_A : WIN_B} w={WIN_W} h={WIN_H} style={{opacity: dim}}>

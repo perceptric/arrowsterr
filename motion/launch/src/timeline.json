@@ -1,11 +1,11 @@
 {
   "fps": 30,
   "bpm": 120,
-  "durationSec": 84,
+  "durationSec": 78,
   "voice": "af_heart",
   "pronounce": {
     "Arrowsterr": "ˈæɹoʊztɚ",
-    "competitor": "kəmpˈɛtɪtɚ"
+    "GEO": "dʒˌiːˌiːˈoʊ"
   },
   "vo": [
     {
@@ -21,116 +21,71 @@
     {
       "id": "v03",
       "at": 13.8,
-      "text": "They just booked a demo. With your competitor."
+      "text": "Every time you're not mentioned, you're missing out on pipeline and revenue."
     },
     {
       "id": "v04",
-      "at": 16.8,
-      "text": "Let's check."
-    },
-    {
-      "id": "v05",
-      "at": 17.95,
-      "text": "ChatGPT.",
-      "speed": 1.2
-    },
-    {
-      "id": "v06",
-      "at": 19.0,
-      "text": "Claude.",
-      "speed": 1.2
-    },
-    {
-      "id": "v07",
-      "at": 20.0,
-      "text": "Gemini.",
-      "speed": 1.2
-    },
-    {
-      "id": "v08",
-      "at": 21.0,
-      "text": "Perplexity.",
-      "speed": 1.2
-    },
-    {
-      "id": "v09",
-      "at": 22.0,
-      "text": "Google's AI.",
-      "speed": 1.2
-    },
-    {
-      "id": "v10",
-      "at": 23.4,
-      "text": "Not a single mention."
-    },
-    {
-      "id": "v11",
-      "at": 25.2,
-      "text": "You're invisible."
-    },
-    {
-      "id": "v12",
-      "at": 28.2,
+      "at": 20.2,
       "text": "Good news. You just need a navigator."
     },
     {
-      "id": "v13",
-      "at": 32.2,
-      "text": "Meet Arrowsterr."
+      "id": "v05",
+      "at": 24.0,
+      "text": "Meet Arrowsterr, the agentic GEO platform to get recommended by AI."
     },
     {
-      "id": "v14",
-      "at": 34.2,
+      "id": "v06",
+      "at": 29.1,
       "text": "It shows exactly which brands AI recommends in your industry."
     },
     {
-      "id": "v15",
-      "at": 38.2,
+      "id": "v07",
+      "at": 33.0,
       "text": "Pick a topic, and see who gets mentioned most."
     },
     {
-      "id": "v16",
-      "at": 42.2,
+      "id": "v08",
+      "at": 36.2,
       "text": "Then it cherry-picks the keywords with the strongest conversion potential, and the biggest lift in AI visibility."
     },
     {
-      "id": "v17",
-      "at": 50.2,
+      "id": "v09",
+      "at": 44.2,
       "text": "Of course, it builds your full editorial calendar, and writes everything for you."
     },
     {
-      "id": "v18",
-      "at": 56.2,
+      "id": "v10",
+      "at": 50.2,
       "text": "And look, it goes way beyond text."
     },
     {
-      "id": "v19",
-      "at": 58.6,
+      "id": "v11",
+      "at": 52.6,
       "text": "It generates screenshots, tables, even interactive demos."
     },
     {
-      "id": "v20",
-      "at": 62.6,
+      "id": "v12",
+      "at": 56.6,
       "text": "Everything to make your article stand out."
     },
     {
-      "id": "v21",
-      "at": 67.6,
+      "id": "v13",
+      "at": 61.6,
       "text": "A few weeks later, check your dashboard."
     },
     {
-      "id": "v22",
-      "at": 71.7,
+      "id": "v14",
+      "at": 65.7,
       "text": "And voilà. You're part of the AI recommendation."
     },
     {
-      "id": "v23",
-      "at": 75.6,
+      "id": "v15",
+      "at": 69.6,
       "text": "That one's yours."
     },
     {
-      "id": "v24",
-      "at": 77.6,
+      "id": "v16",
+      "at": 71.6,
       "text": "Arrowsterr. Get recommended in AI answers. Start free today."
     }
   ],
@@ -142,6 +97,13 @@
     "statType": [
       1.0,
       5.6
+    ],
+    "logos": [
+      2.5,
+      3.0,
+      3.5,
+      4.0,
+      4.5
     ],
     "toChat": 6.2,
     "promptType": [
@@ -156,67 +118,59 @@
     "ghost": 12.0,
     "clickCompetitor": 13.0,
     "demoBookedCompetitor": 13.5,
-    "pullBack": 16.6,
-    "pings": [
-      18.0,
-      19.0,
-      20.0,
-      21.0,
-      22.0
+    "missed": [
+      14.6,
+      18.0
     ],
-    "notMentioned": 23.2,
-    "zero": 25.4,
-    "breakdown": [
-      24.0,
-      28.0
-    ],
-    "arrowhead": 28.0,
-    "drop": 32.0,
+    "zero": 16.8,
+    "dim": 18.6,
+    "arrowhead": 20.0,
+    "drop": 24.0,
     "stations": [
-      34.0,
-      42.0,
-      50.0,
-      56.0
+      28.0,
+      36.0,
+      44.0,
+      50.0
     ],
     "stationEnds": [
-      42.0,
+      36.0,
+      44.0,
       50.0,
-      56.0,
-      66.0
+      60.0
     ],
-    "topicPick": 38.8,
-    "keywordSort": 43.6,
+    "topicPick": 33.6,
+    "keywordSort": 37.6,
     "keywordPicks": [
-      45.0,
-      45.5,
-      46.0,
-      46.5
+      39.0,
+      39.5,
+      40.0,
+      40.5
     ],
     "calendarFill": [
-      50.3,
-      52.0
+      44.3,
+      46.0
     ],
     "draftType": [
-      52.8,
-      54.8
+      46.8,
+      48.8
     ],
     "blocks": [
-      58.9,
-      59.9,
-      60.9
+      52.9,
+      53.9,
+      54.9
     ],
-    "standOut": 62.6,
-    "fold": 64.6,
-    "ship": 66.0,
-    "dashboard": 67.3,
+    "standOut": 56.6,
+    "fold": 58.6,
+    "ship": 60.0,
+    "dashboard": 61.3,
     "climb": [
-      68.0,
-      70.4
+      62.0,
+      64.4
     ],
-    "finalDrop": 72.0,
-    "clickYou": 74.8,
-    "demoBookedYou": 75.2,
-    "close": 77.0,
-    "end": 84.0
+    "finalDrop": 66.0,
+    "clickYou": 68.8,
+    "demoBookedYou": 69.2,
+    "close": 71.0,
+    "end": 78.0
   }
 }

@@ -8,7 +8,7 @@ import {Close} from './Close';
 import {B, prog, useT} from './lib';
 import {C} from './theme';
 import {AnswerWindow, buyerCursor} from './world/AnswerWindow';
-import {CalCard, Counter, Engines, Radar} from './world/Check';
+import {CalCard, Missed} from './world/Check';
 import {Dashboard} from './world/Dashboard';
 import {LogoReveal} from './world/LogoReveal';
 import {PaperArrow} from './world/PaperArrow';
@@ -39,12 +39,10 @@ const Scene: React.FC = () => {
 		<AbsoluteFill style={{background: C.bg2}}>
 			<World>
 				<DotGrid />
-				<Radar />
-				<Engines />
 				<Stat />
 				<AnswerWindow v="A" />
 				<CalCard v="A" />
-				<Counter />
+				<Missed />
 				<Stations />
 				<LogoReveal />
 				<Route />

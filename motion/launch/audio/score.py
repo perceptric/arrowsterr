@@ -7,11 +7,12 @@ One hook rides the loop. It climbs like the arrow, holds on a "star" note, and a
     A/C#  G5 F#5, E5 held
     Bm    F#4 B4 C#5 D5 (eighths), F#5 held
     G     E5 F#5, D5 held
-The song never stops and never changes key. It grows by adding instruments:
-    0-8 intro (piano and glockenspiel, soft pulse), 8-16 verse (bass, light drums, muted guitar),
-    16-24 verse 2 (eighth hats, toms under the radar pings), 24-28 breakdown (no drums),
-    28-32 build (kick on quarters, snare roll, timpani), 32-66 chorus (full band),
-    66-68 fill, 68-72 lift (choir), 72-77 final chorus, 77-84 outro (tag, lands on D at 80).
+The song never stops, never changes key, and from the drop it only climbs:
+    0-8 intro (piano, glockenspiel, soft pulse), 8-14 verse (bass, light drums, the 16th pulse),
+    14-18 verse 2 (16th hats, tension), 18-20 dip (no kit, pulse and riser), 20-24 build,
+    24 drop into a double-time chorus that adds a layer every 8 s (32 strings, 40 choir and brass,
+    48 lead harmony and toms), 60 whip, 62-66 pre-chorus build, 66 final chorus with the hook an
+    octave up, 76 the tonic, ringing out to 78. G is held an extra bar at 64 and 74 so 66 and 76 land on D.
 
 Run: python audio/score.py   (needs fluidsynth and the MuseScore General soundfont)
 Writes audio/build/midi/<stem>.mid and audio/build/stems/<stem>.wav (48 kHz stereo).
@@ -25,13 +26,14 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import mido
+import numpy as np
 
 ROOT = Path(__file__).resolve().parent
 BUILD = ROOT / "build"
 SF = "/usr/share/sounds/sf3/MuseScore_General_Full.sf3"
 TPB = 480
 TICKS_PER_SEC = TPB * 2  # 120 BPM: 2 beats a second
-END = 84.0
+END = 78.0
 BAR = 2.0
 NAMES = {"C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3, "E": 4, "F": 5, "F#": 6, "Gb": 6,
          "G": 7, "G#": 8, "Ab": 8, "A": 9, "A#": 10, "Bb": 10, "B": 11}
@@ -96,8 +98,16 @@ SCALE = [p(n) for o in range(2, 8) for n in (f"D{o}", f"E{o}", f"F#{o}", f"G{o}"
 CHORD_TONES = {"D": {2, 6, 9}, "A": {9, 1, 4}, "Bm": {11, 2, 6}, "G": {7, 11, 2}}
 
 
+# Section starts (s). The loop runs bar after bar; G is held one extra bar before the final chorus
+# (64-66) and again before the tonic (74-76), so both land on D.
+VERSE, V2, DIP, BUILDUP, DROP = 8.0, 14.0, 18.0, 20.0, 24.0
+L1, L2, L3, WHIP, PRE_GRID, FINAL, TONIC = 32.0, 40.0, 48.0, 60.0, 62.0, 66.0, 76.0
+HELD = {32: "G", 33: "D", 34: "A", 35: "Bm", 36: "G", 37: "G", 38: "D"}  # bar index -> chord, from 64 s
+
+
 def chord_at(t: float) -> str:
-    return LOOP[int(t // BAR) % 4]
+    i = int(t // BAR)
+    return HELD.get(i, LOOP[i % 4]) if i < 32 or i in HELD else "D"
 
 
 # The 4-bar hook, as (beat offset in seconds from the loop start, length, note).
@@ -174,75 +184,73 @@ def build() -> dict[str, list[Part]]:
     def sixteenths(b: float):
         return [b + k * S16 for k in range(16)]
 
-    # ---------- piano: the hook from the first bar; comping that grows with the song
-    for t0 in (0.0, 8.0):
-        for t, d, n in hook(t0):
-            piano.add(t, d, n, (58 if t0 == 0 else 52) + rnd.randint(-3, 3))
-    for t, d, n in hook(16.0):  # verse 2: an octave lower, under the voice
-        piano.add(t, d, n - 12, 48 + rnd.randint(-3, 3))
-    for t, d, n in hook(24.0, (0, 2)):  # breakdown: the first half, close and clear
-        piano.add(t, d, n, 54 + rnd.randint(-3, 3))
-    for t, d, n in hook(28.0, (2, 4)):  # build: the answer, louder each note
-        piano.add(t, d, n, 56 + int((t - 28) * 5))
-    for b, ch in bars(0.0, 32.0):  # left hand: root and fifth, then an offbeat chord from the verse
-        lh = [p(BASS[ch]), p(BASS[ch]) + (7 if ch != "A" else 8)]
-        v = 40 if b < 8 else 46 if b < 24 else 44
-        piano.add(b, 1.9, lh, v)
-        if b >= 8:
-            piano.add(b + 1.0, 0.9, TRIAD[ch].split(), v - 6)
-    for b, ch in bars(32.0, 84.0):  # chorus on: pounding eighths that get harder every 8 s
-        lift = int((b - 32) / 8) * 3
-        for k in range(8):
-            piano.add(b + k * 0.25, 0.22, [p(BASS[ch]) + 12] + TRIAD[ch].split(), (64 if k % 2 == 0 else 54) + lift)
+    def block(t: float) -> int:
+        """Which 8 s chorus block t is in, from the drop: 0, 1, 2, 3 (4 from the whip on)."""
+        return max(0, min(4, int((t - DROP) // 8)))
 
-    # ---------- glockenspiel: the star notes at the top and in the final chorus (an octave up)
+    # ---------- piano: the hook from the first bar; comping that grows with the song
+    for t, d, n in hook(0.0):
+        piano.add(t, d, n, 58 + rnd.randint(-3, 3))
+    for t, d, n in hook(8.0):
+        piano.add(t, d, n if t < V2 else n - 12, (52 if t < V2 else 48) + rnd.randint(-3, 3))
+    for t, d, n in hook(16.0):  # under the tension line, through the dip, the answer rising into the drop
+        piano.add(t, d, n - 12 if t < DIP else n, (48 if t < DIP else 54 + int(max(0, t - BUILDUP) * 5)) + rnd.randint(-2, 2))
+    for b, ch in bars(0.0, DROP):  # left hand: root and fifth, then an offbeat chord from the verse
+        lh = [p(BASS[ch]), p(BASS[ch]) + (7 if ch != "A" else 8)]
+        v = 40 if b < VERSE else 46
+        piano.add(b, 1.9, lh, v)
+        if b >= VERSE:
+            piano.add(b + 1.0, 0.9, TRIAD[ch].split(), v - 6)
+    for b, ch in bars(DROP, END):  # chorus on: pounding eighths that get harder every 8 s
+        for k in range(8):
+            piano.add(b + k * 0.25, 0.22, [p(BASS[ch]) + 12] + TRIAD[ch].split(), (64 if k % 2 == 0 else 54) + block(b) * 3)
+
+    # ---------- glockenspiel: the star notes at the top and in the final chorus (two octaves up)
     for t, d, n in hook(0.0):
         if d >= 1.0:
             glock.add(t, 0.5, n + 12, 52)
-    for t, d, n in hook(72.0):
+    for t, d, n in hook(FINAL):
         if d >= 1.0:
             glock.add(t, 0.5, n + 24, 70)
-    glock.add(80.0, 1.5, ["D7", "A7"], 70, True)
+    glock.add(TONIC, 1.5, ["D7", "A7"], 70, True)
 
     # ---------- the soft intro pulse: kick on 1 and 3 (low-passed in the mix) and a shaker
-    for b, _ in bars(0.0, 8.0):
+    for b, _ in bars(0.0, VERSE):
         for k in (0, 1):
             pulse.add(b + k * 1.0, 0.1, K, 72 - k * 6, True)
-    for b, _ in bars(0.0, 16.0):
+    for b, _ in bars(0.0, V2):
         for k in range(8):
-            drums.add(b + k * 0.25, 0.05, SHAKER, (40 if k % 2 else 52) + (6 if b >= 8 else 0))
+            drums.add(b + k * 0.25, 0.05, SHAKER, (40 if k % 2 else 52) + (6 if b >= VERSE else 0))
 
-    # ---------- the 16th pulse: muted guitar from 8 s to the very end, never stopping
-    for b, ch in bars(8.0, 84.0):
-        root = p(BASS[ch if b < 80 else "D"]) + 12
-        fifth = root + (7 if ch != "A" or b >= 80 else 8)
-        base = 50 + min(28, int((b - 8) / 8) * 4)
+    # ---------- the 16th pulse: muted guitar from the verse to the very end, never stopping
+    for b, ch in bars(VERSE, END):
+        root = p(BASS[ch]) + 12
+        fifth = root + (7 if ch != "A" else 8)
+        base = 50 + min(28, int((b - VERSE) / 6) * 4)
         for k, t in enumerate(sixteenths(b)):
-            note = [root, fifth] if k % 4 != 2 else [root + 12]
-            mgtr.add(t, 0.11, note, base + (10 if k % 4 == 0 else 0))
+            mgtr.add(t, 0.11, [root, fifth] if k % 4 != 2 else [root + 12], base + (10 if k % 4 == 0 else 0))
 
     # ---------- drums
-    for b, _ in bars(8.0, 16.0):  # verse: kick 1 and 3, side stick 2 and 4, hats on quarters
+    for b, _ in bars(VERSE, V2):  # verse: kick 1 and 3, side stick 2 and 4, hats on quarters
         for k in range(4):
             drums.add(b + k * .5, .05, K if k % 2 == 0 else SS, 74 if k % 2 == 0 else 64)
             drums.add(b + k * .5, .05, CH, 50)
-    for b, _ in bars(16.0, 24.0):  # verse 2: 16th hats, snare backbeat
+    for b, _ in bars(V2, DIP):  # verse 2, the tension: 16th hats, snare backbeat, a tom on each bar
         for k in range(4):
-            drums.add(b + k * .5, .05, K if k % 2 == 0 else S, 82 if k % 2 == 0 else 72)
+            drums.add(b + k * .5, .05, K if k % 2 == 0 else S, 84 if k % 2 == 0 else 74)
         for k, t in enumerate(sixteenths(b)):
-            drums.add(t, .04, CH, 60 if k % 4 == 0 else 48 if k % 2 == 0 else 38)
-    for i, t in enumerate((18.0, 19.0, 20.0, 21.0, 22.0)):  # one tom per engine, climbing
-        drums.add(t, .1, TOM[i], 80 + i * 5, True)
-    for k, t in enumerate(sixteenths(24.0) + sixteenths(26.0)):  # breakdown: no kit, the shaker keeps time
-        drums.add(t, .04, SHAKER, 34 + k)
-    for k in range(8):  # 28-32 build: kick on quarters, 16th hats, snare roll
-        drums.add(28.0 + k * .5, .05, K, 78 + k * 3, True)
-    for k, t in enumerate(sixteenths(28.0) + sixteenths(30.0)):
-        drums.add(t, .04, CH, 46 + k // 2)
+            drums.add(t, .04, CH, 62 if k % 4 == 0 else 50 if k % 2 == 0 else 40)
+        drums.add(b, .1, TOM[0], 80, True)
+    for k, t in enumerate(sixteenths(DIP)):  # the dip: no kit, the shaker keeps time
+        drums.add(t, .04, SHAKER, 40 + k)
+    for k in range(8):  # build: kick on quarters, 16th hats, snare roll
+        drums.add(BUILDUP + k * .5, .05, K, 80 + k * 3, True)
+    for k, t in enumerate(sixteenths(BUILDUP) + sixteenths(BUILDUP + 2)):
+        drums.add(t, .04, CH, 48 + k // 2)
     for k in range(4):
-        drums.add(30.0 + k * .25, .05, S, 58 + k * 4)
+        drums.add(DROP - 2 + k * .25, .05, S, 60 + k * 4)
     for k in range(8):
-        drums.add(31.0 + k * .125, .05, S, 72 + k * 5)
+        drums.add(DROP - 1 + k * .125, .05, S, 74 + k * 5)
 
     def floor(t0: float, t1: float, vel: int, ghosts: bool = True) -> None:
         """Double time: four on the floor, snare on 2 and 4 with ghosts, 16th hats, open hats on the off-beats."""
@@ -256,162 +264,151 @@ def build() -> dict[str, list[Part]]:
                 for g in (.875, 1.625, 1.875):
                     drums.add(b + g, .04, S, vel - 52)
             for k, t in enumerate(sixteenths(b)):
-                if k % 2 == 0:
-                    drums.add(t, .04, CH, vel - (18 if k % 4 == 0 else 30))
-                else:
-                    drums.add(t, .04, CH, vel - 42)
+                drums.add(t, .04, CH, vel - (18 if k % 4 == 0 else 30 if k % 2 == 0 else 42))
 
     def fill(t0: float, t1: float, v0: int) -> None:
         n = int(round((t1 - t0) / S16))
         for k in range(n):
             drums.add(t0 + k * S16, .05, TOM[max(0, 5 - (k * 6) // n)], v0 + k * 2, True)
 
-    for blk, (a, b) in enumerate(((32.0, 40.0), (40.0, 48.0), (48.0, 56.0), (56.0, 66.0))):
+    for blk, (a, b) in enumerate(((DROP, L1), (L1, L2), (L2, L3), (L3, WHIP))):
         floor(a, b, 92 + blk * 4)
-        drums.add(a, .1, CR, 104 + blk * 4, True)
-        if blk:
-            drums.add(a, .1, CR2, 96 + blk * 4, True)
-    for t in (41.5, 49.5, 55.5):
+    for k, t in enumerate((DROP, L1, L2, L3, L3 + 8)):  # a crash on every 8 s from the drop
+        drums.add(t, .1, CR, 106 + min(k, 3) * 4, True)
+        if k:
+            drums.add(t, .1, CR2, 98 + min(k, 3) * 4, True)
+    for t in (L1 - .5, L2 - .5):
         fill(t, t + .5, 88)
-    for b in (57.5, 59.5, 61.5, 63.5):  # 56 on: a tom fill closing every bar
-        fill(b, b + .5, 92)
-    floor(66.0, 68.0, 106, ghosts=False)  # under the whip: the floor keeps going, a snare roll swells
-    for k in range(16):
-        drums.add(66.0 + k * S16, .04, S, 54 + k * 3)
-    drums.add(64.0, .1, CR, 112, True)
-    # 68-72 pre-chorus build: kick on quarters, snare 8ths -> 16ths -> 32nds, kick out for the last beat
-    for k in range(7):
-        drums.add(68.0 + k * .5, .05, K, 100 + k * 2, True)
-    for k, t in enumerate(sixteenths(68.0) + sixteenths(70.0)):
+    for b in np.arange(L3 + 1.5, WHIP, 2.0):  # from 48: a tom fill closing every bar
+        fill(float(b), float(b) + .5, 92)
+    fill(WHIP, WHIP + 1.25, 96)  # the whip
+    for k in range(4):
+        drums.add(WHIP + k * .5, .05, K, 104, True)
+    # pre-chorus build: kick on quarters, snare 8ths -> 16ths -> 32nds, kick out for the last beat
+    for k in range(9):
+        drums.add(PRE_GRID + k * .5, .05, K, 100 + k * 2, True)
+    for k, t in enumerate(sixteenths(PRE_GRID) + sixteenths(PRE_GRID + 2)):
         drums.add(t, .04, CH, 60 + k // 2)
     for k in range(4):
-        drums.add(68.0 + k * .5, .05, S, 76 + k * 2, True)
+        drums.add(PRE_GRID + k * .5, .05, S, 76 + k * 2, True)
     for k in range(8):
-        drums.add(70.0 + k * .125, .05, S, 84 + k * 2, True)
+        drums.add(PRE_GRID + 2 + k * .125, .05, S, 84 + k * 2, True)
     for k in range(16):
-        drums.add(71.0 + k * .0625, .04, S, 96 + k * 2, True)
-    drums.add(68.0, .1, CR2, 104, True)
-    floor(72.0, 84.0, 110)  # final chorus and outro: everything, and it never lets up
-    drums.add(72.0, .1, CR, 127, True)
-    drums.add(72.0, .1, CR2, 124, True)
-    drums.add(72.0, .1, 52, 118, True)  # china
-    drums.add(80.0, .1, CR, 124, True)
-    drums.add(80.0, .1, CR2, 120, True)
-    for t in (73.5, 75.5, 77.5):
+        drums.add(FINAL - 1 + k * .0625, .04, S, 96 + k * 2, True)
+    drums.add(PRE_GRID, .1, CR2, 104, True)
+    floor(FINAL, END, 110)  # final chorus and outro: everything, and it never lets up
+    drums.add(FINAL, .1, CR, 127, True)
+    drums.add(FINAL, .1, CR2, 124, True)
+    drums.add(FINAL, .1, 52, 118, True)  # china
+    drums.add(FINAL + 8, .1, CR, 118, True)
+    drums.add(TONIC, .1, CR, 124, True)
+    drums.add(TONIC, .1, CR2, 120, True)
+    for t in (FINAL + 1.5, FINAL + 3.5, FINAL + 5.5):
         fill(t, t + .5, 100)
-    fill(79.5, 80.0, 104)
+    fill(TONIC - .5, TONIC, 104)
 
-    # ---------- bass: verse roots, then driving 8ths in octaves from 28
-    for b, ch in bars(8.0, 16.0):
+    # ---------- bass: verse roots, then driving 8ths in octaves from the build
+    for b, ch in bars(VERSE, V2):
         bass.add(b, .95, BASS[ch], 74)
         bass.add(b + 1.0, .95, BASS[ch], 68)
-    for b, ch in bars(16.0, 24.0):
+    for b, ch in bars(V2, BUILDUP):
         for k in range(4):
-            bass.add(b + k * .5, .45, BASS[ch], 80 if k % 2 == 0 else 72)
-    for b, ch in bars(24.0, 28.0):
-        for k in range(4):
-            bass.add(b + k * .5, .45, BASS[ch], 70)
-    for b, ch in bars(28.0, 84.0):
-        c = ch if b < 80 else "D"
-        lift = min(26, int((b - 28) / 8) * 4)
+            bass.add(b + k * .5, .45, BASS[ch], (80 if k % 2 == 0 else 72) - (8 if b >= DIP else 0))
+    for b, ch in bars(BUILDUP, END):
+        lift = min(26, int((b - BUILDUP) / 8) * 5)
         for k in range(8):
-            bass.add(b + k * .25, .22, p(BASS[c]) + (12 if k % 2 else 0), (84 if k % 2 == 0 else 76) + lift)
-    for b, ch in bars(32.0, 84.0):  # sub weight under the chorus
-        sub.add(b, 1.95, p(BASS[ch if b < 80 else "D"]) - 12, 72)
+            bass.add(b + k * .25, .22, p(BASS[ch]) + (12 if k % 2 else 0), (84 if k % 2 == 0 else 76) + lift)
+    for b, ch in bars(DROP, END):  # sub weight under the chorus
+        sub.add(b, 1.95, p(BASS[ch]) - 12, 72)
 
-    # ---------- power chords: eighths from 32, sixteenths from 56
-    for b, ch in bars(32.0, 84.0):
-        c = ch if b < 80 else "D"
-        step = .25 if b < 56 else S16
-        n = int(BAR / step)
-        lift = min(20, int((b - 32) / 8) * 4)
-        for k in range(n):
+    # ---------- power chords: eighths from the drop, sixteenths from 48
+    for b, ch in bars(DROP, END):
+        step = .25 if b < L3 else S16
+        lift = min(20, block(b) * 4 + (4 if b >= FINAL else 0))
+        for k in range(int(BAR / step)):
             for g in (gtr_l, gtr_r):
-                g.add(b + k * step, step - .02, POWER[c].split(), (86 if k % 2 == 0 else 76) + lift)
+                g.add(b + k * step, step - .02, POWER[ch].split(), (86 if k % 2 == 0 else 76) + lift)
 
-    # ---------- lead guitar: the hook every 8 s from 32, harmony from 56, an octave up at 72
-    for t0 in (32.0, 40.0, 48.0, 56.0):
+    # ---------- lead guitar: the hook every 8 s from the drop, harmony from 48, an octave up at 66
+    for t0 in (DROP, L1, L2, L3, L3 + 8):
         for t, d, n in hook(t0):
+            if t >= PRE_GRID:
+                break
             lead.add(t, d, n, 92, True)
-            if t0 >= 56:
+            if t0 >= L3:
                 harm.add(t, d, third_below(n, t), 86, True)
             if d >= 1.0:
                 lead.vibrato(t, t + d)
-                if t0 >= 56:
+                if t0 >= L3:
                     harm.vibrato(t, t + d, depth=380, rate=5.1)
-    for t, d, n in hook(64.0, (0, 2)):  # answers the voice across the whip, 64.7-67.6
-        lead.add(t, d, n, 94, True)
-        harm.add(t, d, third_below(n, t), 88, True)
-        if d >= 1.0:
-            lead.vibrato(t, t + d)
-    for t, d, n in hook(72.0):  # the final chorus: the hook an octave up, harmony a third under it
+    for t, d, n in hook(FINAL):  # the final chorus: the hook an octave up, harmony a third under it
         lead.add(t, d, n + 12, 104, True)
         harm.add(t, d, third_below(n + 12, t), 96, True)
         if d >= 1.0:
             lead.vibrato(t, t + d)
             harm.vibrato(t, t + d, depth=380, rate=5.1)
-    for t, d, n in hook(76.0, (2, 4)):  # the tag: the answer once more, landing on D at 80
-        lead.add(t, d, n + 12, 102, True)
-        harm.add(t, d, third_below(n + 12, t), 94, True)
-    lead.add(80.0, 4.0, "D6", 104, True)
-    harm.add(80.0, 4.0, "A5", 96, True)
-    lead.vibrato(80.0, 84.0)
-    harm.vibrato(80.0, 84.0, depth=380, rate=5.1)
+    lead.add(FINAL + 8, 2.0, "E6", 100, True)  # over the held G, leaning into the tonic
+    harm.add(FINAL + 8, 2.0, "B5", 92, True)
+    lead.add(TONIC, END - TONIC, "D6", 104, True)
+    harm.add(TONIC, END - TONIC, "A5", 96, True)
+    lead.vibrato(TONIC, END)
+    harm.vibrato(TONIC, END, depth=380, rate=5.1)
 
-    # ---------- strings: pad from verse 2; a 16th ostinato from 40
-    for b, ch in bars(16.0, 84.0):
-        c = ch if b < 80 else "D"
-        pad.add(b, 1.95, PAD[c].split(), 80)
-        celli.add(b, 1.95, p(BASS[c]), 76)
-    pad.swell(15.0, 18.0, 0, 62)
-    celli.swell(15.0, 18.0, 0, 58)
-    pad.swell(23.5, 25.0, 62, 80)  # the breakdown leans on the strings
-    pad.swell(28.0, 32.0, 80, 100)
-    celli.swell(28.0, 32.0, 58, 96)
-    pad.swell(32.0, 80.0, 100, 120, steps=96)
-    celli.swell(32.0, 80.0, 96, 120, steps=96)
-    for b, ch in bars(40.0, 84.0):
-        c = ch if b < 80 else "D"
-        tones = [p(x) for x in TRIAD[c].split()]
+    # ---------- strings: pad from verse 2; a 16th ostinato from 32
+    for b, ch in bars(V2, END):
+        pad.add(b, 1.95, PAD[ch].split(), 80)
+        celli.add(b, 1.95, p(BASS[ch]), 76)
+    pad.swell(V2 - 1, V2 + 1, 0, 70)
+    celli.swell(V2 - 1, V2 + 1, 0, 64)
+    pad.swell(DIP - .5, DIP + .5, 70, 82)  # the dip leans on the strings
+    pad.swell(BUILDUP, DROP, 82, 100)
+    celli.swell(BUILDUP, DROP, 64, 96)
+    pad.swell(DROP, FINAL, 100, 120, steps=96)
+    celli.swell(DROP, FINAL, 96, 120, steps=96)
+    for b, ch in bars(L1, END):
+        tones = [p(x) for x in TRIAD[ch].split()]
         arp = [tones[0], tones[1], tones[2], tones[0] + 12]
-        lift = min(24, int((b - 40) / 8) * 6)
+        lift = min(24, int((b - L1) / 8) * 6)
         for k, t in enumerate(sixteenths(b)):
-            ost.add(t, .11, arp[k % 4] + (12 if b >= 72 else 0), (70 if k % 4 == 0 else 58) + lift)
+            ost.add(t, .11, arp[k % 4] + (12 if b >= FINAL else 0), (70 if k % 4 == 0 else 58) + lift)
 
-    # ---------- choir: pad from 48, harmony on the hook 56-66, the answer at 68, the hook at 72
-    for b, ch in bars(48.0, 84.0):
-        choir.add(b, 1.95, CHOIR[ch if b < 80 else "D"].split(), 88)
-    choir.swell(47.0, 49.0, 0, 70)
-    choir.swell(49.0, 80.0, 70, 118, steps=80)
-    for t, d, n in hook(56.0) + hook(64.0, (0, 2)):
+    # ---------- choir: pad from 40, harmony on the hook from 48, the answer in the build, the hook at 66
+    for b, ch in bars(L2, END):
+        choir.add(b, 1.95, CHOIR[ch].split(), 88)
+    choir.swell(L2 - 1, L2 + 1, 0, 70)
+    choir.swell(L2 + 1, FINAL, 70, 118, steps=80)
+    for t, d, n in hook(L3):
         choir_h.add(t, d, third_below(n, t), 90, True)
-    for t, d, n in hook(68.0, (2, 4)) + hook(72.0) + hook(76.0, (2, 4)):
+    for t, d, n in hook(WHIP, (2, 4)):
         choir_h.add(t, d, n, 100, True)
-    choir_h.add(80.0, 4.0, ["D5", "F#5"], 104, True)
-    choir_h.swell(55.0, 57.0, 0, 84)
-    choir_h.swell(57.0, 80.0, 84, 118, steps=60)
+    choir_h.add(PRE_GRID + 2, 2.0, ["B4", "D5"], 100, True)
+    for t, d, n in hook(FINAL):
+        choir_h.add(t, d, n, 104, True)
+    choir_h.add(FINAL + 8, 2.0, ["B4", "D5"], 104, True)
+    choir_h.add(TONIC, END - TONIC, ["D5", "F#5"], 106, True)
+    choir_h.swell(L3 - 1, L3 + 1, 0, 84)
+    choir_h.swell(L3 + 1, FINAL, 84, 118, steps=60)
 
-    # ---------- horns: the counter-line 42-50, then a line under the build
-    for t, d, n in [(42.0, 1.5, "E4"), (43.5, 0.5, "F#4"), (44.0, 1.5, "D4"), (45.5, 0.5, "C#4"),
-                    (46.0, 2.0, "B3"), (48.0, 1.5, "A3"), (49.5, 0.25, "B3"), (49.75, 0.25, "C#4")]:
-        horns.add(t, d, n, 86)
-    for b, ch in bars(68.0, 84.0):
-        horns.add(b, 1.95, [p(x) for x in CHOIR[ch if b < 80 else "D"].split()[:2]], 84 + min(16, int((b - 68) / 4) * 4))
+    # ---------- horns: the counter-line in the second block, then a line under the build
+    for t, d, n in [(0.0, 1.5, "E4"), (1.5, 0.5, "F#4"), (2.0, 1.5, "D4"), (3.5, 0.5, "C#4"),
+                    (4.0, 2.0, "B3"), (6.0, 1.5, "A3"), (7.5, 0.25, "B3"), (7.75, 0.25, "C#4")]:
+        horns.add(L1 + 2 + t, d, n, 86)  # starts on the A/C# bar
+    for b, ch in bars(WHIP, END):
+        horns.add(b, 1.95, [p(x) for x in CHOIR[ch].split()[:2]], 84 + min(16, int((b - WHIP) / 4) * 4))
 
-    # ---------- brass: stabs on the off-beats from 48
-    for b, ch in bars(48.0, 80.0):
-        lift = min(18, int((b - 48) / 8) * 6)
-        for off in (.75, 1.75) if b < 72 else (.25, .75, 1.25, 1.75):
+    # ---------- brass: stabs on the off-beats from 40, every off-beat from 66
+    for b, ch in bars(L2, TONIC):
+        lift = min(18, int((b - L2) / 8) * 6)
+        for off in (.75, 1.75) if b < FINAL else (.25, .75, 1.25, 1.75):
             brass.add(b + off, .14, POWER[ch].split()[1:] + [TRIAD[ch].split()[1]], 86 + lift, True)
-    brass.add(80.0, 3.8, ["D4", "F#4", "A4", "D5"], 108, True)
+    brass.add(TONIC, END - TONIC - .2, ["D4", "F#4", "A4", "D5"], 108, True)
 
-    # ---------- timpani: rolls into 32 and 72, hits on the big arrivals
-    for k in range(32):
-        timp.add(30.0 + k * .0625, .07, "A2", 40 + k * 2)
-    for k in range(32):
-        timp.add(70.0 + k * .0625, .07, "A2", 50 + k * 2)
-    for t in (32.0, 48.0, 64.0, 72.0, 80.0):
-        timp.add(t, 1.5, "D3", 100 + (10 if t >= 72 else 0), True)
+    # ---------- timpani: rolls into the drop and the final chorus, hits on the big arrivals
+    for t1 in (DROP, FINAL):
+        for k in range(32):
+            timp.add(t1 - 2 + k * .0625, .07, "A2", 44 + k * 2)
+    for t in (DROP, L2, FINAL, TONIC):
+        timp.add(t, 1.5, "D3", 100 + (10 if t >= FINAL else 0), True)
 
     return stems
 

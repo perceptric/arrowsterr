@@ -10,7 +10,7 @@ const p0 = pinOf(STATIONS[0]);
 const LEGS: {d: string; from: number; to: number; len: number}[] = (
 	[
 	{d: `M ${ROUTE_START.x} ${ROUTE_START.y} C 1400 40, 2200 220, ${LOGO.x} ${LOGO.y}`, from: B.arrowhead + 0.6, to: B.drop - 0.15},
-	{d: `M ${LOGO.x} ${LOGO.y} C ${LOGO.x + 500} ${LOGO.y + 60}, ${p0.x - 500} ${p0.y}, ${p0.x} ${p0.y}`, from: B.drop + 1.2, to: B.stations[0]},
+	{d: `M ${LOGO.x} ${LOGO.y} C ${LOGO.x + 500} ${LOGO.y + 60}, ${p0.x - 500} ${p0.y}, ${p0.x} ${p0.y}`, from: B.stations[0] - 0.8, to: B.stations[0]},
 	...[0, 1, 2].map((k) => {
 		const a = pinOf(STATIONS[k]);
 		const b = pinOf(STATIONS[k + 1]);
@@ -52,16 +52,18 @@ export const Route: React.FC = () => {
 	const head = arrowheadAt(t);
 	const born = prog(t, B.arrowhead, B.arrowhead + 0.4);
 	// The arrowhead hides inside the mark while the logo builds, then heads out again.
-	const inLogo = prog(t, B.drop - 0.15, B.drop) * (1 - prog(t, B.drop + 1.1, B.drop + 1.3));
+	const inLogo = prog(t, B.drop - 0.15, B.drop) * (1 - prog(t, B.stations[0] - 0.9, B.stations[0] - 0.7));
 	const headOut = (1 - prog(t, B.stations[3] + 2.6, B.stations[3] + 3.1)) * (1 - inLogo);
 	const glow = 0.5 + 0.5 * Math.sin(t * 6);
 	return (
 		<svg style={{position: 'absolute', left: -1000, top: -3000, overflow: 'visible'}} width={14000} height={6000} viewBox="-1000 -3000 14000 6000">
 			{LEGS.map((l, i) => {
 				const p = prog(t, l.from, l.to, INOUT);
-				if (p <= 0) return null;
+				// The first leg has done its job once the logo lands; it clears the way for the tagline.
+				const fade = i === 0 ? 1 - prog(t, B.drop + 0.6, B.drop + 1.0) : 1;
+				if (p <= 0 || fade <= 0) return null;
 				return (
-					<g key={i}>
+					<g key={i} opacity={fade}>
 						<path d={l.d} fill="none" stroke={C.signal} strokeOpacity={0.14} strokeWidth={30} strokeLinecap="round" strokeDasharray={l.len} strokeDashoffset={l.len * (1 - p)} />
 						<path d={l.d} fill="none" stroke={C.signal} strokeWidth={9} strokeLinecap="round" strokeDasharray={l.len} strokeDashoffset={l.len * (1 - p)} />
 					</g>

@@ -2,7 +2,7 @@ import React from 'react';
 import {Img, staticFile} from 'remotion';
 import {B, IN, OUT, prog, useT} from '../lib';
 import {LOGO, MARK_H} from '../layout';
-import {C, MARK} from '../theme';
+import {C, MARK, sans} from '../theme';
 
 // Proportions of the colour logo file: mark box 55.326 × 59.5 units; the wordmark
 // sits 0.28 mark-heights to the right and stands 0.645 mark-heights tall.
@@ -23,6 +23,8 @@ export const LogoReveal: React.FC = () => {
 	const ring = prog(t, d, d + 1.0, OUT);
 	const ring2 = prog(t, d + 0.5, d + 1.5, OUT);
 	const word = prog(t, d + 0.45, d + 1.05);
+	const tag = prog(t, d + 1.0, d + 1.5);
+	const leave = 1 - prog(t, B.stations[0] - 1.0, B.stations[0] - 0.6);
 	const left = LOGO.x - MARK_W / 2;
 	const top = LOGO.y - MARK_H;
 	return (
@@ -55,6 +57,24 @@ export const LogoReveal: React.FC = () => {
 				}}
 			>
 				<Img src={staticFile('brand/arrowsterr-wordmark-color.svg')} style={{width: WORD_W, height: WORD_H}} />
+			</div>
+			<div
+				style={{
+					position: 'absolute',
+					left: LOCKUP_CENTER.x - 900,
+					top: LOGO.y + 70,
+					width: 1800,
+					textAlign: 'center',
+					fontFamily: sans,
+					fontWeight: 600,
+					fontSize: 64,
+					letterSpacing: -1,
+					color: C.inkStrong,
+					opacity: tag * leave,
+					translate: `0 ${(1 - tag) * 16}px`,
+				}}
+			>
+				The agentic GEO platform to get <span style={{color: C.signalText}}>recommended by AI</span>
 			</div>
 		</>
 	);

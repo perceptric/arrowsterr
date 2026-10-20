@@ -31,14 +31,15 @@ export const C = {
 	negTint: '#FBEBEC',
 } as const;
 
-// Variable fonts from Google Fonts (latin), shipped with the project so renders never fetch.
+// Inter's variable font from Google Fonts (latin), shipped with the project so renders never fetch.
 const font = (family: string, file: string) => {
 	loadFont({family, url: staticFile(`fonts/${file}`), weight: '100 900', format: 'woff2'});
 	return `'${family}'`;
 };
-export const display = font('Funnel Display', 'FunnelDisplay.woff2');
+// Inter only: headings, text and numbers (numbers use tabular figures).
 export const sans = font('Inter', 'Inter.woff2');
-export const mono = font('Geist Mono', 'GeistMono.woff2');
+export const display = sans;
+export const mono = sans;
 
 // The mark's three paths, in the 64-unit box the logo files use.
 export const MARK = {
