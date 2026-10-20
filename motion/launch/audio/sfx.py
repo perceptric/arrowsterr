@@ -1,7 +1,7 @@
 """Sound design: every effect is synthesized here from noise and sine waves, placed on the cue times.
 
 Run: python audio/sfx.py
-Writes public/audio/sfx.wav (48 kHz stereo, 64.0 s).
+Writes public/audio/sfx.wav (48 kHz stereo, the length of the film).
 """
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from scipy.signal import butter, sosfilt
 
 ROOT = Path(__file__).resolve().parent.parent
 SR = 48000
-END = 64.0
+END = 84.0
 rng = np.random.default_rng(11)
 
 
@@ -125,173 +125,177 @@ class Track:
         self.buf[i:i + n, 1] += x * np.sin(th) * g
 
 
+def typing(tr: Track, t0: float, t1: float, db: float, max_rate: float = 16.0) -> None:
+    """Soft key clicks at a natural, uneven rate between t0 and t1."""
+    t = t0
+    while t < t1:
+        x = band(noise(0.02), 2000, 7000) * env_ad(int(0.02 * SR), 0.0005, 0.007)
+        x[: int(0.006 * SR)] += click(0.5, 5000)[: int(0.006 * SR)]
+        tr.put(t, norm(x, 1), db=db + rng.uniform(-3, 2), pan=rng.uniform(-0.25, 0.25))
+        t += rng.uniform(1 / max_rate, 1.7 / max_rate) + (0.08 if rng.random() < 0.12 else 0.0)
+
+
+def roll_ticks(tr: Track, t0: float, t1: float, n: int, db: float, f: float = 3800) -> None:
+    """n ticks that start fast and slow down, the last one landing on t1."""
+    w = np.cumsum(np.linspace(1.0, 4.0, n))
+    for at in t0 + (t1 - t0) * w / w[-1]:
+        tr.put(at, click(1.0, f), db=db, pan=0.1)
+
+
+def chime(notes: tuple[float, ...], step: float, d: float, decay: float, lp: float | None = None) -> np.ndarray:
+    x = np.zeros(int((d + step * len(notes)) * SR))
+    for k, f in enumerate(notes):
+        s = bell(f, d, decay)
+        i = int(k * step * SR)
+        x[i:i + len(s)] += s[: len(x) - i]
+    return norm(band(x, None, lp) if lp else x, 1)
+
+
+D6, E6, FS6, A6, D7 = 1174.66, 1318.51, 1479.98, 1760.0, 2349.32
+
+
 def build(tl: dict) -> np.ndarray:
     tr = Track()
     b = tl["beats"]
 
-    # clock tick on each beat, 0-6
-    for k in range(12):
-        f = 2600 if k % 2 == 0 else 2100
-        x = tone(f, 0.05, 0.012, ((1, 1.0), (2.3, 0.4)))
-        x[: int(0.012 * SR)] += click(0.8, 4000)
-        tr.put(k * 0.5, norm(x, 1), db=-31, pan=-0.15 if k % 2 else 0.15)
+    # 0.3-2.2: a soft tick per digit as 92% counts up; 1.0-5.6 the stat line types
+    roll_ticks(tr, b["statCount"][0], b["statCount"][1], 30, db=-33)
+    typing(tr, b["statType"][0], b["statType"][1], db=-33)
+    # 7.0-8.9: the buyer's prompt
+    typing(tr, b["promptType"][0], b["promptType"][1], db=-31)
 
-    # key ticks for the prompt decode, 2.0-4.6
-    t = 2.0
-    while t < 4.6:
-        x = band(noise(0.02), 2000, 7000) * env_ad(int(0.02 * SR), 0.0005, 0.007)
-        x[: int(0.006 * SR)] += click(0.5, 5000)[: int(0.006 * SR)]
-        tr.put(t, norm(x, 1), db=-30 + rng.uniform(-3, 2), pan=rng.uniform(-0.3, 0.3))
-        t += rng.uniform(0.045, 0.075)
-
-    # card snaps 8.0, 8.5, 9.0
+    # card snaps 10.0, 10.5, 11.0
     for k, at in enumerate(b["cards"]):
         crack = band(noise(0.05), 1200, 6500) * env_ad(int(0.05 * SR), 0.0004, 0.018, 5)
         thump = tone(150, 0.09, 0.03, glide=70)
-        x = layer((1.0, norm(crack, 1)), (0.7, norm(thump, 1)))
-        tr.put(at - 0.004, norm(x, 1), db=-17, pan=[-0.35, 0.0, 0.35][k])
+        x = layer((1.0, norm(crack, 1)), (0.6, norm(thump, 1)))
+        tr.put(at - 0.004, norm(x, 1), db=-21, pan=[-0.35, 0.0, 0.35][k])
 
-    # glitch stutter 10.0-11.0
-    g0 = b["ghost"]
-    for k in range(9):
-        d = 0.045
+    # glitch flicker 12.0-12.8, soft
+    for k in range(7):
+        d = 0.04
         car = np.sign(np.sin(2 * np.pi * rng.uniform(600, 1400) * secs(d)))
         crush = np.round(band(noise(d), 800, 6000) * 4) / 4
-        x = (0.5 * car + crush) * env_ad(int(d * SR), 0.001, d * 0.7, 2)
-        tr.put(g0 + k * 0.11 + (0.03 if k % 3 == 2 else 0), norm(x, 1), db=-27 - k * 1.2, pan=rng.uniform(-0.5, 0.5))
+        x = (0.4 * car + crush) * env_ad(int(d * SR), 0.001, d * 0.7, 2)
+        tr.put(b["ghost"] + k * 0.11 + (0.03 if k % 3 == 2 else 0), norm(x, 1), db=-32 - k * 1.2, pan=rng.uniform(-0.5, 0.5))
 
-    # mouse click 12.5 and 56.0
+    # clicks: your competitor tonight, you later
     for at in (b["clickCompetitor"], b["clickYou"]):
-        tr.put(at, click(1.0, 3000), db=-19)
-        tr.put(at + 0.075, click(0.7, 3600), db=-22)
+        tr.put(at, click(1.0, 3000), db=-22)
+        tr.put(at + 0.075, click(0.7, 3600), db=-25)
 
-    # muted minor "booked" chime 13.0: F5 then D5, dark
-    x = np.zeros(int(1.4 * SR))
-    for k, f in enumerate((698.46, 587.33)):
-        s = bell(f, 1.2, 0.35)
-        i = int(k * 0.16 * SR)
-        x[i:i + len(s)] += s[: len(x) - i]
-    tr.put(b["demoBookedCompetitor"], norm(band(x, None, 2200), 1), db=-22)
+    # muted "booked" chime for the competitor (A5 then F#5, dark), bright one for you (A6 then D7)
+    tr.put(b["demoBookedCompetitor"], chime((880.0, 739.99), 0.16, 1.2, 0.35, lp=2000), db=-26)
+    tr.put(b["demoBookedYou"], chime((A6 / 2, D6, FS6), 0.09, 1.4, 0.5), db=-23)
 
-    # radar sweep 17.0-18.0, panning left to right
-    d = 1.0
-    x = sweep_band(noise(d), 300, 3500, q=3) * np.sin(np.pi * secs(d) / d) ** 1.5
-    tr.put(17.0, x, db=-26, pan=np.linspace(-0.8, 0.8, len(x)))
+    # pull back: a wide whoosh
+    w = whoosh(0.9, 300, 3500, peak_at=0.55)
+    tr.put(b["pullBack"] - 0.2, w, db=-27, pan=np.linspace(0.6, -0.6, len(w)))
 
-    # radar pings 18-22: a D6 ping with an echo, walking across the stereo field
+    # radar pings: D6 with an echo, walking left to right with the sweep
     for k, at in enumerate(b["pings"]):
-        p = tone(1174.66, 0.9, 0.22, ((1, 1.0), (2, 0.18), (3, 0.05)))
-        echo = np.zeros(len(p) + int(0.14 * SR))
-        echo[: len(p)] += p
-        echo[int(0.14 * SR):] += 0.32 * p
-        tr.put(at, norm(echo, 1), db=-20, pan=-0.6 + k * 0.3)
+        pg = tone(D6, 0.9, 0.22, ((1, 1.0), (2, 0.18), (3, 0.05)))
+        echo = np.zeros(len(pg) + int(0.14 * SR))
+        echo[: len(pg)] += pg
+        echo[int(0.14 * SR):] += 0.3 * pg
+        tr.put(at, norm(echo, 1), db=-25, pan=-0.7 + k * 0.35)
 
-    # low thud 23.0
-    x = tone(62, 0.6, 0.22, glide=38) + 0.3 * band(noise(0.6), None, 180) * env_ad(int(0.6 * SR), 0.002, 0.15)
-    tr.put(b["notMentioned"], norm(x, 1), db=-15)
+    # low thud on "Not mentioned"
+    x = tone(73.4, 0.6, 0.22, glide=45) + 0.3 * band(noise(0.6), None, 180) * env_ad(int(0.6 * SR), 0.002, 0.15)
+    tr.put(b["notMentioned"], norm(x, 1), db=-19)
 
-    # counter tick roll 24.0-25.0, slowing as it lands on 0%
-    t, gap = 24.0, 0.028
-    while t < 25.0:
-        tr.put(t, click(1.0, 3800), db=-30, pan=0.1)
-        t += gap
-        gap *= 1.09
-    tr.put(25.0, click(1.0, 2600), db=-24)
+    # the counter rolls down to 0%, then the ghost dissolves
+    roll_ticks(tr, b["zero"] - 0.8, b["zero"], 16, db=-33)
+    tr.put(b["zero"], click(1.0, 2600), db=-27)
+    for _ in range(110):
+        at = b["zero"] + rng.uniform(0, 1.0) ** 1.6
+        g = tone(rng.uniform(3000, 8000), 0.06, 0.02)
+        tr.put(at, g, db=-41 - (at - b["zero"]) * 12, pan=rng.uniform(-0.8, 0.8))
 
-    # dissolve shimmer 25.0-26.0: grains thinning out
-    for _ in range(140):
-        at = 25.0 + rng.uniform(0, 1.0) ** 1.6
-        f = rng.uniform(3000, 8000)
-        g = tone(f, 0.06, 0.02)
-        tr.put(at, g, db=-38 - (at - 25.0) * 12, pan=rng.uniform(-0.8, 0.8))
-    hiss = band(noise(1.0), 2500, 9000) * np.linspace(1, 0, int(SR)) ** 2
-    tr.put(25.0, norm(hiss, 1), db=-36)
+    # arrowhead blip and glow (D, in key)
+    tr.put(b["arrowhead"], norm(tone(587.33, 0.14, 0.08, glide=1174.66), 1), db=-24)
+    tr.put(b["arrowhead"] + 0.06, norm(tone(D6, 1.4, 0.55, ((1, 1.0), (2, 0.12))), 1), db=-31)
 
-    # arrowhead blip 28.0 and its glow
-    blip = tone(620, 0.14, 0.08, glide=1240)
-    glow = tone(1174.66, 1.4, 0.55, ((1, 1.0), (2, 0.12)))
-    tr.put(b["arrowhead"], norm(blip, 1), db=-20)
-    tr.put(b["arrowhead"] + 0.06, norm(glow, 1), db=-27)
-
-    # 32.0: sub boom and shockwave whoosh
-    boom = tone(64, 1.8, 0.55, glide=30)
-    tr.put(b["drop"], norm(boom, 1), db=-11)
+    # 32.0: sub boom on D and a shockwave
+    tr.put(b["drop"], norm(tone(73.4, 1.8, 0.55, glide=36.7), 1), db=-17)
     wave = sweep_band(noise(1.0), 5000, 400, q=1.2) * env_ad(int(SR), 0.004, 0.45, 3)
-    tr.put(b["drop"], norm(wave, 1), db=-19, pan=np.linspace(-0.6, 0.6, int(SR)))
-    tr.put(b["drop"] + 0.012, norm(wave, 1), db=-24, pan=np.linspace(0.6, -0.6, int(SR)))
+    tr.put(b["drop"], norm(wave, 1), db=-25, pan=np.linspace(-0.6, 0.6, int(SR)))
 
-    # whooshes into each station
-    for k, at in enumerate(b["stations"]):
+    # into each station
+    for at in b["stations"]:
         w = whoosh(0.55, 400, 4200, peak_at=0.8)
-        tr.put(at - 0.44, w, db=-21, pan=np.linspace(-0.7, 0.5, len(w)))
+        tr.put(at - 0.44, w, db=-26, pan=np.linspace(-0.7, 0.5, len(w)))
 
-    # sticker peel 34.6
-    d = 0.38
-    crackle = band(noise(d), 1800, 7500) * (rng.random(int(d * SR)) < 0.25)
-    x = crackle * np.linspace(0.3, 1, int(d * SR)) * env_ad(int(d * SR), 0.01, d, 2)
-    tr.put(34.6, norm(x, 1), db=-23, pan=0.2)
+    # topic pick: a click, then the brand tiles slide
+    tr.put(b["topicPick"], click(1.0, 3200), db=-24)
+    w = whoosh(0.9, 500, 2500, peak_at=0.45)
+    tr.put(b["topicPick"] + 0.1, w, db=-30, pan=np.linspace(-0.3, 0.4, len(w)))
 
-    # funnel suck 38.4: falls in pitch, swells, then stops
-    d = 0.5
-    x = sweep_band(noise(d), 4000, 280, q=2.2) * np.linspace(0, 1, int(d * SR)) ** 2
-    x[-int(0.01 * SR):] *= np.linspace(1, 0, int(0.01 * SR))
-    tr.put(38.4, x, db=-21, pan=np.linspace(0.4, 0.0, len(x)))
-
-    # card shuffle 42.3
-    for k in range(7):
+    # keyword sort: a short shuffle
+    for k in range(8):
         f = band(noise(0.035), 1000, 4500) * env_ad(int(0.035 * SR), 0.001, 0.015)
-        tr.put(42.3 + k * 0.05 + rng.uniform(-0.008, 0.008), norm(f, 1), db=-26 + rng.uniform(-2, 2), pan=rng.uniform(-0.4, 0.4))
+        tr.put(b["keywordSort"] + k * 0.06 + rng.uniform(-0.008, 0.008), norm(f, 1), db=-30 + rng.uniform(-2, 2), pan=rng.uniform(-0.4, 0.4))
 
-    # paper fold 48.6-49.6: two creases
-    for at, d in ((48.6, 0.35), (49.1, 0.5)):
+    # picks: a click and a rising note per keyword (D6 E6 F#6 A6)
+    for k, at in enumerate(b["keywordPicks"]):
+        tr.put(at, click(0.9, 3400), db=-27)
+        tr.put(at + 0.01, norm(bell((D6, E6, FS6, A6)[k], 0.5, 0.16), 1), db=-31)
+
+    # the calendar fills: soft ticks speeding up
+    c0, c1 = b["calendarFill"]
+    w = np.cumsum(np.linspace(2.0, 1.0, 18))
+    for at in c0 + (c1 - c0) * (w - w[0]) / (w[-1] - w[0]):
+        tr.put(at, click(0.8, 4200), db=-32, pan=rng.uniform(-0.4, 0.4))
+
+    # the draft types itself
+    typing(tr, b["draftType"][0], b["draftType"][1], db=-34)
+
+    # content blocks drop in: a soft thump and a snap
+    for k, at in enumerate(b["blocks"]):
+        thump = tone(110, 0.15, 0.05, glide=70)
+        snap = band(noise(0.03), 1500, 6000) * env_ad(int(0.03 * SR), 0.0005, 0.01)
+        tr.put(at, norm(layer((1.0, norm(thump, 1)), (0.5, norm(snap, 1))), 1), db=-25, pan=(-0.2, 0.0, 0.2)[k])
+
+    # paper fold: two creases
+    f0 = b["fold"]
+    for at, d in ((f0, 0.35), (f0 + 0.45, 0.45)):
         crackle = band(noise(d), 1200, 6500) * (rng.random(int(d * SR)) < 0.35)
-        x = crackle * env_ad(int(d * SR), 0.03, d, 2.5)
-        tr.put(at, norm(x, 1), db=-25, pan=0.15)
-        tr.put(at + d - 0.03, click(0.8, 2200), db=-25)
+        tr.put(at, norm(crackle * env_ad(int(d * SR), 0.03, d, 2.5), 1), db=-29, pan=0.15)
+        tr.put(at + d - 0.03, click(0.8, 2200), db=-29)
 
-    # big whip whoosh 50.0
+    # big whip as the paper arrow launches
     w = whoosh(0.42, 700, 7000, peak_at=0.62)
-    tr.put(b["ship"] - 0.25, w, db=-15, pan=np.linspace(-0.9, 0.9, len(w)))
+    tr.put(b["ship"] - 0.25, w, db=-19, pan=np.linspace(-0.9, 0.9, len(w)))
 
-    # soft morning chime 51.5: D6 F#6 A6
-    x = np.zeros(int(2.0 * SR))
-    for k, f in enumerate((1174.66, 1479.98, 1760.0)):
-        s = bell(f, 1.8, 0.6)
-        i = int(k * 0.07 * SR)
-        x[i:i + len(s)] += s[: len(x) - i]
-    tr.put(b["nextMorning"], norm(x, 1), db=-28)
+    # the chart climbs: a soft rising shimmer, under the voice
+    k0, k1 = b["climb"]
+    d = k1 - k0
+    t = secs(d)
+    f = 440.0 * (1760.0 / 440.0) ** (t / d)
+    rise = np.sin(2 * np.pi * np.cumsum(f) / SR) * 0.6 + 0.4 * band(noise(d), 3000, 9000)
+    tr.put(k0, norm(rise * (t / d) ** 1.5 * np.exp(-np.clip(t - d + 0.15, 0, None) / 0.05), 1), db=-35)
 
-    # 54.0: impact and the gold spark shimmer (E major sparkles)
-    imp = norm(tone(56, 1.2, 0.4, glide=34), 1)
+    # 72.0: impact and the gold spark shimmer (D major sparkles)
+    imp = norm(tone(73.4, 1.2, 0.4, glide=36.7), 1)
     crack = band(noise(0.3), 300, 4000) * env_ad(int(0.3 * SR), 0.001, 0.07)
     imp[: len(crack)] += 0.45 * norm(crack, 1)
-    tr.put(b["finalDrop"], norm(imp, 1), db=-12)
-    sparkle = (2637.0, 3322.4, 3951.1, 5274.0, 2489.0, 3951.1)  # E7 G#7 B7 E8 D#7 B7
-    for k in range(26):
+    tr.put(b["finalDrop"], norm(imp, 1), db=-16)
+    sparkle = (D7, 2959.96, 3520.0, 4698.64, 2217.46, 3520.0)  # D7 F#7 A7 D8 C#7 A7
+    for k in range(24):
         at = b["finalDrop"] + 0.02 + k * 0.055 + rng.uniform(0, 0.02)
         f = sparkle[k % len(sparkle)] * (0.5 if k % 4 == 3 else 1)
-        tr.put(at, bell(f, 0.7, 0.18), db=-30 - k * 0.5, pan=np.sin(k * 1.7) * 0.8)
+        tr.put(at, bell(f, 0.7, 0.18), db=-34 - k * 0.5, pan=np.sin(k * 1.7) * 0.8)
 
-    # bright major "booked" chime 56.5: B5 then E6
-    x = np.zeros(int(1.6 * SR))
-    for k, f in enumerate((987.77, 1318.51)):
-        s = bell(f, 1.4, 0.5)
-        i = int(k * 0.12 * SR)
-        x[i:i + len(s)] += s[: len(x) - i]
-    tr.put(b["demoBookedYou"], norm(x, 1), db=-20)
-
-    # chevron sweep whoosh 58.0, rising
+    # the giant chevron sweeps up
     w = whoosh(0.7, 250, 6000, peak_at=0.6)
-    tr.put(b["close"] - 0.42, w, db=-17, pan=np.linspace(-0.3, 0.3, len(w)))
+    tr.put(b["close"] - 0.42, w, db=-21, pan=np.linspace(-0.3, 0.3, len(w)))
 
-    out = tr.buf
-    s0, s1 = int(b["silence"][0] * SR), int(b["silence"][1] * SR)
-    out[s0:s1] = 0.0
-    return out
+    return tr.buf
 
 
 def main() -> None:
     tl = json.loads((ROOT / "src/timeline.json").read_text())
+    assert tl["durationSec"] == END, tl["durationSec"]
     out = build(tl)
     (ROOT / "public/audio").mkdir(parents=True, exist_ok=True)
     sf.write(ROOT / "public/audio/sfx.wav", out.astype(np.float32), SR, subtype="FLOAT")
