@@ -324,8 +324,10 @@ def build() -> dict[str, list[Part]]:
             lead.add(t, d, n, 92, True)
             if d >= 1.0:
                 lead.vibrato(t, t + d)
-    for t, d, n in hook(64.0, (0, 1)):  # a pickup over the whip
-        lead.add(t, d, n, 86, True)
+    for t, d, n in hook(64.0, (0, 2)):  # answers the voice across the whip, 64.7-67.6
+        lead.add(t, d, n, 90, True)
+        if d >= 1.0:
+            lead.vibrato(t, t + d)
     for t, d, n in hook(72.0):
         lead.add(t, d, n, 100, True)
         harm.add(t, d, third_below(n, t), 92, True)

@@ -1,46 +1,80 @@
-"""Mix: stems -> music bus (EQ, pan, saturation, reverb, glue), ducked under the voice, summed with
-the sound design and mastered to -14 LUFS with a true-peak ceiling of -1 dBTP.
+"""Mix: stems -> music bus (EQ, pan, saturation, reverb, glue), levelled section by section so the song
+grows without jumps, gently ducked under the voice, summed with the sound design and mastered to -14 LUFS
+with a true-peak ceiling of -1 dBTP.
 
 Run after score.py and sfx.py (and audio/vo.py for the voice):  python audio/mix.py
-Writes public/audio/music.wav (ducked music), public/audio/mix.wav (the final track, 64.0 s).
+Writes public/audio/music.wav (ducked music), public/audio/mix.wav and public/audio/mix.m4a (the final track).
 """
 from __future__ import annotations
 
 import json
+import subprocess
 from pathlib import Path
 
 import numpy as np
 import pyloudnorm as pyln
 import soundfile as sf
 from scipy.ndimage import maximum_filter1d, minimum_filter1d, uniform_filter1d
-from scipy.signal import butter, fftconvolve, lfilter, resample_poly, sosfilt
+from scipy.signal import butter, fftconvolve, lfilter, resample_poly, sosfilt, sosfiltfilt
 
 ROOT = Path(__file__).resolve().parent.parent
 STEMS = ROOT / "audio/build/stems"
 SR = 48000
-END = 64.0
+END = 84.0
 N = int(END * SR)
 
 # stem: gain dB, pan (-1..1, applied as balance), high-pass Hz, low-pass Hz, drive, reverb send
 STEM_MIX = {
-    "drums":   (0.0, 0.0, 30, None, 1.3, 0.10),
+    "drums":   (0.0, 0.0, 30, None, 1.25, 0.10),
+    "pulse":   (-2.0, 0.0, 30, 220, 1.0, 0.0),
     "bass":    (1.0, 0.0, 35, 5000, 1.2, 0.0),
-    "sub":     (-3.0, 0.0, 25, 140, 1.0, 0.0),
-    "gtr_l":   (-1.5, -0.75, 90, 9000, 1.4, 0.07),
-    "gtr_r":   (-1.0, 0.75, 90, 9000, 1.4, 0.07),
-    "lead":    (1.5, 0.0, 160, 10000, 1.3, 0.24),
-    "piano":   (-0.5, -0.1, 40, None, 1.0, 0.22),
+    "sub":     (-5.0, 0.0, 25, 140, 1.0, 0.0),
+    "mgtr":    (-3.0, 0.35, 120, 7000, 1.1, 0.08),
+    "gtr_l":   (-3.0, -0.75, 90, 8500, 1.4, 0.07),
+    "gtr_r":   (-2.5, 0.75, 90, 8500, 1.4, 0.07),
+    "lead":    (-1.0, 0.0, 160, 9500, 1.3, 0.24),
+    "piano":   (0.0, -0.1, 40, None, 1.0, 0.22),
+    "glock":   (-6.0, 0.25, 400, None, 1.0, 0.35),
     "choir":   (-3.0, 0.0, 140, None, 1.0, 0.38),
     "strings": (-2.0, 0.1, 60, None, 1.0, 0.32),
-    "horns":   (-4.0, 0.3, 80, 7000, 1.0, 0.30),
-    "brass":   (-3.0, -0.2, 80, 9000, 1.1, 0.24),
-    "timpani": (-2.0, 0.0, 35, None, 1.0, 0.28),
-    "pizz":    (-2.0, 0.2, 100, None, 1.0, 0.30),
+    "horns":   (-3.0, 0.3, 80, 7000, 1.0, 0.30),
+    "brass":   (-4.0, -0.2, 80, 9000, 1.1, 0.24),
+    "timpani": (-3.0, 0.0, 35, None, 1.0, 0.28),
 }
-REVERSE_CYMBALS = (27.0, 32.0, 54.0)  # each swell ends exactly on this time
-# music level rides, applied after normalising: (time s, dB). The quiet opening still sits under the voice.
-RIDE = [(0.0, 15.0), (5.85, 15.0), (6.15, 7.0), (15.85, 7.0), (16.15, 4.0), (21.85, 4.0), (22.15, 2.0),
-        (27.0, 2.0), (28.0, 5.0), (30.5, 5.0), (31.5, 0.0), (64.0, 0.0)]
+REVERSE_CYMBALS = (32.0, 72.0, 80.0)  # each swell ends exactly on this time
+# Sections and their loudness against the chorus (LU). The song grows; nothing jumps.
+SECTIONS = [  # (start, end, name, target)
+    (0.0, 8.0, "intro", -7.0), (8.0, 16.0, "verse", -4.5), (16.0, 24.0, "verse 2", -3.5),
+    (24.0, 28.0, "breakdown", -7.5), (28.0, 32.0, "build", -4.0), (32.0, 66.0, "chorus", 0.0),
+    (66.0, 68.0, "fill", -0.5), (68.0, 72.0, "lift", -1.0), (72.0, 80.0, "final chorus", 1.0),
+    (80.0, 84.0, "outro", 0.5),
+]
+# how long the level takes to move into each section (s), ending on the boundary
+GLIDE = {8.0: 1.0, 16.0: 1.0, 24.0: 1.0, 28.0: 0.5, 32.0: 2.0, 66.0: 0.5, 68.0: 1.0, 72.0: 1.5, 80.0: 0.5}
+DARK = (24.0, 28.0, 32.0)  # the bed is darkened from 24, then opens up from 28 to 32
+DUCK_DB, DUCK_ATTACK, DUCK_RELEASE = -5.0, 0.06, 0.6
+LEAD_REST_FROM, LEAD_REST_DB, LEAD_FADE = 32.0, -6.0, 0.12  # the lead steps back while the voice talks
+
+
+def lead_rides(tl: dict) -> np.ndarray:
+    """Gain (linear, per sample) for the lead guitar: down under every voice line from 32 s, full in the gaps."""
+    lens = {r[0]: r[2] for r in json.loads((ROOT / "audio/build/vo_report.json").read_text())}
+    spans = []
+    for c in tl["vo"]:
+        a, b = c["at"] - 0.1, c["at"] + lens[c["id"]] + 0.15
+        if b <= LEAD_REST_FROM:
+            continue
+        if spans and a - spans[-1][1] < 0.4:  # too short a gap to answer in
+            spans[-1][1] = b
+        else:
+            spans.append([max(a, LEAD_REST_FROM), b])
+    t = np.arange(N) / SR
+    down = np.zeros(N)
+    for a, b in spans:
+        up_in = np.clip((t - (a - LEAD_FADE)) / LEAD_FADE, 0, 1)
+        up_out = np.clip(((b + LEAD_FADE) - t) / LEAD_FADE, 0, 1)
+        down = np.maximum(down, np.minimum(up_in, up_out))
+    return 10 ** (LEAD_REST_DB * down / 20)
 
 
 # ---------------------------------------------------------------- helpers
@@ -178,18 +212,29 @@ def limit(x: np.ndarray, ceiling_db: float, release: float = 0.08) -> np.ndarray
     return x * out[:, None]
 
 
-def window(x: np.ndarray, t0: float, t1: float, fade: float = 0.003) -> None:
-    """Silence x between t0 and t1 with short fades, in place."""
-    a, b = int(t0 * SR), int(t1 * SR)
-    f = int(fade * SR)
-    x[a - f:a] *= np.linspace(1, 0, f)[:, None]
-    x[a:b] = 0.0
+def section_rides(music: np.ndarray, meter: pyln.Meter) -> tuple[np.ndarray, dict[str, float]]:
+    """A gain curve (dB per sample) that sets each section to its target against the chorus."""
+    loud = {name: meter.integrated_loudness(music[int(a * SR):int(b * SR)]) for a, b, name, _ in SECTIONS}
+    ref = loud["chorus"]
+    t = np.arange(N) / SR
+    gain = np.zeros(N)
+    prev = None
+    for a, b, name, target in SECTIONS:
+        g = target + ref - loud[name]
+        seg = (t >= a) & (t < b)
+        gain[seg] = g
+        if prev is not None and a in GLIDE:
+            gl = GLIDE[a]
+            ramp = (t >= a - gl) & (t < a)
+            x = (t[ramp] - (a - gl)) / gl
+            gain[ramp] = prev + (g - prev) * (0.5 - 0.5 * np.cos(np.pi * x))
+        prev = g
+    return gain, loud
 
-
-# ---------------------------------------------------------------- the mix
 
 def main() -> None:
     tl = json.loads((ROOT / "src/timeline.json").read_text())
+    assert tl["durationSec"] == END, tl["durationSec"]
     meter = pyln.Meter(SR)
 
     dry = np.zeros((N, 2))
@@ -202,48 +247,60 @@ def main() -> None:
             x = shelf(x, 6000, 2.5, high=True)
         if stem in ("gtr_l", "gtr_r"):
             x = shelf(x, 300, -2.0, high=False)
+            x = peak_eq(x, 2500, -2.5, 1.0)  # leave room for the voice
         if stem == "gtr_l":  # double-track feel: the left guitar sits 12 ms late
             x = np.roll(x, int(0.012 * SR), axis=0)
+        if stem == "lead":
+            x = x * lead_rides(tl)[:, None]
         x = balance(x, pan) * 10 ** (gain / 20)
         dry += x
         send += x * rev
 
-    # reverse cymbal swells that end exactly on the cue
+    # reverse cymbal swells that end exactly on the arrival
     crash = load(STEMS / "crash_one.wav")[: int(2.2 * SR)]
     crash = filt(crash, 300, None)
     rev_c = crash[::-1] * np.linspace(0, 1, len(crash))[:, None] ** 1.5
-    for t in REVERSE_CYMBALS:
-        i = int(t * SR)
-        dry[i - len(rev_c):i] += rev_c * 0.9
+    for t0 in REVERSE_CYMBALS:
+        i = int(t0 * SR)
+        dry[i - len(rev_c):i] += rev_c * 0.7
 
     wet = fftconvolve(send, reverb_ir(), axes=0)[:N] * 0.6
     wet = filt(wet, 200, 9000)
     music = dry + wet
     music = peak_eq(music, 260, -2.0, 0.9)  # clear the low mids for the voice
-    music = shelf(music, 5000, 2.5, high=True)  # air
-    music = compress(music, thresh_db=-20, ratio=2.5, attack=0.015, release=0.18)
+    music = peak_eq(music, 3000, -1.5, 0.8)
+    music = shelf(music, 5000, 2.0, high=True)  # air
 
-    # hard stop at 27.0, silence to 28.0
-    s0, s1 = tl["beats"]["silence"]
-    window(music, s0, s1)
-
-    # levels before ducking
-    music *= 10 ** ((-14.0 - meter.integrated_loudness(music)) / 20)
+    # the breakdown goes dark and the build opens it back up (zero-phase low-pass, crossfaded)
     t = np.arange(N) / SR
-    music *= (10 ** (np.interp(t, *zip(*RIDE)) / 20))[:, None]
+    d0, d1, d2 = DARK
+    dark = sosfiltfilt(butter(2, 1400, "lowpass", fs=SR, output="sos"), music, axis=0)
+    amt = np.clip((t - (d0 - 0.5)) / 0.5, 0, 1) * np.clip((d2 - t) / (d2 - d1), 0, 1) ** 1.6
+    music = music * np.sqrt(1 - amt)[:, None] + dark * np.sqrt(amt)[:, None]
+
+    music = compress(music, thresh_db=-22, ratio=2.2, attack=0.02, release=0.25)
+
+    # section levels, then the music bed sits at -17 LUFS in the chorus
+    rides, measured = section_rides(music, meter)
+    music *= (10 ** (rides / 20))[:, None]
+    chorus = music[int(32 * SR):int(66 * SR)]
+    music *= 10 ** ((-17.0 - meter.integrated_loudness(chorus)) / 20)
+    music[: int(0.02 * SR)] *= np.linspace(0, 1, int(0.02 * SR))[:, None]
+
     vo = load(ROOT / "public/audio/vo.wav")
     vo *= 10 ** ((-15.0 - meter.integrated_loudness(vo)) / 20)
+    vo = limit(vo, -5.0, release=0.05)  # tame the few plosive peaks before they reach the master
     sfx = load(ROOT / "public/audio/sfx.wav")
-    sfx *= 10 ** ((-21.0 - meter.integrated_loudness(sfx)) / 20)
+    sfx *= 10 ** ((-24.0 - meter.integrated_loudness(sfx)) / 20)
 
-    # duck the music under the voice: -9 dB, 40 ms attack, 300 ms release, 30 ms look-ahead
+    # duck the music under the voice: gentle and slow, with a short look-ahead and a hold over word gaps
     block = int(0.005 * SR)
     v_db = block_env(vo, block)
-    look = int(0.03 * SR / block)
+    look = int(0.04 * SR / block)
     v_db = np.concatenate([v_db[look:], np.full(look, -120.0)])
-    v_db = maximum_filter1d(v_db, size=31)  # hold through the short gaps between words
-    depth = -9.0 * np.clip((v_db - (-50.0)) / 12.0, 0, 1)
-    duck = to_samples(smooth_db(depth, block / SR, 0.04, 0.30), block)
+    v_db = maximum_filter1d(v_db, size=61)
+    depth = DUCK_DB * np.clip((v_db - (-50.0)) / 12.0, 0, 1)
+    duck = to_samples(smooth_db(depth, block / SR, DUCK_ATTACK, DUCK_RELEASE), block)
     music_d = music * duck[:, None]
 
     mix = music_d + vo + sfx
@@ -259,23 +316,27 @@ def main() -> None:
     gr = 20 * np.log10(ratio[np.abs(pre).max(axis=1) > 1e-3])
     print(f"limiter: input true peak {true_peak(pre):.1f} dBTP, max gain reduction {-gr.min():.1f} dB, "
           f">3 dB on {(gr < -3).mean() * 100:.1f}% of sounding samples")
-    window(mix, s0, s1)
-    fade = np.clip((64.0 - t) / 1.5, 0, 1)
-    fade = np.where(t < 62.5, 1.0, 0.5 - 0.5 * np.cos(np.pi * fade))
+    fade = np.where(t < 82.5, 1.0, 0.5 + 0.5 * np.cos(np.pi * np.clip((t - 82.5) / 1.5, 0, 1)))
     mix *= fade[:, None]
     music_d *= fade[:, None]
+    music_bed = music * fade[:, None]
 
     sf.write(ROOT / "public/audio/music.wav", music_d.astype(np.float32), SR, subtype="FLOAT")
     sf.write(ROOT / "public/audio/mix.wav", mix, SR, subtype="PCM_24")
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(ROOT / "public/audio/mix.wav"), "-c:a", "aac", "-b:a", "256k",
+                    str(ROOT / "public/audio/mix.m4a")], check=True)
 
     # report
     lufs = meter.integrated_loudness(mix)
-    tp = true_peak(mix)
-    sil = mix[int((s0 + 0.01) * SR):int((s1 - 0.005) * SR)]
-    print(f"mix: {len(mix) / SR:.3f} s, {lufs:.2f} LUFS, true peak {tp:.2f} dBTP, sample peak {20 * np.log10(np.abs(mix).max()):.2f} dBFS")
-    print(f"silence {s0}-{s1}: max {np.abs(sil).max():.2e}")
-    vo_on = duck < 10 ** (-6 / 20)
-    print(f"ducked (>6 dB) {vo_on.mean() * 100:.0f}% of the film; min gain {20 * np.log10(duck.min()):.1f} dB")
+    print(f"mix: {len(mix) / SR:.3f} s, {lufs:.2f} LUFS, true peak {true_peak(mix):.2f} dBTP, "
+          f"sample peak {20 * np.log10(np.abs(mix).max()):.2f} dBFS")
+    print("music bed by section (LUFS, before ducking):")
+    for a, b, name, target in SECTIONS:
+        seg = music_bed[int(a * SR):int(min(b, 82.5) * SR)]
+        print(f"  {a:5.1f}-{b:5.1f} {name:13s} {meter.integrated_loudness(seg):6.1f}  (target {target:+.1f} vs chorus)")
+    bars = [20 * np.log10(np.sqrt((music_bed[int(k * 2 * SR):int((k + 1) * 2 * SR)] ** 2).mean()) + 1e-12) for k in range(41)]
+    print(f"quietest bar of the music bed before 82 s: {min(bars):.1f} dBFS RMS (bar {int(np.argmin(bars))}, {2 * int(np.argmin(bars))} s)")
+    print(f"ducking: deepest {20 * np.log10(duck.min()):.1f} dB, >3 dB on {(duck < 10 ** (-3 / 20)).mean() * 100:.0f}% of the film")
 
 
 if __name__ == "__main__":
