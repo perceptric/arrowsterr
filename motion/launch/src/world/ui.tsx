@@ -60,7 +60,7 @@ export const Tag: React.FC<{kind?: TagKind; size?: number; children: React.React
 			background: TAG[kind].bg,
 			color: TAG[kind].fg,
 			fontFamily: sans,
-			fontWeight: 500,
+			fontWeight: 600,
 			fontSize: size,
 			lineHeight: 1.2,
 			whiteSpace: 'nowrap',
@@ -88,7 +88,7 @@ export const Climb: React.FC<{size: number; color?: string; style?: React.CSSPro
 export const Num: React.FC<{size: number; color?: string; weight?: number; children: React.ReactNode}> = ({
 	size,
 	color,
-	weight = 500,
+	weight = 600,
 	children,
 }) => (
 	<span style={{fontFamily: mono, fontSize: size, color: color ?? C.inkStrong, fontWeight: weight, fontVariantNumeric: 'tabular-nums'}}>
@@ -121,7 +121,7 @@ export const LogoTile: React.FC<{name: string; size: number; you?: boolean}> = (
 			background: you ? C.signal : C.bg4,
 			color: you ? '#fff' : C.ink2,
 			fontFamily: sans,
-			fontWeight: 600,
+			fontWeight: 700,
 			fontSize: size * 0.48,
 			flexShrink: 0,
 		}}

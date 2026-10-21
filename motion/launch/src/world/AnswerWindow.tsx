@@ -46,7 +46,7 @@ const RowView: React.FC<{rank: number; row: Row; y: number; t: number; pressed?:
 				</Num>
 			</span>
 			<LogoTile name={row.name} size={40} you={row.you} />
-			<span style={{fontFamily: sans, fontWeight: 600, fontSize: 25, color: C.inkStrong, flex: 1}}>{row.name}</span>
+			<span style={{fontFamily: sans, fontWeight: 700, fontSize: 25, color: C.inkStrong, flex: 1}}>{row.name}</span>
 			<Tag kind={row.you ? 'signal' : 'neutral'} size={17}>
 				Recommended
 			</Tag>
@@ -85,7 +85,7 @@ const EmptySlot: React.FC<{y: number; t: number; from: number; ghost?: boolean; 
 				<span
 					style={{
 						fontFamily: sans,
-						fontWeight: 600,
+						fontWeight: 700,
 						fontSize: 25,
 						color: C.ink3,
 						opacity: f * (1 - gone),
@@ -94,7 +94,7 @@ const EmptySlot: React.FC<{y: number; t: number; from: number; ghost?: boolean; 
 						letterSpacing: gone * 14,
 					}}
 				>
-					tablely.com
+					Your Brand
 				</span>
 			) : null}
 		</div>
@@ -147,7 +147,7 @@ export const AnswerWindow: React.FC<{v: 'A' | 'B'}> = ({v}) => {
 			<Card>
 				<div style={{height: 56, display: 'flex', alignItems: 'center', gap: 12, padding: '0 28px', borderBottom: `2px solid ${C.lineFaint}`}}>
 					<Sparkle size={22} color={C.signal} />
-					<span style={{fontSize: 19, fontWeight: 500, color: C.ink2}}>AI answer</span>
+					<span style={{fontSize: 19, fontWeight: 600, color: C.ink2}}>AI answer</span>
 					<span style={{flex: 1}} />
 					<Num size={18} color={C.ink3}>
 						{isA ? '11:42 PM' : '3 weeks later'}
@@ -201,7 +201,7 @@ export const AnswerWindow: React.FC<{v: 'A' | 'B'}> = ({v}) => {
 					<>
 						{rowsB.map((r, i) => (r ? <RowView key={r.name} rank={i + 1} row={r} y={ROW_Y[i]} t={t} /> : null))}
 						{t < B.finalDrop + 0.1 ? <EmptySlot y={ROW_Y[1]} t={t} from={deal2 + 0.05} /> : null}
-						<RowView rank={2} row={{name: 'tablely.com', you: true, deal: 0}} y={ROW_Y[1]} t={t} lockAt={B.finalDrop} />
+						<RowView rank={2} row={{name: 'Your Brand', you: true, deal: 0}} y={ROW_Y[1]} t={t} lockAt={B.finalDrop} />
 					</>
 				)}
 			</Card>

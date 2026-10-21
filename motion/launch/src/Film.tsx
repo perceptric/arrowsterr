@@ -8,7 +8,7 @@ import {Close} from './Close';
 import {B, prog, useT} from './lib';
 import {C} from './theme';
 import {AnswerWindow, buyerCursor} from './world/AnswerWindow';
-import {CalCard, Missed} from './world/Check';
+import {CalCard, Deal, Missed} from './world/Check';
 import {Dashboard} from './world/Dashboard';
 import {LogoReveal} from './world/LogoReveal';
 import {PaperArrow} from './world/PaperArrow';
@@ -49,6 +49,7 @@ const Scene: React.FC = () => {
 				<Dashboard />
 				<AnswerWindow v="B" />
 				<CalCard v="B" />
+				<Deal />
 				<SparkBurst />
 				<PaperArrow />
 				{cursor ? <Cursor {...cursor} /> : null}

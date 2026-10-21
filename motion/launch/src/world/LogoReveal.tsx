@@ -24,7 +24,7 @@ export const LogoReveal: React.FC = () => {
 	const ring2 = prog(t, d + 0.5, d + 1.5, OUT);
 	const word = prog(t, d + 0.45, d + 1.05);
 	const tag = prog(t, d + 1.0, d + 1.5);
-	const leave = 1 - prog(t, B.stations[0] - 1.0, B.stations[0] - 0.6);
+	const leave = 1 - prog(t, B.stations[0] - 1.4, B.stations[0] - 1.0);
 	const left = LOGO.x - MARK_W / 2;
 	const top = LOGO.y - MARK_H;
 	return (
@@ -66,7 +66,7 @@ export const LogoReveal: React.FC = () => {
 					width: 1800,
 					textAlign: 'center',
 					fontFamily: sans,
-					fontWeight: 600,
+					fontWeight: 700,
 					fontSize: 64,
 					letterSpacing: -1,
 					color: C.inkStrong,

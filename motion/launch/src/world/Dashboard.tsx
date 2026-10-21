@@ -7,7 +7,7 @@ import {At, Card, ChevronUp, Climb, Num, Tag} from './ui';
 
 // Weekly AI visibility after the pages go live.
 const WEEKS = [0, 4, 12, 27, 44, 60];
-const LIT = [0, 2, 3]; // engines that now recommend you, in order
+const LIT = [0, 1, 2, 3, 4]; // every engine now recommends you, in order
 const CH = {x: 430, y: 140, w: 640, h: 380};
 
 /** A few weeks later: the dashboard shows AI visibility climbing. */
@@ -23,28 +23,28 @@ export const Dashboard: React.FC = () => {
 	const len = 900;
 	const endOn = prog(t, c1 - 0.05, c1 + 0.2);
 	return (
-		<At p={DASH} w={DASH_W} h={DASH_H} style={{opacity: appear}}>
+		<At p={DASH} w={DASH_W} h={DASH_H} style={{opacity: Math.min(1, appear * 1.6), transformOrigin: '50% 100%', transform: `perspective(1600px) rotateX(${(1 - appear) * -72}deg)`}}>
 			<Card>
 				<div style={{position: 'absolute', left: 44, top: 36, right: 44, display: 'flex', alignItems: 'center', gap: 14}}>
 					<Climb size={34} />
-					<span style={{fontFamily: display, fontWeight: 600, fontSize: 40, color: C.inkStrong, letterSpacing: -0.5, flex: 1}}>Dashboard</span>
+					<span style={{fontFamily: display, fontWeight: 700, fontSize: 40, color: C.inkStrong, letterSpacing: -0.5, flex: 1}}>Dashboard</span>
 					<Tag kind="neutral" size={20}>
 						<span style={{fontFamily: mono}}>3 weeks later</span>
 					</Tag>
 				</div>
 				<div style={{position: 'absolute', left: 44, top: 140, display: 'flex', flexDirection: 'column', gap: 10}}>
-					<span style={{fontSize: 22, color: C.ink2, fontWeight: 500}}>AI visibility</span>
+					<span style={{fontSize: 22, color: C.ink2, fontWeight: 600}}>AI visibility</span>
 					<Num size={120}>{Math.round(60 * p)}%</Num>
 					<span style={{opacity: endOn}}>
 						<Tag kind="pos" size={20} icon={<ChevronUp size={16} color={C.pos} />}>
 							+60 pts
 						</Tag>
 					</span>
-					<span style={{fontSize: 20, color: C.ink2, fontWeight: 500, marginTop: 28}}>Recommended by</span>
+					<span style={{fontSize: 20, color: C.ink2, fontWeight: 600, marginTop: 28}}>Recommended by</span>
 					<div style={{display: 'flex', gap: 12}}>
 						{ENGINES.map((e, i) => {
 							const k = LIT.indexOf(i);
-							const on = k >= 0 ? prog(t, c0 + 0.4 + k * 0.6, c0 + 0.6 + k * 0.6) : 0;
+							const on = k >= 0 ? prog(t, c0 + 0.3 + k * 0.45, c0 + 0.5 + k * 0.45) : 0;
 							return (
 								<Img
 									key={e.name}

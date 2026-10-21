@@ -36,14 +36,14 @@ export const Close: React.FC = () => {
 			</svg>
 			<AbsoluteFill style={{alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 44}}>
 				<Img src={staticFile('brand/arrowsterr-logo-white.svg')} style={{height: 110, opacity: logo, translate: `0 ${(1 - logo) * 16}px`}} />
-				<div style={{fontFamily: display, fontWeight: 600, fontSize: 92, color: '#fff', letterSpacing: -1.5, opacity: head, translate: `0 ${(1 - head) * 16}px`}}>
+				<div style={{fontFamily: display, fontWeight: 700, fontSize: 92, color: '#fff', letterSpacing: -1.5, opacity: head, translate: `0 ${(1 - head) * 16}px`}}>
 					Get recommended in <span style={{color: C.signalOnDark}}>AI answers</span>
 				</div>
 				<div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 26}}>
 					<div
 						style={{
 							fontFamily: sans,
-							fontWeight: 600,
+							fontWeight: 700,
 							fontSize: 34,
 							color: C.night,
 							background: '#fff',

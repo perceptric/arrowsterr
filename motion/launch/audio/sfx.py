@@ -14,7 +14,7 @@ from scipy.signal import butter, sosfilt
 
 ROOT = Path(__file__).resolve().parent.parent
 SR = 48000
-END = 78.0
+END = 86.0
 rng = np.random.default_rng(11)
 
 
@@ -214,6 +214,10 @@ def build(tl: dict) -> np.ndarray:
     wave = sweep_band(noise(1.0), 5000, 400, q=1.2) * env_ad(int(SR), 0.004, 0.45, 3)
     tr.put(b["drop"], norm(wave, 1), db=-25, pan=np.linspace(-0.6, 0.6, int(SR)))
 
+    # the arrow leaves the logo on its route: a soft launch whoosh
+    w = whoosh(0.8, 300, 3000, peak_at=0.5)
+    tr.put(b["drop"] + 7.2 - 0.4, w, db=-29, pan=np.linspace(-0.4, 0.6, len(w)))
+
     # into each station
     for at in b["stations"]:
         w = whoosh(0.55, 400, 4200, peak_at=0.8)
@@ -249,6 +253,10 @@ def build(tl: dict) -> np.ndarray:
         snap = band(noise(0.03), 1500, 6000) * env_ad(int(0.03 * SR), 0.0005, 0.01)
         tr.put(at, norm(layer((1.0, norm(thump, 1)), (0.5, norm(snap, 1))), 1), db=-25, pan=(-0.2, 0.0, 0.2)[k])
 
+    # "stand out": a bright hit as the article gets its ticks
+    hit = layer((1.0, norm(bell(FS6, 0.9, 0.25), 1)), (0.7, norm(bell(A6, 0.9, 0.22), 1)), (0.5, click(1.0, 3000)))
+    tr.put(b["standOut"], norm(hit, 1), db=-27)
+
     # paper fold: two creases
     f0 = b["fold"]
     for at, d in ((f0, 0.35), (f0 + 0.45, 0.45)):
@@ -278,6 +286,17 @@ def build(tl: dict) -> np.ndarray:
         at = b["finalDrop"] + 0.02 + k * 0.055 + rng.uniform(0, 0.02)
         f = sparkle[k % len(sparkle)] * (0.5 if k % 4 == 3 else 1)
         tr.put(at, bell(f, 0.7, 0.18), db=-34 - k * 0.5, pan=np.sin(k * 1.7) * 0.8)
+
+    # the deal card: a soft register "cha-ching" in key (a bell pair over a drawer thump)
+    thump = tone(98.0, 0.18, 0.06, glide=73.4)
+    ring = chime((D7, FS6 * 2), 0.07, 0.9, 0.3)
+    cha = band(noise(0.06), 3000, 9000) * env_ad(int(0.06 * SR), 0.0005, 0.025)
+    tr.put(b["deal"], norm(thump, 1), db=-26)
+    tr.put(b["deal"] + 0.02, norm(cha, 1), db=-30)
+    tr.put(b["deal"] + 0.05, ring, db=-27)
+
+    # the handoff to sales: a confident two-note chime, A5 up to D6
+    tr.put(b["sales"], chime((880.0, D6), 0.18, 1.4, 0.55), db=-24)
 
     # the giant chevron sweeps up
     w = whoosh(0.7, 250, 6000, peak_at=0.6)

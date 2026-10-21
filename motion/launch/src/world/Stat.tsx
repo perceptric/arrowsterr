@@ -23,11 +23,11 @@ export const Stat: React.FC = () => {
 	const appear = prog(t, 0, 0.4);
 	return (
 		<div style={{position: 'absolute', left: STAT.x - 780, top: STAT.y - 330, width: 1560, opacity: appear, textAlign: 'center'}}>
-			<div style={{fontFamily: mono, fontWeight: 500, fontSize: 300, lineHeight: 1, color: C.inkStrong, letterSpacing: -12, fontVariantNumeric: 'tabular-nums'}}>
+			<div style={{fontFamily: mono, fontWeight: 600, fontSize: 300, lineHeight: 1, color: C.inkStrong, letterSpacing: -12, fontVariantNumeric: 'tabular-nums'}}>
 				{roll(t, c0, c1, 0, STAT_VALUE)}
 				<span style={{color: C.signalText}}>%</span>
 			</div>
-			<div style={{marginTop: 36, fontFamily: display, fontWeight: 500, fontSize: 64, lineHeight: 1.18, color: C.inkStrong, letterSpacing: -1, minHeight: 160, whiteSpace: 'pre-line'}}>
+			<div style={{marginTop: 36, fontFamily: display, fontWeight: 600, fontSize: 64, lineHeight: 1.18, color: C.inkStrong, letterSpacing: -1, minHeight: 160, whiteSpace: 'pre-line'}}>
 				{before}
 				<span style={{color: C.signalText}}>{payoff}</span>
 				{after}
@@ -53,7 +53,7 @@ export const Stat: React.FC = () => {
 							}}
 						>
 							<Img src={staticFile(e.file)} style={{width: 48, height: 48, borderRadius: 8, objectFit: 'contain'}} />
-							<span style={{fontFamily: display, fontWeight: 600, fontSize: 28, color: C.inkStrong}}>{e.name}</span>
+							<span style={{fontFamily: display, fontWeight: 700, fontSize: 28, color: C.inkStrong}}>{e.name}</span>
 						</div>
 					);
 				})}

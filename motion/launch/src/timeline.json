@@ -1,7 +1,7 @@
 {
   "fps": 30,
   "bpm": 120,
-  "durationSec": 78,
+  "durationSec": 86,
   "voice": "af_heart",
   "pronounce": {
     "Arrowsterr": "ˈæɹoʊztɚ",
@@ -35,57 +35,48 @@
     },
     {
       "id": "v06",
-      "at": 29.1,
+      "at": 33.1,
       "text": "It shows exactly which brands AI recommends in your industry."
     },
     {
       "id": "v07",
-      "at": 33.0,
+      "at": 37.0,
       "text": "Pick a topic, and see who gets mentioned most."
     },
     {
       "id": "v08",
-      "at": 36.2,
-      "text": "Then it cherry-picks the keywords with the strongest conversion potential, and the biggest lift in AI visibility."
+      "at": 39.8,
+      "text": "Using insights from the competitive analysis, Arrowsterr cherry-picks keywords with the strongest conversion potential and AI visibility lift.",
+      "speed": 1.12
     },
     {
       "id": "v09",
-      "at": 44.2,
-      "text": "Of course, it builds your full editorial calendar, and writes everything for you."
+      "at": 48.5,
+      "text": "Then, it builds your entire editorial calendar, and writes everything for you."
     },
     {
       "id": "v10",
-      "at": 50.2,
-      "text": "And look, it goes way beyond text."
+      "at": 54.2,
+      "text": "And Arrowsterr goes beyond text. It can generate screenshots, tables, even interactive demos, to make your article stand out."
     },
     {
       "id": "v11",
-      "at": 52.6,
-      "text": "It generates screenshots, tables, even interactive demos."
-    },
-    {
-      "id": "v12",
-      "at": 56.6,
-      "text": "Everything to make your article stand out."
-    },
-    {
-      "id": "v13",
-      "at": 61.6,
+      "at": 65.0,
       "text": "A few weeks later, check your dashboard."
     },
     {
-      "id": "v14",
-      "at": 65.7,
+      "id": "v12",
+      "at": 69.7,
       "text": "And voilà. You're part of the AI recommendation."
     },
     {
-      "id": "v15",
-      "at": 69.6,
-      "text": "That one's yours."
+      "id": "v13",
+      "at": 73.4,
+      "text": "That opportunity is yours. Now it's time for the sales team to come in and close the deal."
     },
     {
-      "id": "v16",
-      "at": 71.6,
+      "id": "v14",
+      "at": 79.6,
       "text": "Arrowsterr. Get recommended in AI answers. Start free today."
     }
   ],
@@ -127,50 +118,52 @@
     "arrowhead": 20.0,
     "drop": 24.0,
     "stations": [
-      28.0,
-      36.0,
-      44.0,
-      50.0
+      32.0,
+      40.0,
+      48.0,
+      54.0
     ],
     "stationEnds": [
-      36.0,
-      44.0,
-      50.0,
-      60.0
-    ],
-    "topicPick": 33.6,
-    "keywordSort": 37.6,
-    "keywordPicks": [
-      39.0,
-      39.5,
       40.0,
-      40.5
+      48.0,
+      54.0,
+      63.4
+    ],
+    "topicPick": 37.6,
+    "keywordSort": 41.8,
+    "keywordPicks": [
+      43.5,
+      44.0,
+      44.5,
+      45.0
     ],
     "calendarFill": [
-      44.3,
-      46.0
+      48.3,
+      50.0
     ],
     "draftType": [
-      46.8,
-      48.8
+      50.6,
+      52.6
     ],
     "blocks": [
-      52.9,
-      53.9,
-      54.9
+      57.3,
+      58.2,
+      59.1
     ],
-    "standOut": 56.6,
-    "fold": 58.6,
-    "ship": 60.0,
-    "dashboard": 61.3,
+    "standOut": 61.0,
+    "fold": 62.0,
+    "ship": 63.4,
+    "dashboard": 64.7,
     "climb": [
-      62.0,
-      64.4
+      65.4,
+      67.8
     ],
-    "finalDrop": 66.0,
-    "clickYou": 68.8,
-    "demoBookedYou": 69.2,
-    "close": 71.0,
-    "end": 78.0
+    "finalDrop": 70.0,
+    "clickYou": 72.6,
+    "demoBookedYou": 73.0,
+    "close": 79.0,
+    "end": 86.0,
+    "deal": 74.0,
+    "sales": 76.0
   }
 }

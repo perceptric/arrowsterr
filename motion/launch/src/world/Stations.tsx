@@ -6,13 +6,20 @@ import {At, Card, ChevronUp, Climb, Cursor, LogoTile, Num, Tag} from './ui';
 
 const Panel: React.FC<{k: number; title: string; children: React.ReactNode}> = ({k, title, children}) => {
 	const t = useT();
-	const a = prog(t, B.stations[k] - 0.5, B.stations[k] - 0.1);
+	const a = prog(t, B.stations[k] - 0.7, B.stations[k] + 0.1);
+	const scan = prog(t, B.stations[k], B.stations[k] + 0.9, INOUT);
 	return (
-		<At p={STATIONS[k]} w={STATION_W} h={STATION_H} style={{opacity: a, translate: `0 ${(1 - a) * 30}px`}}>
+		<At
+			p={STATIONS[k]}
+			w={STATION_W}
+			h={STATION_H}
+			style={{opacity: Math.min(1, a * 1.6), transformOrigin: '50% 100%', transform: `perspective(1600px) rotateX(${(1 - a) * -72}deg)`}}
+		>
 			<Card>
+				{scan > 0 && scan < 1 ? <div style={{position: 'absolute', left: 0, right: 0, top: `${scan * 100}%`, height: 3, background: C.signal, opacity: 0.5 * (1 - scan), zIndex: 5}} /> : null}
 				<div style={{position: 'absolute', left: 44, top: 36, display: 'flex', alignItems: 'center', gap: 14}}>
 					<Climb size={34} />
-					<span style={{fontFamily: display, fontWeight: 600, fontSize: 40, color: C.inkStrong, letterSpacing: -0.5}}>{title}</span>
+					<span style={{fontFamily: display, fontWeight: 700, fontSize: 40, color: C.inkStrong, letterSpacing: -0.5}}>{title}</span>
 				</div>
 				{children}
 			</Card>
@@ -61,13 +68,13 @@ const Check: React.FC<{on: number}> = ({on}) => (
 const TOPICS = ['Reservation software', 'Waitlist apps', 'Table management', 'Online ordering', 'Guest CRM'];
 type Spot = {v: number; r: number};
 const BRANDS: {name: string; you?: boolean; a: Spot; b: Spot}[] = [
-	{name: 'Acme', a: {v: 84, r: 1.3}, b: {v: 46, r: 2.9}},
+	{name: 'Acme', a: {v: 84, r: 1.3}, b: {v: 46, r: 3.0}},
 	{name: 'Northwind', a: {v: 66, r: 2.1}, b: {v: 82, r: 1.4}},
-	{name: 'Globex', a: {v: 49, r: 2.8}, b: {v: 24, r: 3.8}},
-	{name: 'Initech', a: {v: 31, r: 3.5}, b: {v: 61, r: 2.2}},
-	{name: 'tablely.com', you: true, a: {v: 5, r: 4.7}, b: {v: 8, r: 4.6}},
+	{name: 'Globex', a: {v: 49, r: 2.8}, b: {v: 28, r: 3.7}},
+	{name: 'Initech', a: {v: 31, r: 3.5}, b: {v: 66, r: 2.0}},
+	{name: 'Your Brand', you: true, a: {v: 14, r: 4.4}, b: {v: 12, r: 4.5}},
 ];
-const PLOT = {x: 420, y: 120, w: 580, h: 456};
+const PLOT = {x: 420, y: 120, w: 580, h: 420};
 const spotXY = (s: Spot) => ({x: PLOT.x + PLOT.w * (0.06 + ((5 - s.r) / 4) * 0.88), y: PLOT.y + PLOT.h * (0.06 + ((100 - s.v) / 100) * 0.88)});
 
 export const See: React.FC = () => {
@@ -88,7 +95,7 @@ export const See: React.FC = () => {
 	const showCursor = t > pick - 0.8 && t < pick + 0.9;
 	return (
 		<Panel k={0} title="Who AI recommends in your industry">
-			<span style={{position: 'absolute', left: 44, top: 118, fontSize: 18, fontWeight: 500, color: C.ink2}}>Topic</span>
+			<span style={{position: 'absolute', left: 44, top: 118, fontSize: 18, fontWeight: 600, color: C.ink2}}>Topic</span>
 			{TOPICS.map((tp, i) => {
 				const on = i === picked;
 				return (
@@ -108,7 +115,7 @@ export const See: React.FC = () => {
 							background: on ? C.signalTint : C.bg,
 							color: on ? C.signalText : C.ink,
 							fontSize: 20,
-							fontWeight: on ? 600 : 500,
+							fontWeight: on ? 700 : 600,
 							opacity: prog(t, t0 + i * 0.06, t0 + 0.3 + i * 0.06),
 						}}
 					>
@@ -121,13 +128,13 @@ export const See: React.FC = () => {
 				<div style={{position: 'absolute', left: '50%', top: 0, width: '50%', height: '50%', background: C.signalTint}} />
 				<div style={{position: 'absolute', left: 0, right: 0, top: '50%', borderTop: `2px solid ${C.lineStrong}`}} />
 				<div style={{position: 'absolute', top: 0, bottom: 0, left: '50%', borderLeft: `2px solid ${C.lineStrong}`}} />
-				<span style={{position: 'absolute', left: 14, top: 10, fontSize: 17, fontWeight: 500, color: C.ink2}}>Challengers</span>
-				<span style={{position: 'absolute', right: 14, top: 10, fontSize: 17, fontWeight: 600, color: C.signalText}}>Leaders</span>
-				<span style={{position: 'absolute', left: 14, bottom: 10, fontSize: 16, color: C.ink3, display: 'flex', alignItems: 'center', gap: 6}}>
+				<span style={{position: 'absolute', left: 14, top: 10, fontSize: 17, fontWeight: 600, color: C.ink2}}>Challengers</span>
+				<span style={{position: 'absolute', right: 14, top: 10, fontSize: 17, fontWeight: 700, color: C.signalText}}>Leaders</span>
+				<span style={{position: 'absolute', left: 0, bottom: -40, fontSize: 18, color: C.ink2, display: 'flex', alignItems: 'center', gap: 6}}>
 					<ChevronUp size={14} color={C.ink3} />
 					Visibility
 				</span>
-				<span style={{position: 'absolute', right: 14, bottom: 10, fontSize: 16, color: C.ink3, display: 'flex', alignItems: 'center', gap: 6}}>
+				<span style={{position: 'absolute', right: 0, bottom: -40, fontSize: 18, color: C.ink2, display: 'flex', alignItems: 'center', gap: 6}}>
 					Higher rank
 					<span style={{rotate: '90deg', display: 'inline-flex'}}>
 						<ChevronUp size={14} color={C.ink3} />
@@ -146,15 +153,16 @@ export const See: React.FC = () => {
 						<span
 							style={{
 								position: 'absolute',
-								left: 72,
+								// Names near the right edge sit on the tile's left so they stay inside the plot.
+								...(s.x > PLOT.x + PLOT.w * 0.68 ? {right: 72} : {left: 72}),
 								top: 16,
 								fontSize: 18,
-								fontWeight: 600,
+								fontWeight: 700,
 								whiteSpace: 'nowrap',
 								color: b.you ? C.signalText : C.inkStrong,
 							}}
 						>
-							{b.you ? 'You' : b.name}
+							{b.name}
 						</span>
 					</div>
 				);
@@ -184,7 +192,7 @@ export const Find: React.FC = () => {
 	const done = prog(t, B.keywordPicks[3] + 0.5, B.keywordPicks[3] + 0.9);
 	return (
 		<Panel k={1} title="Keywords most likely to convert">
-			<div style={{position: 'absolute', left: 44, right: 44, top: 126, display: 'flex', fontSize: 18, fontWeight: 500, color: C.ink2, opacity: prog(t, t1, t1 + 0.3)}}>
+			<div style={{position: 'absolute', left: 44, right: 44, top: 126, display: 'flex', fontSize: 18, fontWeight: 600, color: C.ink2, opacity: prog(t, t1, t1 + 0.3)}}>
 				<span style={{width: 50}} />
 				<span style={{flex: 1}}>Keyword</span>
 				<span style={{width: 250}}>Conversion potential</span>
@@ -254,9 +262,9 @@ export const Plan: React.FC = () => {
 	const card = prog(t, d0 - 0.5, d0 - 0.1);
 	return (
 		<Panel k={2} title="Your editorial calendar">
-			<span style={{position: 'absolute', left: calX, top: 118, fontFamily: display, fontWeight: 600, fontSize: 26, color: C.inkStrong}}>November</span>
+			<span style={{position: 'absolute', left: calX, top: 118, fontFamily: display, fontWeight: 700, fontSize: 26, color: C.inkStrong}}>November</span>
 			{['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
-				<span key={i} style={{position: 'absolute', left: calX + i * (cell + gap) + 6, top: 162, fontSize: 16, color: C.ink3, fontWeight: 500}}>
+				<span key={i} style={{position: 'absolute', left: calX + i * (cell + gap) + 6, top: 162, fontSize: 16, color: C.ink3, fontWeight: 600}}>
 					{d}
 				</span>
 			))}
@@ -306,7 +314,7 @@ export const Plan: React.FC = () => {
 							</Tag>
 						)}
 					</div>
-					<div style={{fontFamily: display, fontWeight: 600, fontSize: 28, lineHeight: 1.18, color: C.inkStrong, minHeight: 100}}>{typed(DRAFT_TITLE, t, d0, d0 + 1.0)}</div>
+					<div style={{fontFamily: display, fontWeight: 700, fontSize: 28, lineHeight: 1.18, color: C.inkStrong, minHeight: 100}}>{typed(DRAFT_TITLE, t, d0, d0 + 1.0)}</div>
 					{[0.95, 0.88, 0.92, 0.6, -1, 0.9, 0.84, 0.7].map((w, i) => {
 						const a = prog(t, d0 + 0.8 + i * 0.13, d0 + 1.0 + i * 0.13);
 						return <div key={i} style={{height: w < 0 ? 18 : 12, width: `${(w < 0 ? 0.5 : w) * 100 * a}%`, borderRadius: 2, background: w < 0 ? C.ink3 : C.bg4, marginTop: w < 0 ? 8 : 0}} />;
@@ -356,12 +364,12 @@ const MiniTable: React.FC = () => (
 	<div style={{height: '100%', borderRadius: 8, border: `2px solid ${C.line}`, overflow: 'hidden', fontSize: 15}}>
 		{[
 			['', 'Deposits', 'Waitlist'],
-			['tablely.com', 'Yes', 'Yes'],
+			['Your Brand', 'Yes', 'Yes'],
 			['Acme', 'Yes', 'No'],
 		].map((r, i) => (
 			<div key={i} style={{display: 'flex', height: '33.4%', alignItems: 'center', background: i === 0 ? C.bg3 : C.bg, borderTop: i ? `1px solid ${C.lineFaint}` : 'none'}}>
 				{r.map((c, j) => (
-					<span key={j} style={{flex: j ? 1 : 1.4, padding: '0 12px', fontWeight: i === 0 || j === 0 ? 600 : 400, color: i === 1 && j === 0 ? C.signalText : C.ink}}>
+					<span key={j} style={{flex: j ? 1 : 1.4, padding: '0 12px', fontWeight: i === 0 || j === 0 ? 700 : 500, color: i === 1 && j === 0 ? C.signalText : C.ink}}>
 						{c}
 					</span>
 				))}
@@ -415,7 +423,7 @@ export const Create: React.FC = () => {
 					background: C.bg,
 				}}
 			>
-				<div style={{fontFamily: display, fontSize: 26, fontWeight: 600, color: C.inkStrong, lineHeight: 1.15}}>{DRAFT_TITLE}</div>
+				<div style={{fontFamily: display, fontSize: 26, fontWeight: 700, color: C.inkStrong, lineHeight: 1.15}}>{DRAFT_TITLE}</div>
 				<div style={{height: 10, width: '86%', borderRadius: 2, background: C.bg4, marginTop: 12}} />
 				<Block at={b0} h={104}>
 					<MiniShot />
@@ -450,7 +458,7 @@ export const Create: React.FC = () => {
 							background: on > 0.5 ? C.signalTint : C.bg,
 							color: on > 0.5 ? C.signalText : C.ink3,
 							fontSize: 22,
-							fontWeight: 600,
+							fontWeight: 700,
 							opacity: prog(t, B.stations[3] + i * 0.08, B.stations[3] + 0.3 + i * 0.08),
 						}}
 					>
