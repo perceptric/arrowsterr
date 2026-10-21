@@ -1,7 +1,8 @@
 import "server-only";
 import * as cheerio from "cheerio";
-import { answerReady, buildLlmsTxt, robotsFix, robotsVerdicts, speedSummary, titleFromUrl, type LlmsPage } from "./freeChecks";
+import { AI_CRAWLERS, answerReady, buildLlmsTxt, robotsFix, robotsVerdicts, speedSummary, titleFromUrl, type LlmsPage } from "./freeChecks";
 import { pageFacts } from "./pageFacts";
+import { parseRobots, robotsAllows, robotsStatus, ROBOTS_MAX_BYTES, SEARCH_CRAWLERS } from "./robotsTest";
 import { safeFetch, UA } from "./safeFetch";
 
 // The free tools' work (docs/free-tools.md). Every address a visitor types goes through safeFetch.
@@ -25,7 +26,7 @@ function unreachable(host: string, error?: string) {
 }
 
 /** Open a page the visitor typed. When https can't connect, try http once. */
-async function reach(url: string, opts: Parameters<typeof safeFetch>[1] = {}) {
+export async function reach(url: string, opts: Parameters<typeof safeFetch>[1] = {}) {
   let r = await safeFetch(url, opts);
   if (r.status === 0 && url.startsWith("https://") && !/private network|doesn't exist/.test(r.error ?? "")) {
     const plain = await safeFetch(`http://${url.slice(8)}`, opts);
@@ -304,3 +305,38 @@ export async function links(url: string) {
   };
 }
 
+// ─────────────── Robots.txt Tester ───────────────
+
+/** Fetch a site's robots.txt and answer for every crawler at the homepage. The page re-tests edits in the browser. */
+export async function robots(domain: string) {
+  const page = await home(domain);
+  const origin = new URL(page.url).origin;
+  const url = `${origin}/robots.txt`;
+  const r = await safeFetch(url, { accept: "text/plain,*/*", timeout: 10_000, maxBytes: ROBOTS_MAX_BYTES + 100_000 });
+  // A web page where robots.txt should be has no rules Google can read.
+  const html = r.ok && /<(!doctype html|html)[\s>]/i.test(r.body.slice(0, 500));
+  const kind = html ? "allow-all" : robotsStatus(r.status);
+  const text = kind === "rules" ? r.body : "";
+  const parsed = parseRobots(text);
+  const bots = [...SEARCH_CRAWLERS, ...AI_CRAWLERS].map(({ bot, owner }) => {
+    const a = robotsAllows(parsed, bot, "/");
+    return { bot, owner, allowed: kind === "block-all" ? false : a.allowed, line: a.rule?.line ?? null, rule: a.rule?.text ?? null, group: a.group };
+  });
+  return {
+    result: {
+      domain,
+      url,
+      final: r.url,
+      status: r.status,
+      kind,
+      html,
+      text,
+      bytes: parsed.bytes,
+      sitemaps: parsed.sitemaps,
+      warnings: parsed.warnings,
+      groups: parsed.groups.map((g) => ({ agents: g.agents, line: g.line, rules: g.rules.length })),
+      bots,
+    },
+    cost: 0,
+  };
+}
