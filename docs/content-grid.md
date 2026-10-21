@@ -1,38 +1,35 @@
 # Library grid
 
-The Library is a grid of articles. Each row is one article, and the columns are lettered A, B, C like a sheet. Arrowsterr writes the draft; people publish it to WordPress or their CMS and edit it there.
+The Library is a grid of articles. Each row is one article, and the columns are lettered A, B, C like a sheet. Arrowsterr writes the brief; writers fill the article in, section by section beside the grid or in full view, then publish it to WordPress or their CMS.
 
-Code: `src/components/writer/ContentGrid.tsx` (the grid), `src/lib/articleGrid.ts` (pure: the doc as heading and section pairs), `src/lib/gridData.ts` (reads and saves), `src/app/api/agentic-writer/grid/route.ts` (Generate draft). Database: `supabase/054_content_grid.sql`.
+Code: `src/components/writer/ContentGrid.tsx` (the grid), `SectionPanel.tsx` (one section in the side panel), `LibraryPage.tsx` (Full view: `ArticleView`), `src/lib/articleGrid.ts` (pure: the doc as heading and section pairs, the skeleton from the brief, each section's notes), `src/lib/gridData.ts` (reads and saves), `src/app/api/agentic-writer/grid/route.ts` (Generate brief).
 
 ## Columns
 
-**A Keyword**, with View draft (or View brief before the draft).
+**A Keyword**, with Full view once the article has a doc (or View brief before).
 
 **Metadata**
-- **B Status:** the Content status, the same field and choices as the Keyword Deep Dive (Idea, Planned, Brief ready, Writing, In review, Published), through `statusChoice` and `statusPatch` in `library.ts`. Changing it here changes it there and in the Editorial Calendar. The writer moves it on as the brief and draft finish. While the writer works, a tag under it shows the step (Researching, Planning, Writing, Checking, Building modules, Saving), or Failed with the reason as its tooltip.
-- **C Meta title, D Meta description, E Slug:** from the brief until the draft exists, then saved in `docs.meta` (`metaTitle`, `description`, `slug`), where Publish reads them. Click to edit.
+- **B Status:** the Content status, the same field and choices as the Keyword Deep Dive (Idea, Planned, Brief ready, Writing, In review, Published), through `statusChoice` and `statusPatch` in `library.ts`. Changing it here changes it there and in the Editorial Calendar. A finished brief moves it to Brief ready, and the first section a writer opens moves it to Writing. While the writer job works, a tag under it shows the step (Researching, Planning), or Failed with the reason as its tooltip.
+- **C Meta title, D Meta description, E Slug:** from the brief until the doc exists, then saved in `docs.meta` (`metaTitle`, `description`, `slug`), where Publish reads them. Click to edit.
 
 **Content**: pairs of a heading and its section, always H1 and Section 1 through H20 and Section 20. **+** at the end adds another pair (per site, in this browser), and the grid never shows fewer pairs than its longest article needs.
 - **H1** is the article's title and **Section 1** its intro.
-- **H2, H3 …** are the draft's H2s in order, and each **Section** is the text under it: its preview, what's inside (List, Table, Interactive, Image, Quote) and its word count. H3s stay inside their section.
-- Before the draft, the headings show the brief's H1 and outline and the sections stay empty.
-- Click a section to view the draft as a doc.
+- **H2, H3 …** are the doc's H2s in order, and each **Section** is what's written under it: its preview, what's inside (List, Table, Interactive, Image, Quote) and its word count. H3s stay inside their section.
+- Before the doc, the headings show the brief's H1, outline and FAQ.
 
-## Generate draft
+## Generate brief
 
-- Select rows and press **Generate draft**, or press the play button next to a row's status.
-- No brief yet: the brief starts with `auto_draft` on. When it's ready, the server approves it and starts the draft (`autoDraft` in `writerServer.ts`). A draft that can't start says why on the brief.
-- Brief ready: the brief is approved and the draft starts.
-- Draft ready: it's regenerated after a confirm. The old text is saved to `doc_versions` first.
-- Drafts count against the plan the same way Generate Draft does.
+Select rows and press **Generate brief**, or press the play button next to a row's status. Rows whose brief is ready or being written are left alone; a failed one is tried again. The brief fills the headings and the metadata. A full draft can still be written from the brief's own page (Generate Draft).
 
-## The draft
+## Writing
 
-View draft opens the doc with Edit, HTML, Markdown and Text tabs (each with Copy), Export and **Publish** to the CMS connections in Settings, with the row's meta title, description and slug.
+- **Write** on any section starts the article's doc from the brief (`briefSkeleton`): the H1 as its title, an empty intro, each H2 with its H3s and the FAQ questions, all empty, and the brief's meta title, description and slug. Then the section opens in the side panel.
+- The panel shows what the brief says to write in that section (`notesFor`: the intro's angle and intent, the H2's key points and H3s with its numbered sources, or the FAQ answers), then the editor: headings, lists, links, tables, images and HTML blocks. It saves a moment after typing stops, into the latest copy of the doc (`replacePart`). Back and Next move along the article.
+- **Full view** opens the whole article: the editor with Edit, HTML, Markdown and Text tabs (each with Copy), Export and **Publish** to the CMS connections in Settings, with the row's meta title, description and slug.
 
 ## Interactive modules
 
-The draft can carry interactive modules: each built as one self-contained HTML block (inline CSS and JS, no outside files, no network), in the brand's colors, checked by `validateModule` and run in a sandboxed frame. The catalog is `src/lib/moduleCatalog.ts`: each kind says when it helps and how to build it. The brief's prompt lists every kind and picks 1 to 3 that fit the article, never two of the same kind; the draft builds each with its kind's design.
+A draft written from the brief's page (Generate Draft) can carry interactive modules: each built as one self-contained HTML block (inline CSS and JS, no outside files, no network), in the brand's colors, checked by `validateModule` and run in a sandboxed frame. The catalog is `src/lib/moduleCatalog.ts`: each kind says when it helps and how to build it. The brief's prompt lists every kind and picks 1 to 3 that fit the article, never two of the same kind; the draft builds each with its kind's design.
 
 | Kind | When it helps |
 |---|---|
@@ -54,8 +51,15 @@ Older briefs that name `roi` or `diagram` still build.
 
 ## Tests
 
-`tests/articleGrid.test.ts` (the doc as heading and section pairs, the brief's plan before the draft, the pair count, plain text, letters), `tests/moduleCatalog.test.ts` (the 13 kinds, the brief's list, the build prompt), `tests/library.test.ts` (the status picker the grid and the deep dive share).
+`tests/articleGrid.test.ts` (the doc as heading and section pairs, the brief's plan before the doc, the skeleton from the brief, each section's notes, saving a section into its slice, the pair count, plain text, letters), `tests/moduleCatalog.test.ts` (the 13 kinds, the brief's list, the build prompt), `tests/library.test.ts` (the status picker the grid and the deep dive share).
 
 ## Running cost
 
-None beyond the draft itself. Generate draft runs the same brief and draft as before, priced in `docs/content-v2.md` at about $0.60 an article: about $290 a month at Beta (50 teams) and $2,860 at Growth (500 teams). The grid reads and saves with the browser's own Supabase connection, so it adds $0 at Beta and $0 at Growth.
+The grid runs only the brief: research and one Claude call, about $0.18 an article at `docs/content-v2.md`'s prices (search ~$0.01, AI sources ~$0.05, brief ~$0.12). At 10 articles per team a month:
+
+| Stage | Briefs | Claude, DataForSEO and AI engines |
+|---|---|---|
+| Beta (50 teams) | 500 | ~$90 (check) |
+| Growth (500 teams) | 5,000 | ~$900 (check) |
+
+That is less than the full drafts the grid used to generate (~$290 and ~$2,860). Writing, saving and Full view use the browser's own Supabase connection: $0 at Beta and $0 at Growth. Drafts generated from a brief's page cost as before.

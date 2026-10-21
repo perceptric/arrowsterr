@@ -3,14 +3,14 @@ import { requireActive, requireWriter } from "@/lib/entitlements";
 import { queueReady } from "@/lib/jobs";
 import { adminClient, requireRole } from "@/lib/serverAuth";
 import type { BriefRow } from "@/lib/writerBrief";
-import { draftFromBrief, startBrief } from "@/lib/writerServer";
+import { startBrief } from "@/lib/writerServer";
 
-// The Library grid's action (docs/content-grid.md, supabase/054_content_grid.sql).
-//   { action: "generate", itemIds }   Generate Draft for each row: the brief, then the draft. A row with a ready
-//                                     brief goes to its draft; a row being written is left alone.
+// The Library grid's action (docs/content-grid.md).
+//   { action: "generate", itemIds }   Generate brief for each row. A row whose brief is ready or being written is
+//                                     left alone; a failed one is tried again. Writers then fill the sections.
 const ACTIONS = ["generate"];
 const fail = (error: string, status: number) => Response.json({ error }, { status });
-const NOT_RUN = (m: string) => (/auto_draft/.test(m) ? "Run supabase/054_content_grid.sql in Supabase." : /writer_/.test(m) ? "Run supabase/050_agentic_writer.sql in Supabase." : m);
+const NOT_RUN = (m: string) => (/writer_/.test(m) ? "Run supabase/050_agentic_writer.sql in Supabase." : m);
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
@@ -52,21 +52,15 @@ export async function POST(request: Request) {
           continue;
         }
         const b = await briefOf(it.id);
-        const { data: d } = await auth.sb.from("writer_drafts").select("status").eq("item_id", it.id).maybeSingle();
-        if (b?.status === "generating" || d?.status === "generating") {
+        if (b && b.status !== "failed") {
           results.push({ itemId: id, ok: true });
-          continue;
-        }
-        if (b && (b.status === "ready" || b.status === "approved")) {
-          const out = await draftFromBrief(db, b, userId);
-          results.push(out.ok ? { itemId: id, ok: true } : { itemId: id, ok: false, error: out.error });
           continue;
         }
         if (!dfsReady()) {
           results.push({ itemId: id, ok: false, error: "DataForSEO is not set up. Add DFS_LOGIN and DFS_PASSWORD to the server's settings." });
           continue;
         }
-        const out = await startBrief(db, { workspaceId: ws, item: it, userId, autoDraft: true });
+        const out = await startBrief(db, { workspaceId: ws, item: it, userId });
         results.push(out.ok ? { itemId: id, ok: true } : { itemId: id, ok: false, error: out.error });
       }
       return Response.json({ results });

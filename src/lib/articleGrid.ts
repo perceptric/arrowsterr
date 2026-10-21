@@ -1,7 +1,8 @@
 // The Library grid (docs/content-grid.md): one row per article. Metadata columns (Status, Meta title, Meta
 // description, Slug), then Content columns in pairs: H1 and Section 1, H2 and Section 2, up to H20 and Section 20,
 // and more when someone adds them. A heading column holds the title, its section column the text under it.
-// H1 is the article's title and Section 1 its intro; each H2 in the draft is the next heading, with its section.
+// H1 is the article's title and Section 1 its intro; each H2 in the doc is the next heading, with its section.
+// The brief makes the doc's skeleton (its headings, empty sections); writers fill each section in the side panel.
 // Pure, shared by the browser and the tests.
 import type { PmNode } from "./docHtml.ts";
 
@@ -27,6 +28,109 @@ export function splitDoc(content: unknown): Split {
     else intro.push(n);
   }
   return { intro, sections };
+}
+
+/** The intro and sections as one doc again. An empty doc keeps one empty paragraph, as the editor does. */
+export function joinDoc(s: Split): PmNode {
+  const content = [...s.intro, ...s.sections.flatMap((x) => x.nodes)];
+  return { type: "doc", content: content.length ? content : [{ type: "paragraph" }] };
+}
+
+/** A section column's part of the doc: "intro" for Section 1, or the index of an H2 section. */
+export type Part = "intro" | number;
+export const partOfPair = (pair: number): Part => (pair === 0 ? "intro" : pair - 1);
+
+/** The nodes one section column edits: the intro, or an H2 section with its H2 first. */
+export function partNodes(content: unknown, part: Part): PmNode[] {
+  const s = splitDoc(content);
+  return part === "intro" ? s.intro : (s.sections[part]?.nodes ?? []);
+}
+
+/**
+ * Put a section's edited nodes back. A section that comes back without an H2 at its top gets its old one,
+ * so it can never swallow the boundary; extra H2s inside it become sections of their own.
+ */
+export function replacePart(content: unknown, part: Part, nodes: PmNode[]): PmNode {
+  const s = splitDoc(content);
+  if (part === "intro") {
+    const parts = splitDoc({ type: "doc", content: nodes });
+    return joinDoc({ intro: parts.intro, sections: [...parts.sections, ...s.sections] });
+  }
+  const old = s.sections[part];
+  if (!old) return joinDoc(s);
+  const fixed = nodes.length && isH2(nodes[0]) ? nodes : [old.nodes[0], ...nodes];
+  const parts = splitDoc({ type: "doc", content: fixed });
+  const sections = [...s.sections];
+  sections.splice(part, 1, ...parts.sections);
+  return joinDoc({ ...s, sections });
+}
+
+// ─────────────── the doc the brief starts ───────────────
+export type BriefOutline = { h2: string; points: string[]; h3: string[]; sources: { n: number; title: string; url: string }[] };
+export type BriefPlan = { h1: string; intro: string[]; outline: BriefOutline[]; faqs: { question: string; answer: string }[] };
+export const FAQ_H2 = "Frequently asked questions";
+
+const heading = (level: number, text: string): PmNode => ({ type: "heading", attrs: { level }, content: text ? [{ type: "text", text }] : [] });
+const EMPTY: PmNode = { type: "paragraph" };
+
+/** The doc a writer starts from: an empty intro, then each H2 of the brief (with its H3s) and the FAQ, all empty. */
+export function briefSkeleton(plan: BriefPlan): PmNode {
+  const content: PmNode[] = [EMPTY];
+  for (const o of plan.outline) {
+    content.push(heading(2, o.h2));
+    if (o.h3.length) for (const t of o.h3) content.push(heading(3, t), EMPTY);
+    else content.push(EMPTY);
+  }
+  if (plan.faqs.length) {
+    content.push(heading(2, FAQ_H2));
+    for (const f of plan.faqs) content.push(heading(3, f.question), EMPTY);
+  }
+  return { type: "doc", content };
+}
+
+export type GridPlan = BriefPlan & { title: string; description: string; slug: string };
+
+export type RawBrief = {
+  h1?: string;
+  titles?: string[];
+  metaDescription?: string;
+  slug?: string;
+  angle?: string;
+  searchIntent?: string;
+  outline?: { h2: string; points?: string[]; h3?: { title: string }[]; sources?: number[] }[];
+  faqs?: { question: string; answer?: string }[];
+  research?: { sources?: { n: number; title: string; url: string }[] };
+};
+
+/** The brief as the grid reads it: titles, meta, the intro's notes, each H2 with its points and sources, the FAQs. */
+export function planOf(p: RawBrief | null): GridPlan | null {
+  if (!p) return null;
+  const sources = p.research?.sources ?? [];
+  return {
+    h1: p.h1 ?? "",
+    title: p.titles?.[0] ?? p.h1 ?? "",
+    description: p.metaDescription ?? "",
+    slug: p.slug ?? "",
+    intro: [p.angle, p.searchIntent].filter((x): x is string => Boolean(x)),
+    outline: (p.outline ?? []).map((o) => ({
+      h2: o.h2,
+      points: o.points ?? [],
+      h3: (o.h3 ?? []).map((x) => x.title),
+      sources: (o.sources ?? []).map((n) => sources.find((s) => s.n === n)).filter((s): s is { n: number; title: string; url: string } => Boolean(s)),
+    })),
+    faqs: (p.faqs ?? []).map((f) => ({ question: f.question, answer: f.answer ?? "" })),
+  };
+}
+
+/** What the brief says to write in one section: the intro's notes, the H2's points and sources, or the FAQs. */
+export type SectionNotes = { points: string[]; sources: { n: number; title: string; url: string }[] };
+const key = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
+export function notesFor(plan: BriefPlan | null, part: Part, h2: string): SectionNotes | null {
+  if (!plan) return null;
+  if (part === "intro") return plan.intro.length ? { points: plan.intro, sources: [] } : null;
+  if (key(h2) === key(FAQ_H2) && plan.faqs.length) return { points: plan.faqs.map((f) => `${f.question} ${f.answer}`.trim()), sources: [] };
+  const o = plan.outline.find((x) => key(x.h2) === key(h2));
+  return o ? { points: [...o.points, ...o.h3.map((t) => `H3: ${t}`)], sources: o.sources } : null;
 }
 
 // ─────────────── what a section cell shows ───────────────
@@ -55,15 +159,15 @@ export function summarize(nodes: PmNode[]): CellSummary {
 export type Pair = { heading: string; body: CellSummary | null };
 
 /**
- * A row's content columns. A written draft gives its title and intro, then each H2 and its text. Before the draft,
- * the brief's H1 and outline fill the headings and the sections stay empty. Nothing at all gives no pairs.
+ * A row's content columns. A doc gives its title and intro, then each H2 and its text. Before the doc, the brief's
+ * H1, outline and FAQ fill the headings and the sections stay empty. Nothing at all gives no pairs.
  */
-export function contentPairs(doc: { title: string; content: unknown } | null, plan: { h1: string; outline: string[] } | null): Pair[] {
+export function contentPairs(doc: { title: string; content: unknown } | null, plan: Pick<BriefPlan, "h1" | "outline" | "faqs"> | null): Pair[] {
   if (doc) {
     const s = splitDoc(doc.content);
     return [{ heading: doc.title, body: summarize(s.intro) }, ...s.sections.map((x) => ({ heading: x.h2, body: summarize(x.nodes.slice(1)) }))];
   }
-  if (plan) return [{ heading: plan.h1, body: null }, ...plan.outline.map((h) => ({ heading: h, body: null }))];
+  if (plan) return [{ heading: plan.h1, body: null }, ...plan.outline.map((o) => ({ heading: o.h2, body: null })), ...(plan.faqs.length ? [{ heading: FAQ_H2, body: null }] : [])];
   return [];
 }
 
