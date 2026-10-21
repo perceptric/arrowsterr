@@ -2,23 +2,25 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { contentPairs, letter, pairCount, type CellSummary, type Pair } from "@/lib/articleGrid";
+import { contentPairs, letter, notesFor, pairCount, partNodes, partOfPair, replacePart, type CellSummary, type Pair } from "@/lib/articleGrid";
+import type { PmNode } from "@/lib/docHtml";
 import { updateCalendarItem, type Site } from "@/lib/db";
-import { listGrid, saveGridMeta, type GridRow } from "@/lib/gridData";
+import { listGrid, saveGridDoc, saveGridMeta, startDoc, type GridRow } from "@/lib/gridData";
 import { statusChoice, statusPatch } from "@/lib/library";
 import { nextMonday } from "@/lib/research";
 import type { RunAuth } from "@/lib/runner";
 import { useStash } from "@/lib/stash";
 import { Dropdown, Pop } from "../Pickers";
-import { Confirm } from "../reports/Dialog";
 import { post, STATUS_PICK } from "../research/shared";
 import { Thinking } from "../ui";
 import { usePoll, type LibraryOpen } from "./parts";
+import { SectionPanel } from "./SectionPanel";
 
 // The Library as a grid (docs/content-grid.md): one row per article, columns lettered like a sheet.
 // Metadata: Status (the same Content status as the Keyword Deep Dive), Meta title, Meta description, Slug.
-// Content: H1 and Section 1, H2 and Section 2, up to H20 and Section 20, and more with +. Generate Draft fills
-// the content columns; click any of them to view the draft as a doc, then publish it to the CMS and edit there.
+// Content: H1 and Section 1, H2 and Section 2, up to H20 and Section 20, and more with +. Generate brief fills the
+// headings and metadata. Writers fill the sections: each opens in the side panel with the brief's notes for it,
+// and Full view opens the whole article, with Publish.
 
 const W = { check: 36, keyword: 220, status: 190, title: 220, description: 280, slug: 170, heading: 200, section: 260, add: 44 };
 const ADDED = (siteId: string) => `arrowsterr.grid.pairs.${siteId}`;
@@ -44,7 +46,8 @@ export function ContentGrid({ sb, auth, site, canEdit, onOpen }: { sb: SupabaseC
   const [error, setError] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [edit, setEdit] = useState<{ itemId: string; key: "metaTitle" | "description" | "slug"; anchor: DOMRect } | null>(null);
-  const [regen, setRegen] = useState<string[] | null>(null);
+  const [panel, setPanel] = useState<{ itemId: string; pair: number } | null>(null);
+  const [starting, setStarting] = useState("");
   const [busy, setBusy] = useState<Set<string>>(new Set());
   const [added, setAdded] = useState(() => {
     try {
@@ -121,8 +124,34 @@ export function ContentGrid({ sb, auth, site, canEdit, onOpen }: { sb: SupabaseC
       setBusy((b) => new Set([...b].filter((x) => !ids.includes(x))));
     }
   }
-  const askGenerate = (ids: string[]) => (ids.some((id) => rowOf(id)?.doc) ? setRegen(ids) : void generate(ids));
-  const viewDraft = (r: GridRow) => (r.topic.draft && r.doc ? onOpen({ kind: "draft", id: r.topic.draft.id }) : undefined);
+  const fullView = (r: GridRow) => (r.doc ? onOpen({ kind: "doc", id: r.doc.id }) : undefined);
+
+  /** Open a section in the side panel. The first time, the doc is made from the brief and the piece moves to Writing. */
+  async function write(r: GridRow, pair: number) {
+    if (r.doc) return setPanel({ itemId: r.topic.id, pair });
+    if (!r.plan || !canEdit) return;
+    setStarting(r.topic.id);
+    try {
+      const doc = await startDoc(sb, { workspaceId: auth.workspaceId, siteId: site.id, itemId: r.topic.id, plan: r.plan });
+      patchRow(r.topic.id, (x) => ({ ...x, doc }));
+      if (["idea", "planned", "brief"].includes(statusChoice(r.topic))) await setStatus(r, "writing");
+      setPanel({ itemId: r.topic.id, pair });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setStarting("");
+    }
+  }
+
+  /** Save one section from the panel into the latest copy of its doc. */
+  async function saveSection(itemId: string, pair: number, nodes: PmNode[]) {
+    const r = rowOf(itemId);
+    if (!r?.doc) return;
+    const content = replacePart(r.doc.content, partOfPair(pair), nodes);
+    patchRow(itemId, (x) => (x.doc ? { ...x, doc: { ...x.doc, content } } : x));
+    const words = await saveGridDoc(sb, r.doc.id, content);
+    patchRow(itemId, (x) => (x.doc ? { ...x, doc: { ...x.doc, words } } : x));
+  }
 
   if (!rows) return <Thinking text="Opening the Library..." />;
 
@@ -141,6 +170,9 @@ export function ContentGrid({ sb, auth, site, canEdit, onOpen }: { sb: SupabaseC
   const allOn = list.length > 0 && list.every((r) => selected.has(r.topic.id));
   const picked = [...selected];
   const editRow = edit ? rows.find((r) => r.topic.id === edit.itemId) : null;
+  const panelRow = panel ? rows.find((r) => r.topic.id === panel.itemId) : null;
+  const panelPairs = panel ? (pairs.get(panel.itemId) ?? []) : [];
+  const panelPair = panel ? panelPairs[panel.pair] : undefined;
 
   const head = "sticky z-20 border-r border-b border-rule bg-[var(--bg-secondary)] px-2 text-left font-medium text-muted";
   const cell = "border-r border-b border-rule bg-white px-2 py-1.5 align-top group-hover:bg-[var(--bg-secondary)]";
@@ -161,10 +193,10 @@ export function ContentGrid({ sb, auth, site, canEdit, onOpen }: { sb: SupabaseC
               className="aw-dropdown--field h-7! min-w-0 flex-1 text-[12px]!"
               options={STATUS_PICK.map((x) => ({ id: x.id as string, label: x.label, tone: x.tone }))}
             />
-            {canEdit && !making(r) ? (
-              <button type="button" className="aw-iconbtn shrink-0" disabled={busy.has(r.topic.id)} title={r.doc ? "Regenerate draft" : "Generate draft"} aria-label={r.doc ? "Regenerate draft" : "Generate draft"} onClick={() => askGenerate([r.topic.id])}>
+              {canEdit && !making(r) && (!r.topic.brief || r.topic.brief.status === "failed") ? (
+              <button type="button" className="aw-iconbtn shrink-0" disabled={busy.has(r.topic.id)} title="Generate brief" aria-label="Generate brief" onClick={() => void generate([r.topic.id])}>
                 <svg className="aw-icon" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d={r.doc ? "M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7" : "M7 5v14l11-7z"} />
+                  <path d="M7 5v14l11-7z" />
                 </svg>
               </button>
             ) : null}
@@ -192,9 +224,23 @@ export function ContentGrid({ sb, auth, site, canEdit, onOpen }: { sb: SupabaseC
   function contentCell(r: GridRow, c: (typeof contentCols)[number]) {
     const p: Pair | undefined = pairs.get(r.topic.id)?.[c.pair];
     if (!p) return muted("");
-    if (c.heading) return <span className={`line-clamp-3 ${r.doc ? "font-medium text-ink" : "text-muted"}`}>{p.heading || "–"}</span>;
-    if (!p.body) return muted("");
-    return <Section body={p.body} onOpen={() => viewDraft(r)} />;
+    if (c.heading)
+      return r.doc ? (
+        <button type="button" className="line-clamp-3 text-left font-medium text-ink" onClick={() => setPanel({ itemId: r.topic.id, pair: c.pair })}>
+          {p.heading || "–"}
+        </button>
+      ) : (
+        <span className="line-clamp-3 text-muted">{p.heading || "–"}</span>
+      );
+    // A section with words opens as it is; an empty one (or one with no doc yet) offers Write.
+    if (p.body && (p.body.words || p.body.has.length)) return <Section body={p.body} onOpen={() => setPanel({ itemId: r.topic.id, pair: c.pair })} />;
+    return canEdit && (r.doc || r.plan) ? (
+      <button type="button" className="aw-text-link text-[12px]" disabled={starting === r.topic.id} onClick={() => void write(r, c.pair)}>
+        {starting === r.topic.id ? "Opening..." : "Write"}
+      </button>
+    ) : (
+      muted("")
+    );
   }
 
   return (
@@ -203,8 +249,8 @@ export function ContentGrid({ sb, auth, site, canEdit, onOpen }: { sb: SupabaseC
         <h1 className="aw-h2 mr-auto">Library</h1>
         {picked.length ? <span className="text-[12px] text-muted">{picked.length} selected</span> : null}
         {canEdit ? (
-          <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" disabled={!picked.length || picked.every((id) => busy.has(id))} onClick={() => askGenerate(picked)}>
-            Generate draft
+          <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" disabled={!picked.length || picked.every((id) => busy.has(id))} onClick={() => void generate(picked)}>
+            Generate brief
           </button>
         ) : null}
       </div>
@@ -284,8 +330,8 @@ export function ContentGrid({ sb, auth, site, canEdit, onOpen }: { sb: SupabaseC
                   <div className="flex h-[63px] flex-col items-start gap-1 overflow-hidden">
                     <span className="w-full truncate font-medium text-ink">{r.topic.keyword}</span>
                     {r.doc ? (
-                      <button type="button" className="aw-text-link text-[12px]" onClick={() => viewDraft(r)}>
-                        View draft
+                      <button type="button" className="aw-text-link text-[12px]" onClick={() => fullView(r)}>
+                        Full view
                       </button>
                     ) : r.topic.brief && (r.topic.brief.status === "ready" || r.topic.brief.status === "approved") ? (
                       <button type="button" className="aw-text-link text-[12px]" onClick={() => onOpen({ kind: "brief", id: r.topic.brief!.id })}>
@@ -324,17 +370,26 @@ export function ContentGrid({ sb, auth, site, canEdit, onOpen }: { sb: SupabaseC
           onClose={() => setEdit(null)}
         />
       ) : null}
-      {regen ? (
-        <Confirm
-          title={regen.length > 1 ? `Regenerate ${regen.length} drafts?` : "Regenerate this draft?"}
-          text="The draft is written again. The old text is saved as a version."
-          action="Regenerate"
-          onConfirm={() => {
-            const ids = regen;
-            setRegen(null);
-            void generate(ids);
+      {panel && panelRow?.doc ? (
+        <SectionPanel
+          key={`${panel.itemId}:${panel.pair}`}
+          sb={sb}
+          workspaceId={auth.workspaceId}
+          docId={panelRow.doc.id}
+          part={partOfPair(panel.pair)}
+          label={`${letter(6 + panel.pair * 2)} · Section ${panel.pair + 1}${panelPair?.heading ? ` · ${panelPair.heading}` : ""}`}
+          nodes={partNodes(panelRow.doc.content, partOfPair(panel.pair))}
+          notes={notesFor(panelRow.plan, partOfPair(panel.pair), panelPair?.heading ?? "")}
+          canEdit={canEdit}
+          onSave={(nodes) => saveSection(panel.itemId, panel.pair, nodes)}
+          onMove={(step) => setPanel({ itemId: panel.itemId, pair: panel.pair + step })}
+          canBack={panel.pair > 0}
+          canNext={panel.pair < panelPairs.length - 1}
+          onFull={() => {
+            setPanel(null);
+            fullView(panelRow);
           }}
-          onClose={() => setRegen(null)}
+          onClose={() => setPanel(null)}
         />
       ) : null}
     </div>

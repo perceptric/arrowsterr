@@ -64,6 +64,7 @@ export function LibraryPage({ view, auth, canEdit }: { view: View; auth: RunAuth
   };
   if (open?.kind === "brief") return <BriefEditor key={open.id} sb={sb} auth={auth} id={open.id} canEdit={canEdit} onBack={back} onDraft={(id) => setOpen({ kind: "draft", id })} />;
   if (open?.kind === "draft") return <DraftView key={open.id} sb={sb} auth={auth} site={site} id={open.id} canEdit={canEdit} onBack={back} />;
+  if (open?.kind === "doc") return <DocView key={open.id} sb={sb} auth={auth} site={site} id={open.id} canEdit={canEdit} onBack={back} />;
 
   const list = rows ?? [];
   return (
@@ -75,11 +76,11 @@ export function LibraryPage({ view, auth, canEdit }: { view: View; auth: RunAuth
       ) : (
         <ToolIntro
           title="Library"
-          lead={`Import keywords from the Editorial Calendar. For each one, Arrowsterr researches Google and the AI answers, writes a brief you can edit, then writes the draft in ${brand.name}'s voice.`}
+          lead={`Import keywords from the Editorial Calendar. For each one, Arrowsterr researches Google and the AI answers and writes the brief. Your writers fill it in, section by section, in ${brand.name}'s voice.`}
           features={[
-            { title: "Brief", text: "Outline, sources, FAQs, internal links and the modules to build, from the top pages and the AI answers." },
-            { title: "Draft", text: "Written section by section, every claim checked against the sources, with interactive modules in your brand." },
-            { title: "Publish", text: "Send the draft to WordPress or your CMS, with its meta title, description and slug, and finish it there." },
+            { title: "Brief", text: "Headings, meta, sources, FAQs and internal links, from the top pages and the AI answers." },
+            { title: "Write", text: "Open any section beside the grid with the brief's notes for it, or the whole article in full view." },
+            { title: "Publish", text: "Send the article to WordPress or your CMS, with its meta title, description and slug." },
           ]}
         />
       )}
@@ -101,21 +102,12 @@ function Back({ onBack, title, children }: { onBack: () => void; title: string; 
   );
 }
 
-/** A draft: the plain editor with its modules, Export, Publish and Regenerate. */
+/** A draft the writer job made: its progress while it runs, then the article with Regenerate. */
 function DraftView({ sb, auth, site, id, canEdit, onBack }: { sb: SupabaseClient; auth: RunAuth; site: Site; id: string; canEdit: boolean; onBack: () => void }) {
   const [draft, setDraft] = useState<FullDraft | null | undefined>(undefined);
   const [brief, setBrief] = useState<FullBrief | null>(null);
   const [doc, setDoc] = useState<Doc | null>(null);
-  const [guideline, setGuideline] = useState<BrandGuideline | null>(null);
-  const [editor, setEditor] = useState<Editor | null>(null);
-  const [state, setState] = useState<{ s: SaveState; note?: string }>({ s: "saved" });
-  const [title, setTitle] = useState("");
-  const [words, setWords] = useState(0);
-  const [publishing, setPublishing] = useState(false);
   const [regen, setRegen] = useState(false);
-  const [exportAt, setExportAt] = useState<DOMRect | null>(null);
-  const [view, setView] = useState<"edit" | "html" | "md" | "text">("edit");
-  const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
   const docRef = useRef<string | null>(null);
   const [docKey, setDocKey] = useState("");
@@ -133,8 +125,6 @@ function DraftView({ sb, auth, site, id, canEdit, onBack }: { sb: SupabaseClient
         docRef.current = stampOf;
         setDocKey(stampOf);
         setDoc(x);
-        setTitle(x.title);
-        setWords(x.words);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -146,6 +136,102 @@ function DraftView({ sb, auth, site, id, canEdit, onBack }: { sb: SupabaseClient
     load();
   }, [load]);
   usePoll(draft?.status === "generating", 4000, load);
+
+  if (draft === undefined) return <Thinking text="Opening the draft..." />;
+  if (!draft) return <Back onBack={onBack} title="This draft was deleted." />;
+  const head = doc?.title || brief?.brief?.h1 || brief?.keyword || "Draft";
+  const regenerate =
+    regen && brief ? (
+      <RegenerateDialog
+        auth={auth}
+        kind="draft"
+        briefId={brief.id}
+        itemId={draft.item_id}
+        onClose={() => setRegen(false)}
+        onStarted={() => {
+          setRegen(false);
+          setDoc(null);
+          load();
+        }}
+      />
+    ) : null;
+
+  if (draft.status !== "ready" || !doc)
+    return (
+      <div className="flex flex-col gap-5">
+        <Back onBack={onBack} title={head}>
+          <StateTag status={draft.status} />
+          {canEdit && draft.status === "failed" && brief ? (
+            <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => setRegen(true)}>
+              Regenerate
+            </button>
+          ) : null}
+        </Back>
+        {draft.error ? <p className="aw-error">{draft.error}</p> : null}
+        {error ? <p className="aw-error">{error}</p> : null}
+        {draft.status === "generating" ? <DraftProgress draft={draft} brief={brief} /> : null}
+        {draft.status === "ready" && !doc ? <Thinking text="Opening the draft..." /> : null}
+        {regenerate}
+      </div>
+    );
+
+  return (
+    <>
+      <ArticleView
+        key={docKey || doc.id}
+        sb={sb}
+        auth={auth}
+        site={site}
+        doc={doc}
+        canEdit={canEdit}
+        onBack={onBack}
+        extra={
+          canEdit && brief ? (
+            <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setRegen(true)}>
+              Regenerate
+            </button>
+          ) : null
+        }
+      />
+      {regenerate}
+    </>
+  );
+}
+
+/** An article's doc by its id: the one a writer started from the brief in the grid (Full view). */
+function DocView({ sb, auth, site, id, canEdit, onBack }: { sb: SupabaseClient; auth: RunAuth; site: Site; id: string; canEdit: boolean; onBack: () => void }) {
+  const [doc, setDoc] = useState<Doc | null | undefined>(undefined);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    let live = true;
+    getDoc(sb, id)
+      .then((d) => live && setDoc(d))
+      .catch((e) => {
+        if (!live) return;
+        setError(e instanceof Error ? e.message : String(e));
+        setDoc(null);
+      });
+    return () => {
+      live = false;
+    };
+  }, [sb, id]);
+  if (doc === undefined) return <Thinking text="Opening the article..." />;
+  if (!doc) return <Back onBack={onBack} title={error || "This article was deleted."} />;
+  return <ArticleView sb={sb} auth={auth} site={site} doc={doc} canEdit={canEdit} onBack={onBack} />;
+}
+
+/** The whole article: the plain editor with its modules, HTML, Markdown and Text views, Export and Publish. */
+function ArticleView({ sb, auth, site, doc, canEdit, onBack, extra }: { sb: SupabaseClient; auth: RunAuth; site: Site; doc: Doc; canEdit: boolean; onBack: () => void; extra?: React.ReactNode }) {
+  const [guideline, setGuideline] = useState<BrandGuideline | null>(null);
+  const [editor, setEditor] = useState<Editor | null>(null);
+  const [state, setState] = useState<{ s: SaveState; note?: string }>({ s: "saved" });
+  const [title, setTitle] = useState(doc.title);
+  const [words, setWords] = useState(doc.words);
+  const [publishing, setPublishing] = useState(false);
+  const [exportAt, setExportAt] = useState<DOMRect | null>(null);
+  const [view, setView] = useState<"edit" | "html" | "md" | "text">("edit");
+  const [copied, setCopied] = useState(false);
+  const [error, setError] = useState("");
   useEffect(() => {
     let live = true;
     getGuideline(sb, site.id)
@@ -178,54 +264,15 @@ function DraftView({ sb, auth, site, id, canEdit, onBack }: { sb: SupabaseClient
     { id: "doc", label: "Google Doc (.doc)", run: () => download(`${name}.doc`, wordFile(title, html()), "application/msword") },
   ];
 
-  if (draft === undefined) return <Thinking text="Opening the draft..." />;
-  if (!draft) return <Back onBack={onBack} title="This draft was deleted." />;
-  const head = title || brief?.brief?.h1 || brief?.keyword || "Draft";
-
-  if (draft.status !== "ready" || !doc)
-    return (
-      <div className="flex flex-col gap-5">
-        <Back onBack={onBack} title={head}>
-          <StateTag status={draft.status} />
-          {canEdit && draft.status === "failed" && brief ? (
-            <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => setRegen(true)}>
-              Regenerate
-            </button>
-          ) : null}
-        </Back>
-        {draft.error ? <p className="aw-error">{draft.error}</p> : null}
-        {error ? <p className="aw-error">{error}</p> : null}
-        {draft.status === "generating" ? <DraftProgress draft={draft} brief={brief} /> : null}
-        {draft.status === "ready" && !doc ? <Thinking text="Opening the draft..." /> : null}
-        {regen && brief ? (
-          <RegenerateDialog
-            auth={auth}
-            kind="draft"
-            briefId={brief.id}
-            itemId={draft.item_id}
-            onClose={() => setRegen(false)}
-            onStarted={() => {
-              setRegen(false);
-              load();
-            }}
-          />
-        ) : null}
-      </div>
-    );
-
   return (
     <div className="flex flex-col gap-4">
-      <Back onBack={onBack} title={head}>
+      <Back onBack={onBack} title={title || "Article"}>
         <span className="aw-num px-1 text-[12px] whitespace-nowrap text-muted">{words.toLocaleString("en-US")} words</span>
         <span className="flex items-center gap-1.5 px-1 text-[12px] whitespace-nowrap text-muted">
           <i className={`inline-block h-1.5 w-1.5 ${state.s === "error" ? "bg-neg" : state.s === "saving" ? "bg-warn" : "bg-pos"}`} aria-hidden="true" />
           {state.note || (state.s === "error" ? "Not saved" : state.s === "saving" ? "Saving" : "Saved")}
         </span>
-        {canEdit && brief ? (
-          <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setRegen(true)}>
-            Regenerate
-          </button>
-        ) : null}
+        {extra}
         <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" aria-haspopup="menu" disabled={!editor} onClick={(e) => setExportAt(e.currentTarget.getBoundingClientRect())}>
           Export
         </button>
@@ -252,7 +299,7 @@ function DraftView({ sb, auth, site, id, canEdit, onBack }: { sb: SupabaseClient
         ]}
       />
       <div className={view === "edit" ? "" : "hidden"}>
-        <PlainEditor key={docKey || doc.id} sb={sb} workspaceId={auth.workspaceId} doc={doc} canEdit={canEdit} onSaved={saved} onEditor={setEditor} onState={onState} />
+        <PlainEditor sb={sb} workspaceId={auth.workspaceId} doc={doc} canEdit={canEdit} onSaved={saved} onEditor={setEditor} onState={onState} />
       </div>
       {view !== "edit" && editor ? (
         <Source
@@ -274,21 +321,6 @@ function DraftView({ sb, auth, site, id, canEdit, onBack }: { sb: SupabaseClient
         </Pop>
       ) : null}
       {publishing ? <PublishPanel sb={sb} auth={auth} docId={doc.id} title={title} html={html} onClose={() => setPublishing(false)} /> : null}
-      {regen && brief ? (
-        <RegenerateDialog
-          auth={auth}
-          kind="draft"
-          briefId={brief.id}
-          itemId={draft.item_id}
-          onClose={() => setRegen(false)}
-          onStarted={() => {
-            setRegen(false);
-            setDoc(null);
-            setEditor(null);
-            load();
-          }}
-        />
-      ) : null}
     </div>
   );
 }
