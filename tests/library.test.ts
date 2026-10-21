@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { workflowStep } from "../src/lib/library.ts";
+import { statusChoice, statusPatch, workflowStep } from "../src/lib/library.ts";
 import { editBrief, type WriterBrief } from "../src/lib/writerBrief.ts";
 
 test("the deep dive's steps follow the Editorial Calendar status", () => {
@@ -61,4 +61,14 @@ test("a bad edit keeps the old values", () => {
   assert.deepEqual(next.outline, brief.outline);
   assert.deepEqual(next.faqs, brief.faqs);
   assert.deepEqual(next.cta, brief.cta);
+});
+
+test("the Content status picker reads and changes the same way in the deep dive and the grid", () => {
+  assert.equal(statusChoice({ status: "planned", due_date: null }), "idea");
+  assert.equal(statusChoice({ status: "planned", due_date: "2026-11-02" }), "planned");
+  assert.equal(statusChoice({ status: "writing", due_date: null }), "writing");
+  assert.deepEqual(statusPatch("idea", "2026-11-02", "2026-10-26"), { status: "planned", due_date: null });
+  assert.deepEqual(statusPatch("planned", null, "2026-10-26"), { status: "planned", due_date: "2026-10-26" });
+  assert.deepEqual(statusPatch("planned", "2026-11-02", "2026-10-26"), { status: "planned" });
+  assert.deepEqual(statusPatch("review", null, "2026-10-26"), { status: "review" });
 });

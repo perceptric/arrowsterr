@@ -1,10 +1,8 @@
-// The Library grid (docs/content-grid.md): one row per article, one column per part.
-// An article is its saved doc (docs.content, the editor's ProseMirror JSON). Nothing about its shape is fixed:
-// the intro is everything before the first H2, and each H2 starts a section that runs to the next one.
-// So a section can hold anything the editor can: text, lists, tables, images and interactive HTML.
-// Moving a section moves its slice of the doc; editing one cell writes its slice back.
-// Sections a person edited by hand are locked (docs.meta.locked), and a regenerated draft keeps them.
-// Pure, shared by the browser, the server and the tests.
+// The Library grid (docs/content-grid.md): one row per article. Metadata columns (Status, Meta title, Meta
+// description, Slug), then Content columns in pairs: H1 and Section 1, H2 and Section 2, up to H20 and Section 20,
+// and more when someone adds them. A heading column holds the title, its section column the text under it.
+// H1 is the article's title and Section 1 its intro; each H2 in the draft is the next heading, with its section.
+// Pure, shared by the browser and the tests.
 import type { PmNode } from "./docHtml.ts";
 
 export type Slice = { h2: string; nodes: PmNode[] };
@@ -31,67 +29,9 @@ export function splitDoc(content: unknown): Split {
   return { intro, sections };
 }
 
-/** The intro and sections as one doc again. An empty doc keeps one empty paragraph, as the editor does. */
-export function joinDoc(s: Split): PmNode {
-  const content = [...s.intro, ...s.sections.flatMap((x) => x.nodes)];
-  return { type: "doc", content: content.length ? content : [{ type: "paragraph" }] };
-}
-
-/** Move section `from` to position `to`. Out of range leaves the doc as it was. */
-export function moveSection(content: unknown, from: number, to: number): PmNode {
-  const s = splitDoc(content);
-  if (from === to || from < 0 || to < 0 || from >= s.sections.length || to >= s.sections.length) return joinDoc(s);
-  const sections = [...s.sections];
-  const [x] = sections.splice(from, 1);
-  sections.splice(to, 0, x);
-  return joinDoc({ ...s, sections });
-}
-
-/** A cell's part of the doc: "intro" or a section's index. */
-export type Part = "intro" | number;
-
-/** The nodes one cell edits: the intro, or a section with its H2. */
-export function partNodes(content: unknown, part: Part): PmNode[] {
-  const s = splitDoc(content);
-  return part === "intro" ? s.intro : (s.sections[part]?.nodes ?? []);
-}
-
-/**
- * Put a cell's edited nodes back. A section that comes back without an H2 at its top gets its old one,
- * so a cell can never swallow the section boundary; extra H2s inside it become sections of their own.
- */
-export function replacePart(content: unknown, part: Part, nodes: PmNode[]): PmNode {
-  const s = splitDoc(content);
-  if (part === "intro") {
-    const parts = splitDoc({ type: "doc", content: nodes });
-    return joinDoc({ intro: parts.intro, sections: [...parts.sections, ...s.sections] });
-  }
-  const old = s.sections[part];
-  if (!old) return joinDoc(s);
-  const fixed = nodes.length && isH2(nodes[0]) ? nodes : [old.nodes[0], ...nodes];
-  const parts = splitDoc({ type: "doc", content: fixed });
-  const sections = [...s.sections];
-  sections.splice(part, 1, ...parts.sections);
-  return joinDoc({ ...s, sections });
-}
-
-/** Add an empty section with this H2 after `after` (or at the end). */
-export function addSection(content: unknown, h2: string, after?: number): PmNode {
-  const s = splitDoc(content);
-  const at = after === undefined ? s.sections.length : Math.min(s.sections.length, after + 1);
-  const sections = [...s.sections];
-  sections.splice(at, 0, { h2, nodes: [{ type: "heading", attrs: { level: 2 }, content: h2 ? [{ type: "text", text: h2 }] : [] }, { type: "paragraph" }] });
-  return joinDoc({ ...s, sections });
-}
-
-export function removeSection(content: unknown, part: number): PmNode {
-  const s = splitDoc(content);
-  return joinDoc({ ...s, sections: s.sections.filter((_, i) => i !== part) });
-}
-
-// ─────────────── what a cell shows ───────────────
+// ─────────────── what a section cell shows ───────────────
 export type Has = "image" | "table" | "list" | "html" | "quote";
-export type CellSummary = { title: string; preview: string; words: number; has: Has[] };
+export type CellSummary = { preview: string; words: number; has: Has[] };
 
 function walk(n: PmNode, seen: Set<Has>) {
   if (n.type === "image") seen.add("image");
@@ -102,38 +42,35 @@ function walk(n: PmNode, seen: Set<Has>) {
   for (const c of n.content ?? []) walk(c, seen);
 }
 
-/** A cell's face: its H2, the start of its text, its word count and what's inside. */
+/** A section's face: the start of its text, its word count and what's inside. */
 export function summarize(nodes: PmNode[]): CellSummary {
   const seen = new Set<Has>();
   nodes.forEach((n) => walk(n, seen));
-  const body = nodes.filter((n, i) => !(i === 0 && isH2(n)));
-  const text = body.map(textOf).join(" ").replace(/\s+/g, " ").trim();
-  return { title: nodes[0] && isH2(nodes[0]) ? textOf(nodes[0]).trim() : "", preview: text.slice(0, 160), words: text ? text.split(" ").length : 0, has: (["image", "table", "list", "html", "quote"] as Has[]).filter((h) => seen.has(h)) };
+  const text = nodes.map(textOf).join(" ").replace(/\s+/g, " ").trim();
+  return { preview: text.slice(0, 160), words: text ? text.split(" ").length : 0, has: (["image", "table", "list", "html", "quote"] as Has[]).filter((h) => seen.has(h)) };
 }
 
-// ─────────────── locks ───────────────
-/** The name a lock goes by: "intro", or the section's H2 in lower case with spaces squeezed. */
-export const lockKey = (part: Part, content: unknown) => (part === "intro" ? "intro" : (splitDoc(content).sections[part]?.h2 ?? "").toLowerCase().replace(/\s+/g, " ").trim());
+// ─────────────── heading and section pairs ───────────────
+/** One pair of content columns: the heading's title, and what's written under it (null before the draft). */
+export type Pair = { heading: string; body: CellSummary | null };
 
 /**
- * A freshly written doc with the locked parts of the old one put back: a locked intro replaces the new intro,
- * and a locked section replaces the new section with the same H2, or goes back to its old place when the new
- * draft has no such section. Everything else comes from the new doc.
+ * A row's content columns. A written draft gives its title and intro, then each H2 and its text. Before the draft,
+ * the brief's H1 and outline fill the headings and the sections stay empty. Nothing at all gives no pairs.
  */
-export function keepLocked(oldContent: unknown, newContent: unknown, locked: string[]): PmNode {
-  const keys = new Set(locked.map((k) => k.toLowerCase().replace(/\s+/g, " ").trim()).filter(Boolean));
-  const next = splitDoc(newContent);
-  if (!keys.size) return joinDoc(next);
-  const old = splitDoc(oldContent);
-  const intro = keys.has("intro") && old.intro.length ? old.intro : next.intro;
-  const key = (x: Slice) => x.h2.toLowerCase().replace(/\s+/g, " ").trim();
-  const sections = next.sections.map((x) => (keys.has(key(x)) ? (old.sections.find((o) => key(o) === key(x)) ?? x) : x));
-  old.sections.forEach((o, i) => {
-    if (!keys.has(key(o)) || sections.some((x) => key(x) === key(o))) return;
-    sections.splice(Math.min(i, sections.length), 0, o);
-  });
-  return joinDoc({ intro, sections });
+export function contentPairs(doc: { title: string; content: unknown } | null, plan: { h1: string; outline: string[] } | null): Pair[] {
+  if (doc) {
+    const s = splitDoc(doc.content);
+    return [{ heading: doc.title, body: summarize(s.intro) }, ...s.sections.map((x) => ({ heading: x.h2, body: summarize(x.nodes.slice(1)) }))];
+  }
+  if (plan) return [{ heading: plan.h1, body: null }, ...plan.outline.map((h) => ({ heading: h, body: null }))];
+  return [];
 }
+
+export const BASE_PAIRS = 20;
+
+/** How many pairs the grid shows: 20, plus any someone added, and never fewer than the longest article needs. */
+export const pairCount = (longest: number, added: number) => Math.max(BASE_PAIRS + Math.max(0, added), longest);
 
 // ─────────────── output ───────────────
 /** The doc as plain text: headings and paragraphs on their own lines, list items with a dash. */
@@ -163,22 +100,9 @@ export function docToText(content: unknown): string {
   return lines.join("\n\n");
 }
 
-// ─────────────── columns ───────────────
 /** A column's letter, like a sheet: 0 is A, 25 is Z, 26 is AA. */
 export function letter(i: number): string {
   let s = "";
   for (let n = i + 1; n > 0; n = Math.floor((n - 1) / 26)) s = String.fromCharCode(65 + ((n - 1) % 26)) + s;
   return s;
-}
-
-/**
- * An AI column's prompt with its references filled in: {{F}} by a column's letter, or {{H1}} by its name
- * (any case). An unknown reference is left as written, so the person can see what didn't match.
- */
-export function fillPrompt(prompt: string, cols: { letter: string; name: string; value: string }[]): string {
-  return prompt.replace(/\{\{\s*([^}]+?)\s*\}\}/g, (all, ref: string) => {
-    const r = ref.toLowerCase();
-    const c = cols.find((x) => x.letter.toLowerCase() === r) ?? cols.find((x) => x.name.toLowerCase() === r);
-    return c ? c.value : all;
-  });
 }

@@ -14,3 +14,20 @@ export type WorkflowStep = (typeof WORKFLOW)[number]["id"];
 export function workflowStep(status: "planned" | "brief" | "writing" | "review" | "published"): WorkflowStep {
   return status === "writing" ? "draft" : status;
 }
+
+// ─────────────── the Content status picker ───────────────
+// The Keyword Deep Dive and the Library grid both use these, so the status reads and changes the same in both.
+export type ContentStatus = "planned" | "brief" | "writing" | "review" | "published";
+
+/** The picker's value: a planned piece with no day is still an idea. */
+export const statusChoice = (i: { status: ContentStatus; due_date: string | null }) => (i.status === "planned" && !i.due_date ? "idea" : i.status);
+
+/**
+ * What picking a status changes. Idea clears the day; Planned on a piece with no day puts it on `monday`
+ * (an ISO date the caller picks, the next Monday). Every other status keeps the day.
+ */
+export function statusPatch(choice: string, dueDate: string | null, monday: string): { status: ContentStatus; due_date?: string | null } {
+  if (choice === "idea") return { status: "planned", due_date: null };
+  if (choice === "planned" && !dueDate) return { status: "planned", due_date: monday };
+  return { status: choice as ContentStatus };
+}
