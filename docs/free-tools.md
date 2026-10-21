@@ -35,7 +35,7 @@ Seventeen free tools on arrowsterr.com. Each one answers a real question in unde
 **Setup:**
 - Run `supabase/044_free_tools.sql` in Supabase.
 - Optional server settings: `FREE_CAP_KEYWORD` (default 500 runs a day), `FREE_PER_TOOL` (5), `FREE_PER_VISITOR` (15), `FREE_SPEND_DAY` (15 dollars), `FREE_ALERT_EMAIL` (who hears when the spend alarm trips).
-- Bot check: set `TURNSTILE_SECRET` on the app and `AW_TURNSTILE_SITEKEY` in the site's wp-config.php together, or neither.
+- Bot check: Cloudflare Turnstile on every tool, required in production (see Abuse protection below). Set `TURNSTILE_SECRET` on the app and `AW_TURNSTILE_SITEKEY` in the site's wp-config.php.
 
 **How the limits work, in order:**
 1. A saved result for the same keyword and country (30 days) comes back free and counts toward no limit.
@@ -186,9 +186,15 @@ Free tools need no account, so a new account gets no extra free runs. The limits
 ### 3. Count IPv6 visitors by network
 - `hashIp()` hashes the first 64 bits of an IPv6 address, since one home or server gets a whole /64. IPv4 stays as the full address.
 
-### 4. Turn Turnstile on
-- The code is already there. Make a Turnstile widget in Cloudflare (managed mode), then set `TURNSTILE_SECRET` on the app and `AW_TURNSTILE_SITEKEY` in wp-config.php.
-- Each token works once and is checked on the server before a run counts.
+### 4. Turnstile on every tool, like Ahrefs
+Ahrefs' free tools put Cloudflare Turnstile right under the form: a "Verify you are human" box that most people pass without a click. Ours works the same way.
+- **On every tool page:** the Turnstile widget sits under the form's button in `inc/free-tool.php`, so all tools get it from the one template. Managed mode: people pass on their own, and only a visitor Cloudflare is unsure of gets a box to tick.
+- **Required:** the button stays off until Turnstile passes. The server refuses any run without a good token, and refuses all runs when `TURNSTILE_SECRET` is missing in production, so it can't be left off by mistake.
+- **One token, one run:** each token works once and is checked on the server before a run counts. After a result, the widget resets for the next run.
+- **Saved results too:** a saved result costs nothing, but it still needs a token, so bots can't scrape saved results either.
+- **Browser-only tools:** the Robots.txt tester's re-tests and the schema builder's typed fields don't call the server, so they show no widget until a fetch or fill.
+- **Setup:** make a Turnstile widget in Cloudflare for `arrowsterr.com`, then set `TURNSTILE_SECRET` on the app and `AW_TURNSTILE_SITEKEY` in wp-config.php.
+- **Brand:** the widget uses Cloudflare's light theme, and its box sits square in the form like the other fields.
 
 ### 5. A rate limit at the edge
 - One rate limiting rule (the Free plan allows one): `/api/free/*`, more than 20 requests in 10 seconds from one IP is blocked. Scripts get stopped before they reach the app.
