@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@/lib/analytics";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Editor } from "@tiptap/react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -262,6 +263,7 @@ function ArticleView({ sb, auth, site, brandId, doc, canEdit, onBack, extra }: {
     try {
       const out = await post<{ published: { url: string | null } }>(auth, "/api/cms", { action: "push", docId: doc.id });
       setSync({ s: "done", url: out.published.url });
+      track("article_synced", { from: "full_view" });
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
       setSync({ s: "idle" });
