@@ -282,11 +282,11 @@ const Picks: React.FC = () => {
 
 // The database view: search 8.4B keywords, pick your own, then research any domain.
 const DB_ROWS = [
-	{kw: 'table booking app', cc: 'US', vol: '12,100'},
-	{kw: 'table booking system', cc: 'UK', vol: '4,400'},
-	{kw: 'online table booking', cc: 'DE', vol: '2,900'},
-	{kw: 'table booking widget', cc: 'AU', vol: '1,600'},
-	{kw: 'free table booking software', cc: 'CA', vol: '1,300'},
+	{kw: 'table booking app', cc: 'us', vol: '12,100'},
+	{kw: 'table booking system', cc: 'gb', vol: '4,400'},
+	{kw: 'online table booking', cc: 'de', vol: '2,900'},
+	{kw: 'table booking widget', cc: 'au', vol: '1,600'},
+	{kw: 'free table booking software', cc: 'ca', vol: '1,300'},
 ];
 const DOMAIN_ROWS = [
 	{kw: 'acme reservations', cc: '#1', vol: '8,100'},
@@ -295,7 +295,8 @@ const DOMAIN_ROWS = [
 	{kw: 'reservation system pricing', cc: '#4', vol: '1,900'},
 	{kw: 'acme vs northwind', cc: '#5', vol: '880'},
 ];
-const COUNTRIES = ['US', 'UK', 'DE', 'FR', 'JP', 'BR', 'VN', 'IN'];
+// Flags from the flag-icons package (MIT).
+const COUNTRIES = ['us', 'gb', 'au', 'de', 'fr', 'es', 'it', 'nl', 'se', 'jp', 'in'];
 
 const Database: React.FC = () => {
 	const t = useT();
@@ -365,9 +366,13 @@ const Database: React.FC = () => {
 					>
 						{dom ? null : <Check on={on} />}
 						<span style={{flex: 1}}>{r.kw}</span>
-						<Tag kind={dom ? 'signal' : 'neutral'} size={16}>
-							{r.cc}
-						</Tag>
+						{dom ? (
+							<Tag kind="signal" size={16}>
+								{r.cc}
+							</Tag>
+						) : (
+							<Img src={staticFile(`flags/${r.cc}.svg`)} style={{width: 32, height: 24, borderRadius: 3, border: `1px solid ${C.lineStrong}`, objectFit: 'cover'}} />
+						)}
 						<span style={{width: 90, textAlign: 'right'}}>
 							<Num size={20}>{r.vol}</Num>
 						</span>
@@ -387,13 +392,13 @@ const Database: React.FC = () => {
 					);
 				})}
 				{COUNTRIES.map((c, i) => {
-					const a = prog(t, B.dbChips[1] + 0.1 + i * 0.05, B.dbChips[1] + 0.25 + i * 0.05);
+					const a = prog(t, B.dbChips[1] + 0.1 + i * 0.04, B.dbChips[1] + 0.25 + i * 0.04);
 					return (
-						<span key={c} style={{opacity: a}}>
-							<Tag kind="neutral" size={16}>
-								{c}
-							</Tag>
-						</span>
+						<Img
+							key={c}
+							src={staticFile(`flags/${c}.svg`)}
+							style={{width: 36, height: 27, borderRadius: 3, border: `1px solid ${C.lineStrong}`, objectFit: 'cover', opacity: a, scale: `${0.7 + 0.3 * a}`}}
+						/>
 					);
 				})}
 				<span style={{opacity: prog(t, B.dbChips[1] + 0.6, B.dbChips[1] + 0.8), fontSize: 18, fontWeight: 700, color: C.ink2}}>+190</span>
