@@ -5,7 +5,7 @@ import {C, sans} from './theme';
 
 type Word = {w: string; at: number; tone?: 'neg' | 'signal' | 'pos'; br?: boolean};
 // Key lines hit the screen word by word, timed to the voice.
-const LINES: {from: number; to: number; words: Word[]}[] = [
+export const LINES: {from: number; to: number; words: Word[]}[] = [
 	{from: 16.2, to: 17.75, words: [{w: 'pipeline', at: 16.35, tone: 'neg'}, {w: 'and', at: 16.75}, {w: 'revenue', at: 16.95, tone: 'neg'}]},
 	{
 		from: 84.9,

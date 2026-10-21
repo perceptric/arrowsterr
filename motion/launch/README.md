@@ -5,8 +5,9 @@
 ## How it fits together
 
 - `src/timeline.json` is the single source of timing. It holds every voiceover line with its start time, plus every story beat. The voice, the music, the sound effects and the picture all read it.
-- `src/Camera.tsx` holds the camera keys. `src/layout.ts` sets where everything sits on the map.
-- `src/world/` holds the scenes: tonight's AI answer, the engine check, the logo, the four stations, the paper arrow and the win. `src/Close.tsx` is the Night close.
+- `src/Camera.tsx` holds the camera: where it looks (`KEYS`), its angle all the way through (`ANG`: orbit, tilt and dutch roll, plus a handheld drift), a wider lens while the arrow travels, and the floating marks that give the map depth. `src/layout.ts` sets where everything sits on the map.
+- `src/Captions.tsx` draws the subtitles from `src/captions.json`. After the voice changes, run `python audio/captions.py` to time every word again.
+- `src/world/` holds the scenes: tonight's AI answer, the engine check, the logo, the four stations, the paper arrow and the win. `src/world/Platforms.tsx` holds the ChatGPT, Google, Calendly and Salesforce look-alikes. `src/Close.tsx` is the Night close.
 - `audio/` builds the sound. See `audio/README.md`.
 
 ## Story

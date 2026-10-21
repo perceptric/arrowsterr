@@ -7,6 +7,7 @@ import {World} from './Camera';
 import {Close} from './Close';
 import {B, focusAt, glitchAt, INOUT, prog, useT} from './lib';
 import {Kinetic} from './Kinetic';
+import {Captions} from './Captions';
 import {random} from 'remotion';
 import {C} from './theme';
 import {AnswerWindow, buyerCursor} from './world/AnswerWindow';
@@ -146,6 +147,7 @@ export const Film: React.FC = () => {
 			<Kinetic />
 			<Leak />
 			<Close />
+			<Captions />
 			<Audio src={staticFile('audio/mix.m4a')} />
 		</AbsoluteFill>
 	);

@@ -1,6 +1,8 @@
 import React from 'react';
 import {Easing, interpolate, useVideoConfig} from 'remotion';
+import {random} from 'remotion';
 import {B, hit, INOUT, RAMP, useT} from './lib';
+import {C} from './theme';
 import {DASH, STAT, STATIONS, WIN_B} from './layout';
 import {LOCKUP_CENTER} from './world/LogoReveal';
 
@@ -94,16 +96,120 @@ export const tiltAt = (t: number) => {
 	return rx;
 };
 
+// Camera angles across the whole film: orbit (ry), tilt (rx: up is a crane looking down, below 0 a low angle)
+// and roll (rz, the dutch angle). The camera never sits still; it eases from one angle to the next.
+type Ang = [number, number, number, number]; // time, rx, ry, rz
+const ANG: Ang[] = [
+	[0, 14, -24, -4],
+	[3.0, 6, 10, 2],
+	[B.toChat, 18, 22, 5],
+	[B.promptType[0] + 0.2, 22, -10, -3],
+	[B.promptType[1], 8, 6, 2],
+	[B.cards[0] + 0.2, 4, -14, -2],
+	[B.ghost - 0.2, 10, 12, 4],
+	[B.clickCompetitor, 6, 0, -6],
+	[B.demoBookedCompetitor, 10, -18, 3],
+	[15.5, 16, 14, -5],
+	[B.slams[1], 4, -6, 8],
+	[B.dim + 0.4, 40, 0, 0],
+	[21.0, 28, 18, -6],
+	[B.drop - 0.3, 10, -30, 0],
+	[B.drop + 1.0, 6, 8, 0],
+	[B.logoCorner - 0.5, 12, -12, 3],
+	[B.stations[0], 20, 22, -4],
+	[B.stations[0] + 2, 6, -8, 2],
+	[B.topicPick, 10, 10, -3],
+	[B.stationEnds[0] - 0.6, 24, -26, 6],
+	[B.stations[1] + 0.2, 14, 24, -5],
+	[B.keywordSort + 1.4, 6, -6, 2],
+	[B.dbView, 12, 12, -3],
+	[B.dbSlam - 1.5, 5, -10, 3],
+	[B.domainTab - 1.2, 12, 8, -4],
+	[B.stationEnds[1] - 0.6, 26, -28, 7],
+	[B.stations[2] + 0.2, 14, 26, -6],
+	[B.stations[2] + 3, 5, -8, 2],
+	[B.stationEnds[2] - 0.6, 26, -24, 6],
+	[B.stations[3] + 0.2, 14, 24, -5],
+	[B.stations[3] + 3, 6, -10, 2],
+	[B.restyle - 0.6, 10, 12, -3],
+	[B.fold, 4, -4, 0],
+	[B.ship, 30, -20, 10],
+	[B.dashboard, 10, 18, -3],
+	[B.climb[1], 6, -10, 2],
+	[B.finalDrop - 0.6, -6, 20, -8],
+	[B.finalDrop, 4, 0, 0],
+	[B.finalDrop + 1.9, 10, -14, 3],
+	[B.demoBookedYou, 8, 16, -4],
+	[B.slams[3] + 0.2, 6, -12, 3],
+	[B.closedWon, 4, 6, -2],
+	[B.close, 10, -10, 0],
+	[B.end, 10, -10, 0],
+];
+
+export const angleAt = (t: number) => {
+	const i = Math.max(0, ANG.findIndex((k) => k[0] > t) - 1);
+	const a = ANG[Math.min(i, ANG.length - 1)];
+	const b = ANG[Math.min(i + 1, ANG.length - 1)];
+	const p = a === b ? 0 : interpolate(t, [a[0], b[0]], [0, 1], {easing: INOUT, extrapolateLeft: 'clamp', extrapolateRight: 'clamp'});
+	// handheld: a slow drift that never stops
+	const hx = 2 * Math.sin(t * 0.8 + 1) + 0.8 * Math.sin(t * 2.1);
+	const hy = 2.5 * Math.sin(t * 0.6) + 0.8 * Math.sin(t * 1.7 + 2);
+	const hz = 1.2 * Math.sin(t * 1.1) + 0.6 * Math.sin(t * 2.3 + 1);
+	return {rx: a[1] + (b[1] - a[1]) * p + hx, ry: a[2] + (b[2] - a[2]) * p + hy, rz: a[3] + (b[3] - a[3]) * p + hz};
+};
+
+// Marks floating above and below the map. They slide past at different speeds, so every move reads as depth.
+const DEPTH = Array.from({length: 520}, (_, i) => ({
+	x: -3800 + random(`px${i}`) * 21500,
+	y: -2900 + random(`py${i}`) * 4200,
+	z: random(`pz${i}`) < 0.55 ? -500 - random(`pd${i}`) * 500 : 220 + random(`pd${i}`) * 260,
+	s: 8 + random(`ps${i}`) * 12,
+	plus: random(`pk${i}`) < 0.5,
+}));
+
+const Depth: React.FC<{cx: number; cy: number}> = ({cx, cy}) => (
+	<>
+		{DEPTH.filter((d) => Math.abs(d.x - cx) < 2600 && Math.abs(d.y - cy) < 1700).map((d, i) => (
+			<div
+				key={i}
+				style={{
+					position: 'absolute',
+					left: d.x,
+					top: d.y,
+					width: d.s * 2,
+					height: d.s * 2,
+					transform: `translateZ(${d.z}px)`,
+					opacity: d.z > 0 ? 0.28 : 0.4,
+				}}
+			>
+				{d.plus ? (
+					<>
+						<span style={{position: 'absolute', left: d.s - 1.5, top: 0, width: 3, height: d.s * 2, background: C.signal}} />
+						<span style={{position: 'absolute', top: d.s - 1.5, left: 0, height: 3, width: d.s * 2, background: C.signal}} />
+					</>
+				) : (
+					<span style={{position: 'absolute', inset: d.s * 0.5, background: C.sky}} />
+				)}
+			</div>
+		))}
+	</>
+);
+
 /** The world, seen through the camera. Children use world coordinates. */
 export const World: React.FC<{children: React.ReactNode}> = ({children}) => {
 	const t = useT();
 	const {width, height} = useVideoConfig();
 	const cam = cameraAt(t);
-	const rx = tiltAt(t);
-	// Pull back a little while tilted so the horizon stays in frame, and punch in on the beat.
-	const z = cam.z * (1 - rx / 160) * (1 + punchAt(t));
+	const travel = tiltAt(t);
+	const ang = angleAt(t);
+	const rx = ang.rx + travel;
+	// Pull back while the camera leans so the edges stay in frame, and punch in on the big hits.
+	const lean = Math.abs(ang.ry) / 140 + Math.abs(rx) / 170 + Math.abs(ang.rz) / 120;
+	const z = cam.z * (1 - lean) * (1 + punchAt(t));
+	// A wider lens while the arrow travels: the map rushes past.
+	const lens = 1700 - 800 * Math.min(1, travel / 30);
 	return (
-		<div style={{position: 'absolute', inset: 0, perspective: 1800, perspectiveOrigin: '50% 45%'}}>
+		<div style={{position: 'absolute', inset: 0, perspective: lens, perspectiveOrigin: '50% 45%'}}>
 			<div
 				style={{
 					position: 'absolute',
@@ -112,10 +218,12 @@ export const World: React.FC<{children: React.ReactNode}> = ({children}) => {
 					width: 0,
 					height: 0,
 					transformOrigin: '0 0',
-					transform: `translate(${width / 2}px, ${height / 2}px) rotateX(${rx}deg) scale(${z}) translate(${-cam.x}px, ${-cam.y}px)`,
+					transformStyle: 'preserve-3d',
+					transform: `translate(${width / 2}px, ${height / 2}px) rotateZ(${ang.rz}deg) rotateX(${rx}deg) rotateY(${ang.ry}deg) scale(${z}) translate(${-cam.x}px, ${-cam.y}px)`,
 				}}
 			>
 				{children}
+				<Depth cx={cam.x} cy={cam.y} />
 			</div>
 		</div>
 	);
