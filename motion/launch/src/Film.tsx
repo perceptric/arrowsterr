@@ -20,20 +20,28 @@ import {Stations} from './world/Stations';
 import {Cursor} from './world/ui';
 import {SparkBurst} from './world/Win';
 
-const GRID = 22;
+const GRID = 24;
+const MAJOR = GRID * 5;
 
-/** The flight grid: dots on bg-2, laid across the whole map. */
-// When the camera focuses on a panel, the dots swell and fade like an out-of-focus background.
-const DotGrid: React.FC = () => {
+/** The flight grid: a blueprint of hairlines on bg-2, with crosshairs where the major lines meet. */
+// When the camera focuses on a panel, the lines soften and fade like an out-of-focus background.
+const LineGrid: React.FC = () => {
 	const f = focusAt(useT());
+	const fade = 1 - f * 0.6;
 	return (
 		<svg style={{position: 'absolute', left: -4000, top: -4000}} width={23000} height={7000}>
 			<defs>
-				<pattern id="dots" width={GRID} height={GRID} patternUnits="userSpaceOnUse">
-					<circle cx={GRID / 2} cy={GRID / 2} r={1.8 + f * 3.2} fill={C.lineStrong} opacity={1 - f * 0.65} />
+				<pattern id="minor" width={GRID} height={GRID} patternUnits="userSpaceOnUse">
+					<path d={`M ${GRID} 0 L 0 0 0 ${GRID}`} fill="none" stroke={C.lineStrong} strokeWidth={1 + f * 1.5} opacity={0.5 * fade} />
+				</pattern>
+				<pattern id="major" width={MAJOR} height={MAJOR} patternUnits="userSpaceOnUse">
+					<rect width={MAJOR} height={MAJOR} fill="url(#minor)" />
+					<path d={`M ${MAJOR} 0 L 0 0 0 ${MAJOR}`} fill="none" stroke={C.lineStrong} strokeWidth={1.6 + f * 2} opacity={fade} />
+					<path d="M -9 0 H 9 M 0 -9 V 9" stroke={C.signal} strokeWidth={2} opacity={0.4 * fade} />
+					<path d={`M ${MAJOR - 9} 0 H ${MAJOR + 9} M ${MAJOR} -9 V 9 M -9 ${MAJOR} H 9 M 0 ${MAJOR - 9} V ${MAJOR + 9} M ${MAJOR - 9} ${MAJOR} H ${MAJOR + 9} M ${MAJOR} ${MAJOR - 9} V ${MAJOR + 9}`} stroke={C.signal} strokeWidth={2} opacity={0.4 * fade} />
 				</pattern>
 			</defs>
-			<rect width={23000} height={7000} fill="url(#dots)" />
+			<rect width={23000} height={7000} fill="url(#major)" />
 		</svg>
 	);
 };
@@ -44,7 +52,7 @@ const Scene: React.FC = () => {
 	return (
 		<AbsoluteFill style={{background: C.bg2}}>
 			<World>
-				<DotGrid />
+				<LineGrid />
 				<Stat />
 				<AnswerWindow v="A" />
 				<CalCard v="A" />

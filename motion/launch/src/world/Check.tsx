@@ -1,4 +1,5 @@
 import React from 'react';
+import {Img, staticFile} from 'remotion';
 import {B, hit, prog, roll, useT} from '../lib';
 import {CAL_A, CAL_B, DEAL, MISSED} from '../layout';
 import {C} from '../theme';
@@ -90,28 +91,22 @@ export const Deal: React.FC = () => {
 					</Num>
 				</span>
 				<div style={{display: 'flex', alignItems: 'center', gap: 10, opacity: sales, translate: `${(1 - sales) * -16}px 0`}}>
-					{['JM', 'AK', 'RS'].map((n, i) => (
-						<span
-							key={n}
-							style={{
-								width: 38,
-								height: 38,
-								borderRadius: 999,
-								marginLeft: i ? -12 : 0,
-								border: '3px solid #fff',
-								background: i === 0 ? C.signal : i === 1 ? C.night : C.sky,
-								color: '#fff',
-								fontSize: 14,
-								fontWeight: 700,
-								display: 'inline-flex',
-								alignItems: 'center',
-								justifyContent: 'center',
-							}}
-						>
-							{n}
-						</span>
-					))}
-					<span style={{fontSize: 20, fontWeight: 700, color: C.ink, flex: 1}}>Sales team</span>
+					{[1, 2, 3].map((n, i) => (
+							<Img
+								key={n}
+								src={staticFile(`people/sales-${n}.jpg`)}
+								style={{
+									width: 44,
+									height: 44,
+									borderRadius: 999,
+									marginLeft: i ? -14 : 0,
+									border: '3px solid #fff',
+									objectFit: 'cover',
+									background: C.bg3,
+								}}
+							/>
+						))}
+						<span style={{fontSize: 20, fontWeight: 700, color: C.ink, flex: 1}}>Sales team</span>
 					{/* the tag flips over: Closing, then Closed won */}
 					<span style={{display: 'inline-block', transform: `perspective(400px) rotateX(${t < B.closedWon ? prog(t, B.closedWon - 0.15, B.closedWon) * 90 : (1 - prog(t, B.closedWon, B.closedWon + 0.15)) * -90}deg)`}}>
 						{t < B.closedWon ? (

@@ -1,6 +1,6 @@
 # Arrowsterr launch film
 
-"You need a navigator": a 64-second film shot as one continuous camera move. A blue route line with an arrowhead flies from "invisible" to "recommended", across a dot-grid map, at 1920 × 1080 and 30 fps.
+"You need a navigator": a 98-second film shot as one continuous camera move. A blue route line with an arrowhead flies from "invisible" to "recommended", across a blueprint line-grid map, at 1920 × 1080 and 30 fps.
 
 ## How it fits together
 
@@ -52,3 +52,7 @@ In a sandbox without Remotion's own Chrome, set `REMOTION_CHROME` to a local hea
 Colours, type, corners, tags, the Notch, Target ticks and the flight grid follow `docs/brand.md`. Gold shows up once, for the win. For this film the website motion rules are relaxed for the camera moves, the radar sweep and the page fold. Everything still moves up or right, and nothing bounces.
 
 Engine logos in `public/engines` come from the same sources the app uses (`src/components/Engines.tsx`). Fonts are the Google Fonts variable files, shipped in `public/fonts`.
+
+## Sales team photos
+
+`public/people/sales-1.jpg` to `sales-3.jpg` are stand-ins taken from the AdminLTE package's sample avatars, since stock photo sites can't be reached from the build machine. Their license isn't confirmed. Swap in three licensed stock headshots with the same file names before publishing.

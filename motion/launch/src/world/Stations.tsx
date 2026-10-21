@@ -5,26 +5,61 @@ import {STATIONS, STATION_H, STATION_W} from '../layout';
 import {C, display, mono} from '../theme';
 import {At, BRAND_COLOR, Card, ChevronUp, Climb, Cursor, LogoTile, Num, slamStyle, Tag} from './ui';
 
+const NOTCH = 28;
+
 const Panel: React.FC<{k: number; title: string; children: React.ReactNode}> = ({k, title, children}) => {
 	const t = useT();
 	const a = prog(t, B.stations[k] - 0.7, B.stations[k] + 0.1);
 	const scan = prog(t, B.stations[k], B.stations[k] + 0.9, INOUT);
+	const lock = prog(t, B.stations[k] + 0.1, B.stations[k] + 0.6) * (1 - prog(t, B.stationEnds[k] - 0.7, B.stationEnds[k] - 0.3));
+	const blink = Math.floor(t * 3) % 2 ? 1 : 0.35;
 	return (
-		<At
-			p={STATIONS[k]}
-			w={STATION_W}
-			h={STATION_H}
-			style={{opacity: Math.min(1, a * 1.6), transformOrigin: '50% 100%', transform: `perspective(1600px) rotateX(${(1 - a) * -72}deg)`}}
-		>
-			<Card>
-				{scan > 0 && scan < 1 ? <div style={{position: 'absolute', left: 0, right: 0, top: `${scan * 100}%`, height: 3, background: C.signal, opacity: 0.5 * (1 - scan), zIndex: 5}} /> : null}
-				<div style={{position: 'absolute', left: 44, top: 36, display: 'flex', alignItems: 'center', gap: 14}}>
-					<Climb size={34} />
-					<span style={{fontFamily: display, fontWeight: 700, fontSize: 40, color: C.inkStrong, letterSpacing: -0.5}}>{title}</span>
+		<>
+			<At
+				p={STATIONS[k]}
+				w={STATION_W}
+				h={STATION_H}
+				style={{opacity: Math.min(1, a * 1.6), transformOrigin: '50% 100%', transform: `perspective(1600px) rotateX(${(1 - a) * -72}deg)`}}
+			>
+				{/* the frame carries the Notch: a 45 degree cut on its top-right corner */}
+				<div style={{position: 'absolute', inset: 0, clipPath: `polygon(0 0, calc(100% - ${NOTCH}px) 0, 100% ${NOTCH}px, 100% 100%, 0 100%)`}}>
+					<Card>
+						{scan > 0 && scan < 1 ? <div style={{position: 'absolute', left: 0, right: 0, top: `${scan * 100}%`, height: 3, background: C.signal, opacity: 0.5 * (1 - scan), zIndex: 5}} /> : null}
+						<div style={{position: 'absolute', left: 44, top: 36, display: 'flex', alignItems: 'center', gap: 14}}>
+							<Climb size={34} />
+							<span style={{fontFamily: display, fontWeight: 700, fontSize: 40, color: C.inkStrong, letterSpacing: -0.5}}>{title}</span>
+						</div>
+						{children}
+					</Card>
 				</div>
-				{children}
-			</Card>
-		</At>
+				<svg style={{position: 'absolute', right: 0, top: 0, overflow: 'visible'}} width={NOTCH} height={NOTCH}>
+					<line x1={0} y1={1} x2={NOTCH - 1} y2={NOTCH} stroke={C.lineStrong} strokeWidth={2.5} />
+				</svg>
+			</At>
+			{/* a lock-on frame and a step counter while the camera holds on the panel */}
+			<At p={STATIONS[k]} w={STATION_W} h={STATION_H} style={{pointerEvents: 'none'}}>
+				<Ticks x={0} y={0} w={STATION_W} h={STATION_H} on={lock} />
+				<div
+					style={{
+						position: 'absolute',
+						right: 0,
+						top: -54,
+						display: 'flex',
+						alignItems: 'center',
+						gap: 10,
+						opacity: lock,
+						fontFamily: mono,
+						fontSize: 22,
+						fontWeight: 600,
+						color: C.signalText,
+						fontVariantNumeric: 'tabular-nums',
+					}}
+				>
+					<span style={{width: 10, height: 10, background: C.signal, opacity: blink}} />
+					{`0${k + 1} / 04`}
+				</div>
+			</At>
+		</>
 	);
 };
 

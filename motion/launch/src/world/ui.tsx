@@ -119,33 +119,44 @@ export const BRAND_COLOR: Record<string, string> = {
 };
 
 const MARKS: Record<string, React.ReactNode> = {
-	// a mountain peak
-	Acme: <path d="M5 18 L12 6 L19 18 Z M10 18 L14.5 11 L19 18" fill="#fff" />,
-	// a compass needle pointing north
-	Northwind: (
+	// a peak cut like a capital A, with a base block
+	Acme: (
 		<>
-			<path d="M12 4 L15.5 12 L12 10.5 L8.5 12 Z" fill="#fff" />
-			<path d="M12 20 L8.5 12 L12 13.5 L15.5 12 Z" fill="#fff" opacity={0.5} />
+			<path d="M12 4.5 L19.6 19 H15.4 L12 12.4 L8.6 19 H4.4 Z" fill="#fff" />
+			<rect x={10.4} y={15.4} width={3.2} height={3.6} fill="#fff" opacity={0.55} />
 		</>
 	),
-	// a globe
-	Globex: (
-		<g fill="none" stroke="#fff" strokeWidth={1.8}>
-			<circle cx={12} cy={12} r={7} />
-			<ellipse cx={12} cy={12} rx={3} ry={7} />
-			<path d="M5 12 H19" />
+	// three gusts of wind
+	Northwind: (
+		<g fill="none" stroke="#fff" strokeWidth={2.2} strokeLinecap="round">
+			<path d="M4.8 9.2 H13.6 A2.6 2.6 0 1 0 11 6.6" />
+			<path d="M4.8 13 H16.4 A2.6 2.6 0 1 1 13.8 15.6" />
+			<path d="M4.8 16.8 H9.6" opacity={0.55} />
 		</g>
 	),
-	// a hexagon
-	Initech: <path d="M12 4.5 L18.5 8.25 V15.75 L12 19.5 L5.5 15.75 V8.25 Z" fill="none" stroke="#fff" strokeWidth={2.4} strokeLinejoin="round" />,
-	// a four-petal flower
+	// a planet with a ring crossing in front
+	Globex: (
+		<>
+			<circle cx={12} cy={12} r={5.4} fill="#fff" />
+			<ellipse cx={12} cy={12} rx={9} ry={3.1} fill="none" stroke="#7048E8" strokeWidth={3.4} transform="rotate(-24 12 12)" />
+			<ellipse cx={12} cy={12} rx={9} ry={3.1} fill="none" stroke="#fff" strokeWidth={1.5} transform="rotate(-24 12 12)" />
+		</>
+	),
+	// a stack of three layers
+	Initech: (
+		<>
+			<path d="M12 4.6 L19 8.4 L12 12.2 L5 8.4 Z" fill="#fff" />
+			<path d="M5 12 L12 15.8 L19 12" fill="none" stroke="#fff" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" opacity={0.75} />
+			<path d="M5 15.4 L12 19.2 L19 15.4" fill="none" stroke="#fff" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" opacity={0.5} />
+		</>
+	),
+	// four shapes on a 2 × 2 grid
 	'Your Brand': (
 		<g fill="#fff">
-			<circle cx={12} cy={8} r={3.4} />
-			<circle cx={16} cy={12} r={3.4} />
-			<circle cx={12} cy={16} r={3.4} />
-			<circle cx={8} cy={12} r={3.4} />
-			<circle cx={12} cy={12} r={2.2} fill={'#D6336C'} />
+			<path d="M11.4 5 A6.4 6.4 0 0 0 5 11.4 H11.4 Z" />
+			<circle cx={15.8} cy={8.2} r={3.2} />
+			<rect x={5} y={12.6} width={6.4} height={6.4} opacity={0.6} />
+			<path d="M12.6 19 A6.4 6.4 0 0 0 19 12.6 H12.6 Z" />
 		</g>
 	),
 };
@@ -154,7 +165,7 @@ const MARKS: Record<string, React.ReactNode> = {
 export const LogoTile: React.FC<{name: string; size: number; you?: boolean}> = ({name, size, you}) =>
 	MARKS[name] ? (
 		<svg width={size} height={size} viewBox="0 0 24 24" style={{flexShrink: 0}}>
-			<rect width={24} height={24} rx={name === 'Acme' || name === 'Globex' ? 12 : 6} fill={BRAND_COLOR[name]} />
+			<rect width={24} height={24} rx={5} fill={BRAND_COLOR[name]} />
 			{MARKS[name]}
 		</svg>
 	) : (
