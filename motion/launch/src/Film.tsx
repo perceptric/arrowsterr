@@ -3,7 +3,7 @@ import {AbsoluteFill, Img, Solid, staticFile, useVideoConfig} from 'remotion';
 import {Audio} from '@remotion/media';
 import {CameraMotionBlur} from '@remotion/motion-blur';
 import {lightLeak} from '@remotion/effects/light-leak';
-import {World} from './Camera';
+import {cameraAt, World} from './Camera';
 import {Close} from './Close';
 import {B, focusAt, glitchAt, INOUT, prog, useT} from './lib';
 import {Kinetic} from './Kinetic';
@@ -23,18 +23,24 @@ import {SparkBurst} from './world/Win';
 
 const GRID = 40;
 
-/** The flight grid: plain hairlines on bg-2, laid across the whole map. */
+/** The flight grid: plain hairlines on bg-2. It's drawn only around the camera, snapped to the grid, so it looks endless. */
 // When the camera focuses on a panel, the lines fade like an out-of-focus background.
+const GRID_W = 7600;
+const GRID_H = 5200;
 const LineGrid: React.FC = () => {
-	const f = focusAt(useT());
+	const t = useT();
+	const f = focusAt(t);
+	const cam = cameraAt(t);
+	const x0 = Math.floor((cam.x - GRID_W / 2) / GRID) * GRID;
+	const y0 = Math.floor((cam.y - GRID_H / 2) / GRID) * GRID;
 	return (
-		<svg style={{position: 'absolute', left: -4000, top: -4000}} width={23000} height={7000}>
+		<svg style={{position: 'absolute', left: x0, top: y0}} width={GRID_W} height={GRID_H}>
 			<defs>
 				<pattern id="grid" width={GRID} height={GRID} patternUnits="userSpaceOnUse">
 					<path d={`M ${GRID} 0 L 0 0 0 ${GRID}`} fill="none" stroke={C.lineStrong} strokeWidth={1.5} opacity={0.7 * (1 - f * 0.6)} />
 				</pattern>
 			</defs>
-			<rect width={23000} height={7000} fill="url(#grid)" />
+			<rect width={GRID_W} height={GRID_H} fill="url(#grid)" />
 		</svg>
 	);
 };

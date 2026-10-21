@@ -167,31 +167,26 @@ const DEPTH = Array.from({length: 520}, (_, i) => ({
 	plus: random(`pk${i}`) < 0.5,
 }));
 
+// Each mark shifts against the camera by its depth: near ones slide past faster, far ones lag behind.
 const Depth: React.FC<{cx: number; cy: number}> = ({cx, cy}) => (
 	<>
-		{DEPTH.filter((d) => Math.abs(d.x - cx) < 2600 && Math.abs(d.y - cy) < 1700).map((d, i) => (
-			<div
-				key={i}
-				style={{
-					position: 'absolute',
-					left: d.x,
-					top: d.y,
-					width: d.s * 2,
-					height: d.s * 2,
-					transform: `translateZ(${d.z}px)`,
-					opacity: d.z > 0 ? 0.28 : 0.4,
-				}}
-			>
-				{d.plus ? (
-					<>
-						<span style={{position: 'absolute', left: d.s - 1.5, top: 0, width: 3, height: d.s * 2, background: C.signal}} />
-						<span style={{position: 'absolute', top: d.s - 1.5, left: 0, height: 3, width: d.s * 2, background: C.signal}} />
-					</>
-				) : (
-					<span style={{position: 'absolute', inset: d.s * 0.5, background: C.sky}} />
-				)}
-			</div>
-		))}
+		{DEPTH.map((d) => {
+			const k = d.z > 0 ? d.z / 900 : d.z / 1400;
+			return {x: d.x + (d.x - cx) * k, y: d.y + (d.y - cy) * k, size: d.s * (1 + k), near: d.z > 0, plus: d.plus};
+		})
+			.filter((d) => Math.abs(d.x - cx) < 2600 && Math.abs(d.y - cy) < 1700)
+			.map((d, i) => (
+				<div key={i} style={{position: 'absolute', left: d.x, top: d.y, width: d.size * 2, height: d.size * 2, opacity: d.near ? 0.28 : 0.4}}>
+					{d.plus ? (
+						<>
+							<span style={{position: 'absolute', left: d.size - 1.5, top: 0, width: 3, height: d.size * 2, background: C.signal}} />
+							<span style={{position: 'absolute', top: d.size - 1.5, left: 0, height: 3, width: d.size * 2, background: C.signal}} />
+						</>
+					) : (
+						<span style={{position: 'absolute', inset: d.size * 0.5, background: C.sky}} />
+					)}
+				</div>
+			))}
 	</>
 );
 
@@ -207,7 +202,7 @@ export const World: React.FC<{children: React.ReactNode}> = ({children}) => {
 	const lean = Math.abs(ang.ry) / 140 + Math.abs(rx) / 170 + Math.abs(ang.rz) / 120;
 	const z = cam.z * (1 - lean) * (1 + punchAt(t));
 	// A wider lens while the arrow travels: the map rushes past.
-	const lens = 1700 - 800 * Math.min(1, travel / 30);
+	const lens = 1700 - 550 * Math.min(1, travel / 30);
 	return (
 		<div style={{position: 'absolute', inset: 0, perspective: lens, perspectiveOrigin: '50% 45%'}}>
 			<div
@@ -218,7 +213,6 @@ export const World: React.FC<{children: React.ReactNode}> = ({children}) => {
 					width: 0,
 					height: 0,
 					transformOrigin: '0 0',
-					transformStyle: 'preserve-3d',
 					transform: `translate(${width / 2}px, ${height / 2}px) rotateZ(${ang.rz}deg) rotateX(${rx}deg) rotateY(${ang.ry}deg) scale(${z}) translate(${-cam.x}px, ${-cam.y}px)`,
 				}}
 			>
