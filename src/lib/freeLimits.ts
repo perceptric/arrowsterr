@@ -1,11 +1,26 @@
 // Limits for the free tools on arrowsterr.com (docs/free-tools.md). Pure, so tests can check every rule.
 
-export type FreeTool = "keyword" | "crawlers" | "llms" | "answer" | "authority" | "speed" | "links";
+export type FreeTool =
+  | "keyword"
+  | "crawlers"
+  | "llms"
+  | "answer"
+  | "authority"
+  | "speed"
+  | "links"
+  | "snapshot"
+  | "traffic"
+  | "backlinks"
+  | "rank"
+  | "gap"
+  | "schema"
+  | "meta"
+  | "robots";
 
 /**
  * Each tool's limits. perTool is new runs per visitor a day; cap is new runs for everyone a day; saveDays is how long
  * a result is reused for free; paid tools stop when the day's spend passes FREE_SPEND_DAY. Server settings can change
- * them: FREE_CAP_<TOOL>, FREE_PER_TOOL (paid tools), FREE_PER_VISITOR, FREE_SPEND_DAY.
+ * them: FREE_CAP_<TOOL>, FREE_PER_TOOL_<TOOL> (one tool), FREE_PER_TOOL (every paid tool), FREE_PER_VISITOR, FREE_SPEND_DAY.
  */
 export const FREE_TOOLS: Record<FreeTool, { perTool: number; cap: number; saveDays: number; paid: boolean }> = {
   keyword: { perTool: 5, cap: 500, saveDays: 30, paid: true },
@@ -15,6 +30,14 @@ export const FREE_TOOLS: Record<FreeTool, { perTool: number; cap: number; saveDa
   authority: { perTool: 20, cap: 2000, saveDays: 7, paid: false },
   speed: { perTool: 10, cap: 1500, saveDays: 1, paid: false },
   links: { perTool: 5, cap: 300, saveDays: 1, paid: false },
+  snapshot: { perTool: 5, cap: 200, saveDays: 30, paid: true },
+  traffic: { perTool: 5, cap: 300, saveDays: 30, paid: true },
+  backlinks: { perTool: 3, cap: 150, saveDays: 7, paid: true },
+  rank: { perTool: 5, cap: 200, saveDays: 1, paid: true },
+  gap: { perTool: 5, cap: 200, saveDays: 7, paid: true },
+  schema: { perTool: 10, cap: 1000, saveDays: 30, paid: true },
+  meta: { perTool: 10, cap: 500, saveDays: 7, paid: true },
+  robots: { perTool: 20, cap: 2000, saveDays: 1, paid: false },
 };
 
 export const FREE_DEFAULTS = {
@@ -33,7 +56,7 @@ const num = (v: string | undefined, d: number) => {
 export function freeLimits(tool: FreeTool, env: Record<string, string | undefined> = {}): FreeLimits {
   const t = FREE_TOOLS[tool];
   return {
-    perTool: t.paid ? num(env.FREE_PER_TOOL, t.perTool) : t.perTool,
+    perTool: num(env[`FREE_PER_TOOL_${tool.toUpperCase()}`], t.paid ? num(env.FREE_PER_TOOL, t.perTool) : t.perTool),
     perVisitor: num(env.FREE_PER_VISITOR, FREE_DEFAULTS.perVisitor),
     spendDay: num(env.FREE_SPEND_DAY, FREE_DEFAULTS.spendDay),
     cap: num(env[`FREE_CAP_${tool.toUpperCase()}`], t.cap),

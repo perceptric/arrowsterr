@@ -124,9 +124,9 @@ function read(engine: DfsEngine, result: { markdown?: string; sources?: Raw[]; i
   return { text, sources: cleanSources(sources), queries: queriesOf(result as Record<string, unknown> | undefined) };
 }
 
-/** Ask now and wait for the answer. Costs more than a queued task. */
-export async function askLive(engine: DfsEngine, prompt: string): Promise<DfsAnswer> {
-  const [task] = await call(`${PATHS[engine]}/live/advanced`, [taskBody(engine, prompt)]);
+/** Ask now and wait for the answer. Costs more than a queued task. extra overrides the task's settings, like its market. */
+export async function askLive(engine: DfsEngine, prompt: string, extra: Record<string, unknown> = {}): Promise<DfsAnswer> {
+  const [task] = await call(`${PATHS[engine]}/live/advanced`, [taskBody(engine, prompt, extra)]);
   if (task?.status_code !== 20000) throw new Error(`DataForSEO: ${task?.status_message ?? "no result"}`);
   return read(engine, task.result?.[0]);
 }

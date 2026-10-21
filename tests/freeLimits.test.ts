@@ -67,3 +67,18 @@ test("private, local and cloud metadata addresses are refused, public ones pass"
   for (const ip of ["127.0.0.1", "10.2.3.4", "172.16.0.1", "172.31.255.255", "192.168.1.1", "169.254.169.254", "100.64.0.1", "0.0.0.0", "::1", "::", "fd00::1", "fe80::1", "::ffff:127.0.0.1", "224.0.0.1"]) assert.equal(privateIp(ip), true, ip);
   for (const ip of ["8.8.8.8", "1.1.1.1", "172.32.0.1", "104.18.2.3", "2606:4700::1111"]) assert.equal(privateIp(ip), false, ip);
 });
+
+test("the research and on-page tools: backlinks allow 3 a visitor, and one tool's setting wins over every paid tool's", () => {
+  const b = freeLimits("backlinks");
+  assert.equal(b.perTool, 3);
+  assert.equal(freeBlock({ ...none, mineTool: 2 }, b), null);
+  assert.equal(freeBlock({ ...none, mineTool: 3 }, b)?.kind, "visitor");
+  assert.equal(freeLimits("backlinks", { FREE_PER_TOOL: "5" }).perTool, 5);
+  assert.equal(freeLimits("backlinks", { FREE_PER_TOOL: "5", FREE_PER_TOOL_BACKLINKS: "2" }).perTool, 2);
+  assert.equal(freeLimits("rank", { FREE_PER_TOOL_BACKLINKS: "2" }).perTool, 5, "one tool's setting changes only that tool");
+  const robots = freeLimits("robots", { FREE_SPEND_DAY: "1", FREE_PER_TOOL: "1" });
+  assert.equal(robots.perTool, 20);
+  assert.equal(freeBlock({ ...none, spentToday: 99 }, robots), null, "the robots tester costs nothing, so it keeps working");
+  assert.equal(freeLimits("snapshot").cap, 200);
+  assert.equal(freeLimits("meta").perTool, 10);
+});

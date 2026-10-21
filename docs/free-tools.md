@@ -11,8 +11,10 @@ Seventeen free tools on arrowsterr.com. Each one answers a real question in unde
 | Yes | Keyword Volume Checker and Keyword Difficulty Checker (same API as the keyword tool) |
 | Yes | AI Crawler Checker, llms.txt Generator, AI Answer-Ready Checker, Domain Authority Checker, Page Speed Checker, Broken Link and Redirect Checker (`src/lib/freeRunners.ts`), Keyword Clustering Tool (in the browser) |
 | No | ChatGPT Rank Checker, AI Overview Checker, AI Prompt Generator, AI Sources Finder, AI Share of Voice, AI Schema Generator, Domain Snapshot |
-| No | Third set (planned below): Website Traffic Checker, Backlink Checker, Keyword Rank Checker, Keyword Gap Tool, Schema Markup Generator, Meta Title and Description Generator, Robots.txt Tester |
-| No | Long content under every tool page (planned below) |
+| App side | Domain Snapshot (12) and the third set (13 to 19): `/api/free/[tool]` cases `snapshot`, `traffic`, `backlinks`, `rank`, `gap`, `schema`, `meta`, `robots`. Runners in `freeResearch.ts`, `freeOnPage.ts` and `freeRunners.ts` (robots). Pure rules, tested: `robotsTest.ts`, `schemaGen.ts`, `rankChecks.ts`, `metaRules.ts`, `pageMeta.ts`. The gap query moved to `gapServer.ts`, shared with the app |
+| Drafts | Articles for tools 12 to 19 in `docs/free-tool-articles/`, with `[EDITOR: ...]` and `[SCREENSHOT: ...]` spots to fill from real runs |
+| No | The site pages for tools 12 to 19 (`arrowsterr-site`): forms, Turnstile, result views, the browser copies of `robotsTest.ts` and `schemaGen.ts`, and the articles placed under each tool |
+| No | Long articles for the older tools |
 
 **Second set, how each works:**
 
@@ -99,7 +101,7 @@ Seven more tools. Four are research tools that lead into the paid research scree
 
 | # | Tool and page | Someone enters | They get | Built from | Cost a run | Saved for |
 |---|---|---|---|---|---|---|
-| 13 | Website Traffic Checker `/free-tools/website-traffic-checker` | A domain and a country | Estimated Google visits a month, traffic value in ad dollars, keyword count, and the top 5 pages with their visits and keywords | `domainOverview()`, `relevantPages()` with a limit of 5, `bulkDomains()` for the value (already saved 30 days) | ~$0.02 (check) | 30 days |
+| 13 | Website Traffic Checker `/free-tools/website-traffic-checker` | A domain and a country | Estimated Google visits a month, traffic value in ad dollars, keyword count, a 12-month trend, and the top 5 pages with their visits and keywords | `domainOverview()`, `relevantPages()` with a limit of 5, `historical_rank_overview` for the trend, `bulkDomains()` for the value. Every piece saved 30 days and shared with Domain Overview | ~$0.04 (check) | 30 days |
 | 14 | Backlink Checker `/free-tools/backlink-checker` | A domain or a page | Total backlinks, referring domains, dofollow share, and the top 20 backlinks: one per site, strongest first, with the linking page, anchor text, the page it points to, follow or nofollow, and first seen | DataForSEO Backlinks: `backlinks/summary`, then `backlinks/backlinks` with `mode: one_per_domain`, `limit: 20`, sorted by rank | ~$0.05 (check) | 7 days |
 | 15 | Keyword Rank Checker `/free-tools/keyword-rank-checker` | A domain, one keyword and a country | Google: the domain's spot in the top 100, the page that ranks, and the features on the page (AI Overview, People also ask, ads). AI Mode: whether the answer cites the domain, its spot among the sources, and whether the text names it | `topUrls()` widened to 100 results, and the AI Mode engine in `dataforseo.ts` | ~$0.025 (check) | 1 day |
 | 16 | Keyword Gap Tool `/free-tools/keyword-gap` | Your domain, a rival's domain and a country | The top 20 keywords the rival ranks for in the top 20 and you don't rank for in the top 100, by volume: keyword, volume, KD, intent, the rival's spot and page. Plus the total count of the gap | `intersect()` from `api/research/gap/route.ts`, moved into `src/lib/gap.ts` so both use it | ~$0.015 (check) | 7 days |
