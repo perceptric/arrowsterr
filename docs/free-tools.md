@@ -12,8 +12,8 @@ Seventeen free tools on arrowsterr.com. Each one answers a real question in unde
 | Yes | AI Crawler Checker, llms.txt Generator, AI Answer-Ready Checker, Domain Authority Checker, Page Speed Checker, Broken Link and Redirect Checker (`src/lib/freeRunners.ts`), Keyword Clustering Tool (in the browser) |
 | No | ChatGPT Rank Checker, AI Overview Checker, AI Prompt Generator, AI Sources Finder, AI Share of Voice, AI Schema Generator, Domain Snapshot |
 | App side | Domain Snapshot (12) and the third set (13 to 19): `/api/free/[tool]` cases `snapshot`, `traffic`, `backlinks`, `rank`, `gap`, `schema`, `meta`, `robots`. Runners in `freeResearch.ts`, `freeOnPage.ts` and `freeRunners.ts` (robots). Pure rules, tested: `robotsTest.ts`, `schemaGen.ts`, `rankChecks.ts`, `metaRules.ts`, `pageMeta.ts`. The gap query moved to `gapServer.ts`, shared with the app |
-| Drafts | Articles for tools 12 to 19 in `docs/free-tool-articles/`, with `[EDITOR: ...]` and `[SCREENSHOT: ...]` spots to fill from real runs |
-| No | The site pages for tools 12 to 19 (`arrowsterr-site`): forms, Turnstile, result views, the browser copies of `robotsTest.ts` and `schemaGen.ts`, and the articles placed under each tool |
+| Yes | The site pages for tools 12 to 19 (`arrowsterr-site`, `pages/free-tools/free-tools-2.js` and `.css`): forms, Turnstile, charts, sortable and filterable tables, CSV downloads, the live schema builder, the snippet preview and the robots.txt editor |
+| Yes | Articles under tools 12 to 19, in the theme at `pages/free-tools/articles/<slug>.md`, drawn on the server after the product sections, with contents, and FAQPage, WebApplication and BreadcrumbList schema. `[EDITOR: ...]` and `[SCREENSHOT: ...]` notes stay hidden until filled from real runs |
 | No | Long articles for the older tools |
 
 **Second set, how each works:**
@@ -126,6 +126,8 @@ Seven more tools. Four are research tools that lead into the paid research scree
 - **Schema Markup Generator:** replaces tool 10 (AI Schema Generator) and adds Article and LocalBusiness. One page targets "schema markup generator", with a section for each type. "Add this to every page" opens the app with Zippie's `faq-builder` skill and the page loaded, so the schema goes in through the CMS sync.
 - **Meta Title and Description Generator:** never shows a title that breaks the meta-writer rules: anything over 60 characters or under 30 is rewritten before it is shown. "Fix every page on my site" opens the app with Zippie's `meta-writer` skill, which proposes changes through `propose_changes` with play "meta".
 - **Robots.txt Tester:** `robotsVerdicts()` moves to a file that both the server and the browser can load, so edits re-test with no server call. It links to the AI Crawler Checker, and the Crawler Checker links back. "Watch my robots.txt" opens AI Visibility in the app, where the daily audit flags a new block.
+
+**Browser copies:** the robots.txt tester and schema builder run `robotsTest.ts` and `schemaGen.ts` in the visitor's browser. After changing either, run `node scripts/site-libs.mjs ../arrowsterr-site/pages/free-tools` and commit the two files it writes in the site repo.
 
 **Code:** `FreeTool` in `freeLimits.ts` gets `traffic`, `backlinks`, `rank`, `gap`, `schema`, `meta` and `robots`. Each gets a case in `/api/free/[tool]` and a runner in `freeRunners.ts`. The schema template code and the robots parser run in the browser, so those two pages work even when the API is down.
 
