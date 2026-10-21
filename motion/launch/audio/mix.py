@@ -20,7 +20,7 @@ from scipy.signal import butter, fftconvolve, lfilter, resample_poly, sosfilt, s
 ROOT = Path(__file__).resolve().parent.parent
 STEMS = ROOT / "audio/build/stems"
 SR = 48000
-END = 86.0
+END = 98.0
 N = int(END * SR)
 
 # stem: gain dB, pan (-1..1, applied as balance), high-pass Hz, low-pass Hz, drive, reverb send
@@ -42,25 +42,26 @@ STEM_MIX = {
     "brass":   (-4.0, -0.2, 80, 9000, 1.1, 0.24),
     "timpani": (-3.0, 0.0, 35, None, 1.0, 0.28),
 }
-REVERSE_CYMBALS = (24.0, 48.0, 64.0, 70.0, 84.0)  # each swell ends exactly on this time
-RISERS = ((18.0, 24.0), (64.0, 70.0))  # noise and tone risers that cut off on the arrival
+REVERSE_CYMBALS = (24.0, 48.0, 64.0, 81.5, 96.5)  # each swell ends exactly on this time
+RISERS = ((18.0, 24.0), (76.0, 81.5))  # noise and tone risers that cut off on the arrival
 # Sections and their loudness against the first chorus block (LU). From the drop it only climbs.
 SECTIONS = [  # (start, end, name, target)
     (0.0, 8.0, "intro", -7.0), (8.0, 14.0, "verse", -5.0), (14.0, 18.0, "verse 2", -4.0),
     (18.0, 20.0, "dip", -5.5), (20.0, 24.0, "build", -3.0), (24.0, 32.0, "chorus 1", 0.0),
-    (32.0, 40.0, "chorus 2", 0.6), (40.0, 48.0, "chorus 3", 1.4), (48.0, 56.0, "chorus 4", 2.4),
-    (56.0, 64.0, "chorus 5", 3.4), (64.0, 66.0, "whip", 4.0), (66.0, 70.0, "pre-chorus", 4.4),
-    (70.0, 78.0, "final chorus", 5.6), (78.0, 86.0, "outro", 5.8),
+    (32.0, 40.0, "chorus 2", 0.5), (40.0, 48.0, "chorus 3", 1.1), (48.0, 56.0, "chorus 4", 1.8),
+    (56.0, 64.0, "chorus 5", 2.6), (64.0, 72.0, "chorus 6", 3.3), (72.0, 76.0, "chorus 7", 3.8),
+    (76.0, 78.0, "whip", 4.1), (78.0, 81.5, "pre-chorus", 4.5), (81.5, 98.0, "final chorus", 5.6),
 ]
 REF, PEAK_SECTION, PEAK_LUFS = "chorus 1", "final chorus", -16.5  # the peak sits 6 dB under the voice once ducked
 # how long the level takes to move into each section (s), ending on the boundary
-GLIDE = {8.0: 1.0, 14.0: 1.0, 18.0: 0.5, 20.0: 0.5, 24.0: 2.0, 32.0: 1.0, 40.0: 1.0, 48.0: 1.0,
-         56.0: 1.0, 64.0: 0.5, 66.0: 1.0, 70.0: 0.25, 78.0: 0.5}
+GLIDE = {8.0: 1.0, 14.0: 1.0, 18.0: 0.5, 20.0: 0.5, 24.0: 2.0, 32.0: 1.0, 40.0: 1.0, 48.0: 1.0, 56.0: 1.0,
+         64.0: 1.0, 72.0: 1.0, 76.0: 0.5, 78.0: 1.0, 81.5: 0.25}
 DARK = (18.0, 20.0, 24.0)  # the bed is darkened in the dip, then opens up through the build
-THIN = (65.0, 70.0)  # a rising high-pass through the pre-chorus; the low end slams back at 70
+THIN = (77.0, 81.5)  # a rising high-pass through the pre-chorus; the low end slams back with the push
 CLIMB_FROM = 24.0
-CLIMB = [(24.0, 0.0), (32.0, 0.6), (40.0, 1.4), (48.0, 2.4), (56.0, 3.4), (64.0, 4.0), (66.0, 4.4), (70.0, 5.6), (86.0, 6.0)]
-FADE = (84.5, 86.0)
+CLIMB = [(24.0, 0.0), (32.0, 0.5), (40.0, 1.1), (48.0, 1.8), (56.0, 2.6), (64.0, 3.3), (72.0, 3.8),
+         (76.0, 4.1), (78.0, 4.5), (81.5, 5.6), (98.0, 6.0)]
+FADE = (96.8, 98.0)
 SFX_GAIN_DB = 14.3  # puts the cue sounds (without the picture-effect layer) at -24 LUFS
 DUCK_DB, DUCK_ATTACK, DUCK_RELEASE = -5.0, 0.06, 0.6
 LEAD_REST_FROM, LEAD_REST_DB, LEAD_FADE = 24.0, -6.0, 0.12  # the lead steps back while the voice talks

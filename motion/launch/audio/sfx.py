@@ -14,7 +14,7 @@ from scipy.signal import butter, sosfilt
 
 ROOT = Path(__file__).resolve().parent.parent
 SR = 48000
-END = 86.0
+END = 98.0
 rng = np.random.default_rng(11)
 
 
@@ -214,9 +214,9 @@ def build(tl: dict) -> np.ndarray:
     wave = sweep_band(noise(1.0), 5000, 400, q=1.2) * env_ad(int(SR), 0.004, 0.45, 3)
     tr.put(b["drop"], norm(wave, 1), db=-25, pan=np.linspace(-0.6, 0.6, int(SR)))
 
-    # the arrow leaves the logo on its route: a soft launch whoosh
-    w = whoosh(0.8, 300, 3000, peak_at=0.5)
-    tr.put(b["drop"] + 7.2 - 0.4, w, db=-29, pan=np.linspace(-0.4, 0.6, len(w)))
+    # the logo shrinks into the top-left corner: a soft whoosh up and left
+    w = whoosh(0.6, 400, 3500, peak_at=0.6)
+    tr.put(b["logoCorner"] - 0.36, w, db=-30, pan=np.linspace(0.2, -0.6, len(w)))
 
     # into each station
     for at in b["stations"]:
@@ -238,11 +238,38 @@ def build(tl: dict) -> np.ndarray:
         tr.put(at, click(0.9, 3400), db=-27)
         tr.put(at + 0.01, norm(bell((D6, E6, FS6, A6)[k], 0.5, 0.16), 1), db=-31)
 
-    # the calendar fills: soft ticks speeding up
-    c0, c1 = b["calendarFill"]
-    w = np.cumsum(np.linspace(2.0, 1.0, 18))
-    for at in c0 + (c1 - c0) * (w - w[0]) / (w[-1] - w[0]):
-        tr.put(at, click(0.8, 4200), db=-32, pan=rng.uniform(-0.4, 0.4))
+    # the database view swaps in, a search is typed, two picks, the 8.4B slam, chips pop, the Domains tab
+    w = whoosh(0.5, 600, 4000, peak_at=0.7)
+    tr.put(b["dbView"] - 0.35, w, db=-29, pan=np.linspace(-0.4, 0.4, len(w)))
+    typing(tr, b["dbType"][0], b["dbType"][1], db=-33)
+    for k, at in enumerate(b["dbPicks"]):
+        tr.put(at, click(0.9, 3400), db=-27)
+        tr.put(at + 0.01, norm(bell((FS6, A6)[k], 0.5, 0.16), 1), db=-31)
+    for k, at in enumerate(b["dbChips"]):
+        pop = tone(880.0 * (1.25 if k else 1.0), 0.08, 0.025, glide=1320.0 * (1.25 if k else 1.0))
+        tr.put(at, norm(pop, 1), db=-29, pan=(-0.2, 0.2)[k])
+    tr.put(b["domainTab"], click(1.0, 3000), db=-25)
+    typing(tr, b["domainTab"] + 0.1, b["domainTab"] + 0.7, db=-33)
+
+    # the writer: two data streams flowing in, soft granular ticks panned left and right
+    w0, w1 = b["writeIn"]
+    for k in range(70):
+        at = w0 + (w1 - w0) * k / 70 + rng.uniform(0, 0.015)
+        g = tone(rng.uniform(1800, 4200), 0.03, 0.01)
+        tr.put(at, g, db=-37 + rng.uniform(-3, 2), pan=-0.6 if k % 2 else 0.6)
+    flow = band(noise(w1 - w0), 1500, 6000) * np.sin(np.pi * secs(w1 - w0) / (w1 - w0)) ** 2
+    tr.put(w0, norm(flow, 1), db=-38)
+
+    # the brand scanner: a techy sweep with three swatch blips
+    c0, c1 = b["scan"]
+    d = c1 - c0
+    t = secs(d)
+    f = 600.0 + 500.0 * np.sin(2 * np.pi * t / d)  # one slow pass up and back
+    hum = np.sin(2 * np.pi * np.cumsum(f) / SR) * (0.5 + 0.5 * (np.sin(2 * np.pi * 14 * t) > 0))
+    hum = band(hum, 400, 4000) * np.sin(np.pi * t / d) ** 0.6
+    tr.put(c0, norm(hum, 1), db=-36, pan=np.sin(np.pi * t / d * 2) * 0.5)
+    for k, at in enumerate((64.6, 65.0, 65.4)):
+        tr.put(at, norm(tone((D6, FS6, A6)[k], 0.12, 0.04, ((1, 1.0), (2, 0.2))), 1), db=-28, pan=(-0.3, 0.0, 0.3)[k])
 
     # the draft types itself
     typing(tr, b["draftType"][0], b["draftType"][1], db=-34)
@@ -253,9 +280,11 @@ def build(tl: dict) -> np.ndarray:
         snap = band(noise(0.03), 1500, 6000) * env_ad(int(0.03 * SR), 0.0005, 0.01)
         tr.put(at, norm(layer((1.0, norm(thump, 1)), (0.5, norm(snap, 1))), 1), db=-25, pan=(-0.2, 0.0, 0.2)[k])
 
-    # "stand out": a bright hit as the article gets its ticks
-    hit = layer((1.0, norm(bell(FS6, 0.9, 0.25), 1)), (0.7, norm(bell(A6, 0.9, 0.22), 1)), (0.5, click(1.0, 3000)))
-    tr.put(b["standOut"], norm(hit, 1), db=-27)
+    # the article restyles to the brand: a whoosh and a shimmer
+    w = whoosh(0.5, 500, 6000, peak_at=0.65)
+    tr.put(b["restyle"] - 0.33, w, db=-28, pan=np.linspace(-0.5, 0.5, len(w)))
+    shim = sum(bell(f, 0.5, 0.14) * 0.3 for f in (2959.96, 3520.0, 4698.64))
+    tr.put(b["restyle"] + 0.02, norm(band(shim, 2500, None), 1), db=-32)
 
     # paper fold: two creases
     f0 = b["fold"]
@@ -331,11 +360,11 @@ def build(tl: dict) -> np.ndarray:
             x = layer((1.0, x), (0.8, norm(tone(70.0, 0.4, 0.14, glide=40.0), 1)))
         return norm(x, 1)
 
-    for words in ((16.35, 16.75, 16.95), (61.05, 61.3), (73.45, 73.65, 74.3, 74.5), (77.6, 77.85, 78.05)):
+    for words in ((16.35, 16.75, 16.95), (85.05, 85.25, 85.9, 86.1)):
         veil = band(noise(0.45), 2500, 10000) * np.sin(np.pi * secs(0.45) / 0.45) ** 2
         tr.put(words[0] - 0.15, norm(veil, 1), db=-36, pan=np.linspace(-0.3, 0.3, len(veil)))
         for k, at in enumerate(words):
-            last_big = words[0] == 77.6 and k == len(words) - 1
+            last_big = words[0] > 80 and k == len(words) - 1
             tr.put(at, thock(300.0 * 2 ** (k * 2 / 12), big=last_big), db=-22 if last_big else -25, pan=(k - 1) * 0.15)
 
     # 3D logo spin: a rising swoosh, then a metallic shimmer as the light sweeps across
@@ -346,7 +375,7 @@ def build(tl: dict) -> np.ndarray:
     tr.put(24.9, norm(band(shim, 2500, None), 1), db=-31, pan=np.linspace(-0.6, 0.6, len(shim)))
 
     # pin drops: a soft sonar bloop with a ripple echo
-    for at in (32.0, 40.0, 48.0, 54.0):
+    for at in b["stations"]:
         bl = tone(330.0, 0.4, 0.12, ((1, 1.0), (2, 0.15)), glide=520.0)
         x = np.zeros(len(bl) + int(0.32 * SR))
         x[: len(bl)] += bl
@@ -355,7 +384,7 @@ def build(tl: dict) -> np.ndarray:
         tr.put(at, norm(x, 1), db=-27)
 
     # speed-ramp travels: a fast whoosh that decays into a slow-motion tail
-    for t0, t1 in ((30.8, 32.0), (39.2, 40.1), (47.2, 48.1), (53.2, 54.1)):
+    for t0, t1 in ((at - 1.2, at) for at in b["stations"]):
         d = t1 - t0
         fast = whoosh(0.35, 800, 7000, peak_at=0.7)
         tail_d = d - 0.25
@@ -368,14 +397,14 @@ def build(tl: dict) -> np.ndarray:
         tr.put(t0, x, db=-26, pan=np.linspace(-0.6, 0.5, len(x)))
 
     # closed won: a short, bright major chime (D6 F#6 A6 D7)
-    tr.put(77.2, chime((D6, FS6, A6, D7), 0.05, 0.9, 0.3), db=-24)
+    tr.put(b["closedWon"], chime((D6, FS6, A6, D7), 0.05, 0.9, 0.3), db=-24)
 
-    # logo strike at 84: a big cinematic hit with the final chord, and a ring tail
+    # the logo strike: a big cinematic hit with the final chord, and a ring tail
     boom = tone(73.4, 2.0, 0.7, glide=36.7)
     crack = band(noise(0.4), 200, 5000) * env_ad(int(0.4 * SR), 0.001, 0.12)
     ring = sum(bell(f, 2.0, 0.9) * a for f, a in ((587.33, 1.0), (880.0, 0.7), (1174.66, 0.5), (1479.98, 0.3)))
     hit = layer((1.0, norm(boom, 1)), (0.6, norm(crack, 1)), (0.45, norm(ring, 1)))
-    tr.put(84.0, norm(hit, 1), db=-15)
+    tr.put(b["logoStrike"], norm(hit, 1), db=-15)
 
     # the giant chevron sweeps up
     w = whoosh(0.7, 250, 6000, peak_at=0.6)
