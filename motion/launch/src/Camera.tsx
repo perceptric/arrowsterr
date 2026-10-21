@@ -78,7 +78,7 @@ const HITS: [number, number][] = [
 	...B.slams.map((s): [number, number] => [s, 0.025]),
 	[B.finalDrop, 0.04],
 	[B.closedWon, 0.02],
-	[78.05, 0.03],
+	[B.dbSlam, 0.02],
 ];
 
 export const punchAt = (t: number) => HITS.reduce((sum, [at, amp]) => sum + amp * hit(t, at, 7), 0);

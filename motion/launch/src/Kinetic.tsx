@@ -3,13 +3,20 @@ import {AbsoluteFill} from 'remotion';
 import {IN, OUT, prog, useT} from './lib';
 import {C, sans} from './theme';
 
-type Word = {w: string; at: number; tone?: 'neg' | 'signal' | 'pos'};
+type Word = {w: string; at: number; tone?: 'neg' | 'signal' | 'pos'; br?: boolean};
 // Key lines hit the screen word by word, timed to the voice.
 const LINES: {from: number; to: number; words: Word[]}[] = [
 	{from: 16.2, to: 17.75, words: [{w: 'pipeline', at: 16.35, tone: 'neg'}, {w: 'and', at: 16.75}, {w: 'revenue', at: 16.95, tone: 'neg'}]},
-	{from: 60.9, to: 62.2, words: [{w: 'Stand', at: 61.05}, {w: 'out.', at: 61.3, tone: 'signal'}]},
-	{from: 73.3, to: 75.5, words: [{w: 'That', at: 73.45}, {w: 'opportunity', at: 73.65}, {w: 'is', at: 74.3}, {w: 'yours.', at: 74.5, tone: 'signal'}]},
-	{from: 77.45, to: 79.05, words: [{w: 'Close', at: 77.6}, {w: 'the', at: 77.85}, {w: 'deal.', at: 78.05, tone: 'pos'}]},
+	{
+		from: 84.9,
+		to: 87.1,
+		words: [
+			{w: 'That', at: 85.05, tone: 'signal'},
+			{w: 'opportunity', at: 85.25, tone: 'signal'},
+			{w: 'is', at: 85.9, tone: 'signal', br: true},
+			{w: 'yours.', at: 86.1, tone: 'signal'},
+		],
+	},
 ];
 const TONE = {neg: C.neg, signal: C.signalText, pos: C.pos};
 
@@ -26,6 +33,8 @@ export const Kinetic: React.FC = () => {
 				{line.words.map((w) => {
 					const p = prog(t, w.at, w.at + 0.18, OUT);
 					return (
+						<React.Fragment key={w.w}>
+						{w.br ? <span style={{flexBasis: '100%', height: 0}} /> : null}
 						<span
 							key={w.w}
 							style={{
@@ -43,6 +52,7 @@ export const Kinetic: React.FC = () => {
 						>
 							{w.w}
 						</span>
+						</React.Fragment>
 					);
 				})}
 			</div>

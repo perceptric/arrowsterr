@@ -1,11 +1,11 @@
 import React from 'react';
-import {AbsoluteFill, Solid, staticFile, useVideoConfig} from 'remotion';
+import {AbsoluteFill, Img, Solid, staticFile, useVideoConfig} from 'remotion';
 import {Audio} from '@remotion/media';
 import {CameraMotionBlur} from '@remotion/motion-blur';
 import {lightLeak} from '@remotion/effects/light-leak';
 import {World} from './Camera';
 import {Close} from './Close';
-import {B, focusAt, glitchAt, prog, useT} from './lib';
+import {B, focusAt, glitchAt, INOUT, prog, useT} from './lib';
 import {Kinetic} from './Kinetic';
 import {random} from 'remotion';
 import {C} from './theme';
@@ -78,6 +78,25 @@ const Leak: React.FC = () => {
 	);
 };
 
+// After the logo moment the lockup flies to the top-left corner and hovers there through the features.
+const LOGO_RATIO = 623.62 / 114.67;
+const LogoBadge: React.FC = () => {
+	const t = useT();
+	if (t < B.logoCorner || t > B.close + 0.1) return null;
+	const p = prog(t, B.logoCorner, B.logoCorner + 0.8, INOUT);
+	const h = 236 + (46 - 236) * p;
+	const w = h * LOGO_RATIO;
+	const cx = 960 + (60 + 46 * LOGO_RATIO * 0.5 - 960) * p;
+	const cy = 470 + (48 + 23 - 470) * p;
+	const hover = p >= 1 ? Math.sin((t - B.logoCorner) * 2.2) * 3 : 0;
+	return (
+		<Img
+			src={staticFile('brand/arrowsterr-logo-color.svg')}
+			style={{position: 'absolute', left: cx - w / 2, top: cy - h / 2 + hover, width: w, height: h, opacity: 1 - prog(t, B.close - 0.1, B.close + 0.1)}}
+		/>
+	);
+};
+
 // The fast middle of each speed ramp gets motion blur.
 const BLUR: [number, number][] = [
 	[B.ship + 0.05, B.ship + 1.35],
@@ -123,6 +142,7 @@ export const Film: React.FC = () => {
 			) : (
 				<Scene />
 			)}
+			<LogoBadge />
 			<Kinetic />
 			<Leak />
 			<Close />

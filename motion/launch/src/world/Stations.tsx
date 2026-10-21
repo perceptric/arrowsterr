@@ -1,8 +1,9 @@
 import React from 'react';
-import {B, INOUT, prog, typed, useT} from '../lib';
+import {Img, random, staticFile} from 'remotion';
+import {B, hit, INOUT, mixColor, prog, typed, useT} from '../lib';
 import {STATIONS, STATION_H, STATION_W} from '../layout';
 import {C, display, mono} from '../theme';
-import {At, Card, ChevronUp, Climb, Cursor, LogoTile, Num, Tag} from './ui';
+import {At, BRAND_COLOR, Card, ChevronUp, Climb, Cursor, LogoTile, Num, slamStyle, Tag} from './ui';
 
 const Panel: React.FC<{k: number; title: string; children: React.ReactNode}> = ({k, title, children}) => {
 	const t = useT();
@@ -184,14 +185,14 @@ const KEYWORDS = [
 ];
 const START_SLOT = [3, 1, 5, 0, 4, 2]; // where each keyword sits before the sort
 
-export const Find: React.FC = () => {
+const Picks: React.FC = () => {
 	const t = useT();
 	const t1 = B.stations[1];
 	const sort = prog(t, B.keywordSort, B.keywordSort + 0.8, INOUT);
 	const rowY = (slot: number) => 168 + slot * 70;
 	const done = prog(t, B.keywordPicks[3] + 0.5, B.keywordPicks[3] + 0.9);
 	return (
-		<Panel k={1} title="Keywords most likely to convert">
+		<>
 			<div style={{position: 'absolute', left: 44, right: 44, top: 126, display: 'flex', fontSize: 18, fontWeight: 600, color: C.ink2, opacity: prog(t, t1, t1 + 0.3)}}>
 				<span style={{width: 50}} />
 				<span style={{flex: 1}}>Keyword</span>
@@ -240,72 +241,235 @@ export const Find: React.FC = () => {
 					</div>
 				);
 			})}
+		</>
+	);
+};
+
+// The database view: search 8.4B keywords, pick your own, then research any domain.
+const DB_ROWS = [
+	{kw: 'table booking app', cc: 'US', vol: '12,100'},
+	{kw: 'table booking system', cc: 'UK', vol: '4,400'},
+	{kw: 'online table booking', cc: 'DE', vol: '2,900'},
+	{kw: 'table booking widget', cc: 'AU', vol: '1,600'},
+	{kw: 'free table booking software', cc: 'CA', vol: '1,300'},
+];
+const DOMAIN_ROWS = [
+	{kw: 'acme reservations', cc: '#1', vol: '8,100'},
+	{kw: 'table reservation software', cc: '#2', vol: '3,600'},
+	{kw: 'restaurant booking app', cc: '#3', vol: '5,400'},
+	{kw: 'reservation system pricing', cc: '#4', vol: '1,900'},
+	{kw: 'acme vs northwind', cc: '#5', vol: '880'},
+];
+const COUNTRIES = ['US', 'UK', 'DE', 'FR', 'JP', 'BR', 'VN', 'IN'];
+
+const Database: React.FC = () => {
+	const t = useT();
+	const dom = t >= B.domainTab;
+	const [ty0, ty1] = B.dbType;
+	const query = dom ? typed('acme.com', t, B.domainTab + 0.1, B.domainTab + 0.7) : typed('table booking', t, ty0, ty1);
+	const rows = dom ? DOMAIN_ROWS : DB_ROWS;
+	const rowsIn = dom ? B.domainTab + 0.8 : ty1 + 0.1;
+	const slamK = hit(t, B.dbSlam, 8);
+	return (
+		<>
+			{/* tabs */}
+			<div style={{position: 'absolute', left: 44, top: 108, display: 'flex', gap: 28, fontSize: 21, fontWeight: 700}}>
+				{['Keywords', 'Domains'].map((tab, i) => {
+					const on = (i === 1) === dom;
+					return (
+						<span key={tab} style={{color: on ? C.signalText : C.ink3, paddingBottom: 8, borderBottom: `3px solid ${on ? C.signal : 'transparent'}`}}>
+							{tab}
+						</span>
+					);
+				})}
+			</div>
+			{/* the size of the database */}
+			<div style={{position: 'absolute', right: 44, top: 100, width: 300, height: 110, display: 'flex', alignItems: 'baseline', justifyContent: 'flex-end', gap: 12, opacity: prog(t, B.dbSlam - 0.15, B.dbSlam)}}>
+				<span style={{...slamStyle(slamK), transformOrigin: 'right center'}}>
+					<Num size={84} color={C.signalText} weight={800}>
+						8.4B
+					</Num>
+				</span>
+				<span style={{fontSize: 22, fontWeight: 700, color: C.ink2}}>keywords</span>
+			</div>
+			<Ticks x={700} y={100} w={300} h={110} on={prog(t, B.dbSlam, B.dbSlam + 0.3)} />
+			{/* search */}
+			<div style={{position: 'absolute', left: 44, top: 160, width: 600, height: 60, borderRadius: 8, border: `2px solid ${C.signal}`, display: 'flex', alignItems: 'center', gap: 12, padding: '0 18px', fontSize: 23, color: C.inkStrong}}>
+				<svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={C.ink2} strokeWidth={2.4}>
+					<circle cx={10.5} cy={10.5} r={6.5} />
+					<path d="M15.5 15.5 L21 21" />
+				</svg>
+				{query}
+				<span style={{width: 3, height: 28, background: C.signal}} />
+			</div>
+			{rows.map((r, i) => {
+				const a = prog(t, rowsIn + i * 0.08, rowsIn + 0.25 + i * 0.08);
+				const pickAt = !dom && i === 0 ? B.dbPicks[0] : !dom && i === 2 ? B.dbPicks[1] : 0;
+				const on = pickAt ? prog(t, pickAt, pickAt + 0.12) : 0;
+				return (
+					<div
+						key={(dom ? 'd' : 'k') + r.kw}
+						style={{
+							position: 'absolute',
+							left: 44,
+							right: 44,
+							top: 240 + i * 60,
+							height: 52,
+							display: 'flex',
+							alignItems: 'center',
+							gap: 16,
+							padding: '0 16px',
+							borderRadius: 8,
+							border: `2px solid ${on > 0.5 ? C.signal : C.line}`,
+							background: on > 0.5 ? C.signalTint : C.bg,
+							opacity: a,
+							translate: `${(1 - a) * -24}px 0`,
+							fontSize: 20,
+							color: C.ink,
+						}}
+					>
+						{dom ? null : <Check on={on} />}
+						<span style={{flex: 1}}>{r.kw}</span>
+						<Tag kind={dom ? 'signal' : 'neutral'} size={16}>
+							{r.cc}
+						</Tag>
+						<span style={{width: 90, textAlign: 'right'}}>
+							<Num size={20}>{r.vol}</Num>
+						</span>
+					</div>
+				);
+			})}
+			{/* every industry, every country */}
+			<div style={{position: 'absolute', left: 44, top: 556, display: 'flex', gap: 10, alignItems: 'center'}}>
+				{['All industries', 'All countries'].map((c, i) => {
+					const a = prog(t, B.dbChips[i], B.dbChips[i] + 0.2);
+					return (
+						<span key={c} style={{opacity: a, scale: `${0.8 + 0.2 * a}`}}>
+							<Tag kind="signal" size={18}>
+								{c}
+							</Tag>
+						</span>
+					);
+				})}
+				{COUNTRIES.map((c, i) => {
+					const a = prog(t, B.dbChips[1] + 0.1 + i * 0.05, B.dbChips[1] + 0.25 + i * 0.05);
+					return (
+						<span key={c} style={{opacity: a}}>
+							<Tag kind="neutral" size={16}>
+								{c}
+							</Tag>
+						</span>
+					);
+				})}
+				<span style={{opacity: prog(t, B.dbChips[1] + 0.6, B.dbChips[1] + 0.8), fontSize: 18, fontWeight: 700, color: C.ink2}}>+190</span>
+			</div>
+			{!dom && t > B.dbPicks[0] - 0.8 && t < B.dbPicks[1] + 0.6 ? (
+				<Cursor
+					p={{x: 120, y: t < B.dbPicks[0] + 0.1 ? 300 - 34 * prog(t, B.dbPicks[0] - 0.7, B.dbPicks[0]) : 266 + 120 * prog(t, B.dbPicks[0] + 0.2, B.dbPicks[1])}}
+					press={Math.max(hit(t, B.dbPicks[0], 18), hit(t, B.dbPicks[1], 18))}
+					opacity={Math.min(prog(t, B.dbPicks[0] - 0.8, B.dbPicks[0] - 0.6), 1 - prog(t, B.dbPicks[1] + 0.3, B.dbPicks[1] + 0.6))}
+				/>
+			) : null}
+		</>
+	);
+};
+
+export const Find: React.FC = () => {
+	const t = useT();
+	const sw = prog(t, B.dbView - 0.15, B.dbView + 0.3, INOUT);
+	return (
+		<Panel k={1} title={sw < 0.5 ? 'Keywords most likely to convert' : 'Keyword and domain research'}>
+			<div style={{position: 'absolute', inset: 0, opacity: 1 - sw, translate: `${-sw * 60}px 0`}}>
+				<Picks />
+			</div>
+			{sw > 0 ? (
+				<div style={{position: 'absolute', inset: 0, opacity: sw, translate: `${(1 - sw) * 60}px 0`}}>
+					<Database />
+				</div>
+			) : null}
 		</Panel>
 	);
 };
 
-// ---------- 03 Plan: the full editorial calendar, written ----------
+// ---------- 03 Write: in your brand voice, learning from the top of Google ----------
 
-const TOPIC_DAYS = [2, 3, 5, 6, 9, 10, 12, 13, 16, 17, 19, 20, 23, 24, 26, 27];
 const DRAFT_TITLE = 'The best reservation software for small restaurants';
+const VOICE = ['Friendly', 'Expert', 'Clear', 'No jargon'];
+const SERP = [
+	{t: 'The 9 best reservation apps', d: 'northwind.com'},
+	{t: 'Reservation software guide', d: 'acme.com'},
+	{t: 'How to pick booking software', d: 'globex.com'},
+];
 
-export const Plan: React.FC = () => {
+export const Write: React.FC = () => {
 	const t = useT();
 	const t2 = B.stations[2];
-	const [f0, f1] = B.calendarFill;
+	const [w0, w1] = B.writeIn;
 	const [d0, d1] = B.draftType;
-	const cell = 62;
-	const gap = 7;
-	const calX = 44;
-	const calY = 196;
-	const pos = (day: number) => ({x: calX + ((day - 1) % 7) * (cell + gap), y: calY + Math.floor((day - 1) / 7) * (cell + gap)});
-	const card = prog(t, d0 - 0.5, d0 - 0.1);
 	return (
-		<Panel k={2} title="Your editorial calendar">
-			<span style={{position: 'absolute', left: calX, top: 118, fontFamily: display, fontWeight: 700, fontSize: 26, color: C.inkStrong}}>November</span>
-			{['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
-				<span key={i} style={{position: 'absolute', left: calX + i * (cell + gap) + 6, top: 162, fontSize: 16, color: C.ink3, fontWeight: 600}}>
-					{d}
-				</span>
-			))}
-			{Array.from({length: 30}, (_, i) => {
-				const day = i + 1;
-				const p = pos(day);
-				const k = TOPIC_DAYS.indexOf(day);
-				const planned = k >= 0 ? prog(t, f0 + (k / TOPIC_DAYS.length) * (f1 - f0), f0 + (k / TOPIC_DAYS.length) * (f1 - f0) + 0.12) : 0;
-				const written = k >= 0 ? prog(t, d0 + k * 0.12, d0 + k * 0.12 + 0.1) : 0;
-				return (
-					<div
-						key={day}
-						style={{
-							position: 'absolute',
-							left: p.x,
-							top: p.y,
-							width: cell,
-							height: cell,
-							borderRadius: 4,
-							border: `2px solid ${planned > 0.5 ? (written > 0.5 ? C.signal : C.sky) : C.line}`,
-							background: written > 0.5 ? C.signalTint : C.bg,
-							opacity: prog(t, t2 - 0.3 + i * 0.005, t2 + i * 0.005),
-						}}
-					>
-						<span style={{position: 'absolute', left: 6, top: 4, fontFamily: mono, fontSize: 14, color: written > 0.5 ? C.signalText : C.ink3}}>{day}</span>
-						<div style={{position: 'absolute', left: 6, right: 6, bottom: 8, height: 8, borderRadius: 2, background: written > 0.5 ? C.signal : C.sky, opacity: planned, scale: `${planned} 1`, transformOrigin: 'left'}} />
+		<Panel k={2} title="Written in your voice">
+			{/* brand voice */}
+			<div style={{position: 'absolute', left: 44, top: 112, width: 400, height: 200, opacity: prog(t, t2, t2 + 0.3)}}>
+				<Card style={{padding: 20, display: 'flex', flexDirection: 'column', gap: 14, borderColor: C.lineStrong}}>
+					<span style={{fontSize: 22, fontWeight: 700, color: C.inkStrong}}>Brand Voice</span>
+					<div style={{display: 'flex', flexWrap: 'wrap', gap: 8}}>
+						{VOICE.map((v, i) => (
+							<span key={v} style={{opacity: prog(t, t2 + 0.2 + i * 0.1, t2 + 0.4 + i * 0.1)}}>
+								<Tag kind="signal" size={17}>
+									{v}
+								</Tag>
+							</span>
+						))}
 					</div>
-				);
-			})}
-			{/* one day opens into its draft, written for you */}
-			<div style={{position: 'absolute', left: 560, top: 118, width: 436, height: 460, opacity: card, translate: `0 ${(1 - card) * 24}px`}}>
-				<Card style={{padding: 26, display: 'flex', flexDirection: 'column', gap: 14, borderColor: C.lineStrong}}>
+					{[0.9, 0.7].map((w, i) => (
+						<div key={i} style={{height: 10, width: `${w * 100}%`, borderRadius: 2, background: C.bg4}} />
+					))}
+				</Card>
+			</div>
+			{/* top of Google */}
+			<div style={{position: 'absolute', left: 44, top: 330, width: 400, height: 250, opacity: prog(t, t2 + 0.2, t2 + 0.5)}}>
+				<Card style={{padding: 20, display: 'flex', flexDirection: 'column', gap: 10, borderColor: C.lineStrong}}>
 					<div style={{display: 'flex', alignItems: 'center', gap: 10}}>
-						<Num size={18} color={C.ink2}>
-							Nov 3
-						</Num>
-						<span style={{flex: 1}} />
+						<Img src={staticFile('engines/google.png')} style={{width: 24, height: 24}} />
+						<span style={{fontSize: 22, fontWeight: 700, color: C.inkStrong}}>Top on Google</span>
+					</div>
+					{SERP.map((r, i) => (
+						<div key={r.t} style={{display: 'flex', alignItems: 'center', gap: 10, opacity: prog(t, t2 + 0.4 + i * 0.12, t2 + 0.6 + i * 0.12)}}>
+							<Num size={17} color={C.ink2}>
+								#{i + 1}
+							</Num>
+							<div style={{display: 'flex', flexDirection: 'column'}}>
+								<span style={{fontSize: 17, fontWeight: 700, color: C.inkStrong}}>{r.t}</span>
+								<span style={{fontSize: 14, color: C.ink3}}>{r.d}</span>
+							</div>
+						</div>
+					))}
+				</Card>
+			</div>
+			{/* both stream into the draft */}
+			{Array.from({length: 40}, (_, i) => {
+				const fromVoice = i % 2 === 0;
+				const start = w0 + random(`ws${i}`) * (w1 - w0 + 1.2);
+				const p = prog(t, start, start + 0.7, INOUT);
+				if (p <= 0 || p >= 1) return null;
+				const x0 = 444;
+				const y0 = fromVoice ? 210 : 450;
+				const x1 = 540;
+				const y1 = 200 + random(`wy${i}`) * 300;
+				const cx = 500;
+				const x = (1 - p) * (1 - p) * x0 + 2 * (1 - p) * p * cx + p * p * x1;
+				const y = (1 - p) * (1 - p) * y0 + 2 * (1 - p) * p * ((y0 + y1) / 2) + p * p * y1;
+				return <div key={i} style={{position: 'absolute', left: x, top: y, width: 9, height: 9, background: fromVoice ? C.signal : C.sky}} />;
+			})}
+			{/* the draft */}
+			<div style={{position: 'absolute', left: 540, top: 112, width: 456, height: 468, opacity: prog(t, w0, w0 + 0.4)}}>
+				<Card style={{padding: 26, display: 'flex', flexDirection: 'column', gap: 14, borderColor: C.signal}}>
+					<div style={{display: 'flex', alignItems: 'center', gap: 10}}>
+						<span style={{fontSize: 18, fontWeight: 700, color: C.ink2, flex: 1}}>Draft</span>
 						{t > d1 + 0.2 ? (
 							<span style={{opacity: prog(t, d1 + 0.2, d1 + 0.4)}}>
-								<Tag kind="pos" size={17}>
-									Written
+								<Tag kind="pos" size={17} icon={<ChevronUp size={14} color={C.pos} />}>
+									Voice match 96%
 								</Tag>
 							</span>
 						) : (
@@ -314,9 +478,9 @@ export const Plan: React.FC = () => {
 							</Tag>
 						)}
 					</div>
-					<div style={{fontFamily: display, fontWeight: 700, fontSize: 28, lineHeight: 1.18, color: C.inkStrong, minHeight: 100}}>{typed(DRAFT_TITLE, t, d0, d0 + 1.0)}</div>
-					{[0.95, 0.88, 0.92, 0.6, -1, 0.9, 0.84, 0.7].map((w, i) => {
-						const a = prog(t, d0 + 0.8 + i * 0.13, d0 + 1.0 + i * 0.13);
+					<div style={{fontFamily: display, fontWeight: 800, fontSize: 30, lineHeight: 1.15, color: C.inkStrong, minHeight: 104}}>{typed(DRAFT_TITLE, t, d0, d0 + 1.0)}</div>
+					{[0.95, 0.88, 0.92, 0.6, -1, 0.9, 0.84, 0.7, 0.8].map((w, i) => {
+						const a = prog(t, d0 + 0.8 + i * 0.22, d0 + 1.0 + i * 0.22);
 						return <div key={i} style={{height: w < 0 ? 18 : 12, width: `${(w < 0 ? 0.5 : w) * 100 * a}%`, borderRadius: 2, background: w < 0 ? C.ink3 : C.bg4, marginTop: w < 0 ? 8 : 0}} />;
 					})}
 				</Card>
@@ -325,10 +489,12 @@ export const Plan: React.FC = () => {
 	);
 };
 
-// ---------- 04 Create: screenshots, tables and interactive demos ----------
+// ---------- 04 Create: screenshots, tables and demos, in your brand style ----------
 
 export const PAGE = {left: 44, top: 104, w: 600, h: 492};
-const BLOCKS = ['Screenshots', 'Tables', 'Interactive demos'];
+const YOU = BRAND_COLOR['Your Brand'];
+const YOU_INK = '#3B0A1E';
+const YOU_TINT = '#FCE4EC';
 
 const Block: React.FC<{at: number; h: number; children: React.ReactNode}> = ({at, h, children}) => {
 	const t = useT();
@@ -340,36 +506,40 @@ const Block: React.FC<{at: number; h: number; children: React.ReactNode}> = ({at
 	);
 };
 
-// A product screenshot: a small Arrowsterr window with a rising chart.
-const MiniShot: React.FC = () => (
-	<div style={{height: '100%', borderRadius: 8, border: `2px solid ${C.line}`, background: C.bg2, overflow: 'hidden', display: 'flex', flexDirection: 'column'}}>
+type Style = {accent: string; tint: string; ink: string; r: number};
+
+// A product screenshot: a small window with a rising chart.
+const MiniShot: React.FC<{s: Style}> = ({s}) => (
+	<div style={{height: '100%', borderRadius: s.r, border: `2px solid ${C.line}`, background: C.bg2, overflow: 'hidden', display: 'flex', flexDirection: 'column'}}>
 		<div style={{height: 22, background: C.bg, borderBottom: `1px solid ${C.line}`, display: 'flex', alignItems: 'center', gap: 6, padding: '0 10px'}}>
-			<Climb size={14} />
+			<LogoTile name="Your Brand" size={14} />
 			<div style={{height: 6, width: 70, borderRadius: 2, background: C.bg4}} />
 		</div>
 		<div style={{flex: 1, display: 'flex', gap: 12, padding: '8px 12px'}}>
 			<div style={{width: 110, display: 'flex', flexDirection: 'column', gap: 6, justifyContent: 'center'}}>
 				<div style={{height: 6, width: '60%', borderRadius: 2, background: C.bg4}} />
-				<Num size={26}>60%</Num>
+				<Num size={26} color={s.ink}>
+					+38%
+				</Num>
 			</div>
 			<svg viewBox="0 0 200 60" preserveAspectRatio="none" style={{flex: 1, height: '100%'}}>
-				<polygon points="0,58 40,54 80,46 120,32 160,18 200,6 200,60 0,60" fill={C.signal} opacity={0.08} />
-				<polyline points="0,58 40,54 80,46 120,32 160,18 200,6" fill="none" stroke={C.signal} strokeWidth={3} vectorEffect="non-scaling-stroke" />
+				<polygon points="0,58 40,54 80,46 120,32 160,18 200,6 200,60 0,60" fill={s.accent} opacity={0.12} />
+				<polyline points="0,58 40,54 80,46 120,32 160,18 200,6" fill="none" stroke={s.accent} strokeWidth={3} vectorEffect="non-scaling-stroke" />
 			</svg>
 		</div>
 	</div>
 );
 
-const MiniTable: React.FC = () => (
-	<div style={{height: '100%', borderRadius: 8, border: `2px solid ${C.line}`, overflow: 'hidden', fontSize: 15}}>
+const MiniTable: React.FC<{s: Style}> = ({s}) => (
+	<div style={{height: '100%', borderRadius: s.r, border: `2px solid ${C.line}`, overflow: 'hidden', fontSize: 15}}>
 		{[
 			['', 'Deposits', 'Waitlist'],
 			['Your Brand', 'Yes', 'Yes'],
 			['Acme', 'Yes', 'No'],
 		].map((r, i) => (
-			<div key={i} style={{display: 'flex', height: '33.4%', alignItems: 'center', background: i === 0 ? C.bg3 : C.bg, borderTop: i ? `1px solid ${C.lineFaint}` : 'none'}}>
+			<div key={i} style={{display: 'flex', height: '33.4%', alignItems: 'center', background: i === 0 ? s.tint : C.bg, borderTop: i ? `1px solid ${C.lineFaint}` : 'none'}}>
 				{r.map((c, j) => (
-					<span key={j} style={{flex: j ? 1 : 1.4, padding: '0 12px', fontWeight: i === 0 || j === 0 ? 700 : 500, color: i === 1 && j === 0 ? C.signalText : C.ink}}>
+					<span key={j} style={{flex: j ? 1 : 1.4, padding: '0 12px', fontWeight: i === 0 || j === 0 ? 700 : 500, color: i === 1 && j === 0 ? s.accent : i === 0 ? s.ink : C.ink}}>
 						{c}
 					</span>
 				))}
@@ -378,22 +548,22 @@ const MiniTable: React.FC = () => (
 	</div>
 );
 
-const MiniDemo: React.FC<{at: number}> = ({at}) => {
+const MiniDemo: React.FC<{at: number; s: Style}> = ({at, s}) => {
 	const t = useT();
-	const s = 0.2 + 0.65 * prog(t, at + 0.4, at + 1.6, INOUT);
-	const covers = Math.round(40 + s * 160);
+	const v = 0.2 + 0.65 * prog(t, at + 0.4, at + 1.6, INOUT);
+	const covers = Math.round(40 + v * 160);
 	return (
-		<div style={{height: '100%', borderRadius: 8, border: `2px solid ${C.signal}`, padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 10}}>
+		<div style={{height: '100%', borderRadius: s.r, border: `2px solid ${s.accent}`, padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 10}}>
 			<div style={{display: 'flex', alignItems: 'center', fontSize: 16, color: C.ink2}}>
 				<span style={{flex: 1}}>Covers per night</span>
 				<Num size={18}>{covers}</Num>
 			</div>
-			<div style={{position: 'relative', height: 8, borderRadius: 2, background: C.bg4}}>
-				<div style={{position: 'absolute', left: 0, top: 0, bottom: 0, width: `${s * 100}%`, background: C.signal, borderRadius: 2}} />
-				<div style={{position: 'absolute', left: `calc(${s * 100}% - 11px)`, top: -7, width: 22, height: 22, borderRadius: 999, background: C.bg, border: `3px solid ${C.signal}`}} />
+			<div style={{position: 'relative', height: 8, borderRadius: 4, background: C.bg4}}>
+				<div style={{position: 'absolute', left: 0, top: 0, bottom: 0, width: `${v * 100}%`, background: s.accent, borderRadius: 4}} />
+				<div style={{position: 'absolute', left: `calc(${v * 100}% - 11px)`, top: -7, width: 22, height: 22, borderRadius: 999, background: C.bg, border: `3px solid ${s.accent}`}} />
 			</div>
 			<div style={{display: 'flex', alignItems: 'baseline', gap: 8}}>
-				<Num size={26} color={C.signalText}>
+				<Num size={26} color={s.accent}>
 					${(covers * 21).toLocaleString('en-US')}
 				</Num>
 				<span style={{fontSize: 15, color: C.ink2}}>more a month</span>
@@ -402,12 +572,63 @@ const MiniDemo: React.FC<{at: number}> = ({at}) => {
 	);
 };
 
+/** The brand style kit: scanned off your site, then poured into the article. */
+const StyleKit: React.FC = () => {
+	const t = useT();
+	const [s0, s1] = B.scan;
+	const scan = prog(t, s0, s1, INOUT);
+	const sw = [YOU, YOU_INK, YOU_TINT];
+	return (
+		<>
+			{/* your site, being scanned */}
+			<div style={{position: 'absolute', left: 690, top: 104, width: 306, height: 220, opacity: prog(t, s0 - 0.4, s0)}}>
+				<Card style={{borderColor: C.lineStrong}}>
+					<div style={{height: 34, borderBottom: `1px solid ${C.line}`, display: 'flex', alignItems: 'center', gap: 8, padding: '0 12px'}}>
+						<LogoTile name="Your Brand" size={18} />
+						<span style={{fontSize: 15, fontWeight: 700, color: C.ink2}}>yourbrand.com</span>
+					</div>
+					<div style={{padding: 14, display: 'flex', flexDirection: 'column', gap: 8}}>
+						<div style={{height: 16, width: '80%', borderRadius: 3, background: YOU_INK}} />
+						<div style={{height: 10, width: '95%', borderRadius: 2, background: C.bg4}} />
+						<div style={{height: 10, width: '70%', borderRadius: 2, background: C.bg4}} />
+						<div style={{height: 34, width: 120, borderRadius: 16, background: YOU, marginTop: 6}} />
+					</div>
+					{scan > 0 && scan < 1 ? (
+						<div style={{position: 'absolute', left: 0, right: 0, top: `${scan * 100}%`, height: 4, background: C.signal, opacity: 0.9}} />
+					) : null}
+					{scan > 0 && scan < 1 ? <div style={{position: 'absolute', left: 0, right: 0, top: 0, height: `${scan * 100}%`, background: C.signal, opacity: 0.06}} /> : null}
+				</Card>
+			</div>
+			{/* what the scan found */}
+			<div style={{position: 'absolute', left: 690, top: 340, width: 306, height: 252, opacity: prog(t, s0 + 0.6, s0 + 0.9)}}>
+				<Card style={{padding: 18, display: 'flex', flexDirection: 'column', gap: 14, borderColor: C.lineStrong}}>
+					<span style={{fontSize: 20, fontWeight: 700, color: C.inkStrong}}>Brand Style</span>
+					<div style={{display: 'flex', gap: 10}}>
+						{sw.map((c, i) => {
+							const a = prog(t, s0 + 1.0 + i * 0.4, s0 + 1.2 + i * 0.4);
+							return <div key={c} style={{width: 56, height: 56, borderRadius: 12, background: c, border: `2px solid ${C.line}`, opacity: a, scale: `${0.6 + 0.4 * a}`}} />;
+						})}
+					</div>
+					<div style={{display: 'flex', alignItems: 'center', gap: 14, opacity: prog(t, s1 - 0.4, s1)}}>
+						<span style={{fontSize: 34, fontWeight: 800, color: YOU_INK}}>Aa</span>
+						<span style={{fontSize: 16, color: C.ink2, fontWeight: 600}}>Headings 800 · Corners 16</span>
+					</div>
+				</Card>
+			</div>
+		</>
+	);
+};
+
 export const Create: React.FC = () => {
 	const t = useT();
 	const [b0, b1, b2] = B.blocks;
 	const pageOn = 1 - prog(t, B.fold, B.fold + 0.15);
+	// The article takes on your brand style the moment it's applied.
+	const st = prog(t, B.restyle, B.restyle + 0.5, INOUT);
+	const s: Style = {accent: mixColor(C.signal, YOU, st), tint: mixColor(C.bg3, YOU_TINT, st), ink: mixColor(C.inkStrong, YOU_INK, st), r: 8 + 8 * st};
+	const flashX = prog(t, B.restyle, B.restyle + 0.6, INOUT);
 	return (
-		<Panel k={3} title="More than text">
+		<Panel k={3} title="Articles in your brand style">
 			<div
 				style={{
 					position: 'absolute',
@@ -415,60 +636,31 @@ export const Create: React.FC = () => {
 					top: PAGE.top,
 					width: PAGE.w,
 					height: PAGE.h,
-					border: `2px solid ${C.lineStrong}`,
-					borderRadius: 8,
+					border: `2px solid ${st > 0.5 ? mixColor(C.lineStrong, YOU, st) : C.lineStrong}`,
+					borderRadius: s.r,
 					padding: '22px 26px',
 					opacity: pageOn,
 					overflow: 'hidden',
 					background: C.bg,
 				}}
 			>
-				<div style={{fontFamily: display, fontSize: 26, fontWeight: 700, color: C.inkStrong, lineHeight: 1.15}}>{DRAFT_TITLE}</div>
+				<div style={{fontFamily: display, fontSize: 26, fontWeight: 800, color: s.ink, lineHeight: 1.15}}>{DRAFT_TITLE}</div>
 				<div style={{height: 10, width: '86%', borderRadius: 2, background: C.bg4, marginTop: 12}} />
 				<Block at={b0} h={104}>
-					<MiniShot />
+					<MiniShot s={s} />
 				</Block>
 				<Block at={b1} h={96}>
-					<MiniTable />
+					<MiniTable s={s} />
 				</Block>
 				<Block at={b2} h={112}>
-					<MiniDemo at={b2} />
+					<MiniDemo at={b2} s={s} />
 				</Block>
+				{/* the restyle sweeps across the page */}
+				{flashX > 0 && flashX < 1 ? (
+					<div style={{position: 'absolute', top: 0, bottom: 0, left: `${flashX * 130 - 20}%`, width: '14%', background: YOU, opacity: 0.18, rotate: '12deg', scale: '1 1.4'}} />
+				) : null}
 			</div>
-			<div style={{opacity: pageOn}}>
-				<Ticks x={PAGE.left} y={PAGE.top} w={PAGE.w} h={PAGE.h} on={prog(t, B.standOut, B.standOut + 0.3)} />
-			</div>
-			{BLOCKS.map((label, i) => {
-				const on = prog(t, B.blocks[i], B.blocks[i] + 0.2);
-				return (
-					<div
-						key={label}
-						style={{
-							position: 'absolute',
-							left: 690,
-							top: 150 + i * 96,
-							width: 306,
-							height: 76,
-							display: 'flex',
-							alignItems: 'center',
-							gap: 14,
-							padding: '0 18px',
-							borderRadius: 8,
-							border: `2px solid ${on > 0.5 ? C.signal : C.line}`,
-							background: on > 0.5 ? C.signalTint : C.bg,
-							color: on > 0.5 ? C.signalText : C.ink3,
-							fontSize: 22,
-							fontWeight: 700,
-							opacity: prog(t, B.stations[3] + i * 0.08, B.stations[3] + 0.3 + i * 0.08),
-						}}
-					>
-						<span style={{width: 34, height: 34, borderRadius: 4, background: on > 0.5 ? C.signal : C.bg3, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontFamily: mono, fontSize: 16}}>
-							{i + 1}
-						</span>
-						{label}
-					</div>
-				);
-			})}
+			<StyleKit />
 		</Panel>
 	);
 };
@@ -477,7 +669,7 @@ export const Stations: React.FC = () => (
 	<>
 		<See />
 		<Find />
-		<Plan />
+		<Write />
 		<Create />
 	</>
 );

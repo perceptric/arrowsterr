@@ -30,7 +30,7 @@ const LEGS: {d: string; from: number; to: number; len: number; ease: (n: number)
 	] as {d: string; from: number; to: number}[]
 ).map((l, i) => ({...l, len: getLength(l.d), ease: i === 0 ? INOUT : RAMP}));
 
-const NAMES = ['See', 'Find', 'Plan', 'Create'];
+const NAMES = ['See', 'Find', 'Write', 'Create'];
 
 /** Where the arrowhead is and which way it points. */
 export const arrowheadAt = (t: number) => {

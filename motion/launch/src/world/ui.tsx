@@ -109,26 +109,74 @@ export const Cursor: React.FC<{p: Pt; press: number; opacity: number}> = ({p, pr
 );
 
 /** A brand tile for a sample company: first letter on a grey square. */
-export const LogoTile: React.FC<{name: string; size: number; you?: boolean}> = ({name, size, you}) => (
-	<span
-		style={{
-			display: 'inline-flex',
-			alignItems: 'center',
-			justifyContent: 'center',
-			width: size,
-			height: size,
-			borderRadius: 6,
-			background: you ? C.signal : C.bg4,
-			color: you ? '#fff' : C.ink2,
-			fontFamily: sans,
-			fontWeight: 700,
-			fontSize: size * 0.48,
-			flexShrink: 0,
-		}}
-	>
-		{name[0].toUpperCase()}
-	</span>
-);
+// Custom marks for the made-up brands in the film, each with its own colour and symbol.
+export const BRAND_COLOR: Record<string, string> = {
+	Acme: '#E8590C',
+	Northwind: '#0C8599',
+	Globex: '#7048E8',
+	Initech: '#212529',
+	'Your Brand': '#D6336C',
+};
+
+const MARKS: Record<string, React.ReactNode> = {
+	// a mountain peak
+	Acme: <path d="M5 18 L12 6 L19 18 Z M10 18 L14.5 11 L19 18" fill="#fff" />,
+	// a compass needle pointing north
+	Northwind: (
+		<>
+			<path d="M12 4 L15.5 12 L12 10.5 L8.5 12 Z" fill="#fff" />
+			<path d="M12 20 L8.5 12 L12 13.5 L15.5 12 Z" fill="#fff" opacity={0.5} />
+		</>
+	),
+	// a globe
+	Globex: (
+		<g fill="none" stroke="#fff" strokeWidth={1.8}>
+			<circle cx={12} cy={12} r={7} />
+			<ellipse cx={12} cy={12} rx={3} ry={7} />
+			<path d="M5 12 H19" />
+		</g>
+	),
+	// a hexagon
+	Initech: <path d="M12 4.5 L18.5 8.25 V15.75 L12 19.5 L5.5 15.75 V8.25 Z" fill="none" stroke="#fff" strokeWidth={2.4} strokeLinejoin="round" />,
+	// a four-petal flower
+	'Your Brand': (
+		<g fill="#fff">
+			<circle cx={12} cy={8} r={3.4} />
+			<circle cx={16} cy={12} r={3.4} />
+			<circle cx={12} cy={16} r={3.4} />
+			<circle cx={8} cy={12} r={3.4} />
+			<circle cx={12} cy={12} r={2.2} fill={'#D6336C'} />
+		</g>
+	),
+};
+
+/** A brand's logo mark. Falls back to its first letter. */
+export const LogoTile: React.FC<{name: string; size: number; you?: boolean}> = ({name, size, you}) =>
+	MARKS[name] ? (
+		<svg width={size} height={size} viewBox="0 0 24 24" style={{flexShrink: 0}}>
+			<rect width={24} height={24} rx={name === 'Acme' || name === 'Globex' ? 12 : 6} fill={BRAND_COLOR[name]} />
+			{MARKS[name]}
+		</svg>
+	) : (
+		<span
+			style={{
+				display: 'inline-flex',
+				alignItems: 'center',
+				justifyContent: 'center',
+				width: size,
+				height: size,
+				borderRadius: 6,
+				background: you ? C.signal : C.bg4,
+				color: you ? '#fff' : C.ink2,
+				fontFamily: sans,
+				fontWeight: 700,
+				fontSize: size * 0.48,
+				flexShrink: 0,
+			}}
+		>
+			{name[0].toUpperCase()}
+		</span>
+	);
 
 /** A small calendar glyph. */
 export const CalIcon: React.FC<{size: number; color: string}> = ({size, color}) => (

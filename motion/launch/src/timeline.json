@@ -1,7 +1,7 @@
 {
   "fps": 30,
   "bpm": 120,
-  "durationSec": 86,
+  "durationSec": 98,
   "voice": "af_heart",
   "pronounce": {
     "Arrowsterr": "ˈæɹoʊztɚ",
@@ -35,48 +35,53 @@
     },
     {
       "id": "v06",
-      "at": 33.1,
+      "at": 32.1,
       "text": "It shows exactly which brands AI recommends in your industry."
     },
     {
       "id": "v07",
-      "at": 37.0,
+      "at": 36.0,
       "text": "Pick a topic, and see who gets mentioned most."
     },
     {
       "id": "v08",
-      "at": 39.8,
-      "text": "Using insights from the competitive analysis, Arrowsterr cherry-picks keywords with the strongest conversion potential and AI visibility lift.",
+      "at": 39.2,
+      "text": "With those insights, Arrowsterr cherry-picks keywords with the strongest conversion potential and AI visibility lift.",
       "speed": 1.12
     },
     {
       "id": "v09",
-      "at": 48.5,
-      "text": "Then, it builds your entire editorial calendar, and writes everything for you."
+      "at": 46.3,
+      "text": "You can also pick your own favorite keywords from our database of 8.4 billion keywords, across all industries and all countries."
     },
     {
       "id": "v10",
-      "at": 54.2,
-      "text": "And Arrowsterr goes beyond text. It can generate screenshots, tables, even interactive demos, to make your article stand out."
+      "at": 56.2,
+      "text": "After that, it writes everything for you, learning from your brand voice and the top articles ranking on Google."
     },
     {
       "id": "v11",
-      "at": 65.0,
-      "text": "A few weeks later, check your dashboard."
+      "at": 63.2,
+      "text": "And the articles Arrowsterr writes are no ordinary ones. They're filled with product screenshots, well-formatted tables, even interactive demos, all in your brand style."
     },
     {
       "id": "v12",
-      "at": 69.7,
-      "text": "And voilà. You're part of the AI recommendation."
+      "at": 76.6,
+      "text": "A few weeks later, check your dashboard."
     },
     {
       "id": "v13",
-      "at": 73.4,
-      "text": "That opportunity is yours. Now it's time for the sales team to come in and close the deal."
+      "at": 81.3,
+      "text": "And voilà. You're part of the AI recommendation."
     },
     {
       "id": "v14",
-      "at": 79.6,
+      "at": 85.0,
+      "text": "That opportunity is yours. Now it's time for the sales team to come in and close the deal."
+    },
+    {
+      "id": "v15",
+      "at": 91.2,
       "text": "Arrowsterr. Get recommended in AI answers. Start free today."
     }
   ],
@@ -118,53 +123,33 @@
     "arrowhead": 20.0,
     "drop": 24.0,
     "stations": [
-      32.0,
-      40.0,
-      48.0,
-      54.0
+      31.0,
+      39.0,
+      56.0,
+      63.0
     ],
     "stationEnds": [
-      40.0,
-      48.0,
-      54.0,
-      63.4
+      39.0,
+      56.0,
+      63.0,
+      75.0
     ],
-    "topicPick": 37.6,
-    "keywordSort": 41.8,
-    "keywordPicks": [
-      43.5,
-      44.0,
-      44.5,
-      45.0
-    ],
-    "calendarFill": [
-      48.3,
-      50.0
-    ],
-    "draftType": [
-      50.6,
-      52.6
-    ],
-    "blocks": [
-      57.3,
-      58.2,
-      59.1
-    ],
-    "standOut": 61.0,
-    "fold": 62.0,
-    "ship": 63.4,
-    "dashboard": 64.7,
+    "topicPick": 36.6,
+    "keywordSort": 40.6,
+    "fold": 73.4,
+    "ship": 75.0,
+    "dashboard": 76.3,
     "climb": [
-      65.4,
-      68.0
+      77.0,
+      79.6
     ],
-    "finalDrop": 70.0,
-    "clickYou": 72.6,
-    "demoBookedYou": 73.0,
-    "close": 79.0,
-    "end": 86.0,
-    "deal": 74.0,
-    "sales": 76.0,
+    "finalDrop": 81.6,
+    "clickYou": 84.2,
+    "demoBookedYou": 84.6,
+    "close": 90.6,
+    "end": 98.0,
+    "deal": 85.6,
+    "sales": 87.6,
     "glitches": [
       12.3,
       13.05,
@@ -176,10 +161,50 @@
     "slams": [
       2.0,
       18.0,
-      68.0,
-      75.0
+      79.6,
+      86.6
     ],
-    "closedWon": 77.2,
-    "logoStrike": 84.0
+    "closedWon": 88.8,
+    "logoStrike": 96.6,
+    "logoCorner": 30.0,
+    "keywordPicks": [
+      42.2,
+      42.7,
+      43.2,
+      43.7
+    ],
+    "dbView": 46.2,
+    "dbType": [
+      46.6,
+      47.6
+    ],
+    "dbPicks": [
+      49.2,
+      49.9
+    ],
+    "dbSlam": 51.5,
+    "dbChips": [
+      52.4,
+      53.0
+    ],
+    "domainTab": 54.2,
+    "writeIn": [
+      56.4,
+      57.4
+    ],
+    "draftType": [
+      57.6,
+      60.6
+    ],
+    "scan": [
+      63.6,
+      66.0
+    ],
+    "blocks": [
+      68.0,
+      69.5,
+      70.4
+    ],
+    "restyle": 72.2
   }
 }

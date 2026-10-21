@@ -73,3 +73,9 @@ export const focusAt = (t: number) => {
 
 // Arrive slow, leave fast: the arrow shoots off, then eases into the next pin in slow motion.
 export const RAMP = Easing.bezier(0.45, 0, 0.0, 1);
+
+/** Blend two hex colours. */
+export const mixColor = (a: string, b: string, p: number) => {
+	const ch = (h: string, i: number) => parseInt(h.slice(1 + i * 2, 3 + i * 2), 16);
+	return `rgb(${[0, 1, 2].map((i) => Math.round(ch(a, i) + (ch(b, i) - ch(a, i)) * p)).join(',')})`;
+};

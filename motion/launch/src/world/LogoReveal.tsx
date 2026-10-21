@@ -28,7 +28,9 @@ export const LogoReveal: React.FC = () => {
 	const ring2 = prog(t, d + 0.5, d + 1.5, OUT);
 	const word = prog(t, d + 0.45, d + 1.05);
 	const tag = prog(t, d + 1.0, d + 1.5);
-	const leave = 1 - prog(t, B.stations[0] - 1.4, B.stations[0] - 1.0);
+	const leave = 1 - prog(t, B.logoCorner - 0.3, B.logoCorner);
+	// The lockup hands over to the corner badge.
+	const handoff = 1 - prog(t, B.logoCorner, B.logoCorner + 0.12);
 	const left = LOGO.x - MARK_W / 2;
 	const top = LOGO.y - MARK_H;
 	return (
@@ -39,7 +41,7 @@ export const LogoReveal: React.FC = () => {
 				))}
 			</svg>
 			{/* the mark in 3D: thick chevrons spin up out of the map and lock in, then light sweeps across */}
-			<div style={{position: 'absolute', left, top, width: MARK_W, height: MARK_H, perspective: 1400}}>
+			<div style={{position: 'absolute', left, top, width: MARK_W, height: MARK_H, perspective: 1400, opacity: handoff}}>
 				<div
 					style={{
 						position: 'absolute',
@@ -82,6 +84,7 @@ export const LogoReveal: React.FC = () => {
 					width: WORD_W,
 					height: WORD_H,
 					clipPath: `inset(0 ${(1 - word) * 100}% 0 0)`,
+					opacity: handoff,
 					translate: `${(1 - word) * -30}px 0`,
 				}}
 			>
