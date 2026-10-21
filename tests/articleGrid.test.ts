@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { briefSkeleton, contentPairs, docToText, FAQ_H2, letter, notesFor, pairCount, partNodes, partOfPair, planOf, replacePart, splitDoc, summarize, type BriefPlan } from "../src/lib/articleGrid.ts";
+import { brandMissing, briefSkeleton, contentPairs, docToText, FAQ_H2, letter, notesFor, pairCount, partNodes, partOfPair, planOf, plannedModule, replacePart, splitDoc, summarize, type BriefPlan } from "../src/lib/articleGrid.ts";
 import type { PmNode } from "../src/lib/docHtml.ts";
 
 const t = (text: string): PmNode => ({ type: "text", text });
@@ -126,7 +126,33 @@ test("the grid reads the brief's titles, meta, intro notes, outline with sources
     h1: "H", title: "SEO title", description: "D", slug: "s", intro: ["Angle"],
     outline: [{ h2: "One", points: ["p"], h3: ["Sub"], sources: [{ n: 2, title: "B", url: "https://b.com" }] }],
     faqs: [{ question: "Q?", answer: "" }],
+    modules: [],
   });
   assert.equal(planOf(null), null);
   assert.equal(planOf({ h1: "Only" })?.title, "Only");
+});
+
+test("the brief's planned module for a section is found by its H2", () => {
+  const withMods = { ...plan, modules: [{ type: "comparison", title: "Compare", placement: "The 9 tools" }] };
+  assert.equal(plannedModule(withMods, " the 9 TOOLS"), "comparison");
+  assert.equal(plannedModule(withMods, "What GEO means"), null);
+  assert.equal(plannedModule(null, "x"), null);
+});
+
+test("content can't be generated until the Brand page has a voice, guidelines and a kit", () => {
+  assert.deepEqual(brandMissing({ voice: null, guidelines: null, kit: null }), ["Brand Voice", "Brand Guidelines", "Brand Kit"]);
+  assert.deepEqual(brandMissing({ voice: {}, guidelines: null, kit: {} }), ["Brand Guidelines"]);
+  assert.deepEqual(brandMissing({ voice: {}, guidelines: {}, kit: {} }), []);
+});
+
+test("a generated section is planned from the brief, with the points the writer edited on the review screen", async () => {
+  const { cellPlan } = await import("../src/lib/writerDraft.ts");
+  const brief = { titles: ["T"], h1: "T", metaDescription: "", slug: "t", searchIntent: "S", reader: "R", angle: "A", wordTarget: 1500, outline: [{ h2: "Pricing", points: ["Plans"], h3: [], sources: [1] }], entities: [], gaps: [], faqs: [], internalLinks: [], cta: { text: "", where: "" }, modules: [], research: { topPages: "", aiAnswers: "", sources: [], questions: [], engines: [] }, model: "m", at: "" };
+  assert.deepEqual(cellPlan(brief, { kind: "section", h2: "pricing", index: 0 }).plan[1].points, ["Plans"]);
+  const edited = cellPlan(brief, { kind: "section", h2: "Pricing", index: 0 }, ["Real prices", "Free tier"]);
+  assert.deepEqual(edited.plan[edited.i].points, ["Real prices", "Free tier"]);
+  assert.deepEqual(cellPlan(brief, { kind: "intro" }, ["Hook"]).plan[0].points, ["Hook"]);
+  const added = cellPlan(brief, { kind: "section", h2: "Setup", index: 1 }, ["Steps"]);
+  assert.equal(added.plan[added.i].h2, "Setup");
+  assert.deepEqual(added.plan[added.i].points, ["Steps"]);
 });

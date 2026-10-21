@@ -35,6 +35,7 @@ export function SectionPanel({
   canBack,
   canNext,
   onFull,
+  onGenerate,
   onClose,
 }: {
   sb: SupabaseClient;
@@ -50,6 +51,8 @@ export function SectionPanel({
   canBack: boolean;
   canNext: boolean;
   onFull: () => void;
+  /** Open the Generate screen for this section, or null when it can't be used. */
+  onGenerate: (() => void) | null;
   onClose: () => void;
 }) {
   const [state, setState] = useState<{ s: "saved" | "saving" | "error"; note?: string }>({ s: "saved" });
@@ -146,6 +149,19 @@ export function SectionPanel({
           <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={onFull}>
             Full view
           </button>
+          {onGenerate ? (
+            <button
+              type="button"
+              className="aw-btn aw-btn--primary aw-btn--sm"
+              onClick={async () => {
+                // Save what's typed first, so the writer builds on it.
+                if (editor && timer.current) await flush(editor);
+                onGenerate();
+              }}
+            >
+              Generate
+            </button>
+          ) : null}
         </div>
         {notes && (notes.points.length || notes.sources.length) ? (
           <div className="mx-6 mt-5 flex flex-col gap-2 border border-rule bg-[var(--bg-secondary)] px-4 py-3 text-[13px]">

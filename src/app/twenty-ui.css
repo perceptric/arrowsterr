@@ -519,3 +519,6 @@ html, body { background: var(--bg-secondary); }
 @media (prefers-reduced-motion: reduce) {
   :root .aw .aw-btn, :root .aw .tw-btn, :root .aw .aw-toggle, :root .aw .aw-toggle::after, :root .aw .aw-nav-link, :root .aw .aw-pop__opt, :root .aw .aw-pop__item { transition: none !important; }
 }
+
+/* The writing area itself never gets a focus box: the cursor shows where you are. */
+:root .aw .aw-editor .ProseMirror:focus, :root .aw .aw-editor .ProseMirror:focus-visible { outline: none !important; box-shadow: none !important; }
