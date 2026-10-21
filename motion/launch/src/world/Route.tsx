@@ -53,7 +53,6 @@ export const Route: React.FC = () => {
 	const inLogo = prog(t, B.drop - 0.15, B.drop) * (1 - prog(t, B.stations[0] - 1.3, B.stations[0] - 1.1));
 	// After the last pin it stays parked until the page ships as a paper arrow.
 	const headOut = (1 - prog(t, B.ship, B.ship + 0.3)) * (1 - inLogo);
-	const glow = 0.5 + 0.5 * Math.sin(t * 6);
 	return (
 		<svg style={{position: 'absolute', left: -1000, top: -3000, overflow: 'visible'}} width={15000} height={6000} viewBox="-1000 -3000 15000 6000">
 			{LEGS.map((l, i) => {
@@ -83,15 +82,7 @@ export const Route: React.FC = () => {
 							return rp > 0 && rp < 1 ? <circle key={j} cx={pin.x} cy={pin.y} r={20 + rp * 220} fill="none" stroke={C.signal} strokeWidth={5 * (1 - rp) + 1} opacity={(1 - rp) * 0.7} /> : null;
 						})}
 					<g transform={`translate(${pin.x} ${pin.y - (1 - drop) * 80})`} opacity={drop}>
-							{/* a reticle turns around the pin */}
-							<g transform={`rotate(${t * 40 + k * 30})`}>
-								<circle r={34} fill="none" stroke={C.signal} strokeWidth={2.5} strokeDasharray="10 8.5" opacity={0.55} />
-								{[0, 90, 180, 270].map((a) => (
-									<line key={a} x1={42} y1={0} x2={54} y2={0} stroke={C.signal} strokeWidth={3} transform={`rotate(${a})`} />
-								))}
-							</g>
 							<circle r={16} fill={C.bg} stroke={C.signal} strokeWidth={8} />
-							<circle r={4} fill={C.signal} opacity={0.5 + 0.5 * Math.sin(t * 5 + k)} />
 							<line x1={0} y1={-16} x2={0} y2={-70} stroke={C.signal} strokeWidth={5} />
 							<g transform="translate(-6 -134)">
 								{/* the label carries the Notch: a 45 degree cut on its top-right corner */}
@@ -108,19 +99,8 @@ export const Route: React.FC = () => {
 						</g>
 					);
 				})}
-				{/* a short trail of data points behind the arrowhead */}
-			{Array.from({length: 10}, (_, k) => {
-				const p = arrowheadAt(t - (k + 1) * 0.04);
-				const s = 14 - k;
-				return <rect key={k} x={p.x - s / 2} y={p.y - s / 2} width={s} height={s} fill={k % 2 ? C.sky : C.signal} opacity={headOut * born * (1 - k / 10) * 0.7} />;
-			})}
-			{/* the arrowhead */}
+				{/* the arrowhead */}
 			<g transform={`translate(${head.x} ${head.y}) rotate(${(head.angle * 180) / Math.PI}) scale(${born})`} opacity={headOut * life(t, B.arrowhead, 99)}>
-				<circle r={60 + glow * 16} fill={C.signal} opacity={0.1 + glow * 0.06} />
-				<circle r={38} fill={C.signal} opacity={0.16} />
-				<g transform={`rotate(${-t * 90})`}>
-					<circle r={50} fill="none" stroke={C.signal} strokeWidth={2} strokeDasharray="22 14" opacity={0.45} />
-				</g>
 				<path d="M 34 0 L -22 -26 L -10 0 L -22 26 Z" fill={C.signal} stroke="#fff" strokeWidth={4} strokeLinejoin="round" />
 			</g>
 		</svg>
