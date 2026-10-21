@@ -61,6 +61,7 @@ THIN = (65.0, 70.0)  # a rising high-pass through the pre-chorus; the low end sl
 CLIMB_FROM = 24.0
 CLIMB = [(24.0, 0.0), (32.0, 0.6), (40.0, 1.4), (48.0, 2.4), (56.0, 3.4), (64.0, 4.0), (66.0, 4.4), (70.0, 5.6), (86.0, 6.0)]
 FADE = (84.5, 86.0)
+SFX_GAIN_DB = 14.3  # puts the cue sounds (without the picture-effect layer) at -24 LUFS
 DUCK_DB, DUCK_ATTACK, DUCK_RELEASE = -5.0, 0.06, 0.6
 LEAD_REST_FROM, LEAD_REST_DB, LEAD_FADE = 24.0, -6.0, 0.12  # the lead steps back while the voice talks
 
@@ -351,7 +352,7 @@ def main() -> None:
     vo *= 10 ** ((-15.0 - meter.integrated_loudness(vo)) / 20)
     vo = limit(vo, -5.0, release=0.05)  # tame the few plosive peaks before they reach the master
     sfx = load(ROOT / "public/audio/sfx.wav")
-    sfx *= 10 ** ((-24.0 - meter.integrated_loudness(sfx)) / 20)
+    sfx *= 10 ** (SFX_GAIN_DB / 20)  # fixed, so adding an effect never turns the others down
 
     # duck the music under the voice: gentle and slow, with a short look-ahead and a hold over word gaps
     block = int(0.005 * SR)
