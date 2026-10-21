@@ -288,6 +288,26 @@ function blockNodes(b: Block): PMNode[] {
   }
 }
 
+/** A written section as editor nodes: its H2 (none for the intro), then its blocks. */
+export const sectionNodes = (s: Section): PMNode[] => [...(s.h2 ? [heading(2, s.h2)] : []), ...s.blocks.flatMap(blockNodes)];
+
+/**
+ * The plan for writing one section of the Library grid: the intro, or the brief's section with this H2. A section
+ * the writer added or renamed has no plan in the brief, so it gets one from its H2, put where it sits in the article.
+ * Points the writer edited on the review screen replace the brief's.
+ */
+export function cellPlan(b: WriterBrief, part: { kind: "intro" } | { kind: "section"; h2: string; index: number }, points?: string[]): { plan: SectionPlan[]; i: number } {
+  const plan = planSections(b);
+  const withPoints = (list: SectionPlan[], i: number) => ({ plan: points?.length ? list.map((x, k) => (k === i ? { ...x, points } : x)) : list, i });
+  if (part.kind === "intro") return withPoints(plan, 0);
+  const key = (x: string) => x.toLowerCase().replace(/\s+/g, " ").trim();
+  const i = plan.findIndex((x) => x.kind !== "intro" && key(x.h2) === key(part.h2));
+  if (i >= 0) return withPoints(plan, i);
+  const at = Math.min(plan.length, part.index + 1);
+  const made: SectionPlan = { key: `cell-${part.index}`, kind: "h2", h2: part.h2, points: [], h3: [], sources: [], cta: false };
+  return withPoints([...plan.slice(0, at), made, ...plan.slice(at)], at);
+}
+
 const plainOf = (b: Block) => (b.type === "table" ? b.rows.map((r) => r.join(" ")).join(" ") : b.type === "ul" || b.type === "ol" ? b.items.join(" ") : b.text);
 export const sectionPlain = (s: Section) => [s.h2, ...s.blocks.map(plainOf)].filter(Boolean).join("\n\n").replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").replace(/\*\*?/g, "");
 const countWords = (s: string) => s.split(/\s+/).filter(Boolean).length;

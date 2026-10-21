@@ -5,6 +5,7 @@
 // Pure: the database and the paid calls come in as `store` and `deps` (writerServer.ts), so tests run it offline.
 import type { BrandKit } from "./brandKit.ts";
 import { voiceText, type BrandVoice } from "./brandVoice.ts";
+import { isBofu, listicleRules, listicleSlug } from "./listicle.ts";
 import { kindLabel, kindsForPrompt, MODULE_IDS } from "./moduleCatalog.ts";
 
 // ─────────────── shapes ───────────────
@@ -84,6 +85,7 @@ export type WriterContext = {
   kit: BrandKit | null;
   guidelines: { body: string; links: string[] } | null;
   sitemap: string[]; // the brand's own pages, for internal links
+  stage?: "bofu" | "mofu" | "tofu" | null; // the piece's funnel stage: BOFU briefs are listicles
 };
 
 export type BriefStore = {
@@ -189,6 +191,7 @@ ${links.length ? `The brand's own pages (internal links must come from this list
 Rules:
 - titles: 3 title options, under 65 characters, with the keyword or close to it. h1 is the one you'd pick.
 - metaDescription: under 155 characters. slug: short, lowercase, hyphens.
+${isBofu(c.stage) ? `${listicleRules(b.keyword, new Date().getFullYear())}\n` : ""}
 - searchIntent: what the searcher wants and the format that serves it, in 1 or 2 sentences.
 - reader: who reads this, what they know, and what they want to do next.
 - angle: the point of view that makes this article better than the top pages, in 1 or 2 sentences.
@@ -218,7 +221,7 @@ const same = (a: string, b: string) => a.toLowerCase().replace(/[^a-z0-9]+/g, " 
 const linkKey = (u: string) => u.replace(/#.*$/, "").replace(/^https?:\/\/(www\.)?/i, "").replace(/\/+$/, "").toLowerCase();
 
 /** Claude's brief, cleaned: lists trimmed, sources and links checked against what the research and sitemap hold. */
-export function cleanBrief(x: unknown, research: Omit<BriefResearch, "topPages" | "aiAnswers">, sitemap: string[], meta: { model: string; at: string; keyword: string }): WriterBrief {
+export function cleanBrief(x: unknown, research: Omit<BriefResearch, "topPages" | "aiAnswers">, sitemap: string[], meta: { model: string; at: string; keyword: string; stage?: string | null }): WriterBrief {
   const o = (x && typeof x === "object" ? x : {}) as Record<string, unknown>;
   const valid = new Set(research.sources.map((s) => s.n));
   const outline: OutlinePart[] = arr(o.outline)
@@ -251,7 +254,8 @@ export function cleanBrief(x: unknown, research: Omit<BriefResearch, "topPages" 
     titles: titles.length ? titles : [h1],
     h1,
     metaDescription: str(o.metaDescription, 170),
-    slug: slugify(str(o.slug, 120) || h1),
+    // A BOFU piece is a listicle, so its slug is too, whatever came back.
+    slug: isBofu(meta.stage) ? listicleSlug(meta.keyword) || slugify(str(o.slug, 120) || h1) : slugify(str(o.slug, 120) || h1),
     searchIntent: str(o.searchIntent, 600),
     reader: str(o.reader, 600),
     angle: str(o.angle, 600),
@@ -318,7 +322,7 @@ export async function runBrief(store: BriefStore, deps: BriefDeps, id: string, v
     raw,
     { sources: numbered(sources), questions: pack.questions.map((q) => q.question).slice(0, 10), engines: pack.answers.map((a) => a.engine) },
     ctx.sitemap,
-    { model: deps.model, at: new Date(now()).toISOString(), keyword: b.keyword },
+    { model: deps.model, at: new Date(now()).toISOString(), keyword: b.keyword, stage: ctx.stage },
   );
   if (!brief.outline.length) return fail("The brief came back without an outline. Regenerate it.");
   await store.update(id, { brief, status: "ready", step: "done", error: null });

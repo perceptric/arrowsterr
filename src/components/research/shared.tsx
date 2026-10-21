@@ -1,6 +1,7 @@
 "use client";
 
 // Small pieces the Research pages share.
+import { planSlug } from "@/lib/listicle";
 import { keywordHref, plainClick } from "@/lib/researchUrl";
 import { createContext, useContext } from "react";
 import type { Stage } from "@/lib/research";
@@ -35,10 +36,10 @@ export const STATUS_PICK = [
   { id: "published", label: "Published", tone: "aw-status--ranked" },
 ];
 export const slugify = (s: string) => s.toLowerCase().replace(/^\/+/, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-/** The page address a piece should get: one the writer set, or one made from the keyword. */
-export const slugOf = (i: { keyword: string; extra?: Record<string, string | number | null> }) => {
+/** The page address a piece should get: one the writer set, or one made from the keyword (a best- listicle for BOFU). */
+export const slugOf = (i: { keyword: string; stage?: string | null; extra?: Record<string, string | number | null> }) => {
   const set = i.extra?.slug;
-  return typeof set === "string" && set ? set : `/${slugify(i.keyword)}`;
+  return typeof set === "string" && set ? set : `/${planSlug(i.keyword, i.stage)}`;
 };
 
 /** A green tick for something done. */

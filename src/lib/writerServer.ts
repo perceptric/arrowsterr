@@ -159,7 +159,11 @@ const briefDeps = (db: SupabaseClient): BriefDeps => ({
   startResearch: async (b) => (await startArticleResearch(db, { workspaceId: b.workspace_id, itemId: b.item_id })).runId,
   runStatus: async (runId) => must(await db.from("article_runs").select("status, error").eq("id", runId).maybeSingle()),
   research: (runId) => loadResearch(db, runId),
-  context: (b) => loadWriterContext(db, b.site_id, b.brand_id),
+  async context(b) {
+    // The piece's funnel stage rides along: a BOFU brief is a listicle (listicle.ts).
+    const [ctx, item] = await Promise.all([loadWriterContext(db, b.site_id, b.brand_id), db.from("calendar_items").select("stage").eq("id", b.item_id).maybeSingle()]);
+    return { ...ctx, stage: ((item.data as { stage?: WriterContext["stage"] } | null)?.stage ?? null) };
+  },
   write: (prefix, prompt) => askJson(prompt, BRIEF_SCHEMA, { prefix, model: writerModel(), maxTokens: 8000 }),
   model: writerModel(),
 });

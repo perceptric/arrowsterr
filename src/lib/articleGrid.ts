@@ -67,7 +67,7 @@ export function replacePart(content: unknown, part: Part, nodes: PmNode[]): PmNo
 
 // ─────────────── the doc the brief starts ───────────────
 export type BriefOutline = { h2: string; points: string[]; h3: string[]; sources: { n: number; title: string; url: string }[] };
-export type BriefPlan = { h1: string; intro: string[]; outline: BriefOutline[]; faqs: { question: string; answer: string }[] };
+export type BriefPlan = { h1: string; intro: string[]; outline: BriefOutline[]; faqs: { question: string; answer: string }[]; modules?: { type: string; title: string; placement: string }[] };
 export const FAQ_H2 = "Frequently asked questions";
 
 const heading = (level: number, text: string): PmNode => ({ type: "heading", attrs: { level }, content: text ? [{ type: "text", text }] : [] });
@@ -100,6 +100,7 @@ export type RawBrief = {
   outline?: { h2: string; points?: string[]; h3?: { title: string }[]; sources?: number[] }[];
   faqs?: { question: string; answer?: string }[];
   research?: { sources?: { n: number; title: string; url: string }[] };
+  modules?: { type: string; title: string; placement: string }[];
 };
 
 /** The brief as the grid reads it: titles, meta, the intro's notes, each H2 with its points and sources, the FAQs. */
@@ -119,6 +120,7 @@ export function planOf(p: RawBrief | null): GridPlan | null {
       sources: (o.sources ?? []).map((n) => sources.find((s) => s.n === n)).filter((s): s is { n: number; title: string; url: string } => Boolean(s)),
     })),
     faqs: (p.faqs ?? []).map((f) => ({ question: f.question, answer: f.answer ?? "" })),
+    modules: (p.modules ?? []).map((m) => ({ type: m.type, title: m.title, placement: m.placement })),
   };
 }
 
@@ -131,6 +133,15 @@ export function notesFor(plan: BriefPlan | null, part: Part, h2: string): Sectio
   if (key(h2) === key(FAQ_H2) && plan.faqs.length) return { points: plan.faqs.map((f) => `${f.question} ${f.answer}`.trim()), sources: [] };
   const o = plan.outline.find((x) => key(x.h2) === key(h2));
   return o ? { points: [...o.points, ...o.h3.map((t) => `H3: ${t}`)], sources: o.sources } : null;
+}
+
+/** The module the brief planned for a section, by its H2, or null. */
+export const plannedModule = (plan: BriefPlan | null, h2: string) => plan?.modules?.find((m) => key(m.placement) === key(h2))?.type ?? null;
+
+// ─────────────── before generating ───────────────
+/** What the Brand page still needs before content can be generated in the brand's voice. */
+export function brandMissing(c: { voice: unknown; guidelines: unknown; kit: unknown }): string[] {
+  return [c.voice ? "" : "Brand Voice", c.guidelines ? "" : "Brand Guidelines", c.kit ? "" : "Brand Kit"].filter(Boolean);
 }
 
 // ─────────────── what a section cell shows ───────────────

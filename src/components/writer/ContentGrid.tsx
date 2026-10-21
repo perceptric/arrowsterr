@@ -2,7 +2,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { contentPairs, letter, notesFor, pairCount, partNodes, partOfPair, replacePart, type CellSummary, type Pair } from "@/lib/articleGrid";
+import { contentPairs, docToText, letter, notesFor, pairCount, partNodes, partOfPair, replacePart, type CellSummary, type Pair } from "@/lib/articleGrid";
 import type { PmNode } from "@/lib/docHtml";
 import { updateCalendarItem, type Site } from "@/lib/db";
 import { listGrid, saveGridDoc, saveGridMeta, startDoc, type GridRow } from "@/lib/gridData";
@@ -14,6 +14,7 @@ import { Dropdown, Pop } from "../Pickers";
 import { post, STATUS_PICK } from "../research/shared";
 import { Thinking } from "../ui";
 import { usePoll, type LibraryOpen } from "./parts";
+import { GenerateDialog } from "./GenerateDialog";
 import { SectionPanel } from "./SectionPanel";
 
 // The Library as a grid (docs/content-grid.md): one row per article, columns lettered like a sheet.
@@ -48,6 +49,7 @@ export function ContentGrid({ sb, auth, site, canEdit, onOpen }: { sb: SupabaseC
   const [edit, setEdit] = useState<{ itemId: string; key: "metaTitle" | "description" | "slug"; anchor: DOMRect } | null>(null);
   const [panel, setPanel] = useState<{ itemId: string; pair: number } | null>(null);
   const [starting, setStarting] = useState("");
+  const [gen, setGen] = useState<{ itemId: string; only: number | null; reopen: boolean } | null>(null);
   const [busy, setBusy] = useState<Set<string>>(new Set());
   const [added, setAdded] = useState(() => {
     try {
@@ -82,7 +84,11 @@ export function ContentGrid({ sb, auth, site, canEdit, onOpen }: { sb: SupabaseC
   const count = pairCount(Math.max(0, ...[...pairs.values()].map((p) => p.length)), added);
 
   const rowOf = (id: string) => rowsRef.current?.find((r) => r.topic.id === id) ?? null;
-  const patchRow = (id: string, fn: (r: GridRow) => GridRow) => setRows((rs) => (Array.isArray(rs) ? rs.map((r) => (r.topic.id === id ? fn(r) : r)) : rs));
+  // The ref moves at once too, so a save right after (a section generated into a doc just made) sees the change.
+  const patchRow = (id: string, fn: (r: GridRow) => GridRow) => {
+    if (rowsRef.current) rowsRef.current = rowsRef.current.map((r) => (r.topic.id === id ? fn(r) : r));
+    setRows((rs) => (Array.isArray(rs) ? rs.map((r) => (r.topic.id === id ? fn(r) : r)) : rs));
+  };
   const run = (p: Promise<unknown>) => p.catch((e) => setError(e instanceof Error ? e.message : String(e)));
 
   function addPair() {
@@ -126,15 +132,25 @@ export function ContentGrid({ sb, auth, site, canEdit, onOpen }: { sb: SupabaseC
   }
   const fullView = (r: GridRow) => (r.doc ? onOpen({ kind: "doc", id: r.doc.id }) : undefined);
 
-  /** Open a section in the side panel. The first time, the doc is made from the brief and the piece moves to Writing. */
+  /** The article's doc: the one there, or a new one from the brief, which moves the piece to Writing. */
+  async function ensureDoc(itemId: string) {
+    const r = rowOf(itemId);
+    if (!r) throw new Error("This row is gone. Reload the Library.");
+    if (r.doc) return r.doc;
+    if (!r.plan) throw new Error("Generate the brief first.");
+    const doc = await startDoc(sb, { workspaceId: auth.workspaceId, siteId: site.id, itemId, plan: r.plan });
+    patchRow(itemId, (x) => ({ ...x, doc }));
+    if (["idea", "planned", "brief"].includes(statusChoice(r.topic))) await setStatus(r, "writing");
+    return doc;
+  }
+
+  /** Open a section in the side panel, making the doc from the brief the first time. */
   async function write(r: GridRow, pair: number) {
     if (r.doc) return setPanel({ itemId: r.topic.id, pair });
     if (!r.plan || !canEdit) return;
     setStarting(r.topic.id);
     try {
-      const doc = await startDoc(sb, { workspaceId: auth.workspaceId, siteId: site.id, itemId: r.topic.id, plan: r.plan });
-      patchRow(r.topic.id, (x) => ({ ...x, doc }));
-      if (["idea", "planned", "brief"].includes(statusChoice(r.topic))) await setStatus(r, "writing");
+      await ensureDoc(r.topic.id);
       setPanel({ itemId: r.topic.id, pair });
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -173,6 +189,7 @@ export function ContentGrid({ sb, auth, site, canEdit, onOpen }: { sb: SupabaseC
   const panelRow = panel ? rows.find((r) => r.topic.id === panel.itemId) : null;
   const panelPairs = panel ? (pairs.get(panel.itemId) ?? []) : [];
   const panelPair = panel ? panelPairs[panel.pair] : undefined;
+  const genRow = gen ? rows.find((r) => r.topic.id === gen.itemId) : null;
 
   const head = "sticky z-20 border-r border-b border-rule bg-[var(--bg-secondary)] px-2 text-left font-medium text-muted";
   const cell = "border-r border-b border-rule bg-white px-2 py-1.5 align-top group-hover:bg-[var(--bg-secondary)]";
@@ -329,15 +346,22 @@ export function ContentGrid({ sb, auth, site, canEdit, onOpen }: { sb: SupabaseC
                 <td className={`${cell} sticky z-10`} style={{ left: W.check }}>
                   <div className="flex h-[63px] flex-col items-start gap-1 overflow-hidden">
                     <span className="w-full truncate font-medium text-ink">{r.topic.keyword}</span>
-                    {r.doc ? (
-                      <button type="button" className="aw-text-link text-[12px]" onClick={() => fullView(r)}>
-                        Full view
-                      </button>
-                    ) : r.topic.brief && (r.topic.brief.status === "ready" || r.topic.brief.status === "approved") ? (
-                      <button type="button" className="aw-text-link text-[12px]" onClick={() => onOpen({ kind: "brief", id: r.topic.brief!.id })}>
-                        View brief
-                      </button>
-                    ) : null}
+                    <span className="flex items-center gap-3">
+                      {r.doc ? (
+                        <button type="button" className="aw-text-link text-[12px]" onClick={() => fullView(r)}>
+                          Full view
+                        </button>
+                      ) : r.plan ? (
+                        <button type="button" className="aw-text-link text-[12px]" onClick={() => onOpen({ kind: "brief", id: r.topic.brief!.id })}>
+                          View brief
+                        </button>
+                      ) : null}
+                      {canEdit && r.plan ? (
+                        <button type="button" className="aw-text-link text-[12px]" onClick={() => setGen({ itemId: r.topic.id, only: null, reopen: false })}>
+                          Generate
+                        </button>
+                      ) : null}
+                    </span>
                   </div>
                 </td>
                 {metaCols.map((c) => (
@@ -389,7 +413,39 @@ export function ContentGrid({ sb, auth, site, canEdit, onOpen }: { sb: SupabaseC
             setPanel(null);
             fullView(panelRow);
           }}
+          onGenerate={
+            canEdit
+              ? () => {
+                  setGen({ itemId: panel.itemId, only: panel.pair, reopen: true });
+                  setPanel(null);
+                }
+              : null
+          }
           onClose={() => setPanel(null)}
+        />
+      ) : null}
+      {gen && genRow ? (
+        <GenerateDialog
+          auth={auth}
+          itemId={gen.itemId}
+          pairs={pairs.get(gen.itemId) ?? []}
+          plan={genRow.plan}
+          only={gen.only}
+          current={(pair) => {
+            const d = rowOf(gen.itemId)?.doc;
+            if (!d) return "";
+            const nodes = partNodes(d.content, partOfPair(pair));
+            return docToText({ type: "doc", content: pair === 0 ? nodes : nodes.slice(1) });
+          }}
+          onSection={async (pair, nodes) => {
+            await ensureDoc(gen.itemId);
+            await saveSection(gen.itemId, pair, nodes);
+          }}
+          onClose={() => {
+            const g = gen;
+            setGen(null);
+            if (g.reopen && g.only !== null) setPanel({ itemId: g.itemId, pair: g.only });
+          }}
         />
       ) : null}
     </div>
