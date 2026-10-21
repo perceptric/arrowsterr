@@ -1,6 +1,6 @@
 # Free tools
 
-Eleven free tools on arrowsterr.com. Each one answers a real question in under a minute and ends with a button that starts the Free plan with the result already loaded. They all follow the AI Snapshot pattern that already works (`src/app/api/snapshot/route.ts`, `pages/snapshot` in the site repo).
+Seventeen free tools on arrowsterr.com. Each one answers a real question in under a minute and ends with a button that starts the Free plan with the result already loaded. They all follow the AI Snapshot pattern that already works (`src/app/api/snapshot/route.ts`, `pages/snapshot` in the site repo).
 
 ## Status
 
@@ -11,6 +11,8 @@ Eleven free tools on arrowsterr.com. Each one answers a real question in under a
 | Yes | Keyword Volume Checker and Keyword Difficulty Checker (same API as the keyword tool) |
 | Yes | AI Crawler Checker, llms.txt Generator, AI Answer-Ready Checker, Domain Authority Checker, Page Speed Checker, Broken Link and Redirect Checker (`src/lib/freeRunners.ts`), Keyword Clustering Tool (in the browser) |
 | No | ChatGPT Rank Checker, AI Overview Checker, AI Prompt Generator, AI Sources Finder, AI Share of Voice, AI Schema Generator, Domain Snapshot |
+| No | Third set (planned below): Website Traffic Checker, Backlink Checker, Keyword Rank Checker, Keyword Gap Tool, Schema Markup Generator, Meta Title and Description Generator, Robots.txt Tester |
+| No | Long content under every tool page (planned below) |
 
 **Second set, how each works:**
 
@@ -89,6 +91,79 @@ Eleven free tools on arrowsterr.com. Each one answers a real question in under a
 
 The current AI Snapshot stays as it is. Tools 3, 7 and 8 link to it as "check your whole brand".
 
+## Third set: research and on-page
+
+Seven more tools. Four are research tools that lead into the paid research screens. Three are on-page tools that lead into Zippie's skills in the app. Numbered 13 to 19 here so they don't clash with the table above.
+
+### Research tools
+
+| # | Tool and page | Someone enters | They get | Built from | Cost a run | Saved for |
+|---|---|---|---|---|---|---|
+| 13 | Website Traffic Checker `/free-tools/website-traffic-checker` | A domain and a country | Estimated Google visits a month, traffic value in ad dollars, keyword count, and the top 5 pages with their visits and keywords | `domainOverview()`, `relevantPages()` with a limit of 5, `bulkDomains()` for the value (already saved 30 days) | ~$0.02 (check) | 30 days |
+| 14 | Backlink Checker `/free-tools/backlink-checker` | A domain or a page | Total backlinks, referring domains, dofollow share, and the top 20 backlinks: one per site, strongest first, with the linking page, anchor text, the page it points to, follow or nofollow, and first seen | DataForSEO Backlinks: `backlinks/summary`, then `backlinks/backlinks` with `mode: one_per_domain`, `limit: 20`, sorted by rank | ~$0.05 (check) | 7 days |
+| 15 | Keyword Rank Checker `/free-tools/keyword-rank-checker` | A domain, one keyword and a country | Google: the domain's spot in the top 100, the page that ranks, and the features on the page (AI Overview, People also ask, ads). AI Mode: whether the answer cites the domain, its spot among the sources, and whether the text names it | `topUrls()` widened to 100 results, and the AI Mode engine in `dataforseo.ts` | ~$0.025 (check) | 1 day |
+| 16 | Keyword Gap Tool `/free-tools/keyword-gap` | Your domain, a rival's domain and a country | The top 20 keywords the rival ranks for in the top 20 and you don't rank for in the top 100, by volume: keyword, volume, KD, intent, the rival's spot and page. Plus the total count of the gap | `intersect()` from `api/research/gap/route.ts`, moved into `src/lib/gap.ts` so both use it | ~$0.015 (check) | 7 days |
+
+**How each one works:**
+- **Website Traffic Checker:** shares saved results with Domain Snapshot (12), so a run of one fills the other. The number is labelled "Google visits (estimate)". "See every page and keyword" opens Website Research in the app with the domain loaded (`?from=traffic&q={domain}`).
+- **Backlink Checker:** a page address checks that one page, a bare domain checks the whole site. Spam scores from DataForSEO hide links above 60. It links to the Domain Authority Checker for the same domain. The app has no backlinks screen yet, so "See all backlinks" opens Website Research until one exists.
+- **Keyword Rank Checker:** the Google and AI Mode results are saved per keyword and country for 1 day, shared across domains. A second domain checking the same keyword costs $0. Desktop results only. "Track this keyword daily" opens rank tracking in the app with the keyword and domain filled in.
+- **Keyword Gap Tool:** the two domains must differ, and both go through `cleanDomain()`. The cache key keeps the order, rival first. "See the full gap" opens Competitors in the app with the rival added.
+
+**DataForSEO setup:** Backlinks API access has to be turned on in the DataForSEO account. A third-party summary says the $100 monthly minimum ended on July 1, 2026, with Backlinks prices up 20%. Check both on dataforseo.com before launch.
+
+### On-page tools (tie to Zippie)
+
+| # | Tool and page | Someone enters | They get | Built from | Cost a run | Saved for |
+|---|---|---|---|---|---|---|
+| 17 | Schema Markup Generator `/free-tools/schema-generator` | A type (FAQ, Article, Product, Organization or LocalBusiness) and its fields, or a page address to fill them in | JSON-LD to copy, checked against the schema.org fields Google needs for that type, with missing fields flagged | Templates in the browser; Haiku 5.5 only for "Fill from my page", reading the page through `safeFetch` and Readability | $0, ~$0.001 with fill | 30 days (fill only) |
+| 18 | Meta Title and Description Generator `/free-tools/meta-generator` | A page address, or a topic and a main keyword | 5 titles and 5 descriptions, each with its character count and a Google snippet preview (desktop and mobile) that cuts off where Google does | Haiku 5.5 with the rules from Zippie's `meta-writer` skill (`zippieSkills.ts`). The preview measures pixel width in the browser: 580px for titles, 920px for descriptions | ~$0.001 | 7 days |
+| 19 | Robots.txt Tester `/free-tools/robots-txt-tester` | A domain, or pasted robots.txt text, plus a path and a bot | Allowed or blocked for that path, the exact line that decides it, and the same answer for Googlebot, Bingbot and the 10 AI bots at once. The text can be edited on the page and re-tested | `robotsOf()` in `freeRunners.ts` to fetch, `robotsVerdicts()` in `freeChecks.ts` to decide (Google's rules: the longest match wins, Allow wins a tie) | $0 | 1 day (fetch only) |
+
+**How each one works:**
+- **Schema Markup Generator:** replaces tool 10 (AI Schema Generator) and adds Article and LocalBusiness. One page targets "schema markup generator", with a section for each type. "Add this to every page" opens the app with Zippie's `faq-builder` skill and the page loaded, so the schema goes in through the CMS sync.
+- **Meta Title and Description Generator:** never shows a title that breaks the meta-writer rules: anything over 60 characters or under 30 is rewritten before it is shown. "Fix every page on my site" opens the app with Zippie's `meta-writer` skill, which proposes changes through `propose_changes` with play "meta".
+- **Robots.txt Tester:** `robotsVerdicts()` moves to a file that both the server and the browser can load, so edits re-test with no server call. It links to the AI Crawler Checker, and the Crawler Checker links back. "Watch my robots.txt" opens AI Visibility in the app, where the daily audit flags a new block.
+
+**Code:** `FreeTool` in `freeLimits.ts` gets `traffic`, `backlinks`, `rank`, `gap`, `schema`, `meta` and `robots`. Each gets a case in `/api/free/[tool]` and a runner in `freeRunners.ts`. The schema template code and the robots parser run in the browser, so those two pages work even when the API is down.
+
+**Reliability:** the rank checker's result decides whether someone signs up, so a wrong spot costs more than no spot. Tests in `tests/` cover: a domain with www and without matching the same result, a subdomain that ranks counted only when the domain was entered, AI Mode citing a page with tracking codes, and a SERP call that fails once and then works. Robots tests use Google's own robots.txt test cases.
+
+## Content under every tool
+
+Every tool page, old and new, gets a long article below the tool, after the ad block. The tool answers the visitor. The article is what makes the page rank.
+
+**Page order:**
+1. Hero: the H1 (the exact search, like "Website Traffic Checker") and one line.
+2. The form and the result.
+3. The ad block: the "Track this daily" offer for the app.
+4. The article, 2,500 to 3,500 words.
+5. FAQ, 12 to 15 questions.
+6. Related tools (3) and related blog posts (3).
+
+**What each article holds, in this order:**
+- **What it is:** what the tool measures and why it matters, in plain words.
+- **How to use it:** numbered steps with a screenshot of each step.
+- **How we get the numbers:** the data source, how often it updates and how close the estimate is. Honest about limits.
+- **How to read the result:** what each number means, with a table of good, average and weak ranges.
+- **A worked example:** a real run on a known site, with the result as a screenshot and what to do next.
+- **What to do with it:** 5 to 8 concrete moves, each a short section with an H3.
+- **Common mistakes:** 5 to 8, each with the fix.
+- **Glossary:** 8 to 12 terms from the page, each linked to its own blog post where one exists.
+- **The AI search angle:** how the same question works in ChatGPT, AI Overviews and AI Mode, linking to the AI tools.
+
+**Rules:**
+- The article is in the page's HTML from the server (the WordPress template), never loaded by script, so Google reads all of it.
+- Every article is written for its own page. No shared paragraphs between tools beyond the related links.
+- H2 for each part above, H3 inside. A table of contents with jump links sits under the ad block.
+- Schema on every page: `WebApplication`, `FAQPage` and `BreadcrumbList`.
+- Claude drafts each article from an outline and real runs of the tool. A person edits, checks every number and adds the screenshots before it goes live.
+- Each article links to at least 5 other pages on arrowsterr.com and is linked from at least 2 blog posts.
+
+**Site template:** `inc/free-tool.php` gets an `article` slot that reads the page's main content from WordPress, so each article is edited in the WordPress editor. The current "how it works" and FAQ blocks move into the article.
+
+**Size of the job:** 17 pages at about 3,000 words is about 51,000 words. Drafting with Claude Sonnet costs about $3 once (check). Editing is about 2 hours a page.
+
 ### Rules for every tool
 - Results come back in under 60 seconds, with a progress bar like the snapshot's.
 - The first view shows the full answer. No email wall, so pages can rank and be shared.
@@ -102,6 +177,8 @@ The current AI Snapshot stays as it is. Tools 3, 7 and 8 link to it as "check yo
 | 1 | Shared parts, then 1, 4, 5 | Cost almost nothing and reuse finished code. Each one leads to a paid toolset: AI Visibility (1, 4), Organic Research (5). |
 | 2 | 3, 6, 2, 10 | Quick to build. Tools 3 and 6 hand prompts straight to the Free plan. |
 | 3 | 7, 8, 11, 12, the hub page and links from the blog | Use more paid calls, or need parts split out of the audit job. |
+| 4 | 19, 17, 18, then 13, 16, 15, 14 | The on-page tools cost almost nothing and hand off to Zippie. The research tools reuse the research code; the Backlink Checker goes last since it needs Backlinks API access. |
+| 5 | Long articles under every page, highest-search tools first | The tools need to be live to show real runs and screenshots. |
 
 ## Running cost a month
 
@@ -128,3 +205,30 @@ The caps per tool (`FREE_CAP_<TOOL>`) set the worst case. With the default caps 
 | 7 AI Sources Finder | 200 | ~$4 |
 | 8 AI Share of Voice | 100 | ~$10 |
 | 12 Domain Snapshot | 200 | ~$6 |
+| 13 Website Traffic Checker | 300 | ~$6 |
+| 14 Backlink Checker | 150 | ~$7.50 |
+| 15 Keyword Rank Checker | 200 | ~$5 |
+| 16 Keyword Gap Tool | 200 | ~$3 |
+| 17 Schema Markup Generator | 1,000 | ~$1 |
+| 18 Meta Title and Description Generator | 500 | ~$0.50 |
+| 19 Robots.txt Tester | 2,000 | $0 |
+
+`FREE_SPEND_DAY` ($15) still stops all paid runs for the day before the caps add up. At Growth, raise it to $25.
+
+### Third set, running cost a month
+
+Assumes about 2,000 runs at Beta and 20,000 at Growth across the seven new tools, half from saved results. Rank checks share Google and AI Mode results across domains, so they get more from the cache.
+
+| | Beta | Growth |
+|---|---|---|
+| Website Traffic Checker (DataForSEO Labs) | ~$5 | ~$50 |
+| Backlink Checker (DataForSEO Backlinks) | ~$10 | ~$100 |
+| Keyword Rank Checker (Google SERP and AI Mode, $0.004 a call for AI Mode) | ~$4 | ~$40 |
+| Keyword Gap Tool (DataForSEO Labs) | ~$2 | ~$25 |
+| Schema and Meta generators (Haiku 5.5) | ~$1 | ~$5 |
+| Robots.txt Tester | $0 | $0 |
+| Servers (same Render web and Fly worker) | $0 | $0 |
+| Long articles (WordPress pages, no new service) | $0 | $0 |
+| **Total** | **~$22** | **~$220** |
+
+All free tools together: about **$62** a month at Beta and **$645** at Growth. DataForSEO Labs and Backlinks prices: check (a July 2026 price change; the vendor page couldn't be reached to confirm).
