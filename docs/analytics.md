@@ -8,8 +8,8 @@ Code: `src/lib/analytics.ts` (start, identify, workspace, track, reset), `src/in
 
 1. In PostHog (US cloud), open the project's Settings → General and copy the **Project API key** (`phc_...`). It's public by design, like the Sentry DSN.
 2. Set `NEXT_PUBLIC_POSTHOG_KEY` to it where the app is built. It's read at build time:
-   - Fly: `fly.toml` under `[build.args]`, then `fly deploy`.
-   - Render: the service's Environment; the Dockerfile reads it as a build arg.
+   - Render (where the app runs today): the `arrowsterr` service's Environment. It's set.
+   - Fly (when the app moves): `fly.toml` under `[build.args]`. It's set there too.
 3. Deploy, open the app and click around. PostHog's "Waiting for events" turns green within a minute.
 
 Empty means off: nothing loads and every call does nothing.
