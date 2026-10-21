@@ -53,7 +53,7 @@ Seventeen free tools on arrowsterr.com. Each one answers a real question in unde
 - **Limits:**
   - Per visitor: a hashed IP, 5 runs a day per tool and 15 across all tools.
   - Per tool a day: `FREE_CAP_<TOOL>` caps the total, so a burst can't run up the bill.
-- **Bot check:** Cloudflare Turnstile when `TURNSTILE_SECRET` is set. It's free.
+- **Bot check:** Cloudflare Turnstile under every tool form, required in production. It's free.
 - **Cost tracking:** every paid call goes to `cost_ledger` as "free tool: {name}" through `charge()`.
 
 **Database:** `supabase/044_free_tools.sql` adds the `free_runs` table:
