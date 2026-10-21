@@ -10,7 +10,7 @@
 // Pure: the database and the paid calls come in as `store` and `deps` (writerServer.ts), so tests run it offline.
 import type { BriefRow, Outcome, PlannedModule, ResearchPack, SourcePage, WriterBrief, WriterContext } from "./writerBrief.ts";
 import { contextPrefix } from "./writerBrief.ts";
-import { modulePrompt, validateModule, wrapModule, type Validation } from "./writerModules.ts";
+import { modulePrompt, moduleStyle, validateModule, wrapModule, type Validation } from "./writerModules.ts";
 
 // ─────────────── shapes ───────────────
 export type BlockType = "p" | "h3" | "ul" | "ol" | "quote" | "table";
@@ -145,7 +145,9 @@ Rules:
 - Inline formatting: **bold** for a few key terms, and links as [anchor](url).
 - Cite a source for every fact, number or claim as a link on a few words of the sentence: [anchor](source url). Use only the source URLs above.
 - Never invent numbers, quotes, studies or product details. If the sources don't say it, leave it out.
-- Short paragraphs: 1 to 3 sentences.`;
+- Short paragraphs: 1 to 3 sentences.
+- Lists: whenever you give three or more parallel things (options, features, tips, criteria, mistakes, pros, cons), put them in a ul block, one per item; steps in order and rankings go in an ol block. Never run them together in a paragraph. When items have names, start each with the name in **bold**, then a colon.
+- Comparisons of several options on the same points go in a table block.`;
 }
 
 // ─────────────── step 2: check ───────────────
@@ -288,6 +290,18 @@ function blockNodes(b: Block): PMNode[] {
   }
 }
 
+/**
+ * Where the brief says an image helps in a section, as notes for the writer: "Image: what it shows. Alt: ...".
+ * Notes show in the editor and never leave it (docHtml.ts and exportClean drop them), so nothing half-done publishes.
+ */
+export function imageNotes(b: Pick<WriterBrief, "images">, h2: string): PMNode[] {
+  const key = (x: string) => x.toLowerCase().replace(/\s+/g, " ").trim();
+  const want = h2 ? key(h2) : "intro";
+  return (b.images ?? [])
+    .filter((m) => key(m.placement) === want)
+    .map((m) => ({ type: "note", content: [{ type: "text", text: `Image: ${m.shows}${m.alt ? ` Alt: ${m.alt}` : ""}` }] }));
+}
+
 /** A written section as editor nodes: its H2 (none for the intro), then its blocks. */
 export const sectionNodes = (s: Section): PMNode[] => [...(s.h2 ? [heading(2, s.h2)] : []), ...s.blocks.flatMap(blockNodes)];
 
@@ -319,6 +333,7 @@ export function buildDoc(b: WriterBrief, sections: Section[], modules: { module:
   for (const s of sections) {
     if (s.h2) content.push(heading(2, s.h2));
     for (const blk of s.blocks) content.push(...blockNodes(blk));
+    content.push(...imageNotes(b, s.key === "intro" ? "" : s.h2));
     modules.forEach((m, i) => {
       if (!placed.has(i) && s.h2 && m.module.placement.toLowerCase() === s.h2.toLowerCase()) {
         content.push({ type: "embed", attrs: { html: m.html } });
@@ -417,7 +432,7 @@ export async function runDraft(store: DraftStore, deps: DraftDeps, id: string, v
     if (state && state.status !== "retry") continue;
     if (over()) return later;
     const section = final.find((s) => s.h2.toLowerCase() === m.placement.toLowerCase());
-    const raw = (await deps.buildModule(prefix, modulePrompt(m, { keyword: b.keyword, brand: ctx.brand.name, section: section ? sectionPlain(section) : "" }, state?.error))) as { html?: unknown };
+    const raw = (await deps.buildModule(prefix, modulePrompt(m, { keyword: b.keyword, brand: ctx.brand.name, section: section ? sectionPlain(section) : "", style: moduleStyle(ctx.kit, ctx.guidelines) }, state?.error))) as { html?: unknown };
     const html = str(raw?.html, 200_000);
     const v = validate(html);
     const attempts = (state?.attempts ?? 0) + 1;

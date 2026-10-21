@@ -4,6 +4,7 @@
 // Pure, so tests can cover the checks.
 import { Script } from "node:vm";
 import type { BrandKit } from "./brandKit.ts";
+import { FONTS } from "./reportTheme.ts";
 import { kindOf } from "./moduleCatalog.ts";
 import { MODULE_LABEL, type PlannedModule } from "./writerBrief.ts";
 
@@ -70,7 +71,32 @@ export function validateModule(html: string): Validation {
 
 const FALLBACK = { primary: "#0943B0", secondary: "#111111", ink: "#111111", text: "#2B3242", muted: "#5C6B89", paper: "#FFFFFF", surface: "#F6F7F9", line: "#E3E6EB" };
 
-/** The brand's colors and fonts as CSS variables every module uses. */
+/** The Google Fonts import for the brand's fonts. They come from a fixed list (reportTheme.ts FONTS), so it's safe. */
+export function moduleFonts(kit: BrandKit | null): string {
+  const names = [...new Set([kit?.fonts.heading, kit?.fonts.body].filter((f): f is NonNullable<typeof f> => Boolean(f) && (FONTS as readonly string[]).includes(String(f))))];
+  if (!names.length) return "";
+  return `@import url('https://fonts.googleapis.com/css2?${names.map((f) => `family=${String(f).replace(/ /g, "+")}:wght@400;500;600;700`).join("&")}&display=swap');`;
+}
+
+/**
+ * The brand's style guide in words, for the build prompt: its colors and what each is for, its fonts and corners,
+ * and its written guidelines. The module must look like the brand's own site.
+ */
+export function moduleStyle(kit: BrandKit | null, guidelines: { body: string } | null): string {
+  const c = kit?.colors;
+  return [
+    c
+      ? `Colors: primary ${c.primary} (buttons, links, the active state, key numbers), secondary ${c.secondary} (accents), ink ${c.ink} (headings), text ${c.text} (body), muted ${c.muted} (labels and notes), paper ${c.paper} (background), surface ${c.surface} (cards), line ${c.line} (borders). Use only these, and tints of them with color-mix().`
+      : "",
+    kit ? `Fonts: ${kit.fonts.heading} for headings and ${kit.fonts.body} for text, already loaded as --aw-font-heading and --aw-font-body. Corners: ${Math.min(12, kit.radius)}px (--aw-radius) on cards, buttons and inputs.` : "",
+    kit?.voice?.tone?.length ? `Microcopy (labels, buttons, results) in the brand's tone: ${kit.voice.tone.join(", ")}.` : "",
+    guidelines?.body ? `The brand's guidelines (follow what they say about look, buttons, charts and wording):\n${guidelines.body.slice(0, 2000)}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
+/** The brand's colors and fonts as CSS variables every module uses, with the fonts loaded. */
 export function moduleTheme(kit: BrandKit | null): string {
   const c = kit?.colors ?? FALLBACK;
   const font = (f: string | undefined) => `${f ? `"${f}", ` : ""}system-ui, -apple-system, "Segoe UI", sans-serif`;
@@ -87,7 +113,7 @@ export function moduleTheme(kit: BrandKit | null): string {
     "--aw-font-heading": font(kit?.fonts.heading),
     "--aw-font-body": font(kit?.fonts.body),
   };
-  return `:root{${Object.entries(vars)
+  return `${moduleFonts(kit)}:root{${Object.entries(vars)
     .map(([k, v]) => `${k}:${v}`)
     .join(";")}}`;
 }
@@ -99,7 +125,7 @@ export const wrapModule = (html: string, m: Pick<PlannedModule, "type" | "title"
 export const MODULE_SCHEMA = { type: "object", additionalProperties: false, required: ["html"], properties: { html: { type: "string" } } };
 
 /** The instructions for building one module, after the cached brand and research. */
-export function modulePrompt(m: PlannedModule, ctx: { keyword: string; brand: string; section: string }, lastError?: string | null): string {
+export function modulePrompt(m: PlannedModule, ctx: { keyword: string; brand: string; section: string; style?: string }, lastError?: string | null): string {
   return `Build one interactive module for ${ctx.brand}'s article on "${ctx.keyword}". It goes right after the section "${m.placement}".
 
 Module: ${MODULE_LABEL[m.type]}: ${m.title}
@@ -109,14 +135,14 @@ Outputs: ${m.outputs.join("; ") || "none"}
 Data: ${m.data || "from the sources"}
 Why it helps: ${m.why}
 
-${kindOf(m.type) ? `How to build it: ${kindOf(m.type)!.build}\n\n` : ""}The section it follows:
+${kindOf(m.type) ? `How to build it: ${kindOf(m.type)!.build}\n\n` : ""}${ctx.style ? `${ctx.brand}'s style guide. The module must look like it belongs on ${ctx.brand}'s own site:\n${ctx.style}\n\n` : ""}The section it follows:
 ${ctx.section.slice(0, 4000)}
 ${lastError ? `\nThe last version was refused: ${lastError} Fix that.\n` : ""}
 Rules:
 - Reply with html: one HTML block (no <html>, <head> or <body>): one <style>, the markup, one inline <script>.
 - No outside files of any kind: no <script src>, <link>, <iframe>, images or fonts from the web, @import or url(http...).
 - No network: no fetch, XMLHttpRequest, WebSocket, import(). No localStorage, cookies, alert, confirm, prompt or eval. It runs in a sandbox that blocks them.
-- Style it with these CSS variables, already set: --aw-primary, --aw-secondary, --aw-ink, --aw-text, --aw-muted, --aw-paper, --aw-surface, --aw-line, --aw-radius, --aw-font-heading, --aw-font-body. Flat: no shadows, no gradients, no emoji.
+- Style it with these CSS variables, already set from the style guide: --aw-primary, --aw-secondary, --aw-ink, --aw-text, --aw-muted, --aw-paper, --aw-surface, --aw-line, --aw-radius, --aw-font-heading, --aw-font-body. Headings use --aw-font-heading and everything else --aw-font-body. Never hard-code another color or font. Flat: no shadows, no gradients, no emoji.
 - Prefix every class and id with "awm-" and wrap everything in one root element, so it can't clash with the page.
 - Accessible: every input has a <label>, buttons are <button>, results sit in an aria-live="polite" region, colors keep 4.5:1 contrast, focus is visible.
 - Keyboard usable: everything works with Tab, Enter, Space and the arrow keys where they fit.

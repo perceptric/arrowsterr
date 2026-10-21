@@ -10,6 +10,7 @@ export type Slice = { h2: string; nodes: PmNode[] };
 export type Split = { intro: PmNode[]; sections: Slice[] };
 
 const textOf = (n: PmNode): string => (n.type === "text" ? (n.text ?? "") : (n.content ?? []).map(textOf).join(n.type === "paragraph" || n.type === "heading" ? "" : " "));
+const key = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
 const isH2 = (n: PmNode) => n.type === "heading" && Number(n.attrs?.level) === 2;
 
 /** The doc's top-level nodes, or none. */
@@ -67,19 +68,24 @@ export function replacePart(content: unknown, part: Part, nodes: PmNode[]): PmNo
 
 // ─────────────── the doc the brief starts ───────────────
 export type BriefOutline = { h2: string; points: string[]; h3: string[]; sources: { n: number; title: string; url: string }[] };
-export type BriefPlan = { h1: string; intro: string[]; outline: BriefOutline[]; faqs: { question: string; answer: string }[]; modules?: { type: string; title: string; placement: string }[] };
+export type BriefPlan = { h1: string; intro: string[]; outline: BriefOutline[]; faqs: { question: string; answer: string }[]; modules?: { type: string; title: string; placement: string }[]; images?: { placement: string; shows: string; alt: string }[] };
 export const FAQ_H2 = "Frequently asked questions";
 
 const heading = (level: number, text: string): PmNode => ({ type: "heading", attrs: { level }, content: text ? [{ type: "text", text }] : [] });
 const EMPTY: PmNode = { type: "paragraph" };
 
-/** The doc a writer starts from: an empty intro, then each H2 of the brief (with its H3s) and the FAQ, all empty. */
+/** Where the brief says an image goes in a section, as editor notes. Notes never publish. */
+const imageNotes = (plan: BriefPlan, where: string): PmNode[] =>
+  (plan.images ?? []).filter((m) => key(m.placement) === key(where)).map((m) => ({ type: "note", content: [{ type: "text", text: `Image: ${m.shows}${m.alt ? ` Alt: ${m.alt}` : ""}` }] }));
+
+/** The doc a writer starts from: an empty intro, then each H2 of the brief (with its H3s) and the FAQ, all empty, with notes where images go. */
 export function briefSkeleton(plan: BriefPlan): PmNode {
-  const content: PmNode[] = [EMPTY];
+  const content: PmNode[] = [EMPTY, ...imageNotes(plan, "intro")];
   for (const o of plan.outline) {
     content.push(heading(2, o.h2));
     if (o.h3.length) for (const t of o.h3) content.push(heading(3, t), EMPTY);
     else content.push(EMPTY);
+    content.push(...imageNotes(plan, o.h2));
   }
   if (plan.faqs.length) {
     content.push(heading(2, FAQ_H2));
@@ -101,6 +107,7 @@ export type RawBrief = {
   faqs?: { question: string; answer?: string }[];
   research?: { sources?: { n: number; title: string; url: string }[] };
   modules?: { type: string; title: string; placement: string }[];
+  images?: { placement: string; shows: string; alt: string }[];
 };
 
 /** The brief as the grid reads it: titles, meta, the intro's notes, each H2 with its points and sources, the FAQs. */
@@ -121,18 +128,20 @@ export function planOf(p: RawBrief | null): GridPlan | null {
     })),
     faqs: (p.faqs ?? []).map((f) => ({ question: f.question, answer: f.answer ?? "" })),
     modules: (p.modules ?? []).map((m) => ({ type: m.type, title: m.title, placement: m.placement })),
+    images: (p.images ?? []).map((m) => ({ placement: m.placement, shows: m.shows, alt: m.alt })),
   };
 }
 
 /** What the brief says to write in one section: the intro's notes, the H2's points and sources, or the FAQs. */
-export type SectionNotes = { points: string[]; sources: { n: number; title: string; url: string }[] };
-const key = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
+export type SectionNotes = { points: string[]; sources: { n: number; title: string; url: string }[]; images: string[] };
 export function notesFor(plan: BriefPlan | null, part: Part, h2: string): SectionNotes | null {
   if (!plan) return null;
-  if (part === "intro") return plan.intro.length ? { points: plan.intro, sources: [] } : null;
-  if (key(h2) === key(FAQ_H2) && plan.faqs.length) return { points: plan.faqs.map((f) => `${f.question} ${f.answer}`.trim()), sources: [] };
+  const images = (plan.images ?? []).filter((m) => key(m.placement) === (part === "intro" ? "intro" : key(h2))).map((m) => (m.alt ? `${m.shows} Alt: ${m.alt}` : m.shows));
+  const out = (points: string[], sources: SectionNotes["sources"]) => (points.length || sources.length || images.length ? { points, sources, images } : null);
+  if (part === "intro") return out(plan.intro, []);
+  if (key(h2) === key(FAQ_H2) && plan.faqs.length) return out(plan.faqs.map((f) => `${f.question} ${f.answer}`.trim()), []);
   const o = plan.outline.find((x) => key(x.h2) === key(h2));
-  return o ? { points: [...o.points, ...o.h3.map((t) => `H3: ${t}`)], sources: o.sources } : null;
+  return o ? out([...o.points, ...o.h3.map((t) => `H3: ${t}`)], o.sources) : out([], []);
 }
 
 /** The module the brief planned for a section, by its H2, or null. */

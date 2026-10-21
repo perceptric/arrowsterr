@@ -14,8 +14,10 @@ import type { View } from "@/lib/view";
 import { getBrief, getDraft, listTopics, type FullBrief, type FullDraft, type Topic } from "@/lib/writerLibrary";
 import type { BrandGuideline } from "@/lib/writerTypes";
 import { PlainEditor, type SaveState } from "../content/PlainEditor";
+import { ConnectWizard } from "../ConnectWizard";
 import { Pop } from "../Pickers";
 import { PublishPanel } from "../research/PublishPanel";
+import { post } from "../research/shared";
 import { brandTables } from "../research/Writer";
 import { exportClean } from "../research/writerNodes";
 import { ToolIntro } from "../ToolIntro";
@@ -63,8 +65,8 @@ export function LibraryPage({ view, auth, canEdit }: { view: View; auth: RunAuth
     load();
   };
   if (open?.kind === "brief") return <BriefEditor key={open.id} sb={sb} auth={auth} id={open.id} canEdit={canEdit} onBack={back} onDraft={(id) => setOpen({ kind: "draft", id })} />;
-  if (open?.kind === "draft") return <DraftView key={open.id} sb={sb} auth={auth} site={site} id={open.id} canEdit={canEdit} onBack={back} />;
-  if (open?.kind === "doc") return <DocView key={open.id} sb={sb} auth={auth} site={site} id={open.id} canEdit={canEdit} onBack={back} />;
+  if (open?.kind === "draft") return <DraftView key={open.id} sb={sb} auth={auth} site={site} brandId={brand.id} id={open.id} canEdit={canEdit} onBack={back} />;
+  if (open?.kind === "doc") return <DocView key={open.id} sb={sb} auth={auth} site={site} brandId={brand.id} id={open.id} canEdit={canEdit} onBack={back} />;
 
   const list = rows ?? [];
   return (
@@ -72,7 +74,7 @@ export function LibraryPage({ view, auth, canEdit }: { view: View; auth: RunAuth
       {list.length ? null : <h1 className="aw-h2">Library</h1>}
       {error ? <p className="aw-error">{error}</p> : null}
       {list.length ? (
-        <ContentGrid sb={sb} auth={auth} site={site} canEdit={canEdit} onOpen={setOpen} />
+        <ContentGrid sb={sb} auth={auth} site={site} brandId={brand.id} canEdit={canEdit} onOpen={setOpen} />
       ) : (
         <ToolIntro
           title="Library"
@@ -103,7 +105,7 @@ function Back({ onBack, title, children }: { onBack: () => void; title: string; 
 }
 
 /** A draft the writer job made: its progress while it runs, then the article with Regenerate. */
-function DraftView({ sb, auth, site, id, canEdit, onBack }: { sb: SupabaseClient; auth: RunAuth; site: Site; id: string; canEdit: boolean; onBack: () => void }) {
+function DraftView({ sb, auth, site, brandId, id, canEdit, onBack }: { sb: SupabaseClient; auth: RunAuth; site: Site; brandId: string; id: string; canEdit: boolean; onBack: () => void }) {
   const [draft, setDraft] = useState<FullDraft | null | undefined>(undefined);
   const [brief, setBrief] = useState<FullBrief | null>(null);
   const [doc, setDoc] = useState<Doc | null>(null);
@@ -182,6 +184,7 @@ function DraftView({ sb, auth, site, id, canEdit, onBack }: { sb: SupabaseClient
         sb={sb}
         auth={auth}
         site={site}
+        brandId={brandId}
         doc={doc}
         canEdit={canEdit}
         onBack={onBack}
@@ -199,7 +202,7 @@ function DraftView({ sb, auth, site, id, canEdit, onBack }: { sb: SupabaseClient
 }
 
 /** An article's doc by its id: the one a writer started from the brief in the grid (Full view). */
-function DocView({ sb, auth, site, id, canEdit, onBack }: { sb: SupabaseClient; auth: RunAuth; site: Site; id: string; canEdit: boolean; onBack: () => void }) {
+function DocView({ sb, auth, site, brandId, id, canEdit, onBack }: { sb: SupabaseClient; auth: RunAuth; site: Site; brandId: string; id: string; canEdit: boolean; onBack: () => void }) {
   const [doc, setDoc] = useState<Doc | null | undefined>(undefined);
   const [error, setError] = useState("");
   useEffect(() => {
@@ -217,11 +220,11 @@ function DocView({ sb, auth, site, id, canEdit, onBack }: { sb: SupabaseClient; 
   }, [sb, id]);
   if (doc === undefined) return <Thinking text="Opening the article..." />;
   if (!doc) return <Back onBack={onBack} title={error || "This article was deleted."} />;
-  return <ArticleView sb={sb} auth={auth} site={site} doc={doc} canEdit={canEdit} onBack={onBack} />;
+  return <ArticleView sb={sb} auth={auth} site={site} brandId={brandId} doc={doc} canEdit={canEdit} onBack={onBack} />;
 }
 
 /** The whole article: the plain editor with its modules, HTML, Markdown and Text views, Export and Publish. */
-function ArticleView({ sb, auth, site, doc, canEdit, onBack, extra }: { sb: SupabaseClient; auth: RunAuth; site: Site; doc: Doc; canEdit: boolean; onBack: () => void; extra?: React.ReactNode }) {
+function ArticleView({ sb, auth, site, brandId, doc, canEdit, onBack, extra }: { sb: SupabaseClient; auth: RunAuth; site: Site; brandId: string; doc: Doc; canEdit: boolean; onBack: () => void; extra?: React.ReactNode }) {
   const [guideline, setGuideline] = useState<BrandGuideline | null>(null);
   const [editor, setEditor] = useState<Editor | null>(null);
   const [state, setState] = useState<{ s: SaveState; note?: string }>({ s: "saved" });
@@ -232,6 +235,8 @@ function ArticleView({ sb, auth, site, doc, canEdit, onBack, extra }: { sb: Supa
   const [view, setView] = useState<"edit" | "html" | "md" | "text">("edit");
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
+  const [sync, setSync] = useState<{ s: "idle" | "syncing" | "done"; url?: string | null }>({ s: "idle" });
+  const [connecting, setConnecting] = useState(false);
   useEffect(() => {
     let live = true;
     getGuideline(sb, site.id)
@@ -249,6 +254,21 @@ function ArticleView({ sb, auth, site, doc, canEdit, onBack, extra }: { sb: Supa
   const onState = useCallback((s: SaveState, note?: string) => setState({ s, note }), []);
 
   const html = () => brandTables(exportClean(editor?.getHTML() ?? ""), guideline);
+
+  /** Sync the saved article to the brand's site: the same post each time, kept a draft unless it's live there. */
+  async function syncToCms() {
+    setError("");
+    setSync({ s: "syncing" });
+    try {
+      const out = await post<{ published: { url: string | null } }>(auth, "/api/cms", { action: "push", docId: doc.id });
+      setSync({ s: "done", url: out.published.url });
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      setSync({ s: "idle" });
+      if (/connect a publishing site/i.test(message)) setConnecting(true);
+      else setError(message);
+    }
+  }
   const name = (title || "article").replace(/\W+/g, "-").replace(/^-|-$/g, "").toLowerCase() || "article";
   function download(file: string, body: string, type: string) {
     const a = document.createElement("a");
@@ -276,6 +296,17 @@ function ArticleView({ sb, auth, site, doc, canEdit, onBack, extra }: { sb: Supa
         <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" aria-haspopup="menu" disabled={!editor} onClick={(e) => setExportAt(e.currentTarget.getBoundingClientRect())}>
           Export
         </button>
+        {canEdit ? (
+          sync.s === "done" && sync.url ? (
+            <a href={sync.url} target="_blank" rel="noopener noreferrer" className="aw-btn aw-btn--secondary aw-btn--sm">
+              Synced ↗
+            </a>
+          ) : (
+            <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={state.s === "saving" || sync.s === "syncing"} onClick={() => void syncToCms()}>
+              {sync.s === "syncing" ? "Syncing..." : sync.s === "done" ? "Synced" : "Sync to CMS"}
+            </button>
+          )
+        ) : null}
         {canEdit ? (
           <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" disabled={!editor} onClick={() => setPublishing(true)}>
             Publish
@@ -320,7 +351,8 @@ function ArticleView({ sb, auth, site, doc, canEdit, onBack, extra }: { sb: Supa
           </div>
         </Pop>
       ) : null}
-      {publishing ? <PublishPanel sb={sb} auth={auth} docId={doc.id} title={title} html={html} onClose={() => setPublishing(false)} /> : null}
+      {publishing ? <PublishPanel sb={sb} auth={auth} docId={doc.id} brandId={brandId} title={title} html={html} onClose={() => setPublishing(false)} /> : null}
+      {connecting ? <ConnectWizard auth={auth} brandId={brandId} onClose={() => setConnecting(false)} onConnected={() => {}} /> : null}
     </div>
   );
 }

@@ -17,6 +17,7 @@ export type ModuleType = string;
 export const MODULE_LABEL: Record<ModuleType, string> = Object.fromEntries(MODULE_IDS.map((id) => [id, kindLabel(id)]));
 
 export type PlannedModule = { type: ModuleType; title: string; purpose: string; placement: string; inputs: string[]; outputs: string[]; data: string; why: string };
+export type BriefImage = { placement: string; shows: string; alt: string };
 export type OutlinePart = { h2: string; points: string[]; h3: { title: string; points: string[] }[]; sources: number[] };
 
 /** A source the research read, numbered so the outline and the draft can point to it. */
@@ -45,6 +46,8 @@ export type WriterBrief = {
   internalLinks: { url: string; anchor: string; where: string }[];
   cta: { text: string; where: string };
   modules: PlannedModule[];
+  /** Where an image helps: the H2 it goes under ("intro" for the intro), what it shows, and its alt text. */
+  images?: BriefImage[];
   research: BriefResearch;
   model: string;
   at: string;
@@ -178,6 +181,7 @@ export const BRIEF_SCHEMA = obj({
   internalLinks: { type: "array", items: obj({ url: S, anchor: S, where: S }) },
   cta: obj({ text: S, where: S }),
   modules: { type: "array", items: obj({ type: { type: "string", enum: [...MODULE_TYPES] }, title: S, purpose: S, placement: S, inputs: LIST, outputs: LIST, data: S, why: S }) },
+  images: { type: "array", items: obj({ placement: S, shows: S, alt: S }) },
   topPages: S,
   aiAnswers: S,
 });
@@ -202,12 +206,13 @@ ${isBofu(c.stage) ? `${listicleRules(b.keyword, new Date().getFullYear())}\n` : 
 - faqs: 3 to 6 questions from People Also Ask and the AI answers, each with a one-line note on what the answer must say.
 - internalLinks: up to 6, each with its anchor text and the H2 it goes under.
 - cta: what the reader should do at the end, in ${c.brand.name}'s words, and where it goes.
-- modules: 1 to 3 interactive modules that make the article more useful and fun to read: type (one of the kinds below), a short title, its purpose, placement (the exact H2 it goes after), inputs and outputs (or, for a table, flow, pyramid, stats or matrix, the rows, steps, layers or items in data), and why it helps the reader. Pick the kind whose "when" fits the section best, and never two of the same kind. All data must come from the sources.
+- modules: interactive modules, only where one does something text, a list or a plain table can't: lets the reader work out their own number, pick the right option or explore layers or a process step by step. Most articles need none or one; never more than two, and never two of the same kind. For each: type (one of the kinds below), a short title, its purpose, placement (the exact H2 it goes after), inputs and outputs (or, for a table, flow, pyramid, stats or matrix, the rows, steps, layers or items in data), and why it helps this reader more than text would. Leave the list empty when nothing earns a module. All data must come from the sources.
   Kinds:
 ${kindsForPrompt()
   .split("\n")
   .map((l) => `  - ${l}`)
   .join("\n")}
+- images: 2 to 5 places an image helps the reader: placement (the exact H2 it goes under, or "intro"), shows (what it shows: a screenshot of a named tool's screen, a chart of a number from the sources, a diagram of a process, a photo of a real thing) and alt (one plain sentence for screen readers). Skip stock-photo filler.
 - topPages: 3 to 5 sentences on what Google's top pages do: format, length, what they all cover.
 - aiAnswers: 2 to 4 sentences on what the AI answers say and which sites they cite.
 - Base every fact on the sources. Never invent numbers.`;
@@ -246,7 +251,7 @@ export function cleanBrief(x: unknown, research: Omit<BriefResearch, "topPages" 
       return { type: m.type as ModuleType, title: str(m.title, 120), purpose: str(m.purpose, 400), placement, inputs: strs(m.inputs, 200, 10), outputs: strs(m.outputs, 200, 10), data: str(m.data, 3000), why: str(m.why, 400) };
     })
     .filter((m) => m.title)
-    .slice(0, 3);
+    .slice(0, 2);
   const titles = strs(o.titles, 120, 3);
   const h1 = str(o.h1, 160) || titles[0] || meta.keyword;
   const target = Math.round(Number(o.wordTarget));
@@ -273,6 +278,14 @@ export function cleanBrief(x: unknown, research: Omit<BriefResearch, "topPages" 
       .slice(0, 8),
     cta: { text: str((o.cta as Record<string, unknown> | undefined)?.text, 300), where: str((o.cta as Record<string, unknown> | undefined)?.where, 160) },
     modules,
+    images: arr(o.images)
+      .map((m) => {
+        const want = str(m.placement, 160);
+        const placement = /^intro$/i.test(want) ? "intro" : (h2s.find((h) => same(h, want)) ?? h2s.find((h) => want && h.toLowerCase().includes(want.toLowerCase())) ?? "");
+        return { placement, shows: str(m.shows, 300), alt: str(m.alt, 200) };
+      })
+      .filter((m) => m.placement && m.shows)
+      .slice(0, 6),
     research: { ...research, topPages: str(o.topPages, 1500), aiAnswers: str(o.aiAnswers, 1500) },
     model: meta.model,
     at: meta.at,

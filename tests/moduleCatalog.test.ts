@@ -35,3 +35,52 @@ test("the build prompt carries the kind's design, and old kinds still build", ()
   assert.match(old, /Module: ROI estimator/);
   assert.doesNotMatch(old, /How to build it/);
 });
+
+test("a module follows the brand: its colors, fonts, corners and guidelines go in the prompt, and its fonts load", async () => {
+  const { DEFAULT_KIT } = await import("../src/lib/brandKit.ts");
+  const { moduleFonts, moduleStyle, moduleTheme } = await import("../src/lib/writerModules.ts");
+  const kit = { ...DEFAULT_KIT, colors: { ...DEFAULT_KIT.colors, primary: "#D73E33" }, fonts: { heading: "DM Sans" as const, body: "Inter" as const }, radius: 10 };
+  const style = moduleStyle(kit, { body: "Buttons are pill shaped. Charts use the primary red." });
+  assert.match(style, /primary #D73E33 \(buttons/);
+  assert.match(style, /DM Sans for headings and Inter for text/);
+  assert.match(style, /Corners: 10px/);
+  assert.match(style, /Buttons are pill shaped/);
+  assert.equal(moduleFonts(kit), "@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');");
+  assert.ok(moduleTheme(kit).startsWith("@import url('https://fonts.googleapis.com/"));
+  assert.match(moduleTheme(kit), /--aw-primary:#D73E33/);
+  assert.equal(moduleFonts(null), "");
+  assert.equal(moduleStyle(null, null), "");
+  const base = { title: "Compare", purpose: "Pick", placement: "Tools", inputs: [], outputs: [], data: "", why: "" };
+  assert.match(modulePrompt({ ...base, type: "comparison" }, { keyword: "k", brand: "Acme", section: "s", style }), /Acme's style guide\. The module must look like it belongs on Acme's own site:\n.*primary #D73E33/);
+});
+
+test("the brief asks for modules only where they earn their place, and the writer puts lists in lists", async () => {
+  const { briefPrompt } = await import("../src/lib/writerBrief.ts");
+  const { sectionPrompt, planSections, imageNotes, buildDoc } = await import("../src/lib/writerDraft.ts");
+  const ctx = { brand: { name: "Acme", domain: "acme.com" }, voice: null, kit: null, guidelines: null, sitemap: [] };
+  const p = briefPrompt({ keyword: "seo agency", notes: "", note: null }, ctx, 5);
+  assert.match(p, /Most articles need none or one; never more than two/);
+  assert.match(p, /images: 2 to 5 places an image helps/);
+  const brief = { titles: ["T"], h1: "T", metaDescription: "", slug: "t", searchIntent: "", reader: "", angle: "", wordTarget: 1200, outline: [{ h2: "Pricing", points: ["Plans"], h3: [], sources: [] }], entities: [], gaps: [], faqs: [], internalLinks: [], cta: { text: "", where: "" }, modules: [], images: [{ placement: "Pricing", shows: "A chart of plan prices.", alt: "Plan prices" }, { placement: "intro", shows: "A hero diagram.", alt: "" }], research: { topPages: "", aiAnswers: "", sources: [], questions: [], engines: [] }, model: "m", at: "" };
+  const sp = sectionPrompt(planSections(brief), 1, brief, [], null, null);
+  assert.match(sp, /three or more parallel things .* put them in a ul block/);
+  assert.match(sp, /steps in order and rankings go in an ol block/);
+  assert.deepEqual(imageNotes(brief, "pricing"), [{ type: "note", content: [{ type: "text", text: "Image: A chart of plan prices. Alt: Plan prices" }] }]);
+  assert.equal(imageNotes(brief, "").length, 1);
+  const doc = buildDoc(brief, [{ key: "intro", h2: "", blocks: [{ type: "p", text: "Hi.", items: [], rows: [] }] }, { key: "h2-0", h2: "Pricing", blocks: [{ type: "p", text: "From $9.", items: [], rows: [] }] }], []);
+  const types = (doc.content.content as { type: string }[]).map((n) => n.type);
+  assert.deepEqual(types, ["paragraph", "note", "heading", "paragraph", "note"]);
+});
+
+test("for a CMS other than WordPress, modules go out as self-contained sandboxed frames and broken ones are dropped", async () => {
+  const { framedModules, moduleBlock } = await import("../src/lib/wpModules.ts");
+  const block = moduleBlock({ id: "calc-1", title: "Cost calculator", html: "<div><button>Go</button><script>1</script></div>" });
+  const out = framedModules(`<p>Before</p>${block}<p>After</p>`);
+  assert.match(out, /^<p>Before<\/p><div class="arrowsterr-module"><iframe title="Cost calculator" sandbox="allow-scripts" loading="lazy" style="width:100%;border:0;height:600px" srcdoc="/);
+  assert.match(out, /&lt;button&gt;Go&lt;\/button&gt;/);
+  assert.match(out, /<p>After<\/p>$/);
+  const embed = `<div data-embed="${encodeURIComponent("<b>hi</b>")}"></div>`;
+  assert.match(framedModules(embed), /srcdoc=".*&lt;b&gt;hi&lt;\/b&gt;/);
+  assert.equal(framedModules('<div data-aw-module="bad id" data-aw-src="x"></div><p>x</p>'), "<p>x</p>");
+  assert.equal(framedModules('<div class="x"></div>'), '<div class="x"></div>');
+});

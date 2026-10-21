@@ -14,6 +14,7 @@ import { Dropdown, Pop } from "../Pickers";
 import { post, STATUS_PICK } from "../research/shared";
 import { Thinking } from "../ui";
 import { usePoll, type LibraryOpen } from "./parts";
+import { ConnectWizard } from "../ConnectWizard";
 import { GenerateDialog } from "./GenerateDialog";
 import { SectionPanel } from "./SectionPanel";
 
@@ -40,7 +41,7 @@ function jobOf(r: GridRow): { label: string; tone: string; error?: string } | nu
   return null;
 }
 
-export function ContentGrid({ sb, auth, site, canEdit, onOpen }: { sb: SupabaseClient; auth: RunAuth; site: Site; canEdit: boolean; onOpen: (open: LibraryOpen) => void }) {
+export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: SupabaseClient; auth: RunAuth; site: Site; brandId: string; canEdit: boolean; onOpen: (open: LibraryOpen) => void }) {
   // A saved copy from an older grid can have another shape, so only a list counts.
   const [saved, setRows] = useStash<GridRow[] | null>(`library:${site.id}:rows`, null);
   const rows = Array.isArray(saved) ? saved : null;
@@ -50,6 +51,8 @@ export function ContentGrid({ sb, auth, site, canEdit, onOpen }: { sb: SupabaseC
   const [panel, setPanel] = useState<{ itemId: string; pair: number } | null>(null);
   const [starting, setStarting] = useState("");
   const [gen, setGen] = useState<{ itemId: string; only: number | null; reopen: boolean } | null>(null);
+  const [connecting, setConnecting] = useState(false);
+  const [synced, setSynced] = useState<Record<string, { s: "syncing" | "done"; url?: string | null }>>({});
   const [busy, setBusy] = useState<Set<string>>(new Set());
   const [added, setAdded] = useState(() => {
     try {
@@ -130,6 +133,26 @@ export function ContentGrid({ sb, auth, site, canEdit, onOpen }: { sb: SupabaseC
       setBusy((b) => new Set([...b].filter((x) => !ids.includes(x))));
     }
   }
+  /** Sync the article to the brand's site: the same post each time, kept a draft unless it's live there. */
+  async function syncRow(r: GridRow) {
+    if (!r.doc) return;
+    setError("");
+    setSynced((x) => ({ ...x, [r.topic.id]: { s: "syncing" } }));
+    try {
+      const out = await post<{ published: { url: string | null } }>(auth, "/api/cms", { action: "push", docId: r.doc.id });
+      setSynced((x) => ({ ...x, [r.topic.id]: { s: "done", url: out.published.url } }));
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      setSynced((x) => {
+        const n = { ...x };
+        delete n[r.topic.id];
+        return n;
+      });
+      if (/connect a publishing site/i.test(message)) setConnecting(true);
+      else setError(`${r.topic.keyword}: ${message}`);
+    }
+  }
+
   const fullView = (r: GridRow) => (r.doc ? onOpen({ kind: "doc", id: r.doc.id }) : undefined);
 
   /** The article's doc: the one there, or a new one from the brief, which moves the piece to Writing. */
@@ -266,6 +289,11 @@ export function ContentGrid({ sb, auth, site, canEdit, onOpen }: { sb: SupabaseC
         <h1 className="aw-h2 mr-auto">Library</h1>
         {picked.length ? <span className="text-[12px] text-muted">{picked.length} selected</span> : null}
         {canEdit ? (
+          <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setConnecting(true)}>
+            Connect site
+          </button>
+        ) : null}
+        {canEdit ? (
           <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" disabled={!picked.length || picked.every((id) => busy.has(id))} onClick={() => void generate(picked)}>
             Generate brief
           </button>
@@ -361,6 +389,17 @@ export function ContentGrid({ sb, auth, site, canEdit, onOpen }: { sb: SupabaseC
                           Generate
                         </button>
                       ) : null}
+                      {canEdit && r.doc ? (
+                        synced[r.topic.id]?.s === "done" && synced[r.topic.id].url ? (
+                          <a href={synced[r.topic.id].url!} target="_blank" rel="noopener noreferrer" className="aw-text-link text-[12px]">
+                            Synced ↗
+                          </a>
+                        ) : (
+                          <button type="button" className="aw-text-link text-[12px]" disabled={synced[r.topic.id]?.s === "syncing"} onClick={() => void syncRow(r)}>
+                            {synced[r.topic.id]?.s === "syncing" ? "Syncing..." : synced[r.topic.id]?.s === "done" ? "Synced" : "Sync"}
+                          </button>
+                        )
+                      ) : null}
                     </span>
                   </div>
                 </td>
@@ -424,6 +463,7 @@ export function ContentGrid({ sb, auth, site, canEdit, onOpen }: { sb: SupabaseC
           onClose={() => setPanel(null)}
         />
       ) : null}
+      {connecting ? <ConnectWizard auth={auth} brandId={brandId} onClose={() => setConnecting(false)} onConnected={() => {}} /> : null}
       {gen && genRow ? (
         <GenerateDialog
           auth={auth}

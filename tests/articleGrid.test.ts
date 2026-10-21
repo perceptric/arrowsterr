@@ -65,8 +65,8 @@ test("the brief starts a doc with an empty intro, each H2 with its H3s, and the 
 });
 
 test("each section shows what the brief says to write in it, found by its H2", () => {
-  assert.deepEqual(notesFor(plan, "intro", ""), { points: ["Real prices", "Compare tools"], sources: [] });
-  assert.deepEqual(notesFor(plan, 0, " what geo MEANS "), { points: ["Define it"], sources: [{ n: 1, title: "A", url: "https://a.com" }] });
+  assert.deepEqual(notesFor(plan, "intro", ""), { points: ["Real prices", "Compare tools"], sources: [], images: [] });
+  assert.deepEqual(notesFor(plan, 0, " what geo MEANS "), { points: ["Define it"], sources: [{ n: 1, title: "A", url: "https://a.com" }], images: [] });
   assert.deepEqual(notesFor(plan, 1, "The 9 tools")?.points, ["Price each", "H3: Profound", "H3: Peec AI"]);
   assert.deepEqual(notesFor(plan, 2, FAQ_H2)?.points, ["Is GEO worth it? Yes, say why."]);
   assert.equal(notesFor(plan, 3, "A heading the writer added"), null);
@@ -127,6 +127,7 @@ test("the grid reads the brief's titles, meta, intro notes, outline with sources
     outline: [{ h2: "One", points: ["p"], h3: ["Sub"], sources: [{ n: 2, title: "B", url: "https://b.com" }] }],
     faqs: [{ question: "Q?", answer: "" }],
     modules: [],
+    images: [],
   });
   assert.equal(planOf(null), null);
   assert.equal(planOf({ h1: "Only" })?.title, "Only");
@@ -155,4 +156,17 @@ test("a generated section is planned from the brief, with the points the writer 
   const added = cellPlan(brief, { kind: "section", h2: "Setup", index: 1 }, ["Steps"]);
   assert.equal(added.plan[added.i].h2, "Setup");
   assert.deepEqual(added.plan[added.i].points, ["Steps"]);
+});
+
+test("the brief's image spots show in each section's notes and as notes in the doc a writer starts", () => {
+  const withImages: BriefPlan = { ...plan, images: [{ placement: "The 9 tools", shows: "A screenshot of each tool's dashboard.", alt: "Dashboards side by side" }, { placement: "intro", shows: "A chart of AI search growth.", alt: "" }] };
+  assert.deepEqual(notesFor(withImages, 1, "The 9 tools")?.images, ["A screenshot of each tool's dashboard. Alt: Dashboards side by side"]);
+  assert.deepEqual(notesFor(withImages, "intro", "")?.images, ["A chart of AI search growth."]);
+  const s = splitDoc(briefSkeleton(withImages));
+  assert.equal(s.intro[1].type, "note");
+  const tools = s.sections[1].nodes;
+  assert.equal(tools[tools.length - 1].type, "note");
+  assert.equal(tools[tools.length - 1].content?.[0].text, "Image: A screenshot of each tool's dashboard. Alt: Dashboards side by side");
+  // A section with only an image spot still gets notes.
+  assert.deepEqual(notesFor({ ...withImages, outline: [] }, 0, "The 9 tools")?.points, []);
 });

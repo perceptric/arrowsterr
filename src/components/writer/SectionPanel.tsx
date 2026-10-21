@@ -163,7 +163,7 @@ export function SectionPanel({
             </button>
           ) : null}
         </div>
-        {notes && (notes.points.length || notes.sources.length) ? (
+        {notes && (notes.points.length || notes.sources.length || notes.images.length) ? (
           <div className="mx-6 mt-5 flex flex-col gap-2 border border-rule bg-[var(--bg-secondary)] px-4 py-3 text-[13px]">
             <span className="text-[12px] font-medium text-muted">Brief</span>
             {notes.points.length ? (
@@ -172,6 +172,16 @@ export function SectionPanel({
                   <li key={i}>{p}</li>
                 ))}
               </ul>
+            ) : null}
+            {notes.images.length ? (
+              <span className="flex flex-col gap-1">
+                <span className="text-[12px] font-medium text-muted">Images</span>
+                <ul className="flex list-disc flex-col gap-1 pl-4 text-ink">
+                  {notes.images.map((m, i) => (
+                    <li key={i}>{m}</li>
+                  ))}
+                </ul>
+              </span>
             ) : null}
             {notes.sources.length ? (
               <span className="flex flex-wrap gap-x-3 gap-y-1">
