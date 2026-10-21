@@ -4,6 +4,7 @@
 // Pure, so tests can cover the checks.
 import { Script } from "node:vm";
 import type { BrandKit } from "./brandKit.ts";
+import { kindOf } from "./moduleCatalog.ts";
 import { MODULE_LABEL, type PlannedModule } from "./writerBrief.ts";
 
 export const MAX_MODULE_BYTES = 60_000;
@@ -108,7 +109,7 @@ Outputs: ${m.outputs.join("; ") || "none"}
 Data: ${m.data || "from the sources"}
 Why it helps: ${m.why}
 
-The section it follows:
+${kindOf(m.type) ? `How to build it: ${kindOf(m.type)!.build}\n\n` : ""}The section it follows:
 ${ctx.section.slice(0, 4000)}
 ${lastError ? `\nThe last version was refused: ${lastError} Fix that.\n` : ""}
 Rules:

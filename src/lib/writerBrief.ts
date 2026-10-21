@@ -5,21 +5,15 @@
 // Pure: the database and the paid calls come in as `store` and `deps` (writerServer.ts), so tests run it offline.
 import type { BrandKit } from "./brandKit.ts";
 import { voiceText, type BrandVoice } from "./brandVoice.ts";
+import { kindLabel, kindsForPrompt, MODULE_IDS } from "./moduleCatalog.ts";
 
 // ─────────────── shapes ───────────────
 export type Outcome = { state: "done" } | { state: "failed"; error: string } | { state: "wait"; seconds: number; why: string };
 
-export const MODULE_TYPES = ["calculator", "comparison", "checklist", "quiz", "roi", "timeline", "diagram"] as const;
-export type ModuleType = (typeof MODULE_TYPES)[number];
-export const MODULE_LABEL: Record<ModuleType, string> = {
-  calculator: "Calculator",
-  comparison: "Comparison table with filters",
-  checklist: "Checklist",
-  quiz: "Quiz",
-  roi: "ROI estimator",
-  timeline: "Timeline",
-  diagram: "Interactive diagram or tabs",
-};
+// The kinds of interactive module live in moduleCatalog.ts, with when each helps and how to build it.
+export const MODULE_TYPES: readonly string[] = MODULE_IDS;
+export type ModuleType = string;
+export const MODULE_LABEL: Record<ModuleType, string> = Object.fromEntries(MODULE_IDS.map((id) => [id, kindLabel(id)]));
 
 export type PlannedModule = { type: ModuleType; title: string; purpose: string; placement: string; inputs: string[]; outputs: string[]; data: string; why: string };
 export type OutlinePart = { h2: string; points: string[]; h3: { title: string; points: string[] }[]; sources: number[] };
@@ -205,7 +199,12 @@ Rules:
 - faqs: 3 to 6 questions from People Also Ask and the AI answers, each with a one-line note on what the answer must say.
 - internalLinks: up to 6, each with its anchor text and the H2 it goes under.
 - cta: what the reader should do at the end, in ${c.brand.name}'s words, and where it goes.
-- modules: 1 to 3 interactive modules that make the article more useful and fun to read: type (calculator, comparison, checklist, quiz, roi, timeline, diagram), a short title, its purpose, placement (the exact H2 it goes after), inputs and outputs (or, for a table, timeline or diagram, the rows or steps in data), and why it helps the reader. Pick what this reader would really use. All data must come from the sources.
+- modules: 1 to 3 interactive modules that make the article more useful and fun to read: type (one of the kinds below), a short title, its purpose, placement (the exact H2 it goes after), inputs and outputs (or, for a table, flow, pyramid, stats or matrix, the rows, steps, layers or items in data), and why it helps the reader. Pick the kind whose "when" fits the section best, and never two of the same kind. All data must come from the sources.
+  Kinds:
+${kindsForPrompt()
+  .split("\n")
+  .map((l) => `  - ${l}`)
+  .join("\n")}
 - topPages: 3 to 5 sentences on what Google's top pages do: format, length, what they all cover.
 - aiAnswers: 2 to 4 sentences on what the AI answers say and which sites they cite.
 - Base every fact on the sources. Never invent numbers.`;

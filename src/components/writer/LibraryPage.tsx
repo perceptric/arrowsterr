@@ -2,8 +2,9 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Editor } from "@tiptap/react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { docToMarkdown } from "@/lib/articles";
+import { docToText } from "@/lib/articleGrid";
 import { wordFile } from "@/lib/briefDoc";
 import { getDoc, getGuideline, type Doc, type DocMeta, type Site } from "@/lib/db";
 import type { RunAuth } from "@/lib/runner";
@@ -15,21 +16,19 @@ import type { BrandGuideline } from "@/lib/writerTypes";
 import { PlainEditor, type SaveState } from "../content/PlainEditor";
 import { Pop } from "../Pickers";
 import { PublishPanel } from "../research/PublishPanel";
-import { post, STATUS_PICK, statusLabel } from "../research/shared";
 import { brandTables } from "../research/Writer";
 import { exportClean } from "../research/writerNodes";
-import { Sheet, type Col } from "../Sheet";
 import { ToolIntro } from "../ToolIntro";
-import { Thinking } from "../ui";
+import { Seg, Thinking } from "../ui";
 import { BriefEditor } from "./BriefEditor";
+import { ContentGrid } from "./ContentGrid";
 import { DraftProgress, libraryKey, RegenerateDialog, StateTag, useBrandSite, usePoll, type LibraryOpen } from "./parts";
 
-// The Library: every keyword imported from the Editorial Calendar, with its brief and draft.
-// Generate Brief and Generate Draft start here. A finished brief opens editable; a draft opens in the plain editor,
-// with its interactive modules running in sandboxed frames, Export and Publish.
+// The Library: every keyword imported from the Editorial Calendar, as a grid of articles (ContentGrid).
+// Generate starts there. A finished brief opens editable; an article opens in the plain editor with its
+// interactive modules running in sandboxed frames, its HTML, Markdown and Text views, Export and Publish.
 
 const making = (t: Topic) => t.brief?.status === "generating" || t.draft?.status === "generating";
-const done = (s: string | undefined) => s === "ready" || s === "approved";
 
 export function LibraryPage({ view, auth, canEdit }: { view: View; auth: RunAuth; canEdit: boolean }) {
   const [sb] = useState(() => currentSupabase());
@@ -37,7 +36,6 @@ export function LibraryPage({ view, auth, canEdit }: { view: View; auth: RunAuth
   const { site, error: siteError } = useBrandSite(sb, brand, canEdit);
   const [rows, setRows] = useStash<Topic[] | null>(`library:${brand.id}:topics`, null);
   const [open, setOpen] = useStash<LibraryOpen>(libraryKey(brand.id), null);
-  const [busy, setBusy] = useState<Set<string>>(new Set());
   const [error, setError] = useState("");
 
   const load = useCallback(async () => {
@@ -57,87 +55,6 @@ export function LibraryPage({ view, auth, canEdit }: { view: View; auth: RunAuth
   }, [load]);
   usePoll(Boolean(!open && rows?.some(making)), 5000, load);
 
-  /** Generate Brief or Generate Draft for one topic. Generate Draft approves the brief on the way (the server does it). */
-  const act = useCallback(
-    async (t: Topic, kind: "brief" | "draft") => {
-      setError("");
-      setBusy((b) => new Set(b).add(`${t.id}:${kind}`));
-      try {
-        await post(auth, "/api/agentic-writer", kind === "brief" ? { action: "brief", itemId: t.id } : { action: "draft", briefId: t.brief?.id });
-        await load();
-      } catch (e) {
-        setError(e instanceof Error ? e.message : String(e));
-      } finally {
-        setBusy((b) => {
-          const n = new Set(b);
-          n.delete(`${t.id}:${kind}`);
-          return n;
-        });
-      }
-    },
-    [auth, load],
-  );
-
-  const cols = useMemo<Col<Topic>[]>(() => {
-    const stop = (e: React.SyntheticEvent) => e.stopPropagation();
-    const btn = (label: string, run: () => void, working: boolean) => (
-      <button type="button" className="aw-btn aw-btn--primary aw-btn--sm whitespace-nowrap" disabled={working} onMouseDown={stop} onClick={(e) => (stop(e), run())}>
-        {working ? "Starting..." : label}
-      </button>
-    );
-    const link = (label: string, run: () => void) => (
-      <button type="button" className="aw-text-link whitespace-nowrap" onMouseDown={stop} onClick={(e) => (stop(e), run())}>
-        {label}
-      </button>
-    );
-    return [
-      { id: "title", label: "Title", type: "text", width: 320, value: (t) => t.brief?.title || t.keyword, cell: (t) => <span className="font-medium text-ink">{t.brief?.title || t.keyword}</span> },
-      { id: "keyword", label: "Keyword", type: "text", width: 220, value: (t) => t.keyword },
-      {
-        id: "status",
-        label: "Status",
-        type: "list",
-        width: 130,
-        value: (t) => statusLabel(t),
-        cell: (t) => <span className={`aw-status ${STATUS_PICK.find((x) => x.label === statusLabel(t))?.tone ?? "aw-status--pending"}`}>{statusLabel(t)}</span>,
-      },
-      {
-        id: "brief",
-        label: "Brief",
-        type: "list",
-        width: 150,
-        value: (t) => t.brief?.status ?? "",
-        cell: (t) =>
-          done(t.brief?.status) ? (
-            link("View Brief", () => setOpen({ kind: "brief", id: t.brief!.id }))
-          ) : t.brief?.status === "generating" ? (
-            <StateTag status="generating" />
-          ) : canEdit ? (
-            btn(t.brief?.status === "failed" ? "Retry Brief" : "Generate Brief", () => act(t, "brief"), busy.has(`${t.id}:brief`))
-          ) : (
-            <span className="text-muted">–</span>
-          ),
-      },
-      {
-        id: "draft",
-        label: "Draft",
-        type: "list",
-        width: 150,
-        value: (t) => t.draft?.status ?? "",
-        cell: (t) =>
-          t.draft?.status === "ready" ? (
-            link("View Draft", () => setOpen({ kind: "draft", id: t.draft!.id }))
-          ) : t.draft?.status === "generating" ? (
-            link("Writing...", () => setOpen({ kind: "draft", id: t.draft!.id }))
-          ) : canEdit && done(t.brief?.status) ? (
-            btn(t.draft?.status === "failed" ? "Retry Draft" : "Generate Draft", () => act(t, "draft"), busy.has(`${t.id}:draft`))
-          ) : (
-            <span className="text-muted">–</span>
-          ),
-      },
-    ];
-  }, [canEdit, busy, act, setOpen]);
-
   if (site === undefined || (site && rows === null)) return <Thinking text="Opening the Library..." />;
   if (!site) return <p className="aw-error">{siteError || "This brand has no website yet."}</p>;
 
@@ -151,19 +68,10 @@ export function LibraryPage({ view, auth, canEdit }: { view: View; auth: RunAuth
   const list = rows ?? [];
   return (
     <div className="flex flex-col gap-5">
-      <h1 className="aw-h2">Library</h1>
+      {list.length ? null : <h1 className="aw-h2">Library</h1>}
       {error ? <p className="aw-error">{error}</p> : null}
       {list.length ? (
-        <Sheet<Topic>
-          id={`library:${site.id}:topics`}
-          label="Library"
-          rows={list}
-          cols={cols}
-          rowKey={(t) => t.id}
-          onOpen={(t) => (t.draft?.status === "ready" ? setOpen({ kind: "draft", id: t.draft.id }) : done(t.brief?.status) ? setOpen({ kind: "brief", id: t.brief!.id }) : undefined)}
-          height="calc(100vh - 210px)"
-          tools={false}
-        />
+        <ContentGrid sb={sb} auth={auth} site={site} canEdit={canEdit} onOpen={setOpen} />
       ) : (
         <ToolIntro
           title="Library"
@@ -206,6 +114,8 @@ function DraftView({ sb, auth, site, id, canEdit, onBack }: { sb: SupabaseClient
   const [publishing, setPublishing] = useState(false);
   const [regen, setRegen] = useState(false);
   const [exportAt, setExportAt] = useState<DOMRect | null>(null);
+  const [view, setView] = useState<"edit" | "html" | "md" | "text">("edit");
+  const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
   const docRef = useRef<string | null>(null);
   const [docKey, setDocKey] = useState("");
@@ -327,7 +237,30 @@ function DraftView({ sb, auth, site, id, canEdit, onBack }: { sb: SupabaseClient
       </Back>
       {error ? <p className="aw-error">{error}</p> : null}
 
-      <PlainEditor key={docKey || doc.id} sb={sb} workspaceId={auth.workspaceId} doc={doc} canEdit={canEdit} onSaved={saved} onEditor={setEditor} onState={onState} />
+      <Seg
+        label="View"
+        value={view}
+        onChange={(v) => {
+          setView(v);
+          setCopied(false);
+        }}
+        options={[
+          { id: "edit", label: "Edit" },
+          { id: "html", label: "HTML" },
+          { id: "md", label: "Markdown" },
+          { id: "text", label: "Text" },
+        ]}
+      />
+      <div className={view === "edit" ? "" : "hidden"}>
+        <PlainEditor key={docKey || doc.id} sb={sb} workspaceId={auth.workspaceId} doc={doc} canEdit={canEdit} onSaved={saved} onEditor={setEditor} onState={onState} />
+      </div>
+      {view !== "edit" && editor ? (
+        <Source
+          text={view === "html" ? html() : view === "md" ? docToMarkdown(editor.getJSON()) : docToText(editor.getJSON())}
+          copied={copied}
+          onCopy={(t) => navigator.clipboard.writeText(t).then(() => setCopied(true), () => setError("Copy failed. Select the text and copy it."))}
+        />
+      ) : null}
 
       {exportAt ? (
         <Pop anchor={exportAt} onClose={() => setExportAt(null)} width={200} label="Export">
@@ -357,5 +290,19 @@ function DraftView({ sb, auth, site, id, canEdit, onBack }: { sb: SupabaseClient
         />
       ) : null}
     </div>
+  );
+}
+
+/** The article as code or plain text, to read and copy. */
+function Source({ text, copied, onCopy }: { text: string; copied: boolean; onCopy: (t: string) => void }) {
+  return (
+    <section className="aw-frame flex min-w-0 flex-col">
+      <div className="flex items-center justify-end border-b border-rule px-3 py-2">
+        <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => onCopy(text)}>
+          {copied ? "Copied" : "Copy"}
+        </button>
+      </div>
+      <pre className="max-h-[75vh] overflow-auto px-6 py-5 font-mono text-[12px] leading-relaxed whitespace-pre-wrap text-ink">{text}</pre>
+    </section>
   );
 }

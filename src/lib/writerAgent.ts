@@ -27,7 +27,7 @@ export function tasksFor(heading: string, level: number, first: boolean): Exclud
   return out;
 }
 
-export type DocPublishMeta = { title?: string; description?: string; slug?: string; image?: string; schema?: string };
+export type DocPublishMeta = { title?: string; metaTitle?: string; description?: string; slug?: string; image?: string; schema?: string };
 
 export type WriterAgentResult =
   | { task: "write" | "table" | "custom" | "stats" | "rewrite" | "paragraph"; html: string; note?: string }

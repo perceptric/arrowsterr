@@ -1,0 +1,13 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   ARROWSTERR WEBSITE · Twenty's fonts (docs/ui-twenty.md)
+   Loaded after the theme's CSS. Only the fonts change: Inter for headings
+   and text (in place of Funnel Display and Geist), DM Mono for numbers and
+   code (in place of Geist Mono). Colors, buttons, the Notch, the Climb and
+   every layout stay as the theme has them.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --display: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono: 'DM Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+}
