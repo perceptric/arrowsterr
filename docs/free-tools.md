@@ -168,6 +168,47 @@ robots: { perTool: 20, cap: 2000, saveDays: 1, paid: false },
 
 **Reliability:** the rank checker's result decides whether someone signs up, so a wrong spot costs more than no spot. Tests in `tests/` cover: a domain with www and without matching the same result, a subdomain that ranks counted only when the domain was entered, AI Mode citing a page with tracking codes, and a SERP call that fails once and then works. Robots tests use Google's own robots.txt test cases.
 
+## Abuse protection with Cloudflare
+
+Free tools need no account, so a new account gets no extra free runs. The limits follow the visitor's IP. The holes today: anyone can fake `x-forwarded-for` to look like a new visitor, IPv6 hands out new addresses for free, and each new Free account costs real money in AI checks (200 tasks a month). Cloudflare plus a few app checks close them.
+
+### 1. Put arrowsterr.com on Cloudflare (Free plan)
+- Add arrowsterr.com to Cloudflare. It copies the DNS records from Hostinger. Check that the MX and mail records came across before switching anything.
+- At Hostinger, change the nameservers to the two Cloudflare gives. Hostinger keeps hosting WordPress; only the DNS moves.
+- Turn the proxy (orange cloud) on for `arrowsterr.com`, `www` and `app`. SSL mode: Full (strict).
+- Fly behind the proxy: add the `_acme-challenge.app` CNAME that `fly certs show` gives, so Fly can renew the certificate through DNS.
+
+### 2. Only accept traffic that came through Cloudflare
+- A Cloudflare Transform Rule adds a secret header, `x-origin-key`, to every request for `app.arrowsterr.com`.
+- The app's middleware refuses `/api/free/*` without the right key (`ORIGIN_KEY` on the server). Someone calling `arrowsterr-web.fly.dev` straight can't skip Cloudflare or fake their IP.
+- `ipOf()` in `freeTools.ts` reads `cf-connecting-ip` when the key matches. Cloudflare sets that header and overwrites any fake one.
+
+### 3. Count IPv6 visitors by network
+- `hashIp()` hashes the first 64 bits of an IPv6 address, since one home or server gets a whole /64. IPv4 stays as the full address.
+
+### 4. Turn Turnstile on
+- The code is already there. Make a Turnstile widget in Cloudflare (managed mode), then set `TURNSTILE_SECRET` on the app and `AW_TURNSTILE_SITEKEY` in wp-config.php.
+- Each token works once and is checked on the server before a run counts.
+
+### 5. A rate limit at the edge
+- One rate limiting rule (the Free plan allows one): `/api/free/*`, more than 20 requests in 10 seconds from one IP is blocked. Scripts get stopped before they reach the app.
+- Bot Fight Mode stays off. It covers the whole domain and would block Stripe webhooks, the WordPress plugin and MCP clients calling the app.
+
+### 6. Stop throwaway accounts
+- **Turnstile on sign-up:** Supabase Auth has it built in (Authentication, Attack Protection, CAPTCHA, Turnstile). `AuthScreen.tsx` sends the token with sign-up and sign-in.
+- **Email confirmation on:** a Free workspace starts its AI checks only after the email is confirmed.
+- **No throwaway email:** sign-up refuses domains on the open-source `disposable-email-domains` list (a file in the repo, updated monthly).
+- **One Free workspace per tracked domain:** a domain already tracked by a Free workspace can't be added to another Free workspace. Paid plans aren't affected. Making 10 accounts for the same brand gets nothing.
+- **New Free workspaces per network:** at most 3 a day from one IP hash. The fourth sees "Too many new accounts from this network today."
+
+### 7. The backstop
+- `FREE_SPEND_DAY` still stops every paid free run for the day, whatever gets past the rest.
+- A Free workspace's AI checks are capped by its 200 tasks a month, so the most one account can cost is known.
+
+**Reliability:** tests in `freeLimits.test.ts` and a new `abuse.test.ts` cover: a faked `x-forwarded-for` gets the same hash as the real visitor, two IPv6 addresses in the same /64 count as one, a request without `x-origin-key` is refused, a disposable email is refused with uppercase letters too, and the same domain on a second Free workspace is refused even with `www.` in front.
+
+**Running cost:** Cloudflare Free plan $0, Turnstile $0 (check the free widget limits), the disposable email list $0. Beta $0 a month, Growth $0 a month. If one rate limit rule isn't enough, Cloudflare Pro is about $25 a month (check).
+
 ## Content under every tool
 
 Every tool page, old and new, gets a long article below the tool, after the ad block. The tool answers the visitor. The article is what makes the page rank.
