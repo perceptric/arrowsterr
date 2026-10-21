@@ -78,8 +78,8 @@ export function LibraryPage({ view, auth, canEdit }: { view: View; auth: RunAuth
           lead={`Import keywords from the Editorial Calendar. For each one, Arrowsterr researches Google and the AI answers, writes a brief you can edit, then writes the draft in ${brand.name}'s voice.`}
           features={[
             { title: "Brief", text: "Outline, sources, FAQs, internal links and the modules to build, from the top pages and the AI answers." },
-            { title: "Edit", text: "Change the plan, the outline and the FAQs before the draft is written." },
             { title: "Draft", text: "Written section by section, every claim checked against the sources, with interactive modules in your brand." },
+            { title: "Publish", text: "Send the draft to WordPress or your CMS, with its meta title, description and slug, and finish it there." },
           ]}
         />
       )}

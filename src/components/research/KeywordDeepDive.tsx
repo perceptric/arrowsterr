@@ -4,8 +4,8 @@ import { DateField, Dropdown } from "../Pickers";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Serp } from "@/lib/briefTypes";
-import { getSerp, listMembers, type CalendarItem, type CalendarStatus, type Site } from "@/lib/db";
-import { workflowStep, WORKFLOW } from "@/lib/library";
+import { getSerp, listMembers, type CalendarItem, type Site } from "@/lib/db";
+import { statusChoice, statusPatch, workflowStep, WORKFLOW } from "@/lib/library";
 import { inWriterAt } from "@/lib/writerImport";
 import { writerStateFor, type BriefLite, type DraftLite } from "@/lib/writerLibrary";
 import type { RunAuth } from "@/lib/runner";
@@ -241,7 +241,7 @@ function Details({ item, site, members, canEdit, onPatch }: { item: CalendarItem
     </label>
   );
   const box = `${FIELD} h-9 w-full rounded-md text-[13px]!`;
-  const status = item.status === "planned" && !item.due_date ? "idea" : item.status;
+  const status = statusChoice(item);
   const owners = [...new Set([...(item.owner ? [item.owner] : []), ...members])];
 
   return (
@@ -272,8 +272,7 @@ function Details({ item, site, members, canEdit, onPatch }: { item: CalendarItem
           value={status}
           disabled={!canEdit}
           onChange={(v) => {
-            if (v === "idea") onPatch({ status: "planned", due_date: null });
-            else onPatch(v === "planned" && !item.due_date ? { status: "planned", due_date: isoDay(nextMonday()) } : { status: v as CalendarStatus });
+            onPatch(statusPatch(v, item.due_date, isoDay(nextMonday())));
           }}
           className={box}
           options={STATUS_PICK.map((x) => ({ id: x.id as string, label: x.label }))}

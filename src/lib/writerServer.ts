@@ -2,7 +2,6 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { startArticleResearch } from "./articleResearchServer";
 import { loadBrandContext } from "./brandContext";
-import { keepLocked } from "./articleGrid";
 import { askJson, claudeModel } from "./claude";
 import { entitlement } from "./entitlements";
 import { domainOf } from "./sources";
@@ -70,10 +69,7 @@ export function draftStore(db: SupabaseClient): DraftStore {
         else if (there) must(await db.from("docs").update({ calendar_item_id: null }).eq("id", there.id));
       }
       const meta = { ...doc.meta, ...(mine?.meta ?? {}), status: "ready", writer_draft_id: d.id };
-      // Sections locked in the grid (docs.meta.locked) come through a regenerate as they were.
-      const locked = Array.isArray(mine?.meta?.locked) ? (mine.meta.locked as unknown[]).filter((k): k is string => typeof k === "string") : [];
-      const content = mine && locked.length ? (keepLocked(mine.content, doc.content, locked) as unknown as Record<string, unknown>) : doc.content;
-      const row = { title: doc.title, content, words: doc.words, meta, updated_at: at };
+      const row = { title: doc.title, content: doc.content, words: doc.words, meta, updated_at: at };
       if (mine) {
         // The old text is saved first (053_library_review.sql), so a regenerate can always be undone by hand.
         if (mine.content && Object.keys(mine.content).length)
@@ -239,7 +235,7 @@ export async function startDraft(db: SupabaseClient, ask: DraftAsk) {
 
 /**
  * Generate in the grid, after the brief: approve the brief and start (or regenerate) the draft, counted like
- * Generate Draft. Locked sections survive a regenerate (saveDoc), and the old text is kept in doc_versions.
+ * Generate Draft. The old text is kept in doc_versions (saveDoc).
  */
 export async function draftFromBrief(db: SupabaseClient, b: BriefRow, userId: string | null) {
   if (b.status === "ready") {

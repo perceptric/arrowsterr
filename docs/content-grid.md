@@ -1,47 +1,38 @@
 # Library grid
 
-The Library is a grid of articles, like a sheet. Each row is one article. Each column is one part of it, lettered A, B, C so prompts and people can point at it. The letters only name a column's place right now; nothing about an article's shape is fixed.
+The Library is a grid of articles. Each row is one article, and the columns are lettered A, B, C like a sheet. Arrowsterr writes the draft; people publish it to WordPress or their CMS and edit it there.
 
-Code: `src/components/writer/ContentGrid.tsx` (the grid), `CellPanel.tsx` (one cell in the side panel), `src/lib/articleGrid.ts` (pure: split, move, lock, render), `src/lib/gridData.ts` (reads and saves), `src/lib/gridServer.ts` and `src/app/api/agentic-writer/grid/route.ts` (paid calls). Database: `supabase/054_content_grid.sql`.
+Code: `src/components/writer/ContentGrid.tsx` (the grid), `src/lib/articleGrid.ts` (pure: the doc as heading and section pairs), `src/lib/gridData.ts` (reads and saves), `src/app/api/agentic-writer/grid/route.ts` (Generate draft). Database: `supabase/054_content_grid.sql`.
 
 ## Columns
 
-A Keyword · B Status · C Meta title · D Meta description · E Slug · F H1 · G Intro · H Section 1 · I Section 2 … then the columns people add.
+**A Keyword**, with View draft (or View brief before the draft).
 
-- An article is its saved doc (`docs.content`). The intro is everything before the first H2. Each H2 starts a section that runs to the next one. So a section holds anything the editor can: text, lists, tables, quotes, images and HTML blocks.
-- Before an article is written, the section columns show the brief's planned H2s.
-- Meta title (`metaTitle`), description and slug live in `docs.meta`, the same place Publish reads them. The H1 is the doc's title.
-- Drag a column's header to move it. The order is saved per site in this browser. The section columns move as one block.
+**Metadata**
+- **B Status:** the Content status, the same field and choices as the Keyword Deep Dive (Idea, Planned, Brief ready, Writing, In review, Published), through `statusChoice` and `statusPatch` in `library.ts`. Changing it here changes it there and in the Editorial Calendar. The writer moves it on as the brief and draft finish. While the writer works, a tag under it shows the step (Researching, Planning, Writing, Checking, Building modules, Saving), or Failed with the reason as its tooltip.
+- **C Meta title, D Meta description, E Slug:** from the brief until the draft exists, then saved in `docs.meta` (`metaTitle`, `description`, `slug`), where Publish reads them. Click to edit.
 
-## Sections
+**Content**: pairs of a heading and its section, always H1 and Section 1 through H20 and Section 20. **+** at the end adds another pair (per site, in this browser), and the grid never shows fewer pairs than its longest article needs.
+- **H1** is the article's title and **Section 1** its intro.
+- **H2, H3 …** are the draft's H2s in order, and each **Section** is the text under it: its preview, what's inside (List, Table, Interactive, Image, Quote) and its word count. H3s stay inside their section.
+- Before the draft, the headings show the brief's H1 and outline and the sections stay empty.
+- Click a section to view the draft as a doc.
 
-- Click a cell to open it in the side panel: the full editor, with image upload, interactive module and HTML block buttons.
-- Drag a section cell along its row to move that section in the article. Its whole slice moves, images and all.
-- **+ Section** at the end of a row, or **Add section after** in the panel, adds one. **Delete** in the panel takes one out.
-- An H2 typed inside a cell starts a new section. A section saved without its H2 keeps its old one.
+## Generate draft
 
-## Locks
-
-Saving a cell by hand locks it (`docs.meta.locked`, by "intro" or the section's H2 in lower case). A regenerated article keeps locked cells as they were (`keepLocked` in `writerServer.ts` saveDoc). A locked section the new draft dropped goes back to its old place. **Unlock** in the panel lets the next regenerate write it again. Every regenerate also saves the old text to `doc_versions` first.
-
-## Generate
-
-- **Generate** on selected rows, or the play button in a row's Status cell, makes the whole article in one go.
+- Select rows and press **Generate draft**, or press the play button next to a row's status.
 - No brief yet: the brief starts with `auto_draft` on. When it's ready, the server approves it and starts the draft (`autoDraft` in `writerServer.ts`). A draft that can't start says why on the brief.
 - Brief ready: the brief is approved and the draft starts.
-- Article ready: it's regenerated after a confirm. Locked cells stay.
-- Status shows the step: Researching, Planning, Writing, Checking, Building modules, Saving, Ready or Failed (the error is the tag's tooltip).
+- Draft ready: it's regenerated after a confirm. The old text is saved to `doc_versions` first.
 - Drafts count against the plan the same way Generate Draft does.
 
-## One cell at a time
+## The draft
 
-- **Write again** in the panel writes that cell again from the brief and the research, with a note. It knows the text that's there. A section the person added gets a plan from its H2. Costs 15 tasks, like the other writer agents.
-- **Interactive module** opens the picker (below) and builds the kind you pick into the cell. Costs 25 tasks, like the other interactive elements.
-- **HTML block** puts pasted HTML in a sandboxed frame in the editor. It goes out as written.
+View draft opens the doc with Edit, HTML, Markdown and Text tabs (each with Copy), Export and **Publish** to the CMS connections in Settings, with the row's meta title, description and slug.
 
 ## Interactive modules
 
-Embeds that make an article fun to use: built as one self-contained HTML block (inline CSS and JS, no outside files, no network), in the brand's colors, checked by `validateModule` and run in a sandboxed frame in the editor. The catalog is `src/lib/moduleCatalog.ts`: each kind has when it helps, how to build it, the words that call for it and a small picture.
+The draft can carry interactive modules: each built as one self-contained HTML block (inline CSS and JS, no outside files, no network), in the brand's colors, checked by `validateModule` and run in a sandboxed frame. The catalog is `src/lib/moduleCatalog.ts`: each kind says when it helps and how to build it. The brief's prompt lists every kind and picks 1 to 3 that fit the article, never two of the same kind; the draft builds each with its kind's design.
 
 | Kind | When it helps |
 |---|---|
@@ -59,41 +50,12 @@ Embeds that make an article fun to use: built as one self-contained HTML block (
 | 2 by 2 matrix | Options placed on two axes, with hover cards. |
 | Self-assessment | A 1 to 5 scorecard with a grade and next steps. |
 
-- **The brief picks them.** The brief's prompt lists every kind with when it helps, and asks for 1 to 3 that fit the article, never two of the same kind. The draft builds each one with the kind's design added to the build prompt.
-- **The panel suggests them.** The picker shows three kinds that fit the open section first (`suggestKinds`: words in the H2 count three times, words in the text once), then all 13. Hover a kind for a bigger picture and when it helps. Pick one, add an optional note, and **Build**: it's built from the section's text and, when the article has one, the brief and its research. A failed check is retried once with the reason.
-- Older briefs that name `roi` or `diagram` still build.
-
-## Columns people add
-
-- **+ Column**: a Text column holds what people type. An AI column holds a prompt that reads other columns by letter or name: `Write a LinkedIn post from {{F}} and {{H}}`, or `{{H1}}`.
-- The play button runs one cell. The column menu runs every empty cell (or the selected rows), edits the column or deletes it.
-- Values live in `writer_cells`. An AI cell costs 3 tasks.
-
-## Views and Publish
-
-Open an article from its Keyword cell. The article view has Edit, HTML, Markdown and Text tabs, each with Copy, plus Export and Publish. Publish uses the CMS connections in Settings, with the row's meta title, description and slug.
+Older briefs that name `roi` or `diagram` still build.
 
 ## Tests
 
-`tests/moduleCatalog.test.ts`: the 13 kinds, their pictures, the brief's list, suggestions from a section's words, and the build prompt. `tests/articleGrid.test.ts`: split and join give back the same doc, moving a section moves only its slice, a cell's edit goes back into its own slice, an H2 in a cell starts a new section, locked cells survive a regenerate (and a dropped locked section returns to its place), plain text, column letters, prompt references, and the plan for writing one cell again.
+`tests/articleGrid.test.ts` (the doc as heading and section pairs, the brief's plan before the draft, the pair count, plain text, letters), `tests/moduleCatalog.test.ts` (the 13 kinds, the brief's list, the build prompt), `tests/library.test.ts` (the status picker the grid and the deep dive share).
 
 ## Running cost
 
-Same prices as `docs/content-v2.md`: Claude Sonnet 5.5 at $2 input and $10 output per million tokens. Today an article costs about $0.60 there. The grid adds, per article:
-
-| Line | Use per article | Cost |
-|---|---|---|
-| Write again | about 5 cells, 8K tokens in and 1.5K out each | ~$0.16 |
-| AI columns | about 2 cells, 3K in and 0.5K out each | ~$0.02 |
-| Interactive modules from the panel | about 2, 10K tokens in and 8K out each | ~$0.20 |
-| Servers | the routes run on the existing web service | $0 |
-| **Added** | | **~$0.38** |
-
-At 10 articles per team a month:
-
-| Stage | Articles | Added by the grid | Writer total with `content-v2.md` |
-|---|---|---|---|
-| Beta (50 teams) | 500 | ~$190 | ~$480 |
-| Growth (500 teams) | 5,000 | ~$1,900 | ~$4,760 |
-
-The modules the brief plans are already in `content-v2.md`'s article cost. No new service is added.
+None beyond the draft itself. Generate draft runs the same brief and draft as before, priced in `docs/content-v2.md` at about $0.60 an article: about $290 a month at Beta (50 teams) and $2,860 at Growth (500 teams). The grid reads and saves with the browser's own Supabase connection, so it adds $0 at Beta and $0 at Growth.

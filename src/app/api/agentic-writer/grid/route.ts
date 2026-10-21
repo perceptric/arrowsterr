@@ -1,25 +1,18 @@
 import { dfsReady } from "@/lib/dataforseo";
-import { requireActive, requireWriter, take } from "@/lib/entitlements";
-import { buildCellModule, fillColumnCell, rewritePart } from "@/lib/gridServer";
+import { requireActive, requireWriter } from "@/lib/entitlements";
 import { queueReady } from "@/lib/jobs";
-import { meteredRoute } from "@/lib/meter";
-import { TASK_COST } from "@/lib/plans";
 import { adminClient, requireRole } from "@/lib/serverAuth";
 import type { BriefRow } from "@/lib/writerBrief";
 import { draftFromBrief, startBrief } from "@/lib/writerServer";
 
-// The Library grid's actions (docs/content-grid.md, supabase/054_content_grid.sql).
-//   { action: "generate", itemIds }                         make the whole article for each row: the brief, then
-//                                                           the draft. A row with a ready brief goes to its draft;
-//                                                           a row being written is left alone.
-//   { action: "cell", itemId, part, h2, index, note, current }  write one cell again; returns its nodes
-//   { action: "module", itemId, kind, h2, current, note }   an interactive module for a cell (moduleCatalog.ts); returns { html }
-//   { action: "column", columnId, itemId, prompt }          one cell of an AI column, prompt already filled in
-const ACTIONS = ["generate", "cell", "module", "column"];
+// The Library grid's action (docs/content-grid.md, supabase/054_content_grid.sql).
+//   { action: "generate", itemIds }   Generate Draft for each row: the brief, then the draft. A row with a ready
+//                                     brief goes to its draft; a row being written is left alone.
+const ACTIONS = ["generate"];
 const fail = (error: string, status: number) => Response.json({ error }, { status });
-const NOT_RUN = (m: string) => (/writer_|auto_draft/.test(m) ? "Run supabase/054_content_grid.sql in Supabase." : m);
+const NOT_RUN = (m: string) => (/auto_draft/.test(m) ? "Run supabase/054_content_grid.sql in Supabase." : /writer_/.test(m) ? "Run supabase/050_agentic_writer.sql in Supabase." : m);
 
-async function handle(request: Request) {
+export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
   const ws = body.workspaceId as string;
   const auth = await requireRole(request, ws, "editor");
@@ -43,10 +36,6 @@ async function handle(request: Request) {
     const { data, error } = await auth.sb.from("writer_briefs").select("*").eq("item_id", itemId).eq("workspace_id", ws).maybeSingle();
     if (error) throw new Error(NOT_RUN(error.message));
     return data as BriefRow | null;
-  };
-  const brandOf = async (siteId: string) => {
-    const { data } = await auth.sb.from("sites").select("brand_id").eq("id", siteId).maybeSingle();
-    return (data?.brand_id as string | null) ?? null;
   };
 
   try {
@@ -83,59 +72,9 @@ async function handle(request: Request) {
       return Response.json({ results });
     }
 
-    if (!process.env.ANTHROPIC_API_KEY) return fail("ANTHROPIC_API_KEY is not set on the server.", 500);
-    const it = await item(body.itemId);
-    if (!it) return fail("Topic not found.", 404);
-
-    if (action === "cell") {
-      const b = await briefOf(it.id);
-      if (!b?.brief) return fail("This article has no brief yet. Generate it first.", 409);
-      const took = await take(ws, "tasks", TASK_COST.agent);
-      if (!took.ok) return took.response;
-      const part = body.part === "intro" ? ({ kind: "intro" } as const) : ({ kind: "section", h2: String(body.h2 ?? "").slice(0, 300), index: Math.max(0, Number(body.index) || 0) } as const);
-      const nodes = await rewritePart(db, b, part, { note: String(body.note ?? "").slice(0, 500), current: String(body.current ?? "").slice(0, 8000) });
-      return Response.json({ nodes });
-    }
-
-    if (action === "module") {
-      const took = await take(ws, "tasks", TASK_COST.widget);
-      if (!took.ok) return took.response;
-      const html = await buildCellModule(db, {
-        b: await briefOf(it.id),
-        siteId: it.site_id,
-        brandId: await brandOf(it.site_id),
-        keyword: it.keyword,
-        kind: String(body.kind ?? ""),
-        h2: String(body.h2 ?? "").slice(0, 300),
-        current: String(body.current ?? "").slice(0, 8000),
-        note: String(body.note ?? "").slice(0, 500),
-      });
-      return Response.json({ html });
-    }
-
-    // action === "column"
-    const { data: col, error: colError } = await auth.sb.from("writer_columns").select("id, kind, site_id").eq("id", String(body.columnId ?? "")).eq("workspace_id", ws).maybeSingle();
-    if (colError) return fail(NOT_RUN(colError.message), 500);
-    if (!col || col.kind !== "ai" || col.site_id !== it.site_id) return fail("Column not found.", 404);
-    const prompt = String(body.prompt ?? "").trim();
-    if (!prompt) return fail("This column has no prompt.", 400);
-    const took = await take(ws, "tasks", TASK_COST.ai);
-    if (!took.ok) return took.response;
-    const key = { column_id: col.id, item_id: it.id };
-    await db.from("writer_cells").upsert({ ...key, workspace_id: ws, status: "generating", error: null, updated_at: new Date().toISOString() });
-    try {
-      const value = await fillColumnCell(db, { siteId: it.site_id, brandId: await brandOf(it.site_id), prompt });
-      await db.from("writer_cells").upsert({ ...key, workspace_id: ws, value, status: "ready", error: null, updated_at: new Date().toISOString() });
-      return Response.json({ value });
-    } catch (e) {
-      const error = (e instanceof Error ? e.message : String(e)).slice(0, 500);
-      await db.from("writer_cells").upsert({ ...key, workspace_id: ws, status: "failed", error, updated_at: new Date().toISOString() });
-      throw e;
-    }
+    return fail("Unknown action.", 400);
   } catch (err) {
     return fail(err instanceof Error ? NOT_RUN(err.message) : String(err), 500);
   }
 }
 
-export const POST = meteredRoute("library grid", handle);
-export const maxDuration = 120;
