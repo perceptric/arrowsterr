@@ -144,3 +144,25 @@ export const ChevronUp: React.FC<{size: number; color: string}> = ({size, color}
 		<path d="M3 10.5 8 5.5l5 5" />
 	</svg>
 );
+
+/** How a number lands: a scale punch and a quick flash. Spread onto the number's style. */
+export const slamStyle = (k: number): React.CSSProperties => ({
+	display: 'inline-block',
+	scale: `${1 + 0.28 * k}`,
+	filter: `brightness(${1 + 0.9 * k})`,
+	transformOrigin: 'left center',
+});
+
+/** The shockwave that goes out when a number lands. */
+export const SlamRing: React.FC<{p: Pt; t: number; at: number; color: string; size?: number}> = ({p, t, at, color, size = 1}) => {
+	const r = t < at ? 0 : Math.min(1, (t - at) / 0.7);
+	if (r <= 0 || r >= 1) return null;
+	const e = 1 - Math.pow(1 - r, 3);
+	return (
+		<svg style={{position: 'absolute', left: p.x - 700, top: p.y - 700, overflow: 'visible', pointerEvents: 'none'}} width={1400} height={1400}>
+			{[0, 0.12].map((d, i) => (
+				<circle key={i} cx={700} cy={700} r={(80 + Math.max(0, e - d) * 520) * size} fill="none" stroke={color} strokeWidth={12 * (1 - e) + 1} opacity={(1 - e) * (i ? 0.45 : 0.8)} />
+			))}
+		</svg>
+	);
+};

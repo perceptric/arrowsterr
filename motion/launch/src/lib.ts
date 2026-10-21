@@ -51,3 +51,25 @@ export const typed = (text: string, t: number, start: number, end: number) =>
 /** A number that rolls toward its target. */
 export const roll = (t: number, a: number, b: number, from: number, to: number) =>
 	Math.round(tw(t, [a, b], [from, to], Easing.bezier(0.16, 1, 0.3, 1)));
+
+/** A punch that hits at `at` and settles fast: 0 before, 1 on the hit, back to 0 after. */
+export const hit = (t: number, at: number, decay = 9) => (t < at ? 0 : Math.exp(-(t - at) * decay));
+
+/** Glitch strength right now: short bursts on the pain beats. */
+export const glitchAt = (t: number) => {
+	let g = 0;
+	for (const at of B.glitches) if (t >= at && t < at + 0.14) g = Math.max(g, 1 - (t - at) / 0.14);
+	return g;
+};
+
+/** How far the camera's focus sits on a panel (1) versus the open map (0). */
+export const focusAt = (t: number) => {
+	let f = 0;
+	B.stations.forEach((s, k) => {
+		f = Math.max(f, Math.min(prog(t, s + 0.3, s + 0.7), 1 - prog(t, B.stationEnds[k] - 0.9, B.stationEnds[k] - 0.5)));
+	});
+	return f;
+};
+
+// Arrive slow, leave fast: the arrow shoots off, then eases into the next pin in slow motion.
+export const RAMP = Easing.bezier(0.45, 0, 0.0, 1);

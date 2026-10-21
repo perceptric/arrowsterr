@@ -1,6 +1,6 @@
 import React from 'react';
 import {Easing, interpolate, useVideoConfig} from 'remotion';
-import {B, INOUT, useT} from './lib';
+import {B, hit, INOUT, RAMP, useT} from './lib';
 import {DASH, STAT, STATIONS, WIN_B} from './layout';
 import {LOCKUP_CENTER} from './world/LogoReveal';
 
@@ -12,7 +12,7 @@ const WHIP = Easing.bezier(0.7, 0, 0.18, 1);
 const station = (k: number, arrive: number, leave: number, z = 0.94): Key[] => {
 	const c = STATIONS[k];
 	return [
-		{t: arrive, x: c.x, y: c.y + 130, z},
+		{t: arrive, x: c.x, y: c.y + 130, z, ease: RAMP},
 		{t: leave, x: c.x + 40, y: c.y + 120, z: z + 0.03},
 	];
 };
@@ -71,6 +71,15 @@ const TRAVEL: [number, number, number][] = [
 	[B.finalDrop - 1.6, B.finalDrop - 0.6, 14],
 ];
 
+// From the drop to the close, the camera kicks in on every beat and harder on each bar.
+export const punchAt = (t: number) => {
+	if (t < B.drop || t > B.close) return 0;
+	const since = t - B.drop;
+	const beat = since - Math.floor(since / 0.5) * 0.5;
+	const bar = since - Math.floor(since / 2) * 2;
+	return 0.008 * hit(beat, 0, 14) + 0.018 * hit(bar, 0, 9);
+};
+
 export const tiltAt = (t: number) => {
 	let rx = 0;
 	for (const [a, b, amp] of TRAVEL) {
@@ -85,8 +94,8 @@ export const World: React.FC<{children: React.ReactNode}> = ({children}) => {
 	const {width, height} = useVideoConfig();
 	const cam = cameraAt(t);
 	const rx = tiltAt(t);
-	// Pull back a little while tilted so the horizon stays in frame.
-	const z = cam.z * (1 - rx / 160);
+	// Pull back a little while tilted so the horizon stays in frame, and punch in on the beat.
+	const z = cam.z * (1 - rx / 160) * (1 + punchAt(t));
 	return (
 		<div style={{position: 'absolute', inset: 0, perspective: 1800, perspectiveOrigin: '50% 45%'}}>
 			<div

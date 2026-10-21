@@ -298,6 +298,85 @@ def build(tl: dict) -> np.ndarray:
     # the handoff to sales: a confident two-note chime, A5 up to D6
     tr.put(b["sales"], chime((880.0, D6), 0.18, 1.4, 0.55), db=-24)
 
+    # ---------- picture effects
+
+    # glitch bursts: a digital tear, bit-crushed and stuttered, 140 ms each
+    for k, at in enumerate(b.get("glitches", [])):
+        d = 0.14
+        n = int(d * SR)
+        car = np.sign(np.sin(2 * np.pi * rng.uniform(300, 900) * secs(d)))
+        crush = np.round(band(noise(d), 600, 8000) * 3) / 3
+        x = 0.5 * car + crush
+        hold = int(0.011 * SR)  # sample-and-hold stutter
+        x = np.repeat(x[::hold], hold)[:n]
+        gate = (np.floor(secs(d) / 0.023) % 2 == 0).astype(float) * 0.7 + 0.3
+        x = x * gate * env_ad(n, 0.001, d, 1.5)
+        tr.put(at, norm(x, 1), db=-27, pan=(-0.5, 0.4, -0.2, 0.5, -0.4, 0.2)[k % 6])
+
+    # number slams: a tight snare crack, a low thump and a short white flash
+    for at in b.get("slams", []):
+        crack = band(noise(0.12), 900, 7000) * env_ad(int(0.12 * SR), 0.0005, 0.05, 5)
+        body = tone(196.0, 0.12, 0.04, glide=150.0)
+        thump = tone(80.0, 0.35, 0.12, glide=45.0)
+        flash = band(noise(0.08), 4000, None) * env_ad(int(0.08 * SR), 0.0003, 0.03, 4)
+        x = layer((1.0, norm(crack, 1)), (0.5, norm(body, 1)), (1.0, norm(thump, 1)), (0.4, norm(flash, 1)))
+        tr.put(at - 0.003, norm(x, 1), db=-18)
+
+    # kinetic words: a short "thock" per word, rising within each line, a soft air veil before each line
+    def thock(f: float, big: bool = False) -> np.ndarray:
+        d = 0.16 if big else 0.1
+        x = layer((1.0, norm(tone(f, d, d / 3.5, ((1, 1.0), (2.1, 0.25)), glide=f * 0.7), 1)),
+                  (0.6, norm(band(noise(0.02), 1500, 5000) * env_ad(int(0.02 * SR), 0.0003, 0.006), 1)))
+        if big:
+            x = layer((1.0, x), (0.8, norm(tone(70.0, 0.4, 0.14, glide=40.0), 1)))
+        return norm(x, 1)
+
+    for words in ((16.35, 16.75, 16.95), (61.05, 61.3), (73.45, 73.65, 74.3, 74.5), (77.6, 77.85, 78.05)):
+        veil = band(noise(0.45), 2500, 10000) * np.sin(np.pi * secs(0.45) / 0.45) ** 2
+        tr.put(words[0] - 0.15, norm(veil, 1), db=-36, pan=np.linspace(-0.3, 0.3, len(veil)))
+        for k, at in enumerate(words):
+            last_big = words[0] == 77.6 and k == len(words) - 1
+            tr.put(at, thock(300.0 * 2 ** (k * 2 / 12), big=last_big), db=-22 if last_big else -25, pan=(k - 1) * 0.15)
+
+    # 3D logo spin: a rising swoosh, then a metallic shimmer as the light sweeps across
+    w = whoosh(0.9, 250, 5000, peak_at=0.9)
+    tr.put(24.0, w, db=-26, pan=np.sin(np.linspace(0, 2 * np.pi, len(w))) * 0.6)
+    shim = sum(bell(f, 0.6, 0.15) * 0.3 for f in (3520.0, 4698.64, 5919.9, 7040.0))
+    shim = shim * np.clip(secs(0.6) / 0.05, 0, 1)
+    tr.put(24.9, norm(band(shim, 2500, None), 1), db=-31, pan=np.linspace(-0.6, 0.6, len(shim)))
+
+    # pin drops: a soft sonar bloop with a ripple echo
+    for at in (32.0, 40.0, 48.0, 54.0):
+        bl = tone(330.0, 0.4, 0.12, ((1, 1.0), (2, 0.15)), glide=520.0)
+        x = np.zeros(len(bl) + int(0.32 * SR))
+        x[: len(bl)] += bl
+        x[int(0.16 * SR):int(0.16 * SR) + len(bl)] += 0.35 * bl
+        x[int(0.32 * SR):] += 0.12 * bl[: len(x) - int(0.32 * SR)]
+        tr.put(at, norm(x, 1), db=-27)
+
+    # speed-ramp travels: a fast whoosh that decays into a slow-motion tail
+    for t0, t1 in ((30.8, 32.0), (39.2, 40.1), (47.2, 48.1), (53.2, 54.1)):
+        d = t1 - t0
+        fast = whoosh(0.35, 800, 7000, peak_at=0.7)
+        tail_d = d - 0.25
+        tail = sweep_band(noise(tail_d), 2500, 180, q=1.4) * np.exp(-secs(tail_d) / (tail_d * 0.45))
+        tail += 0.4 * tone(110.0, tail_d, tail_d * 0.4, glide=55.0)
+        x = np.zeros(int(d * SR) + 1)
+        x[: len(fast)] += norm(fast, 1)
+        i = int(0.25 * SR)
+        x[i:i + len(tail)] += 0.6 * norm(tail, 1)[: len(x) - i]
+        tr.put(t0, x, db=-26, pan=np.linspace(-0.6, 0.5, len(x)))
+
+    # closed won: a short, bright major chime (D6 F#6 A6 D7)
+    tr.put(77.2, chime((D6, FS6, A6, D7), 0.05, 0.9, 0.3), db=-24)
+
+    # logo strike at 84: a big cinematic hit with the final chord, and a ring tail
+    boom = tone(73.4, 2.0, 0.7, glide=36.7)
+    crack = band(noise(0.4), 200, 5000) * env_ad(int(0.4 * SR), 0.001, 0.12)
+    ring = sum(bell(f, 2.0, 0.9) * a for f, a in ((587.33, 1.0), (880.0, 0.7), (1174.66, 0.5), (1479.98, 0.3)))
+    hit = layer((1.0, norm(boom, 1)), (0.6, norm(crack, 1)), (0.45, norm(ring, 1)))
+    tr.put(84.0, norm(hit, 1), db=-15)
+
     # the giant chevron sweeps up
     w = whoosh(0.7, 250, 6000, peak_at=0.6)
     tr.put(b["close"] - 0.42, w, db=-21, pan=np.linspace(-0.3, 0.3, len(w)))

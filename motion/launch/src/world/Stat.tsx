@@ -1,6 +1,6 @@
 import React from 'react';
 import {Img, staticFile} from 'remotion';
-import {B, prog, roll, typed, useT} from '../lib';
+import {B, hit, prog, roll, typed, useT} from '../lib';
 import {ENGINES, STAT} from '../layout';
 import {C, display, mono} from '../theme';
 
@@ -23,7 +23,7 @@ export const Stat: React.FC = () => {
 	const appear = prog(t, 0, 0.4);
 	return (
 		<div style={{position: 'absolute', left: STAT.x - 780, top: STAT.y - 330, width: 1560, opacity: appear, textAlign: 'center'}}>
-			<div style={{fontFamily: mono, fontWeight: 600, fontSize: 300, lineHeight: 1, color: C.inkStrong, letterSpacing: -12, fontVariantNumeric: 'tabular-nums'}}>
+			<div style={{fontFamily: mono, fontWeight: 800, fontSize: 300, lineHeight: 1, color: C.inkStrong, letterSpacing: -12, fontVariantNumeric: 'tabular-nums', scale: `${1 + 0.18 * hit(t, B.slams[0], 8)}`}}>
 				{roll(t, c0, c1, 0, STAT_VALUE)}
 				<span style={{color: C.signalText}}>%</span>
 			</div>

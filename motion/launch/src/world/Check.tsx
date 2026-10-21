@@ -1,8 +1,8 @@
 import React from 'react';
-import {B, prog, roll, useT} from '../lib';
+import {B, hit, prog, roll, useT} from '../lib';
 import {CAL_A, CAL_B, DEAL, MISSED} from '../layout';
 import {C} from '../theme';
-import {At, CalIcon, Card, ChevronUp, LogoTile, Num, Sparkle, Tag} from './ui';
+import {At, CalIcon, Card, ChevronUp, LogoTile, Num, SlamRing, slamStyle, Sparkle, Tag} from './ui';
 
 // Tonight's scene fades back once the navigator arrives.
 const dimAt = (t: number) => 1 - 0.7 * prog(t, B.dim, B.dim + 0.4);
@@ -23,9 +23,11 @@ export const Missed: React.FC = () => {
 						Not mentioned
 					</Tag>
 				</div>
-				<Num size={64} color={C.neg} weight={600}>
-					-${value.toLocaleString('en-US')}
-				</Num>
+				<span style={slamStyle(hit(t, B.slams[1], 8))}>
+					<Num size={64} color={C.neg} weight={700}>
+						-${value.toLocaleString('en-US')}
+					</Num>
+				</span>
 			</Card>
 		</At>
 	);
@@ -82,9 +84,11 @@ export const Deal: React.FC = () => {
 						New deal
 					</Tag>
 				</div>
-				<Num size={60} color={C.pos} weight={700}>
-					+${roll(t, B.deal + 0.1, B.deal + 1.2, 0, 48000).toLocaleString('en-US')}
-				</Num>
+				<span style={slamStyle(hit(t, B.slams[3], 8))}>
+					<Num size={60} color={C.pos} weight={700}>
+						+${roll(t, B.deal + 0.1, B.slams[3], 0, 48000).toLocaleString('en-US')}
+					</Num>
+				</span>
 				<div style={{display: 'flex', alignItems: 'center', gap: 10, opacity: sales, translate: `${(1 - sales) * -16}px 0`}}>
 					{['JM', 'AK', 'RS'].map((n, i) => (
 						<span
@@ -108,11 +112,32 @@ export const Deal: React.FC = () => {
 						</span>
 					))}
 					<span style={{fontSize: 20, fontWeight: 700, color: C.ink, flex: 1}}>Sales team</span>
-					<Tag kind="signal" size={17}>
-						Closing
-					</Tag>
+					{/* the tag flips over: Closing, then Closed won */}
+					<span style={{display: 'inline-block', transform: `perspective(400px) rotateX(${t < B.closedWon ? prog(t, B.closedWon - 0.15, B.closedWon) * 90 : (1 - prog(t, B.closedWon, B.closedWon + 0.15)) * -90}deg)`}}>
+						{t < B.closedWon ? (
+							<Tag kind="signal" size={17}>
+								Closing
+							</Tag>
+						) : (
+							<Tag kind="pos" size={17} icon={<ChevronUp size={14} color={C.pos} />}>
+								Closed won
+							</Tag>
+						)}
+					</span>
 				</div>
 			</Card>
 		</At>
+	);
+};
+
+/** Shockwaves where the big numbers land. */
+export const Slams: React.FC = () => {
+	const t = useT();
+	return (
+		<>
+			<SlamRing p={{x: MISSED.x - 60, y: MISSED.y + 30}} t={t} at={B.slams[1]} color={C.neg} />
+			<SlamRing p={{x: DEAL.x - 60, y: DEAL.y}} t={t} at={B.slams[3]} color={C.pos} />
+			<SlamRing p={{x: DEAL.x, y: DEAL.y}} t={t} at={B.closedWon} color={C.pos} size={0.7} />
+		</>
 	);
 };

@@ -1,13 +1,13 @@
 import React from 'react';
 import {getLength, getPointAtLength, getTangentAtLength} from '@remotion/paths';
-import {B, INOUT, OUT, life, prog, useT} from '../lib';
+import {B, INOUT, OUT, RAMP, life, prog, useT} from '../lib';
 import {LOGO, ROUTE_END, ROUTE_START, STATIONS, STATION_W, pinOf} from '../layout';
 import {C, mono, sans} from '../theme';
 
 const p0 = pinOf(STATIONS[0]);
 
 // Each leg of the route, with when the arrowhead leaves and arrives.
-const LEGS: {d: string; from: number; to: number; len: number}[] = (
+const LEGS: {d: string; from: number; to: number; len: number; ease: (n: number) => number}[] = (
 	[
 	{d: `M ${ROUTE_START.x} ${ROUTE_START.y} C 1400 40, 2200 220, ${LOGO.x} ${LOGO.y}`, from: B.arrowhead + 0.6, to: B.drop - 0.15},
 	{d: `M ${LOGO.x} ${LOGO.y} C ${LOGO.x + 500} ${LOGO.y + 60}, ${p0.x - 500} ${p0.y}, ${p0.x} ${p0.y}`, from: B.stations[0] - 1.2, to: B.stations[0]},
@@ -17,8 +17,9 @@ const LEGS: {d: string; from: number; to: number; len: number}[] = (
 		const under = a.x + STATION_W + 80;
 		return {
 			d: `M ${a.x} ${a.y} L ${under} ${a.y} C ${under + 260} ${a.y}, ${b.x - 260} ${b.y}, ${b.x} ${b.y}`,
-			from: B.stations[k],
-			to: B.stations[k + 1],
+			// The arrow waits at its pin while the station plays, then shoots to the next one.
+			from: B.stationEnds[k] - 0.8,
+			to: B.stations[k + 1] + 0.1,
 		};
 	}),
 	{
@@ -27,7 +28,7 @@ const LEGS: {d: string; from: number; to: number; len: number}[] = (
 		to: B.stations[3] + 2.6,
 	},
 	] as {d: string; from: number; to: number}[]
-).map((l) => ({...l, len: getLength(l.d)}));
+).map((l, i) => ({...l, len: getLength(l.d), ease: i === 0 ? INOUT : RAMP}));
 
 const NAMES = ['See', 'Find', 'Plan', 'Create'];
 
@@ -38,7 +39,7 @@ export const arrowheadAt = (t: number) => {
 	for (const l of LEGS) {
 		if (t >= l.from) {
 			leg = l;
-			p = prog(t, l.from, l.to, INOUT);
+			p = prog(t, l.from, l.to, l.ease);
 		}
 	}
 	const pt = getPointAtLength(leg.d, leg.len * p);
@@ -58,7 +59,7 @@ export const Route: React.FC = () => {
 	return (
 		<svg style={{position: 'absolute', left: -1000, top: -3000, overflow: 'visible'}} width={15000} height={6000} viewBox="-1000 -3000 15000 6000">
 			{LEGS.map((l, i) => {
-				const p = prog(t, l.from, l.to, INOUT);
+				const p = prog(t, l.from, l.to, l.ease);
 				// The first leg has done its job once the logo lands; it clears the way for the tagline.
 				const fade = i === 0 ? 1 - prog(t, B.drop + 0.6, B.drop + 1.0) : 1;
 				if (p <= 0 || fade <= 0) return null;
@@ -77,7 +78,13 @@ export const Route: React.FC = () => {
 				const drop = prog(t, B.stations[k] - 0.15, B.stations[k] + 0.25, OUT);
 				if (drop <= 0) return null;
 				return (
-					<g key={k} transform={`translate(${pin.x} ${pin.y - (1 - drop) * 80})`} opacity={drop}>
+					<g key={k}>
+						{/* a ripple across the map where the pin lands */}
+						{[0, 0.18].map((d, j) => {
+							const rp = prog(t, B.stations[k] + 0.1 + d, B.stations[k] + 1.1 + d, OUT);
+							return rp > 0 && rp < 1 ? <circle key={j} cx={pin.x} cy={pin.y} r={20 + rp * 220} fill="none" stroke={C.signal} strokeWidth={5 * (1 - rp) + 1} opacity={(1 - rp) * 0.7} /> : null;
+						})}
+					<g transform={`translate(${pin.x} ${pin.y - (1 - drop) * 80})`} opacity={drop}>
 						<circle r={16} fill={C.bg} stroke={C.signal} strokeWidth={8} />
 						<line x1={0} y1={-16} x2={0} y2={-70} stroke={C.signal} strokeWidth={5} />
 						<g transform="translate(-6 -134)">
@@ -89,6 +96,7 @@ export const Route: React.FC = () => {
 								{NAMES[k]}
 							</text>
 						</g>
+					</g>
 					</g>
 				);
 			})}

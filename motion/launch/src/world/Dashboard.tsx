@@ -1,9 +1,9 @@
 import React from 'react';
 import {Img, staticFile} from 'remotion';
-import {B, INOUT, prog, useT} from '../lib';
+import {B, hit, INOUT, prog, useT} from '../lib';
 import {DASH, DASH_H, DASH_W, ENGINES} from '../layout';
 import {C, display, mono} from '../theme';
-import {At, Card, ChevronUp, Climb, Num, Tag} from './ui';
+import {At, Card, ChevronUp, Climb, Num, SlamRing, slamStyle, Tag} from './ui';
 
 // Weekly AI visibility after the pages go live.
 const WEEKS = [0, 4, 12, 27, 44, 60];
@@ -34,7 +34,9 @@ export const Dashboard: React.FC = () => {
 				</div>
 				<div style={{position: 'absolute', left: 44, top: 140, display: 'flex', flexDirection: 'column', gap: 10}}>
 					<span style={{fontSize: 22, color: C.ink2, fontWeight: 600}}>AI visibility</span>
-					<Num size={120}>{Math.round(60 * p)}%</Num>
+					<span style={slamStyle(hit(t, B.slams[2], 8))}>
+						<Num size={120}>{Math.round(60 * p)}%</Num>
+					</span>
 					<span style={{opacity: endOn}}>
 						<Tag kind="pos" size={20} icon={<ChevronUp size={16} color={C.pos} />}>
 							+60 pts
@@ -79,6 +81,7 @@ export const Dashboard: React.FC = () => {
 					<circle cx={px(WEEKS.length - 1)} cy={py(60)} r={12 * endOn} fill={C.spark} />
 				</svg>
 			</Card>
+			<SlamRing p={{x: 150, y: 260}} t={t} at={B.slams[2]} color={C.signal} size={0.8} />
 		</At>
 	);
 };
