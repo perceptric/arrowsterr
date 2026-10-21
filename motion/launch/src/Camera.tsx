@@ -71,14 +71,17 @@ const TRAVEL: [number, number, number][] = [
 	[B.finalDrop - 1.6, B.finalDrop - 0.6, 14],
 ];
 
-// From the drop to the close, the camera kicks in on every beat and harder on each bar.
-export const punchAt = (t: number) => {
-	if (t < B.drop || t > B.close) return 0;
-	const since = t - B.drop;
-	const beat = since - Math.floor(since / 0.5) * 0.5;
-	const bar = since - Math.floor(since / 2) * 2;
-	return 0.008 * hit(beat, 0, 14) + 0.018 * hit(bar, 0, 9);
-};
+// The camera punches in only on the story's big hits, never on every beat.
+const HITS: [number, number][] = [
+	[B.drop, 0.035],
+	...B.stations.map((s): [number, number] => [s + 0.1, 0.02]),
+	...B.slams.map((s): [number, number] => [s, 0.025]),
+	[B.finalDrop, 0.04],
+	[B.closedWon, 0.02],
+	[78.05, 0.03],
+];
+
+export const punchAt = (t: number) => HITS.reduce((sum, [at, amp]) => sum + amp * hit(t, at, 7), 0);
 
 export const tiltAt = (t: number) => {
 	let rx = 0;
