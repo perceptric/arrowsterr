@@ -2,12 +2,15 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { startArticleResearch } from "./articleResearchServer";
 import { loadBrandContext } from "./brandContext";
+import { keepLocked } from "./articleGrid";
 import { askJson, claudeModel } from "./claude";
+import { entitlement } from "./entitlements";
 import { domainOf } from "./sources";
 import { enqueue, finish, retry, type Job } from "./jobs";
 import { BRIEF_SCHEMA, drive, runBrief, type BriefDeps, type BriefRow, type BriefStore, type ResearchPack, type WriterContext } from "./writerBrief";
 import { CHECK_SCHEMA, requestDraft, runDraft, SECTION_SCHEMA, type DraftAsk, type DraftDeps, type DraftRow, type DraftStore, type QuotaStore } from "./writerDraft";
 import { MODULE_SCHEMA } from "./writerModules";
+import { periodOf } from "./plans";
 
 // The database and paid calls behind the Agentic Writer (writerBrief.ts, writerDraft.ts) and its two jobs:
 // writer_brief (waits for the article research, then writes the brief) and writer_draft (sections, check, modules, doc).
@@ -38,7 +41,10 @@ export function briefStore(db: SupabaseClient): BriefStore {
     brief: async (id) => must(await db.from("writer_briefs").select("*").eq("id", id).maybeSingle()) as BriefRow | null,
     update: async (id, patch) => {
       must(await db.from("writer_briefs").update({ ...patch, updated_at: stamp() }).eq("id", id));
-      if (patch.status === "ready") await advanceItem(db, "writer_briefs", id);
+      if (patch.status === "ready") {
+        await advanceItem(db, "writer_briefs", id);
+        await autoDraft(db, id);
+      }
     },
   };
 }
@@ -52,19 +58,26 @@ export function draftStore(db: SupabaseClient): DraftStore {
       if (patch.status === "ready") await advanceItem(db, "writer_drafts", id);
     },
     async saveDoc(d, doc, at) {
-      type DocRow = { id: string; meta: Record<string, unknown> | null };
+      type DocRow = { id: string; meta: Record<string, unknown> | null; title: string; content: Record<string, unknown> | null; words: number };
+      const cols = "id, meta, title, content, words";
       let mine: DocRow | null = null;
-      if (d.doc_id) mine = must(await db.from("docs").select("id, meta").eq("id", d.doc_id).maybeSingle()) as DocRow | null;
+      if (d.doc_id) mine = must(await db.from("docs").select(cols).eq("id", d.doc_id).maybeSingle()) as DocRow | null;
       if (!mine) {
         // A topic has one doc. One this draft made before a crash is reused; an older hand-made one keeps its text
         // and steps aside, so the draft never writes over it.
-        const there = must(await db.from("docs").select("id, meta").eq("calendar_item_id", d.item_id).maybeSingle()) as DocRow | null;
+        const there = must(await db.from("docs").select(cols).eq("calendar_item_id", d.item_id).maybeSingle()) as DocRow | null;
         if (there?.meta?.writer_draft_id === d.id) mine = there;
         else if (there) must(await db.from("docs").update({ calendar_item_id: null }).eq("id", there.id));
       }
       const meta = { ...doc.meta, ...(mine?.meta ?? {}), status: "ready", writer_draft_id: d.id };
-      const row = { title: doc.title, content: doc.content, words: doc.words, meta, updated_at: at };
+      // Sections locked in the grid (docs.meta.locked) come through a regenerate as they were.
+      const locked = Array.isArray(mine?.meta?.locked) ? (mine.meta.locked as unknown[]).filter((k): k is string => typeof k === "string") : [];
+      const content = mine && locked.length ? (keepLocked(mine.content, doc.content, locked) as unknown as Record<string, unknown>) : doc.content;
+      const row = { title: doc.title, content, words: doc.words, meta, updated_at: at };
       if (mine) {
+        // The old text is saved first (053_library_review.sql), so a regenerate can always be undone by hand.
+        if (mine.content && Object.keys(mine.content).length)
+          await db.from("doc_versions").insert({ workspace_id: d.workspace_id, doc_id: mine.id, title: mine.title, content: mine.content, words: mine.words, reason: "regenerate", created_by: null });
         must(await db.from("docs").update(row).eq("id", mine.id));
         return mine.id;
       }
@@ -187,11 +200,13 @@ async function queue(db: SupabaseClient, kind: "writer_brief" | "writer_draft", 
  */
 export async function startBrief(
   db: SupabaseClient,
-  opts: { workspaceId: string; item: { id: string; site_id: string; keyword: string }; userId: string | null; note?: string | null },
+  opts: { workspaceId: string; item: { id: string; site_id: string; keyword: string }; userId: string | null; note?: string | null; autoDraft?: boolean },
 ): Promise<{ ok: true; briefId: string } | { ok: false; status: number; error: string }> {
   const have = must(await db.from("writer_briefs").select("id, status, version").eq("item_id", opts.item.id).maybeSingle()) as { id: string; status: string; version: number } | null;
   if (have?.status === "approved") return { ok: false, status: 409, error: "This brief is approved. Regenerate the draft instead." };
+  const auto = opts.autoDraft === true;
   if (have?.status === "generating") {
+    if (auto) await db.from("writer_briefs").update({ auto_draft: true }).eq("id", have.id);
     await queue(db, "writer_brief", { id: have.id, version: have.version }, opts.workspaceId);
     return { ok: true, briefId: have.id };
   }
@@ -199,14 +214,14 @@ export async function startBrief(
   if (have) {
     const version = have.version + 1;
     // The research stays: a regenerated brief never pays for it again.
-    must(await db.from("writer_briefs").update({ status: "generating", step: "research", version, note, error: null, updated_at: stamp() }).eq("id", have.id).eq("version", have.version));
+    must(await db.from("writer_briefs").update({ status: "generating", step: "research", version, note, error: null, ...(auto ? { auto_draft: true } : {}), updated_at: stamp() }).eq("id", have.id).eq("version", have.version));
     await queue(db, "writer_brief", { id: have.id, version }, opts.workspaceId);
     return { ok: true, briefId: have.id };
   }
   const site = must(await db.from("sites").select("brand_id").eq("id", opts.item.site_id).maybeSingle()) as { brand_id: string | null } | null;
   const { data, error } = await db
     .from("writer_briefs")
-    .insert({ workspace_id: opts.workspaceId, brand_id: site?.brand_id ?? null, site_id: opts.item.site_id, item_id: opts.item.id, keyword: opts.item.keyword, note, created_by: opts.userId })
+    .insert({ workspace_id: opts.workspaceId, brand_id: site?.brand_id ?? null, site_id: opts.item.site_id, item_id: opts.item.id, keyword: opts.item.keyword, note, created_by: opts.userId, ...(auto ? { auto_draft: true } : {}) })
     .select("id")
     .single();
   if (error?.code === "23505") return startBrief(db, opts); // two clicks at once: use the one that won
@@ -220,6 +235,34 @@ export async function startDraft(db: SupabaseClient, ask: DraftAsk) {
   const out = await requestDraft(quotaStore(db), ask);
   if (out.ok) await queue(db, "writer_draft", { id: out.draftId, version: out.version }, ask.brief.workspace_id);
   return out;
+}
+
+/**
+ * Generate in the grid, after the brief: approve the brief and start (or regenerate) the draft, counted like
+ * Generate Draft. Locked sections survive a regenerate (saveDoc), and the old text is kept in doc_versions.
+ */
+export async function draftFromBrief(db: SupabaseClient, b: BriefRow, userId: string | null) {
+  if (b.status === "ready") {
+    must(await db.from("writer_briefs").update({ status: "approved", approved_by: userId, approved_at: stamp(), updated_at: stamp() }).eq("id", b.id).eq("status", "ready"));
+    b = { ...b, status: "approved" };
+  }
+  const e = await entitlement(b.workspace_id);
+  return startDraft(db, { brief: b, limit: e.limits.draftsPerBrand ?? 0, period: periodOf("tasks", new Date(), e.anchor), confirm: true, userId });
+}
+
+/** A brief started by Generate (auto_draft) goes straight on to its draft once it's ready. A failure shows on the brief. */
+async function autoDraft(db: SupabaseClient, briefId: string) {
+  const { data, error } = await db.from("writer_briefs").select("*").eq("id", briefId).maybeSingle();
+  const b = data as (BriefRow & { auto_draft?: boolean }) | null;
+  if (error || !b?.auto_draft || b.status !== "ready") return;
+  await db.from("writer_briefs").update({ auto_draft: false }).eq("id", b.id);
+  // The brief is done either way; a draft that can't start says why on the brief and never fails the brief job.
+  try {
+    const out = await draftFromBrief(db, b, null);
+    if (!out.ok) await db.from("writer_briefs").update({ error: out.error }).eq("id", b.id);
+  } catch (e) {
+    await db.from("writer_briefs").update({ error: (e instanceof Error ? e.message : String(e)).slice(0, 1000) }).eq("id", b.id);
+  }
 }
 
 // ─────────────── the jobs ───────────────

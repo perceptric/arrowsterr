@@ -99,7 +99,7 @@ export function PublishPanel({ sb, auth, docId, title, html, onClose }: { sb: Su
       const pm = m as DocPublishMeta & { published?: Published[] };
       setMeta(pm);
       const d: Defaults = c.defaults ?? {};
-      setF((x) => ({ ...x, title: pm.title || x.title, slug: pm.slug || d.slug || x.slug, metaTitle: d.metaTitle || "", description: pm.description || d.metaDescription || "", image: pm.image ?? "", schema: pm.schema ?? "" }));
+      setF((x) => ({ ...x, title: pm.title || x.title, slug: pm.slug || d.slug || x.slug, metaTitle: pm.metaTitle || d.metaTitle || "", description: pm.description || d.metaDescription || "", image: pm.image ?? "", schema: pm.schema ?? "" }));
       if (d.dueDate) setDay(d.dueDate);
       applyPub(c.publications.find((p) => p.connectionId === first));
       // Read the posts back from WordPress, so an edit or delete there shows here.

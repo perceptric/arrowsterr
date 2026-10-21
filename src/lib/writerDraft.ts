@@ -42,7 +42,7 @@ export type DraftRow = {
   ready_at: string | null;
 };
 
-export type DocOut = { title: string; content: Record<string, unknown>; words: number; meta: { title: string; description: string; slug: string } };
+export type DocOut = { title: string; content: Record<string, unknown>; words: number; meta: { title: string; metaTitle: string; description: string; slug: string } };
 
 export type DraftStore = {
   draft(id: string): Promise<DraftRow | null>;
@@ -288,6 +288,24 @@ function blockNodes(b: Block): PMNode[] {
   }
 }
 
+/** A written section as editor nodes: its H2 (none for the intro), then its blocks. */
+export const sectionNodes = (s: Section): PMNode[] => [...(s.h2 ? [heading(2, s.h2)] : []), ...s.blocks.flatMap(blockNodes)];
+
+/**
+ * The plan for writing one grid cell again: the intro, or the brief's section with this H2. A section the person
+ * added or renamed has no plan in the brief, so it gets one from its H2 alone, put where it sits in the article.
+ */
+export function cellPlan(b: WriterBrief, part: { kind: "intro" } | { kind: "section"; h2: string; index: number }): { plan: SectionPlan[]; i: number } {
+  const plan = planSections(b);
+  if (part.kind === "intro") return { plan, i: 0 };
+  const key = (x: string) => x.toLowerCase().replace(/\s+/g, " ").trim();
+  const i = plan.findIndex((x) => x.kind !== "intro" && key(x.h2) === key(part.h2));
+  if (i >= 0) return { plan, i };
+  const at = Math.min(plan.length, part.index + 1);
+  const made: SectionPlan = { key: `cell-${part.index}`, kind: "h2", h2: part.h2, points: [], h3: [], sources: [], cta: false };
+  return { plan: [...plan.slice(0, at), made, ...plan.slice(at)], i: at };
+}
+
 const plainOf = (b: Block) => (b.type === "table" ? b.rows.map((r) => r.join(" ")).join(" ") : b.type === "ul" || b.type === "ol" ? b.items.join(" ") : b.text);
 export const sectionPlain = (s: Section) => [s.h2, ...s.blocks.map(plainOf)].filter(Boolean).join("\n\n").replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").replace(/\*\*?/g, "");
 const countWords = (s: string) => s.split(/\s+/).filter(Boolean).length;
@@ -311,7 +329,7 @@ export function buildDoc(b: WriterBrief, sections: Section[], modules: { module:
   const rest = modules.filter((_, i) => !placed.has(i)).map((m) => ({ type: "embed", attrs: { html: m.html } }));
   if (rest.length) content.splice(faq >= 0 ? faq : content.length, 0, ...rest);
   const words = countWords(sections.map(sectionPlain).join(" "));
-  return { title: b.h1, content: { type: "doc", content: content.length ? content : [{ type: "paragraph" }] }, words, meta: { title: b.titles[0] ?? b.h1, description: b.metaDescription, slug: b.slug } };
+  return { title: b.h1, content: { type: "doc", content: content.length ? content : [{ type: "paragraph" }] }, words, meta: { title: b.titles[0] ?? b.h1, metaTitle: b.titles[0] ?? b.h1, description: b.metaDescription, slug: b.slug } };
 }
 
 // ─────────────── the job ───────────────
