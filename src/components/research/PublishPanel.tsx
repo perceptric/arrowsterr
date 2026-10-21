@@ -7,6 +7,7 @@ import { CMS, type CmsConnection, type Published } from "@/lib/cmsTypes";
 import { getDocMeta } from "@/lib/db";
 import type { RunAuth } from "@/lib/runner";
 import type { DocPublishMeta } from "@/lib/writerAgent";
+import { ConnectWizard } from "../ConnectWizard";
 import { SidePanel, Thinking } from "../ui";
 import { downloadCsv, post } from "./shared";
 
@@ -51,7 +52,7 @@ const STATE: Record<NonNullable<Publication["status"]>, { label: string; tone: s
 };
 
 /** Send a draft to a connected CMS, as a draft, live or on a date, with its SEO details. WordPress posts stay in sync. */
-export function PublishPanel({ sb, auth, docId, title, html, onClose }: { sb: SupabaseClient; auth: RunAuth; docId: string; title: string; html: () => string; onClose: () => void }) {
+export function PublishPanel({ sb, auth, docId, brandId, title, html, onClose }: { sb: SupabaseClient; auth: RunAuth; docId: string; brandId?: string; title: string; html: () => string; onClose: () => void }) {
   const [conns, setConns] = useState<CmsConnection[] | null>(null);
   const [pubs, setPubs] = useState<Publication[]>([]);
   const [meta, setMeta] = useState<(DocPublishMeta & { published?: Published[] }) | null>(null);
@@ -67,6 +68,8 @@ export function PublishPanel({ sb, auth, docId, title, html, onClose }: { sb: Su
   const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState("");
   const [setup, setSetup] = useState("");
+  const [connecting, setConnecting] = useState(false);
+  const [reload, setReload] = useState(0);
   const [warnings, setWarnings] = useState<string[]>([]);
   const [done, setDone] = useState<Published | null>(null);
 
@@ -85,6 +88,7 @@ export function PublishPanel({ sb, auth, docId, title, html, onClose }: { sb: Su
 
   useEffect(() => {
     let on = true;
+    void reload; // a site connected from here loads the list again
     // Only the sites of the draft's own brand.
     Promise.all([
       post<{ connections: CmsConnection[]; publications: Publication[]; defaults: Defaults; setup?: string }>(auth, "/api/cms", { action: "publish_info", docId }).catch((e) => ({ connections: [] as CmsConnection[], publications: [] as Publication[], defaults: {}, setup: e instanceof Error ? e.message : String(e) })),
@@ -108,7 +112,7 @@ export function PublishPanel({ sb, auth, docId, title, html, onClose }: { sb: Su
     return () => {
       on = false;
     };
-  }, [auth, sb, docId, sync]);
+  }, [auth, sb, docId, sync, reload]);
 
   const conn = conns?.find((c) => c.id === to);
   const wp = conn?.kind === "wordpress";
@@ -240,7 +244,12 @@ export function PublishPanel({ sb, auth, docId, title, html, onClose }: { sb: Su
               <Dropdown label="Publish to" value={to} onChange={pickSite} className="aw-dropdown--field w-full" options={conns.map((c) => ({ id: c.id, label: `${c.name} · ${CMS.find((x) => x.id === c.kind)?.label ?? ""}` }))} />
             </label>
           ) : (
-            <div className="aw-callout">No publishing site for this brand. An admin can connect one in Settings → Brand → Publishing sites.</div>
+            <div className="aw-callout flex flex-wrap items-center justify-between gap-3">
+              <span>No publishing site for this brand yet.</span>
+              <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => setConnecting(true)}>
+                Connect a site
+              </button>
+            </div>
           )}
 
           {wp && pub?.remoteId ? (
@@ -347,6 +356,17 @@ export function PublishPanel({ sb, auth, docId, title, html, onClose }: { sb: Su
           </div>
         </div>
       )}
+      {connecting ? (
+        <ConnectWizard
+          auth={auth}
+          brandId={brandId}
+          onClose={() => setConnecting(false)}
+          onConnected={() => {
+            setConns(null);
+            setReload((n) => n + 1);
+          }}
+        />
+      ) : null}
     </SidePanel>
   );
 }

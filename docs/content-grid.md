@@ -42,9 +42,17 @@ Bottom-of-funnel keywords win as listicles (`src/lib/listicle.ts`):
 - The Content Plan's suggested slug is `best-` with the main noun made plural: "seo agency" to `/best-seo-agencies`, "seo consultant for small business" to `/best-seo-consultants-for-small-business`. Keywords that already lead with best or top, or compare ("vs", "alternatives"), keep their words. A slug someone set stays.
 - The brief for a BOFU piece is a listicle: "N Best ... in 2026" titles, an H2 on how the options were picked, one H2 per option with who it's for, pricing, pros and cons, then how to choose, with a comparison or quiz module. Its slug is the listicle slug whatever the model returns.
 
+## Connect and sync to the CMS
+
+- **Connect site** in the Library (and **Connect a site** in Publish when the brand has none) opens the connect guide for this brand, step by step, for WordPress, Webflow, Shopify, HubSpot and Ghost (`ConnectWizard.tsx`, `cmsGuide.ts`). Connecting needs an admin.
+- **WordPress in one click** (`wpAuthorize.ts`): type the site address and click Connect with WordPress. A WordPress window opens on its own Authorize Application screen; the person approves, WordPress sends back an application password for their user to `/connect/wordpress`, which hands it to the Library window and closes. Nothing to copy. If the window loses its link back, the answer goes through the browser's storage and is cleared at once. An application password is still there as a fallback.
+- The guide's last step installs the Arrowsterr Connector plugin, with a button to the plugin upload screen and **Check plugin**, which asks the site (`wp_plugin`).
+- **Sync** on a row, or **Sync to CMS** in Full view, sends the saved article to the brand's site (`push` in `/api/cms`): the same post every time, built on the server from the doc (`docToHtml`). A draft stays a draft and a live post stays live; the category and tags from the last Publish stay. Image notes never go out.
+- **HTML and modules:** WordPress gets each interactive module through the plugin (sized, sandboxed, kept across updates), or as a sandboxed frame in a Custom HTML block without it (`wpConvert.ts`). Other sites get each module as a self-contained sandboxed frame with its whole page inside (`framedModules`), so nothing has to load from elsewhere. Tables, lists and images go as plain HTML.
+
 ## Interactive modules
 
-Generated sections, and drafts written from the brief's page (Generate Draft), can carry interactive modules: each built as one self-contained HTML block (inline CSS and JS, no outside files, no network), in the brand's colors, checked by `validateModule` and run in a sandboxed frame. The catalog is `src/lib/moduleCatalog.ts`: each kind says when it helps and how to build it. The brief's prompt lists every kind and picks 1 to 3 that fit the article, never two of the same kind; the draft builds each with its kind's design.
+Generated sections, and drafts written from the brief's page (Generate Draft), can carry interactive modules, only where one helps more than text, a list or a table (most articles get none or one, never more than two): each built as one self-contained HTML block (inline CSS and JS, no outside files, no network), in the brand's colors, checked by `validateModule` and run in a sandboxed frame. The catalog is `src/lib/moduleCatalog.ts`: each kind says when it helps and how to build it. The brief's prompt lists every kind and picks 1 to 3 that fit the article, never two of the same kind; the draft builds each with its kind's design.
 
 | Kind | When it helps |
 |---|---|
@@ -62,11 +70,16 @@ Generated sections, and drafts written from the brief's page (Generate Draft), c
 | 2 by 2 matrix | Options placed on two axes, with hover cards. |
 | Self-assessment | A 1 to 5 scorecard with a grade and next steps. |
 
-Older briefs that name `roi` or `diagram` still build.
+Every module follows the brand's style guide (`moduleStyle`, `moduleTheme`): the Brand Kit's colors and what each is for, its heading and body fonts (loaded from Google Fonts), its corners, its tone for labels, and the written Brand Guidelines. Older briefs that name `roi` or `diagram` still build.
+
+## Lists and images
+
+- The writer puts three or more parallel things (options, features, tips, pros, cons) in a bullet list, steps and rankings in a numbered list, and several options compared on the same points in a table.
+- The brief names 2 to 5 places an image helps: the H2 it goes under, what it shows (a screenshot of a named tool, a chart of a number from the sources, a diagram of a process) and its alt text. They show in each section's notes in the side panel, and as notes in the doc (generated sections, full drafts and the doc a writer starts) right where the image goes. Notes show in the editor and never publish.
 
 ## Tests
 
-`tests/articleGrid.test.ts` (the doc as heading and section pairs, the brief's plan before the doc, the skeleton from the brief, each section's notes, saving a section into its slice, the pair count, plain text, letters), `tests/moduleCatalog.test.ts` (the 13 kinds, the brief's list, the build prompt), `tests/library.test.ts` (the status picker the grid and the deep dive share), `tests/listicle.test.ts` (plurals, listicle slugs, the plan's slug, the brief's listicle rules and slug).
+`tests/articleGrid.test.ts` (the doc as heading and section pairs, the brief's plan before the doc, the skeleton from the brief, each section's notes, saving a section into its slice, the pair count, plain text, letters), `tests/moduleCatalog.test.ts` (the 13 kinds, the brief's list, the build prompt), `tests/library.test.ts` (the status picker the grid and the deep dive share), `tests/listicle.test.ts` (plurals, listicle slugs, the plan's slug, the brief's listicle rules and slug), `tests/wpAuthorize.test.ts` (site addresses, the approve screen's address, reading WordPress's answer); `tests/moduleCatalog.test.ts` also covers the brand style in the build prompt, the fonts, the module and list rules, image notes and modules framed for other CMSs.
 
 ## Running cost
 
@@ -74,16 +87,17 @@ Prices from `docs/content-v2.md`: Claude Sonnet 5.5 at $2 input and $10 output p
 
 | Line | Use per article | Cost |
 |---|---|---|
-| Brief | research and one Claude call | ~$0.18 (check) |
+| Brief | research and one Claude call, now also naming image spots | ~$0.18 (check) |
 | Generate content | about 8 sections, 25K tokens in (mostly cached) and 1.5K out each | ~$0.25 |
-| Modules | about 2, 10K in and 8K out each | ~$0.20 |
-| **One article, fully generated** | | **~$0.63** |
+| Modules | only where they help: about 1, 12K in and 8K out | ~$0.10 |
+| Connect, sync and publish | the CMS's own API, on the existing web service | $0 |
+| **One article, fully generated** | | **~$0.53** |
 
 At 10 articles per team a month, if every article is fully generated:
 
 | Stage | Articles | Monthly |
 |---|---|---|
-| Beta (50 teams) | 500 | ~$315 (check) |
-| Growth (500 teams) | 5,000 | ~$3,150 (check) |
+| Beta (50 teams) | 500 | ~$265 (check) |
+| Growth (500 teams) | 5,000 | ~$2,650 (check) |
 
-Articles writers fill by hand cost only the brief (~$90 and ~$900). Writing, saving and Full view use the browser's own Supabase connection: $0.
+Fewer modules bring it down from ~$315 and ~$3,150. Articles writers fill by hand cost only the brief (~$90 and ~$900). Brand fonts load free from Google Fonts. Writing, saving and Full view use the browser's own Supabase connection: $0.

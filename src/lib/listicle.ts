@@ -44,6 +44,6 @@ export function listicleRules(keyword: string, year: number): string {
   return `- This is a bottom-of-funnel keyword, so the article is a listicle that ranks the best options for "${keyword}".
   - h1 and titles: the "N Best ... in ${year}" shape, for example "9 Best ${keyword.replace(/\b\w/g, (c) => c.toUpperCase())} in ${year}" made plural where it reads better.
   - outline: a short H2 on how the options were picked, then one H2 per option ("Name: who it's best for"), each with points on what it does well, its pricing from the sources, its pros and cons and who should skip it; then an H2 on how to choose. Put the brand itself in the list where it honestly fits, with the same rules as the rest.
-  - modules: include a comparison table or a quiz that helps the reader pick.
+  - modules: when the list has 5 or more options, a comparison with filters or a quiz that helps the reader pick; otherwise none.
   - slug: "${listicleSlug(keyword)}".`;
 }

@@ -4,8 +4,8 @@ import { askJson } from "./claude";
 import type { PmNode } from "./docHtml";
 import { kindOf } from "./moduleCatalog";
 import { contextPrefix, type BriefRow, type PlannedModule, type WriterContext } from "./writerBrief";
-import { briefText, cellPlan, cleanSection, MODULE_TRIES, sectionNodes, sectionPrompt, sourcesFor, SECTION_SCHEMA, sectionPlain } from "./writerDraft";
-import { MODULE_SCHEMA, modulePrompt, validateModule, wrapModule } from "./writerModules";
+import { briefText, cellPlan, cleanSection, imageNotes, MODULE_TRIES, sectionNodes, sectionPrompt, sourcesFor, SECTION_SCHEMA, sectionPlain } from "./writerDraft";
+import { MODULE_SCHEMA, modulePrompt, moduleStyle, validateModule, wrapModule } from "./writerModules";
 import { loadResearch, loadWriterContext, writerModel } from "./writerServer";
 
 // Generate content in the Library grid (docs/content-grid.md): one section at a time, from the brief, its research
@@ -38,14 +38,14 @@ export async function generateSection(db: SupabaseClient, b: BriefRow, ask: Sect
   const raw = await askJson(sectionPrompt(plan, i, brief, sources, null, note || null), SECTION_SCHEMA, { prefix, model: writerModel(), maxTokens: 4000 });
   const section = cleanSection(raw, plan[i]);
   if (!section.blocks.length) throw new Error("The writer came back empty. Try again, or change the points.");
-  const nodes = sectionNodes(section) as PmNode[];
+  const nodes = [...sectionNodes(section), ...imageNotes(brief, plan[i].kind === "intro" ? "" : plan[i].h2)] as PmNode[];
   const kind = ask.module ? kindOf(ask.module) : null;
   if (!kind) return { nodes, moduleError: null };
   const planned = brief.modules.find((m) => m.type === kind.id && m.placement.toLowerCase() === plan[i].h2.toLowerCase());
   const m: PlannedModule = planned ?? { type: kind.id, title: kind.label, purpose: kind.when, placement: plan[i].h2 || "the intro", inputs: [], outputs: [], data: "From the section and the sources.", why: kind.when };
   let lastError: string | null = null;
   for (let t = 0; t < MODULE_TRIES; t++) {
-    const out = (await askJson(modulePrompt(m, { keyword: b.keyword, brand: ctx.brand.name, section: sectionPlain(section) }, lastError), MODULE_SCHEMA, { prefix, model: writerModel(), maxTokens: 12000 })) as { html?: unknown };
+    const out = (await askJson(modulePrompt(m, { keyword: b.keyword, brand: ctx.brand.name, section: sectionPlain(section), style: moduleStyle(ctx.kit, ctx.guidelines) }, lastError), MODULE_SCHEMA, { prefix, model: writerModel(), maxTokens: 12000 })) as { html?: unknown };
     const html = typeof out?.html === "string" ? out.html.trim() : "";
     const v = validateModule(html);
     if (v.ok) return { nodes: [...nodes, { type: "embed", attrs: { html: wrapModule(html, m, ctx.kit) } }], moduleError: null };

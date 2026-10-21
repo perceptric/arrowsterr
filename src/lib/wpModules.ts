@@ -95,3 +95,20 @@ export function moduleDocument(html: string) {
   const fit = `<script>(function(){function s(){parent.postMessage({awh:document.documentElement.scrollHeight},"*")}new ResizeObserver(s).observe(document.documentElement);addEventListener("load",s)})()</script>`;
   return /<\/body>/i.test(html) ? html.replace(/<\/body>/i, `${fit}</body>`) : `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><body style="margin:0">${html}${fit}</body>`;
 }
+
+/**
+ * Modules as self-contained sandboxed iframes, for a CMS other than WordPress (Ghost, Shopify, HubSpot, Webflow),
+ * which can't read the contract. The frame carries the module's whole page in srcdoc, so nothing outside is
+ * needed; a broken module is dropped, never shown raw. Everything else in the HTML is left as it is.
+ */
+export function framedModules(html: string): string {
+  return html.replace(/<div\b([^>]*\bdata-(?:aw-module|embed)=[^>]*)>\s*<\/div>/gi, (_all, attrs: string) => {
+    const read = (name: string) => {
+      const m = attrs.match(new RegExp(`\\b${name}="([^"]*)"`));
+      return m ? m[1].replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&") : null;
+    };
+    const m = readModule(read);
+    if (!m) return "";
+    return `<div class="arrowsterr-module"><iframe title="${escAttr(m.title || "Interactive module")}" sandbox="allow-scripts" loading="lazy" style="width:100%;border:0;height:${m.height}px" srcdoc="${escAttr(moduleDocument(m.html))}"></iframe></div>`;
+  });
+}

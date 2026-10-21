@@ -8,6 +8,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { enqueue } from "@/lib/jobs";
 import { PublishError, publishToWp, scheduleKey, statusFor, syncPub, versionAtLeast, PLUGIN_MIN, type Mode, type Pub } from "@/lib/wpSync";
 import { mirrorMeta, PUB_COLS, pubStore, pubView, SYNC_SETUP, wpClient } from "@/lib/wpSyncServer";
+import { docToHtml } from "@/lib/docHtml";
+import { framedModules } from "@/lib/wpModules";
 
 const str = (v: unknown, n: number) => String(v ?? "").trim().slice(0, n);
 const err = (error: string, status = 400) => Response.json({ error }, { status });
@@ -37,10 +39,14 @@ async function draftBrand(
 //   publish_info: { docId }                    the draft's brand's sites, where the draft went (WordPress), and defaults from its plan
 //   wp_site: { docId, connectionId }           a WordPress site's categories and whether the Arrowsterr plugin is on it
 //   sync: { docId }                            read each WordPress post back: status, address, last edit, or deleted
-const READS = new Set(["list", "publish_info", "wp_site", "sync"]);
+//   push: { docId, connectionId? }             editors: sync the article to its brand's site in one click, built from the
+//                                              saved doc on the server (modules included). It updates the same post and
+//                                              keeps it as it is there: a draft stays a draft, a live post stays live.
+//   wp_plugin: { connectionId }                whether the Arrowsterr Connector plugin is on a WordPress site, for the connect guide
+const READS = new Set(["list", "publish_info", "wp_site", "sync", "wp_plugin"]);
 export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
-  const min = READS.has(body.action) ? "viewer" : body.action === "publish" ? "editor" : "admin";
+  const min = READS.has(body.action) ? "viewer" : body.action === "publish" || body.action === "push" ? "editor" : "admin";
   const auth = await requireRole(request, body.workspaceId, min);
   if ("denied" in auth) return auth.denied;
   const db = adminClient();
@@ -177,6 +183,16 @@ export async function POST(request: Request) {
     return Response.json({ connections, publications, defaults, setup });
   }
 
+  if (body.action === "wp_plugin") {
+    const { data: conn } = await db.from("cms_connections").select("id, kind, config").eq("id", str(body.connectionId, 60)).eq("workspace_id", ws).maybeSingle();
+    if (!conn || conn.kind !== "wordpress") return err("Site not found.", 404);
+    const status = await wpClient(conn.config as Record<string, string>)
+      .req("GET", "/arrowsterr/v1/status")
+      .catch(() => ({ status: 0, data: {} }));
+    const version = status.status === 200 ? String((status.data as { version?: string }).version ?? "") : "";
+    return Response.json({ plugin: version ? { version, current: versionAtLeast(version, PLUGIN_MIN) } : null });
+  }
+
   if (body.action === "wp_site") {
     const s = await brandSite(body.docId, body.connectionId);
     if (!s || s.conn.kind !== "wordpress") return err("Site not found.", 404);
@@ -223,6 +239,50 @@ export async function POST(request: Request) {
     return Response.json({ publications: out.map((p) => ({ ...pubView(p), ...(errors[p.connection_id] ? { syncError: errors[p.connection_id] } : {}) })) });
   }
 
+  if (body.action === "push") {
+    const locked = await requireWriter(ws);
+    if (locked) return locked;
+    const d = await draftBrand(auth.sb, str(body.docId, 60));
+    if (d && "failed" in d) return err(missing(d.failed) ? "Run supabase/021_doc_meta.sql in Supabase first." : d.failed.message, 500);
+    if (!d) return err("Article not found.", 404);
+    const { data: sites, error: sitesErr } = await db.from("cms_connections").select("id, brand_id, kind, config, created_at").eq("workspace_id", ws).order("created_at");
+    if (noBrandCol(sitesErr)) return err(SETUP, 500);
+    const mine = (sites ?? []).filter((c) => mayPublish({ workspace_id: ws, brand_id: (c.brand_id as string | null) ?? null }, d));
+    if (!mine.length) return Response.json({ error: "Connect a publishing site for this brand first.", connect: true }, { status: 409 });
+    const meta = (d.doc.meta ?? {}) as DocPublishMeta & { published?: Published[] };
+    // The site picked, or the one this article went to last, or the brand's first.
+    const pick = mine.find((c) => c.id === str(body.connectionId, 60)) ?? mine.find((c) => meta.published?.some((p) => p.connectionId === c.id)) ?? mine[0];
+    const { data: full } = await auth.sb.from("docs").select("title, content").eq("id", d.doc.id).maybeSingle();
+    const input: PublishInput = {
+      title: String(full?.title ?? "").trim() || "Untitled",
+      html: docToHtml(full?.content),
+      slug: str(meta.slug, 120),
+      description: str(meta.description, 400),
+      image: /^https?:\/\//.test(str(meta.image, 1000)) ? str(meta.image, 1000) : "",
+      schema: str(meta.schema, 50_000),
+      live: false,
+    };
+    if (pick.kind === "wordpress") {
+      // The category and tags picked at the last Publish stay; a one-click sync never clears them.
+      const { data: pub } = await db.from("doc_publications").select("remote_status, options").eq("doc_id", d.doc.id).eq("connection_id", pick.id).maybeSingle();
+      const last = (pub?.options ?? {}) as { categoryId?: number | null; tags?: string[]; metaTitle?: string };
+      const mode: Mode = pub?.remote_status === "publish" ? "publish" : "draft";
+      return publishWordPress(db, auth.sb, ws, d.doc, pick as { id: string; config: Record<string, string> }, { ...input, live: mode === "publish" }, { mode, categoryId: last.categoryId ?? null, tags: last.tags ?? [], metaTitle: meta.metaTitle || last.metaTitle || "" });
+    }
+    const before = meta.published?.find((p) => p.connectionId === pick.id);
+    try {
+      const live = before?.live ?? false;
+      const out = await CMS_API[pick.kind as CmsKind].publish(pick.config as Record<string, string>, { ...input, html: framedModules(input.html), live }, before?.id);
+      const rec: Published = { connectionId: pick.id, kind: pick.kind as CmsKind, id: out.id, url: out.url, live, at: new Date().toISOString() };
+      await auth.sb.from("docs").update({ meta: { ...meta, published: [...(meta.published ?? []).filter((p) => p.connectionId !== pick.id), rec] } }).eq("id", d.doc.id);
+      return Response.json({ published: rec });
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      console.error("Sync failed:", message);
+      return err(`Could not sync: ${message}`, 502);
+    }
+  }
+
   if (body.action === "publish") {
     const locked = await requireWriter(ws);
     if (locked) return locked;
@@ -252,7 +312,8 @@ export async function POST(request: Request) {
     if (conn.kind === "wordpress") return publishWordPress(db, auth.sb, ws, doc, conn as { id: string; config: Record<string, string> }, input, body);
     const before = meta.published?.find((p) => p.connectionId === conn.id);
     try {
-      const out = await CMS_API[conn.kind as CmsKind].publish(conn.config as Record<string, string>, input, before?.id);
+      // Only WordPress reads the module contract; other sites get each module as a self-contained frame.
+      const out = await CMS_API[conn.kind as CmsKind].publish(conn.config as Record<string, string>, { ...input, html: framedModules(input.html) }, before?.id);
       const rec: Published = { connectionId: conn.id, kind: conn.kind as CmsKind, id: out.id, url: out.url, live: input.live, at: new Date().toISOString() };
       const next = { ...meta, title: input.title, slug: input.slug, description: input.description, image: input.image, schema: input.schema, published: [...(meta.published ?? []).filter((p) => p.connectionId !== conn.id), rec] };
       await auth.sb.from("docs").update({ meta: next }).eq("id", doc.id);
