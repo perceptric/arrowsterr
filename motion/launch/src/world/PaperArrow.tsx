@@ -1,7 +1,8 @@
 import React from 'react';
 import {Easing} from 'remotion';
 import {B, IN, INOUT, OUT, prog, useT} from '../lib';
-import {PERCH, ROW_Y, STATIONS, STATION_H, STATION_W, WIN_B, WIN_W} from '../layout';
+import {PERCH, STATIONS, STATION_H, STATION_W, WIN_B} from '../layout';
+import {itemAt} from './AnswerWindow';
 import type {Pt} from '../layout';
 import {C} from '../theme';
 import {PAGE} from './Stations';
@@ -12,20 +13,33 @@ export const FORM: Pt = {
 	y: s3.y - STATION_H / 2 + PAGE.top + PAGE.h / 2,
 };
 // The arrow lands just left of your row, so the Spark never covers your name.
-export const IMPACT: Pt = {x: WIN_B.x - WIN_W / 2 - 90, y: WIN_B.y + ROW_Y[1]};
+export const IMPACT: Pt = itemAt(WIN_B, 1, -40);
 
 type Poly = [number, number][];
 const hw = PAGE.w / 2;
 const hh = PAGE.h / 2;
 
-// A paper dart pointing right, seen from slightly above: a wide near wing, a narrow far wing
-// and a blue keel underneath. The page's halves fold into the two wings.
-const NOSE: [number, number] = [190, 0];
+// A real paper plane, nose to the right: the classic folded plane seen from slightly above.
+// Built from the familiar "send" shape (nose, top wing tip, fold point, lower wing tip), turned so it flies right.
+const ICON: Record<'nose' | 'top' | 'fold' | 'low', [number, number]> = {nose: [22, 2], top: [2, 9], fold: [11, 13], low: [15, 22]};
+const turn = ([x, y]: [number, number]): [number, number] => {
+	const a = Math.PI / 4; // the icon flies up-right at 45 degrees
+	const dx = x - 12;
+	const dy = y - 12;
+	return [(dx * Math.cos(a) - dy * Math.sin(a)) * 15, (dx * Math.sin(a) + dy * Math.cos(a)) * 15];
+};
+const NOSE = turn(ICON.nose);
+const TOP = turn(ICON.top);
+const FOLD = turn(ICON.fold);
+const LOW = turn(ICON.low);
+// The page's top half folds into the upper wing, the bottom half into the lower wing.
 const TOP_FROM: Poly = [[-hw, -hh], [hw, -hh], [hw, 0], [-hw, 0]];
-const TOP_TO: Poly = [[-150, -110], NOSE, NOSE, [-96, -6]];
+const TOP_TO: Poly = [TOP, NOSE, NOSE, FOLD];
 const BOT_FROM: Poly = [[-hw, 0], [hw, 0], [hw, hh], [-hw, hh]];
-const BOT_TO: Poly = [[-96, -6], NOSE, NOSE, [-140, 58]];
-const KEEL = `${NOSE[0]},${NOSE[1]} -96,-6 -118,44`;
+const BOT_TO: Poly = [FOLD, NOSE, NOSE, LOW];
+const lerp = (a: [number, number], b: [number, number], p: number): [number, number] => [a[0] + (b[0] - a[0]) * p, a[1] + (b[1] - a[1]) * p];
+// The keel: the folded body under the wings, in shadow.
+const KEEL = [FOLD, lerp(FOLD, LOW, 0.62), lerp(FOLD, NOSE, 0.42)].map(([x, y]) => `${x},${y}`).join(' ');
 
 const mix = (a: Poly, b: Poly, p: number) => a.map(([x, y], i) => `${x + (b[i][0] - x) * p},${y + (b[i][1] - y) * p}`).join(' ');
 
@@ -67,14 +81,23 @@ const pose = (t: number) => {
 
 const Arrow: React.FC<{t: number; opacity?: number}> = ({t, opacity = 1}) => {
 	const {at, rot, bank, scale, fold} = pose(t);
-	const keel = Math.max(0, fold * 4 - 3);
+	const flying = t > B.ship ? 1 : prog(t, B.fold + 0.6, B.fold + 0.9);
 	return (
-		<g transform={`translate(${at.x} ${at.y}) rotate(${rot}) scale(${scale} ${scale * bank})`} opacity={opacity}>
-			<polygon points={KEEL} fill={C.signal} opacity={keel} />
-			<polygon points={mix(BOT_FROM, BOT_TO, fold)} fill="#E4EBFA" stroke={C.inkStrong} strokeWidth={3} strokeLinejoin="round" />
-			<polygon points={mix(TOP_FROM, TOP_TO, fold)} fill={C.bg} stroke={C.inkStrong} strokeWidth={3} strokeLinejoin="round" />
-			{/* the centre crease */}
-			<line x1={-96 * fold - hw * (1 - fold)} y1={-6 * fold} x2={NOSE[0] * fold + hw * (1 - fold)} y2={0} stroke={C.signal} strokeWidth={4} opacity={fold} />
+		<g opacity={opacity}>
+			{/* its shadow on the map while it flies */}
+			<ellipse cx={at.x + 40} cy={at.y + 150} rx={150 * scale} ry={26 * scale} fill={C.inkStrong} opacity={0.08 * flying} />
+			<g transform={`translate(${at.x} ${at.y}) rotate(${rot}) scale(${scale} ${scale * bank})`}>
+				{/* lower wing: the shaded underside */}
+				<polygon points={mix(BOT_FROM, BOT_TO, fold)} fill={fold > 0.5 ? '#C9D6EE' : '#EEF2FA'} stroke={C.inkStrong} strokeWidth={3.5} strokeLinejoin="round" />
+				{/* the keel, folded under */}
+				<polygon points={KEEL} fill="#7F95BF" stroke={C.inkStrong} strokeWidth={3} strokeLinejoin="round" opacity={Math.max(0, fold * 3 - 2)} />
+				{/* upper wing: the lit top sheet */}
+				<polygon points={mix(TOP_FROM, TOP_TO, fold)} fill={C.bg} stroke={C.inkStrong} strokeWidth={3.5} strokeLinejoin="round" />
+				{/* the crease from the nose to the fold */}
+				<line x1={NOSE[0]} y1={NOSE[1]} x2={FOLD[0]} y2={FOLD[1]} stroke={C.signal} strokeWidth={4} strokeLinecap="round" opacity={Math.max(0, fold * 3 - 2)} />
+				{/* a lighter fold line across the top wing */}
+				<line x1={NOSE[0]} y1={NOSE[1]} x2={(TOP[0] + FOLD[0]) / 2} y2={(TOP[1] + FOLD[1]) / 2} stroke="#9AA8C0" strokeWidth={2} strokeLinecap="round" opacity={Math.max(0, fold * 3 - 2)} />
+			</g>
 		</g>
 	);
 };

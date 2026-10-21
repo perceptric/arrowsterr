@@ -44,7 +44,11 @@ export const ROUTE_END: Pt = {x: STATIONS[3].x + STATION_W / 2 + 120, y: pinOf(S
 
 // Where the paper arrow waits before it dives into slot #2.
 export const PERCH: Pt = {x: WIN_B.x - 1100, y: WIN_B.y - 300};
-export const CAL_A: Pt = {x: WIN_A.x + WIN_W / 2 + 240, y: -60};
-export const MISSED: Pt = {x: WIN_A.x + WIN_W / 2 + 240, y: 170};
-export const CAL_B: Pt = {x: WIN_B.x + WIN_W / 2 + 240, y: WIN_B.y - 120};
-export const DEAL: Pt = {x: WIN_B.x + WIN_W / 2 + 240, y: WIN_B.y + 120};
+// The tool windows beside each answer: Calendly on top, Salesforce below. Drawn at 60% of a 1080-wide screen.
+export const TOOL_SCALE = 0.6;
+export const CAL_SIZE = {w: 1080, h: 680};
+export const SF_SIZE = {w: 1080, h: 560};
+export const CAL_A: Pt = {x: WIN_A.x + WIN_W / 2 + 60 + (CAL_SIZE.w * TOOL_SCALE) / 2, y: -150};
+export const MISSED: Pt = {x: CAL_A.x, y: 262};
+export const CAL_B: Pt = {x: WIN_B.x + (CAL_A.x - WIN_A.x), y: WIN_B.y - 150};
+export const DEAL: Pt = {x: CAL_B.x, y: WIN_B.y + 262};

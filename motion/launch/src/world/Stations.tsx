@@ -3,6 +3,7 @@ import {Img, random, staticFile} from 'remotion';
 import {B, hit, INOUT, mixColor, prog, typed, useT} from '../lib';
 import {STATIONS, STATION_H, STATION_W} from '../layout';
 import {C, display, mono} from '../theme';
+import {GoogleWord} from './Platforms';
 import {At, BRAND_COLOR, Card, ChevronUp, Climb, Cursor, LogoTile, Num, slamStyle, Tag} from './ui';
 
 const NOTCH = 28;
@@ -436,9 +437,9 @@ export const Find: React.FC = () => {
 const DRAFT_TITLE = 'The best reservation software for small restaurants';
 const VOICE = ['Friendly', 'Expert', 'Clear', 'No jargon'];
 const SERP = [
-	{t: 'The 9 best reservation apps', d: 'northwind.com'},
-	{t: 'Reservation software guide', d: 'acme.com'},
-	{t: 'How to pick booking software', d: 'globex.com'},
+	{t: 'The 9 Best Reservation Apps (2026)', d: 'northwind.io', b: 'Northwind'},
+	{t: 'Reservation Software: A Buyer\'s Guide', d: 'acme.com', b: 'Acme'},
+	{t: 'How to Pick Booking Software', d: 'globex.com', b: 'Globex'},
 ];
 
 export const Write: React.FC = () => {
@@ -468,22 +469,26 @@ export const Write: React.FC = () => {
 			</div>
 			{/* top of Google */}
 			<div style={{position: 'absolute', left: 44, top: 330, width: 400, height: 250, opacity: prog(t, t2 + 0.2, t2 + 0.5)}}>
-				<Card style={{padding: 20, display: 'flex', flexDirection: 'column', gap: 10, borderColor: C.lineStrong}}>
-					<div style={{display: 'flex', alignItems: 'center', gap: 10}}>
-						<Img src={staticFile('engines/google.png')} style={{width: 24, height: 24}} />
-						<span style={{fontSize: 22, fontWeight: 700, color: C.inkStrong}}>Top on Google</span>
-					</div>
-					{SERP.map((r, i) => (
-						<div key={r.t} style={{display: 'flex', alignItems: 'center', gap: 10, opacity: prog(t, t2 + 0.4 + i * 0.12, t2 + 0.6 + i * 0.12)}}>
-							<Num size={17} color={C.ink2}>
-								#{i + 1}
-							</Num>
-							<div style={{display: 'flex', flexDirection: 'column'}}>
-								<span style={{fontSize: 17, fontWeight: 700, color: C.inkStrong}}>{r.t}</span>
-								<span style={{fontSize: 14, color: C.ink3}}>{r.d}</span>
-							</div>
+				<Card style={{borderColor: C.lineStrong, display: 'flex', flexDirection: 'column'}}>
+					<div style={{display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px 10px', borderBottom: '1px solid #EBEBEB'}}>
+						<GoogleWord size={22} />
+						<div style={{flex: 1, height: 30, borderRadius: 15, border: '1px solid #DFE1E5', boxShadow: '0 1px 4px rgba(32,33,36,0.16)', display: 'flex', alignItems: 'center', padding: '0 12px', fontSize: 13, color: '#202124', whiteSpace: 'nowrap', overflow: 'hidden'}}>
+							best reservation software
 						</div>
-					))}
+					</div>
+					<div style={{padding: '8px 16px', display: 'flex', flexDirection: 'column', gap: 9}}>
+						{SERP.map((r, i) => (
+							<div key={r.t} style={{display: 'flex', flexDirection: 'column', gap: 2, opacity: prog(t, t2 + 0.4 + i * 0.12, t2 + 0.6 + i * 0.12)}}>
+								<span style={{display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#4D5156'}}>
+									<span style={{width: 18, height: 18, borderRadius: 99, background: '#F1F3F4', display: 'inline-flex', alignItems: 'center', justifyContent: 'center'}}>
+										<LogoTile name={r.b} size={12} />
+									</span>
+									{r.d}
+								</span>
+								<span style={{fontSize: 17, color: '#1A0DAB', lineHeight: 1.2}}>{r.t}</span>
+							</div>
+						))}
+					</div>
 				</Card>
 			</div>
 			{/* both stream into the draft */}
@@ -548,27 +553,82 @@ const Block: React.FC<{at: number; h: number; children: React.ReactNode}> = ({at
 
 type Style = {accent: string; tint: string; ink: string; r: number};
 
-// A product screenshot: a small window with a rising chart.
-const MiniShot: React.FC<{s: Style}> = ({s}) => (
-	<div style={{height: '100%', borderRadius: s.r, border: `2px solid ${C.line}`, background: C.bg2, overflow: 'hidden', display: 'flex', flexDirection: 'column'}}>
-		<div style={{height: 22, background: C.bg, borderBottom: `1px solid ${C.line}`, display: 'flex', alignItems: 'center', gap: 6, padding: '0 10px'}}>
-			<LogoTile name="Your Brand" size={14} />
-			<div style={{height: 6, width: 70, borderRadius: 2, background: C.bg4}} />
-		</div>
-		<div style={{flex: 1, display: 'flex', gap: 12, padding: '8px 12px'}}>
-			<div style={{width: 110, display: 'flex', flexDirection: 'column', gap: 6, justifyContent: 'center'}}>
-				<div style={{height: 6, width: '60%', borderRadius: 2, background: C.bg4}} />
-				<Num size={26} color={s.ink}>
-					+38%
-				</Num>
+// A product screenshot: your app's reservations dashboard, in whatever style the article has.
+const BOOKINGS = [22, 38, 64, 92, 78, 54, 30];
+const MiniShot: React.FC<{s: Style; at: number}> = ({s, at}) => {
+	const t = useT();
+	const g = (i: number) => prog(t, at + 0.15 + i * 0.04, at + 0.5 + i * 0.04);
+	return (
+		<div style={{height: '100%', borderRadius: s.r, border: `2px solid ${C.lineStrong}`, background: '#fff', overflow: 'hidden', display: 'flex', flexDirection: 'column'}}>
+			<div style={{height: 20, background: '#F1F3F5', borderBottom: '1px solid #DEE2E6', display: 'flex', alignItems: 'center', gap: 4, padding: '0 8px', flexShrink: 0}}>
+				{['#FF5F57', '#FEBC2E', '#28C840'].map((c) => (
+					<span key={c} style={{width: 7, height: 7, borderRadius: 99, background: c}} />
+				))}
+				<span style={{marginLeft: 8, height: 12, padding: '0 8px', borderRadius: 3, background: '#fff', fontSize: 9, color: '#868E96', display: 'inline-flex', alignItems: 'center'}}>app.yourbrand.com/tonight</span>
 			</div>
-			<svg viewBox="0 0 200 60" preserveAspectRatio="none" style={{flex: 1, height: '100%'}}>
-				<polygon points="0,58 40,54 80,46 120,32 160,18 200,6 200,60 0,60" fill={s.accent} opacity={0.12} />
-				<polyline points="0,58 40,54 80,46 120,32 160,18 200,6" fill="none" stroke={s.accent} strokeWidth={3} vectorEffect="non-scaling-stroke" />
-			</svg>
+			<div style={{flex: 1, display: 'flex'}}>
+				<div style={{width: 96, background: s.ink, padding: 8, display: 'flex', flexDirection: 'column', gap: 5}}>
+					<span style={{display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3}}>
+						<LogoTile name="Your Brand" size={16} />
+						<span style={{fontSize: 10, fontWeight: 700, color: '#fff'}}>Your Brand</span>
+					</span>
+					{['Tonight', 'Floor plan', 'Waitlist', 'Guests', 'Reports'].map((x, i) => (
+						<span key={x} style={{display: 'flex', alignItems: 'center', gap: 5, padding: '3px 5px', borderRadius: Math.min(s.r, 6), background: i === 0 ? s.accent : 'transparent', fontSize: 9.5, fontWeight: 600, color: i === 0 ? '#fff' : 'rgba(255,255,255,0.6)'}}>
+							<span style={{width: 7, height: 7, borderRadius: 2, background: i === 0 ? '#fff' : 'rgba(255,255,255,0.35)'}} />
+							{x}
+						</span>
+					))}
+				</div>
+				<div style={{flex: 1, padding: '7px 10px', display: 'flex', flexDirection: 'column', gap: 6, background: '#F8F9FA'}}>
+					<div style={{display: 'flex', alignItems: 'center', gap: 6}}>
+						<span style={{fontSize: 12.5, fontWeight: 800, color: '#212529', flex: 1}}>Tonight · Friday</span>
+						<span style={{fontSize: 9, fontWeight: 700, color: '#fff', padding: '2px 7px', borderRadius: Math.min(s.r, 8), background: s.accent}}>+ Booking</span>
+					</div>
+					<div style={{display: 'flex', gap: 6}}>
+						{[
+							['Covers', '184', '+22%'],
+							['No-shows', '3%', '-40%'],
+							['Waitlist', '12', ''],
+						].map(([l, v, d], i) => (
+							<div key={l} style={{flex: 1, background: '#fff', border: '1px solid #E9ECEF', borderRadius: Math.min(s.r, 6), padding: '3px 6px', opacity: g(i), translate: `0 ${(1 - g(i)) * 6}px`}}>
+								<div style={{fontSize: 8.5, color: '#868E96', fontWeight: 600}}>{l}</div>
+								<div style={{display: 'flex', alignItems: 'baseline', gap: 4}}>
+									<span style={{fontSize: 13, fontWeight: 800, color: '#212529', fontVariantNumeric: 'tabular-nums'}}>{v}</span>
+									{d ? <span style={{fontSize: 8.5, fontWeight: 700, color: '#2B8A3E'}}>{d}</span> : null}
+								</div>
+							</div>
+						))}
+					</div>
+					<div style={{flex: 1, display: 'flex', gap: 6}}>
+						<div style={{flex: 1.5, background: '#fff', border: '1px solid #E9ECEF', borderRadius: Math.min(s.r, 6), padding: '3px 6px', display: 'flex', flexDirection: 'column'}}>
+							<span style={{fontSize: 8.5, color: '#868E96', fontWeight: 600}}>Bookings by hour</span>
+							<div style={{flex: 1, display: 'flex', alignItems: 'flex-end', gap: 3, paddingTop: 2}}>
+								{BOOKINGS.map((v, i) => (
+									<span key={i} style={{flex: 1, height: `${v * g(3 + i)}%`, borderRadius: '2px 2px 0 0', background: i === 3 ? s.accent : s.tint}} />
+								))}
+							</div>
+						</div>
+						<div style={{flex: 1, background: '#fff', border: '1px solid #E9ECEF', borderRadius: Math.min(s.r, 6), padding: '3px 6px', display: 'flex', flexDirection: 'column', gap: 2}}>
+							<span style={{fontSize: 8.5, color: '#868E96', fontWeight: 600}}>Next up</span>
+							{[
+								['7:30', 'Chen', '2'],
+								['7:45', 'Ruiz', '4'],
+								['8:00', 'Patel', '6'],
+							].map(([h, n, c], i) => (
+								<span key={h} style={{display: 'flex', alignItems: 'center', gap: 4, fontSize: 8.5, color: '#495057', fontWeight: 600, opacity: g(10 + i)}}>
+									<span style={{width: 5, height: 5, borderRadius: 99, background: i === 0 ? s.accent : '#ADB5BD'}} />
+									<span style={{fontVariantNumeric: 'tabular-nums'}}>{h}</span>
+									<span style={{flex: 1}}>{n}</span>
+									<span>{c}</span>
+								</span>
+							))}
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
-	</div>
-);
+	);
+};
 
 const MiniTable: React.FC<{s: Style}> = ({s}) => (
 	<div style={{height: '100%', borderRadius: s.r, border: `2px solid ${C.line}`, overflow: 'hidden', fontSize: 15}}>
@@ -686,13 +746,13 @@ export const Create: React.FC = () => {
 			>
 				<div style={{fontFamily: display, fontSize: 26, fontWeight: 800, color: s.ink, lineHeight: 1.15}}>{DRAFT_TITLE}</div>
 				<div style={{height: 10, width: '86%', borderRadius: 2, background: C.bg4, marginTop: 12}} />
-				<Block at={b0} h={104}>
-					<MiniShot s={s} />
+				<Block at={b0} h={142}>
+					<MiniShot s={s} at={b0} />
 				</Block>
-				<Block at={b1} h={96}>
+				<Block at={b1} h={76}>
 					<MiniTable s={s} />
 				</Block>
-				<Block at={b2} h={112}>
+				<Block at={b2} h={100}>
 					<MiniDemo at={b2} s={s} />
 				</Block>
 				{/* the restyle sweeps across the page */}
