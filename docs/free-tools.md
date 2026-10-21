@@ -127,6 +127,45 @@ Seven more tools. Four are research tools that lead into the paid research scree
 
 **Code:** `FreeTool` in `freeLimits.ts` gets `traffic`, `backlinks`, `rank`, `gap`, `schema`, `meta` and `robots`. Each gets a case in `/api/free/[tool]` and a runner in `freeRunners.ts`. The schema template code and the robots parser run in the browser, so those two pages work even when the API is down.
 
+### Limits for the third set
+
+They go through the same `freeRun()` guard and `freeBlock()` rules as every other tool: saved results are free, then the per-visitor limits, then the tool's daily cap, then `FREE_SPEND_DAY` for paid tools. The 40 runs a visitor gets a day across all tools stays the same.
+
+| Tool | Per visitor a day | All visitors a day | Saved for | Paid | Most it shows |
+|---|---|---|---|---|---|
+| 13 Website Traffic Checker | 5 | 300 | 30 days | Yes | Top 5 pages |
+| 14 Backlink Checker | 3 | 150 | 7 days | Yes | Top 20 backlinks, one per site |
+| 15 Keyword Rank Checker | 5 | 200 | 1 day | Yes | One keyword, top 100 on Google |
+| 16 Keyword Gap Tool | 5 | 200 | 7 days | Yes | Top 20 keywords |
+| 17 Schema Markup Generator | 10 fills | 1,000 fills | 30 days | Yes | One page read for "Fill from my page" |
+| 18 Meta Title and Description Generator | 10 | 500 | 7 days | Yes | 5 titles, 5 descriptions |
+| 19 Robots.txt Tester | 20 fetches | 2,000 fetches | 1 day | No | One robots.txt, 500 KB |
+
+**What counts as a run:**
+- **Schema Markup Generator:** only "Fill from my page" counts. Building schema from typed fields runs in the browser and has no limit.
+- **Robots.txt Tester:** only fetching a site's robots.txt counts. Pasted text and every re-test after an edit run in the browser and have no limit.
+- **Keyword Rank Checker:** one domain and one keyword is one run. A keyword someone else checked that day comes back from the saved result and counts toward no limit, even for a new domain.
+- **Keyword Gap Tool:** one pair of domains is one run. Swapping the two domains is a new run.
+
+**Input limits, checked before a run counts:**
+- Domains go through `cleanDomain()`. The gap tool refuses the same domain twice.
+- Keywords go through `cleanKeyword()`: 2 to 80 characters.
+- Topics for the meta generator: 2 to 120 characters. Pasted robots.txt: 500 KB at most.
+
+**Code:** each tool gets a line in `FREE_TOOLS` in `freeLimits.ts`:
+
+```ts
+traffic: { perTool: 5, cap: 300, saveDays: 30, paid: true },
+backlinks: { perTool: 3, cap: 150, saveDays: 7, paid: true },
+rank: { perTool: 5, cap: 200, saveDays: 1, paid: true },
+gap: { perTool: 5, cap: 200, saveDays: 7, paid: true },
+schema: { perTool: 10, cap: 1000, saveDays: 30, paid: true },
+meta: { perTool: 10, cap: 500, saveDays: 7, paid: true },
+robots: { perTool: 20, cap: 2000, saveDays: 1, paid: false },
+```
+
+`FREE_PER_TOOL` sets the per-visitor limit for every paid tool at once, so today it would set the Backlink Checker to 5 as well. Add `FREE_PER_TOOL_<TOOL>` and read it first, so one tool can be changed alone. Tests in `freeLimits.test.ts` cover the new lines: the Backlink Checker blocks the fourth run, the Robots.txt Tester keeps working after `FREE_SPEND_DAY` trips, and `FREE_PER_TOOL_BACKLINKS` wins over `FREE_PER_TOOL`.
+
 **Reliability:** the rank checker's result decides whether someone signs up, so a wrong spot costs more than no spot. Tests in `tests/` cover: a domain with www and without matching the same result, a subdomain that ranks counted only when the domain was entered, AI Mode citing a page with tracking codes, and a SERP call that fails once and then works. Robots tests use Google's own robots.txt test cases.
 
 ## Content under every tool
