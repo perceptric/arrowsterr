@@ -1,5 +1,6 @@
 "use client";
 
+import { identify, inWorkspace, resetAnalytics } from "@/lib/analytics";
 import { Dropdown } from "./Pickers";
 import { withoutResearch } from "@/lib/researchUrl";
 import { recordUndo } from "@/lib/undo";
@@ -377,6 +378,14 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
   }, [loadWorkspaces]);
 
   const ws = workspaces?.find((w) => w.id === wsId) ?? workspaces?.[0];
+  // Product analytics (docs/analytics.md): the person, then the workspace they're in and its plan.
+  useEffect(() => {
+    const meta = (session.user.user_metadata ?? {}) as { full_name?: string; name?: string };
+    identify(userId, { email, name: meta.full_name || meta.name || undefined });
+  }, [userId, email, session.user.user_metadata]);
+  useEffect(() => {
+    if (ws) inWorkspace(ws.id, { name: ws.name, plan: plan?.plan });
+  }, [ws, plan?.plan]);
   const needsRoom = Boolean(ws && (adding || brands?.length === 0));
   useEffect(() => {
     if (!ws || !needsRoom) return;
@@ -1190,6 +1199,7 @@ function Sidebar({
               type="button"
               onClick={() => {
                 clearStash();
+                resetAnalytics();
                 sb.auth.signOut();
               }}
               className="flex h-8 w-full items-center rounded-aw px-2 text-left text-[13px] text-body hover:bg-surface-2"

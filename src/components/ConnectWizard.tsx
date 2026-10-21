@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@/lib/analytics";
 import { useEffect, useState } from "react";
 import { CMS_GUIDE } from "@/lib/cmsGuide";
 import { CMS, type CmsConnection, type CmsKind } from "@/lib/cmsTypes";
@@ -71,6 +72,7 @@ export function ConnectWizard({
       const { name, ...config } = given ?? form;
       const r = await call<{ connection: CmsConnection; check: string }>(auth, { action: "connect", kind: spec.id, name: name?.trim() || spec.label, config, brandId });
       setDone({ c: r.connection, check: r.check });
+      track("cms_connected", { kind: spec.id, one_click: Boolean(given) });
       onConnected(r.connection);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));

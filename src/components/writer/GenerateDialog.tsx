@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@/lib/analytics";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { notesFor, partOfPair, plannedModule, type Pair } from "@/lib/articleGrid";
@@ -101,6 +102,7 @@ export function GenerateDialog({
           module: r.module || null,
         });
         await onSection(r.pair, out.nodes);
+        track("section_generated", { module: r.module || "none", module_failed: Boolean(out.moduleError), all: only === null });
         setState((x) => ({ ...x, [r.pair]: out.moduleError ? { s: "done", note: out.moduleError } : { s: "done" } }));
       } catch (e) {
         setState((x) => ({ ...x, [r.pair]: { s: "failed", note: e instanceof Error ? e.message : String(e) } }));

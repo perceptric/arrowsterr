@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@/lib/analytics";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { contentPairs, docToText, letter, notesFor, pairCount, partNodes, partOfPair, replacePart, type CellSummary, type Pair } from "@/lib/articleGrid";
@@ -124,6 +125,7 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
     try {
       const out = await post<{ results: { itemId: string; ok: boolean; error?: string }[] }>(auth, "/api/agentic-writer/grid", { action: "generate", itemIds: ids });
       const failed = out.results.filter((x) => !x.ok);
+      track("brief_generated", { rows: ids.length, failed: failed.length });
       if (failed.length) setError(failed.map((f) => `${rowOf(f.itemId)?.topic.keyword ?? "A row"}: ${f.error}`).join(" "));
       setSelected(new Set());
       await load();
@@ -141,6 +143,7 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
     try {
       const out = await post<{ published: { url: string | null } }>(auth, "/api/cms", { action: "push", docId: r.doc.id });
       setSynced((x) => ({ ...x, [r.topic.id]: { s: "done", url: out.published.url } }));
+      track("article_synced", { from: "grid" });
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
       setSynced((x) => {
@@ -162,6 +165,7 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
     if (r.doc) return r.doc;
     if (!r.plan) throw new Error("Generate the brief first.");
     const doc = await startDoc(sb, { workspaceId: auth.workspaceId, siteId: site.id, itemId, plan: r.plan });
+    track("writing_started", { sections: r.plan.outline.length });
     patchRow(itemId, (x) => ({ ...x, doc }));
     if (["idea", "planned", "brief"].includes(statusChoice(r.topic))) await setStatus(r, "writing");
     return doc;

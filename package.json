@@ -33,6 +33,7 @@
     "linkedom": "^0.18.13",
     "next": "16.4.0",
     "openai": "^7.30.0",
+    "posthog-js": "^1.438.13",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "server-only": "^0.0.1",

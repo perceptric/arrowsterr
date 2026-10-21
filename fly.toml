@@ -6,9 +6,10 @@ primary_region = "nrt" # Tokyo, the closest Fly region to the Supabase database 
 [build]
   dockerfile = "Dockerfile"
 
-# Read at build time, so it goes here instead of in the secrets. A Sentry DSN is safe to share. Empty means off.
+# Read at build time, so they go here instead of in the secrets. A Sentry DSN and a PostHog project key are safe to share. Empty means off.
 [build.args]
   NEXT_PUBLIC_SENTRY_DSN = ""
+  NEXT_PUBLIC_POSTHOG_KEY = "phc_B5Mvvh7LpGTsBREGKmq69ZDWqsagDLYp3WyKZPE9r4q3"
 
 [http_service]
   internal_port = 3000

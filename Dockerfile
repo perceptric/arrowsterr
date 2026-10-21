@@ -10,6 +10,8 @@ COPY . .
 # The build needs no Sentry auth token: next.config.ts doesn't upload source maps.
 ARG NEXT_PUBLIC_SENTRY_DSN=""
 ENV NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN
+ARG NEXT_PUBLIC_POSTHOG_KEY=""
+ENV NEXT_PUBLIC_POSTHOG_KEY=$NEXT_PUBLIC_POSTHOG_KEY
 RUN npm run build
 
 FROM node:22-bookworm-slim

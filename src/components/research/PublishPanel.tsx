@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@/lib/analytics";
 import { DateField, Dropdown } from "../Pickers";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -182,6 +183,7 @@ export function PublishPanel({ sb, auth, docId, brandId, title, html, onClose }:
       });
       setDone(r.published);
       setWarnings(r.warnings ?? []);
+      track("article_published", { mode, kind: conns?.find((c) => c.id === to)?.kind ?? "" });
       const p = r.publication;
       if (p) setPubs((l) => [...l.filter((x) => x.connectionId !== to), p]);
       setMeta((m) => ({ ...(m ?? {}), published: [...(m?.published ?? []).filter((x) => x.connectionId !== to), r.published] }));
