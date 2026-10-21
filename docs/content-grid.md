@@ -15,7 +15,7 @@ A Keyword · B Status · C Meta title · D Meta description · E Slug · F H1 ·
 
 ## Sections
 
-- Click a cell to open it in the side panel: the full editor, with upload, AI image and HTML block buttons.
+- Click a cell to open it in the side panel: the full editor, with image upload, interactive module and HTML block buttons.
 - Drag a section cell along its row to move that section in the article. Its whole slice moves, images and all.
 - **+ Section** at the end of a row, or **Add section after** in the panel, adds one. **Delete** in the panel takes one out.
 - An H2 typed inside a cell starts a new section. A section saved without its H2 keeps its old one.
@@ -36,8 +36,32 @@ Saving a cell by hand locks it (`docs.meta.locked`, by "intro" or the section's 
 ## One cell at a time
 
 - **Write again** in the panel writes that cell again from the brief and the research, with a note. It knows the text that's there. A section the person added gets a plan from its H2. Costs 15 tasks, like the other writer agents.
-- **AI image** makes an image from a short description in the brand's colors with Gemini's image model (`IMAGE_MODEL`, default `gemini-2.5-flash-image`), saved to the `doc-images` bucket. Costs 15 tasks.
+- **Interactive module** opens the picker (below) and builds the kind you pick into the cell. Costs 25 tasks, like the other interactive elements.
 - **HTML block** puts pasted HTML in a sandboxed frame in the editor. It goes out as written.
+
+## Interactive modules
+
+Embeds that make an article fun to use: built as one self-contained HTML block (inline CSS and JS, no outside files, no network), in the brand's colors, checked by `validateModule` and run in a sandboxed frame in the editor. The catalog is `src/lib/moduleCatalog.ts`: each kind has when it helps, how to build it, the words that call for it and a small picture.
+
+| Kind | When it helps |
+|---|---|
+| Data table | Metrics, features, prices or specs side by side. Sortable, zebra rows, header in the brand color. |
+| Step flow | A process or playbook in order, with a green finish step. Click to mark progress. |
+| Layered pyramid | Layers or levels. A 3D SVG pyramid; hover a layer to see its card. |
+| Calculator | Costs, savings or ROI the reader works out with sliders. |
+| Comparison with filters | Tools or plans compared, narrowed by filter chips. |
+| Checklist | Tips or requirements with a progress bar. |
+| Quiz | Helping the reader pick the right option. |
+| Tabbed explainer | One topic by role, industry or plan. |
+| Before and after | A change shown with a draggable divider. |
+| Stat cards | Big numbers that count up, each with its source. |
+| Interactive funnel | Stages people drop out of, with editable rates. |
+| 2 by 2 matrix | Options placed on two axes, with hover cards. |
+| Self-assessment | A 1 to 5 scorecard with a grade and next steps. |
+
+- **The brief picks them.** The brief's prompt lists every kind with when it helps, and asks for 1 to 3 that fit the article, never two of the same kind. The draft builds each one with the kind's design added to the build prompt.
+- **The panel suggests them.** The picker shows three kinds that fit the open section first (`suggestKinds`: words in the H2 count three times, words in the text once), then all 13. Hover a kind for a bigger picture and when it helps. Pick one, add an optional note, and **Build**: it's built from the section's text and, when the article has one, the brief and its research. A failed check is retried once with the reason.
+- Older briefs that name `roi` or `diagram` still build.
 
 ## Columns people add
 
@@ -51,7 +75,7 @@ Open an article from its Keyword cell. The article view has Edit, HTML, Markdown
 
 ## Tests
 
-`tests/articleGrid.test.ts`: split and join give back the same doc, moving a section moves only its slice, a cell's edit goes back into its own slice, an H2 in a cell starts a new section, locked cells survive a regenerate (and a dropped locked section returns to its place), plain text, column letters, prompt references, and the plan for writing one cell again.
+`tests/moduleCatalog.test.ts`: the 13 kinds, their pictures, the brief's list, suggestions from a section's words, and the build prompt. `tests/articleGrid.test.ts`: split and join give back the same doc, moving a section moves only its slice, a cell's edit goes back into its own slice, an H2 in a cell starts a new section, locked cells survive a regenerate (and a dropped locked section returns to its place), plain text, column letters, prompt references, and the plan for writing one cell again.
 
 ## Running cost
 
@@ -61,16 +85,15 @@ Same prices as `docs/content-v2.md`: Claude Sonnet 5.5 at $2 input and $10 outpu
 |---|---|---|
 | Write again | about 5 cells, 8K tokens in and 1.5K out each | ~$0.16 |
 | AI columns | about 2 cells, 3K in and 0.5K out each | ~$0.02 |
-| AI images | about 4, at ~$0.04 each on Gemini (check) | ~$0.16 |
-| Image storage | about 1.2 MB, inside the Supabase plan | $0 (check) |
+| Interactive modules from the panel | about 2, 10K tokens in and 8K out each | ~$0.20 |
 | Servers | the routes run on the existing web service | $0 |
-| **Added** | | **~$0.34** |
+| **Added** | | **~$0.38** |
 
 At 10 articles per team a month:
 
 | Stage | Articles | Added by the grid | Writer total with `content-v2.md` |
 |---|---|---|---|
-| Beta (50 teams) | 500 | ~$170 | ~$460 |
-| Growth (500 teams) | 5,000 | ~$1,700 | ~$4,560 |
+| Beta (50 teams) | 500 | ~$190 | ~$480 |
+| Growth (500 teams) | 5,000 | ~$1,900 | ~$4,760 |
 
-Set `IMAGE_PRICE` on the server if Gemini's image price changes, so the meter stays right.
+The modules the brief plans are already in `content-v2.md`'s article cost. No new service is added.
