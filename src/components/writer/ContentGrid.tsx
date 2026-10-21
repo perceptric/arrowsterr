@@ -38,7 +38,9 @@ function jobOf(r: GridRow): { label: string; tone: string; error?: string } | nu
 }
 
 export function ContentGrid({ sb, auth, site, canEdit, onOpen }: { sb: SupabaseClient; auth: RunAuth; site: Site; canEdit: boolean; onOpen: (open: LibraryOpen) => void }) {
-  const [rows, setRows] = useStash<GridRow[] | null>(`library:${site.id}:grid`, null);
+  // A saved copy from an older grid can have another shape, so only a list counts.
+  const [saved, setRows] = useStash<GridRow[] | null>(`library:${site.id}:rows`, null);
+  const rows = Array.isArray(saved) ? saved : null;
   const [error, setError] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [edit, setEdit] = useState<{ itemId: string; key: "metaTitle" | "description" | "slug"; anchor: DOMRect } | null>(null);
@@ -62,7 +64,7 @@ export function ContentGrid({ sb, auth, site, canEdit, onOpen }: { sb: SupabaseC
       setError("");
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
-      setRows((r) => r ?? []);
+      setRows((r) => (Array.isArray(r) ? r : []));
     }
   }, [sb, site.id, setRows]);
   useEffect(() => {
@@ -77,7 +79,7 @@ export function ContentGrid({ sb, auth, site, canEdit, onOpen }: { sb: SupabaseC
   const count = pairCount(Math.max(0, ...[...pairs.values()].map((p) => p.length)), added);
 
   const rowOf = (id: string) => rowsRef.current?.find((r) => r.topic.id === id) ?? null;
-  const patchRow = (id: string, fn: (r: GridRow) => GridRow) => setRows((rs) => (rs ? rs.map((r) => (r.topic.id === id ? fn(r) : r)) : rs));
+  const patchRow = (id: string, fn: (r: GridRow) => GridRow) => setRows((rs) => (Array.isArray(rs) ? rs.map((r) => (r.topic.id === id ? fn(r) : r)) : rs));
   const run = (p: Promise<unknown>) => p.catch((e) => setError(e instanceof Error ? e.message : String(e)));
 
   function addPair() {
