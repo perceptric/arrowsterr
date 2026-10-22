@@ -352,6 +352,9 @@ html, body { background: #F8F8FF; }
 .aw .aw-dropdown--field { height: 36px; padding: 0 10px; border: 1px solid var(--aw-rule); border-radius: var(--aw-r-sm); background: #fff; font-size: 14px; color: var(--aw-ink); }
 .aw .aw-dropdown--sm { height: 30px; padding: 0 8px; border: 1px solid var(--aw-rule); border-radius: 6px; background: #fff; font-size: 12px; color: var(--aw-ink); }
 .aw .aw-dropdown:focus-visible, .aw .aw-dropdown[aria-expanded="true"] { outline: none; border-color: var(--aw-brand); box-shadow: 0 0 0 3px rgba(9,67,176,.12); }
+/* Dropdowns in the research bars: no border, and no ring when open. Keyboard focus still shows. */
+.aw .aw-dropdown--bare, .aw .aw-dropdown--bare[aria-expanded="true"] { border: 0; box-shadow: none; }
+.aw .aw-dropdown--bare:focus-visible { box-shadow: 0 0 0 2px var(--aw-brand); }
 
 /* Checkboxes in Arrowsterr's style on every computer. */
 .aw input[type="checkbox"] {

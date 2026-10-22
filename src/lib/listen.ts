@@ -1,6 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { cached, DAY } from "./cache";
+import { notBrand } from "./brandNames";
 import { askJson } from "./claude";
 import { call, dfsReady } from "./dataforseo";
 import { entitlement } from "./entitlements";
@@ -29,6 +30,8 @@ export async function rankedCompetitors(db: SupabaseClient, brandId: string): Pr
   if (error) throw new Error(error.message);
   const count = new Map<string, { name: string; n: number }>();
   for (const r of data ?? []) {
+    // Rows from before brand checks may hold a question or step from an answer's list.
+    if (notBrand(r.named)) continue;
     const k = nameKey(r.named);
     const row = count.get(k) ?? { name: r.named, n: 0 };
     row.n += Number(r.mentions) || 0;

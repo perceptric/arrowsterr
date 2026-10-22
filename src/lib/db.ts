@@ -3,6 +3,7 @@ import type { DocPublishMeta } from "./writerAgent";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Chat, Run } from "./chats";
 import { cleanSources } from "./sources";
+import { cleanMentions } from "./brandNames";
 import type { AgentResult, PlanBrief } from "./research";
 import { access, cycleEnd, effectivePlan, limitsFor, METRICS, nextPlan, periodOf as periodFor, type Extras, type Metric, type PlanId, type Track } from "./plans";
 import type { Brief, Serp } from "./briefTypes";
@@ -174,9 +175,13 @@ export async function deleteBrand(sb: SupabaseClient, id: string) {
 /** Runs from the last `days` days, oldest first. */
 export async function listRuns(sb: SupabaseClient, brandId: string, days = 180): Promise<SavedRun[]> {
   const since = new Date(Date.now() - days * 864e5).toISOString();
-  const runs = check(await sb.from("runs").select("id, at, engines, chats").eq("brand_id", brandId).gte("at", since).order("at")) as SavedRun[];
-  // Older runs saved image and asset links, redirects and tracking params as sources. Tidy them here.
-  return runs.map((r) => ({ ...r, chats: (r.chats ?? []).map((c) => ({ ...c, sources: cleanSources(c.sources ?? []) })) }));
+  const [runs, own] = await Promise.all([
+    sb.from("runs").select("id, at, engines, chats").eq("brand_id", brandId).gte("at", since).order("at").then(check) as Promise<SavedRun[]>,
+    sb.from("brands").select("name").eq("id", brandId).maybeSingle().then((r) => (r.data?.name as string | undefined) ?? ""),
+  ]);
+  // Older runs saved image and asset links, redirects and tracking params as sources, and questions or steps from an
+  // answer's lists as brands. Tidy both here.
+  return runs.map((r) => ({ ...r, chats: (r.chats ?? []).map((c) => ({ ...c, sources: cleanSources(c.sources ?? []), brands: cleanMentions(c.brands ?? [], [own]) })) }));
 }
 
 /** Saved chats drop the long answer text to keep rows small. */

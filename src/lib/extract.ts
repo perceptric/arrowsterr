@@ -1,36 +1,61 @@
 import "server-only";
 import { askClaude, parseJson } from "./claude";
-import { brandTerms, isTracked, parseRanking } from "./parse";
+import { confirmedNames, notBrand, rankedNames } from "./brandNames";
+import { brandTerms, isTracked } from "./parse";
 
 export type BrandMention = { name: string; position: number; sentiment: number; domain?: string };
 
-const SENTIMENT = (names: string[], answer: string) => `Here is an answer from an AI assistant, and the brands it recommends.
+/** What counts as a brand, the same words in both prompts. */
+const WHAT_IS_A_BRAND = `A brand is the name of a company, product, app, service, agency or organization. Questions, steps, tips, features, criteria, categories, generic phrases, headings and job titles are never brands, even when the answer numbers them or puts them in bold.`;
+
+const SENTIMENT = (names: string[], answer: string) => `Here is an answer from an AI assistant, and names taken from its list.
 
 Answer:
 """
 ${answer}
 """
 
-Brands: ${JSON.stringify(names)}
+Names: ${JSON.stringify(names)}
 
-For each brand:
+${WHAT_IS_A_BRAND}
+
+For each name, return:
+- name: exactly as given.
+- brand: true when it is a brand, false when it isn't.
 - sentiment: how positively the answer talks about it. 100 strongly recommended, 50 neutral, 0 warned against.
-- domain: the brand's main website domain, like "hubspot.com". Use "" if you are not sure.
-Return JSON only, like {"Brand A": {"sentiment": 80, "domain": "branda.com"}}, using the exact brand names given.`;
+- domain: the brand's main website domain, like "hubspot.com". Use "" if you are not sure or it isn't a brand.`;
 
-const FULL = (brand: string, answer: string) => `Read this answer from an AI assistant. List every brand, company or product it names as an option for the reader.
+const FULL = (brand: string, answer: string) => `Read this answer from an AI assistant. List every brand it names as an option for the reader.
 
 Answer:
 """
 ${answer}
 """
 
-Return JSON only: {"brands": [{"name": "Brand", "sentiment": 75, "domain": "brand.com"}]}
+${WHAT_IS_A_BRAND} If the answer names no brands, return an empty list.
+
 - Order brands by where they first appear. Use each brand's common name.
 - If "${brand}" appears under any name, use exactly "${brand}".
 - sentiment: 100 strongly recommended, 50 neutral, 0 warned against.
-- domain: the brand's main website domain. Use "" if you are not sure.
-- If no brands are named, return {"brands": []}.`;
+- domain: the brand's main website domain. Use "" if you are not sure.`;
+
+const ITEMS = (withBrand: boolean) => ({
+  type: "object",
+  properties: {
+    brands: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: { name: { type: "string" }, ...(withBrand ? { brand: { type: "boolean" } } : {}), sentiment: { type: "number" }, domain: { type: "string" } },
+        required: ["name", ...(withBrand ? ["brand"] : []), "sentiment", "domain"],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: ["brands"],
+  additionalProperties: false,
+});
+type Item = { name?: unknown; brand?: unknown; sentiment?: unknown; domain?: unknown };
 
 // Haiku 5.5 at low effort: about 10x cheaper than Haiku 4.5 for this simple read.
 const haiku = () => process.env.EXTRACT_MODEL || "claude-haiku-5-5";
@@ -46,40 +71,46 @@ function clamp(n: unknown) {
 }
 
 /**
- * Brands named in an answer, with position and sentiment.
- * Names and positions come from the ranked list in the shared layout. Claude Haiku only scores sentiment.
- * If an engine ignored the layout, Haiku reads the whole answer instead.
+ * Brands named in an answer, with position and sentiment. Never a question, step or heading (brandNames.ts).
+ * When the answer uses the shared layout (a "Recommendations" list), names come from that list and Claude Haiku confirms
+ * each is a brand while it scores sentiment. Otherwise (the ChatGPT app, AI Overviews and AI Mode answer in their own
+ * words) Haiku reads the whole answer. The tracked brand always counts and shows under its own name.
  */
 export async function extractBrands(brand: string, domain: string, answer: string): Promise<BrandMention[]> {
   if (!answer.trim()) return [];
   const terms = brandTerms(brand, domain);
   const text = answer.slice(0, 15000);
-  let names = parseRanking(text);
+  const ok = (n: string) => isTracked(n, terms) || !notBrand(n);
+  const names = rankedNames(text, brand, terms);
 
   if (!names.length) {
-    const { text: reply } = await askClaude(FULL(brand, text), { model: haiku(), maxTokens: 4000, effort: "low" });
-    const list = parseJson(reply).brands;
-    names = Array.isArray(list) ? list.map((b) => String(b?.name ?? "").trim()).filter(Boolean) : [];
-    const info = Object.fromEntries((Array.isArray(list) ? list : []).map((b) => [String(b?.name ?? "").trim(), b]));
-    return dedupe(names).map((n, i) => {
-      const own = isTracked(n, terms);
-      return { name: own ? brand : n, position: i + 1, sentiment: clamp(info[n]?.sentiment), domain: own ? domain : cleanDomain(info[n]?.domain) };
+    const { text: reply } = await askClaude(FULL(brand, text), { model: haiku(), maxTokens: 4000, effort: "low", schema: ITEMS(false) });
+    const list = (parseJson(reply).brands ?? []) as Item[];
+    const info = new Map<string, Item>();
+    for (const b of Array.isArray(list) ? list : []) {
+      const n = String(b?.name ?? "").trim();
+      if (n && !info.has(n.toLowerCase())) info.set(n.toLowerCase(), b);
+    }
+    // The tracked brand's other spellings ("acme.com", "Acme Inc") count once, under its own name.
+    const raw = [...info.values()].map((b) => String(b.name).trim());
+    const ownInfo = info.get(raw.find((n) => isTracked(n, terms))?.toLowerCase() ?? "");
+    return dedupe(raw.filter(ok).map((n) => (isTracked(n, terms) ? brand : n))).map((n, i) => {
+      const b = n === brand ? ownInfo : info.get(n.toLowerCase());
+      return { name: n, position: i + 1, sentiment: clamp(b?.sentiment), domain: n === brand ? domain : cleanDomain(b?.domain) };
     });
   }
 
-  // The tracked brand always shows under its own name, so the dashboard can find it.
-  names = dedupe(names.map((n) => (isTracked(n, terms) ? brand : n)));
-  let scores: Record<string, unknown> = {};
+  const scores = new Map<string, Item>();
   try {
-    const { text: reply } = await askClaude(SENTIMENT(names, text), { model: haiku(), maxTokens: 3000, effort: "low" });
-    scores = parseJson(reply);
+    const { text: reply } = await askClaude(SENTIMENT(names, text), { model: haiku(), maxTokens: 3000, effort: "low", schema: ITEMS(true) });
+    for (const b of ((parseJson(reply).brands ?? []) as Item[])) if (b && typeof b.name === "string") scores.set(b.name.trim().toLowerCase(), b);
   } catch (e) {
-    console.error("Sentiment failed, using 50:", e instanceof Error ? e.message : e);
+    // Without Haiku's check, the rules in brandNames.ts still keep questions and steps out.
+    console.error("Brand check and sentiment failed, using 50:", e instanceof Error ? e.message : e);
   }
-  return names.map((name, i) => {
-    const v = scores[name] as { sentiment?: unknown; domain?: unknown } | number | undefined;
-    const info = typeof v === "object" && v ? v : { sentiment: v };
-    return { name, position: i + 1, sentiment: clamp(info.sentiment), domain: name === brand ? domain : cleanDomain(info.domain) };
+  return confirmedNames(names, scores, brand).map((name, i) => {
+    const info = scores.get(name.toLowerCase());
+    return { name, position: i + 1, sentiment: clamp(info?.sentiment), domain: name === brand ? domain : cleanDomain(info?.domain) };
   });
 }
 
