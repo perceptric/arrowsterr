@@ -3,6 +3,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { runAgent } from "../agent";
 import { readAnswer } from "../answer";
 import { runBrief } from "../brief";
+import { BRAND_CHECK_VERSION, cleanMentions, notBrand } from "../brandNames";
+import { askJson } from "../claude";
 import type { Chat } from "../chats";
 import { getTask, postTasks, type DfsAnswer, type DfsEngine } from "../dataforseo";
 import { answerRows, saveAnswers, type Profile } from "../db";
@@ -83,6 +85,11 @@ export async function schedule(db: SupabaseClient, job: Job) {
         })),
       ),
     );
+  }
+  // Brands whose saved answers predate the current brand check get one cleanup. Before the migration this does nothing.
+  const { data: unchecked } = await db.from("brands").select("id, workspace_id").lt("brands_checked", BRAND_CHECK_VERSION).limit(50);
+  if (unchecked?.length) {
+    await enqueueMany(unchecked.map((b) => ({ kind: "clean_brands" as const, workspace_id: b.workspace_id, key: `clean_brands:${BRAND_CHECK_VERSION}:${b.id}`, payload: { brandId: b.id } })));
   }
   // Social listening starts in the same time slot. It never throws, so it can't hold up the checks above.
   await listenDaily(db, (id) => slotOf(id) <= minute);
@@ -178,7 +185,7 @@ export async function rollup(db: SupabaseClient, job: Job) {
   for (const c of (run.chats ?? []) as Chat[]) {
     if (c.error || !(c.answered ?? Boolean(c.text))) continue;
     row(c.engine, "").answers++;
-    for (const b of c.brands) {
+    for (const b of cleanMentions(c.brands, [brand?.name ?? ""])) {
       const r = row(c.engine, b.name);
       r.mentions++;
       r.position_sum += b.position;
@@ -275,3 +282,83 @@ export const writer_draft = writerDraftJob;
 // ─────────────── wp_publish: publish a scheduled article on its date (wpSync.ts) ───────────────
 // Idempotent: it updates the article's one post, never makes a second.
 export const wp_publish = wpPublishJob;
+
+// ─────────────── clean_brands: take questions and steps out of a brand's saved answers ───────────────
+
+const CHECK_MODEL = () => process.env.EXTRACT_MODEL || "claude-haiku-5-5";
+const CHECK_SCHEMA = {
+  type: "object",
+  properties: { items: { type: "array", items: { type: "object", properties: { name: { type: "string" }, brand: { type: "boolean" } }, required: ["name", "brand"], additionalProperties: false } } },
+  required: ["items"],
+  additionalProperties: false,
+};
+
+/**
+ * Every name a brand's saved answers count as a brand is checked once: by the rules in brandNames.ts, then by Claude
+ * Haiku in batches. Names that aren't brands leave the saved runs (the rest move up a place) and the daily numbers.
+ */
+export async function clean_brands(db: SupabaseClient, job: Job) {
+  const { brandId } = job.payload as { brandId: string };
+  const { data: brand } = await db.from("brands").select("name, prompts").eq("id", brandId).maybeSingle();
+  if (!brand) return finish(job.id);
+  const own = String(brand.name ?? "");
+  const PAGE = 100;
+
+  // 1. Every name in the saved answers, once.
+  const names = new Map<string, string>();
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await db.from("runs").select("chats").eq("brand_id", brandId).order("at").range(from, from + PAGE - 1);
+    if (error) throw new Error(error.message);
+    for (const r of data ?? []) for (const c of (r.chats ?? []) as Chat[]) for (const b of c.brands ?? []) if (b.name && b.name.toLowerCase() !== own.toLowerCase()) names.set(b.name.toLowerCase(), b.name);
+    if (!data || data.length < PAGE) break;
+  }
+
+  // 2. The rules first, then Claude for the names they let through.
+  const drop = new Set([...names.entries()].filter(([, n]) => notBrand(n)).map(([k]) => k));
+  const ask = [...names.entries()].filter(([k]) => !drop.has(k)).map(([, n]) => n);
+  const topic = ((brand.prompts as string[] | null) ?? []).slice(0, 5).join(" | ");
+  for (let i = 0; i < ask.length; i += 150) {
+    const batch = ask.slice(i, i + 150);
+    const res = await askJson<{ items?: { name: string; brand: boolean }[] }>(
+      `These names were taken from AI answers to questions like: ${topic || "(not given)"}.\n\nA brand is the name of a company, product, app, service, agency or organization. Questions, steps, tips, features, criteria, categories, generic phrases, headings and job titles are never brands.\n\nFor each name, say whether it is a brand. Return every name exactly as given.\n\n${JSON.stringify(batch)}`,
+      CHECK_SCHEMA,
+      { model: CHECK_MODEL(), maxTokens: 8000, effort: "low" },
+    );
+    for (const it of res.items ?? []) if (it && it.brand === false && typeof it.name === "string") drop.add(it.name.trim().toLowerCase());
+  }
+
+  // 3. Rewrite the runs that held one, and remove those names from the daily numbers.
+  if (drop.size) {
+    for (let from = 0; ; from += PAGE) {
+      const { data, error } = await db.from("runs").select("id, status, chats").eq("brand_id", brandId).order("at").range(from, from + PAGE - 1);
+      if (error) throw new Error(error.message);
+      for (const r of data ?? []) {
+        // A run still taking answers is left alone, so a chat added meanwhile is never written over. Its new chats are
+        // already checked, and the older ones are tidied wherever runs are read.
+        if (r.status === "running") continue;
+        const chats = (r.chats ?? []) as Chat[];
+        let changed = false;
+        const next = chats.map((c) => {
+          const kept = cleanMentions((c.brands ?? []).filter((b) => b.name.toLowerCase() === own.toLowerCase() || !drop.has(b.name.toLowerCase())), [own]);
+          if (kept.length === (c.brands ?? []).length) return c;
+          changed = true;
+          const quote = c.quote && drop.has(c.quote.brand.toLowerCase()) ? null : c.quote;
+          return { ...c, brands: kept, quote };
+        });
+        if (changed) {
+          const { error: e } = await db.from("runs").update({ chats: next }).eq("id", r.id);
+          if (e) throw new Error(e.message);
+        }
+      }
+      if (!data || data.length < PAGE) break;
+    }
+    const gone = [...drop].map((k) => names.get(k)).filter((n): n is string => Boolean(n));
+    for (let i = 0; i < gone.length; i += 200) {
+      const { error } = await db.from("daily_metrics").delete().eq("brand_id", brandId).in("named", gone.slice(i, i + 200));
+      if (error) throw new Error(error.message);
+    }
+  }
+  console.log(`Brand check for ${brandId}: ${names.size} names, ${drop.size} weren't brands.`);
+  await db.from("brands").update({ brands_checked: BRAND_CHECK_VERSION }).eq("id", brandId);
+  await finish(job.id);
+}

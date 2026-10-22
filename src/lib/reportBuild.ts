@@ -8,6 +8,7 @@ import type { ReportDocument } from "./reportDoc";
 import { citedPathsOf, contentRows, winsAndDrops, type TrafficData } from "./reports";
 import type { ReportSnapshot, ReportStyle, ReportSection } from "./reportTypes";
 import { cleanSources } from "./sources";
+import { cleanMentions } from "./brandNames";
 import { brandTraffic, brandVisitors, type Span } from "./traffic";
 
 // Builds a client report on the server for any date range (docs/reports.md, sections 9 and 12).
@@ -44,7 +45,9 @@ async function runsBetween(db: SupabaseClient, brandId: string, from: number, to
     .lt("at", new Date(to).toISOString())
     .order("at");
   if (error) throw new Error(error.message);
-  return ((data ?? []) as Run[]).map((r) => ({ ...r, chats: (r.chats ?? []).map((c) => ({ ...c, sources: cleanSources(c.sources ?? []) })) }));
+  const { data: own } = await db.from("brands").select("name").eq("id", brandId).maybeSingle();
+  // Older runs counted questions or steps from an answer's lists as brands (brandNames.ts). Leave them out.
+  return ((data ?? []) as Run[]).map((r) => ({ ...r, chats: (r.chats ?? []).map((c) => ({ ...c, sources: cleanSources(c.sources ?? []), brands: cleanMentions(c.brands ?? [], [own?.name ?? ""]) })) }));
 }
 
 async function calendarFor(db: SupabaseClient, brand: { id: string; workspace_id: string; domain: string }): Promise<CalendarItem[] | null> {
