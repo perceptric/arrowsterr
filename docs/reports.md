@@ -1303,8 +1303,9 @@ Added on top of section 29.
 ## 32. Page PDFs, two designs, files and schedules (current)
 
 ### 32.1 What changed
-- **Removed:** the report builder, the template board, Zippie chat in reports, the White label and Brand Kit tabs in the editor, saved reports, and the Share buttons on Prompts and Competitors.
+- **Removed:** the report builder, the template board, Zippie chat in reports, the White label and Brand Kit tabs in the editor, and saved reports.
 - **Still working:** share links that clients already have (`/r/[token]`).
+- **Back:** Share on Prompts and Competitors (section 32.7).
 
 ### 32.2 Download PDF and the two designs
 - Every page's top bar has Download PDF (`DownloadPdf.tsx`). Pages without their own PDF yet still print the screen.
@@ -1360,3 +1361,11 @@ Zippie has no PDF.
 | PDF storage: ≈0.3 / 3 GB a month, kept a year, inside Supabase Pro's 100 GB | $0 (check) | $0 (check) |
 | Claude tokens: none, since PDFs use no AI | $0 | $0 |
 | **Monthly total** | **≈ $20** | **≈ $30** |
+
+### 32.7 Share on Prompts and Competitors
+- Prompts and Competitors have Share in the top bar, an icon button next to Download PDF. Editors only, on every plan.
+- One click opens the window at once, freezes the page as it is with the top bar's period, topic and model, and copies the link as soon as it is ready. The window shows the link with Copy link and Open link.
+- The browser builds the snapshot (`src/lib/shareSnapshot.ts`) from the same functions and view the page uses: `PromptsSnapshot` (scores, topics by AI, every prompt with each AI's latest answer for its deep dive) and `CompetitorsSnapshot` (you plus the competitors the plan tracks, up to 50). Answer texts are cut down before a Prompts snapshot passes 3 MB; the numbers always stay.
+- `/api/reports/share` checks the snapshot (`shareProblem`), checks the brand is in the workspace, and saves a frozen `report_links` row (`043_reports.sql`). Anyone with `/r/<token>` sees it drawn by `PromptsDoc` or `CompetitorsDoc`. Links have no expiry, password or revoke screen yet.
+- `tests/shareSnapshot.test.ts` checks the numbers match the page, filters, empty data, size trimming and what the route accepts.
+- Running cost: one small database row per link (a few KB to 3 MB of JSON) inside Supabase Pro, no AI and no worker. Beta (50 teams): $0 (check). Growth (500 teams): $0 (check).

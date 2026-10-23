@@ -28,6 +28,7 @@ import {
   saveAnswers,
   answerRows,
   startRun as startSavedRun,
+  latestAnswersFor,
   topicsOf,
   type Brand,
   type PlanUsage,
@@ -52,7 +53,9 @@ import { NotificationSettings, ProfileSettings, SecuritySettings } from "./Accou
 import { AccessSettings, AiSettingsPage, RetentionSettings, TimezoneSetting } from "./WorkspaceSettings";
 import { BrandKitSettings } from "./BrandKit";
 import { DownloadPdf } from "./pdf/DownloadPdf";
-import type { PdfPage } from "@/lib/pdf/pages";
+import { PDF_PAGES, type PdfPage } from "@/lib/pdf/pages";
+import { answersSince, competitorsSnapshot, promptsSnapshot } from "@/lib/shareSnapshot";
+import { ShareButton } from "./ShareDialog";
 import { ExportsSettings, JobsSettings } from "./JobsSettings";
 import { BillingPage, choosePlan } from "./BillingPage";
 import { Onboarding, type Checking, type NewBrand, type Welcome } from "./Onboarding";
@@ -74,6 +77,8 @@ const RESEARCH: Page[] = ["keywords", "domain", "gap", "calendar"];
 const VISIBILITY: Page[] = ["prompts", "competitors", "domains", "urls"];
 /** Pages with their own PDF (docs/reports.md, section 32.3). */
 const PDF_OF: Partial<Record<Page, PdfPage>> = { prompts: "prompts", competitors: "competitors", domains: "sources", urls: "sources" }; // the only pages with period, topic and model filters
+/** Pages with Share, a frozen link anyone can open (docs/reports.md, section 32.7). */
+const SHARE_OF: Partial<Record<Page, "prompts" | "competitors">> = { prompts: "prompts", competitors: "competitors" };
 
 /** Each page's address. "/" opens Prompts. */
 const SLUGS: Record<Page, string> = {
@@ -715,6 +720,21 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
             running={running === active?.id}
             progress={progress}
             hasRuns={brandRuns.length > 0}
+            share={
+              active && view && canEdit && SHARE_OF[page] ? (
+                <ShareButton
+                  key={`${page}-${active.id}`}
+                  auth={auth}
+                  brandId={active.id}
+                  title={PDF_PAGES.find((p) => p.id === SHARE_OF[page])!.title}
+                  snapshot={async () =>
+                    SHARE_OF[page] === "prompts"
+                      ? promptsSnapshot(view, await latestAnswersFor(sb, active.id, view.topics.flatMap((t) => t.prompts), answersSince(view)))
+                      : competitorsSnapshot(view, plan?.limits.competitors)
+                  }
+                />
+              ) : undefined
+            }
             download={
               active && PDF_OF[page] ? (
                 <DownloadPdf
@@ -1337,6 +1357,8 @@ function TopBar(p: {
   hasRuns: boolean;
   /** The page's own Download PDF. Pages without one yet print the screen. */
   download?: React.ReactNode;
+  /** Share on Prompts and Competitors, next to Download PDF. */
+  share?: React.ReactNode;
 }) {
   const { open, setOpen, ref } = useMenu();
   const pill = "aw-ctl";
@@ -1407,6 +1429,7 @@ function TopBar(p: {
         </>
       )}
       <div className="ml-auto flex items-center gap-3">
+        {p.share}
         {p.download ?? (
           <button type="button" className="aw-ctl" onClick={() => window.print()} title="Download this page as a PDF">
             Download PDF
