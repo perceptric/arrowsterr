@@ -134,13 +134,18 @@ test("after a downgrade, prompts past the plan are paused in the order brands we
 test("report limits grow up the ladder, and only Agency and up get white label", async () => {
   const { reportLimits } = await import("../src/lib/plans.ts");
   let last = 0;
+  let lastSchedules = 0;
   for (const id of LADDER) {
     const r = reportLimits(id);
     assert.ok(r.saved >= last, `${id} should keep at least as many reports`);
+    assert.ok(r.schedules >= lastSchedules, `${id} should keep at least as many schedules`);
     last = r.saved;
+    lastSchedules = r.schedules;
     assert.equal(r.whiteLabel, id === "agency" || id === "enterprise");
   }
-  assert.deepEqual(reportLimits("free"), { saved: 1, live: false, secure: false, whiteLabel: false });
+  assert.deepEqual(reportLimits("free"), { saved: 1, live: false, secure: false, whiteLabel: false, schedules: 0 });
   assert.equal(reportLimits("foundation").secure, false);
   assert.equal(reportLimits("scale").secure, true);
+  // Schedules: Free 0, Starter 2, Pro 10, Agency unlimited (docs/reports.md, section 32.4).
+  assert.deepEqual(["free", "foundation", "scale", "agency"].map((id) => reportLimits(id as "free").schedules), [0, 2, 10, 1000]);
 });

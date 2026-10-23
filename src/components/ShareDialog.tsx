@@ -5,12 +5,13 @@ import type { RunAuth } from "@/lib/runner";
 import { fitSnapshot } from "@/lib/shareSnapshot";
 import type { CompetitorsSnapshot, PromptsSnapshot } from "@/lib/reportTypes";
 import { Modal } from "./reports/Dialog";
+import { LinkSettings, type LinkLock } from "./reports/LinkSettings";
 import { errText, post } from "./reports/reportApi";
 
 // Share on Prompts and Competitors (docs/reports.md, section 32.7): the window opens at once, the page is frozen
 // into a link, and the link is copied as soon as it is ready.
 
-type State = { busy: boolean; url: string; copied: boolean; error: string } | null;
+type State = { busy: boolean; url: string; copied: boolean; error: string; link: LinkLock | null } | null;
 
 export function ShareIcon() {
   return (
@@ -30,16 +31,29 @@ async function copy(text: string) {
 }
 
 /** The top bar's Share: an icon button next to Download PDF. snapshot builds the frozen page when it is clicked. */
-export function ShareButton({ auth, brandId, title, snapshot }: { auth: RunAuth; brandId: string; title: string; snapshot: () => Promise<PromptsSnapshot | CompetitorsSnapshot> | PromptsSnapshot | CompetitorsSnapshot }) {
+export function ShareButton({
+  auth,
+  brandId,
+  title,
+  secure,
+  snapshot,
+}: {
+  auth: RunAuth;
+  brandId: string;
+  title: string;
+  /** The plan allows a password and an expiry date on links. */
+  secure: boolean;
+  snapshot: () => Promise<PromptsSnapshot | CompetitorsSnapshot> | PromptsSnapshot | CompetitorsSnapshot;
+}) {
   const [state, setState] = useState<State>(null);
 
   async function share() {
-    setState({ busy: true, url: "", copied: false, error: "" });
+    setState({ busy: true, url: "", copied: false, error: "", link: null });
     try {
       const data = fitSnapshot(await snapshot());
-      const { url } = await post<{ url: string }>(auth, "/api/reports/share", { brandId, data });
+      const { url, id } = await post<{ url: string; id: string }>(auth, "/api/reports/share", { brandId, data });
       const copied = await copy(url);
-      setState((s) => s && { ...s, busy: false, url, copied });
+      setState((s) => s && { ...s, busy: false, url, copied, link: { id, locked: false, expires_at: null } });
     } catch (e) {
       setState((s) => s && { ...s, busy: false, error: errText(e) });
     }
@@ -70,6 +84,7 @@ export function ShareButton({ auth, brandId, title, snapshot }: { auth: RunAuth;
               Open link
             </a>
           ) : null}
+          {state.link ? <LinkSettings auth={auth} link={state.link} secure={secure} onSaved={(link) => setState((s) => s && { ...s, link })} /> : null}
         </Modal>
       ) : null}
     </>

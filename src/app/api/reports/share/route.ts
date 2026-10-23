@@ -25,10 +25,11 @@ export async function POST(request: Request) {
   const { data: link, error } = await db
     .from("report_links")
     .insert({ workspace_id: body.workspaceId, brand_id: brand.id, mode: "frozen", snapshot: body.data, created_by: await userIdOf(auth.sb, request) })
-    .select("token")
+    .select("id, token")
     .single();
   if (error) return Response.json({ error: migrationHint(error.message) }, { status: 500 });
   const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
   const origin = process.env.APP_URL?.trim().replace(/\/+$/, "") || (host ? `https://${host}` : "https://app.arrowsterr.com");
-  return Response.json({ url: `${origin}/r/${(link as { token: string }).token}` });
+  const made = link as { id: string; token: string };
+  return Response.json({ url: `${origin}/r/${made.token}`, id: made.id });
 }

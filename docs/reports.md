@@ -1333,24 +1333,38 @@ Built in `src/lib/pdf/pages.ts` from the same functions the pages use. `tests/pd
 | Visitors | Visitors and Leads | 4 tiles; top 25 visitors by buyer score | 2 |
 | Content Plan | Content Plan | Counts by stage; this month's due dates; pieces by stage; top 20 Topic Bank picks | 2 |
 | Content Intelligence | Content Performance | 5 tiles; pages by performance; keyword ranks; update these next; top 25 pages | 2 |
-| Keyword Research | Keyword Report: [keyword] | 5 tiles; 12-month trend; variations; questions; clusters; Google top 10 with AI Overview sources. Bulk runs get a table | 3 |
-| Domain Research | Domain Report: [domain] | 5 tiles; top 50 keywords; top 20 pages; top 10 competitors | 3 |
-| Competitive Analysis | Keyword Gap: [you] vs [them] | Overlap counts; AI rivals; top 50 opportunities; top 25 where each side leads | 3 |
+| Keyword Research | Keyword Report: [keyword] | 5 tiles; 12-month trend; variations; questions; clusters; Google top 10 with AI Overview sources. Bulk runs get a table | 3, built |
+| Domain Research | Domain Report: [domain] | 5 tiles; top 50 keywords; top 20 pages; top 10 competitors. Bulk runs get a table | 3, built |
+| Competitive Analysis | Keyword Gap: [you] vs [them] | Overlap counts; AI rivals; top 50 opportunities (keywords only they rank for); top 25 where each side leads | 3, built |
 
 Zippie has no PDF.
 
+**Research PDFs (phase 3, built):**
+- Download PDF makes a file of the search that is open: the keyword, the site, the competitor, or the bulk run (`researchTarget` in `src/components/research/pdfTarget.ts` reads it from the tools' saved state).
+- The server reads saved results only (`src/lib/pdf/researchServer.ts`): the shared 30-day cache through `savedOnly`, and `bulk_runs` for bulk runs. A PDF never runs a new search and costs no tasks. When the results are no longer saved, it says to run the search again.
+- The numbers come from the same helpers as the pages (`src/lib/pdf/research.ts`): `kdWord`, `pagesOf`, `splitShared`, `nameFromDomain`. Domain Research and its PDF build the report with one function (`domainReport` in `src/lib/domainReport.ts`).
+- Research PDFs need the Organic Research toolset, like the pages. They are download-only.
+- `tests/researchPdf.test.ts` checks the numbers.
+
 ### 32.4 Reports
 - **Downloads tab:** every file, with its report, brand, dates, design and when it was made. Download again or delete (editors). Files are kept for a year.
-- **Schedules tab (phase 4):**
-  - Brand, pages, design, weekly or monthly, the time and time zone, and the email addresses.
-  - One email per send, with a PDF for each page attached.
-  - Send history and pause.
-  - `report_sends` holds one row per schedule per due time, so nothing sends twice.
-  - Schedules per plan: Free 0, Starter 2, Pro 10, Agency unlimited.
+- **Schedules tab (phase 4, built):**
+  - Brand, pages, dates, design, weekly or monthly, the day, the hour and time zone, the email addresses (up to 25) and an optional subject (`SchedulesTab.tsx`).
+  - One email per send, with a PDF for each page attached (`src/lib/reportEmail.ts`). In the brand design the email carries the kit's name and color and is sent under the kit's name. Replies go to the person who made the schedule.
+  - Send history with each send's PDFs, pause and resume, edit and delete. Files a schedule makes also show in Downloads, tagged Scheduled.
+  - Schedules per plan: Free 0, Starter 2, Pro 10, Agency unlimited (`reportLimits(plan).schedules`). `/api/schedules` checks it when a schedule is added or turned back on. A downgrade stops new ones; schedules already on keep sending unless the plan has none.
   - Research pages are download-only.
+- **How a send works** (`src/lib/scheduleServer.ts`, rules in `src/lib/schedules.ts`):
+  1. Every 10 minutes the worker's `schedule` job finds schedules that are due (`dueWork`).
+  2. It adds one `report_sends` row for that due time, queues one `report_send` job keyed by the send, and only then moves the schedule to its next time (`nextRun`, in the schedule's time zone, through both clock changes). Times missed while the worker was down are sent once, not caught up.
+  3. The `report_send` job makes one file per page, queues each on the PDF worker, and waits for them without using up attempts (`sendStep`).
+  4. When every PDF is ready it sends one email with an idempotency key (`sendKey`) and marks the send Sent. A send that is Sent or Failed never runs again, so a retry never emails twice.
+  5. A send fails, with its reason in the history, when the schedule was paused or deleted, the plan has no schedules, email is off, a PDF failed, or the PDFs took over 30 minutes.
+- `tests/schedules.test.ts` covers the time zones, three months of monthly sends with two schedulers ticking at once (time travel), and forced retries with a crash right after the email.
 
 ### 32.5 Data
 `supabase/046_report_files.sql`: `report_files`, `report_schedules` and `report_sends`.
+`supabase/056_report_schedules.sql`: schedules are added and changed by the server only, so the plan's limit holds, and each send keeps who it went to. Run it after 046.
 
 ### 32.6 Running cost
 
@@ -1360,7 +1374,11 @@ Zippie has no PDF.
 | Email: Resend Pro, ≈2,000 / 20,000 scheduled emails a month (phase 4) | $20 (check) | $20 (check) |
 | PDF storage: ≈0.3 / 3 GB a month, kept a year, inside Supabase Pro's 100 GB | $0 (check) | $0 (check) |
 | Claude tokens: none, since PDFs use no AI | $0 | $0 |
+| Research PDFs: saved results only, no DataForSEO calls | $0 | $0 |
+| Scheduled sends: ≈1,000 / 10,000 extra PDFs a month at Beta / Growth, inside the worker line above | $0 | $0 |
 | **Monthly total** | **≈ $20** | **≈ $30** |
+
+Email attachments count toward Resend's 40 MB limit per email (check). A send with three PDFs is usually under 2 MB.
 
 ### 32.7 Share on Prompts and Competitors
 - Prompts and Competitors have Share in the top bar, an icon button next to Download PDF. Editors only, on every plan.
@@ -1369,3 +1387,4 @@ Zippie has no PDF.
 - `/api/reports/share` checks the snapshot (`shareProblem`), checks the brand is in the workspace, and saves a frozen `report_links` row (`043_reports.sql`). Anyone with `/r/<token>` sees it drawn by `PromptsDoc` or `CompetitorsDoc`. Links have no expiry, password or revoke screen yet.
 - `tests/shareSnapshot.test.ts` checks the numbers match the page, filters, empty data, size trimming and what the route accepts.
 - Running cost: one small database row per link (a few KB to 3 MB of JSON) inside Supabase Pro, no AI and no worker. Beta (50 teams): $0 (check). Growth (500 teams): $0 (check).
+- **Password, expiry and revoke (built):** the Share window and Reports → Links (`LinksTab.tsx`, `LinkSettings.tsx`) set a password and an expiry date on a link, or revoke it so it stops opening at once. Links lists every link with its views and state (Open, Expired, Revoked). `/api/reports/links` saves them; adding a password or an expiry date is on Pro and up, and removing one works on every plan (`linkSettingsProblem`, tested in `tests/reportLinks.test.ts`). A link expires at the end of its day (UTC). `/r/<token>` and `/api/r/unlock` already enforce all three. Running cost: $0 at both stages.

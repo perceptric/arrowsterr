@@ -9,6 +9,9 @@ export const STAGES: { id: Stage; label: string; long: string }[] = [
 ];
 export const PER_STAGE = 40;
 
+/** Keyword difficulty in words, the way the research pages and their PDFs say it. */
+export const kdWord = (kd: number) => (kd < 15 ? "Very easy" : kd < 30 ? "Easy" : kd < 50 ? "Possible" : kd < 70 ? "Difficult" : kd < 85 ? "Hard" : "Very hard");
+
 /** One keyword with its Google numbers. trend is the last 12 months, oldest first. */
 export type Keyword = {
   keyword: string;

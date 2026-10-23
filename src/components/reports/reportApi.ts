@@ -24,3 +24,13 @@ export function ago(iso: string | null | undefined) {
   if (s < 30 * 86400) return `${Math.floor(s / 86400)}d ago`;
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
+
+/** Download a saved PDF. Returns the reason when it can't, like a file still being made. */
+export async function openFile(auth: RunAuth, fileId: string): Promise<string | null> {
+  const s = await post<{ status: string; url?: string; error?: string }>(auth, "/api/files", { action: "status", fileId });
+  if (s.status === "ready" && s.url) {
+    window.location.assign(s.url);
+    return null;
+  }
+  return s.status === "failed" ? (s.error ?? "That PDF failed.") : "That PDF is still being made. Try again in a minute.";
+}

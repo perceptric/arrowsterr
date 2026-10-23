@@ -2,6 +2,8 @@
 // One PDF for one page (docs/reports.md, section 32.3): the shared frame, then that page's own sections.
 // No hooks and no browser code, so the print page renders it on the server exactly as stored.
 import type { CompetitorsPdf, PdfSnapshot, PromptsPdf, SourcesPdf } from "@/lib/pdf/pages";
+import type { DomainBulkPdf, DomainPdf, GapPdf, KeywordBulkPdf, KeywordPdf, KwRow } from "@/lib/pdf/research";
+import type { GapRow } from "@/lib/gap";
 
 export type { PdfSnapshot };
 
@@ -455,6 +457,474 @@ function SourcesBody({ d }: { d: SourcesPdf }) {
   );
 }
 
+// ─────────────── Research ───────────────
+
+const money = (n: number | null | undefined) => (n === null || n === undefined ? "–" : `$${n.toFixed(2)}`);
+const kdText = (kd: number | null, word?: string | null) => (kd === null ? "–" : word ? `${kd} · ${word}` : String(kd));
+const rankText = (n: number | null | undefined) => (n === null || n === undefined ? "–" : `#${n}`);
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+function Tiles({ items }: { items: { label: string; value: string; note?: string; text?: boolean }[] }) {
+  return (
+    <div className={`pdf-tiles ${items.length > 4 ? "pdf-tiles--dense" : ""}`} style={{ gridTemplateColumns: `repeat(${items.length}, 1fr)` }}>
+      {items.map((t) => (
+        <div key={t.label} className="pdf-tile">
+          <small>{t.label}</small>
+          <b className={t.text ? "is-text" : ""}>{t.value}</b>
+          {t.note ? <span>{t.note}</span> : null}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Searches a month as bars, oldest first. */
+function Bars({ points }: { points: { month: string; volume: number }[] }) {
+  if (points.length < 2) return <p className="pdf-note">No monthly searches to show yet.</p>;
+  const W = 700;
+  const H = 170;
+  const P = { l: 44, r: 6, t: 8, b: 22 };
+  const max = Math.max(1, ...points.map((p) => p.volume));
+  const w = (W - P.l - P.r) / points.length;
+  const y = (v: number) => H - P.b - (v / max) * (H - P.t - P.b);
+  return (
+    <figure className="pdf-chart">
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label="Searches a month">
+        {[0, 0.5, 1].map((f) => (
+          <g key={f}>
+            <line x1={P.l} x2={W - P.r} y1={y(max * f)} y2={y(max * f)} stroke="var(--line)" />
+            <text x={P.l - 6} y={y(max * f) + 4} textAnchor="end" className="pdf-axis">
+              {num(max * f)}
+            </text>
+          </g>
+        ))}
+        {points.map((p, i) => (
+          <g key={p.month}>
+            <rect x={P.l + i * w + 4} y={y(p.volume)} width={Math.max(2, w - 8)} height={H - P.b - y(p.volume)} fill="var(--accent)" />
+            <text x={P.l + i * w + w / 2} y={H - 6} textAnchor="middle" className="pdf-axis">
+              {MONTHS[Number(p.month.slice(5, 7)) - 1] ?? p.month}
+            </text>
+          </g>
+        ))}
+      </svg>
+    </figure>
+  );
+}
+
+function KwTable({ rows }: { rows: KwRow[] }) {
+  if (!rows.length) return <p className="pdf-note">None found.</p>;
+  return (
+    <table className="pdf-table">
+      <thead>
+        <tr>
+          <th>Keyword</th>
+          <th className="r">Volume</th>
+          <th className="r">Difficulty</th>
+          <th>Intent</th>
+          <th className="r">CPC</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r) => (
+          <tr key={r.keyword}>
+            <td className="strong">{r.keyword}</td>
+            <td className="r num">{num(r.volume)}</td>
+            <td className="r num">{kdText(r.kd)}</td>
+            <td className="cap">{r.intent ?? "–"}</td>
+            <td className="r num">{money(r.cpc)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+function KeywordBody({ d }: { d: KeywordPdf }) {
+  const t = d.tiles;
+  return (
+    <>
+      {t ? (
+        <Tiles
+          items={[
+            { label: "Volume", value: num(t.volume), note: t.source === "ads" ? "From Google Ads" : t.source === "clickstream" ? "Clickstream estimate" : "Searches a month" },
+            { label: "Difficulty", value: t.kd === null ? "–" : String(t.kd), note: t.kdWord ?? undefined },
+            { label: "Intent", value: t.intent ? t.intent[0].toUpperCase() + t.intent.slice(1) : "–", text: Boolean(t.intent) },
+            { label: "CPC", value: money(t.cpc) },
+            { label: "12-month trend", value: t.trendChange === null ? "–" : `${t.trendChange > 0 ? "+" : t.trendChange < 0 ? "−" : ""}${Math.abs(t.trendChange)}%`, note: t.trendChange === null ? undefined : t.trendChange >= 0 ? "▲ Growing" : "▼ Falling" },
+          ]}
+        />
+      ) : (
+        <p className="pdf-lead">No search data for &ldquo;{d.keyword}&rdquo; in {d.country}.</p>
+      )}
+      <Section title="Searches by month">
+        <Bars points={d.trend} />
+      </Section>
+      <Section title={`Keyword variations · ${num(d.variations.total)} in all`}>
+        <KwTable rows={d.variations.rows} />
+      </Section>
+      <Section title={`Questions · ${num(d.questions.total)} in all`}>
+        <KwTable rows={d.questions.rows} />
+      </Section>
+      {d.clusters.length ? (
+        <Section title="Keyword clusters">
+          <table className="pdf-table">
+            <thead>
+              <tr>
+                <th>Cluster</th>
+                <th className="r">Keywords</th>
+                <th className="r">Volume</th>
+                <th>Examples</th>
+              </tr>
+            </thead>
+            <tbody>
+              {d.clusters.map((c) => (
+                <tr key={c.name}>
+                  <td className="strong">{c.name}</td>
+                  <td className="r num">{num(c.count)}</td>
+                  <td className="r num">{num(c.volume)}</td>
+                  <td>{c.keywords.slice(0, 4).join(", ")}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Section>
+      ) : null}
+      <Section title="Google top 10">
+        {d.serp && d.serp.rows.length ? (
+          <>
+            <table className="pdf-table">
+              <thead>
+                <tr>
+                  <th className="n">#</th>
+                  <th>Page</th>
+                  <th className="r">Visits</th>
+                  <th className="r">Keywords</th>
+                  <th className="r">AI Overview</th>
+                </tr>
+              </thead>
+              <tbody>
+                {d.serp.rows.map((r) => (
+                  <tr key={r.rank + r.url}>
+                    <td className="n num">{r.rank}</td>
+                    <td>
+                      <span className="strong">{r.title || r.domain}</span>
+                      <small className="pdf-sub">{path(r.url)}</small>
+                    </td>
+                    <td className="r num">{num(r.traffic)}</td>
+                    <td className="r num">{num(r.keywords)}</td>
+                    <td className="r">{r.aiCited ? "Cited" : "–"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {d.serp.features.length ? <p className="pdf-note">On the page: {d.serp.features.map((f) => f.replace(/_/g, " ")).join(", ")}.</p> : null}
+          </>
+        ) : (
+          <p className="pdf-note">Google&apos;s results for this keyword are not saved.</p>
+        )}
+      </Section>
+      {d.serp?.aio.shown ? (
+        <Section title="Sources in the AI Overview">
+          {d.serp.aio.cites.length ? (
+            <table className="pdf-table">
+              <thead>
+                <tr>
+                  <th className="n">#</th>
+                  <th>Source</th>
+                </tr>
+              </thead>
+              <tbody>
+                {d.serp.aio.cites.map((c, i) => (
+                  <tr key={c.url + i}>
+                    <td className="n num">{i + 1}</td>
+                    <td>
+                      <span className="strong">{c.title || c.domain}</span>
+                      <small className="pdf-sub">{path(c.url)}</small>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p className="pdf-note">Google showed an AI Overview with no sources.</p>
+          )}
+        </Section>
+      ) : null}
+    </>
+  );
+}
+
+function KeywordBulkBody({ d }: { d: KeywordBulkPdf }) {
+  return (
+    <>
+      <Tiles
+        items={[
+          { label: "Keywords", value: num(d.tiles.keywords) },
+          { label: "With data", value: num(d.tiles.found) },
+          { label: "Searches a month", value: num(d.tiles.volume) },
+          { label: "Average difficulty", value: num(d.tiles.avgKd) },
+        ]}
+      />
+      <Section title="Every keyword">
+        <table className="pdf-table">
+          <thead>
+            <tr>
+              <th>Keyword</th>
+              <th className="r">Volume</th>
+              <th className="r">Difficulty</th>
+              <th>Intent</th>
+              <th className="r">CPC</th>
+              <th className="r">12 months</th>
+            </tr>
+          </thead>
+          <tbody>
+            {d.rows.map((r) => (
+              <tr key={r.keyword}>
+                <td className="strong">{r.keyword}</td>
+                <td className="r num">{num(r.volume)}</td>
+                <td className="r num">{kdText(r.kd)}</td>
+                <td className="cap">{r.intent ?? "–"}</td>
+                <td className="r num">{money(r.cpc)}</td>
+                <td className="r num">{r.trendChange === null ? "–" : `${r.trendChange > 0 ? "+" : r.trendChange < 0 ? "−" : ""}${Math.abs(r.trendChange)}%`}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Section>
+    </>
+  );
+}
+
+function DomainBody({ d }: { d: DomainPdf }) {
+  const o = d.tiles;
+  return (
+    <>
+      {o ? (
+        <Tiles
+          items={[
+            { label: "Keywords on Google", value: num(o.keywords) },
+            { label: "Visits a month", value: num(o.traffic), note: "Estimated" },
+            { label: "In top 3", value: num(o.top3) },
+            { label: "In top 10", value: num(o.top10) },
+            { label: "New this month", value: `+${num(o.newKw)}`, note: `${num(o.lostKw)} lost` },
+          ]}
+        />
+      ) : (
+        <p className="pdf-lead">Google has little data for {d.domain} in {d.country}.</p>
+      )}
+      <Section title="Top 50 keywords">
+        {d.keywords.length ? (
+          <table className="pdf-table">
+            <thead>
+              <tr>
+                <th>Keyword</th>
+                <th className="r">Position</th>
+                <th className="r">Volume</th>
+                <th className="r">Difficulty</th>
+                <th className="r">Visits</th>
+                <th>Page</th>
+              </tr>
+            </thead>
+            <tbody>
+              {d.keywords.map((k) => (
+                <tr key={k.keyword}>
+                  <td className="strong">{k.keyword}</td>
+                  <td className="r num">{rankText(k.rank)}</td>
+                  <td className="r num">{num(k.volume)}</td>
+                  <td className="r num">{kdText(k.kd)}</td>
+                  <td className="r num">{num(k.traffic)}</td>
+                  <td className="pdf-url">{k.url ? path(k.url) : "–"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p className="pdf-note">No ranking keywords found.</p>
+        )}
+      </Section>
+      <Section title="Top 20 pages">
+        {d.pages.length ? (
+          <table className="pdf-table">
+            <thead>
+              <tr>
+                <th>Page</th>
+                <th className="r">Keywords</th>
+                <th className="r">Visits</th>
+                <th>Top keyword</th>
+              </tr>
+            </thead>
+            <tbody>
+              {d.pages.map((p) => (
+                <tr key={p.url}>
+                  <td className="pdf-url strong">{path(p.url)}</td>
+                  <td className="r num">{num(p.keywords)}</td>
+                  <td className="r num">{num(p.traffic)}</td>
+                  <td>{p.top}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p className="pdf-note">No pages found.</p>
+        )}
+      </Section>
+      <Section title="Top 10 competitors">
+        {d.competitors.length ? (
+          <table className="pdf-table">
+            <thead>
+              <tr>
+                <th className="n">#</th>
+                <th>Site</th>
+                <th className="r">Shared keywords</th>
+                <th className="r">Keywords</th>
+                <th className="r">Visits</th>
+              </tr>
+            </thead>
+            <tbody>
+              {d.competitors.map((c, i) => (
+                <tr key={c.domain}>
+                  <td className="n num">{i + 1}</td>
+                  <td className="strong">{c.domain}</td>
+                  <td className="r num">{num(c.shared)}</td>
+                  <td className="r num">{num(c.keywords)}</td>
+                  <td className="r num">{num(c.traffic)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p className="pdf-note">No competitors found.</p>
+        )}
+      </Section>
+    </>
+  );
+}
+
+function DomainBulkBody({ d }: { d: DomainBulkPdf }) {
+  return (
+    <>
+      <Tiles
+        items={[
+          { label: "Sites", value: num(d.tiles.sites) },
+          { label: "Keywords on Google", value: num(d.tiles.keywords) },
+          { label: "Visits a month", value: num(d.tiles.traffic), note: "Estimated" },
+          { label: "Traffic value", value: `$${num(d.tiles.value)}` },
+        ]}
+      />
+      <Section title="Every site">
+        <table className="pdf-table">
+          <thead>
+            <tr>
+              <th>Site or page</th>
+              <th className="r">Keywords</th>
+              <th className="r">Visits</th>
+              <th className="r">Value</th>
+              <th className="r">Paid keywords</th>
+            </tr>
+          </thead>
+          <tbody>
+            {d.rows.map((r) => (
+              <tr key={r.target}>
+                <td className="pdf-url strong">{path(r.kind === "page" ? r.target : `https://${r.target}`)}</td>
+                <td className="r num">{num(r.keywords)}</td>
+                <td className="r num">{num(r.traffic)}</td>
+                <td className="r num">{r.value === null ? "–" : `$${num(r.value)}`}</td>
+                <td className="r num">{num(r.paidKeywords)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Section>
+    </>
+  );
+}
+
+function GapTable({ rows, you, them }: { rows: GapRow[]; you: string; them: string }) {
+  if (!rows.length) return <p className="pdf-note">None found.</p>;
+  return (
+    <table className="pdf-table">
+      <thead>
+        <tr>
+          <th>Keyword</th>
+          <th className="r">Volume</th>
+          <th className="r">Difficulty</th>
+          <th className="r">{them}</th>
+          <th className="r">{you}</th>
+          <th>{them}&apos;s page</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r) => (
+          <tr key={r.keyword}>
+            <td className="strong">{r.keyword}</td>
+            <td className="r num">{num(r.volume)}</td>
+            <td className="r num">{kdText(r.kd)}</td>
+            <td className="r num">{rankText(r.them)}</td>
+            <td className="r num">{rankText(r.you)}</td>
+            <td className="pdf-url">{r.url ? path(r.url) : "–"}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+function GapBody({ d }: { d: GapPdf }) {
+  const you = d.you.name;
+  const them = d.them.name;
+  return (
+    <>
+      <Tiles
+        items={[
+          { label: `Owned by ${them}`, value: num(d.counts.missing) },
+          { label: "Shared", value: num(d.counts.shared) },
+          { label: `Owned by ${you}`, value: num(d.counts.only) },
+          { label: `${them} ranks higher`, value: num(d.counts.weaker), note: "Shared keywords" },
+          { label: `${you} ranks higher`, value: num(d.counts.lead), note: "Shared keywords" },
+        ]}
+      />
+      {d.rivals.length ? (
+        <Section title="Rivals in AI answers">
+          <table className="pdf-table">
+            <thead>
+              <tr>
+                <th>Brand</th>
+                <th>Site</th>
+                <th>Visibility</th>
+                <th className="r">Position</th>
+              </tr>
+            </thead>
+            <tbody>
+              {d.rivals.map((r) => (
+                <tr key={r.name} className={r.domain === d.them.domain ? "is-you" : ""}>
+                  <td className="strong">{r.name}</td>
+                  <td>{r.domain}</td>
+                  <td>
+                    <span className="pdf-barcell">
+                      <Bar value={r.visibility} />
+                      <span className="num">{pct(r.visibility)}</span>
+                    </span>
+                  </td>
+                  <td className="r num">{spot(r.position)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Section>
+      ) : null}
+      <Section title={`Top 50 opportunities: keywords only ${them} ranks for`}>
+        <GapTable rows={d.opportunities} you={you} them={them} />
+      </Section>
+      <Section title={`Where ${them} leads`}>
+        <GapTable rows={d.theyLead} you={you} them={them} />
+      </Section>
+      <Section title={`Where ${you} leads`}>
+        <GapTable rows={d.youLead} you={you} them={them} />
+      </Section>
+    </>
+  );
+}
+
 /** The whole PDF: cover, the page's sections, and the footer. */
 export function PdfDoc({ s }: { s: PdfSnapshot }) {
   const t = s.tokens;
@@ -496,8 +966,24 @@ export function PdfDoc({ s }: { s: PdfSnapshot }) {
         </p>
       </header>
       <main className="pdf-body">
-        {!d.answers ? <p className="pdf-lead">No AI answers in these dates yet. Daily checks fill this report in.</p> : null}
-        {d.page === "prompts" ? <PromptsBody d={d} brand={s.brand.name} /> : d.page === "competitors" ? <CompetitorsBody d={d} /> : <SourcesBody d={d} />}
+        {"answers" in d && !d.answers ? <p className="pdf-lead">No AI answers in these dates yet. Daily checks fill this report in.</p> : null}
+        {d.page === "prompts" ? (
+          <PromptsBody d={d} brand={s.brand.name} />
+        ) : d.page === "competitors" ? (
+          <CompetitorsBody d={d} />
+        ) : d.page === "sources" ? (
+          <SourcesBody d={d} />
+        ) : d.page === "keywords" ? (
+          <KeywordBody d={d} />
+        ) : d.page === "keywords-bulk" ? (
+          <KeywordBulkBody d={d} />
+        ) : d.page === "domain" ? (
+          <DomainBody d={d} />
+        ) : d.page === "domain-bulk" ? (
+          <DomainBulkBody d={d} />
+        ) : (
+          <GapBody d={d} />
+        )}
       </main>
       <footer className="pdf-foot">{t.footer || t.maker}</footer>
     </article>
@@ -528,6 +1014,8 @@ const PDF_CSS = `
 .pdf-tile small { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
 .pdf-tile b { font-size: 26px; font-weight: 500; color: var(--ink); line-height: 1.15; }
 .pdf-tile span { font-size: 11.5px; color: var(--muted); }
+.pdf-tiles--dense .pdf-tile b { font-size: 19px; }
+.pdf-tile b.is-text { font-family: var(--body); font-weight: 600; }
 .pdf-vs { display: flex; align-items: baseline; gap: 6px; }
 .pdf-vs b { font-size: 20px; }
 .pdf-vs b.is-them { color: var(--muted); }
@@ -546,7 +1034,9 @@ const PDF_CSS = `
 .pdf-table tr.is-you td { background: var(--surface); }
 .pdf-table tr.is-you .strong { color: var(--accent); }
 .pdf-table td.is-lead { color: var(--ink); font-weight: 600; }
-.pdf-sub { display: block; font-size: 10.5px; color: var(--muted); }
+.pdf-sub { display: block; font-size: 10.5px; color: var(--muted); word-break: break-all; }
+.pdf-table .cap { text-transform: capitalize; }
+.pdf-table .pdf-url { font-size: 10.5px; word-break: break-all; max-width: 220px; }
 .pdf-barcell { display: flex; align-items: center; gap: 8px; }
 .pdf-bar { display: block; flex: 1; min-width: 80px; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
 .pdf-bar i { display: block; height: 100%; }

@@ -6,8 +6,8 @@ import { useEffect, useState } from "react";
 import { cleanKit, type BrandKit } from "@/lib/brandKit";
 import type { PdfDesign } from "@/lib/pdf/design";
 import type { PdfPage } from "@/lib/pdf/pages";
-import { PDF_PAGES } from "@/lib/pdf/pages";
 import type { RunAuth } from "@/lib/runner";
+import type { PdfTarget } from "../research/pdfTarget";
 import { Modal } from "../reports/Dialog";
 import { errText, post } from "../reports/reportApi";
 
@@ -21,7 +21,7 @@ export function DownloadPdf({
   auth,
   page,
   brand,
-  params,
+  target,
   whiteLabel,
   onBrandKit,
 }: {
@@ -29,11 +29,13 @@ export function DownloadPdf({
   auth: RunAuth;
   page: PdfPage;
   brand: { id: string; name: string };
-  params: { days: number; topic: string; model: string };
+  /** What the file is made from, read when the window opens: the page's filters, or the search open on a research page. */
+  target: () => PdfTarget;
   whiteLabel: boolean;
   onBrandKit: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [what, setWhat] = useState<PdfTarget>({ error: "" });
   const [kit, setKit] = useState<BrandKit | null | undefined>(undefined);
   const [design, setDesign] = useState<PdfDesign>("arrowsterr");
   const [state, setState] = useState<State>({ at: "pick" });
@@ -58,9 +60,10 @@ export function DownloadPdf({
   };
 
   async function download() {
+    if ("error" in what) return;
     setState({ at: "making" });
     try {
-      const { fileId } = await post<{ fileId: string }>(auth, "/api/files", { page, brandId: brand.id, design, params });
+      const { fileId } = await post<{ fileId: string }>(auth, "/api/files", { page, brandId: brand.id, design, params: what.params });
       const until = Date.now() + 4 * 60_000;
       while (Date.now() < until) {
         await new Promise((r) => setTimeout(r, 2000));
@@ -79,23 +82,32 @@ export function DownloadPdf({
     }
   }
 
-  const title = PDF_PAGES.find((p) => p.id === page)!.title;
-  const filters = [`Last ${params.days} days`, params.topic !== "All" ? params.topic : "", params.model !== "All" ? params.model : ""].filter(Boolean).join(" · ");
   const brandReady = whiteLabel && Boolean(kit);
 
   return (
     <>
-      <button type="button" className="aw-ctl" onClick={() => setOpen(true)}>
+      <button
+        type="button"
+        className="aw-ctl"
+        onClick={() => {
+          setWhat(target());
+          setOpen(true);
+        }}
+      >
         Download PDF
       </button>
       {open ? (
         <Modal title="Download PDF" onClose={close} width="max-w-xl">
-          <div className="flex flex-col gap-1">
-            <h2 className="aw-h3 mb-0!">{title}</h2>
-            <p className="text-[13px] text-muted">
-              {brand.name} · {filters}
-            </p>
-          </div>
+          {"error" in what ? (
+            <p className="aw-callout">{what.error}</p>
+          ) : (
+            <div className="flex flex-col gap-1">
+              <h2 className="aw-h3 mb-0!">{what.title}</h2>
+              <p className="text-[13px] text-muted">
+                {brand.name} · {what.line}
+              </p>
+            </div>
+          )}
           <div className="aw-design" role="radiogroup" aria-label="Design">
             <button type="button" role="radio" aria-checked={design === "arrowsterr"} className={`aw-design__card ${design === "arrowsterr" ? "is-on" : ""}`} onClick={() => setDesign("arrowsterr")}>
               <span className="aw-design__cover" style={{ background: "#0B1B3F" }}>
@@ -142,7 +154,7 @@ export function DownloadPdf({
             <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={close}>
               Cancel
             </button>
-            <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={download} disabled={state.at === "making" || (design === "brand" && !brandReady)}>
+            <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={download} disabled={"error" in what || state.at === "making" || (design === "brand" && !brandReady)}>
               {state.at === "making" ? "Making your PDF…" : "Download"}
             </button>
           </div>

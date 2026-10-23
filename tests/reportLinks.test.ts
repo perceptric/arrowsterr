@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { reportLimits } from "../src/lib/plans.ts";
-import { checkPassword, checkPrint, checkSig, guardWhiteLabel, hashPassword, linkProblem, printPath, sign, unlockValue } from "../src/lib/reportLinks.ts";
+import { checkPassword, checkPrint, checkSig, guardWhiteLabel, hashPassword, linkProblem, linkSettingsProblem, printPath, sign, unlockValue } from "../src/lib/reportLinks.ts";
 
 process.env.REPORT_LINK_SECRET = "test-secret";
 const NOW = Date.parse("2026-10-16T12:00:00Z");
@@ -69,4 +69,15 @@ test("print links open one report, with its dates, for 15 minutes", () => {
   assert.equal(checkPrint("rep1", JSON.stringify({ ...range, preset: "last7" }), exp, sig, NOW), false, "other dates");
   assert.equal(checkPrint("rep1", r, String(Number(exp) + 3600_000), sig, NOW), false, "a longer life");
   assert.equal(sign("x").length, 64);
+});
+
+test("shared link settings: Pro adds a password or expiry; every plan can remove them", () => {
+  assert.deepEqual(linkSettingsProblem({ password: "secret1" }, false, NOW), { error: "Passwords and expiry dates are on Pro and up.", limit: true });
+  assert.deepEqual(linkSettingsProblem({ expires: "2026-12-01" }, false, NOW), { error: "Passwords and expiry dates are on Pro and up.", limit: true });
+  assert.equal(linkSettingsProblem({ password: "", expires: "" }, false, NOW), null, "removing both works on any plan");
+  assert.equal(linkSettingsProblem({}, false, NOW), null);
+  assert.equal(linkSettingsProblem({ password: "12345" }, true, NOW)?.error, "Use a password of 6 to 100 characters.");
+  assert.equal(linkSettingsProblem({ expires: "2026-10-15" }, true, NOW)?.error, "Pick an expiry date in the future.");
+  assert.equal(linkSettingsProblem({ expires: "soon" }, true, NOW)?.error, "Pick an expiry date in the future.");
+  assert.equal(linkSettingsProblem({ expires: "2026-10-16", password: "long enough" }, true, NOW), null, "today works until the day ends");
 });
