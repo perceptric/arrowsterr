@@ -6,21 +6,6 @@ meta_description: "The best LLM tracking tools for brand mentions in 2026, with 
 updated: 2026-10-23
 ---
 
-<!-- EDITOR: prices to confirm on each vendor's own page before publishing:
-Profound: self-serve Starter ($99/mo) and Growth ($399/mo) removed in September 2026
-Profound: Agency Growth workspace at $399/mo per client
-Profound: Enterprise typically $2,000 to $5,000+/mo
-Peec AI: Starter $95/mo, Pro $245/mo, Advanced $495/mo, Enterprise custom
-Peec AI: 4th model add-on $35/$85/$165 a month; Claude on Enterprise only; 7-day trial
-Otterly.ai: Enterprise from $1,000/mo
-Otterly.ai: Gemini + AI Mode add-on $9/$59/$149; Claude add-on $29/$109/$439
-AthenaHQ: free tier 300 credits; Starter $295/mo with about 3,600 credits; Enterprise custom
-Rankscale: Essentials about $20/mo, Pro $99/mo (1,200 credits), Growth $385/mo (5,500 credits), Enterprise custom
-Ahrefs Brand Radar: $199/mo per AI index, $699/mo all indexes; Ahrefs Lite from $129/mo; 2,500 custom prompt checks a month
-Semrush AI Visibility Toolkit: $99/mo per domain (billed yearly); +50 prompts $60/mo; extra domain $99/mo; extra user $99/mo
--->
-<!-- EDITOR: internal links: /pricing/, /free-tools/, /blog/best-ai-visibility-tools/, /blog/best-chatgpt-rank-tracker/, /blog/best-geo-tools/, /blog/peec-ai-alternatives/, /blog/profound-alternatives/ -->
-
 # Best LLM Tracking Tools for Brand Mentions
 
 Your buyers ask ChatGPT and Gemini which products to use. The answer names a few brands. If yours is missing, you lose the deal before you know it existed.
@@ -102,8 +87,6 @@ Arrowsterr tracks how 6 AIs talk about your brand, then helps you change the ans
 - Starter covers one toolset at a time. You need Pro for both.
 
 **Best for:** teams that want to track brand mentions and act on them without a second tool.
-
-[SCREENSHOT: Arrowsterr Prompts page with visibility, sentiment and position by AI]
 
 ### 2. Peec AI
 
@@ -273,8 +256,6 @@ Put each prompt in a topic, like "pricing", "alternatives" or "for agencies". To
 
 Add the 5 to 10 brands you lose deals to. Most tools also suggest rivals that AI names often. Keep both lists. AI sometimes names rivals your sales team never sees.
 
-[SCREENSHOT: Arrowsterr Competitors quadrant with visibility and position]
-
 ### Day 4: start the checks
 
 Turn on daily tracking for every AI your buyers use. If you are unsure, start with ChatGPT, Google AI Overviews and Gemini. Leave the prompts alone for 2 weeks so the trend is clean.
@@ -290,8 +271,6 @@ Write down your mention rate, average position, sentiment and top cited sites fo
 ### Day 7: plan the first fix
 
 Pick one topic where you score low. Find the sources AI cites for it. Then choose one move: update your own page, get listed on a cited review site, or publish a page that answers the prompt directly. Check the topic again in 2 weeks.
-
-[SCREENSHOT: Arrowsterr Sources page split into owned, third-party and review sites]
 
 ## FAQ
 

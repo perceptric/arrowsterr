@@ -6,20 +6,6 @@ meta_description: "The best AI search visibility tools for SaaS: track 'best X s
 updated: 2026-10-23
 ---
 
-<!-- EDITOR: prices to confirm on each vendor's own page before publishing:
-Peec AI: Starter $95/mo (50 prompts), Pro $245/mo (150), Advanced $495/mo (350), Enterprise custom
-Peec AI: 3 models on self-serve plans, Claude on Enterprise only, 7-day trial
-Profound: Starter and Growth self-serve plans removed in September 2026; trial and Enterprise remain
-Scrunch: from $250/mo yearly ($300 month to month), 7-day trial
-AthenaHQ: free tier with 300 credits, Starter $295/mo with about 3,600 credits, Enterprise custom
-Otterly.ai: Lite $29/mo (15 prompts), Standard $189/mo (100), Premium $489/mo (400)
-Otterly.ai add-ons: Gemini + AI Mode $9/$59/$149, Claude $29/$109/$439
-Semrush AI Visibility Toolkit: $99/mo per domain, 25 prompts, +50 prompts $60/mo, no free trial
-Semrush AI Visibility Toolkit: 4 AIs tracked
-Scrunch self-serve: ChatGPT, Perplexity, Google AI Overviews and Copilot
--->
-<!-- EDITOR: internal links: /pricing/, /free-tools/, /blog/best-ai-visibility-tools/, /blog/best-chatgpt-rank-tracker/, /blog/semrush-ai-toolkit-alternative/, /blog/profound-alternatives/ -->
-
 # Best AI search visibility tools for SaaS companies
 
 Your buyers now ask ChatGPT for a shortlist before they visit a single vendor site. "What's the best CRM for a 10-person sales team?" The answer names 4 or 5 products. If yours is missing, you lost the deal before the demo request.
@@ -90,8 +76,6 @@ Arrowsterr checks how ChatGPT, Gemini, Google AI Overviews, AI Mode, Claude and 
 - Starter covers one toolset. You need Pro for tracking and writing together.
 
 **Best for:** SaaS teams with a small marketing team that need tracking and content in one place.
-
-[SCREENSHOT: Sources page for a SaaS brand, showing the owned, third-party and review site split with G2 and Capterra in the top sites]
 
 ### 2. Peec AI
 
@@ -261,8 +245,6 @@ A few rules help:
 - **Use your sales calls.** Ask your sales team which rivals come up most. Each one gets an alternatives prompt and a versus prompt.
 - **Start with 40 to 60 prompts.** That covers one category well. Add more as you add products.
 
-[SCREENSHOT: Prompts page grouped by topic, showing a "Compare" topic with visibility on each AI]
-
 ## From AI answer to signup: what to measure
 
 AI visibility is a means to an end. The end is signups and pipeline. Measure the chain in 4 steps.
@@ -284,8 +266,6 @@ Look at sessions from chatgpt.com, perplexity.ai, gemini.google.com and copilot.
 Tie AI visits to your signup or demo events. In GA4, build a segment for AI referrers. In Arrowsterr, the Traffic page shows AI visits and the Visitors page shows which visitors became leads.
 
 When visibility rises and AI signups follow, you have proof. When visibility rises and signups don't, check your landing pages. The AI may be sending buyers to a page that doesn't convert.
-
-[SCREENSHOT: Traffic page showing visits from AI assistants by source over 90 days]
 
 ## How to choose
 

@@ -6,18 +6,6 @@ meta_description: "The best GEO tools for generative engine optimization in 2026
 updated: 2026-10-23
 ---
 
-<!-- EDITOR: prices to confirm on each vendor's own page before publishing:
-Peec AI: Starter $95/mo, Pro $245/mo, Advanced $495/mo, Enterprise custom
-Otterly.ai: Gemini + AI Mode add-on $9/$59/$149; Claude add-on $29/$109/$439
-Profound: self-serve plans removed in September 2026; Enterprise typically $2,000 to $5,000+/mo
-Scrunch: from $250/mo yearly ($300 month to month); Enterprise custom with 9 engines
-AthenaHQ: free tier 300 credits; Starter $295/mo with about 3,600 credits
-Semrush AI Visibility Toolkit: $99/mo per domain (billed yearly); 25 prompts; +50 prompts $60/mo; Semrush SEO plans $139.95 to $499.95/mo
-Ahrefs Brand Radar: $199/mo per AI index, $699/mo all indexes; Ahrefs Lite from $129/mo
-SE Ranking: Core $129/mo with 5 AIs and 100 prompts; Growth $279/mo for 250 prompts
--->
-<!-- EDITOR: internal links: /pricing/, /free-tools/, /free-tools/ai-crawler-checker/, /free-tools/llms-txt-generator/, /free-tools/schema-generator/, /blog/best-ai-visibility-tools/, /blog/best-llm-tracking-tools/, /blog/best-chatgpt-rank-tracker/ -->
-
 # Best GEO Tools for Generative Engine Optimization
 
 Generative engine optimization, or GEO, is the work of getting AI assistants to name and cite your brand. ChatGPT, Gemini, Perplexity and Google AI Overviews now answer many questions that once sent people to a list of links. If your brand is in the answer, you get the click and the trust.
@@ -91,8 +79,6 @@ Arrowsterr covers all 4 GEO jobs. It tracks 6 AIs, checks your site for AI readi
 - Starter covers one toolset. All 4 jobs together need Pro.
 
 **Best for:** teams that want one tool for the whole GEO loop.
-
-[SCREENSHOT: Arrowsterr Content Plan built from AI visibility gaps]
 
 ## GEO trackers
 
@@ -256,8 +242,6 @@ You can cover the basics of job 2 for free.
 
 All of Arrowsterr's free tools are at arrowsterr.com/free-tools/.
 
-[SCREENSHOT: Arrowsterr AI Crawler Checker result for a sample site]
-
 ## A GEO workflow you can run every month
 
 Tools only help if you use them on a rhythm. Here is a monthly loop that fits most teams.
@@ -277,8 +261,6 @@ Write or update 2 to 4 pages aimed at your weakest prompts. Lead with a direct a
 ### Week 4: earn mentions
 
 Open the list of third-party sites AI cites most. Reach out to the 5 that don't list you yet. Ask for a correction or offer fresh data. Update your own review profiles too. Then let the checks run. Changes in AIs that search the web can show within weeks.
-
-[SCREENSHOT: Arrowsterr Competitors page, topic leaders by AI]
 
 ## FAQ
 

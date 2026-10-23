@@ -6,19 +6,6 @@ meta_description: "8 Peec AI alternatives compared on price, AIs tracked and add
 updated: 2026-10-23
 ---
 
-<!-- EDITOR: prices to confirm on each vendor's own page before publishing:
-Peec AI: Starter $95/mo (50 prompts), Pro $245/mo (150), Advanced $495/mo (350), Enterprise custom
-Peec AI: 3 models on self-serve, 4th model add-on $35/$85/$165 a month, Claude on Enterprise only, Enterprise up to 13 models, 7-day trial, about 15% off yearly
-Otterly.ai: Gemini + AI Mode add-on $9/$59/$149 a month; Claude add-on $29/$109/$439 a month; extra 100 prompts $99/mo; Enterprise from $1,000/mo
-Profound: Enterprise custom, typically thousands a month; self-serve plans removed September 2026
-Rankscale: Essentials about $20/mo, Pro $99/mo (1,200 credits), Growth $385/mo (5,500 credits), 0.25 credits per engine per prompt, Enterprise custom
-AthenaHQ: free tier 300 credits; Starter $295/mo with about 3,600 credits; Enterprise custom
-SE Ranking: Core $129/mo (5 AIs, 100 prompts), Growth $279/mo (250 prompts); SE Visible from $79/mo yearly
-Keyword.com: AI Visibility from $39/mo ($31 yearly)
-Ahrefs Brand Radar: $199/mo per AI index, $699/mo all indexes; Ahrefs Lite $129/mo; 2,500 custom prompt checks a month; Grok included in all indexes
--->
-<!-- EDITOR: internal links: /pricing/, /free-tools/, /blog/best-ai-visibility-tools/, /blog/profound-alternatives/, /blog/otterly-ai-alternatives/, /blog/best-chatgpt-rank-tracker/, /blog/semrush-ai-toolkit-alternative/ -->
-
 # Best Peec AI Alternatives in 2026
 
 Peec AI is a good AI visibility tracker. It checks your prompts every day and shows how often AI names your brand next to your rivals. Many teams start with it because the plans are clear and the price is public.
@@ -82,8 +69,6 @@ None of these are flaws for every team. If 3 AIs fit your buyers and you have a 
 ### 1. Arrowsterr
 
 Arrowsterr tracks how 6 AIs answer your buyers' questions. It adds keyword research and a Content Plan with an AI writer, so you can act on what you find in the same app.
-
-[SCREENSHOT: Arrowsterr Prompts page showing a topic with each AI's latest spot]
 
 **Pricing**
 
@@ -270,8 +255,6 @@ Brand Radar is an Ahrefs add-on. Ahrefs runs a large set of prompts itself, so y
 - Custom prompt checks are capped at 2,500 a month.
 
 **Best for:** Ahrefs users who want market-wide mention data.
-
-[SCREENSHOT: Arrowsterr Sources page with owned, third-party and review site shares]
 
 ## Cost to track 150 prompts on 6 AIs
 

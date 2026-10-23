@@ -6,20 +6,6 @@ meta_description: "Compare the best AI visibility tools for agencies: cost per c
 updated: 2026-10-23
 ---
 
-<!-- EDITOR: prices to confirm on each vendor's own page before publishing:
-Profound Agency Growth: $399/mo per client workspace, 400 credits a month per workspace
-Profound Enterprise: custom, thousands a month
-Peec AI: Starter $95/mo (50 prompts), Pro $245/mo (150), Advanced $495/mo (350), Enterprise custom
-Peec AI: 3 models on self-serve plans, 4th model is an add-on, Claude on Enterprise only
-Otterly.ai: Lite $29/mo (15 prompts), Standard $189/mo (100), Premium $489/mo (400), Enterprise from $1,000/mo
-Otterly.ai add-ons on Premium: Gemini + AI Mode $149/mo, Claude $439/mo
-Rankscale: Pro $99/mo (1,200 credits), Growth $385/mo (5,500 credits, white-label options, REST API), about 0.25 credits per engine per prompt
-Scrunch: from $250/mo yearly ($300 month to month), agency plan about $500/mo
-SE Ranking: Core $129/mo (5 AIs, 100 prompts), Growth $279/mo (250 prompts)
-Nightwatch: Starter about €79/mo (50 AI prompts), Agency about €399/mo
--->
-<!-- EDITOR: internal links: /pricing/, /free-tools/, /blog/best-ai-visibility-tools/, /blog/profound-alternatives/, /blog/peec-ai-alternatives/, /blog/otterly-ai-alternatives/ -->
-
 # Best AI visibility tools for agencies (white-label reports)
 
 Your clients have started to ask a new question. "Does ChatGPT recommend us?" Most of them already tried it once on their phone. They saw a rival named and their own brand left out. Now they want you to fix it, and they want proof each month.
@@ -90,8 +76,6 @@ Arrowsterr tracks how ChatGPT, Gemini, Google AI Overviews, AI Mode, Claude and 
 - 400 prompts on Agency works out to 40 per client at 10 clients. Larger clients may need Enterprise.
 
 **Best for:** agencies that want reporting and the content work that follows in one bill.
-
-[SCREENSHOT: Download PDF window with the Brand Kit design picked, showing the agency's logo on the cover]
 
 ### 2. Profound
 
@@ -290,8 +274,6 @@ Two more details make a report look professional:
 
 In Arrowsterr, the Prompts, Competitors and Sources pages each download as a PDF in your Brand Kit. You can schedule all 3 to go to a client every month in one email.
 
-[SCREENSHOT: Reports, Schedules tab, a monthly schedule for a client with 3 pages and 2 email addresses]
-
 ## How to roll out AI visibility tracking across your clients
 
 1. **Pick 3 pilot clients.** Choose ones who already asked about AI search.
@@ -302,8 +284,6 @@ In Arrowsterr, the Prompts, Competitors and Sources pages each download as a PDF
 6. **Roll out to the rest.** Once the pilot shows movement, add AI visibility to every SEO client.
 
 You can run a free AI Snapshot for any prospect at arrowsterr.com. It makes a strong opener in a sales call.
-
-[SCREENSHOT: Competitors page for a client, showing the quadrant and the battle card against the top rival]
 
 ## FAQ
 

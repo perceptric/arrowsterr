@@ -6,22 +6,6 @@ meta_description: "7 Profound alternatives with public prices, from $29/mo. Comp
 updated: 2026-10-23
 ---
 
-<!-- EDITOR: prices to confirm on each vendor's own page before publishing:
-Profound: self-serve Starter ($99/mo) and Growth ($399/mo) removed in September 2026
-Profound: Agency Growth at $399/mo per client workspace, 400 credits a month
-Profound: Enterprise typically $2,000 to $5,000+/mo (third-party estimates)
-Peec AI: Starter $95/mo (50 prompts), Pro $245/mo (150), Advanced $495/mo (350), Enterprise custom
-Peec AI: 3 models on self-serve plans, 4th model add-on $35/$85/$165 a month, Claude on Enterprise only, 7-day trial
-Otterly.ai: Enterprise from $1,000/mo
-Otterly.ai: Gemini + AI Mode add-on $9/$59/$149 a month; Claude add-on $29/$109/$439 a month
-AthenaHQ: free tier 300 credits; Starter $295/mo with about 3,600 credits; Enterprise custom
-Scrunch: from $250/mo yearly, $300/mo month to month; 4 engines on self-serve; Enterprise custom with 9 engines; agency plan around $500/mo
-Semrush AI Visibility Toolkit: 4 AIs tracked
-Rankscale: Essentials about $20/mo, Pro $99/mo (1,200 credits), Growth $385/mo (5,500 credits), 0.25 credits per engine per prompt
-Semrush AI Visibility Toolkit: $99/mo per domain billed yearly, 25 prompts, +50 prompts $60/mo, extra domain $99/mo, extra user $99/mo
--->
-<!-- EDITOR: internal links: /pricing/, /free-tools/, /blog/best-ai-visibility-tools/, /blog/peec-ai-alternatives/, /blog/otterly-ai-alternatives/, /blog/best-llm-tracking-tools/, /blog/semrush-ai-toolkit-alternative/ -->
-
 # 7 Profound Alternatives for Teams That Don't Need Enterprise Pricing
 
 Profound is one of the best-known tools for tracking how AI answers talk about your brand. Big brands use it to watch ChatGPT, Gemini, Perplexity, Claude and more. In 2026 it also became harder to buy. Most teams now have to book a sales demo to see a price.
@@ -93,8 +77,6 @@ Some tools stop at a dashboard. Others help you plan and write the pages that ch
 ### 1. Arrowsterr
 
 Arrowsterr tracks how 6 AIs talk about your brand and helps you change it. It pairs AI visibility with keyword research and a content plan with an AI writer. You can see a gap and ship the page that fills it without leaving the app.
-
-[SCREENSHOT: Arrowsterr Prompts page with visibility, sentiment and position by AI]
 
 **Pricing**
 
@@ -268,8 +250,6 @@ Semrush added an AI Visibility Toolkit to its SEO platform. It tracks prompts on
 - No free trial to test first.
 
 **Best for:** teams already paying for Semrush who need a light AI view.
-
-[SCREENSHOT: Arrowsterr Competitors page quadrant with visibility vs position]
 
 ## What you give up when you leave Profound
 

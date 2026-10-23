@@ -6,17 +6,6 @@ meta_description: "The best ChatGPT rank trackers in 2026. See if ChatGPT recomm
 updated: 2026-10-23
 ---
 
-<!-- EDITOR: prices to confirm on each vendor's own page before publishing:
-Otterly.ai: Gemini + AI Mode add-on $9/$59/$149; Claude add-on $29/$109/$439; Enterprise from $1,000/mo
-Peec AI: Starter $95/mo, Pro $245/mo, Advanced $495/mo, Enterprise custom; 4th model add-on; 7-day trial
-Keyword.com: AI Visibility from $39/mo ($31 yearly)
-Rank Prompt: from $49/mo, 6 AIs, 150 credits, weekly or monthly runs
-SE Ranking: Core $129/mo with 5 AIs and 100 prompts; Growth $279/mo for 250 prompts; SE Visible from $79/mo yearly
-Profound: self-serve Starter and Growth removed in September 2026; Enterprise typically $2,000 to $5,000+/mo
-Nightwatch: Starter about €79/mo with 50 AI prompts and 500 keywords; Agency about €399/mo
--->
-<!-- EDITOR: internal links: /pricing/, /free-tools/, /blog/best-ai-visibility-tools/, /blog/best-llm-tracking-tools/, /blog/best-geo-tools/, /blog/otterly-ai-alternatives/ -->
-
 # Best ChatGPT Rank Trackers to See If ChatGPT Recommends You
 
 A buyer asks ChatGPT for the best tool in your category. ChatGPT lists 5 brands. Your sales team never sees that moment. You only notice when the leads slow down.
@@ -66,8 +55,6 @@ G2, Capterra, Trustpilot and similar sites show up often in software and service
 
 Clear pages that answer the exact question help. A page titled "[Your product] pricing" with real numbers gets cited for pricing prompts. A comparison page gets cited for "X vs Y" prompts. Vague pages rarely get picked.
 
-[SCREENSHOT: Arrowsterr Sources page showing the pages ChatGPT cites for one prompt]
-
 ## How we picked
 
 - **ChatGPT first.** Every tool here tracks ChatGPT. We noted what else comes in the base price.
@@ -113,8 +100,6 @@ Arrowsterr checks ChatGPT every day and shows your visibility, position, sentime
 - Starter covers one toolset. Keyword research and writing need Pro.
 
 **Best for:** teams that want to see their ChatGPT rank and change it.
-
-[SCREENSHOT: Arrowsterr battle card, you vs your top rival on ChatGPT]
 
 ### 2. Otterly.ai
 
@@ -269,8 +254,6 @@ Before you buy a tracker, run a quick manual test. It gives you a rough first re
 - You can't see the trend. A drop next month will go unnoticed.
 
 If your hand check shows you missing from most answers, start tracking. If it shows you in most answers, track anyway to defend the spot.
-
-[SCREENSHOT: Arrowsterr Prompts page with a 30-day trend for ChatGPT]
 
 ## FAQ
 

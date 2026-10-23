@@ -6,18 +6,6 @@ meta_description: "7 Otterly.ai alternatives that track AI answers and help you 
 updated: 2026-10-23
 ---
 
-<!-- EDITOR: prices to confirm on each vendor's own page before publishing:
-Otterly.ai: Lite $29/mo ($25 yearly, 15 prompts), Standard $189/mo ($160 yearly, 100 prompts), Premium $489/mo ($422 yearly, 400 prompts), Enterprise from $1,000/mo
-Otterly.ai: Gemini + AI Mode add-on $9/$59/$149 a month; Claude add-on $29/$109/$439 a month; extra 100 prompts $99/mo
-AthenaHQ: free tier 300 credits; Starter $295/mo with about 3,600 credits; Enterprise custom
-Peec AI: Starter $95/mo (50 prompts), Pro $245/mo (150), Advanced $495/mo (350), Enterprise custom; 3 models on self-serve; 7-day trial
-Profound: free 7-day trial; Enterprise custom, typically thousands a month; self-serve plans removed September 2026
-Scrunch: from $250/mo yearly, $300/mo month to month; Enterprise custom with 9 engines
-SE Ranking: Core $129/mo (5 AIs, 100 prompts), Growth $279/mo (250 prompts), 14-day trial
-Semrush: AI Visibility Toolkit $99/mo per domain (25 prompts); SEO plans $139.95 to $499.95/mo; Semrush One $199/$299/$549
--->
-<!-- EDITOR: internal links: /pricing/, /free-tools/, /blog/best-ai-visibility-tools/, /blog/profound-alternatives/, /blog/peec-ai-alternatives/, /blog/best-geo-tools/, /blog/semrush-ai-toolkit-alternative/ -->
-
 # Otterly.ai Alternatives: Tools That Also Plan Your Content
 
 Otterly.ai is one of the easiest ways to start tracking AI answers. For $29/mo you can see if ChatGPT, Google AI Overviews, Perplexity and Copilot name your brand. Many teams begin there, and that's a smart first step.
@@ -101,8 +89,6 @@ The best tools turn gaps into a content plan, then into briefs and drafts. Some 
 ### 1. Arrowsterr
 
 Arrowsterr tracks 6 AIs and helps you write the pages that change their answers. AI Visibility shows where you're missing. Organic Research gives you the plan and the AI writer to fix it.
-
-[SCREENSHOT: Arrowsterr Content Plan with pieces grouped by stage]
 
 **Pricing**
 
@@ -269,8 +255,6 @@ Semrush is the biggest SEO suite on this list. Its AI Visibility Toolkit adds pr
 ## From a visibility gap to a published page
 
 Here's a workflow that turns a missing AI mention into a page. It works with any mix of tools. With Arrowsterr, every step happens in one app.
-
-[SCREENSHOT: Arrowsterr Sources page filtered to one prompt]
 
 ### Step 1: Find the prompts you lose
 

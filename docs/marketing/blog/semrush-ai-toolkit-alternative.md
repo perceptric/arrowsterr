@@ -6,21 +6,6 @@ meta_description: "What the Semrush AI Visibility Toolkit really costs for 3 bra
 updated: 2026-10-23
 ---
 
-<!-- EDITOR: prices to confirm on each vendor's own page before publishing:
-Semrush AI Visibility Toolkit: $99/mo per domain (shown as billed yearly, month-to-month may be higher), no free trial
-Semrush AI Visibility Toolkit: 1 domain, 25 tracked prompts, 300 daily AI Analysis queries, 1,000 daily Prompt Research queries
-Semrush add-ons: +50 prompts $60/mo, extra domain $99/mo, extra user $99/mo
-Semrush add-ons: whether an extra domain brings its own 25 prompts (the math below shows both cases)
-Semrush SEO plans: $139.95 to $499.95/mo; Semrush One: $199/$299/$549
-SE Ranking: Core $129/mo (5 AIs, 100 prompts), Growth $279/mo (250 prompts), 14-day trial; seats and projects on Core
-SE Visible: from $79/mo billed yearly
-Ahrefs Brand Radar: $199/mo per AI index, $699/mo for all indexes, needs Ahrefs Lite from $129/mo; 2,500 custom prompt checks a month
-Peec AI: Starter $95/mo (50 prompts), Pro $245/mo (150), Advanced $495/mo (350), 3 models on self-serve
-Otterly.ai: Standard $189/mo (100 prompts, unlimited workspaces); add-ons on Standard: Gemini + AI Mode $59/mo, Claude $109/mo
-Keyword.com: AI Visibility from $39/mo ($31 yearly), rank tracking from $7/mo, 14-day trial
--->
-<!-- EDITOR: internal links: /pricing/, /free-tools/, /blog/best-ai-visibility-tools/, /blog/best-ai-search-tools-for-saas/, /blog/peec-ai-alternatives/, /blog/otterly-ai-alternatives/ -->
-
 # Semrush AI Toolkit alternative: track AI answers without the full Semrush bill
 
 Semrush made AI visibility easy to add. If you already use it for SEO, the AI Visibility Toolkit sits one click away. The entry price of $99/mo looks fair for a first look at ChatGPT and Google AI Overviews.
@@ -118,8 +103,6 @@ Arrowsterr tracks how ChatGPT, Gemini, Google AI Overviews, AI Mode, Claude and 
 - Semrush has a bigger backlink database and more years of historical SEO data.
 
 **Best for:** teams that want AI tracking and SEO research for less than the toolkit alone.
-
-[SCREENSHOT: Prompts page with 3 brands in the brand picker and visibility by AI]
 
 ### 2. SE Ranking
 
@@ -236,8 +219,6 @@ Switching tools is easier with your history in hand. Export these before you can
 7. **Report templates.** Screenshot or export the reports clients or bosses expect, so you can rebuild them.
 
 Then run both tools side by side for 2 to 4 weeks. Compare visibility on the same prompts. AI answers vary between runs, so expect the numbers to differ a little. Look for the same trend.
-
-[SCREENSHOT: Adding prompts in Arrowsterr by pasting a list exported from another tool]
 
 ## FAQ
 
