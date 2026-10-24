@@ -58,7 +58,7 @@ export function draftImages(db: SupabaseClient, model = process.env.WRITER_MODEL
 
     const article = { title: brief.h1, sections: sections.map((s) => ({ h2: s.h2 || "intro", text: sectionPlain(s) })) };
     // One call writes every drawn image's spec. With only the featured image, its title is enough.
-    const raw = tasks.some((t) => isDrawn(t.kind) && t.kind !== "featured") ? await askJson(specPrompt(tasks, article), SPECS_SCHEMA, { prefix, model, maxTokens: 6000 }) : { specs: [] };
+    const raw = tasks.some((t) => isDrawn(t.kind) && t.kind !== "featured") ? await askJson(specPrompt(tasks, article), SPECS_SCHEMA, { prefix, model, maxTokens: 6000 }).catch(() => ({ specs: [] })) : { specs: [] }; // a failed call leaves notes, never a failed draft
     const { renders, missing } = planRenders(tasks, raw, article, ctx.kit);
     const base = { workspace_id: draft.workspace_id, draft_id: draft.id, version: draft.version };
     const out: Record<string, unknown>[] = [];

@@ -507,14 +507,16 @@ export function editBrief(old: WriterBrief, patch: unknown): WriterBrief {
     faqs: faqs ? faqs.slice(0, 20).map((f) => ({ question: txt(f.question, 300, ""), answer: txt(f.answer, 1500, "") })).filter((f) => f.question.trim()) : old.faqs,
     cta: cta ? { text: txt(cta.text, 300, old.cta.text), where: txt(cta.where, 300, old.cta.where) } : old.cta,
     // Images can be removed or reworded; a new one must be one the brief already had, so nothing unchecked slips in.
-    images: rows(p.images)
-      ? (rows(p.images) ?? [])
-          .map((m) => {
-            const was = (old.images ?? []).find((o) => o.placement === m.placement && (o.kind ?? "") === (m.kind ?? "") && (o.url ?? "") === (m.url ?? ""));
-            return was ? { ...was, shows: txt(m.shows, 300, was.shows), alt: txt(m.alt, 200, was.alt) } : null;
-          })
-          .filter((m): m is BriefImage => m !== null)
-      : old.images,
-    checks: lines(p.checks, 20, old.checks ?? []),
+    ...(rows(p.images)
+      ? {
+          images: (rows(p.images) ?? [])
+            .map((m) => {
+              const was = (old.images ?? []).find((o) => o.placement === m.placement && (o.kind ?? "") === (m.kind ?? "") && (o.url ?? "") === (m.url ?? ""));
+              return was ? { ...was, shows: txt(m.shows, 300, was.shows), alt: txt(m.alt, 200, was.alt) } : null;
+            })
+            .filter((m): m is BriefImage => m !== null),
+        }
+      : {}),
+    ...(Array.isArray(p.checks) ? { checks: lines(p.checks, 20, old.checks ?? []) } : {}),
   };
 }

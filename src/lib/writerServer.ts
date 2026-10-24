@@ -13,6 +13,7 @@ import { DEFAULT_SAMPLE } from "./houseRules";
 import { pageText } from "./pageText";
 import { safeFetch } from "./safeFetch";
 import { REVIEW_SCHEMA, STYLE_SYSTEM } from "./writerStyle";
+import { draftImages } from "./writerImagesServer";
 
 // The database and paid calls behind the Agentic Writer (writerBrief.ts, writerDraft.ts) and its two jobs:
 // writer_brief (waits for the article research, then writes the brief) and writer_draft (sections, check, modules, doc).
@@ -197,6 +198,8 @@ const draftDeps = (db: SupabaseClient): DraftDeps => ({
   styleReview: (prefix, prompt) => askJson(prompt, REVIEW_SCHEMA, { system: STYLE_SYSTEM, prefix, model: writerModel(), maxTokens: 6000 }),
   styleFix: (prefix, prompt) => askJson(prompt, SECTION_SCHEMA, { system: STYLE_SYSTEM, prefix, model: writerModel(), maxTokens: 5000 }),
   buildModule: (prefix, prompt) => askJson(prompt, MODULE_SCHEMA, { prefix, model: writerModel(), maxTokens: 12000 }),
+  // Screenshots and branded images, made by the worker (writerImagesServer.ts, 057_writer_images.sql).
+  images: draftImages(db, writerModel()),
   model: writerModel(),
 });
 
