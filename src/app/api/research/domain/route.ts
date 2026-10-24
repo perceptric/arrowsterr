@@ -1,9 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { cached, DAY } from "@/lib/cache";
 import { dfsReady, NOT_SAVED, savedOnly } from "@/lib/dataforseo";
 import { saveBulkRun } from "@/lib/bulkRuns";
-import { bulkDomains, competitors, domainOverview, parseTarget, rankedFor, Spend, targetLabel, type Scope } from "@/lib/keywords";
-import { BULK_LIMIT, bulkList, MARKETS, pagesOf, type DomainBulkRow, type DomainReport } from "@/lib/research";
+import { domainReport } from "@/lib/domainReport";
+import { bulkDomains, parseTarget, Spend, type Scope } from "@/lib/keywords";
+import { BULK_LIMIT, bulkList, MARKETS, type DomainBulkRow, type DomainReport } from "@/lib/research";
 import { scopeOf } from "@/lib/scope";
 import { isEditor, requireRole } from "@/lib/serverAuth";
 import { meteredRoute } from "@/lib/meter";
@@ -36,42 +36,19 @@ async function handle(request: Request) {
     const hint = { domain: "a domain, like acme.com", subdomain: "a subdomain, like blog.acme.com", subfolder: "a folder, like acme.com/blog", url: "a page, like acme.com/pricing" }[scope];
     return Response.json({ error: `Enter ${hint}.` }, { status: 400 });
   }
-  const domain = targetLabel(target);
   const country = MARKETS[body.country] ? String(body.country) : "United States";
-  const m = MARKETS[country];
   const more = Boolean(body.more);
 
   try {
-    const spend = new Spend();
-    const key = (part: string) => `dom:${scope}:${part}:${m.location}:${m.language}:${domain}`;
-    const whole = scope === "domain";
     // Viewers only read what is saved: the keywords must be there, the rest may come back empty.
-    const run = async <T>(fn: () => Promise<T>): Promise<T> => {
-      if (editor) return fn();
-      const r = await savedOnly(fn);
+    const build = () => domainReport(target, country, more, new Spend());
+    let report: DomainReport;
+    if (editor) report = await build();
+    else {
+      const r = await savedOnly(build);
       if (r.data === null) throw new Error(NOT_SAVED);
-      return r.data;
-    };
-    const [ranked, overview, rivals] = await run(() => Promise.all([
-      // 100 keywords up front. "Load more" asks for 500, cached separately.
-      cached(key(more ? "kw500" : "kw"), 30 * DAY, () => rankedFor(target, m, spend, more ? 500 : 100)).then((r) => r.data),
-      // A subdomain, folder or page gets its size from the ranked keywords call.
-      whole ? cached(key("ov"), 30 * DAY, () => domainOverview(target.host, m, spend)).then((r) => r.data).catch(() => null) : null,
-      cached(`dom:comp:${m.location}:${m.language}:${target.host}`, 30 * DAY, () => competitors(target.host, m, spend, 10)).then((r) => r.data).catch(() => []),
-    ]));
-    const keywords = ranked.keywords;
-    const report: DomainReport = {
-      domain,
-      scope,
-      country,
-      overview: overview ?? ranked.overview,
-      keywords,
-      more,
-      pages: pagesOf(keywords).slice(0, 100),
-      competitors: rivals,
-      cost: Math.round(spend.total * 10000) / 10000,
-      cached: spend.total === 0,
-    };
+      report = r.data;
+    }
     return Response.json(report);
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);

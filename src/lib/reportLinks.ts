@@ -62,6 +62,21 @@ export function linkProblem(ask: LinkAsk, limits: ReportLimits, now = Date.now()
   return null;
 }
 
+/**
+ * Why a shared link's password or expiry date can't be saved (docs/reports.md, section 32.7), with limit = true when
+ * a higher plan allows it. undefined leaves a field as it is; "" removes it, which every plan may do.
+ * expires is a day, YYYY-MM-DD; the link works until the end of that day (UTC).
+ */
+export function linkSettingsProblem(ask: { password?: string; expires?: string }, secure: boolean, now = Date.now()): { error: string; limit?: boolean } | null {
+  if ((ask.password || ask.expires) && !secure) return { error: "Passwords and expiry dates are on Pro and up.", limit: true };
+  if (ask.password && (ask.password.length < 6 || ask.password.length > 100)) return { error: "Use a password of 6 to 100 characters." };
+  if (ask.expires) {
+    const end = /^\d{4}-\d{2}-\d{2}$/.test(ask.expires) ? Date.parse(`${ask.expires}T23:59:59Z`) : NaN;
+    if (Number.isNaN(end) || end < now) return { error: "Pick an expiry date in the future." };
+  }
+  return null;
+}
+
 /** A report sent from the browser keeps "Made with Arrowsterr" unless the plan allows hiding it. */
 export function guardWhiteLabel<T extends object>(data: T, allowed: boolean): T {
   const style = (data as { style?: { whiteLabel?: boolean } }).style;

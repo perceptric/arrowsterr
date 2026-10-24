@@ -2,15 +2,33 @@
 // and the screen show the same numbers for the same data. Pure: the server feeds it runs; tests feed it fixtures.
 import type { Chat, Run } from "../chats.ts";
 import type { DesignTokens } from "./design.ts";
+import type { ResearchPage, ResearchPdf } from "./research.ts";
 import { answered, battle, brandStats, competitorDomains, domainRows, promptRows, rankOf, splitPeriods, topicGrid, topicRows, trend, typeShares, urlRows, type BrandStat, type Filter, type Metric } from "../metrics.ts";
 
-export type PdfPage = "prompts" | "competitors" | "sources";
+/** Pages whose PDF is built from AI answers, with period, topic and model filters. These can be scheduled. */
+export type AiPage = "prompts" | "competitors" | "sources";
+export type PdfPage = AiPage | ResearchPage;
 export const PDF_PAGES: { id: PdfPage; title: string }[] = [
   { id: "prompts", title: "AI Visibility by Prompt" },
   { id: "competitors", title: "Competitive Analysis in AI Answers" },
   { id: "sources", title: "Sources AI Cites" },
+  { id: "keywords", title: "Keyword Report" },
+  { id: "domain", title: "Domain Report" },
+  { id: "gap", title: "Keyword Gap" },
 ];
 export const isPdfPage = (v: unknown): v is PdfPage => PDF_PAGES.some((p) => p.id === v);
+export const isAiPage = (v: unknown): v is AiPage => v === "prompts" || v === "competitors" || v === "sources";
+
+/** The short line under a file's name in Reports: its dates and filters, or what was researched. */
+export function fileLine(page: string, params: Record<string, unknown>): string {
+  const s = (v: unknown) => (typeof v === "string" && v ? v : "");
+  if (page === "keywords" || page === "domain") {
+    if (s(params.bulk)) return "Bulk analysis";
+    return [s(params.keyword) || s(params.domain), s(params.country)].filter(Boolean).join(" · ");
+  }
+  if (page === "gap") return s(params.competitor) ? `vs ${s(params.competitor)}` : "";
+  return [`Last ${Number(params.days) || 30} days`, s(params.topic), s(params.model)].filter(Boolean).join(" · ");
+}
 
 /** The filters a PDF was made with. */
 export type PdfParams = { days: number; topic: string | null; model: string | null };
@@ -189,10 +207,11 @@ export function sourcesPdf(v: PdfView): SourcesPdf {
   };
 }
 
-export type PdfData = PromptsPdf | CompetitorsPdf | SourcesPdf;
+export type AiPdf = PromptsPdf | CompetitorsPdf | SourcesPdf;
+export type PdfData = AiPdf | ResearchPdf;
 
-/** Build one page's PDF data. */
-export function pdfData(page: PdfPage, v: PdfView): PdfData {
+/** Build one AI page's PDF data. */
+export function pdfData(page: AiPage, v: PdfView): AiPdf {
   return page === "prompts" ? promptsPdf(v) : page === "competitors" ? competitorsPdf(v) : sourcesPdf(v);
 }
 
@@ -201,8 +220,8 @@ export type PdfSnapshot = {
   v: 1;
   title: string;
   brand: PdfBrand;
-  period: string; // "Last 30 days · Sep 17, 2026 – Oct 16, 2026"
-  filters: string[]; // "Topic: CRM software", "Model: ChatGPT"
+  period: string; // "Last 30 days · Sep 17, 2026 – Oct 16, 2026", or "Google · United States" on research pages
+  filters: string[]; // "Topic: CRM software", "Model: ChatGPT", "Desktop"
   at: string;
   tokens: DesignTokens;
   data: PdfData;

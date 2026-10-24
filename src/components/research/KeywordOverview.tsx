@@ -4,7 +4,7 @@ import { Dropdown } from "../Pickers";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useContext, useEffect, useRef, useState } from "react";
 import { addCalendarItems, type Site } from "@/lib/db";
-import { filterWords, isMatchType, MARKETS, MATCH_TYPES, stageFromIntent, wordGroups, wordList, type KeywordReport, type KwList, type KwSummary, type MatchType } from "@/lib/research";
+import { filterWords, isMatchType, kdWord, MARKETS, MATCH_TYPES, stageFromIntent, wordGroups, wordList, type KeywordReport, type KwList, type KwSummary, type MatchType } from "@/lib/research";
 import type { RunAuth } from "@/lib/runner";
 import { countryOf, dbOf, domainHref, keywordHref, plainClick, setUrl, urlParams } from "@/lib/researchUrl";
 import { peek, putStash, useStash } from "@/lib/stash";
@@ -23,7 +23,7 @@ export const flag = (country: string) => {
   const c = ISO[country];
   return c ? String.fromCodePoint(...[...c].map((ch) => 127397 + ch.charCodeAt(0))) : "🌐";
 };
-export const kdWord = (kd: number) => (kd < 15 ? "Very easy" : kd < 30 ? "Easy" : kd < 50 ? "Possible" : kd < 70 ? "Difficult" : kd < 85 ? "Hard" : "Very hard");
+export { kdWord };
 export const kdColor = (kd: number) => (kd < 30 ? "var(--aw-pos)" : kd < 50 ? "#F5B70A" : kd < 70 ? "#EA580C" : "var(--aw-neg)");
 export const short = (n: number | null | undefined) =>
   n === null || n === undefined ? "–" : n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `${(n / 1e3).toFixed(1).replace(/\.0$/, "")}K` : String(n);

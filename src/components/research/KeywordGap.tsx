@@ -5,7 +5,7 @@ import { useEffect, useId, useState } from "react";
 import { addCalendarItems, type Site } from "@/lib/db";
 import { stageFromIntent } from "@/lib/research";
 import type { BrandStat } from "@/lib/metrics";
-import type { Gap, GapRow } from "@/lib/gap";
+import { bare, nameFromDomain, splitShared, type Gap, type GapRow } from "@/lib/gap";
 import type { RunAuth } from "@/lib/runner";
 import { useStash } from "@/lib/stash";
 import { BrandLogo } from "../BrandLogo";
@@ -22,19 +22,6 @@ const LABEL = (them: string): Record<Tab, string> => ({
   only: "Owned by you",
 });
 const rank = (n: number | null) => (n === null ? <span className="text-muted">–</span> : <span className="aw-rank">#{n}</span>);
-
-const bare = (d: string | null | undefined) => (d ?? "").toLowerCase().replace(/^www\./, "");
-
-/** A readable name from a domain: animalz.co → Animalz, the-hoth.com → The Hoth, acme.co.uk → Acme. */
-export function nameFromDomain(d: string) {
-  const parts = bare(d).split("/")[0].split(".");
-  const base = parts.length > 2 && /^(co|com|org|net|ac|gov|edu)$/.test(parts[parts.length - 2]) ? parts[parts.length - 3] : (parts[parts.length - 2] ?? parts[0]);
-  return base
-    .split(/[-_]/)
-    .filter(Boolean)
-    .map((w) => w[0].toUpperCase() + w.slice(1))
-    .join(" ");
-}
 
 /** A brand's logo and name side by side. */
 const Brand = ({ name, logo, size = 16 }: { name: string; logo: string; size?: number }) => (
@@ -102,8 +89,7 @@ export function KeywordGap({
 
   const gap = result?.gap;
   // Shared keywords split by who ranks higher: an opportunity when they beat you, a lead when you beat them.
-  const weaker = (gap?.shared ?? []).filter((r) => r.you !== null && r.them !== null && r.you > r.them);
-  const lead = (gap?.shared ?? []).filter((r) => !weaker.includes(r));
+  const { weaker, lead } = splitShared(gap?.shared ?? []);
   const lists: Record<Tab, GapRow[]> = { missing: gap?.missing ?? [], shared: gap?.shared ?? [], weaker, lead, only: gap?.only ?? [] };
   const counts: Record<Tab, number> = { missing: gap?.totals.missing ?? 0, shared: gap?.totals.shared ?? 0, weaker: weaker.length, lead: lead.length, only: gap?.totals.only ?? 0 };
   const rows = lists[tab];

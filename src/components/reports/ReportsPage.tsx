@@ -2,21 +2,69 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useState } from "react";
-import { PDF_PAGES } from "@/lib/pdf/pages";
+import { fileLine, PDF_PAGES } from "@/lib/pdf/pages";
+import type { ReportLimits } from "@/lib/plans";
 import type { RunAuth } from "@/lib/runner";
 import { ToolIntro } from "../ToolIntro";
-import { Thinking } from "../ui";
+import { Seg, Thinking } from "../ui";
 import { Confirm } from "./Dialog";
-import { errText, post } from "./reportApi";
+import { LinksTab } from "./LinksTab";
+import { errText, openFile, post } from "./reportApi";
+import { SchedulesTab } from "./SchedulesTab";
 
-// Reports (docs/reports.md, section 32.4): every PDF made from a page's Download PDF, newest first.
-// Schedules that email them come in phase 4.
+// Reports (docs/reports.md, section 32.4): every PDF made from a page's Download PDF or a schedule, newest first;
+// the schedules that email them; and the links shared from Prompts and Competitors.
 
-type FileRow = { id: string; brand_id: string | null; page: string; title: string; design: "arrowsterr" | "brand"; params: { days?: number; topic?: string | null; model?: string | null }; status: "making" | "ready" | "failed"; error: string | null; created_at: string };
-const COLS = "id, brand_id, page, title, design, params, status, error, created_at";
-const when = (t: string) => new Date(t).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
+type FileRow = { id: string; brand_id: string | null; page: string; title: string; design: "arrowsterr" | "brand"; params: Record<string, unknown>; status: "making" | "ready" | "failed"; error: string | null; source: "download" | "schedule"; created_at: string };
+const COLS = "id, brand_id, page, title, design, params, status, error, source, created_at";
+export const when = (t: string) => new Date(t).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
+type Tab = "files" | "schedules" | "links";
 
-export function ReportsPage({ sb, auth, brands, canEdit }: { sb: SupabaseClient; auth: RunAuth; brands: { id: string; name: string }[]; canEdit: boolean }) {
+export function ReportsPage({
+  sb,
+  auth,
+  brands,
+  canEdit,
+  limits,
+  historyDays,
+  onUpgrade,
+}: {
+  sb: SupabaseClient;
+  auth: RunAuth;
+  brands: { id: string; name: string }[];
+  canEdit: boolean;
+  limits: ReportLimits | null;
+  historyDays: number;
+  onUpgrade: () => void;
+}) {
+  const [tab, setTab] = useState<Tab>("files");
+  return (
+    <div className="flex flex-col gap-6">
+      <h1 className="aw-h2">Reports</h1>
+      <div className="flex">
+        <Seg
+          label="Reports"
+          value={tab}
+          onChange={setTab}
+          options={[
+            { id: "files", label: "Downloads" },
+            { id: "schedules", label: "Schedules" },
+            { id: "links", label: "Links" },
+          ]}
+        />
+      </div>
+      {tab === "files" ? (
+        <Downloads sb={sb} auth={auth} brands={brands} canEdit={canEdit} />
+      ) : tab === "schedules" ? (
+        <SchedulesTab sb={sb} auth={auth} brands={brands} canEdit={canEdit} limits={limits} historyDays={historyDays} onUpgrade={onUpgrade} />
+      ) : (
+        <LinksTab sb={sb} auth={auth} brands={brands} canEdit={canEdit} secure={Boolean(limits?.secure)} />
+      )}
+    </div>
+  );
+}
+
+function Downloads({ sb, auth, brands, canEdit }: { sb: SupabaseClient; auth: RunAuth; brands: { id: string; name: string }[]; canEdit: boolean }) {
   const [files, setFiles] = useState<FileRow[] | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState("");
@@ -28,7 +76,7 @@ export function ReportsPage({ sb, auth, brands, canEdit }: { sb: SupabaseClient;
     else setFiles((data ?? []) as FileRow[]);
   }, [sb, auth.workspaceId]);
   useEffect(() => {
-    // Loading the files when the page opens is the point of this effect.
+    // Loading the files when the tab opens is the point of this effect.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
   }, [load]);
@@ -37,10 +85,8 @@ export function ReportsPage({ sb, auth, brands, canEdit }: { sb: SupabaseClient;
     setBusy(f.id);
     setError("");
     try {
-      const s = await post<{ status: string; url?: string; error?: string }>(auth, "/api/files", { action: "status", fileId: f.id });
-      if (s.status === "ready" && s.url) window.location.assign(s.url);
-      else if (s.status === "failed") setError(s.error ?? "That PDF failed.");
-      else setError("That PDF is still being made. Try again in a minute.");
+      const why = await openFile(auth, f.id);
+      if (why) setError(why);
     } catch (e) {
       setError(errText(e));
     } finally {
@@ -65,14 +111,13 @@ export function ReportsPage({ sb, auth, brands, canEdit }: { sb: SupabaseClient;
   const brandName = (id: string | null) => brands.find((b) => b.id === id)?.name ?? "–";
 
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="aw-h2">Reports</h1>
+    <>
       {error ? <p className="aw-error">{error}</p> : null}
       {!files.length ? (
         <ToolIntro
           eyebrow="Reports"
           title="Every PDF you download lands here"
-          lead="Click Download PDF on Prompts, Competitors or Sources. Pick the Arrowsterr design or your Brand Kit's, and the file is kept here to download again."
+          lead="Click Download PDF on any page. Pick the Arrowsterr design or your Brand Kit's, and the file is kept here to download again."
         />
       ) : (
         <section className="aw-frame overflow-x-auto">
@@ -90,13 +135,12 @@ export function ReportsPage({ sb, auth, brands, canEdit }: { sb: SupabaseClient;
             <tbody>
               {files.map((f) => (
                 <tr key={f.id}>
-                  <td className="font-medium text-ink">{f.title || PDF_PAGES.find((p) => p.id === f.page)?.title}</td>
-                  <td>{brandName(f.brand_id)}</td>
-                  <td className="aw-num text-[13px]">
-                    Last {f.params.days ?? 30} days
-                    {f.params.topic ? ` · ${f.params.topic}` : ""}
-                    {f.params.model ? ` · ${f.params.model}` : ""}
+                  <td className="font-medium text-ink">
+                    {f.title || PDF_PAGES.find((p) => p.id === f.page)?.title}
+                    {f.source === "schedule" ? <span className="aw-status aw-status--pending ml-2 align-middle">Scheduled</span> : null}
                   </td>
+                  <td>{brandName(f.brand_id)}</td>
+                  <td className="aw-num text-[13px]">{fileLine(f.page, f.params ?? {})}</td>
                   <td>{f.design === "brand" ? "Brand Kit" : "Arrowsterr"}</td>
                   <td className="text-[13px] text-muted">{when(f.created_at)}</td>
                   <td className="text-right">
@@ -126,6 +170,6 @@ export function ReportsPage({ sb, auth, brands, canEdit }: { sb: SupabaseClient;
         </section>
       )}
       {deleting ? <Confirm title="Delete this PDF?" text="The file goes for everyone in this workspace." action="Delete" busy={busy === deleting.id} onConfirm={() => remove(deleting)} onClose={() => setDeleting(null)} /> : null}
-    </div>
+    </>
   );
 }

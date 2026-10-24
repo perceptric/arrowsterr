@@ -35,7 +35,7 @@ import {
   type SavedRun,
   type Workspace,
 } from "@/lib/db";
-import { PLANS, promptAllowance, type PlanId, type Track } from "@/lib/plans";
+import { PLANS, promptAllowance, reportLimits, type PlanId, type Track } from "@/lib/plans";
 import { Glimpse } from "./Glimpse";
 import { splitPeriods, type Filter } from "@/lib/metrics";
 import type { View } from "@/lib/view";
@@ -53,6 +53,7 @@ import { NotificationSettings, ProfileSettings, SecuritySettings } from "./Accou
 import { AccessSettings, AiSettingsPage, RetentionSettings, TimezoneSetting } from "./WorkspaceSettings";
 import { BrandKitSettings } from "./BrandKit";
 import { DownloadPdf } from "./pdf/DownloadPdf";
+import { researchTarget } from "./research/pdfTarget";
 import { PDF_PAGES, type PdfPage } from "@/lib/pdf/pages";
 import { answersSince, competitorsSnapshot, promptsSnapshot } from "@/lib/shareSnapshot";
 import { ShareButton } from "./ShareDialog";
@@ -76,7 +77,7 @@ type Page = "prompts" | "competitors" | "domains" | "urls" | "traffic" | "visito
 const RESEARCH: Page[] = ["keywords", "domain", "gap", "calendar"];
 const VISIBILITY: Page[] = ["prompts", "competitors", "domains", "urls"];
 /** Pages with their own PDF (docs/reports.md, section 32.3). */
-const PDF_OF: Partial<Record<Page, PdfPage>> = { prompts: "prompts", competitors: "competitors", domains: "sources", urls: "sources" }; // the only pages with period, topic and model filters
+const PDF_OF: Partial<Record<Page, PdfPage>> = { prompts: "prompts", competitors: "competitors", domains: "sources", urls: "sources", keywords: "keywords", domain: "domain", gap: "gap" };
 /** Pages with Share, a frozen link anyone can open (docs/reports.md, section 32.7). */
 const SHARE_OF: Partial<Record<Page, "prompts" | "competitors">> = { prompts: "prompts", competitors: "competitors" };
 
@@ -727,6 +728,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
                   auth={auth}
                   brandId={active.id}
                   title={PDF_PAGES.find((p) => p.id === SHARE_OF[page])!.title}
+                  secure={plan ? reportLimits(plan.plan).secure : false}
                   snapshot={async () =>
                     SHARE_OF[page] === "prompts"
                       ? promptsSnapshot(view, await latestAnswersFor(sb, active.id, view.topics.flatMap((t) => t.prompts), answersSince(view)))
@@ -742,7 +744,12 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
                   auth={auth}
                   page={PDF_OF[page]!}
                   brand={{ id: active.id, name: active.name }}
-                  params={{ days, topic, model }}
+                  target={() => {
+                    const p = PDF_OF[page]!;
+                    if (p === "keywords" || p === "domain" || p === "gap") return researchTarget(p, active.id, days);
+                    const line = [`Last ${days} days`, topic !== "All" ? topic : "", model !== "All" ? model : ""].filter(Boolean).join(" · ");
+                    return { params: { days, topic, model }, title: PDF_PAGES.find((x) => x.id === p)!.title, line };
+                  }}
                   whiteLabel={plan?.limits.reports === "whitelabel"}
                   onBrandKit={() => go("brandkit")}
                 />
@@ -937,7 +944,16 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
               }}
             />
           ) : page === "summary" ? (
-            <ReportsPage key={ws.id} sb={sb} auth={auth} brands={(brands ?? []).map((b) => ({ id: b.id, name: b.name }))} canEdit={canEdit} />
+            <ReportsPage
+              key={ws.id}
+              sb={sb}
+              auth={auth}
+              brands={(brands ?? []).map((b) => ({ id: b.id, name: b.name }))}
+              canEdit={canEdit}
+              limits={plan ? reportLimits(plan.plan) : null}
+              historyDays={plan?.limits.historyDays ?? 30}
+              onUpgrade={() => go("billing")}
+            />
           ) : page === "visitors" ? (
             <VisitorsPage key={view.brand.id} view={view} auth={auth} />
           ) : page === "traffic" ? (

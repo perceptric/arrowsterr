@@ -61,19 +61,19 @@ export const PLANS: Record<PlanId, Plan> = {
  * What each plan may do with reports (docs/reports.md, section 19). Limits stop new reports and links only;
  * reports and links made before a downgrade keep working.
  */
-export type ReportLimits = { saved: number; live: boolean; secure: boolean; whiteLabel: boolean };
+export type ReportLimits = { saved: number; live: boolean; secure: boolean; whiteLabel: boolean; schedules: number };
 export function reportLimits(plan: PlanId): ReportLimits {
   switch (plan) {
     case "free":
-      return { saved: 1, live: false, secure: false, whiteLabel: false };
+      return { saved: 1, live: false, secure: false, whiteLabel: false, schedules: 0 };
     case "foundation":
     case "trial":
-      return { saved: 10, live: true, secure: false, whiteLabel: false };
+      return { saved: 10, live: true, secure: false, whiteLabel: false, schedules: 2 };
     case "scale":
     case "thrive":
-      return { saved: 50, live: true, secure: true, whiteLabel: false };
+      return { saved: 50, live: true, secure: true, whiteLabel: false, schedules: 10 };
     default:
-      return { saved: UNLIMITED, live: true, secure: true, whiteLabel: PLANS[plan]?.reports === "whitelabel" };
+      return { saved: UNLIMITED, live: true, secure: true, whiteLabel: PLANS[plan]?.reports === "whitelabel", schedules: UNLIMITED };
   }
 }
 
