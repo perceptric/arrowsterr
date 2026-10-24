@@ -5,6 +5,7 @@ import { adminClient, requireRole } from "@/lib/serverAuth";
 import type { BriefRow } from "@/lib/writerBrief";
 import { startBrief } from "@/lib/writerServer";
 import { brandMissing } from "@/lib/articleGrid";
+import { ensureBrandSetup } from "@/lib/brandSetupServer";
 import { take } from "@/lib/entitlements";
 import { brandOf, generateSection } from "@/lib/gridServer";
 import { meteredRoute } from "@/lib/meter";
@@ -16,7 +17,7 @@ import { TASK_COST } from "@/lib/plans";
 //   { action: "brand", itemId }       what the Brand page still needs before content can be generated: { missing }
 //   { action: "section", itemId, part: "intro" | "section", h2, index, points, note, current, module }
 //                                     generate one section's content (and its module); returns { nodes, moduleError }.
-//                                     Refused while the brand's voice, guidelines or kit is missing.
+//                                     The brand's voice, guidelines and kit are filled in first when missing.
 const ACTIONS = ["generate", "brand", "section"];
 const fail = (error: string, status: number) => Response.json({ error }, { status });
 const NOT_RUN = (m: string) => (/writer_/.test(m) ? "Run supabase/050_agentic_writer.sql in Supabase." : m);
@@ -79,6 +80,8 @@ async function handle(request: Request) {
     if (!it) return fail("Topic not found.", 404);
     const b = await briefOf(it.id);
     if (!b?.brief || (b.status !== "ready" && b.status !== "approved")) return fail("Generate the brief first.", 409);
+    // The brand's kit, guidelines and voice are filled in on first use, so nobody has to set them up first.
+    await ensureBrandSetup(db, b.brand_id);
     const missing = brandMissing(await brandOf(db, b));
     if (action === "brand") return Response.json({ missing });
     if (missing.length) return Response.json({ error: `Fill in ${missing.join(", ")} on the Brand page first.`, missing }, { status: 409 });

@@ -58,6 +58,17 @@ export function LibraryPage({ view, auth, canEdit }: { view: View; auth: RunAuth
   }, [load]);
   usePoll(Boolean(!open && rows?.some(making)), 5000, load);
 
+  // A draft opened in a new tab comes as /library?doc=<id>&brand=<id>: open that article, then tidy the address.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const doc = params.get("doc");
+    if (!doc) return;
+    setOpen({ kind: "doc", id: doc });
+    params.delete("doc");
+    params.delete("brand");
+    window.history.replaceState(null, "", window.location.pathname + (params.size ? `?${params}` : ""));
+  }, [setOpen]);
+
   if (site === undefined || (site && rows === null)) return <Thinking text="Opening the Library..." />;
   if (!site) return <p className="aw-error">{siteError || "This brand has no website yet."}</p>;
 

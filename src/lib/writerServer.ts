@@ -8,6 +8,12 @@ import { enqueue, finish, retry, type Job } from "./jobs";
 import { BRIEF_SCHEMA, drive, runBrief, type BriefDeps, type BriefRow, type BriefStore, type ResearchPack, type WriterContext } from "./writerBrief";
 import { CHECK_SCHEMA, requestDraft, runDraft, SECTION_SCHEMA, type DraftAsk, type DraftDeps, type DraftRow, type DraftStore, type QuotaStore } from "./writerDraft";
 import { MODULE_SCHEMA } from "./writerModules";
+import { ensureBrandSetup } from "./brandSetupServer";
+import { DEFAULT_SAMPLE } from "./houseRules";
+import { pageText } from "./pageText";
+import { safeFetch } from "./safeFetch";
+import { REVIEW_SCHEMA, STYLE_SYSTEM } from "./writerStyle";
+import { draftImages } from "./writerImagesServer";
 
 // The database and paid calls behind the Agentic Writer (writerBrief.ts, writerDraft.ts) and its two jobs:
 // writer_brief (waits for the article research, then writes the brief) and writer_draft (sections, check, modules, doc).
@@ -99,7 +105,7 @@ export function quotaStore(db: SupabaseClient): QuotaStore {
       must(
         await db
           .from("writer_drafts")
-          .update({ ...patch, version, status: "generating", step: "sections", sections: [], checked: null, check_at: null, modules: [], error: null, started_at: stamp(), updated_at: stamp() })
+          .update({ ...patch, version, status: "generating", step: "sections", sections: [], styled: null, checked: null, check_at: null, images: null, modules: [], error: null, started_at: stamp(), updated_at: stamp() })
           .eq("id", id)
           .eq("version", cur.version),
       );
@@ -146,7 +152,7 @@ export async function loadWriterContext(db: SupabaseClient, siteId: string, bran
   if (!site) throw new Error("This topic's website was deleted.");
   const id = brandId ?? site.brand_id;
   const brand = id ? ((must(await db.from("brands").select("name, domain").eq("id", id).maybeSingle()) as { name: string; domain: string } | null) ?? null) : null;
-  const ctx = id ? await loadBrandContext(db, id) : { voice: null, kit: null, guidelines: null };
+  const ctx = id ? await loadBrandContext(db, id) : { voice: null, kit: null, guidelines: null, sample: DEFAULT_SAMPLE };
   return {
     brand: { name: brand?.name || site.name, domain: (brand?.domain || site.domain).replace(/^https?:\/\//, "").replace(/\/.*$/, "") },
     ...ctx,
@@ -160,23 +166,40 @@ const briefDeps = (db: SupabaseClient): BriefDeps => ({
   runStatus: async (runId) => must(await db.from("article_runs").select("status, error").eq("id", runId).maybeSingle()),
   research: (runId) => loadResearch(db, runId),
   async context(b) {
+    // The brand's kit, guidelines and voice are filled in the first time they're needed (brandSetupServer.ts).
+    await ensureBrandSetup(db, b.brand_id);
     // The piece's funnel stage rides along: a BOFU brief is a listicle (listicle.ts).
     const [ctx, item] = await Promise.all([loadWriterContext(db, b.site_id, b.brand_id), db.from("calendar_items").select("stage").eq("id", b.item_id).maybeSingle()]);
     return { ...ctx, stage: ((item.data as { stage?: WriterContext["stage"] } | null)?.stage ?? null) };
   },
-  write: (prefix, prompt) => askJson(prompt, BRIEF_SCHEMA, { prefix, model: writerModel(), maxTokens: 8000 }),
+  write: (prefix, prompt) => askJson(prompt, BRIEF_SCHEMA, { prefix, model: writerModel(), maxTokens: 12000 }),
+  readPage: readExample,
   model: writerModel(),
 });
+
+/** A featured example's own page, read plainly (private addresses are refused by safeFetch). */
+async function readExample(url: string): Promise<{ title: string; text: string; ok: boolean; error?: string }> {
+  const r = await safeFetch(url, { timeout: 15_000, maxBytes: 2_000_000 });
+  if (!r.ok) return { title: "", text: "", ok: false, error: r.error ?? `It answered ${r.status}.` };
+  const { title, text, words } = pageText(r.body, 4000);
+  return words < 40 ? { title, text: "", ok: false, error: "Too little text on the page." } : { title, text, ok: true };
+}
 
 const draftDeps = (db: SupabaseClient): DraftDeps => ({
   async context(d, b) {
     if (!b.research_run_id) throw new Error("The brief behind this draft has no research.");
+    await ensureBrandSetup(db, d.brand_id);
     const [ctx, pack] = await Promise.all([loadWriterContext(db, d.site_id, d.brand_id), loadResearch(db, b.research_run_id)]);
     return { ctx, pack };
   },
   writeSection: (prefix, prompt) => askJson(prompt, SECTION_SCHEMA, { prefix, model: writerModel(), maxTokens: 4000 }),
   check: (prefix, prompt) => askJson(prompt, CHECK_SCHEMA, { prefix, model: writerModel(), maxTokens: 3000 }),
+  // The writing skills are the cached system prompt, shared by every article's review and fixes.
+  styleReview: (prefix, prompt) => askJson(prompt, REVIEW_SCHEMA, { system: STYLE_SYSTEM, prefix, model: writerModel(), maxTokens: 6000 }),
+  styleFix: (prefix, prompt) => askJson(prompt, SECTION_SCHEMA, { system: STYLE_SYSTEM, prefix, model: writerModel(), maxTokens: 5000 }),
   buildModule: (prefix, prompt) => askJson(prompt, MODULE_SCHEMA, { prefix, model: writerModel(), maxTokens: 12000 }),
+  // Screenshots and branded images, made by the worker (writerImagesServer.ts, 057_writer_images.sql).
+  images: draftImages(db, writerModel()),
   model: writerModel(),
 });
 

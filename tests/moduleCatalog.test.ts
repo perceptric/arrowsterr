@@ -60,7 +60,7 @@ test("the brief asks for modules only where they earn their place, and the write
   const ctx = { brand: { name: "Acme", domain: "acme.com" }, voice: null, kit: null, guidelines: null, sitemap: [] };
   const p = briefPrompt({ keyword: "seo agency", notes: "", note: null }, ctx, 5);
   assert.match(p, /Most articles need none or one; never more than two/);
-  assert.match(p, /images: 2 to 5 places an image helps/);
+  assert.match(p, /images: 3 to 8 places an image helps/);
   const brief = { titles: ["T"], h1: "T", metaDescription: "", slug: "t", searchIntent: "", reader: "", angle: "", wordTarget: 1200, outline: [{ h2: "Pricing", points: ["Plans"], h3: [], sources: [] }], entities: [], gaps: [], faqs: [], internalLinks: [], cta: { text: "", where: "" }, modules: [], images: [{ placement: "Pricing", shows: "A chart of plan prices.", alt: "Plan prices" }, { placement: "intro", shows: "A hero diagram.", alt: "" }], research: { topPages: "", aiAnswers: "", sources: [], questions: [], engines: [] }, model: "m", at: "" };
   const sp = sectionPrompt(planSections(brief), 1, brief, [], null, null);
   assert.match(sp, /three or more parallel things .* put them in a ul block/);

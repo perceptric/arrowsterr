@@ -1,13 +1,17 @@
 // The job worker: node scripts/worker.mjs
-// Runs on Fly.io as arrowsterr-worker (fly.worker.toml). It does three things at once:
+// Runs on Fly.io as arrowsterr-worker (fly.worker.toml). It does four things at once:
 //   jobs: calls the app's /api/worker forever.
 //   PDFs: asks /api/pdf/next for a report to print, opens its print page in Chromium, and sends the PDF back.
 //   pages: asks /api/research/render-next for a page an article's research needs, reads it in Chromium,
 //          and sends its headings, text, tables and date to /api/research/render-done (docs/content-v2.md).
+//   images: asks /api/writer/image-next for an image a draft needs, takes a screenshot of a page or pictures a
+//          drawn image in Chromium, and sends it to /api/writer/image-done (docs/agentic-writing.md, section 5).
 // Needs APP_URL (like https://app.arrowsterr.com) and CRON_SECRET (the same value as the app's).
 // Optional: LIMIT (jobs per tick, default 20), IDLE_MS (wait when there is nothing to do, default 20000),
 // PDF_IDLE_MS (wait when no PDF is queued, default 4000), READ_IDLE_MS (wait when no page is queued, default 5000),
-// READERS (pages read at once, default 2; 0 turns reading off). Without playwright-core, PDFs and pages stay off.
+// READERS (pages read at once, default 2; 0 turns reading off), IMAGERS (images made at once, default 1; 0 turns
+// images off), IMAGE_IDLE_MS (wait when no image is queued, default 5000). Without playwright-core, PDFs, pages and
+// images stay off.
 import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
 
@@ -22,6 +26,8 @@ const idle = Number(process.env.IDLE_MS) || 20_000;
 const pdfIdle = Number(process.env.PDF_IDLE_MS) || 4_000;
 const readIdle = Number(process.env.READ_IDLE_MS) || 5_000;
 const readers = Math.max(0, Math.min(6, Number(process.env.READERS ?? 2) || 0));
+const imagers = Math.max(0, Math.min(4, Number(process.env.IMAGERS ?? 1) || 0));
+const imageIdle = Number(process.env.IMAGE_IDLE_MS) || 5_000;
 const machine = (process.env.FLY_MACHINE_ID ?? "local").slice(0, 20);
 const auth = { Authorization: `Bearer ${secret}` };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -311,7 +317,213 @@ async function pages(chromium, n) {
   }
 }
 
+// ─────────────── images for Agentic Writing ───────────────
+// A screenshot is the page at 1440 by 900, after cookie prompts are accepted and banners, chat bubbles and floating
+// bars are hidden, set in the frame page the app sent. A drawn image is the page the app built from its spec.
+// Every request either page makes must go to a public address, as when reading pages.
+const SHOT_MS = 20_000;
+const SHOT_SLOT = "__SHOT__";
+const ACCEPT = ["Accept all", "Accept All", "Accept all cookies", "Accept All Cookies", "Accept", "Allow all", "Allow all cookies", "I agree", "Agree", "Got it", "OK", "Okay", "Accept Cookies", "Continue"];
+const HIDE_CSS = `#onetrust-banner-sdk,#onetrust-consent-sdk,#CybotCookiebotDialog,#CybotCookiebotDialogBodyUnderlay,.osano-cm-window,.osano-cm-dialog,#truste-consent-track,.truste_box_overlay,#usercentrics-root,#didomi-host,.fc-consent-root,#cookie-banner,#cookie-consent,#cookieConsent,.cookie-banner,.cookie-consent,.cookie-notice,[id*="cookie-law"],[class*="CookieBanner"],[class*="cookie-bar"],[aria-label*="cookie" i][role="dialog"],[aria-label*="cookie" i][role="region"],#intercom-container,.intercom-lightweight-app,.intercom-launcher,#hubspot-messages-iframe-container,#drift-widget-container,#drift-frame-controller,.drift-frame-controller,iframe[title*="chat" i],iframe[name*="chat" i],[id*="chat-widget"],.zEWidget-launcher,#fc_frame,#qualified-chat,iframe[src*="qualified"],[class*="ChatLauncher"],#attentive_overlay,#attentive_creative,iframe[id*="attentive"],[class*="klaviyo-form"],.grecaptcha-badge,[aria-modal="true"][role="dialog"]{display:none !important;visibility:hidden !important}`;
+const BLOCKED = /just a moment|attention required|access denied|verify you are|are you a robot|captcha|request blocked|forbidden|pardon our interruption/i;
+
+/** Every request the page makes must go to a public address; redirects are followed one at a time. */
+async function publicOnly(context, deadline, block = []) {
+  const left = () => Math.max(1_000, deadline - Date.now());
+  await context.route("**/*", async (route) => {
+    const req = route.request();
+    try {
+      if (req.url().startsWith("data:")) return await route.continue();
+      if (block.includes(req.resourceType())) return await route.abort();
+      if (!(await publicUrl(req.url()))) return await route.abort("blockedbyclient");
+      if (!req.isNavigationRequest()) return await route.continue();
+      const res = await route.fetch({ maxRedirects: 0, timeout: left() });
+      const to = res.headers().location;
+      if (res.status() >= 300 && res.status() < 400 && to && !(await publicUrl(new URL(to, req.url()).toString()))) return await route.abort("blockedbyclient");
+      return await route.fulfill({ response: res });
+    } catch {
+      await route.abort().catch(() => {});
+    }
+  });
+}
+
+// Runs inside the page: hide anything fixed or sticky that isn't the header, in the page and every shadow root.
+function hideFloating() {
+  document.documentElement.style.overflow = "auto";
+  if (document.body) document.body.style.overflow = "auto";
+  const vw = innerWidth;
+  const vh = innerHeight;
+  const roots = [document];
+  for (let i = 0; i < roots.length && i < 200; i++) {
+    for (const el of roots[i].querySelectorAll("*")) {
+      if (el.shadowRoot) roots.push(el.shadowRoot);
+      const cs = getComputedStyle(el);
+      if (cs.position !== "fixed" && cs.position !== "sticky") continue;
+      const r = el.getBoundingClientRect();
+      if (!r.width || !r.height) continue;
+      if (r.width * r.height > vw * vh * 0.45 || r.top > 90) el.style.setProperty("display", "none", "important");
+    }
+  }
+}
+
+// Runs inside the frame page: true when the screenshot is close to one flat color (a blank or loading page).
+async function blankShot() {
+  const img = document.querySelector("img.shot");
+  if (!img) return true;
+  await img.decode().catch(() => {});
+  const c = document.createElement("canvas");
+  c.width = 144;
+  c.height = 90;
+  const g = c.getContext("2d");
+  g.drawImage(img, 0, 0, 144, 90);
+  const d = g.getImageData(0, 0, 144, 90).data;
+  let sum = 0;
+  let sq = 0;
+  const n = d.length / 4;
+  for (let i = 0; i < d.length; i += 4) {
+    const v = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+    sum += v;
+    sq += v * v;
+  }
+  const mean = sum / n;
+  return Math.sqrt(Math.max(0, sq / n - mean * mean)) < 6;
+}
+
+/** Picture #canvas of a page the app built. Fonts and pictures load first. */
+async function pictureCanvas(chromium, html) {
+  const context = await (await shared(chromium)).newContext({ viewport: { width: 1600, height: 900 }, serviceWorkers: "block", acceptDownloads: false });
+  try {
+    await publicOnly(context, Date.now() + SHOT_MS);
+    const page = await context.newPage();
+    await page.setContent(html, { waitUntil: "networkidle", timeout: SHOT_MS }).catch(() => {}); // fonts that don't load fall back
+    await page.evaluate(() => Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 5_000))]));
+    await page.evaluate(() => Promise.all([...document.images].map((i) => (i.complete ? null : i.decode().catch(() => null)))));
+    return { page, context };
+  } catch (e) {
+    await context.close().catch(() => {});
+    throw e;
+  }
+}
+
+async function canvasBytes(page, type) {
+  const el = await page.$("#canvas");
+  if (!el) throw new Error("The image page has no canvas.");
+  const box = await el.boundingBox();
+  if (!box || box.height > 8000) throw new Error("The image is the wrong size.");
+  const bytes = await el.screenshot(type === "png" ? { type: "png" } : { type: "jpeg", quality: 82 });
+  return { bytes, width: Math.round(box.width), height: Math.round(box.height), type };
+}
+
+/** A screenshot of a page in its frame, or { final } when the page blocked the bot or came back blank. */
+async function screenshot(chromium, task) {
+  const context = await (await shared(chromium)).newContext({ userAgent: READER_UA, viewport: { width: 1440, height: 900 }, locale: "en-US", serviceWorkers: "block", acceptDownloads: false });
+  let shot;
+  try {
+    const deadline = Date.now() + SHOT_MS;
+    await publicOnly(context, deadline, ["media"]);
+    const page = await context.newPage();
+    page.on("dialog", (d) => d.dismiss().catch(() => {}));
+    const res = await page.goto(task.url, { waitUntil: "domcontentloaded", timeout: SHOT_MS });
+    const status = res?.status() ?? 0;
+    if (status === 401 || status === 403 || status === 407 || status === 429) return { final: true, error: `The page answered ${status}.` };
+    if (!res || status >= 400) return { final: status >= 400 && status < 500, error: `The page answered ${status || "nothing"}.` };
+    if (!(await publicUrl(page.url()))) return { final: true, error: "The page went to a private network." };
+    await page.waitForLoadState("load", { timeout: Math.max(1_000, deadline - Date.now()) }).catch(() => {});
+    await sleep(2_500);
+    for (const name of ACCEPT) {
+      const b = page.getByRole("button", { name, exact: true }).first();
+      if (await b.isVisible({ timeout: 150 }).catch(() => false)) {
+        await b.click({ timeout: 1_500 }).catch(() => {});
+        await sleep(700);
+        break;
+      }
+    }
+    await page.keyboard.press("Escape").catch(() => {});
+    // Scroll down and back so pictures that load late are in.
+    await page.evaluate(async () => {
+      for (let y = 0; y < 2400; y += 600) {
+        window.scrollTo(0, y);
+        await new Promise((r) => setTimeout(r, 150));
+      }
+      window.scrollTo(0, 0);
+    });
+    await sleep(1_200);
+    await page.addStyleTag({ content: HIDE_CSS }).catch(() => {});
+    await page.evaluate(hideFloating).catch(() => {});
+    await sleep(400);
+    const said = `${await page.title().catch(() => "")} ${await page.evaluate(() => (document.body ? document.body.innerText.slice(0, 600) : "")).catch(() => "")}`;
+    if (BLOCKED.test(said)) return { final: true, error: "The page asked to prove a person is visiting." };
+    shot = await page.screenshot({ type: "jpeg", quality: 88 });
+  } finally {
+    await context.close().catch(() => {});
+  }
+  const { page, context: frame } = await pictureCanvas(chromium, task.html.replace(SHOT_SLOT, `data:image/jpeg;base64,${shot.toString("base64")}`));
+  try {
+    if (await page.evaluate(blankShot)) return { final: true, error: "The page came back blank." };
+    return await canvasBytes(page, "jpg");
+  } finally {
+    await frame.close().catch(() => {});
+  }
+}
+
+async function drawn(chromium, task) {
+  const { page, context } = await pictureCanvas(chromium, task.html);
+  try {
+    return await canvasBytes(page, "png");
+  } finally {
+    await context.close().catch(() => {});
+  }
+}
+
+async function images(chromium, n) {
+  const worker = `image-${machine}-${n}`;
+  let failures = 0;
+  while (!stop) {
+    let task = null;
+    try {
+      const res = await fetch(`${url}/api/writer/image-next?worker=${worker}`, { method: "POST", headers: auth, signal: AbortSignal.timeout(60_000) });
+      if (res.status === 401) {
+        console.error("Wrong CRON_SECRET.");
+        process.exit(1);
+      }
+      task = await res.json().catch(() => null);
+    } catch (e) {
+      task = { error: e instanceof Error ? e.message : String(e) };
+    }
+    if (!task || task.error) {
+      failures++;
+      console.error("image poll failed:", JSON.stringify(task));
+      await sleep(Math.min(120_000, 5_000 * 2 ** Math.min(failures, 5)));
+      continue;
+    }
+    failures = 0;
+    if (task.idle) {
+      await sleep(imageIdle);
+      continue;
+    }
+    const started = Date.now();
+    let out;
+    try {
+      const late = sleep(SHOT_MS * 2 + 20_000).then(() => ({ final: false, error: "Making the image took too long." }));
+      out = await Promise.race([task.kind === "screenshot" ? screenshot(chromium, task) : drawn(chromium, task), late]);
+    } catch (e) {
+      out = { final: false, error: (e instanceof Error ? e.message : String(e)).split("\n")[0].slice(0, 300) };
+    }
+    const done = `${url}/api/writer/image-done?id=${task.id}&worker=${worker}`;
+    const sent = await (out.bytes
+      ? fetch(`${done}&w=${out.width}&h=${out.height}`, { method: "POST", headers: { ...auth, "Content-Type": out.type === "png" ? "image/png" : "image/jpeg" }, body: out.bytes, signal: AbortSignal.timeout(60_000) })
+      : fetch(done, { method: "POST", headers: { ...auth, "Content-Type": "application/json" }, body: JSON.stringify({ error: out.error, final: out.final === true }), signal: AbortSignal.timeout(30_000) })
+    )
+      .then((r) => r.ok)
+      .catch(() => false);
+    console.log(`image ${task.id} (${task.kind}): ${out.bytes ? `${Math.round(out.bytes.length / 1024)} KB` : out.error} in ${Date.now() - started} ms${sent ? "" : " (not saved)"}`);
+  }
+}
+
 const chromium = await chromiumOrNull();
-if (!chromium) console.log("No playwright-core here, so report PDFs and page reading are off.");
-await Promise.all([jobs(), ...(chromium ? [pdfs(chromium), ...Array.from({ length: readers }, (_, i) => pages(chromium, i))] : [])]);
+if (!chromium) console.log("No playwright-core here, so report PDFs, page reading and images are off.");
+await Promise.all([
+  jobs(),
+  ...(chromium ? [pdfs(chromium), ...Array.from({ length: readers }, (_, i) => pages(chromium, i)), ...Array.from({ length: imagers }, (_, i) => images(chromium, i))] : []),
+]);
 await browser?.close().catch(() => {});

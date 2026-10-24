@@ -3,7 +3,6 @@
 import { useState } from "react";
 import type { CalendarItem } from "@/lib/db";
 import type { Stage } from "@/lib/research";
-import { inWriterAt } from "@/lib/writerImport";
 import { STATUSES } from "./ContentPiece";
 import { STAGE_COLORS } from "./shared";
 
@@ -18,19 +17,20 @@ export type NewPiece = {
   url?: string | null;
 };
 
-/** One day of the editorial calendar: what is planned, each with Import to Library, and a box to add a keyword to it. */
+/** One day of the editorial calendar: what is planned, each with its Write button, and a box to add a keyword to it. */
 export function DayPanel({
   items,
   canEdit,
   onOpen,
   onAdd,
-  onImport,
+  writeCell,
 }: {
   items: CalendarItem[];
   canEdit: boolean;
   onOpen: (id: string) => void;
   onAdd: (p: NewPiece) => void;
-  onImport?: (id: string) => void;
+  /** The piece's Write button (docs/agentic-writing.md). */
+  writeCell?: (item: CalendarItem) => React.ReactNode;
 }) {
   const [draft, setDraft] = useState("");
 
@@ -54,13 +54,7 @@ export function DayPanel({
                   ›
                 </span>
               </button>
-              {inWriterAt(i) ? (
-                <span className="aw-chip aw-chip--brand whitespace-nowrap">In Library</span>
-              ) : canEdit && onImport && i.status !== "published" ? (
-                <button type="button" className="aw-chip aw-chip--btn whitespace-nowrap" onClick={() => onImport(i.id)}>
-                  Import to Library
-                </button>
-              ) : null}
+              {writeCell ? writeCell(i) : null}
             </li>
           ))}
           {!items.length ? <li className="rounded-aw border border-dashed border-rule px-4 py-5 text-center text-[13px] text-muted">Nothing planned yet</li> : null}

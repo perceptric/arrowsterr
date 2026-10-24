@@ -1,7 +1,7 @@
 "use client";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type MutableRefObject } from "react";
 import type { RunAuth } from "@/lib/runner";
 import { MODULE_LABEL, type OutlinePart, type WriterBrief } from "@/lib/writerBrief";
 import { getBrief, writerStateFor, type DraftLite, type FullBrief } from "@/lib/writerLibrary";
@@ -28,7 +28,27 @@ function tidy(b: WriterBrief): WriterBrief {
   };
 }
 
-export function BriefEditor({ sb, auth, id, canEdit, onBack, onDraft }: { sb: SupabaseClient; auth: RunAuth; id: string; canEdit: boolean; onBack: () => void; onDraft: (draftId: string) => void }) {
+export function BriefEditor({
+  sb,
+  auth,
+  id,
+  canEdit,
+  onBack,
+  onDraft,
+  compact = false,
+  flushRef,
+}: {
+  sb: SupabaseClient;
+  auth: RunAuth;
+  id: string;
+  canEdit: boolean;
+  onBack: () => void;
+  onDraft: (draftId: string) => void;
+  /** Inside the outline sidebar: no back link or page buttons; the sidebar holds Write draft. */
+  compact?: boolean;
+  /** Set to this editor's save, so the sidebar can save before it starts the draft. */
+  flushRef?: MutableRefObject<(() => Promise<boolean>) | null>;
+}) {
   const [row, setRow] = useState<FullBrief | null | undefined>(undefined);
   const [draft, setDraft] = useState<DraftLite | null>(null);
   const [b, setB] = useState<WriterBrief | null>(null);
@@ -88,6 +108,13 @@ export function BriefEditor({ sb, auth, id, canEdit, onBack, onDraft }: { sb: Su
     },
     [flush],
   );
+  useEffect(() => {
+    if (!flushRef) return;
+    flushRef.current = flush;
+    return () => {
+      flushRef.current = null;
+    };
+  }, [flush, flushRef]);
 
   const change = (fn: (x: WriterBrief) => WriterBrief) => {
     if (!current.current) return;
@@ -123,16 +150,24 @@ export function BriefEditor({ sb, auth, id, canEdit, onBack, onDraft }: { sb: Su
   if (!row) return <Head onBack={onBack} title="This brief was deleted." />;
   const edit = canEdit && Boolean(b) && (row.status === "ready" || row.status === "approved");
 
+  const saveState = edit ? (
+    <span className="flex items-center gap-1.5 px-1 text-[12px] whitespace-nowrap text-muted" aria-live="polite">
+      <i className={`inline-block h-1.5 w-1.5 ${state === "error" ? "bg-neg" : state === "saving" ? "bg-warn" : "bg-pos"}`} aria-hidden="true" />
+      {state === "error" ? "Not saved" : state === "saving" ? "Saving" : "Saved"}
+    </span>
+  ) : null;
+
   return (
     <div className="flex flex-col gap-5">
-      <Head onBack={onBack} title={b?.h1 || row.keyword}>
+      {compact ? (
+        <div className="flex items-center gap-2">
+          <StateTag status={row.status} />
+          {saveState}
+        </div>
+      ) : (
+        <Head onBack={onBack} title={b?.h1 || row.keyword}>
         <StateTag status={row.status} />
-        {edit ? (
-          <span className="flex items-center gap-1.5 px-1 text-[12px] whitespace-nowrap text-muted" aria-live="polite">
-            <i className={`inline-block h-1.5 w-1.5 ${state === "error" ? "bg-neg" : state === "saving" ? "bg-warn" : "bg-pos"}`} aria-hidden="true" />
-            {state === "error" ? "Not saved" : state === "saving" ? "Saving" : "Saved"}
-          </span>
-        ) : null}
+        {saveState}
         {canEdit && row.status === "ready" ? (
           <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setRegen(true)}>
             Regenerate brief
@@ -156,7 +191,8 @@ export function BriefEditor({ sb, auth, id, canEdit, onBack, onDraft }: { sb: Su
             {busy === "brief" ? "Starting..." : "Generate Brief"}
           </button>
         ) : null}
-      </Head>
+        </Head>
+      )}
       {error ? <p className="aw-error">{error}</p> : null}
       {row.status === "failed" && row.error ? <p className="aw-error">{row.error}</p> : null}
       {row.status === "generating" ? <BriefProgress sb={sb} brief={row} /> : null}
