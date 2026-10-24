@@ -28,7 +28,19 @@ const sha = (s: string) => createHash("sha256").update(s).digest("hex");
 export async function startSession(userId: string) {
   const token = randomBytes(32).toString("base64url");
   await row("insert into sessions (id, user_id, expires_at) values ($1, $2, now() + make_interval(days => $3))", [sha(token), userId, DAYS]);
-  (await cookies()).set(COOKIE, token, { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: DAYS * 86400 });
+  (await cookies()).set(COOKIE, token, { httpOnly: true, sameSite: "lax", secure: await isHttps(), path: "/", maxAge: DAYS * 86400 });
+}
+
+/**
+ * Was this request made over https? Browsers drop a Secure cookie on plain http (except localhost),
+ * so the cookie must follow the real connection, not NODE_ENV. Hosts like Render and Fly end TLS
+ * at their proxy and pass the original protocol in x-forwarded-proto.
+ */
+async function isHttps() {
+  const h = await headers();
+  const proto = h.get("x-forwarded-proto")?.split(",")[0]?.trim();
+  if (proto) return proto === "https";
+  return (process.env.APP_URL ?? "").startsWith("https://");
 }
 
 export async function endSession() {
