@@ -2,12 +2,16 @@
 
 import { DateField, Dropdown } from "../Pickers";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { addCalendarItems, keywordRunResult, listMembers, saveSite, type BankRow, type CalendarItem, type CalendarStatus, type NewCalendarItem, type SheetColumn, type Site } from "@/lib/db";
 import { nextMonday, schedulePlan, slots, STAGES, type Stage } from "@/lib/research";
 import type { RunAuth } from "@/lib/runner";
 import { quietly, recordUndo } from "@/lib/undo";
-import { inWriterAt } from "@/lib/writerImport";
+import { canImport, inWriterAt } from "@/lib/writerImport";
+import { isBusy, writeState, type WriteState } from "@/lib/writeFlow";
+import { writerStates, type BriefLite, type DraftLite } from "@/lib/writerLibrary";
+import { usePoll } from "../writer/parts";
+import { useWriteActions, WriteButton } from "../writer/WriteButton";
 import { Sheet, type Col, type Edit } from "../Sheet";
 import { Confirm } from "../reports/Dialog";
 import { SidePanel, Thinking } from "../ui";
@@ -73,6 +77,8 @@ const toItem = (siteId: string, r: PlanRow & { due_date?: string | null }): NewC
   current_rank: r.rank ?? null,
 });
 
+const WRITE_LABEL: Record<WriteState["kind"], string> = { outline: "Write outline", busy: "Working", draft: "Write draft", publish: "Publish content", view: "View post", retry: "Try again" };
+
 const icon = (d: React.ReactNode) => (
   <svg viewBox="0 0 24 24" width={17} height={17} fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     {d}
@@ -80,21 +86,11 @@ const icon = (d: React.ReactNode) => (
 );
 const AiIconSmall = () => icon(<path d="M12 3c.6 4.6 1.9 5.9 6.5 6.5-4.6.6-5.9 1.9-6.5 6.5-.6-4.6-1.9-5.9-6.5-6.5C10.1 8.9 11.4 7.6 12 3Z" />);
 
-/** A piece's place in the Library: the In Library tag once imported, otherwise the import button. */
-export function WriterAction({ item, canEdit, onImport }: { item: CalendarItem; canEdit: boolean; onImport: () => void }) {
-  if (inWriterAt(item)) return <span className="aw-chip aw-chip--brand whitespace-nowrap">In Library</span>;
-  if (item.status === "published" || !canEdit) return <span className="text-muted">–</span>;
-  return (
-    <button type="button" className="aw-chip aw-chip--btn whitespace-nowrap" onClick={onImport}>
-      Import to Library
-    </button>
-  );
-}
-
 /**
  * The Editorial Calendar: every piece of the Content Plan as a list (a sheet edited like a spreadsheet), a month or
  * a week. In the calendar views every unscheduled piece waits in the sidebar to be dragged onto a day, and
- * Auto-schedule gives them all dates at a set pace. Import to Library hands a piece to the Library, where its brief and draft are made.
+ * Auto-schedule gives them all dates at a set pace. The Write column takes each piece from outline to draft to a
+ * live post (docs/agentic-writing.md); the first outline puts it in the Library.
  */
 export function EditorialCalendar({
   sb,
@@ -130,6 +126,14 @@ export function EditorialCalendar({
   const [start, setStart] = useState(() => iso(new Date()));
   const [dropCol, setDropCol] = useState<SheetColumn | null>(null);
   const custom = site.profile.columns ?? [];
+  // Each piece's outline and draft, for the Write column. Asked again every 5 seconds while the writer works.
+  const [writing, setWriting] = useState<Map<string, { brief: BriefLite | null; draft: DraftLite | null }>>(new Map());
+  const loadWriting = useCallback(() => {
+    writerStates(sb, site.id)
+      .then(setWriting)
+      .catch(() => {});
+  }, [sb, site.id]);
+  useEffect(loadWriting, [loadWriting]);
   // Everyone in the workspace, to pick as a piece's owner.
   const [members, setMembers] = useState<string[]>([]);
   useEffect(() => {
@@ -165,11 +169,36 @@ export function EditorialCalendar({
     [sb, auth.workspaceId, site.id, load, setError],
   );
 
+  const stateOf = (i: CalendarItem): WriteState => writeState({ item: { status: i.status, url: i.url ?? null }, brief: writing.get(i.id)?.brief ?? null, draft: writing.get(i.id)?.draft ?? null });
+  const anyBusy = Boolean(items?.some((i) => isBusy(stateOf(i))));
+  usePoll(anyBusy, 5000, loadWriting);
+  // When the writer finishes, it moves the piece's status on: read the plan again once.
+  const wasBusy = useRef(false);
+  useEffect(() => {
+    if (wasBusy.current && !anyBusy) load();
+    wasBusy.current = anyBusy;
+  }, [anyBusy, load]);
+  // The first outline puts a piece in the Library; one already there, or published, is left as it is.
+  const actions = useWriteActions({
+    sb,
+    auth,
+    brandId: site.brand_id ?? null,
+    siteId: site.id,
+    canEdit,
+    onUpgrade: writer && !writer.open ? writer.onUpgrade : undefined,
+    onChanged: () => {
+      loadWriting();
+      load();
+    },
+    beforeOutline: async (id) => {
+      const it = items?.find((x) => x.id === id);
+      if (it && canImport(it)) await importToWriter([id]);
+    },
+  });
+
   if (!items) return <Thinking text="Loading your editorial calendar..." />;
 
   const remove = (ids: string[]) => removeItems(ids, () => setPicked(new Set()));
-  /** Import to Library, or the plans page when this workspace has no writer. */
-  const toWriter = (ids: string[]) => (writer && !writer.open ? writer.onUpgrade?.() : importToWriter(ids));
 
   async function build() {
     setBuilding(true);
@@ -214,6 +243,7 @@ export function EditorialCalendar({
   }
 
   const ordered = [...items].sort(byStage);
+  const pickedPieces = () => items.filter((i) => picked.has(i.id)).map((i) => ({ piece: i, state: stateOf(i) }));
   /** Keywords pasted below the last row become new ideas. */
   async function appendRows(list: Record<string, string>[]) {
     const fresh = list.map((r) => (r.keyword ?? Object.values(r)[0] ?? "").trim().replace(/\s+/g, " ")).filter(Boolean);
@@ -235,18 +265,20 @@ export function EditorialCalendar({
     save: (i, v) => (k === "keyword" ? v && patch(i.id, { keyword: v }) : patch(i.id, { [k]: v })),
   });
   const ed = <E,>(x: E) => (canEdit ? x : undefined);
-  const writerCol: Col<CalendarItem> = {
-    id: "writer",
-    label: "Library",
+  const writeCell = (i: CalendarItem) => <WriteButton state={stateOf(i)} busy={actions.busy.has(i.id)} canEdit={canEdit} onAct={() => void actions.act(i, stateOf(i))} onOpen={() => actions.open(i, stateOf(i))} />;
+  const writeCol: Col<CalendarItem> = {
+    id: "write",
+    label: "Write",
     type: "list",
-    value: (i) => (inWriterAt(i) ? "In Library" : ""),
-    options: ["In Library"],
-    width: 190,
-    cell: (i) => <WriterAction item={i} canEdit={canEdit} onImport={() => toWriter([i.id])} />,
+    value: (i) => WRITE_LABEL[stateOf(i).kind],
+    options: Object.values(WRITE_LABEL),
+    width: 200,
+    cell: writeCell,
   };
   const owners = [{ id: "", label: "Unassigned" }, ...members.map((m) => ({ id: m, label: m }))];
   const cols: Col<CalendarItem>[] = [
     { id: "keyword", label: "Keyword", type: "text", value: (i) => i.keyword, width: 240, edit: ed(text("keyword")) },
+    writeCol,
     {
       id: "stage",
       label: "Stage",
@@ -332,7 +364,6 @@ export function EditorialCalendar({
         ),
       edit: ed<Edit<CalendarItem>>({ kind: "select", options: owners, value: (i) => i.owner ?? "", save: (i, v) => patch(i.id, { owner: v }) }),
     },
-    writerCol,
     { id: "action", label: "Job", type: "list", value: (i) => (i.action === "update" ? "Update page" : "New page"), options: ["New page", "Update page"] },
     { id: "theme", label: "Theme", type: "list", value: (i) => i.theme, edit: ed(text("theme")) },
     {
@@ -480,6 +511,7 @@ export function EditorialCalendar({
   return (
     <div className="flex flex-col gap-5">
       {error ? <p className="aw-error">{error}</p> : null}
+      {actions.error ? <p className="aw-error">{actions.error}</p> : null}
       {head}
       {progress}
       {!items.length && lastDone && !running ? (
@@ -497,8 +529,11 @@ export function EditorialCalendar({
         <section className="aw-frame flex min-w-0 flex-col">
           {picked.size && canEdit ? (
             <div className="flex flex-wrap items-center gap-3 border-b border-rule-faint bg-brand-pale px-5 py-2.5">
-              <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => toWriter([...picked])}>
-                Import to Library
+              <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => void actions.actMany(pickedPieces(), "outline")}>
+                Write outline
+              </button>
+              <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => void actions.actMany(pickedPieces(), "draft")}>
+                Write draft
               </button>
               <Dropdown<CalendarStatus | ""> label="Set status" value="" placeholder="Set status" onChange={(st) => st && [...picked].forEach((id) => patch(id, { status: st }))} className={FIELD} options={STATUSES.map((s) => ({ id: s.id, label: s.label }))} />
               <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => remove([...picked])}>
@@ -540,7 +575,7 @@ export function EditorialCalendar({
             canEdit={canEdit}
             onOpen={(id) => setPanel({ day: panel.day, piece: id })}
             onAdd={(p) => addOn(p.keyword, panel.day, p)}
-            onImport={(id) => toWriter([id])}
+            writeCell={writeCell}
           />
         </SidePanel>
       ) : null}
@@ -556,6 +591,7 @@ export function EditorialCalendar({
           onClose={() => setDropCol(null)}
         />
       ) : null}
+      {actions.overlays}
       {toast}
     </div>
   );

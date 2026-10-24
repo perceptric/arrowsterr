@@ -35,18 +35,27 @@ The sidebar has four tabs:
 3. **Images**: every image the draft will make, with its kind, where it goes and what it shows (see 5). Remove one or change its words.
 4. **Voice**: the writing guide for this piece: the Brand Voice, the house rules that apply and the person it writes in. Read only here; it changes on the Brand page.
 
-## 3. The voice: sample plus house rules
+## 3. The brand is set up for you
 
-The Brand Voice today is a short summary (tone words, sentence length, use and avoid). Real samples carried the Perceptric voice much further, so the Brand page gets two more parts.
+Nobody fills in the Brand page before writing. The first outline (or the first generated section in the Library grid) runs `ensureBrandSetup` (`src/lib/brandSetupServer.ts`), which fills in only what's missing and never changes what a person saved:
 
-**Voice sample** (`brand_voice.sample`): 300 to 800 words of the brand's best writing, pasted or picked from the pages already read for the Brand Voice. Every section prompt includes it with "write like this".
+- **Brand Kit:** learned from the brand's homepage with the existing kit learner (`learnKit`). A site that can't be read gets the default kit with the brand's name.
+- **Brand Guidelines:** one Claude call reads the homepage and writes what the company is, what it offers, who it writes for, the proof the page states, its own words and its call to action (`brandSetup.ts`). A site that can't be read gets the name and the website, so writing still starts.
+- **Brand Voice:** the Perceptric blog's voice (`DEFAULT_VOICE` in `houseRules.ts`) with the brand's own name and the reader from its guidelines.
+- **Voice sample:** a brand with no pasted writing of its own (300 characters or more) writes from the Perceptric sample (`DEFAULT_SAMPLE`). The writer copies how it sounds and never its facts or names.
 
-**House rules** (`brand_voice.rules`): a checklist with our rules on by default, each one a switch the brand can turn off or edit:
+### The voice: sample plus house rules
+
+The Brand Voice is a short summary (tone words, sentence length, use and avoid). Real samples carried the Perceptric voice much further, so every prompt also gets two more parts.
+
+**Voice sample** (`brand_voices.sample_text`, the writing pasted on the Brand page, or `DEFAULT_SAMPLE`): every section, review and fix prompt includes it with "write the way this sounds".
+
+**House rules** (`HOUSE_RULES` in `houseRules.ts`), the same for every brand, shown in the outline's Voice tab:
 
 - Short paragraphs, 1 to 3 sentences, about 60 words at most.
 - A list at least every 150 to 250 words: steps, options, checklists, do and don't. List items are plain sentences with no bold lead-in.
 - Most sentences 12 to 25 words. No short sentences for drama; join them.
-- Talk to the reader ("you"). Write as "we" (or "I", one setting).
+- Talk to the reader ("you"). Write as "we".
 - Every featured example opens with "{Name} is a {kind of} {company or software} that {what it does}."
 - A feeling adverb now and then ("Thankfully,", "Luckily,"), about one every 300 to 400 words, never the same twice. Never "quietly".
 - Kind and professional about every company. No verdict words ("the catch", "falls short", "lazy", "nobody reads").
@@ -111,7 +120,9 @@ The `write_article` steps become:
 
 Each step saves its output before the next, as today, so a killed job starts where it stopped and pays once. The Library's draft view shows a **Review notes** panel: lines the style fix could not clear, facts in `checks`, and screenshots that need a person.
 
-The skills themselves run inside Claude Code and can't be called from the app. Their rules are written into `houseRules.ts` and the review prompt, so the product follows the same method without them.
+The writing skills we used on the blogs live in `skills/` (MIT licensed, each with its LICENSE): humanizer, anti-ai-writing, writing-enforcer with its AI pattern catalog, and proofread go into the style review and fixes as one system prompt (`STYLE_SYSTEM` in `writerStyle.ts`), cached once and shared by every article; claim-boundary-checker goes into the claim check. `node scripts/skills.mjs` rebuilds `src/lib/skillText.ts` from them.
+
+A fix that adds, drops or changes a number or a link is thrown away, and that section keeps its first text. Each fixed section is saved as it lands, so a killed job picks up at the next section and never pays for the review twice.
 
 ## 7. The Library
 
@@ -143,28 +154,29 @@ Reliability first: each test proves a flaky case.
 
 ## 10. Running cost
 
-Claude Sonnet 5.5 at $2 input and $10 output per million tokens (from `docs/content-v2.md`, check). The brand, research and outline stay a cached prefix.
+Claude Sonnet 5.5 at $2 input and $10 output per million tokens (from `docs/content-v2.md`, check). The brand, research and outline stay a cached prefix, and the writing skills (about 22K tokens) are a second cached block shared by every article, read at a tenth of the price.
 
 | Line | Per article | Cost |
 |---|---|---|
 | Today's full article (brief, sections, modules) | from `docs/content-grid.md` | ~$0.53 |
-| Bigger outline (examples, images, voice) | +10K in, +3K out | ~$0.05 |
-| Style review | 8K in plus cached prefix, 2K out | ~$0.04 |
-| Style fix | 6K in plus cached prefix, 4K out | ~$0.06 |
+| Bigger outline (examples, images, checks) | +2K in, +4K out | ~$0.05 |
+| Style review | 10K in plus the cached blocks, 2K out | ~$0.04 |
+| Style fixes | about 6 sections, 2K in and 1.2K out each | ~$0.10 |
+| Writing skills, cached | read on about 7 calls, written now and then | ~$0.05 |
 | Image specs | 8K in, 3K out | ~$0.05 |
-| Screenshots and renders | ~12 images in Chromium on the worker | ~$0 (worker time) |
+| Example pages read, screenshots and renders | plain fetches on the web service, Chromium on the worker | ~$0 |
 | Lint and proofread | code | $0 |
-| **One article** | | **~$0.73** |
+| **One article** | | **~$0.82** |
 
-Images add about 2 MB of storage per article (12 images at about 150 KB) and leave Supabase once, when Publish copies them to the CMS.
+Setting up a brand costs about $0.04 once (the kit and guidelines calls), so about $4 for 100 brands. Images add about 2 MB of storage per article (12 images at about 150 KB) and leave Supabase once, when Publish copies them to WordPress.
 
 | Line | Beta (50 teams, 500 articles) | Growth (500 teams, 5,000 articles) |
 |---|---|---|
-| Claude for articles | ~$365 | ~$3,650 |
+| Claude for articles | ~$410 | ~$4,100 |
 | DataForSEO and AI engine calls (today) | ~$30 (check) | ~$300 (check) |
-| Example pages read (about 10 more per article) | ~$0 (worker time) | ~$0 (worker time) |
+| Brand setup (new brands that month) | ~$2 | ~$20 |
 | Image storage (1 GB a month at Beta, 10 GB at Growth, inside Supabase Pro's 100 GB at first) | ~$0 (check) | ~$0 for the first 9 months, then ~$0.02 a GB (check) |
 | Fly worker: a second 2 GB machine at Growth for screenshots and renders | $0 | ~$12 (check) |
-| **Monthly total** | **~$395** | **~$3,960** |
+| **Monthly total** | **~$442** | **~$4,432** |
 
-That adds about $100 at Beta and about $1,010 at Growth over today's article cost.
+That adds about $147 at Beta and about $1,482 at Growth over today's article cost.

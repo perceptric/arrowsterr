@@ -10,10 +10,11 @@ import { inWriterAt } from "@/lib/writerImport";
 import { writerStateFor, type BriefLite, type DraftLite } from "@/lib/writerLibrary";
 import type { RunAuth } from "@/lib/runner";
 import { nextMonday, STAGES } from "@/lib/research";
-import { AiIcon } from "../ui";
+import { writeState } from "@/lib/writeFlow";
 import { openInLibrary } from "../writer/parts";
+import { useWriteActions, WriteButton } from "../writer/WriteButton";
 import type { WriterAccess } from "./ContentPiece";
-import { Difficulty, FIELD, fmtCpc, fmtNum, post, slugify, slugOf, STAGE_LABEL, StageTag, STATUS_PICK, statusLabel, Tick } from "./shared";
+import { Difficulty, FIELD, fmtCpc, fmtNum, slugify, slugOf, STAGE_LABEL, StageTag, STATUS_PICK, statusLabel, Tick } from "./shared";
 
 const isoDay = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
@@ -51,7 +52,6 @@ export function KeywordDeepDive({
   const [serp, setSerp] = useState<{ serp: Serp | null; serp_at: string | null; missing?: boolean } | null>(null);
   const [ws, setWs] = useState<{ brief: BriefLite | null; draft: DraftLite | null } | null>(null);
   const [members, setMembers] = useState<string[]>([]);
-  const [busy, setBusy] = useState<"" | "import" | "brief">("");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -81,28 +81,26 @@ export function KeywordDeepDive({
     getSerp(sb, item.id).then(setSerp).catch(() => setSerp({ serp: null, serp_at: null }));
   }, [sb, item.id, loadWriter]);
 
+  // The same Write button as the Editorial Calendar; the first outline puts the keyword in the Library.
+  const actions = useWriteActions({
+    sb,
+    auth,
+    brandId: site.brand_id ?? null,
+    siteId: site.id,
+    canEdit,
+    onUpgrade: writer.open ? undefined : writer.onUpgrade,
+    onChanged: () => void loadWriter(),
+    beforeOutline: async () => {
+      if (!inWriterAt(item)) await onImport();
+    },
+  });
+
   const making = ws?.brief?.status === "generating" || ws?.draft?.status === "generating";
   useEffect(() => {
     if (!making) return;
     const t = setInterval(loadWriter, 5000);
     return () => clearInterval(t);
   }, [making, loadWriter]);
-
-  /** Generate the brief. The keyword is imported into the Library first when it isn't there yet. */
-  async function generateBrief() {
-    setError("");
-    if (!writer.open) return writer.onUpgrade?.();
-    setBusy("brief");
-    try {
-      if (!inWriterAt(item)) await onImport();
-      await post(auth, "/api/agentic-writer", { action: "brief", itemId: item.id });
-      await loadWriter();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setBusy("");
-    }
-  }
 
   const step = workflowStep(item.status);
   const stepAt = WORKFLOW.findIndex((w) => w.id === step);
@@ -111,7 +109,7 @@ export function KeywordDeepDive({
   const features = serp?.serp?.features.length ?? null;
   const brandId = site.brand_id;
   const brief = ws?.brief ?? null;
-  const draft = ws?.draft ?? null;
+  const state = writeState({ item: { status: item.status, url: item.url ?? null }, brief, draft: ws?.draft ?? null });
 
   return (
     <div className="flex flex-col gap-4">
@@ -132,46 +130,14 @@ export function KeywordDeepDive({
             <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={!brandId} onClick={() => brandId && openInLibrary(brandId, null)}>
               <Tick /> In Library
             </button>
-          ) : canEdit && item.status !== "published" ? (
-            <button
-              type="button"
-              className="aw-btn aw-btn--secondary aw-btn--sm"
-              disabled={busy !== ""}
-              onClick={async () => {
-                setError("");
-                if (!writer.open) return writer.onUpgrade?.();
-                setBusy("import");
-                try {
-                  await onImport();
-                } finally {
-                  setBusy("");
-                }
-              }}
-            >
-              {busy === "import" ? "Importing..." : "Import to Library"}
-            </button>
           ) : null}
-          {draft?.status === "ready" && brandId ? (
-            <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => openInLibrary(brandId, { kind: "draft", id: draft.id })}>
-              View Draft
-            </button>
-          ) : null}
-          {brief && (brief.status === "ready" || brief.status === "approved") && brandId ? (
-            <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => openInLibrary(brandId, { kind: "brief", id: brief.id })}>
-              View Brief
-            </button>
-          ) : brief?.status === "generating" ? (
-            <span className="aw-status aw-status--warn">Generating brief...</span>
-          ) : canEdit ? (
-            <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" disabled={busy !== ""} onClick={generateBrief}>
-              <AiIcon />
-              {busy === "brief" ? "Starting..." : brief?.status === "failed" ? "Generate brief again" : "Generate Brief"}
-            </button>
-          ) : null}
+          <WriteButton state={state} busy={actions.busy.has(item.id)} canEdit={canEdit} onAct={() => void actions.act(item, state)} onOpen={() => actions.open(item, state)} />
         </span>
       </header>
       {error ? <p className="aw-error">{error}</p> : null}
+      {actions.error ? <p className="aw-error">{actions.error}</p> : null}
       {brief?.status === "failed" && brief.error ? <p className="aw-error">{brief.error}</p> : null}
+      {actions.overlays}
 
       <ol className="aw-frame grid grid-cols-5 gap-0 bg-white px-4 py-3" aria-label="Workflow">
         {WORKFLOW.map((w, n) => {

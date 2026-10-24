@@ -430,7 +430,9 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
         const pending = readLocal(PENDING_BRAND);
         writeLocal(PENDING_BRAND, null);
         const saved = readLocal(`arrowsterr.brand.${ws.id}`);
-        setActiveId((id) => [pending, id, saved].find((x) => x && list.some((b) => b.id === x)) ?? list[0]?.id ?? null);
+        // A link from another tab (a draft opened in a new tab) names its brand.
+        const linked = new URLSearchParams(window.location.search).get("brand");
+        setActiveId((id) => [linked, pending, id, saved].find((x) => x && list.some((b) => b.id === x)) ?? list[0]?.id ?? null);
       })
       .catch((e) => live && setError(e instanceof Error ? e.message : String(e)));
     return () => {

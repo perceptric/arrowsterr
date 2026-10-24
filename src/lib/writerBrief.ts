@@ -7,6 +7,9 @@ import type { BrandKit } from "./brandKit.ts";
 import { voiceText, type BrandVoice } from "./brandVoice.ts";
 import { isBofu, listicleRules, listicleSlug } from "./listicle.ts";
 import { kindLabel, kindsForPrompt, MODULE_IDS } from "./moduleCatalog.ts";
+import { rulesText, sampleText } from "./houseRules.ts";
+import { IMAGE_KINDS } from "./writerImageTypes.ts";
+import type { BriefImage, ImageKind } from "./writerImageTypes.ts";
 
 // ─────────────── shapes ───────────────
 export type Outcome = { state: "done" } | { state: "failed"; error: string } | { state: "wait"; seconds: number; why: string };
@@ -17,11 +20,17 @@ export type ModuleType = string;
 export const MODULE_LABEL: Record<ModuleType, string> = Object.fromEntries(MODULE_IDS.map((id) => [id, kindLabel(id)]));
 
 export type PlannedModule = { type: ModuleType; title: string; purpose: string; placement: string; inputs: string[]; outputs: string[]; data: string; why: string };
-export type BriefImage = { placement: string; shows: string; alt: string };
+export type { BriefImage } from "./writerImageTypes.ts";
+/**
+ * A tool, company or page the article features (docs/agentic-writing.md, section 4): what it is in one sentence
+ * ("Ahrefs is an SEO software that ..."), the facts to use with the sources behind them, and its own page as read
+ * after the brief, so the draft writes about it from that page.
+ */
+export type BriefExample = { name: string; url: string; kind: string; opener: string; facts: string[]; sources: number[]; page?: { title: string; text: string; ok: boolean; error?: string } };
 export type OutlinePart = { h2: string; points: string[]; h3: { title: string; points: string[] }[]; sources: number[] };
 
 /** A source the research read, numbered so the outline and the draft can point to it. */
-export type ResearchSource = { n: number; url: string; title: string; domain: string; kind: "serp" | "ai"; position: number | null; words: number };
+export type ResearchSource = { n: number; url: string; title: string; domain: string; kind: "serp" | "ai" | "example"; position: number | null; words: number };
 export type BriefResearch = {
   topPages: string; // what Google's top pages do, in a few lines
   aiAnswers: string; // what the AI answers say and who they cite
@@ -48,6 +57,10 @@ export type WriterBrief = {
   modules: PlannedModule[];
   /** Where an image helps: the H2 it goes under ("intro" for the intro), what it shows, and its alt text. */
   images?: BriefImage[];
+  /** The tools, companies or pages the article features, in order. Older briefs have none. */
+  examples?: BriefExample[];
+  /** Facts the research could not confirm, for a person to check. The draft never states them as fact. */
+  checks?: string[];
   research: BriefResearch;
   model: string;
   at: string;
@@ -72,7 +85,7 @@ export type BriefRow = {
 };
 
 /** A page the research read, with its text, for the prompts. */
-export type SourcePage = { url: string; title: string | null; domain: string; kind: "serp" | "ai"; position: number | null; words: number; headings: string[]; body: string };
+export type SourcePage = { url: string; title: string | null; domain: string; kind: "serp" | "ai" | "example"; position: number | null; words: number; headings: string[]; body: string };
 export type ResearchPack = {
   keyword: string;
   pages: SourcePage[];
@@ -87,6 +100,8 @@ export type WriterContext = {
   voice: BrandVoice | null;
   kit: BrandKit | null;
   guidelines: { body: string; links: string[] } | null;
+  /** The brand's voice sample (brand_voices.sample_text): how its writing sounds. */
+  sample?: string;
   sitemap: string[]; // the brand's own pages, for internal links
   stage?: "bofu" | "mofu" | "tofu" | null; // the piece's funnel stage: BOFU briefs are listicles
 };
@@ -101,6 +116,8 @@ export type BriefDeps = {
   research(runId: string): Promise<ResearchPack>;
   context(b: BriefRow): Promise<WriterContext>;
   write(prefix: string, prompt: string): Promise<unknown>; // one Claude call with the brief schema
+  /** Read a featured example's own page (title and text). Without it, examples keep only the research's facts. */
+  readPage?: (url: string) => Promise<{ title: string; text: string; ok: boolean; error?: string }>;
   model: string;
   now?: () => number;
 };
@@ -130,6 +147,8 @@ export function brandText(c: WriterContext): string {
     c.voice ? `Brand Voice:\n${voiceText(c.voice)}` : "Brand Voice: not set. Write plainly and confidently, for a smart reader in a hurry.",
     k ? `Brand Kit: colors primary ${k.colors.primary}, secondary ${k.colors.secondary}, ink ${k.colors.ink}, text ${k.colors.text}; fonts ${k.fonts.heading} for headings, ${k.fonts.body} for text.` : "",
     c.guidelines?.body ? `Brand guidelines:\n${clip(c.guidelines.body, 6000)}` : "",
+    sampleText(c.sample ?? ""),
+    rulesText(),
   ]
     .filter(Boolean)
     .join("\n\n");
@@ -140,7 +159,7 @@ export function researchText(pack: ResearchPack, sources: SourcePage[]): string 
   const pages = sources
     .map((p, i) => {
       const heads = p.headings.slice(0, 25).join(" | ");
-      return `[${i + 1}] ${p.title ?? p.url}\n${p.url}\n${p.kind === "serp" ? `Google rank ${p.position ?? "?"}` : "Cited by an AI answer"} · ${p.words} words\nHeadings: ${heads || "none"}\n${clip(p.body, EXCERPT)}`;
+      return `[${i + 1}] ${p.title ?? p.url}\n${p.url}\n${p.kind === "serp" ? `Google rank ${p.position ?? "?"}` : p.kind === "example" ? "A featured example's own page" : "Cited by an AI answer"} · ${p.words} words\nHeadings: ${heads || "none"}\n${clip(p.body, EXCERPT)}`;
     })
     .join("\n\n");
   const paa = pack.questions.map((q) => `- ${q.question}${q.answer ? ` (Google's answer: ${clip(q.answer, 300)})` : ""}`).join("\n");
@@ -181,7 +200,9 @@ export const BRIEF_SCHEMA = obj({
   internalLinks: { type: "array", items: obj({ url: S, anchor: S, where: S }) },
   cta: obj({ text: S, where: S }),
   modules: { type: "array", items: obj({ type: { type: "string", enum: [...MODULE_TYPES] }, title: S, purpose: S, placement: S, inputs: LIST, outputs: LIST, data: S, why: S }) },
-  images: { type: "array", items: obj({ placement: S, shows: S, alt: S }) },
+  images: { type: "array", items: obj({ placement: S, kind: { type: "string", enum: IMAGE_KINDS.filter((k) => k !== "featured") }, shows: S, alt: S, url: S, numbers: S, sources: { type: "array", items: { type: "integer" } } }) },
+  examples: { type: "array", items: obj({ name: S, url: S, kind: S, opener: S, facts: LIST, sources: { type: "array", items: { type: "integer" } } }) },
+  checks: LIST,
   topPages: S,
   aiAnswers: S,
 });
@@ -212,7 +233,9 @@ ${kindsForPrompt()
   .split("\n")
   .map((l) => `  - ${l}`)
   .join("\n")}
-- images: 2 to 5 places an image helps the reader: placement (the exact H2 it goes under, or "intro"), shows (what it shows: a screenshot of a named tool's screen, a chart of a number from the sources, a diagram of a process, a photo of a real thing) and alt (one plain sentence for screen readers). Skip stock-photo filler.
+- examples: when the article features tools, companies, blogs, sites or pages (a listicle, an examples post, a comparison), one entry for each in the order they appear, and give each its own H2 that contains its name exactly (for a list, "1. Name"). name: as people write it. url: its own page, the homepage or the exact page the article talks about, from the sources or the AI answers. kind: what it is in two or three words ("SEO software", "B2B blog"). opener: one sentence, "{name} is a/an {kind of} company (or software) that {what it does}.", from the sources. facts: 2 to 4 facts the section will use, each from a source, with the source numbers in sources. Leave the list empty when the article features none.
+- images: 3 to 8 places an image helps the reader, never two in a row. placement (the exact H2 it goes under, or "intro"), kind, shows (what it shows, in one line), alt (one plain sentence for screen readers). Kinds: screenshot (url: the page to capture; every featured example gets one under its H2), chart (numbers: each value with its label, all from the sources, with their source numbers in sources), steps (a process in order), comparison (two or three options side by side), checklist (things to check), anatomy (the parts of a page or a thing, labeled). Leave url, numbers and sources empty when the kind doesn't use them. No stock-photo filler and no featured image; that one is made from the H1.
+- checks: facts the article would like to use but the sources don't confirm, in one line each, for an editor to check. Empty when there are none.
 - topPages: 3 to 5 sentences on what Google's top pages do: format, length, what they all cover.
 - aiAnswers: 2 to 4 sentences on what the AI answers say and which sites they cite.
 - Base every fact on the sources. Never invent numbers.`;
@@ -223,6 +246,31 @@ const strs = (v: unknown, n: number, max: number) => (Array.isArray(v) ? v.map((
 const arr = (v: unknown) => (Array.isArray(v) ? (v as Record<string, unknown>[]).filter((x) => x && typeof x === "object") : []);
 const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
 const same = (a: string, b: string) => a.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim() === b.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+/** A public-looking http(s) address, or "". The worker checks it again before it opens it. */
+export function webUrl(u: string): string {
+  try {
+    const x = new URL(/^https?:\/\//i.test(u) ? u : `https://${u}`);
+    if (!/^https?:$/.test(x.protocol) || x.username || x.password || /^\d+(\.\d+){3}$/.test(x.hostname) || !/^[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(x.hostname)) return "";
+    x.hash = "";
+    return x.toString();
+  } catch {
+    return "";
+  }
+}
+
+/** Every featured example gets a screenshot of its page under its H2, unless the brief already has one there. */
+export function withExampleShots(images: BriefImage[], examples: Pick<BriefExample, "name" | "url">[], h2s: string[]): BriefImage[] {
+  const out = [...images];
+  for (const e of examples) {
+    const h2 = h2s.find((h) => h.toLowerCase().includes(e.name.toLowerCase()));
+    if (!h2 || out.some((m) => m.kind === "screenshot" && m.placement === h2)) continue;
+    out.push({ placement: h2, kind: "screenshot", shows: `${e.name}: ${e.url}`, alt: `Screenshot of ${e.name}`, url: e.url });
+  }
+  // In article order, so two never sit next to each other by accident of the list.
+  const at = (p: string) => (p === "intro" ? -1 : h2s.indexOf(p));
+  return out.sort((a, b) => at(a.placement) - at(b.placement)).slice(0, 30);
+}
+
 const linkKey = (u: string) => u.replace(/#.*$/, "").replace(/^https?:\/\/(www\.)?/i, "").replace(/\/+$/, "").toLowerCase();
 
 /** Claude's brief, cleaned: lists trimmed, sources and links checked against what the research and sitemap hold. */
@@ -252,6 +300,17 @@ export function cleanBrief(x: unknown, research: Omit<BriefResearch, "topPages" 
     })
     .filter((m) => m.title)
     .slice(0, 2);
+  const examples: BriefExample[] = arr(o.examples)
+    .map((e) => ({
+      name: str(e.name, 120),
+      url: webUrl(str(e.url, 500)),
+      kind: str(e.kind, 80),
+      opener: str(e.opener, 400),
+      facts: strs(e.facts, 400, 6),
+      sources: [...new Set((Array.isArray(e.sources) ? e.sources : []).map(Number).filter((n) => valid.has(n)))].slice(0, 8),
+    }))
+    .filter((e) => e.name && e.url)
+    .slice(0, 25);
   const titles = strs(o.titles, 120, 3);
   const h1 = str(o.h1, 160) || titles[0] || meta.keyword;
   const target = Math.round(Number(o.wordTarget));
@@ -278,14 +337,24 @@ export function cleanBrief(x: unknown, research: Omit<BriefResearch, "topPages" 
       .slice(0, 8),
     cta: { text: str((o.cta as Record<string, unknown> | undefined)?.text, 300), where: str((o.cta as Record<string, unknown> | undefined)?.where, 160) },
     modules,
-    images: arr(o.images)
-      .map((m) => {
-        const want = str(m.placement, 160);
-        const placement = /^intro$/i.test(want) ? "intro" : (h2s.find((h) => same(h, want)) ?? h2s.find((h) => want && h.toLowerCase().includes(want.toLowerCase())) ?? "");
-        return { placement, shows: str(m.shows, 300), alt: str(m.alt, 200) };
-      })
-      .filter((m) => m.placement && m.shows)
-      .slice(0, 6),
+    images: withExampleShots(
+      arr(o.images)
+        .map((m): BriefImage => {
+          const want = str(m.placement, 160);
+          const placement = /^intro$/i.test(want) ? "intro" : (h2s.find((h) => same(h, want)) ?? h2s.find((h) => want && h.toLowerCase().includes(want.toLowerCase())) ?? "");
+          const kind = IMAGE_KINDS.includes(m.kind as ImageKind) && m.kind !== "featured" ? (m.kind as ImageKind) : undefined;
+          const url = webUrl(str(m.url, 500));
+          const sources = [...new Set((Array.isArray(m.sources) ? m.sources : []).map(Number).filter((n) => valid.has(n)))].slice(0, 8);
+          return { placement, shows: str(m.shows, 300), alt: str(m.alt, 200), ...(kind ? { kind } : {}), ...(url ? { url } : {}), ...(str(m.numbers, 1500) ? { numbers: str(m.numbers, 1500) } : {}), ...(sources.length ? { sources } : {}) };
+        })
+        // A screenshot needs its page; a chart needs numbers with a source.
+        .filter((m) => m.placement && m.shows && (m.kind !== "screenshot" || m.url) && (m.kind !== "chart" || (m.numbers && m.sources?.length)))
+        .slice(0, 10),
+      examples,
+      h2s,
+    ),
+    examples,
+    checks: strs(o.checks, 300, 12),
     research: { ...research, topPages: str(o.topPages, 1500), aiAnswers: str(o.aiAnswers, 1500) },
     model: meta.model,
     at: meta.at,
@@ -338,8 +407,40 @@ export async function runBrief(store: BriefStore, deps: BriefDeps, id: string, v
     { model: deps.model, at: new Date(now()).toISOString(), keyword: b.keyword, stage: ctx.stage },
   );
   if (!brief.outline.length) return fail("The brief came back without an outline. Regenerate it.");
+  if (deps.readPage && brief.examples?.length) Object.assign(brief, await readExamples(brief, deps.readPage));
   await store.update(id, { brief, status: "ready", step: "done", error: null });
   return { state: "done" };
+}
+
+export const EXAMPLE_TEXT = 4_000; // characters of each example's page the brief keeps
+
+/**
+ * Read every featured example's own page, six at a time, and add the ones read to the sources, numbered after the
+ * research's. A page that fails is kept with its error; the draft then writes from the research's facts only.
+ */
+export async function readExamples(b: WriterBrief, read: NonNullable<BriefDeps["readPage"]>): Promise<Pick<WriterBrief, "examples" | "research">> {
+  const list = b.examples ?? [];
+  const pages: NonNullable<BriefExample["page"]>[] = new Array(list.length);
+  for (let i = 0; i < list.length; i += 6)
+    await Promise.all(
+      list.slice(i, i + 6).map(async (e, k) => {
+        const p = await read(e.url).catch((err: unknown) => ({ title: "", text: "", ok: false, error: err instanceof Error ? err.message : String(err) }));
+        pages[i + k] = { title: p.title.slice(0, 200), text: p.text.slice(0, EXAMPLE_TEXT), ok: p.ok && p.text.length > 0, ...(p.error ? { error: p.error.slice(0, 300) } : {}) };
+      }),
+    );
+  const sources = [...b.research.sources];
+  const known = new Set(sources.map((s) => s.url));
+  const examples = list.map((e, i) => {
+    const page = pages[i];
+    if (page.ok && !known.has(e.url)) {
+      const n = sources.length + 1;
+      sources.push({ n, url: e.url, title: page.title || e.name, domain: new URL(e.url).hostname.replace(/^www\./, ""), kind: "example", position: null, words: page.text.split(/\s+/).filter(Boolean).length });
+      known.add(e.url);
+      return { ...e, page, sources: [...new Set([...e.sources, n])] };
+    }
+    return { ...e, page };
+  });
+  return { examples, research: { ...b.research, sources } };
 }
 
 // ─────────────── the queue ───────────────
@@ -405,5 +506,15 @@ export function editBrief(old: WriterBrief, patch: unknown): WriterBrief {
     entities: lines(p.entities, 40, old.entities),
     faqs: faqs ? faqs.slice(0, 20).map((f) => ({ question: txt(f.question, 300, ""), answer: txt(f.answer, 1500, "") })).filter((f) => f.question.trim()) : old.faqs,
     cta: cta ? { text: txt(cta.text, 300, old.cta.text), where: txt(cta.where, 300, old.cta.where) } : old.cta,
+    // Images can be removed or reworded; a new one must be one the brief already had, so nothing unchecked slips in.
+    images: rows(p.images)
+      ? (rows(p.images) ?? [])
+          .map((m) => {
+            const was = (old.images ?? []).find((o) => o.placement === m.placement && (o.kind ?? "") === (m.kind ?? "") && (o.url ?? "") === (m.url ?? ""));
+            return was ? { ...was, shows: txt(m.shows, 300, was.shows), alt: txt(m.alt, 200, was.alt) } : null;
+          })
+          .filter((m): m is BriefImage => m !== null)
+      : old.images,
+    checks: lines(p.checks, 20, old.checks ?? []),
   };
 }

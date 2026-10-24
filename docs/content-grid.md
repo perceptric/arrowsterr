@@ -31,7 +31,7 @@ Select rows and press **Generate brief**, or press the play button next to a row
 
 **Generate** next to the keyword (all sections) or in the side panel (that section) opens the review screen.
 
-- **Brand first.** Nothing runs until the Brand page has a Brand Voice, Brand Guidelines and a Brand Kit (`brandMissing` in `articleGrid.ts`). The screen lists what's missing with Open Brand page, and the server refuses the same way.
+- **Brand first.** Generating needs a Brand Voice, Brand Guidelines and a Brand Kit (`brandMissing` in `articleGrid.ts`). The server fills in any that are missing first (`ensureBrandSetup` in `brandSetupServer.ts`, see `docs/agentic-writing.md`), so nobody has to set them up by hand.
 - **Review.** Each section shows the brief's points for it (edit them, one per line) and the interactive module to build at its end: the one the brief planned for that H2, any of the 13 kinds, or none, with a line on when it helps. Sections that already have text say Replaces text. One note goes to every section.
 - **Run.** Sections run one at a time (`generateSection` in `gridServer.ts`): written from the brief's plan with the edited points, cited from the research, in the Brand Voice, building on the text that's there. Each lands in the doc as it finishes, and its row shows Waiting, Writing, Done or Failed. A module that fails its checks twice is left out and named; the text still lands. The doc is made from the brief first if it doesn't exist, and the piece moves to Writing.
 - Costs 15 tasks a section, plus 25 for a module.

@@ -14,11 +14,12 @@ const SEARCH_TOOL = "web_search_20260209" as const;
 /**
  * Ask Claude one question. With `searches` above 0, Claude can search the web that many times.
  * `prefix` is a long, stable start (a brand and its research) sent before the prompt and cached, so calls that
- * share it pay a tenth for those tokens after the first.
+ * share it pay a tenth for those tokens after the first. `system` is a stable system prompt (the writing skills),
+ * cached on its own, so it is shared by every call that sends the same text.
  */
 export async function askClaude(
   prompt: string,
-  opts: { searches?: number; maxTokens?: number; model?: string; effort?: "low" | "medium" | "high"; schema?: Record<string, unknown>; prefix?: string } = {},
+  opts: { searches?: number; maxTokens?: number; model?: string; effort?: "low" | "medium" | "high"; schema?: Record<string, unknown>; prefix?: string; system?: string } = {},
 ): Promise<{ text: string; sources: Source[] }> {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const content: Anthropic.MessageParam["content"] = opts.prefix
@@ -36,6 +37,7 @@ export async function askClaude(
     const msg = await client.messages.create({
       model,
       max_tokens: opts.maxTokens ?? 16000,
+      ...(opts.system ? { system: [{ type: "text" as const, text: opts.system, cache_control: { type: "ephemeral" as const } }] } : {}),
       messages,
       // With a schema, the API makes sure the reply is valid JSON in that shape.
       ...(opts.effort || opts.schema
@@ -59,7 +61,7 @@ export async function askClaude(
 }
 
 /** Ask Claude for JSON in a fixed shape. No web search: structured replies cannot carry search citations. */
-export async function askJson<T>(prompt: string, schema: Record<string, unknown>, opts: { maxTokens?: number; model?: string; effort?: "low" | "medium" | "high"; prefix?: string } = {}): Promise<T> {
+export async function askJson<T>(prompt: string, schema: Record<string, unknown>, opts: { maxTokens?: number; model?: string; effort?: "low" | "medium" | "high"; prefix?: string; system?: string } = {}): Promise<T> {
   const { text } = await askClaude(prompt, { ...opts, schema });
   return parseJson(text) as T;
 }

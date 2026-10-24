@@ -13,22 +13,29 @@ import type { RunAuth } from "@/lib/runner";
 import { useStash } from "@/lib/stash";
 import { Dropdown, Pop } from "../Pickers";
 import { post, STATUS_PICK } from "../research/shared";
-import { Thinking } from "../ui";
+import { libraryGroup, writeState, type WriteState } from "@/lib/writeFlow";
+import { Seg, Thinking } from "../ui";
 import { usePoll, type LibraryOpen } from "./parts";
 import { ConnectWizard } from "../ConnectWizard";
 import { GenerateDialog } from "./GenerateDialog";
 import { SectionPanel } from "./SectionPanel";
+import { useWriteActions, WriteButton } from "./WriteButton";
 
 // The Library as a grid (docs/content-grid.md): one row per article, columns lettered like a sheet.
 // Metadata: Status (the same Content status as the Keyword Deep Dive), Meta title, Meta description, Slug.
+// Write (docs/agentic-writing.md): the same button as the Editorial Calendar, after the keyword. A filter at the top
+// shows all pieces, outlines, drafts or published posts.
 // Content: H1 and Section 1, H2 and Section 2, up to H20 and Section 20, and more with +. Generate brief fills the
 // headings and metadata. Writers fill the sections: each opens in the side panel with the brief's notes for it,
 // and Full view opens the whole article, with Publish.
 
-const W = { check: 36, keyword: 220, status: 190, title: 220, description: 280, slug: 170, heading: 200, section: 260, add: 44 };
+const W = { check: 36, keyword: 220, write: 200, status: 190, title: 220, description: 280, slug: 170, heading: 200, section: 260, add: 44 };
 const ADDED = (siteId: string) => `arrowsterr.grid.pairs.${siteId}`;
 const STEP: Record<string, string> = { research: "Researching", writing: "Planning", sections: "Writing", check: "Checking", modules: "Building modules", save: "Saving" };
 const isoDay = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+type Filter = "all" | "outlines" | "drafts" | "published";
+const stateOf = (r: GridRow): WriteState => writeState({ item: { status: r.topic.status, url: r.topic.url }, brief: r.topic.brief, draft: r.topic.draft });
 
 const making = (r: GridRow) => r.topic.brief?.status === "generating" || r.topic.draft?.status === "generating";
 
@@ -55,6 +62,7 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
   const [connecting, setConnecting] = useState(false);
   const [synced, setSynced] = useState<Record<string, { s: "syncing" | "done"; url?: string | null }>>({});
   const [busy, setBusy] = useState<Set<string>>(new Set());
+  const [filter, setFilter] = useStash<Filter>(`library:${site.id}:filter`, "all");
   const [added, setAdded] = useState(() => {
     try {
       return Number(localStorage.getItem(ADDED(site.id))) || 0;
@@ -82,8 +90,9 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
     load();
   }, [load]);
   usePoll(Boolean(rows?.some(making)), 5000, load);
+  const actions = useWriteActions({ sb, auth, brandId, siteId: site.id, canEdit, onChanged: () => void load() });
 
-  const list = useMemo(() => rows ?? [], [rows]);
+  const list = useMemo(() => (rows ?? []).filter((r) => filter === "all" || libraryGroup(stateOf(r)) === filter), [rows, filter]);
   const pairs = useMemo(() => new Map(list.map((r) => [r.topic.id, contentPairs(r.doc, r.plan)])), [list]);
   const count = pairCount(Math.max(0, ...[...pairs.values()].map((p) => p.length)), added);
 
@@ -209,7 +218,7 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
     { key: `h${i}`, name: `H${i + 1}`, width: W.heading, pair: i, heading: true },
     { key: `s${i}`, name: `Section ${i + 1}`, width: W.section, pair: i, heading: false },
   ]).flat();
-  const width = W.check + W.keyword + metaCols.reduce((n, c) => n + c.width, 0) + contentCols.reduce((n, c) => n + c.width, 0) + W.add;
+  const width = W.check + W.keyword + W.write + metaCols.reduce((n, c) => n + c.width, 0) + contentCols.reduce((n, c) => n + c.width, 0) + W.add;
   const allOn = list.length > 0 && list.every((r) => selected.has(r.topic.id));
   const picked = [...selected];
   const editRow = edit ? rows.find((r) => r.topic.id === edit.itemId) : null;
@@ -290,7 +299,20 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
-        <h1 className="aw-h2 mr-auto">Library</h1>
+        <h1 className="aw-h2">Library</h1>
+        <span className="mr-auto pl-2">
+          <Seg
+            label="Show"
+            value={filter}
+            onChange={setFilter}
+            options={[
+              { id: "all", label: "All" },
+              { id: "outlines", label: "Outlines" },
+              { id: "drafts", label: "Drafts" },
+              { id: "published", label: "Published" },
+            ]}
+          />
+        </span>
         {picked.length ? <span className="text-[12px] text-muted">{picked.length} selected</span> : null}
         {canEdit ? (
           <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setConnecting(true)}>
@@ -304,12 +326,14 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
         ) : null}
       </div>
       {error ? <p className="aw-error">{error}</p> : null}
+      {actions.error ? <p className="aw-error">{actions.error}</p> : null}
 
       <div className="aw-frame overflow-auto" style={{ maxHeight: "calc(100vh - 200px)" }}>
         <table className="border-separate border-spacing-0 text-[13px]" style={{ tableLayout: "fixed", width }}>
           <colgroup>
             <col style={{ width: W.check }} />
             <col style={{ width: W.keyword }} />
+            <col style={{ width: W.write }} />
             {metaCols.map((c) => (
               <col key={c.key} style={{ width: c.width }} />
             ))}
@@ -328,6 +352,9 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
                   {tag("A")}
                   Keyword
                 </span>
+              </th>
+              <th rowSpan={2} className={`${head} top-0 z-20`}>
+                Write
               </th>
               <th colSpan={metaCols.length} className={`${head} top-0 h-8 text-ink`}>
                 Metadata
@@ -407,6 +434,11 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
                     </span>
                   </div>
                 </td>
+                <td className={cell}>
+                  <div className="flex h-[63px] items-start pt-1">
+                    <WriteButton state={stateOf(r)} busy={actions.busy.has(r.topic.id)} canEdit={canEdit} onAct={() => void actions.act(r.topic, stateOf(r))} onOpen={() => actions.open(r.topic, stateOf(r))} />
+                  </div>
+                </td>
                 {metaCols.map((c) => (
                   <td key={c.key} className={cell}>
                     <div className="h-[63px] overflow-hidden">{metaCell(r, c.key)}</div>
@@ -468,6 +500,7 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
         />
       ) : null}
       {connecting ? <ConnectWizard auth={auth} brandId={brandId} onClose={() => setConnecting(false)} onConnected={() => {}} /> : null}
+      {actions.overlays}
       {gen && genRow ? (
         <GenerateDialog
           auth={auth}

@@ -24,6 +24,8 @@ export type Topic = {
   status: "planned" | "brief" | "writing" | "review" | "published";
   stage: "bofu" | "mofu" | "tofu" | null;
   due_date: string | null;
+  /** The live post's link, once published. */
+  url: string | null;
   added: string;
   brief: BriefLite | null;
   draft: DraftLite | null;
@@ -41,12 +43,12 @@ export async function listTopics(sb: SupabaseClient, siteId: string): Promise<To
   const b = (check(briefs) ?? []) as unknown as BriefLite[];
   const d = (check(drafts) ?? []) as unknown as DraftLite[];
   const written = [...new Set([...b, ...d].map((x) => x.item_id))];
-  const cols = "id, keyword, stage, due_date, status, extra";
+  const cols = "id, keyword, stage, due_date, status, url, extra";
   const [imported, withDocs] = await Promise.all([
     sb.from("calendar_items").select(cols).eq("site_id", siteId).or("extra->>in_writer_at.not.is.null,extra->>write_queued_at.not.is.null"),
     written.length ? sb.from("calendar_items").select(cols).in("id", written) : Promise.resolve({ data: [], error: null }),
   ]);
-  type Row = { id: string; keyword: string; stage: Topic["stage"]; status: Topic["status"]; due_date: string | null; extra: Record<string, unknown> | null };
+  type Row = { id: string; keyword: string; stage: Topic["stage"]; status: Topic["status"]; due_date: string | null; url: string | null; extra: Record<string, unknown> | null };
   const items = new Map<string, Row>();
   for (const i of [...((check(imported) ?? []) as Row[]), ...((check(withDocs) ?? []) as Row[])]) items.set(i.id, i);
   const latest = (x: { updated_at: string } | undefined) => x?.updated_at ?? "";
@@ -54,9 +56,18 @@ export async function listTopics(sb: SupabaseClient, siteId: string): Promise<To
     .map((i) => {
       const brief = b.find((x) => x.item_id === i.id) ?? null;
       const draft = d.find((x) => x.item_id === i.id) ?? null;
-      return { id: i.id, keyword: i.keyword, status: i.status, stage: i.stage, due_date: i.due_date, added: inWriterAt(i.extra) ?? [latest(brief ?? undefined), latest(draft ?? undefined)].sort().pop() ?? "", brief, draft };
+      return { id: i.id, keyword: i.keyword, status: i.status, stage: i.stage, due_date: i.due_date, url: i.url ?? null, added: inWriterAt(i.extra) ?? [latest(brief ?? undefined), latest(draft ?? undefined)].sort().pop() ?? "", brief, draft };
     })
     .sort((x, y) => y.added.localeCompare(x.added));
+}
+
+/** Every piece's brief and draft on a site, by calendar item id, for the Editorial Calendar's Write column. */
+export async function writerStates(sb: SupabaseClient, siteId: string): Promise<Map<string, { brief: BriefLite | null; draft: DraftLite | null }>> {
+  const [briefs, drafts] = await Promise.all([sb.from("writer_briefs").select(BRIEF_COLS).eq("site_id", siteId), sb.from("writer_drafts").select(DRAFT_COLS).eq("site_id", siteId)]);
+  const out = new Map<string, { brief: BriefLite | null; draft: DraftLite | null }>();
+  for (const b of (check(briefs) ?? []) as unknown as BriefLite[]) out.set(b.item_id, { brief: b, draft: out.get(b.item_id)?.draft ?? null });
+  for (const d of (check(drafts) ?? []) as unknown as DraftLite[]) out.set(d.item_id, { brief: out.get(d.item_id)?.brief ?? null, draft: d });
+  return out;
 }
 
 /** One topic's brief and draft, for the Keyword Deep Dive. Null when the writer has none yet. */

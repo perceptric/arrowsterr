@@ -10,7 +10,10 @@
 // Pure: the database and the paid calls come in as `store` and `deps` (writerServer.ts), so tests run it offline.
 import type { BriefRow, Outcome, PlannedModule, ResearchPack, SourcePage, WriterBrief, WriterContext } from "./writerBrief.ts";
 import { contextPrefix } from "./writerBrief.ts";
+import { lintDraft, type Finding } from "./houseRules.ts";
+import { CLAIM_METHOD, findingsFor, fixPrompt, keepsFacts, mergeFindings, proofreadTitle, reviewPrompt, styleResult } from "./writerStyle.ts";
 import { modulePrompt, moduleStyle, validateModule, wrapModule, type Validation } from "./writerModules.ts";
+import type { ImagesOut, MissingImage, PlacedImage } from "./writerImageTypes.ts";
 
 // ─────────────── shapes ───────────────
 export type BlockType = "p" | "h3" | "ul" | "ol" | "quote" | "table";
@@ -18,6 +21,18 @@ export type Block = { type: BlockType; text: string; items: string[]; rows: stri
 export type Section = { key: string; h2: string; blocks: Block[] };
 export type ModuleState = { status: "ok" | "retry" | "dropped"; attempts: number; html: string | null; error: string | null };
 export type Checked = { sections: Section[]; cut: { id: string; why: string }[]; unlinked: number };
+/** A line the style passes changed or flagged, by its claim id (claimLines). */
+export type StyleNote = { id: string; rule: string; before: string; after: string | null };
+export type Styled = {
+  sections: Section[];
+  fixed: StyleNote[];
+  left: StyleNote[];
+  proofread: string[];
+  title?: string; // the H1 after the proofread, when its count changed
+  findings?: Finding[]; // while the fixes run: what the lint and review found
+  next?: number; // while the fixes run: the next section to fix
+  done?: boolean;
+};
 
 export type DraftStatus = "generating" | "ready" | "failed";
 export type DraftRow = {
@@ -29,20 +44,24 @@ export type DraftRow = {
   brief_id: string;
   doc_id: string | null;
   status: DraftStatus;
-  step: "sections" | "check" | "modules" | "save" | "done";
+  step: "sections" | "style" | "check" | "images" | "modules" | "save" | "done";
   version: number;
   note: string | null;
   sections: (Section | null)[];
   checked: Checked | null;
   check_at: string | null;
   modules: (ModuleState | null)[];
+  /** The sections after the style passes (docs/agentic-writing.md, section 6), with what they could not clear. */
+  styled?: Styled | null;
+  /** The images made for this version, and the ones left as notes. */
+  images?: { placed: PlacedImage[]; missing: MissingImage[]; featured: PlacedImage | null } | null;
   period: string;
   words: number;
   error: string | null;
   ready_at: string | null;
 };
 
-export type DocOut = { title: string; content: Record<string, unknown>; words: number; meta: { title: string; metaTitle: string; description: string; slug: string } };
+export type DocOut = { title: string; content: Record<string, unknown>; words: number; meta: { title: string; metaTitle: string; description: string; slug: string; image?: string } };
 
 export type DraftStore = {
   draft(id: string): Promise<DraftRow | null>;
@@ -55,7 +74,12 @@ export type DraftDeps = {
   context(d: DraftRow, b: BriefRow): Promise<{ ctx: WriterContext; pack: ResearchPack }>;
   writeSection(prefix: string, prompt: string): Promise<unknown>;
   check(prefix: string, prompt: string): Promise<unknown>;
+  /** The style review and fix (writerStyle.ts), with the writing skills as a cached system prompt. Without them, only the lint runs. */
+  styleReview?: (prefix: string, prompt: string) => Promise<unknown>;
+  styleFix?: (prefix: string, prompt: string) => Promise<unknown>;
   buildModule(prefix: string, prompt: string): Promise<unknown>;
+  /** The image step (writerImagesServer.ts). Without it, images stay notes. */
+  images?: (a: { draft: DraftRow; brief: WriterBrief; sections: Section[]; ctx: WriterContext; prefix: string }) => Promise<ImagesOut>;
   validate?: (html: string) => Validation;
   model: string;
   now?: () => number;
@@ -96,6 +120,11 @@ export function briefText(b: WriterBrief, notes: string): string {
     b.internalLinks.length ? `Internal links:\n${b.internalLinks.map((l) => `- "${l.anchor}" → ${l.url} (under ${l.where})`).join("\n")}` : "",
     b.cta.text ? `Call to action: ${b.cta.text}` : "",
     b.modules.length ? `Interactive modules (built separately, don't write them): ${b.modules.map((m) => `${m.title} after "${m.placement}"`).join("; ")}` : "",
+    b.examples?.length
+      ? `Featured examples (each one's section opens with its sentence, then uses its facts and its own page):\n${b.examples.map((e) => `- ${e.name} (${e.url}): "${e.opener}"${e.facts.length ? ` Facts: ${e.facts.join(" ")}` : ""}${e.sources.length ? ` [sources ${e.sources.join(", ")}]` : ""}`).join("\n")}`
+      : "",
+    b.checks?.length ? `Not confirmed by the sources, so never state these as fact:\n${b.checks.map((c) => `- ${c}`).join("\n")}` : "",
+    b.images?.length ? `Images (made separately, don't describe them as missing): ${b.images.map((m) => `${m.kind ?? "image"} under "${m.placement}"`).join("; ")}` : "",
     notes ? `The editor's notes:\n${notes}` : "",
   ]
     .filter(Boolean)
@@ -126,6 +155,7 @@ export function sectionPrompt(plan: SectionPlan[], i: number, b: WriterBrief, so
   const words = Math.round(b.wordTarget / Math.max(1, plan.filter((p) => p.kind === "h2").length + 0.6));
   const cite = s.sources.length ? s.sources.map((n) => `[${n}] ${sources[n - 1]?.url ?? ""}`).join("\n") : "any source above that backs a claim";
   const links = b.internalLinks.filter((l) => l.where && s.h2 && l.where.toLowerCase() === s.h2.toLowerCase());
+  const example = s.kind === "h2" ? exampleFor(b, s.h2) : null;
   const what =
     s.kind === "intro"
       ? `Write the intro: 2 or 3 short paragraphs, about ${Math.min(180, Math.round(words / 2))} words. Hook the reader with the problem, say what they'll get, and use the keyword naturally. No heading.`
@@ -138,16 +168,22 @@ The article's sections, for flow: ${plan.map((p) => (p.kind === "intro" ? "Intro
 ${prev ? `The end of the section before this one:\n${sectionPlain(prev).slice(-1200)}\n` : ""}
 Cite from:
 ${cite}
-${links.length ? `Put these internal links in naturally: ${links.map((l) => `[${l.anchor}](${l.url})`).join(", ")}\n` : ""}${s.cta ? `End the section with the call to action: ${b.cta.text}\n` : ""}${note ? `The editor asked for this change: ${note}\n` : ""}
+${example ? `This section features ${example.name} (${example.url}). Its first sentence is: "${example.opener}" Then walk the reader through it using its facts and its own page (source ${example.sources.join(", ") || "above"}), and link to it once.\n` : ""}${links.length ? `Put these internal links in naturally: ${links.map((l) => `[${l.anchor}](${l.url})`).join(", ")}\n` : ""}${s.cta ? `End the section with the call to action: ${b.cta.text}\n` : ""}${note ? `The editor asked for this change: ${note}\n` : ""}
 Rules:
-- Write in the Brand Voice above. Sound like the brand, not like an AI: plain words, no filler, no "in today's fast-paced world", no "delve".
+- Write in the Brand Voice and the voice sample above, and follow every house rule. Plain words, no filler, no "in today's fast-paced world", no "delve".
 - Blocks: p (a paragraph), h3, ul or ol (items), quote, table (rows; the first row is the header). Fill only the field the block uses; leave the others empty.
 - Inline formatting: **bold** for a few key terms, and links as [anchor](url).
 - Cite a source for every fact, number or claim as a link on a few words of the sentence: [anchor](source url). Use only the source URLs above.
 - Never invent numbers, quotes, studies or product details. If the sources don't say it, leave it out.
 - Short paragraphs: 1 to 3 sentences.
-- Lists: whenever you give three or more parallel things (options, features, tips, criteria, mistakes, pros, cons), put them in a ul block, one per item; steps in order and rankings go in an ol block. Never run them together in a paragraph. When items have names, start each with the name in **bold**, then a colon.
+- Lists: whenever you give three or more parallel things (options, features, tips, criteria, mistakes, pros, cons), put them in a ul block, one per item; steps in order and rankings go in an ol block. Never run them together in a paragraph. List items are plain sentences with no bold lead-in label.
 - Comparisons of several options on the same points go in a table block.`;
+}
+
+/** The featured example a section is about: its name appears in the H2. Longest name first, so "HubSpot CRM" beats "HubSpot". */
+export function exampleFor(b: Pick<WriterBrief, "examples">, h2: string) {
+  const key = h2.toLowerCase();
+  return [...(b.examples ?? [])].sort((x, y) => y.name.length - x.name.length).find((e) => e.name && key.includes(e.name.toLowerCase())) ?? null;
 }
 
 // ─────────────── step 2: check ───────────────
@@ -176,7 +212,9 @@ export const CHECK_SCHEMA = {
 };
 
 export function checkPrompt(sections: Section[]): string {
-  return `Check this draft against the numbered sources above. A claim is supported when a source above says it, or it is common knowledge, or it is the brand describing itself in the Brand Voice.
+  return `${CLAIM_METHOD}
+
+Check this draft against the numbered sources above. A claim is supported when a source above says it, or it is common knowledge, or it is the brand describing itself in the Brand Voice.
 
 List the id of every sentence, list item or table row that makes a claim the sources don't support: a number, a fact, a quote, a study, a product detail or a link to a page that doesn't say it. Opinions, advice, transitions and questions are fine. When in doubt about a number, cut it.
 
@@ -326,14 +364,34 @@ const plainOf = (b: Block) => (b.type === "table" ? b.rows.map((r) => r.join(" "
 export const sectionPlain = (s: Section) => [s.h2, ...s.blocks.map(plainOf)].filter(Boolean).join("\n\n").replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").replace(/\*\*?/g, "");
 const countWords = (s: string) => s.split(/\s+/).filter(Boolean).length;
 
-/** The finished draft as the editor's document: sections in order, each module after its H2. */
-export function buildDoc(b: WriterBrief, sections: Section[], modules: { module: PlannedModule; html: string }[]): DocOut {
+type DraftImages = { placed: PlacedImage[]; missing: MissingImage[]; featured: PlacedImage | null };
+const keyOf = (x: string) => x.toLowerCase().replace(/\s+/g, " ").trim();
+
+/** An image the draft made, as an editor node. */
+export const imageNode = (m: PlacedImage): PMNode => ({ type: "image", attrs: { src: m.src, alt: m.alt, title: m.caption ?? null } });
+
+/** An image the draft couldn't make, as a note where it goes: "Add screenshot: ..." with the page and the reason. */
+export const missingNote = (m: MissingImage): PMNode => ({ type: "note", content: [{ type: "text", text: `Add ${m.kind === "screenshot" ? "screenshot" : "image"}: ${m.shows}${m.url && !m.shows.includes(m.url) ? ` (${m.url})` : ""}. ${m.reason}` }] });
+
+/**
+ * The finished draft as the editor's document: sections in order, each section's images after its first paragraph,
+ * each module after its H2. With images made, the brief's image notes give way to the images and to notes for the
+ * ones that need a person. The featured image goes into the doc's meta, where Publish reads it.
+ */
+export function buildDoc(b: WriterBrief, sections: Section[], modules: { module: PlannedModule; html: string }[], images: DraftImages | null = null, title: string | null = null): DocOut {
   const content: PMNode[] = [];
   const placed = new Set<number>();
   for (const s of sections) {
+    const where = keyOf(s.key === "intro" ? "intro" : s.h2);
     if (s.h2) content.push(heading(2, s.h2));
-    for (const blk of s.blocks) content.push(...blockNodes(blk));
-    content.push(...imageNotes(b, s.key === "intro" ? "" : s.h2));
+    const blocks = s.blocks.flatMap(blockNodes);
+    const pics = images ? [...images.placed.filter((m) => keyOf(m.placement) === where).map(imageNode), ...images.missing.filter((m) => keyOf(m.placement) === where).map(missingNote)] : [];
+    // Older briefs' images have no kind: they stay notes either way.
+    const notes = images ? imageNotes({ images: (b.images ?? []).filter((m) => !m.kind) }, s.key === "intro" ? "" : s.h2) : imageNotes(b, s.key === "intro" ? "" : s.h2);
+    const first = blocks.findIndex((n) => n.type === "paragraph");
+    if (pics.length && first >= 0) blocks.splice(first + 1, 0, ...pics);
+    else blocks.push(...pics);
+    content.push(...blocks, ...notes);
     modules.forEach((m, i) => {
       if (!placed.has(i) && s.h2 && m.module.placement.toLowerCase() === s.h2.toLowerCase()) {
         content.push({ type: "embed", attrs: { html: m.html } });
@@ -346,7 +404,14 @@ export function buildDoc(b: WriterBrief, sections: Section[], modules: { module:
   const rest = modules.filter((_, i) => !placed.has(i)).map((m) => ({ type: "embed", attrs: { html: m.html } }));
   if (rest.length) content.splice(faq >= 0 ? faq : content.length, 0, ...rest);
   const words = countWords(sections.map(sectionPlain).join(" "));
-  return { title: b.h1, content: { type: "doc", content: content.length ? content : [{ type: "paragraph" }] }, words, meta: { title: b.titles[0] ?? b.h1, metaTitle: b.titles[0] ?? b.h1, description: b.metaDescription, slug: b.slug } };
+  const h1 = title || b.h1;
+  const metaTitle = title && b.titles[0] === b.h1 ? title : (b.titles[0] ?? h1);
+  return {
+    title: h1,
+    content: { type: "doc", content: content.length ? content : [{ type: "paragraph" }] },
+    words,
+    meta: { title: metaTitle, metaTitle, description: b.metaDescription, slug: b.slug, ...(images?.featured ? { image: images.featured.src } : {}) },
+  };
 }
 
 // ─────────────── the job ───────────────
@@ -370,7 +435,13 @@ export function cleanSection(x: unknown, plan: SectionPlan): Section {
 
 /** The pages behind the brief, in the brief's numbering. */
 export function sourcesFor(b: WriterBrief, pack: ResearchPack): SourcePage[] {
-  return b.research.sources.map((s) => pack.pages.find((p) => p.url === s.url) ?? { url: s.url, title: s.title, domain: s.domain, kind: s.kind, position: s.position, words: s.words, headings: [], body: "" });
+  return b.research.sources.map((s) => {
+    if (s.kind === "example") {
+      const e = b.examples?.find((x) => x.url === s.url);
+      return { url: s.url, title: s.title, domain: s.domain, kind: s.kind, position: null, words: s.words, headings: [], body: e?.page?.text ?? "" };
+    }
+    return pack.pages.find((p) => p.url === s.url) ?? { url: s.url, title: s.title, domain: s.domain, kind: s.kind, position: s.position, words: s.words, headings: [], body: "" };
+  });
 }
 
 /**
@@ -409,19 +480,62 @@ export async function runDraft(store: DraftStore, deps: DraftDeps, id: string, v
     if (over()) return later;
     const raw = await deps.writeSection(prefix, sectionPrompt(plan, i, brief, sources, sections[i - 1] ?? null, d.note));
     sections[i] = cleanSection(raw, plan[i]);
-    await save({ sections, step: i === plan.length - 1 ? "check" : "sections" });
+    await save({ sections, step: i === plan.length - 1 ? "style" : "sections" });
   }
   const written = sections.filter((s): s is Section => Boolean(s));
 
-  // Step 2: the check, one call over the whole draft.
+  // Step 2: the style passes. The lint is free; the review is one call; each section with findings is rewritten
+  // once and saved as it lands, so a turn that runs out of time picks up at the next section.
+  const examples = brief.examples ?? [];
+  if (!d.styled?.done) {
+    let st: Styled = d.styled ?? { sections: written, fixed: [], left: [], proofread: [] };
+    if (!st.findings) {
+      const lint = lintDraft(written, examples);
+      let review: unknown = null;
+      if (deps.styleReview) {
+        if (over()) return later;
+        review = await deps.styleReview(prefix, reviewPrompt(claimLines(written).map((l) => ({ id: l.id, text: stripLinks(l.text) })), lint, { sample: ctx.sample ?? "", examples }));
+      }
+      st = { ...st, findings: mergeFindings(lint, review, new Set(claimLines(written).map((l) => l.id))), next: 0 };
+      await save({ styled: st });
+    }
+    const findings = st.findings ?? [];
+    const out = [...st.sections];
+    for (let si = st.next ?? 0; si < written.length; si++) {
+      const mine = findingsFor(findings, si);
+      if (mine.length && deps.styleFix) {
+        if (over()) return later;
+        const sec = written[si];
+        const raw = await deps.styleFix(prefix, fixPrompt(sec, mine, { sample: ctx.sample ?? "", opener: sec.h2 ? exampleFor(brief, sec.h2)?.opener : undefined }));
+        const fixed = cleanSection(raw, plan.find((p) => p.key === sec.key) ?? { key: sec.key, kind: "h2", h2: sec.h2, points: [], h3: [], sources: [], cta: false });
+        // A rewrite that loses or adds a number or a link is thrown away.
+        if (fixed.blocks.length && keepsFacts(sec, fixed)) out[si] = fixed;
+      }
+      st = { ...st, sections: out, next: si + 1 };
+      await save({ styled: st });
+    }
+    const title = proofreadTitle(brief.h1, out, examples.length);
+    const result = styleResult(written, out, findings, examples, claimLines);
+    await save({ styled: { sections: out, ...result, proofread: title.notes, ...(title.title ? { title: title.title } : {}), done: true }, step: "check" });
+  }
+  const styled = d.styled!.sections;
+
+  // Step 3: the check, one call over the whole draft.
   if (!d.checked) {
     if (over()) return later;
-    const raw = (await deps.check(prefix, checkPrompt(written))) as { cut?: unknown };
+    const raw = (await deps.check(prefix, checkPrompt(styled))) as { cut?: unknown };
     const cut = (Array.isArray(raw?.cut) ? raw.cut : []).map((c) => ({ id: str((c as { id?: unknown }).id, 40), why: str((c as { why?: unknown }).why, 300) })).filter((c) => c.id);
     const allowed = { urls: [...brief.research.sources.map((s) => s.url), ...brief.internalLinks.map((l) => l.url)], domain: ctx.brand.domain };
-    await save({ checked: applyCheck(written, cut, allowed), check_at: new Date(now()).toISOString(), step: "modules" });
+    await save({ checked: applyCheck(styled, cut, allowed), check_at: new Date(now()).toISOString(), step: "images" });
   }
   const final = d.checked!.sections;
+
+  // Step 4: images. The worker takes the screenshots and draws the rest; this waits for it without paying.
+  if (!d.images && deps.images) {
+    const out = await deps.images({ draft: d, brief, sections: final, ctx, prefix });
+    if (out.state === "wait") return { state: "wait", seconds: 15, why: out.why };
+    await save({ images: { placed: out.placed, missing: out.missing, featured: out.featured }, step: "modules" });
+  }
 
   // Step 3: modules, each built, checked, retried once, or dropped.
   const validate = deps.validate ?? validateModule;
@@ -443,7 +557,7 @@ export async function runDraft(store: DraftStore, deps: DraftDeps, id: string, v
 
   // Step 4: into the doc. Free, and safe to repeat.
   const built = brief.modules.map((module, j) => ({ module, html: mods[j]?.status === "ok" ? mods[j]!.html! : "" })).filter((m) => m.html);
-  const doc = buildDoc(brief, final, built);
+  const doc = buildDoc(brief, final, built, d.images ?? null, d.styled?.title ?? null);
   const at = new Date(now()).toISOString();
   const docId = await store.saveDoc(d, doc, at);
   await save({ doc_id: docId, status: "ready", step: "done", words: doc.words, ready_at: at, error: null });
