@@ -20,7 +20,7 @@ A workspace holds many Locations. Agencies group Locations by client.
 ## 2. Features
 
 ### 2.1 Local Rank Tracker (geo-grid)
-Matches LocalRank, then goes further.
+Built: `apps/riselocale` (README there), running cost in `docs/riselocale/rank-tracker.md`. Matches LocalRank, then goes further.
 - Grid scans from 3×3 up to 21×21 pins, by miles or km, centered on the business or anywhere on the map.
 - Service-area scans: pins fill the drawn shape, so a plumber covering five suburbs sees all of them.
 - Three separate ranks per pin: Maps, the Local Pack and plain organic. LocalRank's reviews call this out as rare. We show it on every pin.
