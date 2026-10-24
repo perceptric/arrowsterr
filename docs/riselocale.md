@@ -1,6 +1,6 @@
 # RiseLocale
 
-Planned October 2026. RiseLocale is local SEO and AI search for local businesses and the agencies that serve them. It runs on Arrowsterr's stack (Next.js, Supabase, the jobs worker, DataForSEO, `engines.ts`) under its own brand and domain. The goal is to beat LocalRank.so on every feature it sells, then win on the ones it doesn't have.
+Planned October 2026. RiseLocale is local SEO and AI search for local businesses and the agencies that serve them. It runs on Arrowsterr's stack (Next.js, Supabase, the jobs worker, DataForSEO, `engines.ts`) under its own brand and domain. The brand (tokens, components, rules) is `docs/riselocale/brand.md` and `docs/riselocale/brand.css`. The goal is to beat LocalRank.so on every feature it sells, then win on the ones it doesn't have.
 
 ## 1. The core object: a Location
 
