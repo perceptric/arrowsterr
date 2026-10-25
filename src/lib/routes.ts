@@ -103,3 +103,18 @@ export function zippieFromPath(path: string): { open: boolean; sub?: string } {
 
 /** The address for a Zippie tab. */
 export const zippiePath = (sub?: string) => (sub && (ZIPPIE_SUBS as readonly string[]).includes(sub) ? `/zippie/${sub}` : "/zippie");
+
+/**
+ * A short name for the screen at an address, for page timings: "prompts", "brand/kit", "settings/members".
+ * Pages outside the app keep their first part: "share" for /r/..., "pricing", "connect".
+ */
+export function screenOf(path: string): string {
+  const p = clean(path);
+  if (p.startsWith("/r/")) return "share";
+  const first = p.split("/")[1] ?? "";
+  if (["pricing", "connect", "oauth", "onboarding"].includes(first)) return first;
+  if (zippieFromPath(p).open) return "zippie";
+  const r = routeFromPath(p);
+  const slug = SLUGS[r.page].replace(/^\//, "") || "prompts";
+  return r.sub ? `${slug}/${r.sub}` : slug;
+}

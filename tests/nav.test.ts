@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { ALIASES, pageFromPath, pathFor, routeFromPath, SLUGS, SUBS, zippieFromPath, zippiePath, type Page } from "../src/lib/routes.ts";
+import { ALIASES, pageFromPath, pathFor, routeFromPath, screenOf, SLUGS, SUBS, zippieFromPath, zippiePath, type Page } from "../src/lib/routes.ts";
 import { SETTINGS_GROUPS, SETTINGS_TABS } from "../src/lib/settingsTabs.ts";
 
 // The sidebar's pages (NAV in App.tsx) and Settings.
@@ -92,4 +92,14 @@ test("nav: settings groups stay at 4 tabs or fewer", () => {
     SETTINGS_GROUPS.map((g) => g.label),
     ["Account", "Brand", "Workspace", "Tools", "Jobs"],
   );
+});
+
+test("nav: page timings name each screen by its address", () => {
+  assert.equal(screenOf("/"), "prompts");
+  assert.equal(screenOf("/brand/kit"), "brand/kit");
+  assert.equal(screenOf("/settings/members/"), "settings/members");
+  assert.equal(screenOf("/keyword-research"), "keywords");
+  assert.equal(screenOf("/zippie/skills"), "zippie");
+  assert.equal(screenOf("/r/abc123"), "share");
+  assert.equal(screenOf("/pricing"), "pricing");
 });

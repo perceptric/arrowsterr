@@ -2,7 +2,7 @@
 
 PostHog shows how people use Arrowsterr: which tools teams use, where they drop off between a brief and a published article, and session replays. It's for us, not customers. Customer website analytics come from their own Google Analytics 4.
 
-Code: `src/lib/analytics.ts` (start, identify, workspace, track, reset), `src/instrumentation-client.ts` (starts it next to Sentry), `next.config.ts` (the `/ingest` proxy), `src/components/App.tsx` (who and which workspace).
+Code: `src/lib/analytics.ts` (start, identify, workspace, track, reset), `src/instrumentation-client.ts` (starts it next to Sentry), `next.config.ts` (the `/ingest` proxy), `src/components/App.tsx` (who and which workspace), `src/components/WebVitals.tsx` (page timings, mounted in the root layout).
 
 ## Turn it on
 
@@ -28,7 +28,9 @@ Empty means off: nothing loads and every call does nothing.
 | `article_synced` | Sync to CMS | from (grid, full_view) |
 | `article_published` | Publish | mode, kind |
 | `cms_connected` | A site connected | kind, one_click |
+| `web_vital` | A page timing, from 1 in 10 browser tab sessions | metric (INP, LCP, CLS), value (ms, or the shift score for CLS), rating, screen (`screenOf` in `src/lib/routes.ts`: prompts, brand/kit, settings/members...), navigation |
 
+- **Page timings:** Next's `useReportWebVitals` reports INP (how long a click takes to show), LCP (when the main content shows) and CLS (how much the layout shifts). A slow screen shows up in a PostHog insight on `web_vital` broken down by screen. The sample is picked once per browser tab session, so a session sends all its timings or none.
 - **Session replay** with every input masked (passwords, API keys, anything typed) and any element marked `data-private` hidden.
 - Signing out resets it, so the next person on that browser starts fresh.
 
@@ -36,11 +38,11 @@ Events go to `/ingest` on our own address and on to `us.i.posthog.com`, so ad bl
 
 ## Running cost
 
-PostHog Cloud's free tier covers 1M events and 5,000 session replays a month (check). About 600 events and 10 replays per active team a month:
+PostHog Cloud's free tier covers 1M events and 5,000 session replays a month (check). About 600 events and 10 replays per active team a month, plus page timings: about 40 sessions per team a month, 1 in 10 sampled, 3 to 5 timings each, so about 20 `web_vital` events per team:
 
-| Stage | Events a month | Replays a month | PostHog |
-|---|---|---|---|
-| Beta (50 teams) | ~30K | ~500 | $0 |
-| Growth (500 teams) | ~300K | ~5,000 | $0 (check) |
+| Stage | Events a month | of which `web_vital` | Replays a month | PostHog |
+|---|---|---|---|---|
+| Beta (50 teams) | ~31K | ~1K | ~500 | $0 |
+| Growth (500 teams) | ~310K | ~10K | ~5,000 | $0 (check) |
 
 Past the free tier it's about $0.00005 an event and $0.005 a replay (check). The proxy runs on the existing web service: $0.

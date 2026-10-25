@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { DM_Mono, Funnel_Display, Geist, Geist_Mono, IBM_Plex_Mono, Inter } from "next/font/google";
+import { WebVitals } from "@/components/WebVitals";
 import "./globals.css";
 
 // The Arro game's pixel-style text.
@@ -57,6 +58,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${plex.variable} ${inter.variable} ${geist.variable} ${display.variable} ${mono.variable} ${dmMono.variable} h-full`}
     >
       <body className="min-h-full">
+        <WebVitals />
         <div className="aw flex min-h-screen flex-col">{children}</div>
       </body>
     </html>
