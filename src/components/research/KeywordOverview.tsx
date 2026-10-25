@@ -7,13 +7,17 @@ import { addCalendarItems, type Site } from "@/lib/db";
 import { filterWords, isMatchType, kdWord, MARKETS, MATCH_TYPES, stageFromIntent, wordGroups, wordList, type KeywordReport, type KwList, type KwSummary, type MatchType } from "@/lib/research";
 import type { RunAuth } from "@/lib/runner";
 import { countryOf, dbOf, domainHref, keywordHref, plainClick, setUrl, urlParams } from "@/lib/researchUrl";
+import { trendChange } from "@/lib/researchFormat";
 import { peek, putStash, useStash } from "@/lib/stash";
 import { BrandLogo } from "../BrandLogo";
+import { ExternalLink, Globe } from "../Icons";
 import { Sheet } from "../Sheet";
+import { BlockError, SkelRows, SkelStats } from "../states";
 import { SampleBars, SampleChips, SampleRing, SampleRows, SampleStats, ToolIntro } from "../ToolIntro";
-import { CalendarIcon, Card, favicon, Seg, Thinking } from "../ui";
+import { AiIcon, CalendarIcon, Card, favicon, Seg } from "../ui";
 import { BulkKeywords } from "./Bulk";
-import { BAR_BUTTON, BAR_FIELD, BAR_INPUT, AnalyzeSeo, downloadCsv, fmtCpc, post, postLines, Sparkline } from "./shared";
+import type { WriterAccess } from "./ContentPiece";
+import { AddedNotice, BAR_BUTTON, BAR_FIELD, BAR_INPUT, AnalyzeSeo, downloadCsv, fmtCpc, OutlineStarted, post, postLines, SelectionBar, Sparkline, startOutline } from "./shared";
 
 export const ISO: Record<string, string> = {
   "United States": "US", "United Kingdom": "GB", Canada: "CA", Australia: "AU", Germany: "DE", France: "FR", Spain: "ES", Netherlands: "NL",
@@ -21,8 +25,12 @@ export const ISO: Record<string, string> = {
 };
 export const flag = (country: string) => {
   const c = ISO[country];
-  return c ? String.fromCodePoint(...[...c].map((ch) => 127397 + ch.charCodeAt(0))) : "🌐";
+  return c ? String.fromCodePoint(...[...c].map((ch) => 127397 + ch.charCodeAt(0))) : "";
 };
+/** A country for a picker: its flag and name. */
+export const countryLabel = (country: string) => [flag(country), country].filter(Boolean).join(" ");
+/** A country's flag, or the globe for every country. */
+export const Flag = ({ country }: { country: string }) => (flag(country) ? <>{flag(country)}</> : <Globe size={14} className="inline-block align-[-2px]" />);
 export { kdWord };
 export const kdColor = (kd: number) => (kd < 30 ? "var(--aw-pos)" : kd < 50 ? "#F5B70A" : kd < 70 ? "#EA580C" : "var(--aw-neg)");
 export const short = (n: number | null | undefined) =>
@@ -39,7 +47,7 @@ export const KdDot = ({ kd }: { kd: number | null }) =>
   );
 
 /** One keyword at a glance: its numbers, ideas around it and who ranks. Paste several to compare them. */
-export function KeywordOverview({ sb, auth, site, canEdit }: { sb: SupabaseClient; auth: RunAuth; site: Site; canEdit: boolean }) {
+export function KeywordOverview({ sb, auth, site, canEdit, writer }: { sb: SupabaseClient; auth: RunAuth; site: Site; canEdit: boolean; writer?: WriterAccess }) {
   const toDomain = useContext(AnalyzeSeo);
   const top = useRef<HTMLFormElement | null>(null);
   const k = (name: string) => `kw:${site.id}:${name}`;
@@ -51,15 +59,17 @@ export function KeywordOverview({ sb, auth, site, canEdit }: { sb: SupabaseClien
   const [waiting, setWaiting] = useState<string[]>([]);
   const report = live ?? saved;
   const [mode, setMode] = useStash<"single" | "bulk">(k("mode"), "single");
-  const [all, setAll] = useStash<{ questions: boolean; match?: MatchType; list: KwList } | null>(k("all"), null);
+  // The full list. list is null while it loads.
+  const [all, setAll] = useStash<{ questions: boolean; match?: MatchType; list: KwList | null } | null>(k("all"), null);
   // Narrowing the full list: words it must have, words it must not have, and one word group.
   const [include, setInclude] = useState("");
   const [exclude, setExclude] = useState("");
   const [group, setGroup] = useState<string | null>(null);
   const [picked, setPicked] = useState<Set<string>>(new Set());
-  const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  // Write outline from the keyword header: starting, then the outline being written.
+  const [outline, setOutline] = useState<{ keyword: string; briefId: string | null; writing?: boolean } | null>(null);
 
   /** Show what the address bar asks for: a keyword (and its full list), or Bulk analysis. */
   async function sync(how: "load" | "pop") {
@@ -186,8 +196,8 @@ export function KeywordOverview({ sb, auth, site, canEdit }: { sb: SupabaseClien
     setInclude("");
     setExclude("");
     try {
-      setBusy(`Analyzing "${list[0]}"...`);
       setAll(null);
+      setOutline(null);
       const none: KwList = { total: 0, volume: 0, rows: [] };
       let cur: KeywordReport = {
         keyword: list[0].toLowerCase().replace(/\s+/g, " "),
@@ -203,6 +213,8 @@ export function KeywordOverview({ sb, auth, site, canEdit }: { sb: SupabaseClien
         cached: true,
       };
       let left = ["overview", "ideas", "serp"];
+      // The frames show at once, each block filling in as its piece lands.
+      setLive(cur);
       setWaiting(left);
       // Each piece shows the moment it lands, so the numbers come up before Google's results.
       await postLines(auth, "/api/research/report", { action: "report", keyword: list[0], country: c, stream: true }, (x) => {
@@ -218,12 +230,10 @@ export function KeywordOverview({ sb, auth, site, canEdit }: { sb: SupabaseClien
         left = left.filter((p) => p !== part);
         setLive(cur);
         setWaiting(left);
-        setBusy("");
       });
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
-      setBusy("");
       setLive(null);
       setWaiting([]);
     }
@@ -238,47 +248,54 @@ export function KeywordOverview({ sb, auth, site, canEdit }: { sb: SupabaseClien
     if (!r) return;
     const at = { q: r.keyword, db: dbOf(r.country), view: questions ? "questions" : "variations", match: match === "phrase" ? null : match };
     if (history !== "none") setUrl(at, history === "push", "view");
-    setBusy("Loading the full list...");
+    // The list opens at once with its header; the rows fill in when they land.
+    setAll({ questions, match, list: null });
+    setPicked(new Set());
+    setGroup(null);
     try {
       setAll({ questions, match, list: await post<KwList>(auth, "/api/research/report", { action: "all", keyword: r.keyword, country: r.country, questions, match }) });
-      setPicked(new Set());
-      setGroup(null);
     } catch (e) {
+      setAll(null);
       setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setBusy("");
     }
   }
+
+  const toItem = (r: KwSummary) => ({ site_id: site.id, keyword: r.keyword, secondary: [], stage: stageFromIntent(r.intent), theme: null, volume: r.volume, difficulty: r.kd, intent: r.intent, cpc: r.cpc, source: "keyword research" });
 
   async function addToCalendar(rows: KwSummary[]) {
     setError("");
     try {
-      const n = await addCalendarItems(
-        sb,
-        auth.workspaceId,
-        rows.map((r) => ({ site_id: site.id, keyword: r.keyword, secondary: [], stage: stageFromIntent(r.intent), theme: null, volume: r.volume, difficulty: r.kd, intent: r.intent, cpc: r.cpc, source: "keyword research" })),
-      );
-      setNotice(`${n} added to the Content Plan.${n < rows.length ? ` ${rows.length - n} were already in it.` : ""}`);
+      const n = await addCalendarItems(sb, auth.workspaceId, rows.map(toItem));
+      setNotice(`${n} added to the Editorial Calendar.${n < rows.length ? ` ${rows.length - n} ${rows.length - n === 1 ? "was" : "were"} already in it.` : ""}`);
       setPicked(new Set());
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }
   }
 
+  /** Write outline: adds the keyword to the Editorial Calendar if it isn't there yet, and starts its outline. */
+  async function writeOutline(r: KwSummary) {
+    if (writer && !writer.open) return writer.onUpgrade?.();
+    setError("");
+    setOutline({ keyword: r.keyword, briefId: null });
+    try {
+      const { briefId, writing } = await startOutline(sb, auth, toItem(r));
+      setOutline({ keyword: r.keyword, briefId, writing });
+    } catch (e) {
+      setOutline(null);
+      setError(e instanceof Error ? e.message : String(e));
+    }
+  }
 
   const sheet = (rows: KwSummary[], label: string) => (
     <>
       {picked.size && canEdit ? (
-        <div className="flex flex-wrap items-center gap-3 border-b border-rule-faint bg-brand-pale px-5 py-2.5">
-          <span className="text-[13px] font-medium text-ink">{picked.size} selected</span>
+        <SelectionBar count={picked.size} noun={picked.size === 1 ? "keyword" : "keywords"} onClear={() => setPicked(new Set())}>
           <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => addToCalendar(rows.filter((r) => picked.has(r.keyword)))}>
             <CalendarIcon />
-            Add to Content Plan
+            Add to Editorial Calendar
           </button>
-          <button type="button" className="aw-text-link text-[13px]" onClick={() => setPicked(new Set())}>
-            Clear
-          </button>
-        </div>
+        </SelectionBar>
       ) : null}
       <Sheet
         label={label}
@@ -307,7 +324,7 @@ export function KeywordOverview({ sb, auth, site, canEdit }: { sb: SupabaseClien
     <div className="flex flex-col gap-3 p-5">
       <span className="aw-label">{title}</span>
       <span className="flex items-baseline gap-2">
-        <span className="aw-num text-[32px] leading-none text-brand">{short(l.total)}</span>
+        <span className="aw-num text-[20px] leading-none text-ink">{short(l.total)}</span>
         <span className="aw-small">{l.total === 1 ? "keyword" : "keywords"}</span>
       </span>
       <table className="aw-table aw-table--compact">
@@ -315,15 +332,15 @@ export function KeywordOverview({ sb, auth, site, canEdit }: { sb: SupabaseClien
           <tr>
             <th>Keyword</th>
             <th className="w-20 text-right!">Volume</th>
-            <th className="w-16">KD</th>
+            <th className="w-16 text-right!">KD %</th>
           </tr>
         </thead>
         <tbody>
           {l.rows.slice(0, 5).map((r) => (
             <tr key={r.keyword}>
               <td>{kwLink(r.keyword)}</td>
-              <td className="aw-num text-right">{short(r.volume)}</td>
-              <td>
+              <td className="aw-td-num text-right">{short(r.volume)}</td>
+              <td className="aw-td-num text-right">
                 <KdDot kd={r.kd} />
               </td>
             </tr>
@@ -347,7 +364,7 @@ export function KeywordOverview({ sb, auth, site, canEdit }: { sb: SupabaseClien
 
   const o = report?.overview;
   const s = report?.serp;
-  const trendChange = o && o.trend.length > 1 && o.trend[0].volume ? Math.round(((o.trend[o.trend.length - 1].volume - o.trend[0].volume) / o.trend[0].volume) * 100) : null;
+  const trend = o ? trendChange(o.trend.map((t) => t.volume)) : null;
 
   const modeBar = (
     <div className="flex">
@@ -363,9 +380,9 @@ export function KeywordOverview({ sb, auth, site, canEdit }: { sb: SupabaseClien
     </div>
   );
   /** The full list, like Semrush's Keyword Magic Tool: match types, questions, word filters and word groups. */
-  const magic = (r: KeywordReport, a: { questions: boolean; match?: MatchType; list: KwList }) => {
+  const magic = (r: KeywordReport, a: { questions: boolean; match?: MatchType; list: KwList | null }) => {
     const match = a.match ?? "phrase";
-    const words = filterWords(a.list.rows, wordList(include), wordList(exclude));
+    const words = filterWords(a.list?.rows ?? [], wordList(include), wordList(exclude));
     const groups = wordGroups(words, r.keyword);
     const rows = group ? filterWords(words, [group], []) : words;
     const volume = rows.reduce((n, x) => n + (x.volume ?? 0), 0);
@@ -379,14 +396,16 @@ export function KeywordOverview({ sb, auth, site, canEdit }: { sb: SupabaseClien
             <div className="flex flex-col gap-0.5">
               <h2 className="aw-h3">Keywords for &ldquo;{r.keyword}&rdquo;</h2>
               <span className="text-[13px] text-muted">
-                {flag(r.country)} {r.country} · {rows.length.toLocaleString("en-US")} keywords · {short(volume)} searches a month{avgKd !== null ? ` · average KD ${avgKd}` : ""}
-                {a.list.total > a.list.rows.length ? ` · top ${a.list.rows.length.toLocaleString("en-US")} of ${a.list.total.toLocaleString("en-US")}` : ""}
+                <Flag country={r.country} /> {r.country}
+                {a.list ? ` · ${rows.length.toLocaleString("en-US")} keywords · ${short(volume)} searches a month${avgKd !== null ? ` · average KD ${avgKd}` : ""}` : ""}
+                {a.list && a.list.total > a.list.rows.length ? ` · top ${a.list.rows.length.toLocaleString("en-US")} of ${a.list.total.toLocaleString("en-US")}` : ""}
               </span>
             </div>
             <span className="flex items-center gap-2">
               <button
                 type="button"
                 className="aw-btn aw-btn--secondary aw-btn--sm"
+                disabled={!a.list}
                 onClick={() => downloadCsv(`${r.keyword.replace(/\W+/g, "-")}-${match}.csv`, ["keyword", "volume", "kd", "intent", "cpc"], rows.map((x) => [x.keyword, x.volume, x.kd, x.intent, x.cpc]))}
               >
                 Export CSV
@@ -442,7 +461,17 @@ export function KeywordOverview({ sb, auth, site, canEdit }: { sb: SupabaseClien
               );
             })}
           </nav>
-          <div className="aw-frame min-w-0 flex-1">{sheet(rows, "All keywords")}</div>
+          <div className="aw-frame min-w-0 flex-1">
+            {a.list ? (
+              sheet(rows, "All keywords")
+            ) : (
+              <table className="aw-table" aria-busy="true">
+                <tbody>
+                  <SkelRows rows={12} cols={5} />
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -483,39 +512,45 @@ export function KeywordOverview({ sb, auth, site, canEdit }: { sb: SupabaseClien
           aria-label="Keyword"
           className={BAR_INPUT}
         />
-        <Dropdown label="Country" value={country} onChange={setCountry} className={BAR_FIELD} options={Object.keys(MARKETS).map((c) => ({ id: c, label: `${flag(c)} ${c}` }))} />
-        <button type="submit" className={BAR_BUTTON} disabled={!canEdit || Boolean(busy) || waiting.length > 0 || !query.trim()}>
+        <Dropdown label="Country" value={country} onChange={setCountry} className={BAR_FIELD} options={Object.keys(MARKETS).map((c) => ({ id: c, label: countryLabel(c) }))} />
+        <button type="submit" className={BAR_BUTTON} disabled={!canEdit || waiting.length > 0 || !query.trim()}>
           Analyze
         </button>
       </form>
 
       {error ? <p className="aw-error">{error}</p> : null}
-      {notice ? <div className="aw-callout">{notice}</div> : null}
-      {busy ? <Thinking text={busy} /> : null}
+      {notice ? <AddedNotice text={notice} /> : null}
 
-      {!busy && report ? (
+      {report ? (
         <>
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div className="flex flex-col gap-1">
               <h2 className="aw-h3">{report.keyword}</h2>
               <span className="text-[13px] text-muted">
-                {flag(report.country)} {report.country} · {live ? "Loading..." : report.cached ? "Free, saved results" : `Cost $${report.cost.toFixed(3)}`}
+                <Flag country={report.country} /> {report.country}
               </span>
             </div>
             {canEdit && o ? (
-              <span className="flex flex-wrap gap-2">
-                <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => addToCalendar([o])}>
-                  <CalendarIcon />
-                  Add to calendar
-                </button>
+              <span className="flex flex-wrap items-center gap-2">
+                {outline?.keyword === o.keyword && outline.briefId ? (
+                  <OutlineStarted briefId={outline.briefId} brandId={site.brand_id} writing={outline.writing} />
+                ) : (
+                  <>
+                    <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => addToCalendar([o])}>
+                      <CalendarIcon />
+                      Add to Editorial Calendar
+                    </button>
+                    <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" disabled={outline?.keyword === o.keyword} onClick={() => writeOutline(o)}>
+                      {outline?.keyword === o.keyword ? "Starting..." : "Write outline"}
+                    </button>
+                  </>
+                )}
               </span>
             ) : null}
           </div>
 
           {waiting.includes("overview") ? (
-            <div className="aw-frame">
-              <Pending text="Getting the numbers..." />
-            </div>
+            <SkelStats tight labels={["Volume", "KD %", "Intent", "CPC", "12-month trend"]} />
           ) : o ? (
             <div className="aw-stats aw-stats--tight" style={{ ["--cols" as string]: 5 }}>
               <div className="aw-stat">
@@ -524,7 +559,7 @@ export function KeywordOverview({ sb, auth, site, canEdit }: { sb: SupabaseClien
                 {o.source ? <span className="text-[12px] text-muted">{o.source === "ads" ? "From Google Ads" : "Clickstream estimate"}</span> : null}
               </div>
               <div className="aw-stat">
-                <div className="aw-stat__lab">Difficulty</div>
+                <div className="aw-stat__lab">KD %</div>
                 {o.kd === null ? (
                   <span className="aw-stat__num text-muted">–</span>
                 ) : (
@@ -546,9 +581,9 @@ export function KeywordOverview({ sb, auth, site, canEdit }: { sb: SupabaseClien
               </div>
               <div className="aw-stat">
                 <div className="aw-stat__lab">12-month trend</div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col gap-1">
                   <Sparkline values={o.trend.map((t) => t.volume)} />
-                  {trendChange !== null ? <span className={`text-[13px] ${trendChange >= 0 ? "text-pos" : "text-neg"}`}>{trendChange >= 0 ? `↗ ${trendChange}%` : `↘ ${-trendChange}%`}</span> : null}
+                  {trend ? <span className={`aw-stat__delta aw-stat__delta--${trend.tone}`}>{trend.text}</span> : null}
                 </div>
               </div>
             </div>
@@ -556,42 +591,18 @@ export function KeywordOverview({ sb, auth, site, canEdit }: { sb: SupabaseClien
             <div className="aw-callout">No search data in {report.country}.</div>
           )}
 
-          <Card title="Keyword ideas">
-            {waiting.includes("ideas") ? (
-              <Pending text="Finding related keywords..." />
-            ) : (
-              <div className="grid divide-y divide-rule-faint lg:grid-cols-3 lg:divide-x lg:divide-y-0">
-                {ideaColumn("Keyword variations", report.variations, false)}
-                {ideaColumn("Questions", report.questions, true)}
-                <div className="flex flex-col gap-3 p-5">
-                  <span className="aw-label">Topics</span>
-                  <span className="aw-small">Groups of keywords one page can cover. Click one to research it.</span>
-                  <ul className="flex flex-col gap-2">
-                    {report.clusters.map((c) => (
-                      <li key={c.name} className="flex items-baseline justify-between gap-3 text-[14px]">
-                        <span className="min-w-0">{kwLink(c.name)}</span>
-                        <span className="aw-num shrink-0 text-[12px] text-muted">
-                          {c.count} kw · {short(c.volume)}
-                        </span>
-                      </li>
-                    ))}
-                    {!report.clusters.length ? <li className="aw-small">Not enough related keywords to group.</li> : null}
-                  </ul>
-                </div>
-              </div>
-            )}
-          </Card>
-
           <Card title="Top 10 on Google">
             {waiting.includes("serp") ? (
               <Pending text="Reading Google's top 10 and AI Overview..." />
             ) : !s ? (
-              <p className="aw-small p-5">Could not load Google&apos;s results. Try again in a minute.</p>
+              <div className="p-5">
+                <BlockError what="Google's results" onRetry={canEdit ? () => analyze(report.keyword, { country: report.country, history: "none" }) : undefined} />
+              </div>
             ) : (
               <table className="aw-table">
                 <thead>
                   <tr>
-                    <th className="w-12">#</th>
+                    <th className="w-12 text-right!">#</th>
                     <th>URL</th>
                     <th className="w-32 text-right!">Visits / mo</th>
                     <th className="w-32 text-right!">Keywords</th>
@@ -601,7 +612,9 @@ export function KeywordOverview({ sb, auth, site, canEdit }: { sb: SupabaseClien
                 <tbody>
                   {s.aio.shown ? (
                     <tr>
-                      <td className="text-muted">✦</td>
+                      <td className="text-muted">
+                        <AiIcon />
+                      </td>
                       <td colSpan={4}>
                         <div className="flex flex-wrap items-center gap-2 text-[13px]">
                           <span className="font-medium text-ink">
@@ -619,7 +632,7 @@ export function KeywordOverview({ sb, auth, site, canEdit }: { sb: SupabaseClien
                   ) : null}
                   {s.rows.slice(0, 10).map((r) => (
                     <tr key={r.url} className={r.domain === site.domain.replace(/^www\./, "") ? "is-you" : ""}>
-                      <td className="aw-num align-top text-muted">{r.rank}</td>
+                      <td className="aw-td-num text-right align-top text-muted">{r.rank}</td>
                       <td className="max-w-0">
                         <div className="flex min-w-0 flex-col gap-1">
                           {toDomain ? (
@@ -663,17 +676,15 @@ export function KeywordOverview({ sb, auth, site, canEdit }: { sb: SupabaseClien
                           </span>
                         </div>
                       </td>
-                      <td className="aw-num text-right" title="Estimated monthly visits from Google">
+                      <td className="aw-td-num text-right" title="Estimated monthly visits from Google">
                         {short(r.traffic)}
                       </td>
-                      <td className="aw-num text-right" title="Keywords this page ranks for">
+                      <td className="aw-td-num text-right" title="Keywords this page ranks for">
                         {short(r.keywords)}
                       </td>
                       <td>
                         <a href={r.url} target="_blank" rel="noopener noreferrer nofollow" aria-label={`Open ${r.url} in a new tab`} title="Open in a new tab" className="inline-flex p-1 text-muted hover:text-brand">
-                          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                            <path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" />
-                          </svg>
+                          <ExternalLink size={15} />
                         </a>
                       </td>
                     </tr>
@@ -683,15 +694,41 @@ export function KeywordOverview({ sb, auth, site, canEdit }: { sb: SupabaseClien
             )}
           </Card>
 
+
+          <Card title="Keyword ideas">
+            {waiting.includes("ideas") ? (
+              <Pending text="Finding related keywords..." />
+            ) : (
+              <div className="grid divide-y divide-rule-faint lg:grid-cols-3 lg:divide-x lg:divide-y-0">
+                {ideaColumn("Keyword variations", report.variations, false)}
+                {ideaColumn("Questions", report.questions, true)}
+                <div className="flex flex-col gap-3 p-5">
+                  <span className="aw-label">Topics</span>
+                  <ul className="flex flex-col gap-2">
+                    {report.clusters.map((c) => (
+                      <li key={c.name} className="flex items-baseline justify-between gap-3 text-[14px]">
+                        <span className="min-w-0">{kwLink(c.name)}</span>
+                        <span className="aw-num shrink-0 text-[12px] text-muted">
+                          {c.count} kw · {short(c.volume)}
+                        </span>
+                      </li>
+                    ))}
+                    {!report.clusters.length ? <li className="aw-small">Not enough related keywords to group.</li> : null}
+                  </ul>
+                </div>
+              </div>
+            )}
+          </Card>
+
           {all ? magic(report, all) : null}
         </>
       ) : null}
 
-      {!busy && !report ? (
+      {!report ? (
         <ToolIntro
           eyebrow="Start here"
           title="Know what your market wants before you write a word"
-          lead="Every search is a person telling Google what they need. Keyword Research shows how many people ask, how hard it is to win the top spots, what the searcher is ready to do and what advertisers pay to reach them. Use it to place your content bets on the topics that bring buyers, and skip the ones that only bring clicks."
+          lead="See how many people search a keyword, how hard it is to rank, and who wins it today."
           examples={["crm software", "best seo agencies", "how to start a podcast"]}
           onExample={canEdit ? (x) => analyze(x) : undefined}
           features={[
@@ -717,7 +754,7 @@ export function KeywordOverview({ sb, auth, site, canEdit }: { sb: SupabaseClien
           steps={[
             "Type a keyword and pick a country.",
             "Click Analyze.",
-            "Check difficulty, volume and intent, then add the best keywords to your editorial calendar.",
+            "Check difficulty, volume and intent, then add the best keywords to your Editorial Calendar.",
             "Open Bulk analysis to check up to 500 keywords at once.",
           ]}
           faqs={[

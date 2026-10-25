@@ -4,6 +4,7 @@ import { DateField, Dropdown } from "../Pickers";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Serp } from "@/lib/briefTypes";
+import { formatDate } from "@/lib/dates";
 import { getSerp, listMembers, type CalendarItem, type Site } from "@/lib/db";
 import { statusChoice, statusPatch, workflowStep, WORKFLOW } from "@/lib/library";
 import { inWriterAt } from "@/lib/writerImport";
@@ -11,10 +12,12 @@ import { writerStateFor, type BriefLite, type DraftLite } from "@/lib/writerLibr
 import type { RunAuth } from "@/lib/runner";
 import { nextMonday, STAGES } from "@/lib/research";
 import { writeState } from "@/lib/writeFlow";
+import { Check, ExternalLink } from "../Icons";
 import { openInLibrary } from "../writer/parts";
 import { useWriteActions, WriteButton } from "../writer/WriteButton";
 import type { WriterAccess } from "./ContentPiece";
-import { Difficulty, FIELD, fmtCpc, fmtNum, slugify, slugOf, STAGE_LABEL, StageTag, STATUS_PICK, statusLabel, Tick } from "./shared";
+import { SerpView } from "./SerpView";
+import { Difficulty, FIELD, fmtCpc, fmtNum, SaveStamp, slugify, slugOf, STAGE_LABEL, StageTag, STATUS_PICK } from "./shared";
 
 const isoDay = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
@@ -41,7 +44,8 @@ export function KeywordDeepDive({
   item: CalendarItem;
   canEdit: boolean;
   writer?: WriterAccess;
-  onPatch: (p: Partial<CalendarItem>) => void;
+  /** Save a change. When it returns a promise, the Saved stamp waits for it. */
+  onPatch: (p: Partial<CalendarItem>) => Promise<void> | void;
   onRemove: () => void;
   onBack: () => void;
   /** Import to the Library. Safe to call again. */
@@ -53,6 +57,17 @@ export function KeywordDeepDive({
   const [ws, setWs] = useState<{ brief: BriefLite | null; draft: DraftLite | null } | null>(null);
   const [members, setMembers] = useState<string[]>([]);
   const [error, setError] = useState("");
+  // The stamp after an edit: nothing until the first one, then Saving and Saved.
+  const [saved, setSaved] = useState<"saving" | "saved" | "error" | null>(null);
+  const save = async (p: Partial<CalendarItem>) => {
+    setSaved("saving");
+    try {
+      await onPatch(p);
+      setSaved("saved");
+    } catch {
+      setSaved("error");
+    }
+  };
 
   useEffect(() => {
     listMembers(sb, auth.workspaceId)
@@ -104,8 +119,6 @@ export function KeywordDeepDive({
 
   const step = workflowStep(item.status);
   const stepAt = WORKFLOW.findIndex((w) => w.id === step);
-  const label = statusLabel(item);
-  const tone = STATUS_PICK.find((x) => x.label === label)?.tone ?? "aw-status--pending";
   const features = serp?.serp?.features.length ?? null;
   const brandId = site.brand_id;
   const brief = ws?.brief ?? null;
@@ -124,11 +137,16 @@ export function KeywordDeepDive({
       <header className="flex flex-wrap items-center gap-3">
         <h1 className="aw-h2 mr-1 min-w-0 truncate">{item.keyword}</h1>
         <StageTag stage={item.stage} />
-        <span className={`aw-status ${tone}`}>{label}</span>
+        {saved ? <SaveStamp state={saved} /> : null}
         <span className="ml-auto flex flex-wrap items-center gap-2">
           {inWriterAt(item) ? (
             <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={!brandId} onClick={() => brandId && openInLibrary(brandId, null)}>
-              <Tick /> In Library
+              <Check size={14} /> In Library
+            </button>
+          ) : null}
+          {state.kind === "busy" && brief && brandId ? (
+            <button type="button" className="aw-text-link text-[13px]" onClick={() => openInLibrary(brandId, { kind: "brief", id: brief.id })}>
+              Open outline
             </button>
           ) : null}
           <WriteButton state={state} busy={actions.busy.has(item.id)} canEdit={canEdit} onAct={() => void actions.act(item, state)} onOpen={() => actions.open(item, state)} />
@@ -149,7 +167,7 @@ export function KeywordDeepDive({
                 <span
                   className={`aw-num flex h-6 w-6 shrink-0 items-center justify-center border text-[12px] ${done ? "border-brand bg-brand text-white" : now ? "border-brand text-brand" : "border-rule text-muted"}`}
                 >
-                  {done ? "✓" : n + 1}
+                  {done ? <Check size={14} /> : n + 1}
                 </span>
                 {n < WORKFLOW.length - 1 ? <span className={`h-px flex-1 ${done ? "bg-brand" : "bg-rule"}`} /> : null}
               </span>
@@ -159,22 +177,24 @@ export function KeywordDeepDive({
         })}
       </ol>
 
-      <div className="grid grid-cols-2 gap-px overflow-hidden border border-rule bg-rule sm:grid-cols-3 lg:grid-cols-6">
-        <Stat label="Search volume" value={<span className="aw-num">{fmtNum(item.volume)} / mo</span>} />
-        <Stat label="Keyword difficulty" value={<Difficulty kd={item.difficulty} />} />
-        <Stat label="CPC" value={<span className="aw-num">{fmtCpc(item.cpc)}</span>} />
-        <Stat label="Search intent" value={<span className="capitalize">{item.intent ?? "–"}</span>} />
-        <Stat label="Current ranking" value={item.current_rank ? <span className="aw-num">#{item.current_rank}</span> : <span className="text-muted">Not ranking</span>} />
-        <Stat label="SERP features" value={<span className="aw-num">{features ?? "–"}</span>} />
+      <div className="aw-stats aw-stats--tight" style={{ ["--cols" as string]: 6 }}>
+        <Stat label="Volume / mo" value={fmtNum(item.volume)} />
+        <Stat label="KD %" value={<Difficulty kd={item.difficulty} />} />
+        <Stat label="CPC" value={fmtCpc(item.cpc)} />
+        <Stat label="Intent" value={<span className="capitalize">{item.intent ?? "–"}</span>} />
+        <Stat label="Current ranking" value={item.current_rank ? `#${item.current_rank}` : <span className="text-muted">Not ranking</span>} />
+        <Stat label="SERP features" value={features ?? "–"} />
       </div>
 
-      <Details item={item} site={site} members={members} canEdit={canEdit} onPatch={onPatch} />
+      {serp?.serp ? <SerpView serp={serp.serp} at={serp.serp_at} country={site.profile.country || "United States"} top={5} /> : null}
+
+      <Details item={item} site={site} members={members} canEdit={canEdit} onPatch={save} />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <span className="text-[12px] text-muted">Added {item.created_at ? new Date(item.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "–"}</span>
+        <span className="text-[12px] text-muted">Added {formatDate(item.created_at, { year: true })}</span>
         {canEdit ? (
           <button type="button" className="aw-text-link text-[13px] text-neg!" onClick={onRemove}>
-            Remove from Editorial Calendar
+            Delete from Editorial Calendar
           </button>
         ) : null}
       </div>
@@ -184,15 +204,15 @@ export function KeywordDeepDive({
 
 function Stat({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-1 bg-white px-4 py-2.5">
-      <span className="aw-label">{label}</span>
-      <span className="text-[15px] text-ink">{value}</span>
+    <div className="aw-stat">
+      <div className="aw-stat__lab">{label}</div>
+      <span className="aw-stat__num">{value}</span>
     </div>
   );
 }
 
 /** Every detail of a piece, the same as its row in the Content Plan list, editable where the list is. */
-function Details({ item, site, members, canEdit, onPatch }: { item: CalendarItem; site: Site; members: string[]; canEdit: boolean; onPatch: (p: Partial<CalendarItem>) => void }) {
+function Details({ item, site, members, canEdit, onPatch }: { item: CalendarItem; site: Site; members: string[]; canEdit: boolean; onPatch: (p: Partial<CalendarItem>) => Promise<void> | void }) {
   const [keyword, setKeyword] = useState(item.keyword);
   const [slug, setSlug] = useState(slugOf(item));
   const [theme, setTheme] = useState(item.theme ?? "");
@@ -266,7 +286,8 @@ function Details({ item, site, members, canEdit, onPatch }: { item: CalendarItem
         ? field(
             "Page to update",
             <a href={item.current_url} target="_blank" rel="noopener noreferrer" className="flex h-9 items-center truncate text-[13px]">
-              {item.current_url.replace(/^https?:\/\/(www\.)?/, "")} ↗
+              <span className="truncate">{item.current_url.replace(/^https?:\/\/(www\.)?/, "")}</span>
+              <ExternalLink size={14} className="ml-1 shrink-0" />
             </a>,
           )
         : null}
