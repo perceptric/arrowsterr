@@ -7,19 +7,17 @@ import type { RunAuth } from "@/lib/runner";
 import { useStash } from "@/lib/stash";
 import { quietly, recordUndo } from "@/lib/undo";
 import { canImport, importPatch } from "@/lib/writerImport";
-import { Confirm } from "../reports/Dialog";
 import { snack } from "../Snack";
 import type { NewPiece } from "./DayPanel";
 
 /**
- * The Content Plan's pieces for the Editorial Calendar's list and calendar views: load, edit with Undo, add,
+ * The Editorial Calendar's pieces for its list and calendar views: load, edit with Undo, add,
  * delete with 10 seconds to undo, and Import to Library. Every view reads the same stash.
  */
 export function usePlan({ sb, auth, site }: { sb: SupabaseClient; auth: RunAuth; site: Site }) {
   const [items, setItems] = useStash<CalendarItem[] | null>(`cal:${site.id}:items`, null);
   const [runs] = useStash<KeywordRun[] | null>(`agentic:${site.id}:runs`, null);
   const [error, setError] = useState("");
-  const [asking, setAsking] = useState<{ ids: string[]; done?: () => void } | null>(null);
   const pending = useRef<{ ids: string[]; timer: ReturnType<typeof setTimeout> } | null>(null);
 
   const load = useCallback(async () => {
@@ -87,10 +85,9 @@ export function usePlan({ sb, auth, site }: { sb: SupabaseClient; auth: RunAuth;
     }
   }
 
-  /** Take items off the plan, with 10 seconds to undo. Big deletes ask first; done runs once they go. */
+  /** Take items off the plan at once, with 10 seconds to undo. done runs once they go. */
   function remove(ids: string[], done?: () => void) {
     if (!items) return;
-    if (ids.length > 10) return setAsking({ ids, done });
     drop(ids);
     done?.();
   }
@@ -101,7 +98,7 @@ export function usePlan({ sb, auth, site }: { sb: SupabaseClient; auth: RunAuth;
     setItems(items.filter((i) => !ids.includes(i.id)));
     pending.current = { ids, timer: setTimeout(commit, 10_000) };
     recordUndo({ label: gone.length === 1 ? `deleting "${gone[0].keyword}"` : "deleting pieces", undo: () => bringBack(gone) });
-    snack("Deleted", { undo: () => bringBack(gone), ms: 10_000 });
+    snack(gone.length === 1 ? `Deleted "${gone[0].keyword}".` : `Deleted ${gone.length} pieces.`, { undo: () => bringBack(gone), ms: 10_000 });
   }
   /** Ctrl + Z after a delete: cancel it while it waits, or put the pieces back once it went through. */
   async function bringBack(gone: CalendarItem[]) {
@@ -138,20 +135,6 @@ export function usePlan({ sb, auth, site }: { sb: SupabaseClient; auth: RunAuth;
     snack(todo.length === 1 ? `Imported "${todo[0].keyword}" to the Library` : "Imported to the Library");
   }
 
-  const dialog = asking ? (
-    <Confirm
-      title="Delete pieces"
-      text={`They come off the Editorial Calendar.${(runs ?? []).some((r) => r.status === "done") ? " You can restore the AI's plan later." : ""}`}
-      action="Delete"
-      onConfirm={() => {
-        drop(asking.ids);
-        asking.done?.();
-        setAsking(null);
-      }}
-      onClose={() => setAsking(null)}
-    />
-  ) : null;
-
   return {
     items,
     setItems,
@@ -163,6 +146,5 @@ export function usePlan({ sb, auth, site }: { sb: SupabaseClient; auth: RunAuth;
     addOn,
     remove,
     importToWriter,
-    toast: dialog,
   };
 }

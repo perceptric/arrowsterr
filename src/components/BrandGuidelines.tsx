@@ -1,11 +1,11 @@
 "use client";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { guidelinesSavedAt } from "@/lib/brandStatus";
 import { formatDate } from "@/lib/dates";
 import { cleanGuidelines, cleanLinks, filePath, FILES_BUCKET, MAX_BODY, MAX_FILE_BYTES, MAX_FILES, type GuidelineFile, type GuidelinesRow } from "@/lib/brandGuidelines";
-import { Confirm } from "./reports/Dialog";
+import { snack } from "./Snack";
 import { SkelBlock } from "./states";
 import { UploadIcon } from "./ui";
 
@@ -20,10 +20,14 @@ export function BrandGuidelines({ sb, workspaceId, brand, canEdit, onSaved }: { 
   const [setup, setSetup] = useState(false);
   const [body, setBody] = useState("");
   const [links, setLinks] = useState("");
-  const [busy, setBusy] = useState<"" | "save" | "upload" | "delete">("");
+  const [busy, setBusy] = useState<"" | "save" | "upload">("");
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
-  const [dropping, setDropping] = useState<GuidelineFile | null>(null);
+  // The newest row, for an Undo that runs after other changes.
+  const rowRef = useRef(row);
+  useEffect(() => {
+    rowRef.current = row;
+  });
 
   useEffect(() => {
     let live = true;
@@ -109,18 +113,30 @@ export function BrandGuidelines({ sb, workspaceId, brand, canEdit, onSaved }: { 
     }
   }
 
+  // A delete happens at once. The stored copy waits 10 seconds for Undo, so Undo brings the file back whole.
   async function removeFile(f: GuidelineFile) {
-    setBusy("delete");
+    const was = row;
     setError("");
+    if (was) setRow({ ...was, files: was.files.filter((x) => x.path !== f.path) });
     try {
-      await write({ files: (row?.files ?? []).filter((x) => x.path !== f.path) });
-      await sb.storage.from(FILES_BUCKET).remove([f.path]);
+      await write({ files: (was?.files ?? []).filter((x) => x.path !== f.path) });
     } catch (e) {
-      setError(message(e));
-    } finally {
-      setBusy("");
-      setDropping(null);
+      setRow(was);
+      snack(`Couldn't delete. ${message(e)}`);
+      return;
     }
+    let undone = false;
+    const timer = setTimeout(() => {
+      if (!undone) void sb.storage.from(FILES_BUCKET).remove([f.path]);
+    }, 10_000);
+    snack(`Deleted ${f.name}.`, {
+      ms: 10_000,
+      undo: async () => {
+        undone = true;
+        clearTimeout(timer);
+        await write({ files: [...(rowRef.current?.files ?? []).filter((x) => x.path !== f.path), f] });
+      },
+    });
   }
 
   async function openFile(f: GuidelineFile) {
@@ -212,7 +228,7 @@ export function BrandGuidelines({ sb, workspaceId, brand, canEdit, onSaved }: { 
                 </button>
                 <span className="aw-num text-[12px] text-muted">{size(f.size)}</span>
                 {canEdit ? (
-                  <button type="button" className="aw-text-link text-[13px] text-neg!" disabled={Boolean(busy)} onClick={() => setDropping(f)}>
+                  <button type="button" className="aw-text-link text-[13px] text-neg!" disabled={Boolean(busy)} onClick={() => removeFile(f)}>
                     Delete
                   </button>
                 ) : null}
@@ -224,16 +240,6 @@ export function BrandGuidelines({ sb, workspaceId, brand, canEdit, onSaved }: { 
         )}
       </div>
 
-      {dropping ? (
-        <Confirm
-          title="Delete file"
-          text={`${dropping.name} leaves ${brand.name}'s guidelines.`}
-          action="Delete"
-          busy={busy === "delete"}
-          onConfirm={() => removeFile(dropping)}
-          onClose={() => setDropping(null)}
-        />
-      ) : null}
     </section>
   );
 }

@@ -14,7 +14,7 @@ import { writerStates, type BriefLite, type DraftLite } from "@/lib/writerLibrar
 import { usePoll } from "../writer/parts";
 import { useWriteActions, WriteButton } from "../writer/WriteButton";
 import { Sheet, type Col, type Edit } from "../Sheet";
-import { Confirm } from "../reports/Dialog";
+import { snack } from "../Snack";
 import { ChevronDown, Search } from "../Icons";
 import { SkelRows } from "../states";
 import { SidePanel } from "../ui";
@@ -109,7 +109,7 @@ export function EditorialCalendar({
   sub?: string;
   onSub?: (sub?: string) => void;
 }) {
-  const { items, runs, error, setError, load, patch, addOn, remove: removeItems, importToWriter, toast } = usePlan({ sb, auth, site });
+  const { items, runs, error, setError, load, patch, addOn, remove: removeItems, importToWriter } = usePlan({ sb, auth, site });
   // The address says list or calendar; month or week is kept for this visit. Without onSub the view stays local.
   const [calMode, setCalMode] = useState<"month" | "week">("month");
   const [ownList, setOwnList] = useState(false);
@@ -126,7 +126,6 @@ export function EditorialCalendar({
   const [panel, setPanel] = useState<{ day: string | null; piece: string | null } | null>(null);
   const [perWeek, setPerWeek] = useState(2);
   const [start, setStart] = useState(() => iso(new Date()));
-  const [dropCol, setDropCol] = useState<SheetColumn | null>(null);
   const custom = site.profile.columns ?? [];
   // Each piece's outline and draft, for the Write column. Asked again every 5 seconds while the writer works.
   const [writing, setWriting] = useState<Map<string, { brief: BriefLite | null; draft: DraftLite | null }>>(new Map());
@@ -403,7 +402,7 @@ export function EditorialCalendar({
           value: (i) => String(i.extra?.[c.id] ?? ""),
           save: (i, v) => patch(i.id, { extra: { ...(i.extra ?? {}), [c.id]: c.type === "number" && v !== null ? Number(v) : v } }),
         }),
-        onRemove: canEdit ? () => setDropCol(c) : undefined,
+        onRemove: canEdit ? () => dropColumn(c) : undefined,
       }),
     ),
     {
@@ -417,14 +416,22 @@ export function EditorialCalendar({
     },
   ];
 
+  // The sheet changes at once and goes back if the save fails.
   async function saveColumns(next: SheetColumn[]) {
+    const was = site;
     const s2 = { ...site, profile: { ...site.profile, columns: next } };
+    onSite(s2);
     try {
       await saveSite(sb, s2);
-      onSite(s2);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      onSite(was);
+      snack(`Couldn't save. ${e instanceof Error ? e.message : String(e)}`);
     }
+  }
+  // A column's values stay saved, so Undo brings it back whole.
+  function dropColumn(c: SheetColumn) {
+    void saveColumns(custom.filter((x) => x.id !== c.id));
+    snack(`Deleted "${c.name}".`, { undo: () => saveColumns(custom) });
   }
 
   // The latest finished plan, and when the next monthly refresh opens.
@@ -497,7 +504,6 @@ export function EditorialCalendar({
         <PlanIntro canEdit={canEdit} busy={building || running} built={built} onBuild={build} trial={refresh && !refresh.paid ? { onUpgrade: refresh.onUpgrade } : undefined} />
         {progress}
         <PlanSample />
-        {toast}
       </div>
     );
 
@@ -528,7 +534,6 @@ export function EditorialCalendar({
           onImport={() => importToWriter([openItem.id])}
           onRefresh={load}
         />
-        {toast}
       </>
     );
   }
@@ -609,20 +614,7 @@ export function EditorialCalendar({
           />
         </SidePanel>
       ) : null}
-      {dropCol ? (
-        <Confirm
-          title="Delete column"
-          text={`"${dropCol.name}" leaves the sheet. Its values stay saved but hidden.`}
-          action="Delete"
-          onConfirm={() => {
-            saveColumns(custom.filter((x) => x.id !== dropCol.id));
-            setDropCol(null);
-          }}
-          onClose={() => setDropCol(null)}
-        />
-      ) : null}
       {actions.overlays}
-      {toast}
     </div>
   );
 }

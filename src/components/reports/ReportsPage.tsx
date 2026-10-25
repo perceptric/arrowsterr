@@ -8,7 +8,8 @@ import type { RunAuth } from "@/lib/runner";
 import { ago } from "@/lib/dates";
 import { pathFor } from "@/lib/routes";
 import { tabOf } from "@/lib/tabs";
-import { askConfirm } from "../Dialogs";
+import { useStash } from "@/lib/stash";
+import { snack } from "../Snack";
 import { BlockError, SkelRows } from "../states";
 import { ToolIntro } from "../ToolIntro";
 import { Seg } from "../ui";
@@ -22,6 +23,14 @@ import { SchedulesTab } from "./SchedulesTab";
 type FileRow = { id: string; brand_id: string | null; page: string; title: string; design: "arrowsterr" | "brand"; params: Record<string, unknown>; status: "making" | "ready" | "failed"; error: string | null; source: "download" | "schedule"; created_at: string };
 const COLS = "id, brand_id, page, title, design, params, status, error, source, created_at";
 const LIMIT = 200;
+
+/** The workspace's newest PDFs. The sidebar loads them on hover too, into the same stash, so Reports opens filled. */
+export async function listReportFiles(sb: SupabaseClient, workspaceId: string): Promise<FileRow[]> {
+  const { data, error } = await sb.from("report_files").select(COLS).eq("workspace_id", workspaceId).order("created_at", { ascending: false }).limit(LIMIT);
+  if (error) throw new Error(error.message);
+  return (data ?? []) as FileRow[];
+}
+export const reportFilesKey = (workspaceId: string) => `reports:${workspaceId}:files`;
 type Tab = "files" | "schedules" | "links";
 // The app follows the address: a new history entry with a popstate opens Prompts (as Zippie's setup card does).
 const goToPrompts = () => {
@@ -104,19 +113,20 @@ const HEAD = (
 );
 
 function Downloads({ sb, auth, brands, canEdit, openPrompts }: { sb: SupabaseClient; auth: RunAuth; brands: { id: string; name: string }[]; canEdit: boolean; openPrompts: React.ReactNode }) {
-  const [files, setFiles] = useState<FileRow[] | null>(null);
+  const [files, setFiles] = useStash<FileRow[] | null>(reportFilesKey(auth.workspaceId), null);
   const [failed, setFailed] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState("");
 
   const load = useCallback(async () => {
     setFailed(false);
-    const { data, error: e } = await sb.from("report_files").select(COLS).eq("workspace_id", auth.workspaceId).order("created_at", { ascending: false }).limit(LIMIT);
-    if (e) {
-      console.error("report_files", e.message);
+    try {
+      setFiles(await listReportFiles(sb, auth.workspaceId));
+    } catch (e) {
+      console.error("report_files", errText(e));
       setFailed(true);
-    } else setFiles((data ?? []) as FileRow[]);
-  }, [sb, auth.workspaceId]);
+    }
+  }, [sb, auth.workspaceId, setFiles]);
   useEffect(() => {
     // Loading the files when the tab opens is the point of this effect.
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -136,18 +146,26 @@ function Downloads({ sb, auth, brands, canEdit, openPrompts }: { sb: SupabaseCli
     }
   }
 
-  async function remove(f: FileRow) {
-    if (!(await askConfirm({ title: "Delete this PDF?", text: "The file goes for everyone in this workspace.", action: "Delete", danger: true }))) return;
-    setBusy(f.id);
+  // A delete happens at once. The file goes for good after 10 seconds, so Undo brings it back whole.
+  function remove(f: FileRow) {
     setError("");
-    try {
-      await post(auth, "/api/files", { action: "delete", fileId: f.id });
-      setFiles((x) => x?.filter((y) => y.id !== f.id) ?? null);
-    } catch (e) {
-      setError(errText(e));
-    } finally {
-      setBusy("");
-    }
+    setFiles((x) => x?.filter((y) => y.id !== f.id) ?? null);
+    let undone = false;
+    const timer = setTimeout(() => {
+      if (undone) return;
+      post(auth, "/api/files", { action: "delete", fileId: f.id }).catch((e) => {
+        snack(`Couldn't delete ${f.title}. ${errText(e)}`);
+        void load();
+      });
+    }, 10_000);
+    snack(`Deleted ${f.title}.`, {
+      ms: 10_000,
+      undo: () => {
+        undone = true;
+        clearTimeout(timer);
+        setFiles((x) => [...(x ?? []).filter((y) => y.id !== f.id), f].sort((a, b) => b.created_at.localeCompare(a.created_at)));
+      },
+    });
   }
 
   const brandName = (id: string | null) => brands.find((b) => b.id === id)?.name ?? "–";
