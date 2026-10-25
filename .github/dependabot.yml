@@ -1,0 +1,12 @@
+# Package updates as pull requests: npm every week, GitHub Actions every month.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

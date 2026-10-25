@@ -1,4 +1,5 @@
-import { answer, startAudit, type AskEvent } from "@/lib/ask";
+import { answer, decideApproval, getApproval, startAudit, type AskEvent } from "@/lib/ask";
+import { ToolError } from "@/lib/mcp/protocol";
 import { take } from "@/lib/entitlements";
 import { meteredRoute, streamed } from "@/lib/meter";
 import { TASK_COST } from "@/lib/plans";
@@ -12,18 +13,22 @@ const missing = (e: { message: string } | null) => e && /ask_threads|ask_message
 const SETUP = "Run supabase/036_ask.sql in Supabase to turn on Zippie.";
 
 type Block = { type: string; text?: string; name?: string; content?: unknown };
-type Card = { kind: "changeset" | "audit" | "setup"; id: string };
+type Card = { kind: "changeset" | "audit" | "setup" | "approval"; id: string };
 
-// Zippie. Everyone in the workspace can chat and read; only editors start audits or prepare changes.
+// Zippie. Everyone in the workspace can read the chats; only editors chat (it spends tasks), start audits,
+// prepare changes and approve what Zippie asks to do.
 //   threads: {}                       the workspace's chats, newest first
 //   thread: { threadId }              one chat's messages
 //   send: { threadId?, message, where? }  answer one message, streamed as one JSON event per line.
 //                                     where is the brand and page the person asks from
 //   rename: { threadId, title }       delete: { threadId }
 //   audits: {}                        audit: { auditId }        audit_start: { domain }
+//   approval: { actionId }            approve: { actionId }     decline: { actionId }
+const EDITOR_ACTIONS = new Set(["audit_start", "send", "approve", "decline"]);
+
 async function handle(request: Request) {
   const body = await request.json().catch(() => ({}));
-  const auth = await requireRole(request, body.workspaceId, body.action === "audit_start" ? "editor" : "viewer");
+  const auth = await requireRole(request, body.workspaceId, EDITOR_ACTIONS.has(body.action) ? "editor" : "viewer");
   if ("denied" in auth) return auth.denied;
   const db = adminClient();
   if (!db) return err("Add SUPABASE_SECRET_KEY to the server's settings to use Zippie.", 500);
@@ -63,6 +68,8 @@ async function handle(request: Request) {
           const audit = raw.match(/"audit_id":"([0-9a-f-]{36})"/)?.[1];
           if (owner && set) owner.cards.push({ kind: "changeset", id: set });
           if (owner && audit) owner.cards.push({ kind: "audit", id: audit });
+          const approval = raw.match(/"action_id":"([0-9a-f-]{36})"/)?.[1];
+          if (owner && approval) owner.cards.push({ kind: "approval", id: approval });
           const setup = raw.match(/"setup":"((?:cms|traffic)(?::[a-z]+)?)"/)?.[1];
           if (owner && setup) owner.cards.push({ kind: "setup", id: setup });
         }
@@ -118,6 +125,21 @@ async function handle(request: Request) {
     return Response.json({ audit: data });
   }
 
+  if (body.action === "approval") {
+    const a = await getApproval(db, ws, str(body.actionId, 60));
+    return a ? Response.json({ approval: a }) : err("Not found.", 404);
+  }
+
+  if (body.action === "approve" || body.action === "decline") {
+    try {
+      return Response.json({ approval: await decideApproval(db, ws, userId, str(body.actionId, 60), body.action === "approve") });
+    } catch (e) {
+      if (e instanceof ToolError) return err(e.message, 409);
+      console.error("Approval failed:", e instanceof Error ? e.message : String(e));
+      return err("Something went wrong. Try again.", 500);
+    }
+  }
+
   if (body.action === "audit_start") {
     const { data: running } = await db.from("site_audits").select("id").eq("workspace_id", ws).eq("status", "running").gte("created_at", new Date(Date.now() - 30 * 60_000).toISOString()).limit(1);
     if (running?.length) return err("An audit is already running. It takes a few minutes.", 409);
@@ -153,7 +175,8 @@ async function handle(request: Request) {
       if (error || !data) return err(error?.message ?? "Could not start a chat.", 500);
       thread = data;
     }
-    const canEdit = await isEditor(auth.sb, ws);
+    // Only editors get here (EDITOR_ACTIONS), so Zippie gets the editor tools.
+    const canEdit = true;
     const out = new TransformStream<string, string>();
     const writer = out.writable.getWriter();
     const line = (x: AskEvent | { type: "thread"; id: string; title: string; projectId: string | null }) => void writer.write(JSON.stringify(x) + "\n").catch(() => {});

@@ -6,7 +6,7 @@ import { makeSnapshot } from "@/lib/pdf/server";
 import { adminClient, requireRole } from "@/lib/serverAuth";
 
 // A page's PDF (docs/reports.md, section 32). Members of the workspace only.
-//   make: { page, brandId, design, params }  build the numbers now, save the file row, queue the PDF.
+//   make: { page, brandId, design, params }  editors only (it uses the PDF worker). Build the numbers now, save the file row, queue the PDF.
 //     Research pages send what is open (a keyword, a site, a competitor or a bulk run) and read saved results only.
 //   status: { fileId }  making, ready (with a download link good for an hour), failed, or stalled when no PDF worker took it.
 //   delete: { fileId }  editors only.
@@ -57,6 +57,9 @@ export async function POST(request: Request) {
     return error ? Response.json({ error: error.message }, { status: 500 }) : Response.json({ ok: true });
   }
 
+  // make: editors only, like every other job that costs money. Viewers still read status and download.
+  const editor = await requireRole(request, workspaceId, "editor");
+  if ("denied" in editor) return editor.denied;
   if (!isPdfPage(body.page)) return Response.json({ error: "This page has no PDF yet." }, { status: 400 });
   if (typeof body.brandId !== "string" || !body.brandId) return Response.json({ error: "Pick a brand." }, { status: 400 });
   // Research PDFs read saved Organic Research results, so they need that toolset like the pages do.

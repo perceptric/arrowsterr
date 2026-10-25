@@ -1,3 +1,4 @@
+import { appUrl } from "@/lib/appUrl";
 import { authUrl, googleReady, signState } from "@/lib/google";
 import { requireRole } from "@/lib/serverAuth";
 
@@ -10,8 +11,7 @@ export async function POST(request: Request) {
   const { data: user } = await auth.sb.auth.getUser(request.headers.get("authorization")!.replace(/^Bearer\s+/i, ""));
   const { data: brand } = await auth.sb.from("brands").select("id").eq("id", body.brandId).eq("workspace_id", body.workspaceId).maybeSingle();
   if (!brand || !user?.user) return Response.json({ error: "Brand not found." }, { status: 404 });
-  const host = request.headers.get("x-forwarded-host");
-  const base = host ? `https://${host}` : new URL(request.url).origin;
+  const base = appUrl(request);
   const back = typeof body.back === "string" && body.back.startsWith("/") && !body.back.startsWith("//") ? body.back : "/traffic";
   return Response.json({ url: authUrl(base, signState({ brandId: brand.id, workspaceId: body.workspaceId, userId: user.user.id, back })) });
 }

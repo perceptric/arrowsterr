@@ -21,10 +21,17 @@ export const reply = (request: Request, body: unknown, status = 200) => Response
 const ipOf = (request: Request) => (request.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || request.headers.get("x-real-ip") || "unknown";
 const hashIp = (ip: string) => createHash("sha256").update(`free:${ip}:${process.env.SUPABASE_SECRET_KEY ?? ""}`).digest("hex").slice(0, 32);
 
-/** True when Turnstile is off, or the token is good. */
+/** True when the Turnstile token is good. Without TURNSTILE_SECRET, only outside production. */
 async function human(token: unknown, ip: string) {
   const secret = process.env.TURNSTILE_SECRET?.trim();
-  if (!secret) return true;
+  if (!secret) {
+    if (process.env.NODE_ENV !== "production") return true;
+    // Log once per server, not on every visit.
+    const g = globalThis as { awTurnstileWarned?: boolean };
+    if (!g.awTurnstileWarned) console.error("TURNSTILE_SECRET is missing, so the free tools turn every visitor away.");
+    g.awTurnstileWarned = true;
+    return false;
+  }
   if (typeof token !== "string" || !token || token.length > 2048) return false;
   try {
     const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {

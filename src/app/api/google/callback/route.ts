@@ -1,11 +1,11 @@
+import { appUrl } from "@/lib/appUrl";
 import { exchange, googleReady, readState, seal } from "@/lib/google";
 import { adminClient } from "@/lib/serverAuth";
 
 // Google sends people back here after they allow access. Save the encrypted sign-in, then return to the app.
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const host = request.headers.get("x-forwarded-host");
-  const base = host ? `https://${host}` : url.origin;
+  const base = appUrl(request);
   const go = (path: string, q: Record<string, string>) => Response.redirect(`${base}${path}?${new URLSearchParams(q)}`, 302);
   const state = googleReady() ? readState(url.searchParams.get("state") ?? "") : null;
   if (!state) return go("/traffic", { ga4: "error", reason: "The sign-in link expired. Try again." });
@@ -25,6 +25,7 @@ export async function GET(request: Request) {
     await db.from("brands").update({ ga4_email: email, ga4_property: null, ga4_property_name: null }).eq("id", state.brandId);
     return go(state.back, { ga4: "connected" });
   } catch (e) {
-    return go(state.back, { ga4: "error", reason: e instanceof Error ? e.message.slice(0, 200) : "Could not connect." });
+    console.error("Google Analytics connect failed:", e instanceof Error ? e.message : String(e));
+    return go(state.back, { ga4: "error", reason: "Could not connect Google Analytics. Try again." });
   }
 }

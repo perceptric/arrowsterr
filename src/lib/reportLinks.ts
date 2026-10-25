@@ -9,7 +9,7 @@ const scryptAsync = promisify(scrypt) as (pw: string, salt: Buffer, len: number)
 
 /** The key for signed links and cookies. Any of these server secrets works; none is ever sent to a browser. */
 function secret() {
-  const s = process.env.REPORT_LINK_SECRET?.trim() || process.env.SUPABASE_SECRET_KEY?.trim() || process.env.CRON_SECRET?.trim();
+  const s = process.env.REPORT_LINK_SECRET?.trim() || process.env.CRON_SECRET?.trim();
   if (!s) throw new Error("Set REPORT_LINK_SECRET on the server.");
   return s;
 }
