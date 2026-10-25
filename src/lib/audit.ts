@@ -1,6 +1,8 @@
 import "server-only";
 import * as cheerio from "cheerio";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { onSite } from "./auditScope.ts";
+import { safeFetch } from "./safeFetch.ts";
 import { findPages } from "./sitemap";
 
 // The site audit: crawl a website the way a search engine or AI crawler does, then list what to fix.
@@ -44,15 +46,11 @@ export type AuditResult = {
 };
 
 async function get(url: string, method: "GET" | "HEAD" = "GET") {
-  const t = Date.now();
-  try {
-    const res = await fetch(url, { method, headers: { "User-Agent": UA, Accept: "text/html,*/*" }, redirect: "follow", signal: AbortSignal.timeout(TIMEOUT) });
-    const type = res.headers.get("content-type") ?? "";
-    const body = method === "GET" && /html|text\/plain/.test(type) ? (await res.text()).slice(0, 2_000_000) : "";
-    return { status: res.status, url: res.url, body, ms: Date.now() - t, robots: res.headers.get("x-robots-tag") ?? "", type };
-  } catch {
-    return { status: 0, url, body: "", ms: Date.now() - t, robots: "", type: "" };
-  }
+  const res = await safeFetch(url, { method, ua: UA, accept: "text/html,*/*", timeout: TIMEOUT, maxBytes: 2_000_000 });
+  if (res.status === 0) return { status: 0, url, body: "", ms: res.ms, robots: "", type: "" };
+  const type = res.headers.get("content-type") ?? "";
+  const body = /html|text\/plain/.test(type) ? res.body : "";
+  return { status: res.status, url: res.url, body, ms: res.ms, robots: res.headers.get("x-robots-tag") ?? "", type };
 }
 
 const norm = (u: string) => {
@@ -212,7 +210,8 @@ export async function runAudit(db: SupabaseClient, auditId: string, domain: stri
     await step("Finding your pages");
     const base = `https://${domain}`;
     const [{ source, pages: listed }, robots, llms] = await Promise.all([findPages(domain), get(`${base}/robots.txt`), get(`${base}/llms.txt`)]);
-    const urls = [...new Set([base, ...listed.map((p) => p.url)].map(norm))].slice(0, MAX_PAGES);
+    // Only the audited domain and its www twin. A sitemap can list any address, so the rest are dropped.
+    const urls = [...new Set([base, ...listed.map((p) => p.url)].filter((u) => onSite(u, domain)).map(norm))].slice(0, MAX_PAGES);
     const pages: (AuditPage & { hrefs: string[] })[] = [];
     let done = 0;
     await pool(urls, 6, async (url) => {
@@ -224,7 +223,7 @@ export async function runAudit(db: SupabaseClient, auditId: string, domain: stri
     await step("Checking links");
     const crawled = new Set(pages.flatMap((p) => [norm(p.url), ...(p.final ? [norm(p.final)] : [])]));
     const from = new Map<string, string>();
-    for (const p of pages) for (const h of p.hrefs) if (!crawled.has(h) && !from.has(h) && !/\.(pdf|jpe?g|png|gif|webp|svg|zip|mp4)$/i.test(h)) from.set(h, p.url);
+    for (const p of pages) for (const h of p.hrefs) if (onSite(h, domain) && !crawled.has(h) && !from.has(h) && !/\.(pdf|jpe?g|png|gif|webp|svg|zip|mp4)$/i.test(h)) from.set(h, p.url);
     const brokenLinks: AuditResult["brokenLinks"] = [];
     await pool([...from.keys()].slice(0, 120), 6, async (u) => {
       let r = await get(u, "HEAD");

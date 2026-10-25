@@ -1,9 +1,8 @@
-import { lookup } from "node:dns/promises";
-import { isIP } from "node:net";
 import * as cheerio from "cheerio";
 import { skillsOf } from "@/lib/ask";
 import { BUILTIN_SKILLS } from "@/lib/zippieSkills";
 import { adminClient, requireRole } from "@/lib/serverAuth";
+import { safeFetch } from "@/lib/safeFetch";
 
 export const maxDuration = 60;
 
@@ -12,13 +11,8 @@ const err = (error: string, status = 400) => Response.json({ error }, { status }
 const MAX_CHARS = 400_000;
 const SETUP = "Run supabase/037_zippie.sql in Supabase to turn on projects, knowledge and skills.";
 
-/** Block addresses inside private networks, so a pasted link can't reach the server's own network. */
-function privateIp(ip: string): boolean {
-  if (isIP(ip) === 6) return ip === "::1" || /^f[cd]/i.test(ip) || /^fe80/i.test(ip) || (ip.startsWith("::ffff:") && privateIp(ip.slice(7)));
-  const [a, b] = ip.split(".").map(Number);
-  return a === 10 || a === 127 || a === 0 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 100 && b >= 64 && b <= 127);
-}
-
+// A pasted link must never reach the server's own network. safeFetch checks every redirect and the
+// address DNS gives at the moment it connects, so a name can't point somewhere else after the check.
 async function readUrl(raw: string): Promise<{ name: string; text: string }> {
   let url: URL;
   try {
@@ -26,22 +20,14 @@ async function readUrl(raw: string): Promise<{ name: string; text: string }> {
   } catch {
     throw new Error("That doesn't look like a link.");
   }
-  // Follow redirects by hand, checking each address.
-  let res: Response | null = null;
-  for (let hop = 0; hop < 4; hop++) {
-    if (!/^https?:$/.test(url.protocol)) throw new Error("Only web links work here.");
-    const { address } = await lookup(url.hostname).catch(() => ({ address: "" }));
-    if (!address || privateIp(address)) throw new Error("Can't read that address.");
-    res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0 (compatible; ArrowsterrBot/1.0; +https://arrowsterr.com/)" }, redirect: "manual", signal: AbortSignal.timeout(15_000) });
-    const next = res.status >= 300 && res.status < 400 ? res.headers.get("location") : null;
-    if (!next) break;
-    url = new URL(next, url);
-  }
-  if (!res || !res.ok) throw new Error(`That page answered ${res?.status ?? "nothing"}.`);
-  const html = (await res.text()).slice(0, 3_000_000);
-  const $ = cheerio.load(html);
+  if (!/^https?:$/.test(url.protocol)) throw new Error("Only web links work here.");
+  const res = await safeFetch(url.toString(), { hops: 4, timeout: 15_000, maxBytes: 3_000_000 });
+  if (res.status === 0) throw new Error(res.error && !/private|checked/.test(res.error) ? res.error : "Can't read that address.");
+  if (!res.ok) throw new Error(`That page answered ${res.status}.`);
+  const $ = cheerio.load(res.body);
   $("script, style, noscript, svg, nav, footer, header, form, iframe").remove();
-  const name = $("title").first().text().trim() || url.hostname + url.pathname;
+  const final = new URL(res.url);
+  const name = $("title").first().text().trim() || final.hostname + final.pathname;
   const text = ($("main").text() || $("body").text()).replace(/[ \t]+/g, " ").replace(/\n\s*\n+/g, "\n\n").trim();
   return { name, text };
 }

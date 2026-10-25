@@ -3,6 +3,8 @@ import { createHash, randomBytes } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { entitlement } from "./entitlements";
 import { alertTarget, type EventName } from "./integrationTypes";
+import { safeFetch } from "./safeFetch.ts";
+import { openSecret, sealSecret } from "./sealed.ts";
 import { shares, type Metric } from "./visibility";
 import { adminClient } from "./serverAuth";
 
@@ -33,9 +35,19 @@ export async function apiAuth(request: Request): Promise<{ db: SupabaseClient; w
   return { db, ws: data.workspace_id };
 }
 
-export async function slackSend(url: string, text: string, lines: string[] = []) {
-  const res = await fetch(url, {
+/** A Slack webhook address as it is saved: sealed, like other secrets (sealed.ts). */
+export const sealSlack = (url: string) => sealSecret(url);
+
+/** Post to a Slack webhook. Takes the address as typed or as saved (sealed or plain from before sealing). */
+export async function slackSend(saved: string, text: string, lines: string[] = []) {
+  const url = openSecret(saved);
+  if (!/^https:\/\/hooks\.slack\.com\/\S+$/.test(url)) throw new Error("That isn't a Slack webhook address.");
+  const res = await safeFetch(url, {
     method: "POST",
+    hops: 0,
+    accept: "*/*",
+    timeout: 10_000,
+    maxBytes: 10_000,
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       text,
@@ -44,9 +56,10 @@ export async function slackSend(url: string, text: string, lines: string[] = [])
         { type: "context", elements: [{ type: "mrkdwn", text: `<${app()}|Open Arrowsterr>` }] },
       ],
     }),
-    signal: AbortSignal.timeout(10_000),
   });
-  if (!res.ok) throw new Error(`Slack returned ${res.status}: ${(await res.text()).slice(0, 120)}`);
+  if (res.status === 0) throw new Error(res.error ?? "Slack couldn't be reached.");
+  // Slack answers with a short code like invalid_token or channel_not_found.
+  if (!res.ok) throw new Error(`Slack returned ${res.status}${/^[a-z_]{1,60}$/.test(res.body.trim()) ? `: ${res.body.trim()}` : ""}`);
 }
 
 /** Send an event to every webhook that listens for it. A webhook that is gone (410) is removed, the way Zapier asks. */
@@ -58,12 +71,10 @@ export async function dispatch(db: SupabaseClient, ws: string, event: EventName,
     (hooks ?? [])
       .filter((h) => h.event === event || h.event === "*")
       .map(async (h) => {
-        try {
-          const res = await fetch(h.url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ event, ...payload }), signal: AbortSignal.timeout(10_000) });
-          if (res.status === 410) await db.from("webhooks").delete().eq("id", h.id);
-        } catch (err) {
-          console.error("Webhook failed:", err instanceof Error ? err.message : err);
-        }
+        // A public address only, and no redirects: a webhook can't send the server into its own network.
+        const res = await safeFetch(h.url, { method: "POST", hops: 0, accept: "*/*", timeout: 10_000, maxBytes: 10_000, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ event, ...payload }) });
+        if (res.status === 410) await db.from("webhooks").delete().eq("id", h.id);
+        else if (res.status === 0) console.error("Webhook failed:", res.error);
       }),
   );
 }

@@ -10,6 +10,8 @@ import { PublishError, publishToWp, scheduleKey, statusFor, syncPub, versionAtLe
 import { mirrorMeta, PUB_COLS, pubStore, pubView, SYNC_SETUP, wpClient } from "@/lib/wpSyncServer";
 import { docToHtml } from "@/lib/docHtml";
 import { framedModules } from "@/lib/wpModules";
+import { publicHost } from "@/lib/safeFetch";
+import { sealConfig } from "@/lib/sealed";
 
 const str = (v: unknown, n: number) => String(v ?? "").trim().slice(0, n);
 const err = (error: string, status = 400) => Response.json({ error }, { status });
@@ -99,6 +101,15 @@ export async function POST(request: Request) {
       if (!v && !f.optional) return err(`Enter the ${f.label.toLowerCase()}.`);
       if (v) config[f.id] = v;
     }
+    // The site must be on the public internet: never localhost or the server's own network.
+    const where = config.siteUrl || config.shop;
+    if (where) {
+      let host = "";
+      try {
+        host = new URL(/^https?:\/\//i.test(where) ? where : `https://${where}`).hostname;
+      } catch {}
+      if (!host || !(await publicHost(host))) return err("Enter the site's public address.");
+    }
     let check: string;
     try {
       check = await CMS_API[spec.id].test(config);
@@ -106,7 +117,9 @@ export async function POST(request: Request) {
       return err(`${spec.label} said no: ${e instanceof Error ? e.message : String(e)}`);
     }
     const name = str(body.name, 80) || config.siteUrl || config.shop || spec.label;
-    const { data, error } = await db.from("cms_connections").insert({ workspace_id: ws, brand_id: brandId, kind: spec.id, name, config }).select(COLS).single();
+    // Passwords and API keys are saved sealed. Every reader opens them (cms.ts, cmsEdit.ts, wpSyncServer.ts).
+    const sealed = sealConfig(config, spec.fields.filter((f) => f.secret).map((f) => f.id));
+    const { data, error } = await db.from("cms_connections").insert({ workspace_id: ws, brand_id: brandId, kind: spec.id, name, config: sealed }).select(COLS).single();
     if (noBrandCol(error)) return err(SETUP, 500);
     if (missing(error)) return err("Run supabase/021_doc_meta.sql in Supabase first.", 500);
     if (error) return err(error.message, 500);

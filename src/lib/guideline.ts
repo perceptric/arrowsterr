@@ -1,6 +1,7 @@
 import "server-only";
 import * as cheerio from "cheerio";
 import { askClaude, parseJson } from "./claude";
+import { safeFetch } from "./safeFetch.ts";
 import type { BrandGuideline } from "./writerTypes";
 
 // Builds a brand guideline from a website: reads the full homepage HTML and its stylesheets,
@@ -8,14 +9,10 @@ import type { BrandGuideline } from "./writerTypes";
 
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36";
 
+// The homepage and the stylesheets it links to can point anywhere, so each one is a public address only.
 async function get(url: string, max = 3_000_000) {
-  try {
-    const res = await fetch(url, { headers: { "User-Agent": UA, Accept: "text/html,text/css,*/*" }, redirect: "follow", signal: AbortSignal.timeout(15_000) });
-    if (!res.ok) return "";
-    return (await res.text()).slice(0, max);
-  } catch {
-    return "";
-  }
+  const res = await safeFetch(url, { ua: UA, accept: "text/html,text/css,*/*", timeout: 15_000, maxBytes: max });
+  return res.ok ? res.body : "";
 }
 
 /** Count how often each value appears, most used first. */

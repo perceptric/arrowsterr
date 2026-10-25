@@ -1,11 +1,14 @@
 import "server-only";
 import { createHmac } from "node:crypto";
 import type { CmsKind } from "./cmsTypes";
+import { safeFetch } from "./safeFetch.ts";
+import { openConfig } from "./sealed.ts";
 
 // Reading and editing pages that already live in a CMS, for Zippie's change sets.
 // WordPress and Ghost for now. Every write returns the page's new "modified" stamp, and undo only
 // restores a page nobody has edited since, so Arrowsterr never overwrites someone's later work.
 
+// Saved keys are sealed (sealed.ts): each exported function opens the config first.
 type Config = Record<string, string>;
 export type ItemType = "post" | "page";
 export type Item = {
@@ -27,25 +30,29 @@ export type Caps = { alt: boolean; meta: boolean; schema: boolean; faq: boolean;
 
 const base = (u: string) => (/^https?:\/\//i.test(u) ? u : `https://${u}`).replace(/\/+$/, "");
 
-async function call(url: string, init: RequestInit & { json?: unknown } = {}) {
-  const { json, ...rest } = init;
-  const res = await fetch(url, {
-    ...rest,
-    headers: { Accept: "application/json", ...(json !== undefined ? { "Content-Type": "application/json" } : {}), ...(rest.headers ?? {}) },
-    body: json !== undefined ? JSON.stringify(json) : rest.body,
-    signal: AbortSignal.timeout(45_000),
+// Site addresses are typed in by customers, so every call goes to a public address only.
+async function call(url: string, init: { method?: string; headers?: Record<string, string>; json?: unknown } = {}) {
+  const { json, method, headers } = init;
+  const res = await safeFetch(url, {
+    method,
+    accept: "application/json",
+    headers: { ...(json !== undefined ? { "Content-Type": "application/json" } : {}), ...(headers ?? {}) },
+    body: json !== undefined ? JSON.stringify(json) : undefined,
+    timeout: 45_000,
+    maxBytes: 25_000_000,
   });
-  const text = await res.text();
+  if (res.status === 0) throw new Error(res.error ?? "It couldn't be reached.");
   let data: unknown = {};
   try {
-    data = text ? JSON.parse(text) : {};
+    data = res.body ? JSON.parse(res.body) : {};
   } catch {
-    data = { raw: text.slice(0, 300) };
+    data = {};
   }
   if (!res.ok) {
+    // Only the API's own short message, never the page it sent back.
     const d = data as Record<string, unknown>;
-    const msg = (d.message as string) || ((d.errors as { message?: string }[] | undefined)?.[0]?.message ?? "") || (d.raw as string) || res.statusText;
-    throw new Error(`${res.status}: ${String(msg).slice(0, 300)}`);
+    const msg = (d.message as string) || ((d.errors as { message?: string }[] | undefined)?.[0]?.message ?? "");
+    throw new Error(`${res.status}${msg ? `: ${String(msg).replace(/<[^>]+>/g, "").slice(0, 160)}` : ""}`);
   }
   return { data, headers: res.headers };
 }
@@ -57,6 +64,7 @@ type WpPost = { id: number; link: string; title: { raw: string }; content: { raw
 
 /** The Arrowsterr Connector plugin, if installed: its version and the SEO plugin it writes through. */
 export async function wpPlugin(c: Config): Promise<{ version: string; seo: string } | null> {
+  c = openConfig(c);
   try {
     const { data } = await call(`${base(c.siteUrl)}/wp-json/arrowsterr/v1/status`, { headers: wpAuth(c) });
     return data as { version: string; seo: string };
@@ -190,6 +198,7 @@ export const EDITABLE: CmsKind[] = ["wordpress", "ghost"];
 
 /** What Zippie can change through this connection. */
 export async function capsOf(kind: CmsKind, c: Config): Promise<Caps> {
+  c = openConfig(c);
   if (kind === "ghost") return { alt: true, meta: true, schema: true, faq: true, links: true };
   if (kind === "wordpress") {
     const plugin = await wpPlugin(c);
@@ -200,12 +209,14 @@ export async function capsOf(kind: CmsKind, c: Config): Promise<Caps> {
 }
 
 export async function listItems(kind: CmsKind, c: Config, max = 300): Promise<Item[]> {
+  c = openConfig(c);
   if (kind === "wordpress") return wpList(c, max);
   if (kind === "ghost") return ghList(c, max);
   throw new Error("Editing existing pages works with WordPress and Ghost for now.");
 }
 
 export async function getItem(kind: CmsKind, c: Config, type: ItemType, id: string): Promise<Item> {
+  c = openConfig(c);
   if (kind === "wordpress") return wpGet(c, type, id);
   if (kind === "ghost") return ghItem(type, await ghRaw(c, type, id));
   throw new Error("Not supported.");
@@ -213,6 +224,7 @@ export async function getItem(kind: CmsKind, c: Config, type: ItemType, id: stri
 
 /** Write fields and return the page's new modified stamp. */
 export async function writeItem(kind: CmsKind, c: Config, type: ItemType, id: string, f: Fields): Promise<string> {
+  c = openConfig(c);
   if (kind === "wordpress") return wpWrite(c, type, id, f);
   if (kind === "ghost") return ghWrite(c, type, id, f);
   throw new Error("Not supported.");

@@ -2,6 +2,7 @@ import "server-only";
 import { gunzipSync } from "node:zlib";
 import * as cheerio from "cheerio";
 import type { SitePage } from "./research";
+import { safeFetch } from "./safeFetch.ts";
 import { cleanUrl } from "./urls";
 
 export { cleanUrl };
@@ -27,13 +28,14 @@ const GUESSES = [
 const FEEDS = ["/feed", "/rss.xml", "/blog/feed", "/blog/rss.xml", "/atom.xml", "/feed.xml", "/blog/atom.xml"];
 const LISTINGS = ["/blog", "/articles", "/resources", "/news", "/insights", "/guides", "/learn"];
 const ARTICLE_DIR = /\/(blog|articles?|posts?|guides?|resources|news|insights|learn|academy|knowledge|library|stories|journal|tutorials?|how-to)\//i;
+// robots.txt and sitemap indexes can name any address, so every one is fetched as a public address only.
 async function get(url: string): Promise<string | null> {
   try {
-    const res = await fetch(url, { headers: { "User-Agent": UA }, redirect: "follow", signal: AbortSignal.timeout(12_000) });
-    if (!res.ok) return null;
-    const buf = Buffer.from(await res.arrayBuffer());
+    const res = await safeFetch(url, { ua: UA, accept: "*/*", timeout: 12_000, maxBytes: 30_000_000, raw: true });
+    if (!res.ok || !res.bytes) return null;
+    const buf = res.bytes;
     // Gzipped sitemaps start with 1f 8b.
-    const body = buf[0] === 0x1f && buf[1] === 0x8b ? gunzipSync(buf) : buf;
+    const body = buf[0] === 0x1f && buf[1] === 0x8b ? gunzipSync(buf, { maxOutputLength: 60_000_000 }) : buf;
     return body.toString("utf8").slice(0, 20_000_000);
   } catch {
     return null;

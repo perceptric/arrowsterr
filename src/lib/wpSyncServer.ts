@@ -4,6 +4,7 @@ import type { Published } from "./cmsTypes";
 import { docToHtml } from "./docHtml";
 import { finish, retry, type Job } from "./jobs";
 import { safeFetch } from "./safeFetch";
+import { openConfig } from "./sealed.ts";
 import { editedInWp, runScheduled, type Pub, type PubStore, type Wp, type WpRes } from "./wpSync";
 
 // WordPress and the database behind wpSync.ts: the signed-in REST client, image uploads, the doc_publications
@@ -17,7 +18,9 @@ export const PUB_COLS = "id, workspace_id, doc_id, connection_id, remote_id, url
 const base = (u: string) => (/^https?:\/\//i.test(u) ? u : `https://${u}`).replace(/\/+$/, "");
 
 /** A signed-in client for one WordPress site. Sites without pretty links answer on ?rest_route= instead of /wp-json. */
-export function wpClient(c: Config): Wp {
+export function wpClient(config: Config): Wp {
+  // Saved passwords are sealed (sealed.ts). A plain one from before still works.
+  const c = openConfig(config);
   let root = base(c.siteUrl);
   const auth = `Basic ${Buffer.from(`${c.username}:${(c.appPassword ?? "").replace(/\s+/g, "")}`).toString("base64")}`;
   let plain = false;
@@ -27,29 +30,32 @@ export function wpClient(c: Config): Wp {
     return `${root}/?rest_route=${encodeURIComponent(p)}${q ? `&${q}` : ""}`;
   };
   async function send(method: "GET" | "POST", path: string, body?: unknown, raw?: { bytes: Buffer; type: string; name: string }): Promise<WpRes> {
-    const res = await fetch(address(path), {
+    // The site address is typed in by a customer, so it must be public. safeFetch checks every hop.
+    const res = await safeFetch(address(path), {
       method,
+      accept: "application/json",
       headers: {
         Authorization: auth,
-        Accept: "application/json",
         ...(raw ? { "Content-Type": raw.type, "Content-Disposition": `attachment; filename="${raw.name}"` } : body !== undefined ? { "Content-Type": "application/json" } : {}),
       },
       body: raw ? new Uint8Array(raw.bytes) : body !== undefined ? JSON.stringify(body) : undefined,
       // A POST that follows a redirect turns into a GET, so only reads follow. Publishing always reads first,
       // so a site that moved (http → https, www) is found before anything is written.
-      redirect: method === "GET" ? "follow" : "manual",
-      signal: AbortSignal.timeout(raw ? 60_000 : 30_000),
+      hops: method === "GET" ? 5 : 0,
+      timeout: raw ? 60_000 : 30_000,
+      maxBytes: 25_000_000,
     });
-    if (res.redirected && !plain) {
+    if (res.status === 0) throw new Error(res.error ?? "The site couldn't be reached.");
+    if (res.chain.length && !plain) {
       const i = res.url.indexOf("/wp-json/");
       if (i > 0) root = res.url.slice(0, i);
     }
-    const text = await res.text();
     let data: unknown;
     try {
-      data = text ? JSON.parse(text) : {};
+      data = res.body ? JSON.parse(res.body) : {};
     } catch {
-      data = { raw: text.slice(0, 300), notJson: true };
+      // Not JSON: an error page. Its text is never shown, so a wrong address can't read pages back.
+      data = { notJson: true };
     }
     return { status: res.status, data };
   }

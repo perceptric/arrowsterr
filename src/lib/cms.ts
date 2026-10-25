@@ -1,6 +1,8 @@
 import "server-only";
 import { createHmac } from "node:crypto";
 import type { CmsKind, PublishInput } from "./cmsTypes";
+import { safeFetch } from "./safeFetch.ts";
+import { openConfig } from "./sealed.ts";
 import { wpClient } from "./wpSyncServer";
 
 type Config = Record<string, string>;
@@ -8,24 +10,28 @@ type Result = { id: string; url: string | null };
 
 const base = (u: string) => (/^https?:\/\//i.test(u) ? u : `https://${u}`).replace(/\/+$/, "");
 
-async function call(url: string, init: RequestInit & { json?: unknown } = {}) {
-  const { json, ...rest } = init;
-  const res = await fetch(url, {
-    ...rest,
-    headers: { Accept: "application/json", ...(json !== undefined ? { "Content-Type": "application/json" } : {}), ...(rest.headers ?? {}) },
-    body: json !== undefined ? JSON.stringify(json) : rest.body,
-    signal: AbortSignal.timeout(30_000),
+// Store and site addresses are typed in by customers, so every call goes to a public address only.
+async function call(url: string, init: { method?: string; headers?: Record<string, string>; json?: unknown } = {}) {
+  const { json, method, headers } = init;
+  const res = await safeFetch(url, {
+    method,
+    accept: "application/json",
+    headers: { ...(json !== undefined ? { "Content-Type": "application/json" } : {}), ...(headers ?? {}) },
+    body: json !== undefined ? JSON.stringify(json) : undefined,
+    timeout: 30_000,
+    maxBytes: 25_000_000,
   });
-  const text = await res.text();
+  if (res.status === 0) throw new Error(res.error ?? "It couldn't be reached.");
   let data: Record<string, unknown> = {};
   try {
-    data = text ? JSON.parse(text) : {};
+    data = res.body ? JSON.parse(res.body) : {};
   } catch {
-    data = { raw: text.slice(0, 300) };
+    data = {};
   }
   if (!res.ok) {
-    const msg = (data.message as string) || ((data.errors as { message?: string }[] | undefined)?.[0]?.message ?? "") || (typeof data.errors === "string" ? data.errors : "") || (data.raw as string) || res.statusText;
-    throw new Error(`${res.status}: ${String(msg).slice(0, 300)}`);
+    // Only the API's own short message, never the page it sent back.
+    const msg = (data.message as string) || ((data.errors as { message?: string }[] | undefined)?.[0]?.message ?? "") || (typeof data.errors === "string" ? data.errors : "");
+    throw new Error(`${res.status}${msg ? `: ${String(msg).replace(/<[^>]+>/g, "").slice(0, 160)}` : ""}`);
   }
   return data;
 }
@@ -169,4 +175,8 @@ const ghost = {
   },
 };
 
-export const CMS_API: Record<CmsKind, { test: (c: Config) => Promise<string>; publish: (c: Config, p: PublishInput, id?: string) => Promise<Result> }> = { wordpress, webflow, shopify, hubspot, ghost };
+type Api = { test: (c: Config) => Promise<string>; publish: (c: Config, p: PublishInput, id?: string) => Promise<Result> };
+/** Saved keys are sealed (sealed.ts), so each call opens the config first. Plain configs pass through. */
+const opened = (api: Api): Api => ({ test: (c) => api.test(openConfig(c)), publish: (c, p, id) => api.publish(openConfig(c), p, id) });
+
+export const CMS_API: Record<CmsKind, Api> = { wordpress: opened(wordpress), webflow: opened(webflow), shopify: opened(shopify), hubspot: opened(hubspot), ghost: opened(ghost) };
