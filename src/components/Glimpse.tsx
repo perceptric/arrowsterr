@@ -2,45 +2,49 @@
 
 import { PLANS, TRACKS, type Track } from "@/lib/plans";
 import { AIS, LogoStack } from "./PlanGrid";
+import { Delta, Since } from "./ui";
 
 // A look at the toolset a Starter plan does not have: the real layout with demo numbers, and the way up to Pro.
 
-const Stat = ({ lab, v, d }: { lab: string; v: string; d?: string }) => (
+const Stat = ({ lab, v, d }: { lab: string; v: string; d?: React.ReactNode }) => (
   <div className="aw-kpi">
     <span className="aw-kpi__lab">{lab}</span>
     <span className="aw-kpi__num text-ink">{v}</span>
-    {d ? <span className="text-[12px] text-pos">{d}</span> : null}
+    {d ?? null}
   </div>
 );
 
 function VisibilityDemo() {
   const rivals: [string, number, string][] = [
-    ["You", 46, "#0943B0"],
-    ["Rival A", 38, "#111111"],
-    ["Rival B", 27, "#2B3242"],
-    ["Rival C", 19, "#A6AEBB"],
+    ["Your brand", 46, "#0943B0"],
+    ["Northwind CRM", 38, "#111111"],
+    ["Fieldnote", 27, "#2B3242"],
+    ["Pipewell", 19, "#A6AEBB"],
   ];
   const prompts: [string, string, string][] = [
     ["best crm for small business", "#2", "71%"],
     ["crm with email automation", "#1", "83%"],
     ["salesforce alternatives", "#4", "40%"],
-    ["easy crm for startups", "–", "0%"],
+    ["easy crm for startups", "Not named", "0%"],
     ["crm for real estate agents", "#3", "52%"],
   ];
   return (
     <div className="flex flex-col gap-5">
-      <div className="aw-kpis" style={{ ["--cols" as string]: 4 }}>
-        <Stat lab="Visibility" v="46%" d="↗ 8 pts" />
-        <Stat lab="Avg. position" v="#2.4" d="↗ 0.6" />
-        <Stat lab="Sentiment" v="74" />
-        <Stat lab="Mentions" v="318" d="↗ 41" />
+      <div className="flex flex-col gap-2">
+        <div className="aw-kpis" style={{ ["--cols" as string]: 4 }}>
+          <Stat lab="Visibility" v="46%" d={<Delta now={46} before={38} unit=" pts" digits={0} />} />
+          <Stat lab="Avg. position" v="#2.4" d={<Delta now={2.4} before={3} lowerIsBetter />} />
+          <Stat lab="Sentiment" v="74" />
+          <Stat lab="Mentions" v="318" d={<Delta now={318} before={277} digits={0} />} />
+        </div>
+        <Since days={30} />
       </div>
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
         <section className="aw-frame flex flex-col gap-4 p-5">
           <span className="aw-h4">Share of AI answers</span>
           {rivals.map(([n, v, c]) => (
             <span key={n} className="flex items-center gap-3 text-[14px]">
-              <span className="w-20 text-ink">{n}</span>
+              <span className="w-28 truncate text-ink">{n}</span>
               <span className="h-2.5 flex-1 rounded-full bg-rule-faint">
                 <span className="block h-full rounded-full" style={{ width: `${v * 2}%`, background: c }} />
               </span>
@@ -59,16 +63,16 @@ function VisibilityDemo() {
             <thead>
               <tr>
                 <th>Prompt</th>
-                <th className="w-20">Position</th>
-                <th className="w-24">Visibility</th>
+                <th className="w-24 text-right">Position</th>
+                <th className="w-24 text-right">Visibility</th>
               </tr>
             </thead>
             <tbody>
               {prompts.map(([p, pos, v]) => (
                 <tr key={p}>
                   <td className="text-ink">{p}</td>
-                  <td className="aw-num">{pos}</td>
-                  <td className="aw-num">{v}</td>
+                  <td className="aw-td-num">{pos === "Not named" ? <span className="text-muted">{pos}</span> : pos}</td>
+                  <td className="aw-td-num">{v}</td>
                 </tr>
               ))}
             </tbody>
@@ -92,7 +96,7 @@ function SeoDemo() {
     <div className="flex flex-col gap-5">
       <div className="aw-kpis" style={{ ["--cols" as string]: 4 }}>
         <Stat lab="Volume" v="12.1K" />
-        <Stat lab="Difficulty" v="38" />
+        <Stat lab="KD %" v="38" />
         <Stat lab="Intent" v="Commercial" />
         <Stat lab="CPC" v="$31.20" />
       </div>
@@ -104,27 +108,27 @@ function SeoDemo() {
           <thead>
             <tr>
               <th>Keyword</th>
-              <th className="w-24">Volume</th>
-              <th className="w-24">Difficulty</th>
+              <th className="w-24 text-right">Volume</th>
+              <th className="w-24 text-right">KD %</th>
               <th className="w-32">Intent</th>
-              <th className="w-24">CPC</th>
+              <th className="w-24 text-right">CPC</th>
             </tr>
           </thead>
           <tbody>
             {rows.map(([k, v, kd, i, c]) => (
               <tr key={k}>
                 <td className="text-ink">{k}</td>
-                <td className="aw-num">{v}</td>
-                <td className="aw-num">{kd}</td>
+                <td className="aw-td-num">{v}</td>
+                <td className="aw-td-num">{kd}</td>
                 <td>{i}</td>
-                <td className="aw-num">{c}</td>
+                <td className="aw-td-num">{c}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </section>
       <div className="grid gap-3 sm:grid-cols-3">
-        {["Content Plan · 12 weeks planned", "Briefs for every piece", "Agentic Writer · draft in minutes"].map((x) => (
+        {["Editorial Calendar · 12 weeks planned", "Outlines for every piece", "Agentic Writer · draft in minutes"].map((x) => (
           <div key={x} className="aw-frame px-4 py-3 text-[14px] text-ink">
             {x}
           </div>
@@ -136,7 +140,7 @@ function SeoDemo() {
 
 const PITCH: Record<Track, string> = {
   visibility: "See how ChatGPT, Gemini, Claude, Perplexity and Google's AI talk about your brand and your competitors, checked every day.",
-  seo: "Find the keywords that bring buyers, see how competitors win on Google, and turn it into content with the Content Plan Bank, briefs and the Agentic Writer.",
+  seo: "Find the keywords that bring buyers, see how competitors win on Google, and turn it into content with the Editorial Calendar, outlines and the Agentic Writer.",
 };
 
 /** The other toolset, shown with demo numbers behind an upgrade card. */
@@ -153,9 +157,11 @@ export function Glimpse({ track, title, pitch, admin, busy, onBoost, onPlans }: 
           <span className="aw-label">Not on your Starter plan</span>
           <h2 className="aw-h3 mb-0!">{title ?? `Add ${TRACKS[track].label} with Pro`}</h2>
           <p className="text-[15px] text-body">{pitch ?? PITCH[track]}</p>
+          {/* The price shows once: on the button for admins, in this line for everyone else. */}
           <p className="text-[13px] text-muted">
-            Pro has both toolsets, {pro.prompts} prompts checked daily and {pro.tasksPerMonth.toLocaleString("en-US")} tasks a month, for ${pro.price}/mo.
+            Pro has both toolsets, {pro.prompts} prompts checked daily and {pro.tasksPerMonth.toLocaleString("en-US")} tasks a month{admin ? "" : `, for $${pro.price}/mo`}.
           </p>
+          {admin ? null : <p className="text-[13px] text-ink">Ask a workspace admin to upgrade.</p>}
           <div className="flex flex-wrap justify-center gap-2">
             {admin ? (
               <button type="button" className="aw-btn aw-btn--primary" disabled={busy} onClick={onBoost}>

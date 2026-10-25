@@ -7,6 +7,7 @@ import { flatPrompts, type Brand, type Profile, type Topic } from "@/lib/db";
 import { ANGLES, BUSINESS_TYPES, MAX_PROMPTS, TOPIC_KINDS, type Angle, type PickedTopic } from "@/lib/onboarding";
 import type { RunAuth } from "@/lib/runner";
 import { BrandLogo } from "./BrandLogo";
+import { ArrowRight, Check } from "./Icons";
 import { KitLearn } from "./BrandKit";
 import { ENGINE_LOGOS } from "./Engines";
 import { Dropdown } from "./Pickers";
@@ -682,35 +683,57 @@ function PromptsStep(p: { plan: PlanTopic[]; setPlan: (v: PlanTopic[]) => void; 
 
 /** The last page: what happens now, and the way into the app. */
 export function DoneStep({ name, logo, seo, engines, prompts, checking, onExit }: { name: string; logo: string; seo: boolean; engines: string[]; prompts: number; checking: Checking | null; onExit: () => void }) {
-  // While the check runs each model fills its own bar. Once it is done, every bar is full.
-  const rows = engines.map((e) => checking?.find((c) => c.engine === e) ?? { engine: e, done: prompts, total: prompts });
-  const left = rows.filter((r) => r.done < r.total).length;
+  // checking is set while the first check runs and null before and after it. Remembering which models
+  // it ran means a later null is the check finishing, so a bar only reads as done after a real run.
+  const [ran, setRan] = useState<string[] | null>(null);
+  if (checking && !ran) setRan(checking.map((c) => c.engine));
+  const rows = engines.map((e) => {
+    const live = checking?.find((c) => c.engine === e);
+    if (live) return { ...live, started: true };
+    if (!checking && ran?.includes(e)) return { engine: e, done: prompts, total: prompts, started: true };
+    return { engine: e, done: 0, total: prompts, started: false };
+  });
+  const started = rows.some((r) => r.started);
+  const finished = ran !== null && started && rows.every((r) => !r.started || r.done >= r.total);
   return (
     <section className="aw-frame aw-onb__done">
-      <span className="aw-onb__seal">{logo ? <BrandLogo src={logo} name={name} size={40} /> : "✓"}</span>
-      <span className="aw-onb__kicker">All set</span>
-      <h1 className="aw-onb__title">{seo ? `${name || "Your brand"} is ready` : left ? "Your first check is running" : "Your first check is done"}</h1>
+      {seo || finished ? <span className="aw-onb__seal">{logo ? <BrandLogo src={logo} name={name} size={40} /> : <Check size={28} />}</span> : null}
+      <span className="aw-onb__kicker">{seo || finished ? "All set" : "Checking now"}</span>
+      <h1 className="aw-onb__title">{seo ? `${name || "Your brand"} is ready` : finished ? "Your first check is done" : "Your first check is running"}</h1>
       {seo ? (
-        <p className="text-[16px] text-body">Open the Content Plan and click Build to plan 12 weeks of revenue-driven content.</p>
+        <p className="text-[16px] text-body">Open the Editorial Calendar and click Build to plan 12 weeks of revenue-driven content.</p>
       ) : (
         <>
           <p className="text-[16px] text-body">
-            {left
-              ? `We are asking ${prompts} prompts on ${engines.length} AI models right now. Results fill in as each one answers, in about 10 minutes. You can leave this page while it runs.`
-              : `Every AI model answered your ${prompts} prompts. Your dashboard is ready.`}
+            {finished
+              ? `Every AI model answered your ${prompts} prompts. Your results are ready.`
+              : started
+                ? `We are asking ${prompts} prompts on ${engines.length} AI models right now. Results fill in as each one answers, in about 10 minutes. You can leave this page while it runs.`
+                : `We are about to ask ${prompts} prompts on ${engines.length} AI models. Results fill in as each one answers, in about 10 minutes.`}
           </p>
           {rows.length ? (
             <ul className="aw-checks" aria-label="First check, by AI model">
               {rows.map((r) => {
-                const full = r.done >= r.total;
+                const full = r.started && r.done >= r.total;
                 return (
                   <li key={r.engine} className={full ? "is-done" : ""}>
                     <BrandLogo src={ENGINE_LOGOS[r.engine] ?? ""} name={r.engine} size={20} />
                     <span className="aw-checks__name">{r.engine}</span>
                     <span className="aw-checks__bar" role="progressbar" aria-valuemin={0} aria-valuemax={r.total} aria-valuenow={r.done} aria-label={`${r.engine} progress`}>
-                      <span className="aw-checks__fill" style={{ width: `${r.total ? Math.max(4, (r.done / r.total) * 100) : 100}%` }} />
+                      <span className="aw-checks__fill" style={{ width: `${!r.started ? 0 : r.total ? Math.max(4, (r.done / r.total) * 100) : 100}%` }} />
                     </span>
-                    <span className="aw-checks__count aw-num">{full ? "Done ✓" : `${r.done}/${r.total}`}</span>
+                    <span className="aw-checks__count aw-num inline-flex items-center gap-1">
+                      {!r.started ? (
+                        "Not started"
+                      ) : full ? (
+                        <>
+                          Done
+                          <Check size={14} />
+                        </>
+                      ) : (
+                        `${r.done}/${r.total}`
+                      )}
+                    </span>
                   </li>
                 );
               })}
@@ -718,8 +741,9 @@ export function DoneStep({ name, logo, seo, engines, prompts, checking, onExit }
           ) : null}
         </>
       )}
-      <button type="button" className="aw-btn aw-btn--accent aw-btn--lg" onClick={onExit}>
-        {seo ? "Open the Content Plan" : "Go to my dashboard"} →
+      <button type="button" className="aw-btn aw-btn--accent aw-btn--lg inline-flex items-center gap-2" onClick={onExit}>
+        {seo ? "Open the Editorial Calendar" : "See results on Prompts"}
+        <ArrowRight size={16} />
       </button>
     </section>
   );
