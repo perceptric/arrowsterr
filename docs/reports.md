@@ -60,7 +60,7 @@ From a read of the code (October 2026):
 - **Date range** is the app-wide 7/30/60/90 days, always compared with the period before.
 - **No scheduled report emails.** Resend (`src/lib/email.ts`), the jobs queue (`supabase/016_queue.sql`, `src/lib/jobs.ts`) and the send-once pattern (`email_log`, `notify.ts:68`) are ready to reuse.
 - **Plan gating is not enforced.** `plans.ts` defines `reports: basic | templates | whitelabel`, but no screen or API checks it. White label is a checkbox anyone can tick.
-- **Data with no report block yet:** keyword research, domain research, keyword gap, sources, social listening and Zippie changes. Search Console has a table (`gsc_connections`) but no code.
+- **Data with no report block yet:** keyword research, domain research, keyword gap, sources and Zippie changes. Search Console has a table (`gsc_connections`) but no code.
 - **No tests** cover the report code.
 
 ## 2. Principles

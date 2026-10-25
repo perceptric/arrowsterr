@@ -17,7 +17,6 @@ import { articleResearchJob } from "../articleResearchServer";
 import { writerBriefJob, writerDraftJob } from "../writerServer";
 import { wpPublishJob } from "../wpSyncServer";
 import { runAudit } from "../audit";
-import { listenDaily } from "../listen";
 import { queueReportSends } from "../scheduleServer";
 import { applySet, preparePlay, undoSet } from "../plays";
 import { checkDue, promptAllowance } from "../plans";
@@ -94,8 +93,6 @@ export async function schedule(db: SupabaseClient, job: Job) {
   if (unchecked?.length) {
     await enqueueMany(unchecked.map((b) => ({ kind: "clean_brands" as const, workspace_id: b.workspace_id, key: `clean_brands:${BRAND_CHECK_VERSION}:${b.id}`, payload: { brandId: b.id } })));
   }
-  // Social listening starts in the same time slot. It never throws, so it can't hold up the checks above.
-  await listenDaily(db, (id) => slotOf(id) <= minute);
   await finish(job.id);
 }
 
