@@ -63,6 +63,7 @@ import { Onboarding, type Checking, type NewBrand, type Welcome } from "./Onboar
 import { PromptsPage } from "./PromptsPage";
 import { ResearchPage, type Tool } from "./research/ResearchPage";
 import type { SeoStart } from "./research/DomainResearch";
+import { post } from "./research/shared";
 import { SourcesPage } from "./SourcesPage";
 import { TrafficPage } from "./TrafficPage";
 import { ReportsPage } from "./reports/ReportsPage";
@@ -526,6 +527,8 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
     void runBrand(brand);
     // Make the brand's site now. The Content Plan waits until someone clicks Build.
     void siteForBrand(sb, brand, true).catch(() => {});
+    // Zippie learns the brand's kit, voice and guidelines from its site, ready for Agentic Writing.
+    void post({ workspaceId: ws.id, token }, "/api/brand-setup", { brandId: brand.id }).catch(() => {});
   }
 
   async function update(brand: Brand) {

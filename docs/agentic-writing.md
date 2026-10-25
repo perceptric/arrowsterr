@@ -37,12 +37,16 @@ The sidebar has four tabs:
 
 ## 3. The brand is set up for you
 
-Nobody fills in the Brand page before writing. The first outline (or the first generated section in the Library grid) runs `ensureBrandSetup` (`src/lib/brandSetupServer.ts`), which fills in only what's missing and never changes what a person saved:
+Nobody fills in the Brand page before writing. As soon as onboarding adds a brand, `App.tsx` calls `/api/brand-setup`, which queues a `brand_setup` job. The job runs `ensureBrandSetup` (`src/lib/brandSetupServer.ts`), so the brand is ready before the first outline. The first outline (or the first generated section in the Library grid) runs it again in case the job hasn't finished. It fills in only what's missing and never changes what a person saved:
 
 - **Brand Kit:** learned from the brand's homepage with the existing kit learner (`learnKit`). A site that can't be read gets the default kit with the brand's name.
-- **Brand Guidelines:** one Claude call reads the homepage and writes what the company is, what it offers, who it writes for, the proof the page states, its own words and its call to action (`brandSetup.ts`). A site that can't be read gets the name and the website, so writing still starts.
-- **Brand Voice:** the Perceptric blog's voice (`DEFAULT_VOICE` in `houseRules.ts`) with the brand's own name and the reader from its guidelines.
-- **Voice sample:** a brand with no pasted writing of its own (300 characters or more) writes from the Perceptric sample (`DEFAULT_SAMPLE`). The writer copies how it sounds and never its facts or names.
+- **Brand Voice:** Zippie reads up to 5 of the brand's own pages (`voicePages` in `brandSetup.ts`: the homepage, an about page, 3 articles with posts in a blog folder first, then short pages; legal, login and listing pages are skipped) and one Claude call learns its tone, sentence length, words it uses and avoids, how it names itself and its reader. A site with no readable pages gets the Perceptric voice (`DEFAULT_VOICE` in `houseRules.ts`) with the brand's own name. Brands set up before this change that still have that untouched default voice get it learned again.
+- **Voice sample:** the brand's longest article read for the voice, cut near 4,000 characters (`voiceSample`), is saved as `brand_voices.sample_text`, so the writer copies the brand's own writing. A brand with no readable writing (300 characters or more) writes from the Perceptric sample (`DEFAULT_SAMPLE`). The writer copies how it sounds and never its facts or names.
+- **Brand Guidelines:** one Claude call reads the homepage, the pages read for the voice, the learned voice and the kit, and writes one Markdown document: who the brand is, its personality, what it offers, who it writes for, key messages, voice and tone, writing rules (spelling variant, heading case, numbers, serial comma, product names), its words and the words it avoids, the proof the pages state, what not to say, its call to action and its look. It starts "Written by Zippie from {domain} on {date}. Edit anything that's off." A site that can't be read gets the name and the website, so writing still starts.
+
+Both Claude calls start with the brand methods from `skills/` as a cached system prompt (`BRAND_SYSTEM`): `voice-profiler` (MIT), `brand-review` (Apache 2.0, the brand voice framework, messaging pillars and style rules) and `style-sheet` with its variant families (MIT). They are compiled into `src/lib/skillText.ts` by `node scripts/skills.mjs`, next to the writing skills.
+
+Zippie's chat reads the same voice, guidelines and sample with its `get_brand_voice` tool. Its built-in skills (`src/lib/zippieSkills.ts`) add Brand voice, Brand guidelines, Humanize writing, Strict writing review and Proofread.
 
 ### The voice: sample plus house rules
 
@@ -168,15 +172,15 @@ Claude Sonnet 5.5 at $2 input and $10 output per million tokens (from `docs/cont
 | Lint and proofread | code | $0 |
 | **One article** | | **~$0.82** |
 
-Setting up a brand costs about $0.04 once (the kit and guidelines calls), so about $4 for 100 brands. Images add about 2 MB of storage per article (12 images at about 150 KB) and leave Supabase once, when Publish copies them to WordPress.
+Setting up a brand costs about $0.10 once: the kit (~$0.02), the voice (about 10K tokens of brand methods plus 7.5K of page text in, 0.6K out, ~$0.04) and the guidelines (~$0.04, less when the brand methods are still cached from the voice call). That is about $10 for 100 brands. Reading the pages is plain fetches on the worker. Images add about 2 MB of storage per article (12 images at about 150 KB) and leave Supabase once, when Publish copies them to WordPress.
 
 | Line | Beta (50 teams, 500 articles) | Growth (500 teams, 5,000 articles) |
 |---|---|---|
 | Claude for articles | ~$410 | ~$4,100 |
 | DataForSEO and AI engine calls (today) | ~$30 (check) | ~$300 (check) |
-| Brand setup (new brands that month) | ~$2 | ~$20 |
+| Brand setup at onboarding (50 new brands a month at Beta, 500 at Growth) | ~$5 | ~$50 |
 | Image storage (1 GB a month at Beta, 10 GB at Growth, inside Supabase Pro's 100 GB at first) | ~$0 (check) | ~$0 for the first 9 months, then ~$0.02 a GB (check) |
 | Fly worker: a second 2 GB machine at Growth for screenshots and renders | $0 | ~$12 (check) |
-| **Monthly total** | **~$442** | **~$4,432** |
+| **Monthly total** | **~$445** | **~$4,462** |
 
-That adds about $147 at Beta and about $1,482 at Growth over today's article cost.
+That adds about $150 at Beta and about $1,512 at Growth over today's article cost. Learning the voice and the fuller guidelines at onboarding add about $3 at Beta and $30 at Growth of that.

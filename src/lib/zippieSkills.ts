@@ -63,9 +63,49 @@ export const BUILTIN_SKILLS: Omit<Skill, "builtin" | "enabled">[] = [
   {
     key: "brand-voice",
     name: "Brand voice",
-    description: "Writes in your brand's voice, using the guides and examples in Knowledge.",
-    instructions: `- Read the Knowledge items first, mainly brand guides, tone notes and sample posts. Use read_knowledge for long ones.
-- Copy the voice: sentence length, words they use and avoid, how formal they are, how they use humor.
-- If Knowledge has no voice guide, ask for one or for 2 or 3 posts they like.`,
+    description: "Writes in your brand's voice, using the voice and guidelines Zippie learned from your site.",
+    instructions: `- Call get_brand_voice first. It has the voice, the guidelines and a sample of the brand's own writing.
+- Read the Knowledge items too, mainly brand guides, tone notes and sample posts. Use read_knowledge for long ones.
+- Copy the voice: sentence length, words they use and avoid, how formal they are, how they use humor. Copy the sample's rhythm, never its facts.
+- Say only what the guidelines list as proof. No "best", "only" or numbers the brand's pages don't state.
+- If the voice says "Not learned yet" and Knowledge has no guide, ask for 2 or 3 pages they like.`,
+  },
+  {
+    key: "brand-guidelines",
+    name: "Brand guidelines",
+    description: "Learns a brand's voice, messages, writing rules and look from its pages and writes them up.",
+    instructions: `- Call get_brand_voice to see what Zippie already learned during onboarding. Build on it.
+- Read the brand's homepage, about page and 2 or 3 articles (get_site_content when a CMS is connected, or the pages the person shares).
+- Write these sections: who the brand is (one or two sentences), personality ("If the brand were a person..."), what it offers, who it writes for, 3 or 4 key messages, voice and tone (3 to 5 words, each with what it means and an example line from its pages), writing rules (US or UK spelling, heading case, numbers, serial comma, contractions, product names), words to use and avoid, proof it can use word for word, things not to say, the main call to action, and the look (colors and fonts).
+- Use only what the pages show. Mark anything you inferred so the person can check it.
+- Tell the person they can paste it on the Brand page so Agentic Writing follows it.`,
+  },
+  {
+    key: "humanize",
+    name: "Humanize writing",
+    description: "Rewrites text so it reads like a careful person wrote it, in the brand's voice.",
+    instructions: `- Call get_brand_voice and match its tone and sentence length.
+- Remove AI tells: "not X, but Y" contrasts, lists of three for rhythm, staged openers ("Here's the thing:"), one-line closers, dashes, stock words (delve, unlock, leverage, robust, seamless, game-changer), bold labels on every bullet, and filler.
+- Keep every fact, number, name and link. Change wording only.
+- Most sentences 12 to 25 words, one idea each. Paragraphs of 1 to 3 sentences.`,
+  },
+  {
+    key: "strict-review",
+    name: "Strict writing review",
+    description: "Audits a draft for AI tells, judgment and weak claims, and returns findings to fix.",
+    instructions: `- Check two layers. Words and structure: banned words and phrases, dashes, compound hyphens, rule of three, formulaic transitions ("Furthermore"), weak verbs ("utilize", "serves as"). Discourse: stated takeaways, staged reveals, manufactured closure, epilogue paragraphs, vague references, atmospheric openers.
+- Flag lines that judge companies or readers ("most teams get it wrong"). Suggest a neutral line that says what to do.
+- Flag claims with no source and numbers that don't add up.
+- Reply with a verdict (pass or fix) and a numbered list: the line, the problem, a fixed line.`,
+  },
+  {
+    key: "proofread",
+    name: "Proofread",
+    description: "A final check that fixes only real slips and says whether the text can go out.",
+    instructions: `- Fix only certain errors: spelling, grammar, punctuation, doubled or missing words, a name spelled two ways. Never reword.
+- Check counts against lists ("7 tools" lists 7), dates against weekdays, and percentages against their total.
+- Find leftovers: TODO, TK, placeholders in brackets, chat or Markdown debris.
+- Ask about anything that could change the meaning instead of fixing it.
+- End with "Ready to publish" or "Hold" and the reason.`,
   },
 ];

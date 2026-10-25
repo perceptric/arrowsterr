@@ -3,6 +3,8 @@ import Anthropic from "@anthropic-ai/sdk";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { after } from "next/server";
 import { MAX_PAGES, runAudit, type AuditResult } from "./audit";
+import { loadBrandContext } from "./brandContext";
+import { voiceText } from "./brandVoice";
 import { claudeModel } from "./claude";
 import { capsOf, EDITABLE, faqsIn, imagesWithoutAlt, linksIn, listItems } from "./cmsEdit";
 import type { CmsKind } from "./cmsTypes";
@@ -74,6 +76,29 @@ export async function startPlay(db: SupabaseClient, ws: string, userId: string, 
 }
 
 const LOCAL: LocalTool[] = [
+  {
+    name: "get_brand_voice",
+    label: "Reading the brand voice",
+    description:
+      "The brand's voice, guidelines and a sample of its own writing, as Zippie learned them from its site during onboarding (people can edit them on the Brand page). Call it before writing anything for the brand: articles, posts, emails, meta descriptions, FAQ answers or replies.",
+    input_schema: { type: "object", properties: { brand: { type: "string", description: "The brand's name or domain. Leave out for the brand the person picked, or the first one." } } },
+    async run(ctx, args) {
+      const { data } = await ctx.db.from("brands").select("id, name, domain").eq("workspace_id", ctx.ws).order("created_at");
+      const brands = (data ?? []) as { id: string; name: string; domain: string }[];
+      const want = (str(args.brand, 200) || ctx.where?.brand || "").toLowerCase();
+      const b = brands.find((x) => want && (x.name.toLowerCase() === want || x.domain.toLowerCase() === want)) ?? brands[0];
+      if (!b) throw new ToolError("This workspace has no brand yet.");
+      const c = await loadBrandContext(ctx.db, b.id);
+      return {
+        brand: b.name,
+        domain: b.domain,
+        voice: voiceText(c.voice) || "Not learned yet.",
+        guidelines: c.guidelines?.body.slice(0, 12_000) || "None yet.",
+        writing_sample: c.sample.slice(0, 4000),
+        note: "Write in this voice and follow the guidelines. Copy the sample's rhythm and warmth, never its facts. Use only claims the guidelines list as proof.",
+      };
+    },
+  },
   {
     name: "show_setup",
     label: "Opening a setup guide",

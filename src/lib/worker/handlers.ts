@@ -4,6 +4,7 @@ import { runAgent } from "../agent";
 import { readAnswer } from "../answer";
 import { runBrief } from "../brief";
 import { BRAND_CHECK_VERSION, cleanMentions, notBrand } from "../brandNames";
+import { ensureBrandSetup } from "../brandSetupServer";
 import { askJson } from "../claude";
 import type { Chat } from "../chats";
 import { getTask, postTasks, type DfsAnswer, type DfsEngine } from "../dataforseo";
@@ -360,5 +361,15 @@ export async function clean_brands(db: SupabaseClient, job: Job) {
   }
   console.log(`Brand check for ${brandId}: ${names.size} names, ${drop.size} weren't brands.`);
   await db.from("brands").update({ brands_checked: BRAND_CHECK_VERSION }).eq("id", brandId);
+  await finish(job.id);
+}
+
+// ─────────────── brand_setup: learn a new brand's kit, voice and guidelines from its site ───────────────
+
+/** Queued by onboarding (/api/brand-setup) so the brand is ready for Agentic Writing before the first article. */
+export async function brand_setup(db: SupabaseClient, job: Job) {
+  const { brandId } = job.payload as { brandId: string };
+  const made = await ensureBrandSetup(db, brandId);
+  if (made.length) console.log(`Brand setup for ${brandId}: ${made.join(", ")}.`);
   await finish(job.id);
 }
