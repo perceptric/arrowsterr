@@ -3,12 +3,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useEffect, useMemo, useState } from "react";
 import { Dropdown } from "./Pickers";
+import { SaveState } from "./SaveState";
 import { recordUndo } from "@/lib/undo";
 import { atLeast, getWorkspaceSettings, saveWorkspaceSettings, type AiSettings, type PlanUsage, type Workspace, type WorkspaceSettings } from "@/lib/db";
 import { post } from "./research/shared";
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
-const NOT_RUN = "These settings turn on once supabase/034_settings.sql has been run in Supabase → SQL Editor.";
+// Before supabase/034_settings.sql runs, the settings row is missing.
+const NOT_RUN = "These settings aren't available yet.";
 /** Shared email services. A workspace can't let everyone at one of these in. */
 const SHARED_EMAIL = new Set([
   "gmail.com",
@@ -50,11 +52,6 @@ function useSettings(sb: SupabaseClient, ws: Workspace) {
   return [s, setS] as const;
 }
 
-function Status({ error, saved }: { error: string; saved: string }) {
-  if (error) return <p className="aw-error">{error}</p>;
-  if (saved) return <p className="aw-callout text-[15px]!">{saved}</p>;
-  return null;
-}
 
 /** The time zone dates and times use across the workspace. */
 export function TimezoneSetting({ sb, ws }: { sb: SupabaseClient; ws: Workspace }) {
@@ -147,7 +144,7 @@ const AI_FIELDS: {
   },
 ];
 
-/** Notes the AI reads before it writes a brief or helps in the writer. */
+/** Notes the AI reads before it writes an outline or helps in the writer. */
 export function AiSettingsPage({ sb, ws }: { sb: SupabaseClient; ws: Workspace }) {
   const [s, setS] = useSettings(sb, ws);
   const [draft, setDraft] = useState<AiSettings | null>(null);
@@ -185,13 +182,13 @@ export function AiSettingsPage({ sb, ws }: { sb: SupabaseClient; ws: Workspace }
       className="flex max-w-2xl flex-col gap-6"
       onSubmit={(e) => {
         e.preventDefault();
-        if (draft && s) save(draft, s.ai_settings, "AI notes saved. Briefs and the writer use them from now on.");
+        if (draft && s) save(draft, s.ai_settings, "AI notes saved. Outlines and the writer use them from now on.");
       }}
     >
       <p className="text-[15px] text-body">
-        The AI reads these notes before it writes a content brief or helps you in the writer. They add to each website&apos;s brand guideline, and win when the two disagree.
+        The AI reads these notes before it writes an outline or helps you in the writer. They add to each website&apos;s brand guideline, and win when the two disagree.
       </p>
-      <Status error={error} saved={saved} />
+      <SaveState error={error} saved={saved} />
       {AI_FIELDS.map((f) => (
         <div key={f.id}>
           <label className="aw-label" htmlFor={`ai-${f.id}`}>
@@ -265,11 +262,11 @@ export function AccessSettings({ sb, ws, email }: { sb: SupabaseClient; ws: Work
   if (s === null) return <p className="aw-callout max-w-xl text-[15px]!">{NOT_RUN}</p>;
   return (
     <div className="flex max-w-2xl flex-col gap-6">
-      <Status error={error} saved={saved} />
+      <SaveState error={error} saved={saved} />
       <section className="flex flex-col gap-4 rounded-aw border border-rule p-5">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h3 className="aw-h4">Join with a company email</h3>
+            <h2 className="aw-h4">Join with a company email</h2>
             <p className="aw-small mt-1">
               {shared
                 ? `You sign in with ${domain}, which anyone can sign up for. An admin with a company email can turn this on.`
@@ -317,7 +314,7 @@ export function AccessSettings({ sb, ws, email }: { sb: SupabaseClient; ws: Work
       </section>
       {!isAdmin ? <p className="aw-small">Only admins can change who gets in.</p> : null}
       <section className="flex flex-col gap-2">
-        <h3 className="aw-h4">Single sign-on (SAML)</h3>
+        <h2 className="aw-h4">Single sign-on (SAML)</h2>
         <p className="aw-small">
           Sign in through Okta, Microsoft Entra or Google Workspace comes with Enterprise. Write to <a href="mailto:sales@arrowsterr.com">sales@arrowsterr.com</a> to set it up.
         </p>
@@ -337,8 +334,8 @@ export function RetentionSettings({ plan }: { plan: PlanUsage | null }) {
         ? `Charts and tables reach back ${span} on the ${plan?.name} plan. Older results stay saved and show again on a plan with longer history.`
         : "Charts reach back as far as your plan allows. Older results stay saved.",
     ],
-    ["Prompts, topics and competitors", "Kept until you remove them or the brand."],
-    ["Content Plan, briefs and drafts", "Kept until you delete them."],
+    ["Prompts, topics and competitors", "Kept until you delete them or the brand."],
+    ["Editorial Calendar, outlines and drafts", "Kept until you delete them."],
     ["Keyword research and bulk analyses", "Saved runs are kept until you delete them."],
     ["Members and invites", "Kept while the person is in the workspace. Removing someone ends their access right away."],
   ];
@@ -363,9 +360,9 @@ export function RetentionSettings({ plan }: { plan: PlanUsage | null }) {
         </table>
       </div>
       <section className="flex flex-col gap-2">
-        <h3 className="aw-h4">Removing data</h3>
+        <h2 className="aw-h4">Deleting data</h2>
         <ul className="aw-list aw-list--tight">
-          <li className="text-[15px]!">Removing a brand deletes all of its answers and history.</li>
+          <li className="text-[15px]!">Deleting a brand deletes all of its answers and history.</li>
           <li className="text-[15px]!">
             <span>
               To delete the whole workspace or your account, write to <a href="mailto:support@arrowsterr.com">support@arrowsterr.com</a> from your account email.

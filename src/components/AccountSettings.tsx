@@ -3,6 +3,8 @@
 import type { Factor, SupabaseClient, User } from "@supabase/supabase-js";
 import { useCallback, useEffect, useState } from "react";
 import { Dropdown } from "./Pickers";
+import { askConfirm } from "./Dialogs";
+import { SaveState } from "./SaveState";
 import { ROLES } from "./Onboarding";
 import { avatarFromFile } from "./WorkspaceAvatar";
 import { getProfile, saveProfile, type UserProfile } from "@/lib/db";
@@ -10,12 +12,6 @@ import { recordUndo } from "@/lib/undo";
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
-/** A saved note or an error, shown at the top of a settings page. */
-function Status({ error, saved }: { error: string; saved: string }) {
-  if (error) return <p className="aw-error">{error}</p>;
-  if (saved) return <p className="aw-callout text-[15px]!">{saved}</p>;
-  return null;
-}
 
 /** A person's photo, or their first letter on brand blue. */
 export function PersonAvatar({ src, name, size = 32 }: { src: string | null | undefined; name: string; size?: number }) {
@@ -53,6 +49,7 @@ export function ProfileSettings({ sb, user }: { sb: SupabaseClient; user: User }
   const [saved, setSaved] = useState("");
 
   useEffect(() => {
+    // null before supabase/034_settings.sql runs; the photo row then says photos aren't available yet.
     getProfile(sb, user.id).then(setProfile);
   }, [sb, user.id]);
 
@@ -85,14 +82,14 @@ export function ProfileSettings({ sb, user }: { sb: SupabaseClient; user: User }
 
   return (
     <div className="flex max-w-xl flex-col gap-8">
-      <Status error={error} saved={saved} />
+      <SaveState error={error} saved={saved} />
 
       <section className="flex flex-col gap-3">
         <span className="aw-label mb-0!">Photo</span>
         <div className="flex items-center gap-4">
           <PersonAvatar src={profile?.avatar} name={fullName || email} size={56} />
           {profile === null ? (
-            <span className="text-[13px] text-muted">Photos turn on once supabase/034_settings.sql has been run.</span>
+            <span className="text-[13px] text-muted">Photos aren&apos;t available yet.</span>
           ) : (
             <>
               <label className="aw-btn aw-btn--secondary aw-btn--sm cursor-pointer">
@@ -255,7 +252,7 @@ export function SecuritySettings({ sb, user }: { sb: SupabaseClient; user: User 
 
   return (
     <div className="flex max-w-xl flex-col gap-10">
-      <Status error={error} saved={saved} />
+      <SaveState error={error} saved={saved} />
 
       <form
         className="flex flex-col gap-4"
@@ -271,7 +268,7 @@ export function SecuritySettings({ sb, user }: { sb: SupabaseClient; user: User 
         }}
       >
         <div>
-          <h3 className="aw-h4">Password</h3>
+          <h2 className="aw-h4">Password</h2>
           <p className="aw-small mt-1">{google ? "You sign in with Google. Set a password to also sign in with your email." : "At least 8 characters."}</p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -297,9 +294,9 @@ export function SecuritySettings({ sb, user }: { sb: SupabaseClient; user: User 
 
       <section className="flex flex-col gap-4">
         <div>
-          <h3 className="aw-h4">
-            2-step sign-in <span className={`aw-tag ml-2 ${on ? "" : "text-muted"}`}>{factors === null ? "…" : on ? "On" : "Off"}</span>
-          </h3>
+          <h2 className="aw-h4">
+            2-step sign-in <span className={`aw-tag ml-2 ${on ? "" : "text-muted"}`}>{factors === null ? "–" : on ? "On" : "Off"}</span>
+          </h2>
           <p className="aw-small mt-1">After your password or Google, enter a 6-digit code from an app like Google Authenticator, 1Password or Authy.</p>
         </div>
         {setup ? (
@@ -361,8 +358,8 @@ export function SecuritySettings({ sb, user }: { sb: SupabaseClient; user: User 
               type="button"
               className="aw-btn aw-btn--secondary"
               disabled={busy}
-              onClick={() => {
-                if (!confirm("Turn off 2-step sign-in? You will only need your password or Google to sign in.")) return;
+              onClick={async () => {
+                if (!(await askConfirm({ title: "Turn off 2-step sign-in?", text: "You will only need your password or Google to sign in.", action: "Turn off", danger: true }))) return;
                 run(async () => {
                   for (const f of factors ?? []) {
                     const { error: err } = await sb.auth.mfa.unenroll({
@@ -388,7 +385,7 @@ export function SecuritySettings({ sb, user }: { sb: SupabaseClient; user: User 
 
       <section className="flex flex-col gap-4">
         <div>
-          <h3 className="aw-h4">Other devices</h3>
+          <h2 className="aw-h4">Other devices</h2>
           <p className="aw-small mt-1">Sign out on every other computer and phone. You stay signed in here.</p>
         </div>
         <div>
@@ -417,7 +414,7 @@ type Prefs = { weekly: boolean; alerts: boolean; jobs: boolean };
 const NOTIFY: { id: keyof Prefs; label: string; hint: string }[] = [
   { id: "weekly", label: "Weekly summary", hint: "Monday morning: each brand's AI visibility for the week, against the week before, and the brands AI named most." },
   { id: "alerts", label: "Visibility alerts", hint: "When a brand's AI visibility moves by your alert size, or a competitor overtakes it. Checked after each daily run." },
-  { id: "jobs", label: "Content Plan and briefs", hint: "When a Content Plan or a brief you started is ready, or didn't finish." },
+  { id: "jobs", label: "Editorial Calendar and outlines", hint: "When an Editorial Calendar or an outline you started is ready, or didn't finish." },
 ];
 
 /** Which emails you get from this workspace. */
@@ -431,7 +428,11 @@ export function NotificationSettings({ sb, wsId, wsName, userId, alertsOnPlan }:
       .eq("workspace_id", wsId)
       .eq("user_id", userId)
       .maybeSingle()
-      .then(({ data, error: err }) => setPrefs(err ? null : ((data as Prefs | null) ?? { weekly: true, alerts: true, jobs: true })));
+      .then(({ data, error: err }) => {
+        // Before supabase/035_notifications.sql runs there is no table: every email stays on.
+        if (err) console.warn("notification_prefs", err.message);
+        setPrefs(err ? null : ((data as Prefs | null) ?? { weekly: true, alerts: true, jobs: true }));
+      });
   }, [sb, wsId, userId]);
 
   async function set(next: Prefs, was: Prefs) {
@@ -444,7 +445,7 @@ export function NotificationSettings({ sb, wsId, wsName, userId, alertsOnPlan }:
     } else recordUndo({ label: "the email change", undo: () => set(was, next), redo: () => set(next, was) });
   }
 
-  if (prefs === null) return <p className="aw-callout max-w-xl text-[15px]!">Email choices turn on once supabase/035_notifications.sql has been run in Supabase → SQL Editor. Until then, every email is on.</p>;
+  if (prefs === null) return <p className="aw-callout max-w-xl text-[15px]!">Email choices aren&apos;t available yet. Every email is on.</p>;
   return (
     <div className="flex max-w-2xl flex-col gap-6">
       <p className="text-[15px] text-body">
@@ -474,7 +475,7 @@ export function NotificationSettings({ sb, wsId, wsName, userId, alertsOnPlan }:
           </tbody>
         </table>
       </div>
-      <p className="aw-small">Alerts go out when visibility moves 5 points or more, unless an admin picked another size under Integrations → Slack alerts. Every email has an unsubscribe link.</p>
+      <p className="aw-small">Alerts go out when visibility moves 5 points or more, unless an admin picked another size under Tools → Slack, API and MCP. Every email has an unsubscribe link.</p>
     </div>
   );
 }

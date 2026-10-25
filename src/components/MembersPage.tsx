@@ -6,6 +6,9 @@ import { IntegrationsSettings } from "./IntegrationsSettings";
 import type { RunAuth } from "@/lib/runner";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useState } from "react";
+import { CopyButton } from "./CopyButton";
+import { askConfirm } from "./Dialogs";
+import { SkelRows } from "./states";
 import { Meter } from "./ui";
 import { WorkspaceAvatar, avatarFromFile } from "./WorkspaceAvatar";
 import {
@@ -37,24 +40,6 @@ const ROLES: { id: Role; label: string; can: string }[] = [
 const label = (r: Role) => ROLES.find((x) => x.id === r)?.label ?? r;
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 const inviteLink = (token: string) => `${window.location.origin}/?invite=${token}`;
-
-function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
-  return (
-    <button
-      type="button"
-      className="aw-btn aw-btn--secondary aw-btn--sm"
-      onClick={() =>
-        navigator.clipboard.writeText(text).then(() => {
-          setCopied(true);
-          setTimeout(() => setCopied(false), 2000);
-        })
-      }
-    >
-      {copied ? "Copied" : "Copy link"}
-    </button>
-  );
-}
 
 /** Workspace name, members and their roles, and invites. */
 /** One Settings tab: the workspace itself, its members, or its integrations. Plans & billing lives in BillingPage; publishing sites in BrandSettings. */
@@ -271,11 +256,12 @@ export function MembersPage({
                         <button
                           type="button"
                           className="aw-btn aw-btn--secondary aw-btn--sm"
-                          onClick={() => {
-                            if (confirm(`Leave ${ws.name}?`)) act(async () => {
-                              await removeMember(sb, ws.id, userId);
-                              await onChanged();
-                            });
+                          onClick={async () => {
+                            if (await askConfirm({ title: `Leave ${ws.name}?`, text: "You lose access until someone invites you again.", action: "Leave", danger: true }))
+                              act(async () => {
+                                await removeMember(sb, ws.id, userId);
+                                await onChanged();
+                              });
                           }}
                         >
                           Leave workspace
@@ -284,8 +270,9 @@ export function MembersPage({
                         <button
                           type="button"
                           className="aw-btn aw-btn--secondary aw-btn--sm"
-                          onClick={() => {
-                            if (confirm(`Remove ${m.email ?? "this member"}?`)) act(() => removeMember(sb, ws.id, m.user_id), "Member removed.");
+                          onClick={async () => {
+                            if (await askConfirm({ title: `Remove ${m.email ?? "this member"}?`, text: "They lose access to this workspace until you invite them again.", action: "Remove", danger: true }))
+                              act(() => removeMember(sb, ws.id, m.user_id), "Member removed.");
                           }}
                         >
                           Remove
@@ -295,13 +282,7 @@ export function MembersPage({
                   </tr>
                 );
               })}
-              {members === null ? (
-                <tr>
-                  <td colSpan={3} className="aw-small">
-                    Loading...
-                  </td>
-                </tr>
-              ) : null}
+              {members === null ? <SkelRows rows={3} cols={3} /> : null}
             </tbody>
           </table>
         </div>

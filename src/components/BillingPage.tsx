@@ -5,12 +5,14 @@ import { useCallback, useEffect, useState } from "react";
 import { atLeast, getPlanUsage, type PlanUsage, type Workspace } from "@/lib/db";
 import { LADDER, PLANS, TASK_COST, TASK_PACKS, TRACKS, type Interval, type PackId, type PlanId, type Track } from "@/lib/plans";
 import type { RunAuth } from "@/lib/runner";
+import { formatDate } from "@/lib/dates";
+import { askConfirm } from "./Dialogs";
 import { IntervalSwitch, PlanGrid } from "./PlanGrid";
 import { post } from "./research/shared";
 import { Meter } from "./ui";
 
 export const SALES = "mailto:sales@arrowsterr.com?subject=Arrowsterr%20Enterprise";
-const date = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+const date = (iso: string) => formatDate(iso, { year: true });
 const rank = (id: PlanId) => LADDER.indexOf(id);
 
 /** Pick a plan: Checkout for a first plan, an instant switch after that. Returns a message, or opens Stripe. */
@@ -107,16 +109,16 @@ export function BillingPage({ sb, ws, auth, onPlan }: { sb: SupabaseClient; ws: 
           className={`aw-btn aw-btn--block ${current ? "aw-btn--secondary" : "aw-btn--primary"}`}
           disabled={current || !isAdmin || busy !== null}
           title={isAdmin ? undefined : "Ask an admin"}
-          onClick={() => {
+          onClick={async () => {
             if (onStarter) {
-              if (!confirm(`Switch Starter to ${TRACKS[pick].label}? You can switch once a month.`)) return;
+              if (!(await askConfirm({ title: `Switch Starter to ${TRACKS[pick].label}?`, text: "You can switch once a month.", action: "Switch" }))) return;
               act(`track:${pick}`, async () => {
                 await post(auth, "/api/billing/track", { track: pick });
                 return `Starter now opens ${TRACKS[pick].label}.`;
               });
               return;
             }
-            if (paying && !confirm(`Switch to Starter with ${TRACKS[pick].label}? The difference is charged or credited today.`)) return;
+            if (paying && !(await askConfirm({ title: `Switch to Starter with ${TRACKS[pick].label}?`, text: "The difference is charged or credited today.", action: "Switch" }))) return;
             act(`foundation:${pick}`, () => choosePlan(auth, "foundation", cycle, pick));
           }}
         >
@@ -125,12 +127,7 @@ export function BillingPage({ sb, ws, auth, onPlan }: { sb: SupabaseClient; ws: 
       );
     }
     if (id === "free") {
-      if (paying)
-        return (
-          <button type="button" className="aw-btn aw-btn--secondary aw-btn--block" disabled={!isAdmin || busy !== null} title={isAdmin ? undefined : "Ask an admin"} onClick={portal}>
-            {busy === "portal" ? "Opening..." : "Cancel plan"}
-          </button>
-        );
+      // Going to Free is cancelling the plan, in its own section at the bottom.
       return (
         <button type="button" className="aw-btn aw-btn--secondary aw-btn--block" disabled>
           {plan?.plan === "free" ? "Current plan" : plan?.plan === "trial" ? "After your trial" : "Free"}
@@ -158,8 +155,8 @@ export function BillingPage({ sb, ws, auth, onPlan }: { sb: SupabaseClient; ws: 
         className={`aw-btn aw-btn--block ${up ? "aw-btn--primary" : "aw-btn--secondary"}`}
         disabled={!isAdmin || busy !== null}
         title={isAdmin ? undefined : "Ask an admin"}
-        onClick={() => {
-          if (paying && !confirm(`Switch to ${PLANS[id].name}? The difference is charged or credited today.`)) return;
+        onClick={async () => {
+          if (paying && !(await askConfirm({ title: `Switch to ${PLANS[id].name}?`, text: "The difference is charged or credited today.", action: "Switch" }))) return;
           act(id, () => choosePlan(auth, id, cycle));
         }}
       >
@@ -168,10 +165,27 @@ export function BillingPage({ sb, ws, auth, onPlan }: { sb: SupabaseClient; ws: 
     );
   };
 
+  async function cancel() {
+    const until = plan?.periodEnd ? `on until ${date(plan.periodEnd)}` : "on until the end of this period";
+    if (await askConfirm({ title: "Cancel your plan?", text: `Your plan stays ${until}, then the workspace moves to Free.`, action: "Cancel plan", danger: true })) portal();
+  }
+
+  const tasks = plan?.allowances.find((a) => a.metric === "tasks");
+  const left = tasks ? Math.max(0, tasks.limit - tasks.used) : 0;
+  const resets = plan?.resetsAt ?? plan?.periodEnd;
+  const unpaid = plan?.status === "read_only" || plan?.status === "past_due";
+
   return (
     <div className="flex flex-col gap-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <p className="text-[14px] text-body">Your plan, tasks and invoices.</p>
+        {tasks ? (
+          <p className="aw-h3 mb-0!">
+            <span className="aw-num">{left.toLocaleString("en-US")}</span> <span className="text-muted">of</span> <span className="aw-num">{tasks.limit.toLocaleString("en-US")}</span> tasks left
+            {resets ? <span className="text-muted"> · resets {formatDate(resets)}</span> : null}
+          </p>
+        ) : (
+          <span />
+        )}
         {plan?.customer && isAdmin ? (
           <button
             type="button"
@@ -198,6 +212,11 @@ export function BillingPage({ sb, ws, auth, onPlan }: { sb: SupabaseClient; ws: 
               <span className="aw-status aw-status--pending">{plan.trialLeft} days left</span>
             ) : null}
             {plan.cancelAt ? <span className="aw-small">Ends {date(plan.cancelAt)}</span> : plan.periodEnd && paying ? <span className="aw-small">Renews {date(plan.periodEnd)}</span> : null}
+            {unpaid && plan.customer && isAdmin ? (
+              <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" disabled={busy !== null} onClick={portal}>
+                {busy === "portal" ? "Opening..." : "Update payment"}
+              </button>
+            ) : null}
           </div>
           {plan.plan === "foundation" ? (
             <p className="text-[14px] text-body">
@@ -211,7 +230,7 @@ export function BillingPage({ sb, ws, auth, onPlan }: { sb: SupabaseClient; ws: 
                 <Meter key={a.metric} label="Tasks this month" used={a.used} limit={a.limit} />
               ))}
             <div className="aw-frame flex flex-col justify-center gap-1 px-4 py-3">
-              <span className="aw-label">Task packs</span>
+              <span className="aw-label">Pack tasks left</span>
               <span className="aw-num text-[22px] text-ink">{plan.credits.toLocaleString("en-US")}</span>
               <span className="text-[12px] text-muted">Used after the month&apos;s tasks. Never expire.</span>
             </div>
@@ -227,7 +246,7 @@ export function BillingPage({ sb, ws, auth, onPlan }: { sb: SupabaseClient; ws: 
       <section className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
           <h2 className="aw-h4 mb-0!">Task packs</h2>
-          <p className="text-[14px] text-body">Ran out of tasks? Top up any time. Pack tasks never expire. Tracking your prompts never uses tasks.</p>
+          <p className="text-[14px] text-body">Top up any time. Pack tasks never expire.</p>
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
           {TASK_PACKS.map((p) => (
@@ -236,7 +255,7 @@ export function BillingPage({ sb, ws, auth, onPlan }: { sb: SupabaseClient; ws: 
               <span className="text-[14px] text-body">
                 ${p.price} · ${((p.price / p.tasks) * 1000).toFixed(2)} per 1,000
               </span>
-              <button type="button" className="aw-btn aw-btn--primary aw-btn--sm self-start" disabled={!isAdmin || busy !== null} title={isAdmin ? undefined : "Ask an admin"} onClick={() => act(p.id, () => buyPack(auth, p.id))}>
+              <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm self-start" disabled={!isAdmin || busy !== null} title={isAdmin ? undefined : "Ask an admin"} onClick={() => act(p.id, () => buyPack(auth, p.id))}>
                 {busy === p.id ? "Opening..." : "Buy"}
               </button>
             </div>
@@ -250,7 +269,7 @@ export function BillingPage({ sb, ws, auth, onPlan }: { sb: SupabaseClient; ws: 
               ["Domain research", TASK_COST.domain],
               ["Competitive analysis", TASK_COST.gap],
               ["Your pages on Google", TASK_COST.pages],
-              ["Content brief", TASK_COST.brief],
+              ["Outline", TASK_COST.brief],
               ["Writer agent job", TASK_COST.agent],
               ["Stats with sources", TASK_COST.stats],
               ["Interactive element", TASK_COST.widget],
@@ -262,7 +281,6 @@ export function BillingPage({ sb, ws, auth, onPlan }: { sb: SupabaseClient; ws: 
               </li>
             ))}
           </ul>
-          <p className="mt-3 text-[13px] text-muted">Tracking prompts and publishing use no tasks.</p>
         </details>
       </section>
 
@@ -273,6 +291,16 @@ export function BillingPage({ sb, ws, auth, onPlan }: { sb: SupabaseClient; ws: 
         </div>
         <PlanGrid interval={cycle} current={paying ? plan?.plan : null} track={plan?.track} action={button} />
       </section>
+
+      {paying && !plan?.cancelAt && isAdmin ? (
+        <section className="flex flex-col gap-3 border-t border-rule-faint pt-6">
+          <h2 className="aw-h4 mb-0!">Cancel plan</h2>
+          <p className="text-[14px] text-body">Your plan stays on until the end of this period, then the workspace moves to Free.</p>
+          <button type="button" className="aw-btn aw-btn--danger self-start" disabled={busy !== null} onClick={cancel}>
+            {busy === "portal" ? "Opening..." : "Cancel plan"}
+          </button>
+        </section>
+      ) : null}
     </div>
   );
 }
