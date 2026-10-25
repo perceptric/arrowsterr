@@ -1,21 +1,32 @@
 import { entitlement } from "@/lib/entitlements";
 import { reportLimits } from "@/lib/plans";
-import { linkSettingsProblem } from "@/lib/reportLinks";
+import { appOrigin, linkSettingsProblem, shareToken, tokenHash } from "@/lib/reportLinks";
 import { hashPassword, migrationHint } from "@/lib/reportServer";
 import { adminClient, requireRole } from "@/lib/serverAuth";
 
-// Shared links (docs/reports.md, section 32.7): a password, an expiry date, or revoke. Editors only.
+// Shared links (docs/reports.md, section 32.7): a password, an expiry date, or revoke. Editors only, except url.
 //   update: { id, password?: string | null, expires?: "YYYY-MM-DD" | null }  null or "" removes it; leaving a field out keeps it.
 //   revoke: { id }  the link stops opening for everyone, at once.
+//   url: { id }  the link's address again, for Copy link. Any member may ask.
 // Adding a password or an expiry date is on Pro and up. Removing one works on every plan.
 export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
-  const auth = await requireRole(request, body.workspaceId, "editor");
+  const auth = await requireRole(request, body.workspaceId, body.action === "url" ? "viewer" : "editor");
   if ("denied" in auth) return auth.denied;
   const db = adminClient();
   if (!db) return Response.json({ error: "Add SUPABASE_SECRET_KEY to the server's settings." }, { status: 500 });
-  const { data: link } = await db.from("report_links").select("id, revoked_at").eq("id", typeof body.id === "string" ? body.id : "").eq("workspace_id", body.workspaceId).maybeSingle();
+  const { data: link } = await db.from("report_links").select("id, token, revoked_at").eq("id", typeof body.id === "string" ? body.id : "").eq("workspace_id", body.workspaceId).maybeSingle();
   if (!link) return Response.json({ error: "That link is gone." }, { status: 404 });
+
+  if (body.action === "url") {
+    // Links made before supabase/058_security.sql keep their token. Newer ones rebuild it from the id.
+    if (link.token) return Response.json({ url: `${appOrigin(request.headers)}/r/${link.token}` });
+    const token = shareToken(link.id);
+    const { data: saved } = await db.from("report_links").select("token_hash").eq("id", link.id).maybeSingle();
+    // A new server secret makes a different token, which would not open the link.
+    if (saved?.token_hash !== tokenHash(token)) return Response.json({ error: "This link can't be copied again. Share the page again for a new one." }, { status: 410 });
+    return Response.json({ url: `${appOrigin(request.headers)}/r/${token}` });
+  }
 
   if (body.action === "revoke") {
     const { error } = await db.from("report_links").update({ revoked_at: new Date().toISOString() }).eq("id", link.id);

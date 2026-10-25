@@ -8,9 +8,9 @@ import type { ReportSnapshot } from "./reportTypes";
 const HOUR = 3600_000;
 const cache = new Map<string, { at: number; snapshot: ReportSnapshot }>();
 
-/** null when the report is gone, archived or not a client report. */
-export async function liveSnapshot(db: SupabaseClient, reportId: string): Promise<ReportSnapshot | null> {
-  const { data } = await db.from("reports").select(REPORT_COLS).eq("id", reportId).maybeSingle();
+/** null when the report is gone, archived, not a client report, or not in the link's workspace. */
+export async function liveSnapshot(db: SupabaseClient, reportId: string, workspaceId: string): Promise<ReportSnapshot | null> {
+  const { data } = await db.from("reports").select(REPORT_COLS).eq("id", reportId).eq("workspace_id", workspaceId).maybeSingle();
   const row = data as ReportRow | null;
   if (!row || row.archived_at || row.kind !== "client") return null;
   const key = `${row.id}:${row.updated_at}:${new Date().toISOString().slice(0, 13)}`;

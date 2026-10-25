@@ -9,6 +9,7 @@ import { PromptsDoc } from "@/components/reports/PromptsDoc";
 import { ReportDoc } from "@/components/reports/ReportDoc";
 import { UnlockForm } from "@/components/reports/UnlockForm";
 import { liveSnapshot } from "@/lib/reportLive";
+import { findLink } from "@/lib/reportLinks";
 import { checkSig, unlockCookie } from "@/lib/reportServer";
 import type { CompetitorsSnapshot, IntelSnapshot, PromptsSnapshot, ReportSnapshot } from "@/lib/reportTypes";
 import { themeOf } from "@/lib/reportTheme";
@@ -17,7 +18,7 @@ import { adminClient } from "@/lib/serverAuth";
 export const metadata: Metadata = { title: "Shared report", robots: { index: false, follow: false } };
 export const maxDuration = 120;
 
-type Link = { token: string; report_id: string | null; mode: "live" | "frozen"; snapshot: unknown; password_hash: string | null; expires_at: string | null; revoked_at: string | null };
+type Link = { workspace_id: string; report_id: string | null; mode: "live" | "frozen"; snapshot: unknown; password_hash: string | null; expires_at: string | null; revoked_at: string | null };
 
 const past = (iso: string) => Date.parse(iso) < Date.now();
 
@@ -37,8 +38,8 @@ export default async function SharedReport({ params }: { params: Promise<{ token
   const db = adminClient();
   if (!/^[a-f0-9]{48,64}$/.test(token) || !db) return <Note text="This report link is not valid or was removed." />;
 
-  const { data: linkRow, error } = await db.from("report_links").select("token, report_id, mode, snapshot, password_hash, expires_at, revoked_at").eq("token", token).maybeSingle();
-  const link = linkRow as Link | null;
+  const { data: linkRow, error } = await findLink(db, token, "workspace_id, report_id, mode, snapshot, password_hash, expires_at, revoked_at");
+  const link = linkRow as unknown as Link | null;
   let data: unknown = null;
   let count = false;
   if (link) {
@@ -62,7 +63,7 @@ export default async function SharedReport({ params }: { params: Promise<{ token
     }
     if (link.mode === "live") {
       try {
-        data = link.report_id ? await liveSnapshot(db, link.report_id) : null;
+        data = link.report_id ? await liveSnapshot(db, link.report_id, link.workspace_id) : null;
       } catch (e) {
         console.error("Live report failed:", e instanceof Error ? e.message : e);
         return <Note text="This report can't be loaded right now. Try again in a few minutes." />;

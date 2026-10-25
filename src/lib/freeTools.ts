@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { DAY, readCache, writeCache } from "./cache";
 import { esc, sendEmail } from "./email";
 import { freeBlock, freeLimits, FREE_TOOLS, utcDayStart, type FreeTool } from "./freeLimits";
+import { clientIp } from "./clientIp";
 import { adminClient } from "./serverAuth";
 
 // The guard every free tool on arrowsterr.com goes through (docs/free-tools.md):
@@ -18,7 +19,6 @@ export const cors = (request: Request) => {
 };
 export const reply = (request: Request, body: unknown, status = 200) => Response.json(body, { status, headers: cors(request) });
 
-const ipOf = (request: Request) => (request.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || request.headers.get("x-real-ip") || "unknown";
 const hashIp = (ip: string) => createHash("sha256").update(`free:${ip}:${process.env.SUPABASE_SECRET_KEY ?? ""}`).digest("hex").slice(0, 32);
 
 /** True when Turnstile is off, or the token is good. */
@@ -54,7 +54,7 @@ export type FreeRun<T> = { result: T; cost: number };
 export async function freeRun<T>(request: Request, body: Record<string, unknown>, tool: FreeTool, key: string, run: () => Promise<FreeRun<T>>): Promise<Response> {
   const db = adminClient();
   if (!db) return reply(request, { error: "This tool is resting. Please try again later." }, 503);
-  const ip = ipOf(request);
+  const ip = clientIp(request);
   if (!(await human(body.token, ip))) return reply(request, { error: "Please confirm you're human, then try again.", human: true }, 403);
 
   const saveFrom = new Date(Date.now() - FREE_TOOLS[tool].saveDays * DAY).toISOString();
