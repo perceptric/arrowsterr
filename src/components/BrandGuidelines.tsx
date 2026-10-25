@@ -2,17 +2,20 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
+import { guidelinesSavedAt } from "@/lib/brandStatus";
+import { formatDate } from "@/lib/dates";
 import { cleanGuidelines, cleanLinks, filePath, FILES_BUCKET, MAX_BODY, MAX_FILE_BYTES, MAX_FILES, type GuidelineFile, type GuidelinesRow } from "@/lib/brandGuidelines";
 import { Confirm } from "./reports/Dialog";
-import { Thinking, UploadIcon } from "./ui";
+import { SkelBlock } from "./states";
+import { UploadIcon } from "./ui";
 
-const SETUP = "Run supabase/052_brand_guidelines.sql in Supabase to save guidelines.";
+const SETUP = "Guidelines aren't set up for this workspace yet.";
 const COLS = "brand_id, body, links, files, updated_at";
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 const size = (n: number) => (n >= 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
 
-/** Brand › Guidelines: the brand's written rules in Markdown, links, and up to 10 reference files. */
-export function BrandGuidelines({ sb, workspaceId, brand, canEdit }: { sb: SupabaseClient; workspaceId: string; brand: { id: string; name: string }; canEdit: boolean }) {
+/** Brand › Guidelines: the brand's written rules in Markdown, links, and up to 10 reference files. onSaved gets each save. */
+export function BrandGuidelines({ sb, workspaceId, brand, canEdit, onSaved }: { sb: SupabaseClient; workspaceId: string; brand: { id: string; name: string }; canEdit: boolean; onSaved?: (at: string | null) => void }) {
   const [row, setRow] = useState<GuidelinesRow | null | undefined>(undefined);
   const [setup, setSetup] = useState(false);
   const [body, setBody] = useState("");
@@ -56,6 +59,7 @@ export function BrandGuidelines({ sb, workspaceId, brand, canEdit }: { sb: Supab
     if (e) throw new Error(/brand_guidelines/.test(e.message) ? SETUP : e.message);
     const r = cleanGuidelines(data);
     setRow(r);
+    onSaved?.(guidelinesSavedAt(r));
     return r;
   }
 
@@ -129,7 +133,7 @@ export function BrandGuidelines({ sb, workspaceId, brand, canEdit }: { sb: Supab
     if (tab) tab.location.href = data.signedUrl;
   }
 
-  if (row === undefined) return <Thinking text="Loading..." />;
+  if (row === undefined) return <SkelBlock lines={8} />;
   if (setup) return <div className="aw-callout max-w-xl">{SETUP}</div>;
   const files = row?.files ?? [];
   const changed = body !== (row?.body ?? "") || links !== (row?.links.join("\n") ?? "");
@@ -173,7 +177,7 @@ export function BrandGuidelines({ sb, workspaceId, brand, canEdit }: { sb: Supab
             <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" disabled={Boolean(busy) || !changed} onClick={save}>
               {busy === "save" ? "Saving..." : "Save"}
             </button>
-            {saved ? <span className="text-[12px] text-muted">Saved</span> : changed ? <span className="text-[12px] text-muted">Not saved</span> : null}
+            {saved ? <span className="aw-small">Saved</span> : changed ? <span className="aw-small">Not saved</span> : row?.updated_at ? <span className="aw-small">Saved {formatDate(row.updated_at)}</span> : null}
           </span>
         ) : null}
       </div>

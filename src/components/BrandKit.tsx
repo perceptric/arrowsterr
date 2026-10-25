@@ -6,9 +6,12 @@ import { useEffect, useRef, useState } from "react";
 import { preinit } from "react-dom";
 import { cleanKit, contrast, DEFAULT_KIT, kitToTheme, readKitStream, type BrandKit, type KitColors, type KitPart, type KitRow } from "@/lib/brandKit";
 import { kitRowForBrand } from "@/lib/brandGuidelines";
+import { formatDate } from "@/lib/dates";
 import { FONTS, fontStack, fontsUrl, type Font } from "@/lib/reportTheme";
 import type { RunAuth } from "@/lib/runner";
+import { ArrowRight } from "./Icons";
 import { Dropdown } from "./Pickers";
+import { SkelBlock } from "./states";
 import { ToolIntro } from "./ToolIntro";
 import { Zippie } from "./Zippie";
 
@@ -16,7 +19,7 @@ import { Zippie } from "./Zippie";
 // and the Settings → Brand Kit page.
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
-const NOT_RUN = "Run supabase/045_brand_kits.sql in Supabase to save Brand Kits.";
+const NOT_RUN = "Brand Kits aren't set up for this workspace yet.";
 
 /** Learn a kit. onPart gets each part as the agent finds it; the promise ends with the finished kit. */
 export async function streamKit(auth: RunAuth, website: string, brandId: string | null, onPart: (p: KitPart) => void) {
@@ -92,7 +95,7 @@ export function KitLearn({ auth, website, brandId = null, onDone, onAnother, onS
     ? "We could not read that site."
     : {
         scan: `Scanning ${domain}…`,
-        colors: "Nice color palette.",
+        colors: "Reading your colors.",
         fonts: "Reading your fonts.",
         logo: got.logo?.logo ? "Found your logo." : "No logo found. We set your name instead.",
         cover: "Putting your brand on a report.",
@@ -166,7 +169,8 @@ export function KitLearn({ auth, website, brandId = null, onDone, onAnother, onS
       ) : stage === "saved" && got.done ? (
         <div className="aw-kit__actions">
           <button type="button" className="aw-btn aw-btn--accent aw-btn--lg" onClick={() => onDone(got.done!.kit, got.done!.saved)}>
-            Looks right →
+            Looks right
+            <ArrowRight />
           </button>
           {onAnother ? (
             <button type="button" className="aw-text-link" onClick={onAnother}>
@@ -275,7 +279,7 @@ export function BrandKitSettings({ sb, auth, canEdit, website: siteGuess, brands
   const { rows, reload } = useKits(sb, auth.workspaceId);
   const [learning, setLearning] = useState<{ website: string; brandId: string | null } | null>(null);
   const [site, setSite] = useState(siteGuess);
-  if (rows === undefined) return <p className="aw-small">Loading…</p>;
+  if (rows === undefined) return <SkelBlock lines={6} />;
   if (rows === null) return <p className="aw-callout max-w-xl text-[15px]!">{NOT_RUN}</p>;
   const own = rows.find((r) => r.key === "workspace");
 
@@ -365,12 +369,13 @@ export function BrandKitSettings({ sb, auth, canEdit, website: siteGuess, brands
 /**
  * Brand › Brand Kit: the kit of the brand on screen. Its own kit, or the workspace's when that one is this brand's
  * (kitRowForBrand). Learning a new kit saves it as the brand's own, or as the workspace's for a one-brand workspace.
+ * onSaved gets each save; onVoice opens Tone of voice, which holds the tone.
  */
-export function BrandKitPanel({ sb, auth, canEdit, brand, brandCount }: { sb: SupabaseClient; auth: RunAuth; canEdit: boolean; brand: BrandLite; brandCount: number }) {
+export function BrandKitPanel({ sb, auth, canEdit, brand, brandCount, onSaved, onVoice }: { sb: SupabaseClient; auth: RunAuth; canEdit: boolean; brand: BrandLite; brandCount: number; onSaved?: (at: string) => void; onVoice?: () => void }) {
   const { rows, reload } = useKits(sb, auth.workspaceId);
   const [learning, setLearning] = useState<string | null>(null);
   const [site, setSite] = useState(brand.domain);
-  if (rows === undefined) return <p className="aw-small">Loading…</p>;
+  if (rows === undefined) return <SkelBlock lines={6} />;
   if (rows === null) return <p className="aw-callout max-w-xl text-[15px]!">{NOT_RUN}</p>;
   const row = kitRowForBrand(rows, brand, brandCount);
   const target = row ? (row.key === "workspace" ? null : brand.id) : brandCount <= 1 ? null : brand.id;
@@ -383,8 +388,10 @@ export function BrandKitPanel({ sb, auth, canEdit, brand, brandCount }: { sb: Su
         website={learning}
         brandId={target}
         onDone={async () => {
-          await sb.from("brand_kits").update({ confirmed_at: new Date().toISOString() }).eq("workspace_id", auth.workspaceId).eq("key", target ?? "workspace");
+          const now = new Date().toISOString();
+          await sb.from("brand_kits").update({ confirmed_at: now }).eq("workspace_id", auth.workspaceId).eq("key", target ?? "workspace");
           setLearning(null);
+          onSaved?.(now);
           void reload();
         }}
         onSkip={() => setLearning(null)}
@@ -414,13 +421,17 @@ export function BrandKitPanel({ sb, auth, canEdit, brand, brandCount }: { sb: Su
       />
     );
 
-  return <KitEditor key={`${row.key}-${row.learned_at ?? ""}`} sb={sb} workspaceId={auth.workspaceId} row={row} canEdit={canEdit} onLearn={() => setLearning(row.website || brand.domain)} />;
+  return <KitEditor key={`${row.key}-${row.learned_at ?? ""}`} sb={sb} workspaceId={auth.workspaceId} row={row} canEdit={canEdit} onLearn={() => setLearning(row.website || brand.domain)} onSaved={onSaved} onVoice={onVoice} />;
 }
 
-/** Every field of a kit, with a live cover next to it. Saves on the button. */
-function KitEditor({ sb, workspaceId, row, canEdit, onLearn }: { sb: SupabaseClient; workspaceId: string; row: KitRow; canEdit: boolean; onLearn: () => void }) {
+/**
+ * Every field of a kit, with a live cover next to it. Saves on the button. With onVoice the tone is a line that
+ * links to Tone of voice (the Brand page); without it (Settings) the tone stays a field.
+ */
+function KitEditor({ sb, workspaceId, row, canEdit, onLearn, onSaved, onVoice }: { sb: SupabaseClient; workspaceId: string; row: KitRow; canEdit: boolean; onLearn: () => void; onSaved?: (at: string) => void; onVoice?: () => void }) {
   const [kit, setKit] = useState<BrandKit>(row.kit);
   const [saved, setSaved] = useState<BrandKit>(row.kit);
+  const [savedAt, setSavedAt] = useState<string | null>(null); // set by a save on this screen
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const changed = JSON.stringify(kit) !== JSON.stringify(saved);
@@ -439,6 +450,8 @@ function KitEditor({ sb, workspaceId, row, canEdit, onLearn }: { sb: SupabaseCli
     else {
       setKit(clean);
       setSaved(clean);
+      setSavedAt(now);
+      onSaved?.(now);
     }
     setBusy(false);
   }
@@ -504,10 +517,22 @@ function KitEditor({ sb, workspaceId, row, canEdit, onLearn }: { sb: SupabaseCli
             <span className="aw-label">Footer line</span>
             <input className="aw-input" value={kit.footer} maxLength={140} disabled={!canEdit} placeholder="hello@acme.com · acme.com" onChange={(e) => set({ footer: e.target.value })} />
           </label>
-          <label className="flex flex-col gap-1.5">
-            <span className="aw-label">Tone of voice</span>
-            <input className="aw-input" value={kit.voice.tone.join(", ")} disabled={!canEdit} placeholder="Clear, warm, expert" onChange={(e) => set({ voice: { ...kit.voice, tone: e.target.value.split(",").map((t) => t.trim()).slice(0, 3) } })} />
-          </label>
+          {onVoice ? (
+            <div className="flex flex-col gap-1.5">
+              <span className="aw-label">Tone of voice</span>
+              <span className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-[14px] text-ink">
+                {kit.voice.tone.length ? <span>{kit.voice.tone.join(", ")}</span> : null}
+                <button type="button" className="aw-text-link text-[13px]" onClick={onVoice}>
+                  Open Tone of voice
+                </button>
+              </span>
+            </div>
+          ) : (
+            <label className="flex flex-col gap-1.5">
+              <span className="aw-label">Tone of voice</span>
+              <input className="aw-input" value={kit.voice.tone.join(", ")} disabled={!canEdit} placeholder="Clear, warm, expert" onChange={(e) => set({ voice: { ...kit.voice, tone: e.target.value.split(",").map((t) => t.trim()).slice(0, 3) } })} />
+            </label>
+          )}
         </div>
 
         {canEdit ? (
@@ -519,6 +544,10 @@ function KitEditor({ sb, workspaceId, row, canEdit, onLearn }: { sb: SupabaseCli
               <button type="button" className="aw-btn aw-btn--secondary" onClick={() => setKit(saved)}>
                 Discard changes
               </button>
+            ) : savedAt ? (
+              <span className="aw-small">Saved</span>
+            ) : row.confirmed_at ? (
+              <span className="aw-small">Saved {formatDate(row.confirmed_at)}</span>
             ) : null}
             <button type="button" className="aw-text-link ml-auto" onClick={onLearn}>
               Learn again{row.website ? ` from ${row.website}` : ""}

@@ -14,7 +14,7 @@ import { post } from "../research/shared";
 import { Thinking } from "../ui";
 
 // Generate content, one section or all of them (docs/content-grid.md). The screen shows what each section will be
-// written from: the brief's points (edit them), the interactive module to build (or none) and a note for all.
+// written from: the outline's points (edit them), the interactive module to build (or none) and a note for all.
 // Nothing runs until the brand's voice, guidelines and kit are on the Brand page. Sections run one at a time and
 // each lands in the doc as it finishes.
 
@@ -41,7 +41,7 @@ export function GenerateDialog({
   only: number | null;
   /** A section's text now, for the writer to build on. */
   current: (pair: number) => string;
-  /** Put a finished section into the doc (made from the brief first if it doesn't exist yet). */
+  /** Put a finished section into the doc (made from the outline first if it doesn't exist yet). */
   onSection: (pair: number, nodes: PmNode[]) => Promise<void>;
   onClose: () => void;
 }) {

@@ -3,6 +3,7 @@
 import { DateField, Dropdown } from "../Pickers";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { formatDate } from "@/lib/dates";
 import { addCalendarItems, keywordRunResult, listMembers, saveSite, type BankRow, type CalendarItem, type CalendarStatus, type NewCalendarItem, type SheetColumn, type Site } from "@/lib/db";
 import { nextMonday, schedulePlan, slots, STAGES, type Stage } from "@/lib/research";
 import type { RunAuth } from "@/lib/runner";
@@ -14,12 +15,15 @@ import { usePoll } from "../writer/parts";
 import { useWriteActions, WriteButton } from "../writer/WriteButton";
 import { Sheet, type Col, type Edit } from "../Sheet";
 import { Confirm } from "../reports/Dialog";
-import { SidePanel, Thinking } from "../ui";
+import { ChevronDown, Search } from "../Icons";
+import { SkelRows } from "../states";
+import { SidePanel } from "../ui";
+import { goToPath } from "../writer/parts";
 import { CalendarGrid, TopicSidebar } from "./CalendarGrid";
 import { STATUSES, type WriterAccess } from "./ContentPiece";
 import { KeywordDeepDive } from "./KeywordDeepDive";
 import { DayPanel } from "./DayPanel";
-import { byStage, CalendarViewIcon, Difficulty, downloadCsv, FIELD, ListViewIcon, post, slugify, slugOf, STAGE_LABEL, StageTag, STATUS_PICK, statusLabel, ViewSwitch } from "./shared";
+import { byStage, CalendarViewIcon, SelectionBar, Difficulty, downloadCsv, FIELD, ListViewIcon, post, slugify, slugOf, STAGE_LABEL, StageTag, STATUS_PICK, statusLabel, ViewSwitch } from "./shared";
 import { PlanProgress, planRows } from "./AgenticResearch";
 import { PlanIntro, PlanSample } from "./PlanIntro";
 import { usePlan } from "./usePlan";
@@ -32,7 +36,7 @@ const parse = (s: string) => {
 const dayLabel = (d: string) => new Date(`${d}T00:00:00`).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
 const STAGE_ORDER = (s: Stage | null) => (s ? STAGES.findIndex((x) => x.id === s) : 3);
 const REFRESH_DAYS = 30;
-/** Paid plans can refresh the Content Plan once a month. */
+/** Paid plans can refresh the Editorial Calendar once a month. */
 export type Refresh = { paid: boolean; onUpgrade: () => void };
 type PlanRow = Omit<BankRow, "id" | "added">;
 
@@ -48,17 +52,7 @@ const VIEWS: { id: CalView; label: string; icon: React.ReactNode }[] = [
   { id: "month", label: "Month", icon: <CalendarViewIcon /> },
   { id: "week", label: "Week", icon: <WeekViewIcon /> },
 ];
-const VIEW_KEY = "arrowsterr.editorialView"; // each person's last view, kept in this browser
-const readView = (): CalView => {
-  try {
-    const v = localStorage.getItem(VIEW_KEY);
-    return v === "month" || v === "week" ? v : "list";
-  } catch {
-    return "list";
-  }
-};
-
-/** A plan row as a Content Plan item. */
+/** A plan row as an Editorial Calendar item. */
 const toItem = (siteId: string, r: PlanRow & { due_date?: string | null }): NewCalendarItem => ({
   site_id: siteId,
   keyword: r.keyword,
@@ -77,7 +71,7 @@ const toItem = (siteId: string, r: PlanRow & { due_date?: string | null }): NewC
   current_rank: r.rank ?? null,
 });
 
-const WRITE_LABEL: Record<WriteState["kind"], string> = { outline: "Write outline", busy: "Working", draft: "Write draft", publish: "Publish content", view: "View post", retry: "Try again" };
+const WRITE_LABEL: Record<WriteState["kind"], string> = { outline: "Write outline", busy: "Working", draft: "Write draft", publish: "Publish", view: "View post", retry: "Try again" };
 
 const icon = (d: React.ReactNode) => (
   <svg viewBox="0 0 24 24" width={17} height={17} fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -87,8 +81,8 @@ const icon = (d: React.ReactNode) => (
 const AiIconSmall = () => icon(<path d="M12 3c.6 4.6 1.9 5.9 6.5 6.5-4.6.6-5.9 1.9-6.5 6.5-.6-4.6-1.9-5.9-6.5-6.5C10.1 8.9 11.4 7.6 12 3Z" />);
 
 /**
- * The Editorial Calendar: every piece of the Content Plan as a list (a sheet edited like a spreadsheet), a month or
- * a week. In the calendar views every unscheduled piece waits in the sidebar to be dragged onto a day, and
+ * The Editorial Calendar: every piece as a list (a sheet edited like a spreadsheet), a month or a week. The list has
+ * its own address (/editorial-calendar/list, sub "list"); the calendar is the page's own. In the calendar views every unscheduled piece waits in the sidebar to be dragged onto a day, and
  * Auto-schedule gives them all dates at a set pace. The Write column takes each piece from outline to draft to a
  * live post (docs/agentic-writing.md); the first outline puts it in the Library.
  */
@@ -100,6 +94,8 @@ export function EditorialCalendar({
   writer,
   onSite,
   refresh,
+  sub,
+  onSub,
 }: {
   sb: SupabaseClient;
   auth: RunAuth;
@@ -109,15 +105,21 @@ export function EditorialCalendar({
   brandName: string;
   onSite: (s: Site) => void;
   refresh?: Refresh;
+  /** The view from the address: "list" for the list, nothing for the calendar. */
+  sub?: string;
+  onSub?: (sub?: string) => void;
 }) {
   const { items, runs, error, setError, load, patch, addOn, remove: removeItems, importToWriter, toast } = usePlan({ sb, auth, site });
-  const [view, setViewState] = useState<CalView>(readView);
+  // The address says list or calendar; month or week is kept for this visit. Without onSub the view stays local.
+  const [calMode, setCalMode] = useState<"month" | "week">("month");
+  const [ownList, setOwnList] = useState(false);
+  const view: CalView = (onSub ? sub === "list" : ownList) ? "list" : calMode;
   const setView = (v: CalView) => {
-    setViewState(v);
-    try {
-      localStorage.setItem(VIEW_KEY, v);
-    } catch {}
+    if (v !== "list") setCalMode(v);
+    if (onSub) onSub(v === "list" ? "list" : undefined);
+    else setOwnList(v === "list");
   };
+  const [q, setQ] = useState("");
   const [tick, setTick] = useState(0); // reloads the plan progress after a build starts
   const [building, setBuilding] = useState(false);
   const [picked, setPicked] = useState<Set<string>>(new Set());
@@ -142,7 +144,7 @@ export function EditorialCalendar({
       .catch(() => {});
   }, [sb, auth.workspaceId]);
 
-  // Keywords saved in the old Topic Bank move into the Content Plan as ideas, once.
+  // Keywords saved in the old Topic Bank move into the Editorial Calendar as ideas, once.
   const oldBank = site.profile.bank;
   useEffect(() => {
     if (!canEdit || !oldBank?.length) return;
@@ -196,7 +198,19 @@ export function EditorialCalendar({
     },
   });
 
-  if (!items) return <Thinking text="Loading your editorial calendar..." />;
+  if (!items)
+    return (
+      <div className="flex flex-col gap-5" aria-busy="true">
+        <h1 className="aw-h2 mb-0!">Editorial Calendar</h1>
+        <section className="aw-frame overflow-hidden">
+          <table className="aw-table">
+            <tbody>
+              <SkelRows rows={8} cols={5} />
+            </tbody>
+          </table>
+        </section>
+      </div>
+    );
 
   const remove = (ids: string[]) => removeItems(ids, () => setPicked(new Set()));
 
@@ -242,7 +256,8 @@ export function EditorialCalendar({
     await quietly(() => Promise.all(todo.map((i, n) => patch(i.id, { due_date: dates[n] }))));
   }
 
-  const ordered = [...items].sort(byStage);
+  const needle = q.trim().toLowerCase();
+  const ordered = [...items].filter((i) => !needle || i.keyword.toLowerCase().includes(needle) || i.secondary.some((x) => x.toLowerCase().includes(needle))).sort(byStage);
   const pickedPieces = () => items.filter((i) => picked.has(i.id)).map((i) => ({ piece: i, state: stateOf(i) }));
   /** Keywords pasted below the last row become new ideas. */
   async function appendRows(list: Record<string, string>[]) {
@@ -265,7 +280,12 @@ export function EditorialCalendar({
     save: (i, v) => (k === "keyword" ? v && patch(i.id, { keyword: v }) : patch(i.id, { [k]: v })),
   });
   const ed = <E,>(x: E) => (canEdit ? x : undefined);
-  const writeCell = (i: CalendarItem) => <WriteButton state={stateOf(i)} busy={actions.busy.has(i.id)} canEdit={canEdit} onAct={() => void actions.act(i, stateOf(i))} onOpen={() => actions.open(i, stateOf(i))} />;
+  const writeCell = (i: CalendarItem) => <WriteButton secondary state={stateOf(i)} busy={actions.busy.has(i.id)} canEdit={canEdit} onAct={() => void actions.act(i, stateOf(i))} onOpen={() => actions.open(i, stateOf(i))} />;
+  const caret = canEdit ? (
+    <span className="aw-cellpick__caret">
+      <ChevronDown size={12} />
+    </span>
+  ) : null;
   const writeCol: Col<CalendarItem> = {
     id: "write",
     label: "Write",
@@ -278,33 +298,8 @@ export function EditorialCalendar({
   const owners = [{ id: "", label: "Unassigned" }, ...members.map((m) => ({ id: m, label: m }))];
   const cols: Col<CalendarItem>[] = [
     { id: "keyword", label: "Keyword", type: "text", value: (i) => i.keyword, width: 240, edit: ed(text("keyword")) },
-    writeCol,
-    {
-      id: "stage",
-      label: "Stage",
-      type: "list",
-      value: (i) => (i.stage ? STAGE_LABEL[i.stage] : ""),
-      options: ["BOFU", "MOFU", "TOFU"],
-      width: 90,
-      cell: (i) => <StageTag stage={i.stage} />,
-      edit: ed<Edit<CalendarItem>>({
-        kind: "select",
-        options: [...STAGES.map((x) => ({ id: x.id, label: STAGE_LABEL[x.id] })), { id: "", label: "None" }],
-        value: (i) => i.stage ?? "",
-        save: (i, v) => patch(i.id, { stage: (v || null) as Stage | null }),
-      }),
-    },
     { id: "volume", label: "Volume", type: "number", value: (i) => i.volume, width: 90 },
-    { id: "kd", label: "Difficulty", type: "number", value: (i) => i.difficulty, width: 110, cell: (i) => <Difficulty kd={i.difficulty} /> },
-    {
-      id: "slug",
-      label: "Suggested slug",
-      type: "text",
-      value: (i) => slugOf(i),
-      width: 220,
-      cell: (i) => <span className="font-mono text-[12px] text-body">{slugOf(i)}</span>,
-      edit: ed<Edit<CalendarItem>>({ kind: "text", value: (i) => slugOf(i), save: (i, v) => patch(i.id, { extra: { ...(i.extra ?? {}), slug: v ? `/${slugify(v)}` : null } }) }),
-    },
+    { id: "kd", label: "KD %", type: "number", value: (i) => i.difficulty, width: 110, cell: (i) => <Difficulty kd={i.difficulty} /> },
     {
       id: "status",
       label: "Status",
@@ -315,7 +310,7 @@ export function EditorialCalendar({
       cell: (i) => (
         <span className="aw-cellpick">
           <span className={`aw-status ${STATUS_PICK.find((s) => s.label === statusLabel(i))?.tone ?? "aw-status--pending"}`}>{statusLabel(i)}</span>
-          {canEdit ? <span className="aw-cellpick__caret">▾</span> : null}
+          {caret}
         </span>
       ),
       edit: ed<Edit<CalendarItem>>({
@@ -339,10 +334,26 @@ export function EditorialCalendar({
       cell: (i) => (
         <span className="aw-cellpick">
           {i.due_date ? parse(i.due_date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }) : <span className="text-muted">No date</span>}
-          {canEdit ? <span className="aw-cellpick__caret">▾</span> : null}
+          {caret}
         </span>
       ),
       edit: ed<Edit<CalendarItem>>({ kind: "date", value: (i) => i.due_date ?? "", save: (i, v) => patch(i.id, { due_date: v }) }),
+    },
+    writeCol,
+    {
+      id: "stage",
+      label: "Stage",
+      type: "list",
+      value: (i) => (i.stage ? STAGE_LABEL[i.stage] : ""),
+      options: ["BOFU", "MOFU", "TOFU"],
+      width: 90,
+      cell: (i) => <StageTag stage={i.stage} />,
+      edit: ed<Edit<CalendarItem>>({
+        kind: "select",
+        options: [...STAGES.map((x) => ({ id: x.id, label: STAGE_LABEL[x.id] })), { id: "", label: "None" }],
+        value: (i) => i.stage ?? "",
+        save: (i, v) => patch(i.id, { stage: (v || null) as Stage | null }),
+      }),
     },
     {
       id: "owner",
@@ -355,11 +366,11 @@ export function EditorialCalendar({
           <span className="aw-cellpick">
             <span className="aw-avatar-xs">{i.owner.slice(0, 1)}</span>
             <span className="truncate">{i.owner.split("@")[0]}</span>
-            {canEdit ? <span className="aw-cellpick__caret">▾</span> : null}
+            {caret}
           </span>
         ) : (
           <span className="aw-cellpick text-muted">
-            Unassigned{canEdit ? <span className="aw-cellpick__caret">▾</span> : null}
+            Unassigned{caret}
           </span>
         ),
       edit: ed<Edit<CalendarItem>>({ kind: "select", options: owners, value: (i) => i.owner ?? "", save: (i, v) => patch(i.id, { owner: v }) }),
@@ -395,6 +406,15 @@ export function EditorialCalendar({
         onRemove: canEdit ? () => setDropCol(c) : undefined,
       }),
     ),
+    {
+      id: "slug",
+      label: "Suggested slug",
+      type: "text",
+      value: (i) => slugOf(i),
+      width: 220,
+      cell: (i) => <span className="font-mono text-[12px] text-body">{slugOf(i)}</span>,
+      edit: ed<Edit<CalendarItem>>({ kind: "text", value: (i) => slugOf(i), save: (i, v) => patch(i.id, { extra: { ...(i.extra ?? {}), slug: v ? `/${slugify(v)}` : null } }) }),
+    },
   ];
 
   async function saveColumns(next: SheetColumn[]) {
@@ -412,19 +432,23 @@ export function EditorialCalendar({
   const running = (runs ?? [])[0]?.status === "running";
   const nextRefresh = lastDone ? new Date(new Date(lastDone.created_at).getTime() + REFRESH_DAYS * 864e5) : null;
   const canRefresh = Boolean(refresh?.paid && nextRefresh && nextRefresh <= new Date());
-  const short = (d: Date) => d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
   const built = Boolean(items.length || lastDone);
   const exportCsv = () =>
     downloadCsv(
       `editorial-calendar-${site.domain}.csv`,
-      ["keyword", "job", "stage", "theme", "volume", "difficulty", "status", "due date", "owner", "page url", "now ranks", "also covers", "in writer"],
+      ["keyword", "job", "stage", "theme", "volume", "kd %", "status", "due date", "owner", "page url", "now ranks", "also covers", "in writer"],
       items.map((i) => [i.keyword, i.action, i.stage, i.theme, i.volume, i.difficulty, i.status, i.due_date, i.owner, i.url ?? i.current_url, i.current_rank, i.secondary.join("; "), inWriterAt(i)]),
     );
   const head = (
     <header className="flex flex-wrap items-center justify-between gap-3">
       <span className="flex flex-wrap items-center gap-3">
         <h1 className="aw-h2 mb-0!">Editorial Calendar</h1>
+        {items.length ? (
+          <span className="aw-small text-muted">
+            {items.length} {items.length === 1 ? "piece" : "pieces"} · {undated.length} unscheduled
+          </span>
+        ) : null}
         {built ? <ViewSwitch value={view} onChange={setView} options={VIEWS} /> : null}
       </span>
       {built ? (
@@ -437,7 +461,7 @@ export function EditorialCalendar({
                   {building ? "Starting..." : "Refresh plan"}
                 </button>
               ) : nextRefresh ? (
-                <span className="text-[13px] text-muted">Next refresh {short(nextRefresh)}</span>
+                <span className="text-[13px] text-muted">Next refresh {formatDate(nextRefresh)}</span>
               ) : null
             ) : (
               <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={refresh?.onUpgrade}>
@@ -446,12 +470,12 @@ export function EditorialCalendar({
               </button>
             )
           ) : null}
-          {canEdit ? (
+          {canEdit && undated.length ? (
             <>
               <Dropdown label="Posts per week" value={perWeek} onChange={setPerWeek} className={FIELD} options={[1, 2, 3, 4, 5].map((n) => ({ id: n, label: `${n} per week` }))} />
               <DateField label="Start on" value={start} onChange={(v) => v && setStart(v)} className={FIELD} clearable={false} />
-              <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={autoSchedule} disabled={!undated.length}>
-                Auto-schedule
+              <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={autoSchedule}>
+                Auto-schedule {undated.length}
               </button>
             </>
           ) : null}
@@ -516,19 +540,24 @@ export function EditorialCalendar({
       {progress}
       {!items.length && lastDone && !running ? (
         <section className="aw-frame flex flex-col items-center gap-3 px-6 py-12 text-center">
-          <span className="aw-h4">Your Content Plan is empty</span>
-          {canEdit ? (
-            <button type="button" className="aw-btn aw-btn--accent" onClick={restore}>
-              Restore the AI&apos;s plan
+          <h2 className="aw-h4">Editorial Calendar is empty</h2>
+          <span className="flex flex-wrap items-center justify-center gap-3">
+            {canEdit ? (
+              <button type="button" className="aw-btn aw-btn--accent" onClick={restore}>
+                Restore the AI&apos;s plan
+              </button>
+            ) : null}
+            <button type="button" className="aw-text-link" onClick={() => goToPath("/keywords")}>
+              Add keywords from Keyword Research
             </button>
-          ) : null}
+          </span>
         </section>
       ) : null}
 
       {view === "list" ? (
         <section className="aw-frame flex min-w-0 flex-col">
           {picked.size && canEdit ? (
-            <div className="flex flex-wrap items-center gap-3 border-b border-rule-faint bg-brand-pale px-5 py-2.5">
+            <SelectionBar count={picked.size} noun={picked.size === 1 ? "piece" : "pieces"} onClear={() => setPicked(new Set())}>
               <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => void actions.actMany(pickedPieces(), "outline")}>
                 Write outline
               </button>
@@ -539,17 +568,18 @@ export function EditorialCalendar({
               <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => remove([...picked])}>
                 Delete
               </button>
-              <button type="button" className="aw-text-link ml-auto text-[13px]" onClick={() => setPicked(new Set())}>
-                Clear
-              </button>
-            </div>
+            </SelectionBar>
           ) : null}
           <Sheet
             id={`plan:${site.id}`}
             label="Editorial Calendar"
             height="calc(100vh - 210px)"
-            tools={false}
-            counts={false}
+            toolbar={
+              <label className="flex items-center gap-1.5">
+                <Search size={14} />
+                <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search keywords" aria-label="Search keywords" className="aw-pop__field w-48" />
+              </label>
+            }
             rows={ordered}
             cols={cols}
             rowKey={(i) => i.id}

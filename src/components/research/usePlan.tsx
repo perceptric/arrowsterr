@@ -8,6 +8,7 @@ import { useStash } from "@/lib/stash";
 import { quietly, recordUndo } from "@/lib/undo";
 import { canImport, importPatch } from "@/lib/writerImport";
 import { Confirm } from "../reports/Dialog";
+import { snack } from "../Snack";
 import type { NewPiece } from "./DayPanel";
 
 /**
@@ -18,8 +19,6 @@ export function usePlan({ sb, auth, site }: { sb: SupabaseClient; auth: RunAuth;
   const [items, setItems] = useStash<CalendarItem[] | null>(`cal:${site.id}:items`, null);
   const [runs] = useStash<KeywordRun[] | null>(`agentic:${site.id}:runs`, null);
   const [error, setError] = useState("");
-  const [undo, setUndo] = useState<CalendarItem[] | null>(null);
-  const [flash, setFlash] = useState("");
   const [asking, setAsking] = useState<{ ids: string[]; done?: () => void } | null>(null);
   const pending = useRef<{ ids: string[]; timer: ReturnType<typeof setTimeout> } | null>(null);
 
@@ -27,8 +26,7 @@ export function usePlan({ sb, auth, site }: { sb: SupabaseClient; auth: RunAuth;
     try {
       setItems(await listCalendar(sb, site.id));
     } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
-      setError(/action|brief|current_/.test(message) ? `${message}. Run supabase/007_briefs_and_pages.sql in Supabase → SQL Editor.` : message);
+      setError(e instanceof Error ? e.message : String(e));
       setItems([]);
     }
   }, [sb, site.id, setItems]);
@@ -48,12 +46,6 @@ export function usePlan({ sb, auth, site }: { sb: SupabaseClient; auth: RunAuth;
     deleteCalendarItems(sb, p.ids).catch((e) => setError(e instanceof Error ? e.message : String(e)));
   }, [sb]);
   useEffect(() => commit, [commit]);
-
-  useEffect(() => {
-    if (!flash) return;
-    const t = setTimeout(() => setFlash(""), 4000);
-    return () => clearTimeout(t);
-  }, [flash]);
 
   async function patch(id: string, p: Partial<CalendarItem>) {
     const was = items?.find((i) => i.id === id);
@@ -107,30 +99,21 @@ export function usePlan({ sb, auth, site }: { sb: SupabaseClient; auth: RunAuth;
     commit();
     const gone = items.filter((i) => ids.includes(i.id));
     setItems(items.filter((i) => !ids.includes(i.id)));
-    setUndo(gone);
-    pending.current = {
-      ids,
-      timer: setTimeout(() => {
-        commit();
-        setUndo(null);
-      }, 10_000),
-    };
+    pending.current = { ids, timer: setTimeout(commit, 10_000) };
     recordUndo({ label: gone.length === 1 ? `deleting "${gone[0].keyword}"` : "deleting pieces", undo: () => bringBack(gone) });
+    snack("Deleted", { undo: () => bringBack(gone), ms: 10_000 });
   }
   /** Ctrl + Z after a delete: cancel it while it waits, or put the pieces back once it went through. */
   async function bringBack(gone: CalendarItem[]) {
     const ids = new Set(gone.map((g) => g.id));
-    if (pending.current && pending.current.ids.every((id) => ids.has(id))) return undoRemove();
-    setUndo(null);
+    if (pending.current && pending.current.ids.every((id) => ids.has(id))) return undoRemove(gone);
     setItems((list) => [...(list ?? []).filter((i) => !ids.has(i.id)), ...gone]);
     await restoreCalendarItems(sb, gone);
   }
-  function undoRemove() {
-    if (!undo) return;
+  function undoRemove(gone: CalendarItem[]) {
     if (pending.current) clearTimeout(pending.current.timer);
     pending.current = null;
-    setItems((list) => [...(list ?? []), ...undo]);
-    setUndo(null);
+    setItems((list) => [...(list ?? []), ...gone]);
   }
 
   /**
@@ -140,7 +123,7 @@ export function usePlan({ sb, auth, site }: { sb: SupabaseClient; auth: RunAuth;
   async function importToWriter(ids: string[]) {
     const todo = (items ?? []).filter((i) => ids.includes(i.id) && canImport(i));
     if (!todo.length) {
-      setFlash("Already in the Library");
+      snack("Already in the Library");
       return;
     }
     const at = new Date().toISOString();
@@ -152,21 +135,9 @@ export function usePlan({ sb, auth, site }: { sb: SupabaseClient; auth: RunAuth;
       redo: send,
     });
     await quietly(send);
-    setFlash(todo.length === 1 ? `Imported "${todo[0].keyword}" to the Library` : "Imported to the Library");
+    snack(todo.length === 1 ? `Imported "${todo[0].keyword}" to the Library` : "Imported to the Library");
   }
 
-  const toast = undo ? (
-    <div className="aw-undo" role="status">
-      Deleted
-      <button type="button" onClick={undoRemove}>
-        Undo
-      </button>
-    </div>
-  ) : flash ? (
-    <div className="aw-undo" role="status">
-      {flash}
-    </div>
-  ) : null;
   const dialog = asking ? (
     <Confirm
       title="Delete pieces"
@@ -192,11 +163,6 @@ export function usePlan({ sb, auth, site }: { sb: SupabaseClient; auth: RunAuth;
     addOn,
     remove,
     importToWriter,
-    toast: (
-      <>
-        {toast}
-        {dialog}
-      </>
-    ),
+    toast: dialog,
   };
 }

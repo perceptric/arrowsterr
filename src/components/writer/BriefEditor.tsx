@@ -3,21 +3,25 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useRef, useState, type MutableRefObject } from "react";
 import type { RunAuth } from "@/lib/runner";
+import { recordUndo } from "@/lib/undo";
 import { MODULE_LABEL, type OutlinePart, type WriterBrief } from "@/lib/writerBrief";
 import { getBrief, writerStateFor, type DraftLite, type FullBrief } from "@/lib/writerLibrary";
 import { post } from "../research/shared";
-import { Thinking } from "../ui";
-import { BriefProgress, RegenerateDialog, StateTag, usePoll } from "./parts";
+import { Plus } from "../Icons";
+import { snack } from "../Snack";
+import { SkelBlock } from "../states";
+import { Back, BriefProgress, RegenerateDialog, StateTag, usePoll } from "./parts";
 
-// A brief in the Library, editable: the plan, the outline, gaps, FAQs and the CTA. Every edit saves on its own.
-// Generate Draft saves first, so the draft is written from the brief as it is on screen.
+// An outline in the Library, editable: the outline itself, the plan, gaps, FAQs and the CTA. Every edit saves on its
+// own. Write draft saves first, so the draft is written from the outline as it is on screen. Deleting a section,
+// an H3 or a FAQ can be undone.
 
 type Save = "saved" | "saving" | "error";
 const asText = (xs: string[]) => xs.join("\n");
 const asLines = (s: string) => s.split("\n");
 const clean = (xs: string[]) => xs.map((x) => x.trim()).filter(Boolean);
 
-/** The brief as sent to the server: blank lines and empty rows dropped. */
+/** The outline as sent to the server: blank lines and empty rows dropped. */
 function tidy(b: WriterBrief): WriterBrief {
   return {
     ...b,
@@ -126,6 +130,17 @@ export function BriefEditor({
     timer.current = setTimeout(flush, 1200);
   };
   const part = (i: number, fn: (o: OutlinePart) => OutlinePart) => change((x) => ({ ...x, outline: x.outline.map((o, n) => (n === i ? fn(o) : o)) }));
+  /** Delete part of the outline or the FAQs at once, with Undo (the snackbar or Ctrl + Z) putting that list back. */
+  const drop = (what: string, key: "outline" | "faqs", fn: (x: WriterBrief) => WriterBrief) => {
+    if (!current.current) return;
+    const before = current.current[key];
+    const after = fn(current.current)[key];
+    const put = (list: typeof before) => change((x) => ({ ...x, [key]: list }));
+    put(after);
+    const undo = () => put(before);
+    recordUndo({ label: `deleting ${what}`, undo, redo: () => put(after) });
+    snack(`Deleted ${what}.`, { undo });
+  };
 
   async function generate(kind: "brief" | "draft") {
     setError("");
@@ -146,8 +161,8 @@ export function BriefEditor({
     }
   }
 
-  if (row === undefined) return <Thinking text="Opening the brief..." />;
-  if (!row) return <Head onBack={onBack} title="This brief was deleted." />;
+  if (row === undefined) return <SkelBlock lines={8} />;
+  if (!row) return compact ? <p className="aw-error">This outline was deleted.</p> : <Back onBack={onBack} title="This outline was deleted." />;
   const edit = canEdit && Boolean(b) && (row.status === "ready" || row.status === "approved");
 
   const saveState = edit ? (
@@ -165,17 +180,17 @@ export function BriefEditor({
           {saveState}
         </div>
       ) : (
-        <Head onBack={onBack} title={b?.h1 || row.keyword}>
+        <Back onBack={onBack} title={b?.h1 || row.keyword}>
         <StateTag status={row.status} />
         {saveState}
         {canEdit && row.status === "ready" ? (
           <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setRegen(true)}>
-            Regenerate brief
+            Regenerate outline
           </button>
         ) : null}
         {draft?.status === "ready" ? (
           <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => onDraft(draft.id)}>
-            View Draft
+            Open draft
           </button>
         ) : draft?.status === "generating" ? (
           <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => onDraft(draft.id)}>
@@ -183,15 +198,15 @@ export function BriefEditor({
           </button>
         ) : canEdit && b && row.status !== "generating" && row.status !== "failed" ? (
           <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" disabled={Boolean(busy) || state === "error"} onClick={() => generate("draft")}>
-            {busy === "draft" ? "Starting..." : "Generate Draft"}
+            {busy === "draft" ? "Starting..." : "Write draft"}
           </button>
         ) : null}
         {canEdit && row.status === "failed" ? (
           <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" disabled={Boolean(busy)} onClick={() => generate("brief")}>
-            {busy === "brief" ? "Starting..." : "Generate Brief"}
+            {busy === "brief" ? "Starting..." : "Write outline"}
           </button>
         ) : null}
-        </Head>
+        </Back>
       )}
       {error ? <p className="aw-error">{error}</p> : null}
       {row.status === "failed" && row.error ? <p className="aw-error">{row.error}</p> : null}
@@ -199,29 +214,26 @@ export function BriefEditor({
 
       {b && row.status !== "generating" ? (
         <div className="flex max-w-4xl flex-col gap-4">
-          <Section title="Plan">
-            <Text label="H1" value={b.h1} disabled={!edit} onChange={(v) => change((x) => ({ ...x, h1: v }))} />
-            <Area label="Other titles" value={asText(b.titles)} rows={3} disabled={!edit} onChange={(v) => change((x) => ({ ...x, titles: asLines(v) }))} />
-            <Area label="Meta description" value={b.metaDescription} rows={2} disabled={!edit} onChange={(v) => change((x) => ({ ...x, metaDescription: v }))} />
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Text label="Slug" value={b.slug} disabled={!edit} onChange={(v) => change((x) => ({ ...x, slug: v }))} />
-              <Text label="Word target" value={String(b.wordTarget)} disabled={!edit} onChange={(v) => change((x) => ({ ...x, wordTarget: Number(v.replace(/\D/g, "")) || 0 }))} />
-            </div>
-            <Area label="Search intent" value={b.searchIntent} rows={2} disabled={!edit} onChange={(v) => change((x) => ({ ...x, searchIntent: v }))} />
-            <Area label="Reader" value={b.reader} rows={2} disabled={!edit} onChange={(v) => change((x) => ({ ...x, reader: v }))} />
-            <Area label="Angle" value={b.angle} rows={3} disabled={!edit} onChange={(v) => change((x) => ({ ...x, angle: v }))} />
-          </Section>
-
           <Section title="Outline">
             {b.outline.map((o, i) => (
               <div key={i} className="flex flex-col gap-2 border-l-2 border-rule pl-3">
                 <div className="flex items-end gap-2">
                   <div className="flex-1">
-                    <Text label={`H2 ${i + 1}`} value={o.h2} disabled={!edit} onChange={(v) => part(i, (p) => ({ ...p, h2: v }))} />
+                    <Text
+                      label={
+                        <>
+                          H2 {i + 1}
+                          {o.sources.length ? <Cites list={o.sources} sources={b.research.sources} /> : null}
+                        </>
+                      }
+                      value={o.h2}
+                      disabled={!edit}
+                      onChange={(v) => part(i, (p) => ({ ...p, h2: v }))}
+                    />
                   </div>
                   {edit ? (
-                    <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => change((x) => ({ ...x, outline: x.outline.filter((_, n) => n !== i) }))}>
-                      Remove
+                    <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => drop("a section", "outline", (x) => ({ ...x, outline: x.outline.filter((_, n) => n !== i) }))}>
+                      Delete
                     </button>
                   ) : null}
                 </div>
@@ -233,8 +245,8 @@ export function BriefEditor({
                         <Text label="H3" value={h.title} disabled={!edit} onChange={(v) => part(i, (p) => ({ ...p, h3: p.h3.map((y, n) => (n === k ? { ...y, title: v } : y)) }))} />
                       </div>
                       {edit ? (
-                        <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => part(i, (p) => ({ ...p, h3: p.h3.filter((_, n) => n !== k) }))}>
-                          Remove
+                        <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => drop("an H3", "outline", (x) => ({ ...x, outline: x.outline.map((o2, n) => (n === i ? { ...o2, h3: o2.h3.filter((_, m) => m !== k) } : o2)) }))}>
+                          Delete
                         </button>
                       ) : null}
                     </div>
@@ -242,17 +254,32 @@ export function BriefEditor({
                   </div>
                 ))}
                 {edit ? (
-                  <button type="button" className="aw-text-link self-start text-[13px]" onClick={() => part(i, (p) => ({ ...p, h3: [...p.h3, { title: "", points: [] }] }))}>
-                    + H3
+                  <button type="button" className="aw-text-link inline-flex items-center gap-1 self-start text-[13px]" onClick={() => part(i, (p) => ({ ...p, h3: [...p.h3, { title: "", points: [] }] }))}>
+                    <Plus size={14} />
+                    H3
                   </button>
                 ) : null}
               </div>
             ))}
             {edit ? (
               <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm self-start" onClick={() => change((x) => ({ ...x, outline: [...x.outline, { h2: "", points: [], h3: [], sources: [] }] }))}>
-                + Section
+                <Plus size={14} />
+                Section
               </button>
             ) : null}
+          </Section>
+
+          <Section title="Plan">
+            <Text label="H1" value={b.h1} disabled={!edit} onChange={(v) => change((x) => ({ ...x, h1: v }))} />
+            <Area label="Other titles" value={asText(b.titles)} rows={3} disabled={!edit} onChange={(v) => change((x) => ({ ...x, titles: asLines(v) }))} />
+            <Area label="Meta description" value={b.metaDescription} rows={2} disabled={!edit} onChange={(v) => change((x) => ({ ...x, metaDescription: v }))} />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Text label="Slug" value={b.slug} disabled={!edit} onChange={(v) => change((x) => ({ ...x, slug: v }))} />
+              <Text label="Word target" value={String(b.wordTarget)} disabled={!edit} onChange={(v) => change((x) => ({ ...x, wordTarget: Number(v.replace(/\D/g, "")) || 0 }))} />
+            </div>
+            <Area label="Search intent" value={b.searchIntent} rows={2} disabled={!edit} onChange={(v) => change((x) => ({ ...x, searchIntent: v }))} />
+            <Area label="Reader" value={b.reader} rows={2} disabled={!edit} onChange={(v) => change((x) => ({ ...x, reader: v }))} />
+            <Area label="Angle" value={b.angle} rows={3} disabled={!edit} onChange={(v) => change((x) => ({ ...x, angle: v }))} />
           </Section>
 
           <Section title="What the top pages miss">
@@ -267,8 +294,8 @@ export function BriefEditor({
                     <Text label="Question" value={f.question} disabled={!edit} onChange={(v) => change((x) => ({ ...x, faqs: x.faqs.map((y, n) => (n === i ? { ...y, question: v } : y)) }))} />
                   </div>
                   {edit ? (
-                    <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => change((x) => ({ ...x, faqs: x.faqs.filter((_, n) => n !== i) }))}>
-                      Remove
+                    <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => drop("a FAQ", "faqs", (x) => ({ ...x, faqs: x.faqs.filter((_, n) => n !== i) }))}>
+                      Delete
                     </button>
                   ) : null}
                 </div>
@@ -277,7 +304,8 @@ export function BriefEditor({
             ))}
             {edit ? (
               <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm self-start" onClick={() => change((x) => ({ ...x, faqs: [...x.faqs, { question: "", answer: "" }] }))}>
-                + FAQ
+                <Plus size={14} />
+                FAQ
               </button>
             ) : null}
           </Section>
@@ -338,17 +366,23 @@ export function BriefEditor({
   );
 }
 
-function Head({ onBack, title, children }: { onBack: () => void; title: string; children?: React.ReactNode }) {
+/** The sources behind an outline item, as [1] [2] linked to each source. */
+function Cites({ list, sources }: { list: number[]; sources: WriterBrief["research"]["sources"] }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3">
-      <span className="flex min-w-0 items-center gap-3">
-        <button type="button" className="aw-text-link shrink-0 text-[13px]" onClick={onBack}>
-          ← Library
-        </button>
-        <span className="truncate text-[15px] font-medium text-ink">{title}</span>
-      </span>
-      {children ? <span className="flex flex-wrap items-center gap-2">{children}</span> : null}
-    </div>
+    <span className="ml-2 inline-flex gap-1 normal-case">
+      {list.map((n) => {
+        const src = sources.find((x) => x.n === n);
+        return src ? (
+          <a key={n} href={src.url} target="_blank" rel="noreferrer" title={src.title || src.domain} className="aw-num aw-text-link">
+            [{n}]
+          </a>
+        ) : (
+          <span key={n} className="aw-num">
+            [{n}]
+          </span>
+        );
+      })}
+    </span>
   );
 }
 
@@ -361,7 +395,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Text({ label, value, disabled, onChange }: { label: string; value: string; disabled: boolean; onChange: (v: string) => void }) {
+function Text({ label, value, disabled, onChange }: { label: React.ReactNode; value: string; disabled: boolean; onChange: (v: string) => void }) {
   return (
     <label className="flex flex-col gap-1">
       <span className="aw-label">{label}</span>

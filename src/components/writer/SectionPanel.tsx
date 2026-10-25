@@ -17,7 +17,7 @@ import { Modal } from "../reports/Dialog";
 import { Embed, Note } from "../research/writerNodes";
 import { SidePanel } from "../ui";
 
-// One section of an article, open in the side panel so a writer can work section by section: what the brief
+// One section of an article, open in the side panel so a writer can work section by section: what the outline
 // says to write in it, then the editor (text, headings, lists, links, tables, images and HTML blocks).
 // It saves a moment after typing stops. Back and Next move along the article; Full view opens the whole doc.
 
@@ -165,7 +165,7 @@ export function SectionPanel({
         </div>
         {notes && (notes.points.length || notes.sources.length || notes.images.length) ? (
           <div className="mx-6 mt-5 flex flex-col gap-2 border border-rule bg-[var(--bg-secondary)] px-4 py-3 text-[13px]">
-            <span className="text-[12px] font-medium text-muted">Brief</span>
+            <span className="text-[12px] font-medium text-muted">Outline</span>
             {notes.points.length ? (
               <ul className="flex list-disc flex-col gap-1 pl-4 text-ink">
                 {notes.points.map((p, i) => (
@@ -229,6 +229,10 @@ const svg = (d: React.ReactNode) => (
   </svg>
 );
 const ICON = {
+  bullets: svg(<path d="M9 7h11M9 12h11M9 17h11M4.5 7h.01M4.5 12h.01M4.5 17h.01" />),
+  quote: svg(<path d="M9 7H6a1 1 0 0 0-1 1v4h4v-4M18 7h-3a1 1 0 0 0-1 1v4h4v-4M9 12c0 3-1.5 5-4 5M18 12c0 3-1.5 5-4 5" />),
+  undo: svg(<path d="M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3" />),
+  redo: svg(<path d="m15 14 5-5-5-5M20 9H10a6 6 0 0 0 0 12h3" />),
   image: svg(
     <>
       <rect x={3.5} y={4.5} width={17} height={15} rx={1} />
@@ -266,9 +270,9 @@ function Tools({ editor, onImage, onHtml }: { editor: Editor; onImage: () => voi
       {b("H3", editor.isActive("heading", { level: 3 }), () => c().toggleHeading({ level: 3 }).run(), "Heading 3")}
       {b("B", editor.isActive("bold"), () => c().toggleBold().run(), "Bold")}
       {b("I", editor.isActive("italic"), () => c().toggleItalic().run(), "Italic")}
-      {b("•", editor.isActive("bulletList"), () => c().toggleBulletList().run(), "Bullet list")}
+      {b(ICON.bullets, editor.isActive("bulletList"), () => c().toggleBulletList().run(), "Bullet list")}
       {b("1.", editor.isActive("orderedList"), () => c().toggleOrderedList().run(), "Numbered list")}
-      {b("❝", editor.isActive("blockquote"), () => c().toggleBlockquote().run(), "Quote")}
+      {b(ICON.quote, editor.isActive("blockquote"), () => c().toggleBlockquote().run(), "Quote")}
       {b(ICON.table, editor.isActive("table"), () => c().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(), "Table")}
       {b(ICON.image, false, onImage, "Image")}
       {b(ICON.code, false, onHtml, "HTML block")}

@@ -10,13 +10,14 @@ import type { FullBrief, FullDraft } from "@/lib/writerLibrary";
 import { researchProgress, statusLabel } from "@/lib/writerLibrary";
 import { useStash } from "@/lib/stash";
 import { Confirm, Modal } from "../reports/Dialog";
+import { ArrowLeft } from "../Icons";
 import { post } from "../research/shared";
 
 // Pieces the Library shares.
 
 const TAG: Record<string, string> = { generating: "aw-status--warn", ready: "aw-status--pending", approved: "aw-status--ranked", failed: "aw-status--missed" };
 
-/** A brief's or draft's state as a square tag. */
+/** An outline's or draft's state as a square tag. */
 export function StateTag({ status }: { status: string | null | undefined }) {
   if (!status) return <span className="text-muted">–</span>;
   return <span className={`aw-status ${TAG[status] ?? "aw-status--pending"}`}>{statusLabel(status)}</span>;
@@ -58,16 +59,38 @@ export function usePoll(on: boolean, ms: number, fn: () => void) {
 export const libraryKey = (brandId: string) => `library:${brandId}:open`;
 export type LibraryOpen = { kind: "brief" | "draft" | "doc"; id: string } | null;
 
-/** Go to the Library with one brief or draft open. */
+/** Go to the Library with one outline or draft open. */
 export function openInLibrary(brandId: string, open: LibraryOpen) {
   putStash(libraryKey(brandId), open);
   window.history.pushState(null, "", `/library${window.location.search}`);
   window.dispatchEvent(new PopStateEvent("popstate"));
 }
 
+/** The editor's head: back to the Library, the title as the screen's h1, then its buttons. */
+export function Back({ onBack, title, children }: { onBack: () => void; title: string; children?: React.ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <span className="flex min-w-0 items-center gap-3">
+        <button type="button" className="aw-text-link inline-flex shrink-0 items-center gap-1 text-[13px]" onClick={onBack}>
+          <ArrowLeft size={14} />
+          Library
+        </button>
+        <h1 className="aw-h3 mb-0! truncate">{title}</h1>
+      </span>
+      {children ? <span className="flex flex-wrap items-center gap-2">{children}</span> : null}
+    </div>
+  );
+}
+
+/** Go to another page of the app, like the sidebar does. */
+export function goToPath(path: string) {
+  window.history.pushState(null, "", `${path}${window.location.search}`);
+  window.dispatchEvent(new PopStateEvent("popstate"));
+}
+
 const RUN_STEP: Record<string, string> = { queued: "Starting research", searching: "Reading Google and the AI answers", reading: "Reading the top pages", waiting: "Waiting to read more pages", done: "Research done" };
 
-/** Where a brief stands while it's made: the research, then the writing. */
+/** Where an outline stands while it's made: the research, then the writing. */
 export function BriefProgress({ sb, brief }: { sb: SupabaseClient; brief: Pick<FullBrief, "step" | "research_run_id" | "status"> }) {
   const [run, setRun] = useState<{ status: string; read: number; total: number } | null>(null);
   const load = () => {
@@ -77,7 +100,7 @@ export function BriefProgress({ sb, brief }: { sb: SupabaseClient; brief: Pick<F
   usePoll(brief.status === "generating", 4000, load);
   const steps = [
     { label: run ? RUN_STEP[run.status] ?? "Research" : "Starting research", note: run && run.total ? `${run.read} of ${run.total} pages read` : "", done: brief.step !== "research", on: brief.step === "research" },
-    { label: "Writing the brief", note: "", done: brief.step === "done", on: brief.step === "writing" },
+    { label: "Writing the outline", note: "", done: brief.step === "done", on: brief.step === "writing" },
   ];
   return <Steps steps={steps} />;
 }
@@ -151,7 +174,7 @@ export function RegenerateDialog({
   if (edited)
     return <Confirm title="Replace your edits?" text="This draft was edited by hand. Regenerating writes a new draft over those edits." action="Regenerate" busy={busy} error={error} onConfirm={() => go(true)} onClose={onClose} />;
   return (
-    <Modal title={kind === "brief" ? "Regenerate brief" : "Regenerate draft"} onClose={onClose} width="max-w-md">
+    <Modal title={kind === "brief" ? "Regenerate outline" : "Regenerate draft"} onClose={onClose} width="max-w-md">
       <form
         className="flex flex-col gap-4"
         onSubmit={(e) => {
