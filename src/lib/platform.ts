@@ -1,4 +1,5 @@
 import "server-only";
+import { safeFetch } from "./safeFetch.ts";
 
 export type Platform = "wordpress" | "shopify" | "webflow" | "wix" | "squarespace" | "framer" | "gtm" | "other";
 
@@ -22,17 +23,9 @@ function readSnippet(html: string, websiteId: string): Snippet | null {
 }
 
 export async function inspectSite(domain: string, websiteId?: string | null): Promise<SiteCheck> {
-  let html = "";
-  try {
-    const res = await fetch(`https://${domain}`, {
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; ArrowsterrBot/1.0; +https://arrowsterr.com)" },
-      redirect: "follow",
-      signal: AbortSignal.timeout(15_000),
-    });
-    html = (await res.text()).slice(0, 3_000_000);
-  } catch {
-    return { platform: "other", installed: false, reachable: false, snippet: null };
-  }
+  const res = await safeFetch(`https://${domain}`, { timeout: 15_000, maxBytes: 3_000_000 });
+  if (res.status === 0) return { platform: "other", installed: false, reachable: false, snippet: null };
+  const html = res.body;
   const h = html.toLowerCase();
   const platform: Platform = h.includes("cdn.shopify.com") || h.includes("shopify.theme")
     ? "shopify"

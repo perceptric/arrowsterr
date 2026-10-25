@@ -1,5 +1,6 @@
 import "server-only";
 import * as cheerio from "cheerio";
+import { safeFetch } from "./safeFetch.ts";
 
 /** Turn "Acme.com/pricing" or "https://www.acme.com" into a clean URL and domain. Returns null if it is not a public domain. */
 export function normalizeSite(input: string): { url: string; domain: string } | null {
@@ -23,12 +24,8 @@ export function logoFor(domain: string) {
 /** Read the homepage: site name, title, description, and up to 8,000 characters of text. */
 export async function fetchSite(url: string) {
   try {
-    const res = await fetch(url, {
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; ArrowsterrBot/1.0; +https://arrowsterr.com)" },
-      redirect: "follow",
-      signal: AbortSignal.timeout(15_000),
-    });
-    const $ = cheerio.load((await res.text()).slice(0, 2_000_000));
+    const res = await get(url, 15_000);
+    const $ = cheerio.load(res.body);
     const icon = iconOf($, res.url || url);
     $("script, style, noscript, svg").remove();
     return {
@@ -64,15 +61,17 @@ function iconOf($: cheerio.CheerioAPI, base: string) {
   }
 }
 
+/** Read a public page. Throws when it can't be reached, so callers fall back. */
+async function get(url: string, timeout: number) {
+  const res = await safeFetch(url, { timeout, maxBytes: 2_000_000 });
+  if (res.status === 0) throw new Error(res.error ?? "It couldn't be reached.");
+  return res;
+}
+
 const KEY_PAGES = /\/(pricing|plans|features|product|products|solutions|about|about-us|company|why)(\/|$)/i;
 
 async function readPage(url: string) {
-  const res = await fetch(url, {
-    headers: { "User-Agent": "Mozilla/5.0 (compatible; ArrowsterrBot/1.0; +https://arrowsterr.com)" },
-    redirect: "follow",
-    signal: AbortSignal.timeout(12_000),
-  });
-  const $ = cheerio.load((await res.text()).slice(0, 2_000_000));
+  const $ = cheerio.load((await get(url, 12_000)).body);
   $("script, style, noscript, svg, nav, header, footer, form, [role=navigation], [aria-hidden=true]").remove();
   return $;
 }
@@ -82,9 +81,9 @@ export async function fetchSitePages(url: string) {
   const home = await fetchSite(url);
   let links: string[] = [];
   try {
-    const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0 (compatible; ArrowsterrBot/1.0; +https://arrowsterr.com)" }, redirect: "follow", signal: AbortSignal.timeout(12_000) });
+    const res = await get(url, 12_000);
     const base = new URL(res.url || url);
-    const $ = cheerio.load((await res.text()).slice(0, 2_000_000));
+    const $ = cheerio.load(res.body);
     const seen = new Set<string>();
     $("a[href]").each((_, a) => {
       try {

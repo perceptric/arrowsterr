@@ -13,7 +13,8 @@
 // images off), IMAGE_IDLE_MS (wait when no image is queued, default 5000). Without playwright-core, PDFs, pages and
 // images stay off.
 import { lookup } from "node:dns/promises";
-import { isIP } from "node:net";
+import { createServer, request as httpRequest } from "node:http";
+import { connect as tcpConnect, isIP } from "node:net";
 
 const url = (process.env.APP_URL ?? "").trim().replace(/\/+$/, "");
 const secret = (process.env.CRON_SECRET ?? "").trim();
@@ -76,11 +77,92 @@ async function chromiumOrNull() {
 /** The shared browser, started again if it crashed. Loops asking at the same time share one launch. */
 async function shared(chromium) {
   if (browser?.isConnected()) return browser;
-  launching ??= chromium
-    .launch({ args: ["--disable-dev-shm-usage"] })
+  launching ??= (proxying ??= startProxy())
+    .then((port) =>
+      chromium.launch({
+        // WebRTC can't open its own UDP paths around the proxy.
+        args: ["--disable-dev-shm-usage", "--force-webrtc-ip-handling-policy=disable_non_proxied_udp"],
+        // Every request goes through the checking proxy below, loopback included.
+        proxy: { server: `http://127.0.0.1:${port}`, bypass: "<-loopback>" },
+      }),
+    )
     .then((b) => (browser = b))
     .finally(() => (launching = null));
   return launching;
+}
+
+// ─────────────── the proxy in front of Chromium ───────────────
+// Chromium sends every request through this proxy, so names are looked up here, in Node, and the browser only
+// connects to the address that was just checked. A name can't answer public to the check and private to the
+// browser (DNS rebinding). The app's own address is let through, so print pages load when it runs locally.
+let proxying = null;
+const appUrl = new URL(url);
+const appHost = `${appUrl.hostname.replace(/^\[|\]$/g, "").toLowerCase()}:${appUrl.port || (appUrl.protocol === "https:" ? 443 : 80)}`;
+const LOCAL_NAMES = /(^|\.)(localhost|local|localdomain|internal|intranet|lan|home|corp|flycast|arpa)$/;
+
+/** The address to connect to for host and port, checked now. Null when it is private. */
+async function checkedAddress(host, port) {
+  const h = host.replace(/^\[|\]$/g, "").toLowerCase();
+  if (`${h}:${port}` === appHost) return h;
+  if (isIP(h)) return privateIp(h) ? null : h;
+  if (!h.includes(".") || LOCAL_NAMES.test(h)) return null;
+  try {
+    const list = await lookup(h, { all: true });
+    return list.length && !list.some((a) => privateIp(a.address)) ? list[0].address : null;
+  } catch {
+    return null;
+  }
+}
+
+async function startProxy() {
+  const server = createServer(async (req, res) => {
+    // Plain http: the request line holds the full address.
+    let u;
+    try {
+      u = new URL(req.url ?? "");
+    } catch {
+      return res.writeHead(400).end();
+    }
+    const port = Number(u.port || 80);
+    const ip = u.protocol === "http:" ? await checkedAddress(u.hostname, port) : null;
+    if (!ip) return res.writeHead(403).end();
+    const headers = { ...req.headers };
+    delete headers["proxy-connection"];
+    delete headers["proxy-authorization"];
+    const up = httpRequest({ host: ip, port, method: req.method, path: `${u.pathname}${u.search}`, headers }, (r) => {
+      res.writeHead(r.statusCode ?? 502, r.headers);
+      r.pipe(res);
+    });
+    up.on("error", () => res.destroy());
+    req.pipe(up);
+  });
+  // https and WebSockets: a tunnel to the checked address.
+  server.on("connect", async (req, socket, head) => {
+    socket.on("error", () => socket.destroy());
+    const m = (req.url ?? "").match(/^\[?([^\]]+?)\]?:(\d+)$/);
+    const ip = m ? await checkedAddress(m[1], Number(m[2])) : null;
+    if (!ip) return socket.end("HTTP/1.1 403 Forbidden\r\n\r\n");
+    const up = tcpConnect(Number(m[2]), ip, () => {
+      socket.write("HTTP/1.1 200 Connection Established\r\n\r\n");
+      if (head?.length) up.write(head);
+      up.pipe(socket);
+      socket.pipe(up);
+    });
+    up.on("error", () => socket.destroy());
+    socket.on("close", () => up.destroy());
+  });
+  server.on("clientError", (_e, socket) => socket.destroy());
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  return server.address().port;
+}
+
+/** WebSockets aren't covered by context.route, so each one is checked on its own. */
+async function publicSockets(context) {
+  if (typeof context.routeWebSocket !== "function") return;
+  await context.routeWebSocket(/.*/, async (ws) => {
+    if (await publicUrl(ws.url())) ws.connectToServer();
+    else await ws.close({ code: 1008, reason: "Blocked" }).catch(() => {});
+  });
 }
 
 async function pdfs(chromium) {
@@ -112,7 +194,9 @@ async function pdfs(chromium) {
     const started = Date.now();
     let context = null;
     try {
-      context = await (await shared(chromium)).newContext({ viewport: { width: 1100, height: 1400 } });
+      context = await (await shared(chromium)).newContext({ viewport: { width: 1100, height: 1400 }, serviceWorkers: "block", acceptDownloads: false });
+      // The print page is the app's own; anything else it loads must be public, as when reading pages.
+      await publicOnly(context, Date.now() + 240_000, [], true);
       const page = await context.newPage();
       const res = await page.goto(`${url}${job.path}`, { waitUntil: "networkidle", timeout: 120_000 });
       if (!res || !res.ok()) throw new Error(`Print page answered ${res?.status() ?? "nothing"}.`);
@@ -149,21 +233,65 @@ async function pdfs(chromium) {
 const READ_MS = 20_000;
 const READER_UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 ArrowsterrBot/1.0 (+https://arrowsterr.com/)";
 
-// The same ranges as src/lib/netCheck.ts. This file runs alone on the worker, so it keeps its own copy.
-function privateIp(ip) {
-  if (isIP(ip) === 4) {
-    const [a, b] = ip.split(".").map(Number);
-    return a === 0 || a === 10 || a === 127 || (a === 100 && b >= 64 && b <= 127) || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 198 && (b === 18 || b === 19)) || a >= 224;
+// A copy of privateIp from src/lib/netCheck.ts (tests/netCheck.test.ts covers that one). This file runs alone
+// on the worker, so it keeps its own copy. Change both together.
+function privateV4(ip) {
+  const [a, b, c] = ip.split(".").map(Number);
+  return (
+    a === 0 ||
+    a === 10 ||
+    a === 127 ||
+    (a === 100 && b >= 64 && b <= 127) ||
+    (a === 169 && b === 254) ||
+    (a === 172 && b >= 16 && b <= 31) ||
+    (a === 192 && b === 168) ||
+    (a === 192 && b === 0 && (c === 0 || c === 2)) ||
+    (a === 198 && (b === 18 || b === 19)) ||
+    (a === 198 && b === 51 && c === 100) ||
+    (a === 203 && b === 0 && c === 113) ||
+    a >= 224
+  );
+}
+function v6Groups(ip) {
+  let s = ip.toLowerCase().replace(/^\[|\]$/g, "").split("%")[0];
+  const tail = s.match(/^(.*:)(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
+  if (tail) {
+    const p = tail.slice(2).map(Number);
+    if (p.some((n) => n > 255)) return null;
+    s = `${tail[1]}${((p[0] << 8) | p[1]).toString(16)}:${((p[2] << 8) | p[3]).toString(16)}`;
   }
-  const v = ip.toLowerCase();
-  if (v === "::" || v === "::1") return true;
-  const mapped = v.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
-  if (mapped) return privateIp(mapped[1]);
-  return /^(fc|fd|fe8|fe9|fea|feb|ff)/.test(v);
+  const halves = s.split("::");
+  if (halves.length > 2) return null;
+  const parts = (x) => (x ? x.split(":") : []);
+  const head = parts(halves[0]);
+  const rest = halves.length === 2 ? parts(halves[1]) : [];
+  const fill = halves.length === 2 ? 8 - head.length - rest.length : 0;
+  if (fill < 0) return null;
+  const all = [...head, ...Array(fill).fill("0"), ...rest];
+  if (all.length !== 8 || all.some((h) => !/^[0-9a-f]{1,4}$/.test(h))) return null;
+  return all.map((h) => parseInt(h, 16));
+}
+function privateIp(ip) {
+  const v = ip.trim().replace(/^\[|\]$/g, "");
+  if (isIP(v) === 4) return privateV4(v);
+  const g = v6Groups(v);
+  if (!g) return true;
+  const zeros = (n) => g.slice(0, n).every((x) => x === 0);
+  const v4 = () => `${g[6] >> 8}.${g[6] & 255}.${g[7] >> 8}.${g[7] & 255}`;
+  if (zeros(5) && g[5] === 0xffff) return privateV4(v4()); // ::ffff:a.b.c.d
+  if (zeros(4) && g[4] === 0xffff && g[5] === 0) return privateV4(v4()); // ::ffff:0:a.b.c.d
+  if (zeros(6)) return true; // ::, ::1 and ::a.b.c.d
+  if (g[0] === 0x64 && g[1] === 0xff9b) return true; // NAT64
+  if (g[0] === 0x2002) return true; // 6to4
+  if (g[0] === 0x2001 && (g[1] === 0 || g[1] === 0xdb8)) return true; // Teredo, documentation
+  if (g[0] === 0x100 && zeros(4)) return true; // discard
+  if ((g[0] & 0xfe00) === 0xfc00) return true; // fc00::/7, Fly's fdaa:: included
+  if ((g[0] & 0xffc0) === 0xfe80 || (g[0] & 0xffc0) === 0xfec0) return true; // link-local, site-local
+  return (g[0] & 0xff00) === 0xff00; // multicast
 }
 
 const hosts = new Map(); // host -> { ok, at }, for 5 minutes
-/** True for http(s) addresses whose every IP is public. */
+/** True for http(s) and ws(s) addresses whose every IP is public. */
 async function publicUrl(address) {
   let u;
   try {
@@ -171,10 +299,10 @@ async function publicUrl(address) {
   } catch {
     return false;
   }
-  if (!/^https?:$/.test(u.protocol) || u.username || u.password) return false;
+  if (!/^(https?|wss?):$/.test(u.protocol) || u.username || u.password) return false;
   const host = u.hostname.replace(/^\[|\]$/g, "").toLowerCase();
-  if (isIP(host)) return !privateIp(host);
-  if (!host.includes(".") || /(^|\.)(localhost|local|internal|flycast)$/.test(host)) return false;
+  if (isIP(host) || host.includes(":")) return !privateIp(host);
+  if (!host.includes(".") || /(^|\.)(localhost|local|localdomain|internal|intranet|lan|home|corp|flycast|arpa)$/.test(host)) return false;
   const hit = hosts.get(host);
   if (hit && Date.now() - hit.at < 300_000) return hit.ok;
   let ok = false;
@@ -255,6 +383,7 @@ async function readPage(chromium, address) {
         await route.abort().catch(() => {});
       }
     });
+    await publicSockets(context);
     const page = await context.newPage();
     page.on("dialog", (d) => d.dismiss().catch(() => {}));
     const res = await page.goto(address, { waitUntil: "domcontentloaded", timeout: READ_MS });
@@ -327,13 +456,15 @@ const ACCEPT = ["Accept all", "Accept All", "Accept all cookies", "Accept All Co
 const HIDE_CSS = `#onetrust-banner-sdk,#onetrust-consent-sdk,#CybotCookiebotDialog,#CybotCookiebotDialogBodyUnderlay,.osano-cm-window,.osano-cm-dialog,#truste-consent-track,.truste_box_overlay,#usercentrics-root,#didomi-host,.fc-consent-root,#cookie-banner,#cookie-consent,#cookieConsent,.cookie-banner,.cookie-consent,.cookie-notice,[id*="cookie-law"],[class*="CookieBanner"],[class*="cookie-bar"],[aria-label*="cookie" i][role="dialog"],[aria-label*="cookie" i][role="region"],#intercom-container,.intercom-lightweight-app,.intercom-launcher,#hubspot-messages-iframe-container,#drift-widget-container,#drift-frame-controller,.drift-frame-controller,iframe[title*="chat" i],iframe[name*="chat" i],[id*="chat-widget"],.zEWidget-launcher,#fc_frame,#qualified-chat,iframe[src*="qualified"],[class*="ChatLauncher"],#attentive_overlay,#attentive_creative,iframe[id*="attentive"],[class*="klaviyo-form"],.grecaptcha-badge,[aria-modal="true"][role="dialog"]{display:none !important;visibility:hidden !important}`;
 const BLOCKED = /just a moment|attention required|access denied|verify you are|are you a robot|captcha|request blocked|forbidden|pardon our interruption/i;
 
-/** Every request the page makes must go to a public address; redirects are followed one at a time. */
-async function publicOnly(context, deadline, block = []) {
+/** Every request the page makes must go to a public address; redirects are followed one at a time. own lets the app's own pages through. */
+async function publicOnly(context, deadline, block = [], own = false) {
   const left = () => Math.max(1_000, deadline - Date.now());
+  await publicSockets(context);
   await context.route("**/*", async (route) => {
     const req = route.request();
     try {
       if (req.url().startsWith("data:")) return await route.continue();
+      if (own && new URL(req.url()).origin === appUrl.origin) return await route.continue();
       if (block.includes(req.resourceType())) return await route.abort();
       if (!(await publicUrl(req.url()))) return await route.abort("blockedbyclient");
       if (!req.isNavigationRequest()) return await route.continue();

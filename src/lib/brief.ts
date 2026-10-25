@@ -7,6 +7,7 @@ import { call } from "./dataforseo";
 import type { Profile } from "./db";
 import { BUSINESS_TYPES } from "./onboarding";
 import { marketOf, type SitePage } from "./research";
+import { safeFetch } from "./safeFetch.ts";
 
 // Content brief: read Google's top 10 for the keyword, read every page, then ask Claude
 // what wins on this results page and how to beat it.
@@ -64,13 +65,10 @@ async function googleTop10(keyword: string, country: string | undefined) {
 async function readPage(p: { rank: number; url: string; domain: string; title: string; description: string }): Promise<SerpPage> {
   const empty: SerpPage = { ...p, read: false, words: 0, headings: [], schema: [], tables: 0, images: 0, videos: 0, lists: 0, updated: null };
   try {
-    const res = await fetch(p.url, {
-      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36", Accept: "text/html" },
-      redirect: "follow",
-      signal: AbortSignal.timeout(12_000),
-    });
+    // Search results can list any address, so each is read as a public address only.
+    const res = await safeFetch(p.url, { ua: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36", accept: "text/html", timeout: 12_000, maxBytes: 3_000_000 });
     if (!res.ok || !(res.headers.get("content-type") ?? "").includes("html")) return empty;
-    const $ = cheerio.load((await res.text()).slice(0, 3_000_000));
+    const $ = cheerio.load(res.body);
     const schema = new Set<string>();
     let updated: string | null = $('meta[property="article:modified_time"]').attr("content") ?? $('meta[property="article:published_time"]').attr("content") ?? null;
     $('script[type="application/ld+json"]').each((_, el) => {
