@@ -76,8 +76,22 @@ export function PromptsDoc({ r }: { r: PromptsSnapshot }) {
                 onClick={() => p.detail?.length && setOpen({ prompt: p.prompt, topic: t.name, detail: p.detail })}
               >
                 <td className="pl-6! text-ink">
-                  {p.prompt}
-                  {p.detail?.length ? <ChevronRight size={14} className="ml-1 inline align-middle text-muted print:hidden" /> : null}
+                  {p.detail?.length ? (
+                    // The prompt is the row's button, so the keyboard can open its answers too.
+                    <button
+                      type="button"
+                      className="text-left"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpen({ prompt: p.prompt, topic: t.name, detail: p.detail! });
+                      }}
+                    >
+                      {p.prompt}
+                      <ChevronRight size={14} className="ml-1 inline align-middle text-muted print:hidden" />
+                    </button>
+                  ) : (
+                    p.prompt
+                  )}
                 </td>
                 <td className="aw-num">{pct(p.visibility)}</td>
                 {r.engines.map((e) => (
