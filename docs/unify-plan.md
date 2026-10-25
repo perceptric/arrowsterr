@@ -266,6 +266,6 @@ Parts 4 and 6, as they stand in the code:
   taste-skill inspector command for each screen
   (`node .claude/skills/taste-skill/scripts/inspect.mjs <url> --app --out .taste-skill/<name>`).
 
-  Run it against a running app: `APP_URL=http://localhost:3000 UI_CHECK_EMAIL=... UI_CHECK_PASSWORD=... npm run ui-check`.
+  Run it against a running app with its Supabase settings: `APP_URL=http://localhost:3000 UI_CHECK_EMAIL=... UI_CHECK_PASSWORD=... npm run ui-check`.
   It needs a test workspace login (decision 2), which isn't created yet. Without one it checks the sign-in screen
   and stops there.

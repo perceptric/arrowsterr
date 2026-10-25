@@ -133,7 +133,8 @@ async function main() {
 
     if (!(await shell.first().isVisible().catch(() => false))) {
       if (!(await signIn.first().isVisible().catch(() => false))) {
-        console.error(`Neither the sign-in screen nor the app showed at ${APP} within 30 seconds.`);
+        const said = (await page.locator("body").innerText().catch(() => "")).replace(/\s+/g, " ").trim().slice(0, 160);
+        console.error(`Neither the sign-in screen nor the app showed at ${APP} within 30 seconds.${said ? ` The page says: "${said}"` : ""}`);
         process.exitCode = 1;
         return;
       }
