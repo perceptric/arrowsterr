@@ -4,9 +4,17 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { AuditIssue, AuditResult } from "@/lib/audit";
 import type { RunAuth } from "@/lib/runner";
 import { CMS, type CmsKind } from "@/lib/cmsTypes";
+import { statusLabel } from "@/lib/changeStatus";
+import { formatDate } from "@/lib/dates";
+import { tabOf } from "@/lib/tabs";
 import { ApprovalCard } from "./ApprovalCard";
 import { ConnectWizard } from "./ConnectWizard";
+import { askConfirm, askText } from "./Dialogs";
+import { ArrowRight } from "./Icons";
 import { Markdown } from "./Markdown";
+import { Dropdown } from "./Pickers";
+import { snack } from "./Snack";
+import { BlockError, SkelBlock } from "./states";
 import { Zippie } from "./Zippie";
 
 // Zippie: a chat that does things. Chats on the right, grouped into projects. Knowledge teaches him
@@ -26,6 +34,7 @@ const ACTIONS: { verb: string; rest: string; prompt: string }[] = [
   { verb: "Write", rest: "meta descriptions for pages missing one", prompt: "Find the pages on my site with no meta description and write them." },
   { verb: "Add", rest: "FAQ sections to my top blog posts", prompt: "Add FAQ sections to my top blog posts, based on what buyers ask AI." },
   { verb: "Find", rest: "why AI picks my competitors over me", prompt: "How visible is my brand in AI answers this month, why do competitors beat me, and what should I fix first?" },
+  { verb: "Write", rest: "an outline for my next Editorial Calendar keyword", prompt: "Write an outline for my next Editorial Calendar keyword." },
 ];
 const TOOL_LABEL: Record<string, string> = {
   start_site_audit: "Started a site audit",
@@ -43,12 +52,12 @@ const TOOL_LABEL: Record<string, string> = {
   get_prompt_answers: "Read AI answers",
   get_competitors: "Compared competitors",
   get_cited_sources: "Read cited sources",
-  get_content_plan: "Read the Content Plan",
+  get_content_plan: "Read the Editorial Calendar",
   get_topic_bank: "Read the topic bank",
   show_setup: "Opened a setup guide",
-  add_to_content_plan: "Added to the Content Plan",
-  update_content_plan: "Updated the Content Plan",
-  remove_from_content_plan: "Removed from the Content Plan",
+  add_to_content_plan: "Added to the Editorial Calendar",
+  update_content_plan: "Updated the Editorial Calendar",
+  remove_from_content_plan: "Deleted from the Editorial Calendar",
 };
 const toolLabel = (n: string) => TOOL_LABEL[n] ?? n.replace(/_/g, " ");
 const FILE_TYPES = ".txt,.md,.markdown,.csv,.json,.html,.htm,.xml,.pdf";
@@ -70,6 +79,42 @@ function useApi(auth: RunAuth) {
 }
 
 const msgOf = (e: unknown) => (e instanceof Error ? e.message : String(e));
+
+/**
+ * A small menu next to its button: the first item takes focus when it opens, Escape closes it and gives focus
+ * back to the button, and a click outside closes it. Put the ref on the wrapper around the button and the menu.
+ */
+function useMenu(open: unknown, close: () => void) {
+  const ref = useRef<HTMLDivElement>(null);
+  const done = useRef(close);
+  useEffect(() => {
+    done.current = close;
+  }, [close]);
+  useEffect(() => {
+    if (!open) return;
+    ref.current?.querySelector<HTMLButtonElement>(".zp-menu button:not(:disabled)")?.focus();
+    const key = (e: KeyboardEvent) => {
+      if (e.key !== "Escape" || e.defaultPrevented) return;
+      // Handled here, so the Zippie panel stays open.
+      e.preventDefault();
+      done.current();
+      ref.current?.querySelector<HTMLButtonElement>("button")?.focus();
+    };
+    const down = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) done.current();
+    };
+    document.addEventListener("keydown", key);
+    document.addEventListener("mousedown", down);
+    return () => {
+      document.removeEventListener("keydown", key);
+      document.removeEventListener("mousedown", down);
+    };
+  }, [open]);
+  return ref;
+}
+
+const SUB_VIEWS = ["knowledge", "skills"] as const;
+const isSubView = (v: string | undefined): v is "knowledge" | "skills" => tabOf(v, SUB_VIEWS, "knowledge") === v;
 
 /** Read a file the person picked: text as text, PDFs as base64 for the server to read. */
 async function readFile(f: File): Promise<{ name: string; content?: string; pdf?: string }> {
@@ -124,9 +169,34 @@ export type ZippieWhere = { brand: string | null; page: string };
  * Zippie's chat. As a page it shows the chats on the right. compact fits it in the floating panel: the chats
  * list takes the panel's place when opened, and onClose closes the panel.
  */
-export function ZippiePage({ auth, canEdit, compact = false, where = null, onClose }: { auth: RunAuth; canEdit: boolean; compact?: boolean; where?: ZippieWhere | null; onClose?: () => void; sub?: string; onSub?: (sub?: string) => void }) {
+export function ZippiePage({
+  auth,
+  canEdit,
+  compact = false,
+  where = null,
+  onClose,
+  sub,
+  onSub,
+}: {
+  auth: RunAuth;
+  canEdit: boolean;
+  compact?: boolean;
+  where?: ZippieWhere | null;
+  onClose?: () => void;
+  /** Knowledge and Skills have addresses (/zippie/knowledge, /zippie/skills); the chat is /zippie. */
+  sub?: string;
+  onSub?: (sub?: string) => void;
+}) {
   const api = useApi(auth);
-  const [view, setView] = useState<View>("chat");
+  // Knowledge and Skills follow the address when there is one; the chat and projects stay inside the page.
+  const [own, setOwn] = useState<View>(isSubView(sub) ? sub : "chat");
+  const view: View = onSub ? (isSubView(sub) ? sub : isSubView(own) ? "chat" : own) : own;
+  const setView = (v: View) => {
+    if (!onSub) return setOwn(v);
+    if (isSubView(v)) return onSub(v);
+    setOwn(v);
+    if (isSubView(sub)) onSub(undefined);
+  };
   const [threads, setThreads] = useState<Thread[]>([]);
   const [lib, setLib] = useState<Library>({ projects: [], knowledge: [], skills: [] });
   const [setup, setSetup] = useState("");
@@ -243,6 +313,17 @@ export function ZippiePage({ auth, canEdit, compact = false, where = null, onClo
       loadThreads();
     }
   };
+
+  // Send the last message again after a failed reply, in place of the failed one.
+  const lastAsk = messages.map((m) => m.role).lastIndexOf("user");
+  const retry =
+    lastAsk >= 0 && !busy
+      ? () => {
+          const ask = messages[lastAsk];
+          setMessages((m) => m.slice(0, lastAsk));
+          void send(ask.text, lib.skills.find((x) => x.name === ask.skill) ?? null);
+        }
+      : undefined;
 
   const threadAction = async (t: Thread, action: "rename" | "delete" | "move", extra: Record<string, unknown> = {}) => {
     try {
@@ -362,6 +443,7 @@ export function ZippiePage({ auth, canEdit, compact = false, where = null, onClo
             skills={lib.skills}
             project={project}
             onSend={send}
+            onRetry={retry}
             onStop={() => stopRef.current?.abort()}
             onError={setError}
             onKnowledgeFiles={addFiles}
@@ -392,8 +474,8 @@ export function ZippiePage({ auth, canEdit, compact = false, where = null, onClo
             leave();
           }}
           onNewProject={async () => {
-            const name = prompt("Name your project");
-            if (!name?.trim()) return;
+            const name = await askText({ title: "New project", label: "Name", action: "Create" });
+            if (!name) return;
             try {
               const r = await api<{ project: Project }>("/api/ask/library", { action: "project_save", name });
               setLib((l) => ({ ...l, projects: [r.project, ...l.projects] }));
@@ -447,6 +529,8 @@ function ChatView(p: {
   skills: Skill[];
   project: Project | null;
   onSend: (text: string, skill: Skill | null) => void;
+  /** Sends the last message again after a failed reply. */
+  onRetry?: () => void;
   onStop: () => void;
   onError: (e: string) => void;
   onKnowledgeFiles: (files: File[]) => void;
@@ -470,7 +554,7 @@ function ChatView(p: {
           </div>
           <div className="zp-actions">
             {ACTIONS.map((a) => (
-              <button key={a.verb} type="button" className="zp-action" onClick={() => p.onSend(a.prompt, null)} disabled={p.busy}>
+              <button key={a.prompt} type="button" className="zp-action" onClick={() => p.onSend(a.prompt, null)} disabled={p.busy}>
                 <span className="zp-action__verb">
                   <Spark size={13} /> {a.verb}
                 </span>
@@ -502,7 +586,16 @@ function ChatView(p: {
               <Reply key={m.id} m={m} api={p.api} auth={p.auth} canEdit={p.canEdit} onSend={p.onSend} />
             ),
           )}
-          {p.error ? <div className="aw-error">{p.error}</div> : null}
+          {p.error ? (
+            <p className="aw-error flex flex-wrap items-center gap-x-3 gap-y-1" role="alert">
+              <span>{p.error}</span>
+              {p.onRetry ? (
+                <button type="button" className="aw-text-link" onClick={p.onRetry}>
+                  Retry
+                </button>
+              ) : null}
+            </p>
+          ) : null}
           <div ref={end} />
         </div>
       </div>
@@ -582,6 +675,7 @@ function Composer(p: { busy: boolean; canEdit: boolean; skills: Skill[]; onSend:
   const [text, setText] = useState("");
   const [skill, setSkill] = usePendingSkill();
   const [menu, setMenu] = useState<"" | "main" | "skills">("");
+  const menuRef = useMenu(menu, () => setMenu(""));
   const box = useRef<HTMLTextAreaElement>(null);
   const files = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -627,12 +721,12 @@ function Composer(p: { busy: boolean; canEdit: boolean; skills: Skill[]; onSend:
         className="zp-input"
       />
       <div className="flex items-center justify-between px-2 pb-2">
-        <div className="relative">
-          <button type="button" className="zp-icon-btn" aria-label="Add files or use a skill" title="Add files or use a skill" onClick={() => setMenu(menu ? "" : "main")}>
+        <div className="relative" ref={menuRef}>
+          <button type="button" className="zp-icon-btn" aria-label="Add files or use a skill" title="Add files or use a skill" aria-haspopup="menu" aria-expanded={Boolean(menu)} onClick={() => setMenu(menu ? "" : "main")}>
             <Icon d={I.plus} size={18} />
           </button>
           {menu ? (
-            <div className="zp-menu" onMouseLeave={() => setMenu("")}>
+            <div className="zp-menu" role="menu" onMouseLeave={() => setMenu("")}>
               {menu === "main" ? (
                 <>
                   <button type="button" disabled={!p.canEdit} onClick={() => files.current?.click()} title={p.canEdit ? "" : "Editors and admins can add knowledge"}>
@@ -794,8 +888,8 @@ function ChangeSetCard({ id, api, canEdit }: { id: string; api: ReturnType<typeo
     const t = setInterval(load, 3000);
     return () => clearInterval(t);
   }, [set?.status, load]);
-  const act = async (body: Record<string, unknown>, ask?: string) => {
-    if (ask && !confirm(ask)) return;
+  const act = async (body: Record<string, unknown>, ask?: { title: string; text: string; action: string }) => {
+    if (ask && !(await askConfirm(ask))) return;
     setBusy(true);
     setError("");
     try {
@@ -807,7 +901,22 @@ function ChangeSetCard({ id, api, canEdit }: { id: string; api: ReturnType<typeo
       setBusy(false);
     }
   };
-  if (!set) return <div className="zp-card text-[13px] text-muted">{error || "Loading changes..."}</div>;
+  if (!set)
+    return (
+      <div className="zp-card">
+        {error ? (
+          <BlockError
+            what="these changes"
+            onRetry={() => {
+              setError("");
+              void load();
+            }}
+          />
+        ) : (
+          <SkelBlock lines={2} />
+        )}
+      </div>
+    );
   const working = set.status === "preparing" || set.status === "applying";
   const open = changes.filter((c) => ["proposed", "rejected", "failed"].includes(c.status));
   const approved = changes.filter((c) => c.status === "approved");
@@ -823,7 +932,7 @@ function ChangeSetCard({ id, api, canEdit }: { id: string; api: ReturnType<typeo
           <div className="min-w-0">
             <p className="truncate text-[14px] font-medium text-ink">{set.title}</p>
             <p className="text-[12px] text-muted">
-              {set.cms_connections?.name ?? "CMS"} · <span className={`aw-status ${STATUS[set.status] ?? ""}`}>{set.status}</span> {set.error || set.step}
+              {set.cms_connections?.name ?? "CMS"} · <span className={`aw-status ${STATUS[set.status] ?? ""}`}>{statusLabel(set.status)}</span> {working ? "" : set.step}
             </p>
           </div>
         </div>
@@ -835,12 +944,14 @@ function ChangeSetCard({ id, api, canEdit }: { id: string; api: ReturnType<typeo
               </button>
             ) : null}
             {approved.length ? (
-              <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" disabled={busy} onClick={() => act({ action: "apply" }, `Make ${approved.length} change${approved.length === 1 ? "" : "s"} live on ${set.cms_connections?.name ?? "your site"}? You can undo them.`)}>
+              <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" disabled={busy} onClick={() =>
+                  act({ action: "apply" }, { title: `Make ${approved.length} change${approved.length === 1 ? "" : "s"} live?`, text: `They go live on ${set.cms_connections?.name ?? "your site"}. You can undo them.`, action: "Make live" })
+                }>
                 Apply {approved.length} to the site
               </button>
             ) : null}
             {live.length ? (
-              <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={busy} onClick={() => act({ action: "undo" }, `Put ${live.length} page${live.length === 1 ? "" : "s"} back the way they were?`)}>
+              <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={busy} onClick={() => act({ action: "undo" }, { title: `Undo ${live.length} change${live.length === 1 ? "" : "s"}?`, text: `${live.length === 1 ? "The page goes" : "The pages go"} back the way ${live.length === 1 ? "it was" : "they were"}.`, action: "Undo" })}>
                 Undo
               </button>
             ) : null}
@@ -848,14 +959,29 @@ function ChangeSetCard({ id, api, canEdit }: { id: string; api: ReturnType<typeo
         ) : null}
       </div>
       {working ? <span className="aw-agent-working text-[13px]">{set.step || "Working"}...</span> : null}
-      {error ? <p className="aw-error">{error}</p> : null}
+      {set.error ? <p className="aw-error">{set.error}</p> : null}
+      {error ? (
+        <p className="aw-error flex flex-wrap items-center gap-x-3 gap-y-1" role="alert">
+          <span>{error}</span>
+          <button
+            type="button"
+            className="aw-text-link"
+            onClick={() => {
+              setError("");
+              void load();
+            }}
+          >
+            Retry
+          </button>
+        </p>
+      ) : null}
       {shown.length ? (
         <div className="flex flex-col divide-y divide-rule-faint">
           {shown.map((c) => (
             <div key={c.id} className="flex flex-col gap-2 py-3">
               <div className="flex items-center justify-between gap-2">
                 <span className="flex min-w-0 items-center gap-2">
-                  <span className={`aw-status ${STATUS[c.status] ?? ""}`}>{c.status}</span>
+                  <span className={`aw-status ${STATUS[c.status] ?? ""}`}>{statusLabel(c.status)}</span>
                   {c.url ? (
                     <a href={c.url} target="_blank" rel="noreferrer" className="truncate text-[13px] font-medium text-ink hover:underline">
                       {c.label || c.url}
@@ -880,7 +1006,7 @@ function ChangeSetCard({ id, api, canEdit }: { id: string; api: ReturnType<typeo
                 ) : null}
               </div>
               <Diff c={c} />
-              {c.error ? <p className="text-[12px] text-[#B3093C]">{c.error}</p> : null}
+              {c.error ? <p className="text-[12px] text-neg">{c.error}</p> : null}
             </div>
           ))}
         </div>
@@ -943,8 +1069,10 @@ function Diff({ c }: { c: Change }) {
     return (
       <ul className="flex flex-col gap-1 text-[13px]">
         {((a.links as { anchor: string; url: string }[]) ?? []).map((l) => (
-          <li key={l.url + l.anchor} className="text-body">
-            “{l.anchor}” → <span className="text-ink">{l.url}</span>
+          <li key={l.url + l.anchor} className="flex items-center gap-1.5 text-body">
+            <span>“{l.anchor}”</span>
+            <ArrowRight size={12} className="shrink-0" />
+            <span className="min-w-0 truncate text-ink">{l.url}</span>
           </li>
         ))}
       </ul>
@@ -986,7 +1114,12 @@ function AuditCard({ id, api }: { id: string; api: ReturnType<typeof useApi> }) 
     const t = setInterval(load, 4000);
     return () => clearInterval(t);
   }, [audit, load]);
-  if (!audit) return <div className="zp-card text-[13px] text-muted">Loading the audit...</div>;
+  if (!audit)
+    return (
+      <div className="zp-card">
+        <SkelBlock lines={2} />
+      </div>
+    );
   const r = audit.result;
   const issues: AuditIssue[] = r?.issues ?? [];
   const score = audit.score ?? 0;
@@ -1022,7 +1155,7 @@ function AuditCard({ id, api }: { id: string; api: ReturnType<typeof useApi> }) 
         <ul className="flex flex-col gap-1.5">
           {(all ? issues : issues.slice(0, 5)).map((i) => (
             <li key={i.id} className="flex items-center gap-2 text-[13px]">
-              <span className={`aw-status ${SEVERITY[i.severity]}`}>{i.severity}</span>
+              <span className={`aw-status ${SEVERITY[i.severity]}`}>{statusLabel(i.severity)}</span>
               <span className="min-w-0 flex-1 truncate text-ink" title={i.why}>
                 {i.title}
               </span>
@@ -1075,23 +1208,24 @@ function ChatsPanel(p: {
     return out;
   }, [loose, now]);
 
+  const menuRef = useMenu(menu, () => setMenu(null));
   const row = (t: Thread) => (
     <div key={t.id} className={`zp-row group ${t.id === p.threadId && p.view === "chat" ? "is-on" : ""}`}>
       <button type="button" className="min-w-0 flex-1 truncate text-left" onClick={() => p.onOpen(t)} title={t.title}>
         {t.title}
       </button>
-      <div className="relative">
-        <button type="button" className="zp-row__more" aria-label="Chat options" onClick={() => setMenu(menu === t.id ? null : t.id)}>
+      <div className="relative" ref={menu === t.id ? menuRef : undefined}>
+        <button type="button" className="zp-row__more" aria-label="Chat options" aria-haspopup="menu" aria-expanded={menu === t.id} onClick={() => setMenu(menu === t.id ? null : t.id)}>
           <Icon d={I.dots} size={15} />
         </button>
         {menu === t.id ? (
-          <div className="zp-menu zp-menu--right" onMouseLeave={() => setMenu(null)}>
+          <div className="zp-menu zp-menu--right" role="menu" onMouseLeave={() => setMenu(null)}>
             <button
               type="button"
-              onClick={() => {
+              onClick={async () => {
                 setMenu(null);
-                const title = prompt("Rename chat", t.title);
-                if (title?.trim()) p.onThread(t, "rename", { title });
+                const title = await askText({ title: "Rename chat", label: "Name", value: t.title });
+                if (title) p.onThread(t, "rename", { title });
               }}
             >
               <Icon d={I.edit} /> Rename
@@ -1123,10 +1257,10 @@ function ChatsPanel(p: {
             ) : null}
             <button
               type="button"
-              className="text-[#B3093C]!"
-              onClick={() => {
+              className="text-neg!"
+              onClick={async () => {
                 setMenu(null);
-                if (confirm("Delete this chat?")) p.onThread(t, "delete");
+                if (await askConfirm({ title: "Delete this chat?", text: `${t.title} and its messages are deleted.`, action: "Delete", danger: true })) p.onThread(t, "delete");
               }}
             >
               <Icon d={I.x} /> Delete
@@ -1236,8 +1370,8 @@ function ProjectView(p: {
                 type="button"
                 className="aw-btn aw-btn--secondary aw-btn--sm"
                 onClick={async () => {
-                  const name = prompt("Rename project", p.project.name);
-                  if (!name?.trim()) return;
+                  const name = await askText({ title: "Rename project", label: "Name", value: p.project.name });
+                  if (!name) return;
                   await p.api("/api/ask/library", { action: "project_save", id: p.project.id, name, instructions }).catch((e) => setError(msgOf(e)));
                   p.onChange();
                 }}
@@ -1248,7 +1382,7 @@ function ProjectView(p: {
                 type="button"
                 className="aw-btn aw-btn--secondary aw-btn--sm"
                 onClick={async () => {
-                  if (!confirm(`Delete ${p.project.name}? Its chats stay, outside the project. Its knowledge is deleted.`)) return;
+                  if (!(await askConfirm({ title: `Delete ${p.project.name}?`, text: "Its chats stay, outside the project. Its knowledge is deleted.", action: "Delete", danger: true }))) return;
                   await p.api("/api/ask/library", { action: "project_delete", id: p.project.id }).catch((e) => setError(msgOf(e)));
                   p.onDeleted();
                 }}
@@ -1293,7 +1427,9 @@ function ProjectView(p: {
               </ul>
             ) : null}
             <button type="button" className="aw-text-link self-start text-[13px]" onClick={p.onKnowledge}>
-              {p.knowledge.length ? "Manage knowledge" : "Add knowledge"} →
+              <span className="inline-flex items-center gap-1">
+                {p.knowledge.length ? "Manage knowledge" : "Add knowledge"} <ArrowRight size={13} />
+              </span>
             </button>
           </div>
         </div>
@@ -1304,7 +1440,7 @@ function ProjectView(p: {
             <button key={t.id} type="button" className="zp-thread-row" onClick={() => p.onOpen(t)}>
               <Icon d={I.chat} size={15} />
               <span className="flex-1 truncate text-left">{t.title}</span>
-              <span className="text-[12px] text-muted">{new Date(t.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+              <span className="text-[12px] text-muted">{formatDate(t.updated_at)}</span>
             </button>
           ))}
         </div>
@@ -1359,17 +1495,10 @@ function KnowledgeView(p: { api: ReturnType<typeof useApi>; lib: Library; canEdi
               <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setMode(mode === "note" ? "" : "note")}>
                 <Icon d={I.note} size={14} /> Write a note
               </button>
-              <label className="ml-auto flex items-center gap-2 text-[13px] text-muted">
+              <span className="ml-auto flex items-center gap-2 text-[13px] text-muted">
                 For
-                <select className="aw-select py-1! text-[13px]!" value={scope} onChange={(e) => setScope(e.target.value)}>
-                  <option value="">Whole workspace</option>
-                  {p.lib.projects.map((x) => (
-                    <option key={x.id} value={x.id}>
-                      Project: {x.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                <Dropdown label="For" className="aw-dropdown--sm" value={scope} onChange={setScope} options={[{ id: "", label: "Whole workspace" }, ...p.lib.projects.map((x) => ({ id: x.id, label: `Project: ${x.name}` }))]} />
+              </span>
               <input
                 ref={files}
                 type="file"
@@ -1448,7 +1577,7 @@ function KnowledgeView(p: { api: ReturnType<typeof useApi>; lib: Library; canEdi
                   className="zp-icon-btn zp-icon-btn--sm"
                   aria-label={`Delete ${k.name}`}
                   onClick={async () => {
-                    if (!confirm(`Delete ${k.name}?`)) return;
+                    if (!(await askConfirm({ title: `Delete ${k.name}?`, text: "Zippie stops reading it.", action: "Delete", danger: true }))) return;
                     await p.api("/api/ask/library", { action: "knowledge_delete", id: k.id }).catch((e) => setError(msgOf(e)));
                     p.onChange();
                   }}
@@ -1510,7 +1639,7 @@ function SkillsView(p: { api: ReturnType<typeof useApi>; lib: Library; canEdit: 
             <input className="aw-input" placeholder="When to use it, in one line" value={edit.description ?? ""} onChange={(e) => setEdit({ ...edit, description: e.target.value })} />
             <textarea
               className="aw-textarea min-h-40 text-[14px]"
-              placeholder={"Step by step, how Zippie should do it.\nExample: 1. Read the Content Plan. 2. Pick the 3 topics with the most volume. 3. Write a 5-line outline for each."}
+              placeholder={"Step by step, how Zippie should do it.\nExample: 1. Read the Editorial Calendar. 2. Pick the 3 topics with the most volume. 3. Write a 5-line outline for each."}
               value={edit.instructions ?? ""}
               onChange={(e) => setEdit({ ...edit, instructions: e.target.value })}
             />
@@ -1550,7 +1679,15 @@ function SkillsView(p: { api: ReturnType<typeof useApi>; lib: Library; canEdit: 
                     <button type="button" className="aw-text-link text-[13px]" onClick={() => setEdit(s)}>
                       Edit
                     </button>
-                    <button type="button" className="aw-text-link text-[13px] text-muted!" onClick={() => confirm(`Delete ${s.name}?`) && call({ action: "skill_delete", id: s.key })}>
+                    <button
+                      type="button"
+                      className="aw-text-link text-[13px] text-muted!"
+                      onClick={async () => {
+                        // A skill is its name, line and steps, so Undo saves it again.
+                        if (await call({ action: "skill_delete", id: s.key }))
+                          snack(`Deleted ${s.name}.`, { undo: () => void call({ action: "skill_save", name: s.name, description: s.description, instructions: s.instructions }) });
+                      }}
+                    >
                       Delete
                     </button>
                   </>

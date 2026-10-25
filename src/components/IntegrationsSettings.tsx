@@ -8,6 +8,7 @@ import { formatDate } from "@/lib/dates";
 import { CopyButton } from "./CopyButton";
 import { askConfirm } from "./Dialogs";
 import { ArrowRight } from "./Icons";
+import { BlockError, SkelBlock } from "./states";
 import { post } from "./research/shared";
 
 type Key = { id: string; name: string; prefix: string; created_at: string; last_used_at: string | null };
@@ -151,14 +152,24 @@ export function IntegrationsSettings({ auth, isAdmin }: { auth: RunAuth; isAdmin
     }
   }
 
-  if (!s) return null;
+  if (!s)
+    return error ? (
+      <BlockError
+        what="integrations"
+        onRetry={() => {
+          setError("");
+          load();
+        }}
+      />
+    ) : (
+      <div className="aw-frame max-w-2xl p-5">
+        <SkelBlock lines={3} />
+      </div>
+    );
   const off = !s.allowed;
   return (
     <section className="flex flex-col gap-4">
-      <div className="flex flex-col gap-1">
-        <h2 className="aw-h4">Integrations</h2>
-        <p className="max-w-2xl text-[14px] text-body">Use Arrowsterr from Claude, ChatGPT and Cursor, get alerts in Slack, and connect Zapier or your own tools with the API.</p>
-      </div>
+      <p className="max-w-2xl text-[14px] text-body">Use Arrowsterr from Claude, ChatGPT and Cursor, get alerts in Slack, and connect Zapier or your own tools with the API.</p>
       {off ? <div className="aw-callout max-w-2xl">AI apps, Slack, Zapier and the API are on Pro and up.</div> : null}
       {s.setup ? <div className="aw-callout max-w-2xl">{s.setup}</div> : null}
       {error ? <p className="aw-error max-w-2xl">{error}</p> : null}

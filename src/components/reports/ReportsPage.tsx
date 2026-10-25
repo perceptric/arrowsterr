@@ -7,6 +7,7 @@ import type { ReportLimits } from "@/lib/plans";
 import type { RunAuth } from "@/lib/runner";
 import { ago } from "@/lib/dates";
 import { pathFor } from "@/lib/routes";
+import { tabOf } from "@/lib/tabs";
 import { askConfirm } from "../Dialogs";
 import { BlockError, SkelRows } from "../states";
 import { ToolIntro } from "../ToolIntro";
@@ -27,7 +28,7 @@ const goToPrompts = () => {
   window.history.pushState(null, "", pathFor("prompts"));
   window.dispatchEvent(new PopStateEvent("popstate"));
 };
-const tabFrom = (sub?: string): Tab => (sub === "schedules" || sub === "links" ? sub : "files");
+const tabFrom = (sub?: string): Tab => tabOf(sub, ["files", "schedules", "links"] as const, "files");
 
 export function ReportsPage({
   sb,

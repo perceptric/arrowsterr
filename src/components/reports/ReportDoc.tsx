@@ -4,6 +4,7 @@ import { preinit } from "react-dom";
 import { blocksFromSections, BLOCKS, type BlockId } from "@/lib/reportDoc";
 import type { ReportSnapshot } from "@/lib/reportTypes";
 import { fontStack, fontsUrl, themeOf, type ReportTheme } from "@/lib/reportTheme";
+import { ArrowDown, ArrowUp } from "../Icons";
 
 const num = (n: number | null | undefined) => (n === null || n === undefined ? "–" : n.toLocaleString("en-US"));
 const pctOf = (n: number | null | undefined) => (n === null || n === undefined ? "–" : `${Math.round(n)}%`);
@@ -75,11 +76,11 @@ export function reportCss(t: ReportTheme) {
 function Change({ now, before, unit = "", lowerIsBetter = false }: { now: number | null; before: number | null; unit?: string; lowerIsBetter?: boolean }) {
   if (now === null || before === null) return null;
   const d = Math.round((now - before) * 10) / 10;
-  if (!d) return <span className="chg flat">→ steady</span>;
+  if (!d) return <span className="chg flat">no change</span>;
   const good = lowerIsBetter ? d < 0 : d > 0;
   return (
     <span className={`chg ${good ? "up" : "down"}`}>
-      {d > 0 ? "▲ +" : "▼ "}
+      {d > 0 ? <ArrowUp size={12} /> : <ArrowDown size={12} />} {d > 0 ? "+" : ""}
       {Math.abs(d)}
       {unit}
     </span>
