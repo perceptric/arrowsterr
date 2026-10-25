@@ -57,6 +57,7 @@ These are all the settings the app reads. Copy the ones you have on Render.
 | Billing | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` |
 | Email | `RESEND_API_KEY`, `EMAIL_FROM` |
 | Google Analytics | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_TOKEN_KEY` |
+| Security | `TURNSTILE_SECRET` (needed in production, or the free tools turn everyone away), `SECRETS_KEY`, `REPORT_LINK_SECRET`, `UNSUBSCRIBE_SECRET`, `WORKER_SECRET` (see `docs/security.md`) |
 | Errors | `SENTRY_DSN` |
 | Models | `CLAUDE_MODEL`, `CLAUDE_ENGINE_MODEL`, `EXTRACT_MODEL`, `PROMPTS_MODEL`, `OPENAI_MODEL`, `GEMINI_MODEL`, `PERPLEXITY_MODEL` |
 | Limits and prices | `WORKER_CONCURRENCY`, `SNAPSHOT_DAILY_CAP`, `RATE_ANTHROPIC`, `RATE_OPENAI`, `RATE_GEMINI`, `RATE_PERPLEXITY`, `RATE_DATAFORSEO`, `PRICE_OPENAI`, `PRICE_GEMINI`, `PRICE_PERPLEXITY` |
@@ -67,10 +68,10 @@ Skip `RENDER_SERVICE_NAME` and `NODE_ENV`. Render and the Dockerfile set those.
 
 `NEXT_PUBLIC_SENTRY_DSN` is different: the build reads it, so it can't be a secret. If Render has it, paste it into `fly.toml` under `[build.args]` and commit. A Sentry DSN is safe to share.
 
-The worker needs only `CRON_SECRET`, the same value as the app's. `APP_URL` is already in `fly.worker.toml`.
+The worker needs only `WORKER_SECRET` (or `CRON_SECRET`), the same value as the app's. `APP_URL` is already in `fly.worker.toml`.
 
 ```bash
-fly secrets set --app arrowsterr-worker CRON_SECRET=...
+fly secrets set --app arrowsterr-worker WORKER_SECRET=...
 ```
 
 ## 4. Deploy
