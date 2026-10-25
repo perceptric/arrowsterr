@@ -4,16 +4,20 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { Fragment, useEffect, useRef, useState } from "react";
 import type { Chat } from "@/lib/chats";
 import { flatPrompts, latestAnswers, topicsOf, type Answer, type Brand, type Topic } from "@/lib/db";
-import { answered, brandStats, promptDetail, promptRows, rankOf, stability, topicRows, trend, type EngineCell } from "@/lib/metrics";
+import { answered, brandStats, promptDetail, promptRows, rankOf, stability, topicRows, trend, type EngineCell, type PromptRow } from "@/lib/metrics";
 import type { RunAuth } from "@/lib/runner";
 import { MAX_PROMPTS, MAX_TOPICS } from "@/lib/onboarding";
 import type { View } from "@/lib/view";
+import { ago, formatDate } from "@/lib/dates";
+import { promptFinding } from "@/lib/findings";
 import { BrandLogo } from "./BrandLogo";
-import { Gauge } from "./Donut";
 import { ENGINE_LOGOS, EngineName } from "./Engines";
+import { ArrowDown, ArrowUp, ChevronDown, ChevronRight, Close, Pencil, Plus, Search } from "./Icons";
 import { Markdown } from "./Markdown";
+import { snack } from "./Snack";
+import { EmptyRow, Skel, SkelBlock } from "./states";
 import { TrendChart } from "./TrendChart";
-import { BrandName, Delta, Empty, favicon, OTHER_COLORS, pct, Seg, Tip, TIPS, YOU_COLOR } from "./ui";
+import { BrandName, Delta, favicon, OTHER_COLORS, pct, Seg, Since, Tip, TIPS, YOU_COLOR } from "./ui";
 
 type Props = {
   sb: SupabaseClient;
@@ -38,28 +42,49 @@ export function PromptsPage(p: Props) {
   const total = flatPrompts(all).length;
 
   const save = (next: Topic[]) => p.onChange({ ...brand, topics: next, prompts: flatPrompts(next) });
+  // Deletes happen at once; the snackbar's Undo puts the list back as it was.
   const edit: Editing | null = readOnly
     ? null
     : {
         full: total >= MAX_PROMPTS,
         renameTopic: (from, to) => save(all.map((t) => (t.name === from ? { ...t, name: to } : t))),
-        removeTopic: (name) => confirm(`Remove the topic "${name}" and its prompts?`) && save(all.filter((t) => t.name !== name)),
+        removeTopic: (name) => {
+          const n = all.find((t) => t.name === name)?.prompts.length ?? 0;
+          save(all.filter((t) => t.name !== name));
+          snack(`Deleted "${name}" and its ${n} ${n === 1 ? "prompt" : "prompts"}.`, { undo: () => save(all) });
+        },
         addPrompt: (topic, text) => total < MAX_PROMPTS && save(all.map((t) => (t.name === topic && !t.prompts.includes(text) ? { ...t, prompts: [...t.prompts, text] } : t))),
         editPrompt: (topic, from, to) => save(all.map((t) => (t.name === topic ? { ...t, prompts: t.prompts.map((x) => (x === from ? to : x)) } : t))),
-        removePrompt: (topic, text) => confirm(`Remove this prompt?\n\n${text}`) && save(all.map((t) => (t.name === topic ? { ...t, prompts: t.prompts.filter((x) => x !== text) } : t))),
+        removePrompt: (topic, text) => {
+          save(all.map((t) => (t.name === topic ? { ...t, prompts: t.prompts.filter((x) => x !== text) } : t)));
+          snack("Deleted 1 prompt.", { undo: () => save(all) });
+        },
       };
+  const addTopic = readOnly || all.length >= MAX_TOPICS ? null : () => setNewTopic("");
+
+  // The finding under the title, and when the newest answer came in.
+  const rows = promptRows(view.current, view.topics, shown, brand.name, view.filter, brand.domain);
+  const finding = promptFinding(rows, promptRows(view.previous, view.topics, shown, brand.name, view.filter, brand.domain));
+  const last = rows.map((r) => r.latestAt).filter(Boolean).sort().pop() ?? null;
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="aw-h2">Prompts</h1>
-        <div className="flex flex-wrap items-center gap-2 print:hidden">
-          {!readOnly ? (
-            <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => setNewTopic("")} disabled={all.length >= MAX_TOPICS}>
-              + Add topic
-            </button>
-          ) : null}
+      <div className="flex flex-col gap-1">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-baseline gap-3">
+            <h1 className="aw-h2">Prompts</h1>
+            {last ? <span className="aw-small">Checked {ago(last)}</span> : null}
+          </div>
+          <div className="flex flex-wrap items-center gap-2 print:hidden">
+            {!readOnly ? (
+              <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => setNewTopic("")} disabled={!addTopic}>
+                <Plus size={14} />
+                Add topic
+              </button>
+            ) : null}
+          </div>
         </div>
+        {finding ? <p className="text-[15px] text-body">{finding}</p> : null}
       </div>
       {newTopic !== null ? (
         <form
@@ -86,7 +111,9 @@ export function PromptsPage(p: Props) {
         sb={p.sb}
         view={view}
         engines={shown}
+        rows={rows}
         edit={edit}
+        onAddTopic={addTopic}
         focusTopic={p.focusTopic}
         paused={p.paused}
         loading={new Set((p.checking ?? []).filter((c) => c.done < c.total).map((c) => c.engine))}
@@ -118,9 +145,9 @@ function RowTools({ label, onEdit, onRemove }: { label: string; onEdit: () => vo
           e.stopPropagation();
           onEdit();
         }}
-        className="px-1.5 text-[14px] text-brand hover:text-ink"
+        className="px-1.5 text-brand hover:text-ink"
       >
-        ✎
+        <Pencil size={14} />
       </button>
       <button
         type="button"
@@ -130,9 +157,9 @@ function RowTools({ label, onEdit, onRemove }: { label: string; onEdit: () => vo
           e.stopPropagation();
           onRemove();
         }}
-        className="px-1.5 text-[16px] leading-none text-neg hover:text-ink"
+        className="px-1.5 text-neg hover:text-ink"
       >
-        ×
+        <Close size={14} />
       </button>
     </span>
   );
@@ -166,97 +193,103 @@ function InlineInput({ start, label, onSave, onCancel }: { start: string; label:
 /** Position as a 0 to 100 score: #1 is 100, and each spot down takes 10 points off. */
 const positionScore = (n: number | null) => (n === null ? null : Math.max(0, 110 - n * 10));
 
+const METRICS = [
+  { id: "visibility", lab: "Visibility", tip: TIPS.visibility },
+  { id: "sentiment", lab: "Sentiment", tip: TIPS.sentiment },
+  { id: "position", lab: "Position", tip: TIPS.positionScore },
+] as const;
+/** Visibility is the answer, so it's the large figure; the others step down. */
+const NUM = (i: number) => `aw-num leading-none tracking-tight ${i ? "text-[24px]" : "text-[38px]"}`;
+const CELL = (i: number) => `flex flex-col gap-3 px-5 py-5 ${i ? "border-t border-rule sm:border-t-0 sm:border-l" : ""}`;
+
 /** Visibility, sentiment and position, with change and rank. */
 function Scores({ view, loading }: { view: View; loading?: boolean }) {
   const { brand, current, previous, filter, days } = view;
   const you = { name: brand.name, domain: brand.domain };
   const chats = answered(current, filter);
-  if (!chats.length && loading)
+  // No answers yet: the same block with its labels, and bars or "–" where the numbers go.
+  if (!chats.length)
     return (
-      <section className="aw-frame aw-pending">
-        <div className="border-b border-rule px-5 py-3.5 text-[15px] text-ink">Your first check is running. Scores fill in as each AI answers.</div>
-        <div className="grid gap-6 px-5 py-6 sm:grid-cols-3">
-          {["Visibility", "Sentiment", "Position"].map((x) => (
-            <div key={x} className="flex flex-col gap-3">
-              <span className="aw-label">{x}</span>
-              <span className="aw-shimmer h-14 w-40" />
-              <span className="aw-shimmer h-3 w-52" />
+      <section className={`aw-frame ${loading ? "aw-pending" : ""}`}>
+        <p className="border-b border-rule px-5 py-3.5 text-[15px] text-ink">{loading ? "Your first check is running. Scores fill in as each AI answers." : `No results in the last ${days} days yet.`}</p>
+        <div className="grid sm:grid-cols-3">
+          {METRICS.map((m, i) => (
+            <div key={m.id} className={CELL(i)}>
+              <span className="aw-label">
+                {m.lab}
+                <Tip text={m.tip} />
+              </span>
+              {loading ? <Skel w={i ? 56 : 88} h={i ? 24 : 38} /> : <span className={`${NUM(i)} text-muted`}>–</span>}
             </div>
           ))}
         </div>
       </section>
     );
-  if (!chats.length) return <Empty>No results in the last {days} days yet. They show up after the first check finishes, then update every day.</Empty>;
   const prev = answered(previous, filter);
   const stats = brandStats(chats, you);
   const before = brandStats(prev, you);
   const me = stats.find((s) => s.isYou)!;
   const meBefore = before.find((s) => s.isYou);
   const hadBefore = prev.length > 0;
-  const change = hadBefore ? me.visibility - (meBefore?.visibility ?? 0) : null;
-  const headline =
-    change === null
-      ? `${brand.name}'s visibility is ${pct(me.visibility)} in the last ${days} days`
-      : `${brand.name}'s visibility is ${Math.abs(change) < 0.5 ? "steady" : `trending ${change > 0 ? "up" : "down"} by ${Math.abs(change).toFixed(1)} points`} vs the ${days} days before`;
+  const values = {
+    visibility: { now: me.visibility, before: hadBefore ? (meBefore?.visibility ?? 0) : null, help: "Share of AI answers that name you" },
+    sentiment: { now: me.sentiment, before: hadBefore ? (meBefore?.sentiment ?? null) : null, help: "How well AI talks about you" },
+    position: { now: positionScore(me.position), before: hadBefore ? positionScore(meBefore?.position ?? null) : null, help: me.position === null ? "Not named yet" : `Average spot #${me.position.toFixed(1)} in the list` },
+  };
 
   return (
     <section className={`aw-frame ${loading ? "aw-pending" : ""}`}>
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-rule px-5 py-3.5">
-        <span className="text-[15px] text-ink">{headline}</span>
-        {loading ? <span className="aw-label aw-label--brand aw-pending__note">First check still running</span> : null}
-      </div>
+      {loading ? (
+        <div className="flex justify-end border-b border-rule px-5 py-2.5">
+          <span className="aw-label aw-label--brand aw-pending__note">First check still running</span>
+        </div>
+      ) : null}
       <div className="grid sm:grid-cols-3">
-        {(
-          [
-            { id: "visibility", lab: "Visibility", tip: TIPS.visibility, now: me.visibility, before: hadBefore ? (meBefore?.visibility ?? 0) : null, help: "Share of AI answers that name you" },
-            { id: "sentiment", lab: "Sentiment", tip: TIPS.sentiment, now: me.sentiment, before: hadBefore ? (meBefore?.sentiment ?? null) : null, help: "How well AI talks about you" },
-            { id: "position", lab: "Position", tip: TIPS.positionScore, now: positionScore(me.position), before: hadBefore ? positionScore(meBefore?.position ?? null) : null, help: me.position === null ? "Not named yet" : `Average spot #${me.position.toFixed(1)} in the list` },
-          ] as const
-        ).map((m, i) => {
+        {METRICS.map((m, i) => {
+          const v = values[m.id];
           const r = rankOf(stats, m.id);
           const rb = hadBefore ? rankOf(before, m.id) : null;
           return (
-            <div key={m.id} className={`flex flex-col gap-3 px-5 py-5 ${i ? "border-t border-rule sm:border-t-0 sm:border-l" : ""}`}>
+            <div key={m.id} className={CELL(i)}>
               <span className="aw-label">
                 {m.lab}
                 <Tip text={m.tip} />
               </span>
-              <span className="flex items-center gap-4">
-                <Gauge value={m.now} color={GAUGE[m.id]} label={m.lab} />
-                <span className="flex items-baseline gap-2">
-                  <span className="aw-num text-[38px] leading-none tracking-tight text-ink">{m.now === null ? "–" : Math.round(m.now)}</span>
-                  <Delta now={m.now} before={m.before} digits={0} />
-                </span>
+              <span className="flex flex-wrap items-baseline gap-2">
+                <span className={`${NUM(i)} text-ink`}>{v.now === null ? "–" : Math.round(v.now)}</span>
+                {hadBefore ? <Delta now={v.now} before={v.before} digits={0} /> : <span className="aw-stat__delta aw-stat__delta--flat whitespace-nowrap">– (first period)</span>}
               </span>
               <span className="flex flex-wrap items-center justify-between gap-2 text-[13px] text-muted">
-                {m.help}
-                <span className="aw-num">
+                {v.help}
+                <span className="aw-num inline-flex items-center gap-1">
                   {r ? `Rank ${r.rank} of ${r.of}` : "Not ranked"}
-                  {r && rb && r.rank !== rb.rank ? <span className={r.rank < rb.rank ? "text-pos" : "text-neg"}>{r.rank < rb.rank ? " ↑" : " ↓"}</span> : null}
+                  {r && rb && r.rank !== rb.rank ? (
+                    <span className={r.rank < rb.rank ? "text-pos" : "text-neg"} title={r.rank < rb.rank ? "Up from the period before" : "Down from the period before"}>
+                      {r.rank < rb.rank ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
+                    </span>
+                  ) : null}
                 </span>
               </span>
             </div>
           );
         })}
       </div>
+      {hadBefore ? (
+        <div className="border-t border-rule px-5 py-2.5">
+          <Since days={days} />
+        </div>
+      ) : null}
     </section>
   );
 }
 
-const GAUGE = { visibility: "var(--aw-brand)", sentiment: "var(--aw-pos)", position: "#7B61C9" } as const;
-
 const ENGINE_SHORT: Record<string, string> = { ChatGPT: "ChatGPT", Claude: "Claude", Gemini: "Gemini", Perplexity: "Perplexity", "AI Overview": "AIO", "AI Mode": "AI Mode" };
 const shortUrl = (u: string) => u.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
-const ago = (iso: string | null) => {
-  if (!iso) return "–";
-  const d = Math.floor((Date.now() - Date.parse(iso)) / 864e5);
-  return d <= 0 ? "Today" : d === 1 ? "Yesterday" : `${d} days ago`;
-};
 
-/** A share with a thin bar under it. */
+/** A share with a thin bar under it, right-aligned like every number column. */
 function Share({ v }: { v: number | null }) {
   return (
-    <span className="flex flex-col gap-1">
+    <span className="flex flex-col items-end gap-1">
       <span className="aw-num text-[14px] text-ink">{pct(v)}</span>
       <span className="block h-1 w-14 bg-rule-faint">
         <span className="block h-full bg-brand" style={{ width: `${v ?? 0}%` }} />
@@ -265,21 +298,20 @@ function Share({ v }: { v: number | null }) {
   );
 }
 
-/** One model's latest answer to a prompt: your spot in the list when it named you, blank when it did not. */
+/** One model's latest answer to a prompt: your spot in the list, "Not named" when it left you out, "–" with no answer. */
 function Cell({ c }: { c: EngineCell }) {
-  if (c.status !== "named") return null;
-  return (
-    <span title={`${c.engine} named you at #${c.position}`} className="aw-status aw-status--ranked px-1.5! py-0.5! text-[12px]!">
-      #{c.position}
-    </span>
-  );
+  if (c.status === "named") return <span title={`${c.engine} named you at #${c.position}`}>#{c.position}</span>;
+  if (c.status === "missed") return <span className="text-muted">Not named</span>;
+  return <span title={c.status === "error" ? `${c.engine} didn't answer` : `Not asked on ${c.engine}`}>–</span>;
 }
 
 function Results({
   sb,
   view,
   engines,
+  rows,
   edit,
+  onAddTopic,
   focusTopic,
   paused,
   loading,
@@ -288,7 +320,9 @@ function Results({
   sb: SupabaseClient;
   view: View;
   engines: string[];
+  rows: PromptRow[];
   edit: Editing | null;
+  onAddTopic: (() => void) | null;
   focusTopic?: string | null;
   paused?: Set<string>;
   /** Models still answering the first check. */
@@ -307,11 +341,9 @@ function Results({
   }, []);
 
   const chats = answered(current, filter);
-  const rows = promptRows(current, topics, engines, brand.name, filter, brand.domain);
   const tops = topicRows(chats, topics, engines, brand.name);
-  if (!topics.length) return <div className="aw-callout">No prompts yet.</div>;
   const flip = (set: Set<string>, k: string) => (set.has(k) ? new Set([...set].filter((x) => x !== k)) : new Set([...set, k]));
-  const cols = engines.length + 3;
+  const cols = engines.length + 2;
 
   return (
     <section className="aw-frame overflow-x-auto">
@@ -319,12 +351,12 @@ function Results({
         <thead>
           <tr>
             <th>Topic and prompt</th>
-            <th className="w-24">
+            <th className="w-24 text-right">
               Visibility
               <Tip text={TIPS.visibility} />
             </th>
             {engines.map((e) => (
-              <th key={e} className="w-28">
+              <th key={e} className="w-28 text-right">
                 <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
                   <BrandLogo src={ENGINE_LOGOS[e] ?? ""} name={e} size={14} />
                   {ENGINE_SHORT[e] ?? e}
@@ -332,14 +364,29 @@ function Results({
                 </span>
               </th>
             ))}
-            <th className="w-28">Last checked</th>
           </tr>
         </thead>
+        {!topics.length ? (
+          <tbody>
+            <EmptyRow
+              colSpan={cols}
+              action={
+                onAddTopic ? (
+                  <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={onAddTopic}>
+                    <Plus size={14} />
+                    Add topic
+                  </button>
+                ) : null
+              }
+            >
+              No prompts yet.
+            </EmptyRow>
+          </tbody>
+        ) : null}
         {topics.map((t) => {
           const top = tops.find((x) => x.topic === t.name)!;
           const list = rows.filter((r) => r.topic === t.name);
           const isClosed = closed.has(t.name);
-          const last = list.map((r) => r.latestAt).filter(Boolean).sort().pop() ?? null;
           const showChart = charts.has(t.name);
           const inTopic = (c: Chat) => filter(c) && t.prompts.includes(c.prompt);
           const leaders = showChart
@@ -371,9 +418,7 @@ function Results({
                         aria-expanded={!isClosed}
                         className="flex items-center gap-2 text-left text-[15px] font-medium text-ink"
                       >
-                        <span aria-hidden="true" className="text-muted">
-                          {isClosed ? "▸" : "▾"}
-                        </span>
+                        <span className="text-muted">{isClosed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}</span>
                         {t.name}
                         <span className="font-normal text-muted">· {t.prompts.length} prompts</span>
                       </button>
@@ -384,13 +429,14 @@ function Results({
                     </button>
                   </span>
                 </td>
-                <td>
+                <td className="aw-td-num">
                   <Share v={top.visibility} />
                 </td>
                 {engines.map((e) => (
-                  <td key={e}>{loading?.has(e) && top.byEngine[e] == null ? <span className="aw-shimmer h-3 w-14" aria-label={`${e} is still answering`} /> : <Share v={top.byEngine[e]} />}</td>
+                  <td key={e} className="aw-td-num">
+                    {loading?.has(e) && top.byEngine[e] == null ? <Skel w={56} h={12} /> : <Share v={top.byEngine[e]} />}
+                  </td>
                 ))}
-                <td className="aw-small whitespace-nowrap">{ago(last)}</td>
               </tr>
               {showChart ? (
                 <tr>
@@ -417,8 +463,8 @@ function Results({
                         <tr onClick={() => editing !== key && setOpen(r.prompt)} className={`group cursor-pointer hover:bg-paper ${isOpen ? "bg-paper" : ""}`}>
                           <td>
                             <span className="flex items-start gap-2 pl-5">
-                              <span aria-hidden="true" className="text-muted">
-                                ▸
+                              <span className="pt-0.5 text-muted">
+                                <ChevronRight size={14} />
                               </span>
                               {edit && editing === key ? (
                                 <InlineInput
@@ -432,18 +478,25 @@ function Results({
                                 />
                               ) : (
                                 <span className={`text-[14px] leading-snug ${paused?.has(r.prompt) ? "text-muted" : "text-ink"}`}>
-                                  {r.prompt}
+                                  {/* The prompt is the row's button, so the keyboard can open it too. */}
+                                  <button type="button" className="text-left" aria-label={`Open ${r.prompt}`} onClick={(e) => {
+                                    e.stopPropagation();
+                                    setOpen(r.prompt);
+                                  }}>
+                                    {r.prompt}
+                                  </button>
                                   {paused?.has(r.prompt) ? <span className="aw-chip ml-2 align-middle">Paused</span> : null}
                                 </span>
                               )}
                               {edit && editing !== key ? <RowTools label="prompt" onEdit={() => setEditing(key)} onRemove={() => edit.removePrompt(t.name, r.prompt)} /> : null}
                             </span>
                           </td>
-                          <td className="aw-num">{pct(r.visibility)}</td>
+                          <td className="aw-td-num">{pct(r.visibility)}</td>
                           {r.latest.filter((c) => engines.includes(c.engine)).map((c) => (
-                            <td key={c.engine}>{loading?.has(c.engine) && c.status === "none" ? <span className="aw-shimmer h-3 w-10" aria-label={`${c.engine} is still answering`} /> : <Cell c={c} />}</td>
+                            <td key={c.engine} className="aw-td-num whitespace-nowrap">
+                              {loading?.has(c.engine) && c.status === "none" ? <Skel w={40} h={12} /> : <Cell c={c} />}
+                            </td>
                           ))}
-                          <td className="aw-small whitespace-nowrap">{ago(r.latestAt)}</td>
                         </tr>
                       </Fragment>
                     );
@@ -550,16 +603,17 @@ function Detail({
   const last = d.engines.map((e) => e.at).filter(Boolean).sort().pop() ?? null;
   const brands = scope === "latest" ? st.brands.filter((b) => b.latest !== null).sort((a, b) => a.latest! - b.latest!) : st.brands;
   const full = texts?.find((t) => t.engine === cur.engine) ?? null;
-  const day = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const day = (iso: string) => formatDate(iso);
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end print:hidden" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex justify-end print:hidden">
+    {/* The backdrop: a click outside the panel closes it. Escape and the Close button do the same. */}
+    <button type="button" aria-label="Close" tabIndex={-1} onClick={onClose} className="absolute inset-0 cursor-default" />
     <div
       role="dialog"
       aria-modal="true"
       aria-label={prompt}
-      onClick={(e) => e.stopPropagation()}
-      className="aw-side-panel"
+      className="aw-side-panel relative"
     >
       <div className="aw-side-panel__bar">
         <span className="flex min-w-0 items-center gap-1.5 text-muted">
@@ -583,7 +637,7 @@ function Detail({
       <div className="flex flex-col gap-5 px-4 py-4 sm:px-5">
       <div className="flex min-w-0 flex-col gap-1">
         <h2 className="text-[16px] leading-snug font-semibold text-ink">{prompt}</h2>
-        <span className="aw-small">{last ? `Checked ${new Date(last).toLocaleString()}` : "Not checked yet"}</span>
+        <span className="aw-small">{last ? `Checked ${ago(last)}` : "Not checked yet"}</span>
       </div>
 
       {/* Rank on each model. Pick one to see its answer. */}
@@ -677,23 +731,32 @@ function Detail({
               <table className="aw-table aw-table--compact aw-table--tight">
                 <thead>
                   <tr>
-                    {scope === "latest" ? <th className="w-10">#</th> : null}
+                    {scope === "latest" ? <th className="w-10 text-right">#</th> : null}
                     <th>Brand</th>
-                    <th className="w-32">Track record</th>
-                    <th className="w-20">Stability</th>
+                    <th className="w-32 text-right">Track record</th>
+                    <th className="w-20 text-right">Stability</th>
                   </tr>
                 </thead>
                 <tbody>
                   {brands.map((b) => (
                     <tr key={b.name} className={b.isYou ? "is-you" : "cursor-pointer"} onClick={() => !b.isYou && onCompetitor(b.name)}>
-                      {scope === "latest" ? <td className="aw-num text-muted">{b.latest}</td> : null}
+                      {scope === "latest" ? <td className="aw-td-num text-muted">{b.latest}</td> : null}
                       <td className="max-w-48">
-                        <BrandName name={b.name} domain={b.isYou ? brand.domain : b.domain} logo={b.isYou ? brand.logo : undefined} isYou={b.isYou} size={16} />
+                        {b.isYou ? (
+                          <BrandName name={b.name} domain={brand.domain} logo={brand.logo} isYou size={16} />
+                        ) : (
+                          <button type="button" className="max-w-full text-left" aria-label={`Open ${b.name}`} onClick={(e) => {
+                            e.stopPropagation();
+                            onCompetitor(b.name);
+                          }}>
+                            <BrandName name={b.name} domain={b.domain} size={16} />
+                          </button>
+                        )}
                       </td>
-                      <td className="aw-num whitespace-nowrap">
+                      <td className="aw-td-num whitespace-nowrap">
                         {pct(b.rate)} · {b.seen}/{st.runs.length}
                       </td>
-                      <td className="aw-num">{Math.round(b.stability)}</td>
+                      <td className="aw-td-num">{Math.round(b.stability)}</td>
                     </tr>
                   ))}
                   {!brands.length ? (
@@ -746,8 +809,8 @@ function Detail({
               <ul className="flex flex-col gap-1.5 px-4 py-3 text-[14px] text-ink">
                 {cur.queries.map((q) => (
                   <li key={q} className="flex gap-2">
-                    <span aria-hidden="true" className="text-muted">
-                      ⌕
+                    <span className="pt-0.5 text-muted">
+                      <Search size={14} />
                     </span>
                     {q}
                   </li>
@@ -759,11 +822,11 @@ function Detail({
           <section className="aw-frame">
             <div className="flex items-center justify-between gap-3 border-b border-rule-faint px-4 py-3">
               <span className="aw-label">Full answer</span>
-              {full ? <span className="aw-small">{new Date(full.at).toLocaleString()}</span> : null}
+              {full ? <span className="aw-small">{formatDate(full.at)}</span> : null}
             </div>
             <div className="max-h-[640px] overflow-y-auto px-5 py-4">
               {texts === null ? (
-                <span className="aw-small">Loading...</span>
+                <SkelBlock lines={4} />
               ) : full ? (
                 <Markdown text={full.text} />
               ) : (

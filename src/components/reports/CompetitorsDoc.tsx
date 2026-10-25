@@ -5,6 +5,7 @@ import { useState } from "react";
 import type { CompetitorsSnapshot } from "@/lib/reportTypes";
 import { BrandLogo } from "../BrandLogo";
 import { Quadrant, type Dot } from "../CompetitorsPage";
+import { ArrowDown, ArrowUp, Crown } from "../Icons";
 
 const pct = (n: number) => `${Math.round(n)}%`;
 const favicon = (d: string) => `https://www.google.com/s2/favicons?domain=${encodeURIComponent(d)}&sz=64`;
@@ -48,13 +49,13 @@ export function CompetitorsDoc({ r }: { r: CompetitorsSnapshot }) {
             <th className="w-10">#</th>
             <th>Brand</th>
             <th className="w-36">
-              <button type="button" onClick={() => setSort("visibility")} className={sort === "visibility" ? "text-ink" : ""}>
-                Visibility {sort === "visibility" ? "↓" : ""}
+              <button type="button" onClick={() => setSort("visibility")} className={`inline-flex items-center gap-1 ${sort === "visibility" ? "text-ink" : ""}`}>
+                Visibility {sort === "visibility" ? <ArrowDown size={12} /> : null}
               </button>
             </th>
             <th className="w-36">
-              <button type="button" onClick={() => setSort("position")} className={sort === "position" ? "text-ink" : ""}>
-                Position {sort === "position" ? "↑" : ""}
+              <button type="button" onClick={() => setSort("position")} className={`inline-flex items-center gap-1 ${sort === "position" ? "text-ink" : ""}`}>
+                Position {sort === "position" ? <ArrowUp size={12} /> : null}
               </button>
             </th>
           </tr>
@@ -65,7 +66,7 @@ export function CompetitorsDoc({ r }: { r: CompetitorsSnapshot }) {
               <td className="aw-num text-muted">{i + 1}</td>
               <td>
                 <span className="flex items-center gap-2 font-medium text-ink">
-                  {best === x.name ? <span aria-label="Best brand">👑</span> : null}
+                  {best === x.name ? <span role="img" aria-label="Best brand"><Crown size={16} /></span> : null}
                   <BrandLogo src={logoOf(x)} name={x.name} size={20} />
                   {x.name}
                   {x.isYou ? <span className="aw-badge">You</span> : null}

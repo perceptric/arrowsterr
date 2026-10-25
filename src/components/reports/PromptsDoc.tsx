@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import type { PromptDetailSnap, PromptsSnapshot } from "@/lib/reportTypes";
 import { BrandLogo } from "../BrandLogo";
 import { ENGINE_LOGOS, EngineName } from "../Engines";
+import { ChevronRight, Close } from "../Icons";
 import { Markdown } from "../Markdown";
 
 const pct = (n: number | null | undefined) => (n === null || n === undefined ? "–" : `${Math.round(n)}%`);
@@ -76,7 +77,7 @@ export function PromptsDoc({ r }: { r: PromptsSnapshot }) {
               >
                 <td className="pl-6! text-ink">
                   {p.prompt}
-                  {p.detail?.length ? <span className="ml-2 text-muted print:hidden">›</span> : null}
+                  {p.detail?.length ? <ChevronRight size={14} className="ml-1 inline align-middle text-muted print:hidden" /> : null}
                 </td>
                 <td className="aw-num">{pct(p.visibility)}</td>
                 {r.engines.map((e) => (
@@ -120,8 +121,8 @@ function PromptDive({ brand, prompt, topic, detail, onClose }: { brand: string; 
             <span className="aw-micro">Prompt · {topic}</span>
             <h2 className="text-[24px] leading-snug font-medium text-ink">{prompt}</h2>
           </div>
-          <button type="button" aria-label="Close" onClick={onClose} className="px-2 py-1 text-[26px] leading-none text-body hover:text-ink">
-            ×
+          <button type="button" aria-label="Close" onClick={onClose} className="px-2 py-1 text-body hover:text-ink">
+            <Close size={22} />
           </button>
         </div>
 

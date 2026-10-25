@@ -8,9 +8,11 @@ import type { RunAuth } from "@/lib/runner";
 import type { View } from "@/lib/view";
 import { BrandLogo } from "./BrandLogo";
 import { EngineName } from "./Engines";
-import { flag, short } from "./research/KeywordOverview";
+import { ArrowDown, ArrowUp, ExternalLink } from "./Icons";
+import { short } from "./research/KeywordOverview";
 import { post } from "./research/shared";
-import { Delta, favicon, Seg, guessDomain, pct, pos, RIVAL_COLOR, score, SidePanel, Thinking, Tip, TIPS, YOU_COLOR } from "./ui";
+import { BlockError, SkelStats } from "./states";
+import { Delta, favicon, Seg, guessDomain, pct, pos, RIVAL_COLOR, score, SidePanel, Since, Tip, TIPS, YOU_COLOR } from "./ui";
 
 /** Side B of the battle card, and the competitor in its deep dive. */
 export const B_COLOR = RIVAL_COLOR;
@@ -153,7 +155,7 @@ export function CompetitorPanel({
 
   /** Their value on top, yours under it, each by its logo. */
   const pair = (v: React.ReactNode, p: string | null) => (
-    <span className="flex flex-col">
+    <span className="flex flex-col items-end">
       <span className="aw-num text-[14px] text-ink">{v}</span>
       {p ? <span className="aw-num text-[12px] text-muted">{p}</span> : null}
     </span>
@@ -198,39 +200,45 @@ export function CompetitorPanel({
     >
       <div className="-mt-2 flex flex-wrap items-center gap-2">
         {domain ? (
-          <a href={`https://${domain}`} target="_blank" rel="noopener noreferrer nofollow" className="text-[14px]">
-            {domain} ↗
+          <a href={`https://${domain}`} target="_blank" rel="noopener noreferrer nofollow" className="inline-flex items-center gap-1 text-[14px]">
+            {domain}
+            <ExternalLink size={14} />
           </a>
         ) : null}
-        {rank ? (
-          <span className="aw-chip">
-            <i />#{rank.rank} of {rank.of} by visibility
-          </span>
-        ) : null}
-        {Math.round(s.visibility) > Math.round(you.visibility) ? (
-          <span className="aw-status aw-status--missed">Leads you</span>
-        ) : Math.round(s.visibility) < Math.round(you.visibility) ? (
-          <span className="aw-status aw-status--ranked">Trails you</span>
-        ) : (
-          <span className="aw-status aw-status--pending">Tied with you</span>
-        )}
+        {/* One mark: how they compare with you, and their place by visibility. */}
+        {(() => {
+          const place = rank ? ` · #${rank.rank} of ${rank.of}` : "";
+          const them = Math.round(s.visibility);
+          const me = Math.round(you.visibility);
+          return them > me ? (
+            <span className="aw-status aw-status--missed">Leads you{place}</span>
+          ) : them < me ? (
+            <span className="aw-status aw-status--ranked">Trails you{place}</span>
+          ) : (
+            <span className="aw-status aw-status--pending">Tied with you{place}</span>
+          );
+        })()}
       </div>
 
-      <div className="aw-stats aw-stats--tight" style={{ ["--cols" as string]: 5 }}>
-        {stat("Visibility", TIPS.visibility, pct(s.visibility), hadBefore ? <Delta now={s.visibility} before={before?.visibility ?? 0} /> : null, pct(you.visibility))}
-        {stat("Avg. position", TIPS.position, pos(s.position), hadBefore && before ? <Delta now={s.position} before={before.position} lowerIsBetter /> : null, pos(you.position))}
-        {stat("Sentiment", TIPS.sentiment, score(s.sentiment), hadBefore && before ? <Delta now={s.sentiment} before={before.sentiment} digits={0} /> : null, score(you.sentiment))}
-        {stat("Share of voice", "The brand's share of all brand mentions in these answers.", pct(voiceIn(stats, s)), hadBefore ? <Delta now={voiceIn(stats, s)} before={voiceIn(prev, before)} /> : null, pct(voiceIn(stats, you)))}
-        {stat(
-          "Mentions",
-          TIPS.mentions,
-          <>
-            {s.mentions.toLocaleString("en-US")}
-            <span className="text-[15px] font-normal text-muted"> / {chats.length.toLocaleString("en-US")}</span>
-          </>,
-          hadBefore && before ? <Delta now={s.mentions} before={before.mentions} digits={0} /> : null,
-          you.mentions.toLocaleString("en-US"),
-        )}
+      {/* A rival's change is neither good nor bad for you, so every change here stays grey. */}
+      <div className="flex flex-col gap-2">
+        <div className="aw-stats aw-stats--tight" style={{ ["--cols" as string]: 5 }}>
+          {stat("Visibility", TIPS.visibility, pct(s.visibility), hadBefore ? <Delta now={s.visibility} before={before?.visibility ?? 0} good="none" /> : null, pct(you.visibility))}
+          {stat("Avg. position", TIPS.position, pos(s.position), hadBefore && before ? <Delta now={s.position} before={before.position} good="none" /> : null, pos(you.position))}
+          {stat("Sentiment", TIPS.sentiment, score(s.sentiment), hadBefore && before ? <Delta now={s.sentiment} before={before.sentiment} digits={0} good="none" /> : null, score(you.sentiment))}
+          {stat("Share of voice", "The brand's share of all brand mentions in these answers.", pct(voiceIn(stats, s)), hadBefore ? <Delta now={voiceIn(stats, s)} before={voiceIn(prev, before)} good="none" /> : null, pct(voiceIn(stats, you)))}
+          {stat(
+            "Mentions",
+            TIPS.mentions,
+            <>
+              {s.mentions.toLocaleString("en-US")}
+              <span className="text-[15px] font-normal text-muted"> / {chats.length.toLocaleString("en-US")}</span>
+            </>,
+            hadBefore && before ? <Delta now={s.mentions} before={before.mentions} digits={0} good="none" /> : null,
+            you.mentions.toLocaleString("en-US"),
+          )}
+        </div>
+        {hadBefore ? <Since days={days} /> : null}
       </div>
 
       <section className={SECTION}>
@@ -245,18 +253,18 @@ export function CompetitorPanel({
                 <tr>
                   <th>Prompt</th>
                   <th className="w-36">
-                    <span className="flex min-w-0 items-center gap-1.5 normal-case">
+                    <span className="flex min-w-0 items-center justify-end gap-1.5 normal-case">
                       <BrandLogo src={themLogo} name={s.name} size={16} />
                       <span className="truncate">{s.name}</span>
                     </span>
                   </th>
                   <th className="w-36">
-                    <span className="flex min-w-0 items-center gap-1.5 normal-case">
+                    <span className="flex min-w-0 items-center justify-end gap-1.5 normal-case">
                       <BrandLogo src={youLogo} name={brand.name} size={16} />
                       <span className="truncate">{brand.name}</span>
                     </span>
                   </th>
-                  <th className="w-24">Won</th>
+                  <th className="w-24 text-right">Won</th>
                   <th className="w-32">Models</th>
                 </tr>
               </thead>
@@ -269,9 +277,9 @@ export function CompetitorPanel({
                         {w.topic ? <span className="text-[12px] text-muted">{w.topic}</span> : null}
                       </span>
                     </td>
-                    <td>{pair(pct(w.them), w.themPos !== null ? pos(w.themPos) : null)}</td>
-                    <td>{pair(pct(w.you), w.youPos !== null ? pos(w.youPos) : null)}</td>
-                    <td className="aw-num whitespace-nowrap">
+                    <td className="aw-td-num">{pair(pct(w.them), w.themPos !== null ? pos(w.themPos) : null)}</td>
+                    <td className="aw-td-num">{pair(pct(w.you), w.youPos !== null ? pos(w.youPos) : null)}</td>
+                    <td className="aw-td-num whitespace-nowrap">
                       {w.won} <span className="text-muted">of {w.answers}</span>
                     </td>
                     <td>
@@ -296,6 +304,7 @@ export function CompetitorPanel({
 
       <section className={SECTION}>
         <div className="aw-frame__head flex-wrap justify-between gap-3">
+          <h3 className="aw-h4">{by === "model" ? "Visibility by model" : "Visibility by topic"}</h3>
           <Seg
             label="Compare by"
             value={by}
@@ -343,8 +352,8 @@ export function CompetitorPanel({
             <thead>
               <tr>
                 <th>Site</th>
-                <th className="w-20">Answers</th>
-                <th className="w-20">Share</th>
+                <th className="w-20 text-right">Answers</th>
+                <th className="w-20 text-right">Share</th>
               </tr>
             </thead>
             <tbody>
@@ -358,14 +367,14 @@ export function CompetitorPanel({
                       {ownsDomain(x.site, brand.domain?.toLowerCase().replace(/^www\./, "")) ? <span className="aw-badge shrink-0">You</span> : null}
                     </span>
                   </td>
-                  <td className="aw-num">{x.n}</td>
-                  <td className="aw-num">{pct((x.n / cited.answers) * 100)}</td>
+                  <td className="aw-td-num">{x.n}</td>
+                  <td className="aw-td-num">{pct((x.n / cited.answers) * 100)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         ) : (
-          <p className="aw-small p-5">–</p>
+          <p className="aw-small p-5">No sites cited in answers that name {s.name}.</p>
         )}
       </section>
 
@@ -375,18 +384,22 @@ export function CompetitorPanel({
             <h3 className="aw-h4">SEO performance deep-dive</h3>
             {report ? (
               <span className="aw-micro">
-                {flag(report.country)} {report.country} · {report.domain}
+                {report.country} · {report.domain}
               </span>
             ) : auth ? (
               <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={busy} onClick={load}>
-                {busy ? "Loading…" : "Load SEO stats"}
+                Load SEO stats
               </button>
             ) : null}
           </div>
-          {error ? <p className="aw-error m-5">{error}</p> : null}
+          {error && !busy ? (
+            <div className="m-5">
+              <BlockError what={`SEO stats for ${domain} (${error})`} onRetry={auth ? load : undefined} />
+            </div>
+          ) : null}
           {busy ? (
             <div className="p-5">
-              <Thinking text={`Loading ${domain}`} />
+              <SkelStats tight labels={["Est. visits / month", "Keywords on Google", "In top 3", "In top 10", "New · lost"]} />
             </div>
           ) : null}
           {report ? (
@@ -401,8 +414,16 @@ export function CompetitorPanel({
                     {
                       lab: "New · lost",
                       v: (
-                        <span className="text-[22px]">
-                          <span className="text-pos">↗ {short(o.newKw)}</span> <span className="text-neg">↘ {short(o.lostKw)}</span>
+                        // Their gains and losses, so neither is good or bad for you: both stay grey.
+                        <span className="inline-flex items-center gap-3 text-[22px] text-muted">
+                          <span className="inline-flex items-center gap-1" title="New keywords">
+                            <ArrowUp size={16} />
+                            {short(o.newKw)}
+                          </span>
+                          <span className="inline-flex items-center gap-1" title="Lost keywords">
+                            <ArrowDown size={16} />
+                            {short(o.lostKw)}
+                          </span>
                         </span>
                       ),
                     },
@@ -425,9 +446,9 @@ export function CompetitorPanel({
                     <thead>
                       <tr>
                         <th>Keyword</th>
-                        <th className="w-20">Position</th>
-                        <th className="w-20">Volume</th>
-                        <th className="w-24">Visits / mo</th>
+                        <th className="w-20 text-right">Position</th>
+                        <th className="w-20 text-right">Volume</th>
+                        <th className="w-24 text-right">Visits / mo</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -436,9 +457,9 @@ export function CompetitorPanel({
                           <td className="truncate text-ink" title={k.url ?? k.keyword}>
                             {k.keyword}
                           </td>
-                          <td className="aw-num">{k.rank ? `#${k.rank}` : "–"}</td>
-                          <td className="aw-num">{short(k.volume)}</td>
-                          <td className="aw-num">{short(k.etv === null || k.etv === undefined ? null : Math.round(k.etv))}</td>
+                          <td className="aw-td-num">{k.rank ? `#${k.rank}` : "–"}</td>
+                          <td className="aw-td-num">{short(k.volume)}</td>
+                          <td className="aw-td-num">{short(k.etv === null || k.etv === undefined ? null : Math.round(k.etv))}</td>
                         </tr>
                       ))}
                       {!topKeywords.length ? (
@@ -459,8 +480,8 @@ export function CompetitorPanel({
                     <thead>
                       <tr>
                         <th>Page</th>
-                        <th className="w-24">Visits / mo</th>
-                        <th className="w-24">Keywords</th>
+                        <th className="w-24 text-right">Visits / mo</th>
+                        <th className="w-24 text-right">Keywords</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -471,8 +492,8 @@ export function CompetitorPanel({
                               {path(p.url)}
                             </a>
                           </td>
-                          <td className="aw-num">{short(p.traffic)}</td>
-                          <td className="aw-num">{short(p.keywords)}</td>
+                          <td className="aw-td-num">{short(p.traffic)}</td>
+                          <td className="aw-td-num">{short(p.keywords)}</td>
                         </tr>
                       ))}
                       {!topPages.length ? (

@@ -6,18 +6,21 @@ import { answered, battle, brandStats, rankOf, rankTrend, topicGrid, trend, type
 import type { DomainReport } from "@/lib/research";
 import type { RunAuth } from "@/lib/runner";
 import type { View } from "@/lib/view";
+import { competitorFinding } from "@/lib/findings";
 import { BrandLogo } from "./BrandLogo";
 import { B_COLOR, Bar, CompetitorPanel } from "./CompetitorPanel";
 import { EngineName } from "./Engines";
+import { ChevronDown, ChevronRight, Crown } from "./Icons";
+import { EmptyBlock } from "./states";
 import { TrendChart } from "./TrendChart";
-import { BrandName, Card, Delta, Empty, favicon, guessDomain, pct, pos, score, Seg, sortRows, SidePanel, SortTh, Tip, TIPS, useSort, YOU_COLOR } from "./ui";
+import { BrandName, Card, Delta, favicon, guessDomain, pct, pos, score, Seg, Since, sortRows, SidePanel, SortTh, Tip, TIPS, useSort, YOU_COLOR } from "./ui";
 
 const MAX_BRANDS = 50;
 const SHOWN = 10; // brands on the chart at first
 
 export type Dot = { name: string; domain: string | null; isYou: boolean; visibility: number; position: number; sentiment?: number | null };
-const SHOWN_ROWS = 9; // rows in the table before View all
-const quadLabel = "text-[12px] font-medium tracking-wide text-ink uppercase";
+const SHOWN_ROWS = 6; // rows in the table before View all
+const quadLabel = "text-[12px] font-medium text-ink";
 
 function EyeIcon() {
   return (
@@ -71,7 +74,7 @@ export function Quadrant({
       </div>
       <div className="flex min-h-0 flex-1 gap-2">
         <div className="flex w-7 shrink-0 flex-col items-center">
-          <span className="text-[12px] leading-none text-ink">▲</span>
+          <ChevronDown size={14} className="rotate-180 text-ink" />
           <span className="w-0.5 flex-1 bg-ink" />
           <span className="flex rotate-180 items-center gap-1.5 py-2 text-[12px] font-medium whitespace-nowrap text-ink [writing-mode:vertical-rl]">
             <EyeIcon />
@@ -110,13 +113,8 @@ export function Quadrant({
                 style={{ left: `${x(d.position)}%`, top: `${y(d.visibility)}%` }}
               >
                 {crown === d.name ? (
-                  <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[18px] leading-none" role="img" aria-label="Best brand">
-                    👑
-                  </span>
-                ) : null}
-                {d.isYou ? (
-                  <span className="absolute top-1/2 right-full mr-1 -translate-y-1/2 text-[22px] leading-none" role="img" aria-label="You">
-                    👉
+                  <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-ink" role="img" aria-label="Best brand">
+                    <Crown size={16} />
                   </span>
                 ) : null}
                 <BrandLogo src={d.isYou && logo ? logo : favicon(d.domain || guessDomain(d.name))} name={d.name} size={size} />
@@ -147,11 +145,11 @@ export function Quadrant({
           Ranking
         </span>
         <span className="h-0.5 flex-1 bg-ink" />
-        <span className="-ml-2 leading-none">▶</span>
+        <ChevronRight size={14} className="-ml-2" />
       </div>
       <div className="flex justify-between gap-3 pl-[76px]">
-        <span className={quadLabel}>Rising Stars</span>
-        <span className={quadLabel}>Niche Kings</span>
+        <span className={quadLabel}>Rising stars</span>
+        <span className={quadLabel}>Niche kings</span>
       </div>
     </div>
   );
@@ -167,10 +165,15 @@ type Props = {
 
 /** Competitors in AI answers. */
 export function CompetitorsPage(props: Props) {
+  return <AiCompetitors {...props} />;
+}
+
+/** The title, and the finding under it when there is one. */
+function Head({ finding }: { finding?: string | null }) {
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-1">
       <h1 className="aw-h2 mb-0!">Competitors</h1>
-      <AiCompetitors {...props} />
+      {finding ? <p className="text-[15px] text-body">{finding}</p> : null}
     </div>
   );
 }
@@ -200,7 +203,15 @@ function AiCompetitors({ view, auth = null, initial, limit, onTopic }: Props) {
   const [seo, setSeo] = useState<Record<string, DomainReport>>({});
   const [quadTopic, setQuadTopic] = useState<string | null>(null);
 
-  if (!chats.length) return <Empty>No results in the last {days} days yet. They show up after the first check finishes, then update every day.</Empty>;
+  if (!chats.length)
+    return (
+      <div className="flex flex-col gap-8">
+        <Head />
+        <Card title="Competitive analysis">
+          <EmptyBlock>No results in the last {days} days yet. They show up after the first check finishes, then update every day.</EmptyBlock>
+        </Card>
+      </div>
+    );
 
   // You, plus as many competitors as the plan tracks.
   const top = stats.filter((s) => s.isYou || others.indexOf(s) < (limit ?? MAX_BRANDS)).slice(0, MAX_BRANDS);
@@ -235,6 +246,9 @@ function AiCompetitors({ view, auth = null, initial, limit, onTopic }: Props) {
   const rankFor = (name: string) => rankOf(stats.map((s) => ({ ...s, isYou: s.name === name })), "visibility");
   const gridBrands = [stats.find((s) => s.isYou)!, ...others.slice(0, 5)];
   const grid = topicGrid(chats, topics, gridBrands.map((s) => s.name));
+  const finding = competitorFinding(stats, grid);
+  // A rival's change is neither good nor bad for you, so it stays grey.
+  const tone = (s: BrandStat) => (s.isYou ? undefined : ("none" as const));
   const card = B ? battle(chats, A.name, B.name, engines, topics) : null;
   const rows: BattleRow[] = card ? (split === "model" ? card.byEngine : split === "topic" ? card.byTopic : card.byPrompt) : [];
   const listed = sortRows(
@@ -256,15 +270,15 @@ function AiCompetitors({ view, auth = null, initial, limit, onTopic }: Props) {
               className="h-4 w-4 accent-[var(--aw-brand)]"
             />
           </th>
-          <th className="w-10">#</th>
+          <th className="w-10 text-right">#</th>
           <SortTh id="name" sort={sort} onSort={setSort} text>
             Brand
           </SortTh>
-          <SortTh id="visibility" sort={sort} onSort={setSort} className="w-36">
+          <SortTh id="visibility" sort={sort} onSort={setSort} className="w-36 text-right">
             Visibility
             <Tip text={TIPS.visibility} />
           </SortTh>
-          <SortTh id="position" sort={sort} onSort={setSort} className="w-36">
+          <SortTh id="position" sort={sort} onSort={setSort} className="w-36 text-right">
             Position
             <Tip text={TIPS.position} />
           </SortTh>
@@ -286,22 +300,29 @@ function AiCompetitors({ view, auth = null, initial, limit, onTopic }: Props) {
               <td onClick={(e) => e.stopPropagation()}>
                 <input type="checkbox" checked={on.has(s.name)} onChange={() => flip(s.name)} aria-label={`Show ${s.name} on the chart`} className="h-4 w-4 accent-[var(--aw-brand)]" />
               </td>
-              <td className="aw-num text-muted">{i + 1}</td>
+              <td className="aw-td-num text-muted">{i + 1}</td>
               <td className="truncate">
-                <span className="flex items-center gap-1">
-                  {best === s.name ? (
-                    <span role="img" aria-label="Best brand">
-                      👑
-                    </span>
-                  ) : null}
-                  <BrandName name={s.name} domain={s.domain} logo={s.isYou ? brand.logo : undefined} isYou={s.isYou} size={20} />
-                </span>
+                {s.isYou ? (
+                  <BrandName name={s.name} domain={s.domain} logo={brand.logo} isYou size={20} />
+                ) : (
+                  <button
+                    type="button"
+                    className="max-w-full text-left"
+                    aria-label={`Open ${s.name}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      open(s.name);
+                    }}
+                  >
+                    <BrandName name={s.name} domain={s.domain} size={20} />
+                  </button>
+                )}
               </td>
-              <td className="aw-num whitespace-nowrap">
-                {pct(s.visibility)} {hadBefore ? <Delta now={s.visibility} before={w?.visibility ?? 0} /> : null}
+              <td className="aw-td-num whitespace-nowrap">
+                {pct(s.visibility)} {hadBefore ? <Delta now={s.visibility} before={w?.visibility ?? 0} good={tone(s)} /> : null}
               </td>
-              <td className="aw-num whitespace-nowrap">
-                {pos(s.position)} {hadBefore && w ? <Delta now={s.position} before={w.position} lowerIsBetter /> : null}
+              <td className="aw-td-num whitespace-nowrap">
+                {pos(s.position)} {hadBefore && w ? <Delta now={s.position} before={w.position} lowerIsBetter good={tone(s)} /> : null}
               </td>
               {seoCol ? (
                 <td onClick={(e) => e.stopPropagation()}>
@@ -341,6 +362,7 @@ function AiCompetitors({ view, auth = null, initial, limit, onTopic }: Props) {
 
   return (
     <div className="flex flex-col gap-8">
+      <Head finding={finding} />
       <section className="aw-frame">
         <div className="aw-frame__head justify-between">
           <h2 className="aw-h4">Competitive analysis</h2>
@@ -359,6 +381,11 @@ function AiCompetitors({ view, auth = null, initial, limit, onTopic }: Props) {
             <div className="min-h-0 flex-1 overflow-hidden">
               {brandTable(listed.slice(0, SHOWN_ROWS))}
             </div>
+            {hadBefore ? (
+              <div className="border-t border-rule-faint px-4 py-2.5">
+                <Since days={days} />
+              </div>
+            ) : null}
           </div>
 
           {/* Right: the quadrant */}
@@ -422,21 +449,23 @@ function AiCompetitors({ view, auth = null, initial, limit, onTopic }: Props) {
       ) : null}
 
       {topics.length ? (
-        <Card title="Topic Leaders">
+        <Card title="Topic leaders">
           <div className="overflow-x-auto">
             <table className="aw-table">
               <thead>
                 <tr>
                   <th>Topic</th>
                   {gridBrands.map((g) => (
-                    <th key={g.name} className="w-40">
-                      {g.isYou ? (
-                        <BrandName name={g.name} domain={g.domain} logo={brand.logo} isYou size={16} />
-                      ) : (
-                        <button type="button" onClick={() => setB(g.name)} title={`Compare ${g.name} with ${A.name}`} className="text-left">
-                          <BrandName name={g.name} domain={g.domain} size={16} />
-                        </button>
-                      )}
+                    <th key={g.name} className="w-40 text-right">
+                      <span className="flex justify-end">
+                        {g.isYou ? (
+                          <BrandName name={g.name} domain={g.domain} logo={brand.logo} isYou size={16} />
+                        ) : (
+                          <button type="button" onClick={() => setB(g.name)} title={`Compare ${g.name} with ${A.name}`} className="text-left">
+                            <BrandName name={g.name} domain={g.domain} size={16} />
+                          </button>
+                        )}
+                      </span>
                     </th>
                   ))}
                 </tr>
@@ -452,10 +481,9 @@ function AiCompetitors({ view, auth = null, initial, limit, onTopic }: Props) {
                     {gridBrands.map((x) => {
                       const lead = g.leader === x.name;
                       return (
-                        <td key={x.name} className={x.isYou ? "bg-brand-pale" : ""}>
-                          <span className="flex items-center gap-2">
-                            <span className={`aw-num ${lead ? "font-medium text-ink" : "text-body"}`}>{pct(g.values[x.name])}</span>
-                            {lead ? <span className="aw-status aw-status--ranked px-1.5! py-0.5! text-[10px]!">Leader</span> : null}
+                        <td key={x.name} className={`aw-td-num ${x.isYou ? "bg-brand-pale" : ""}`}>
+                          <span className={lead ? "font-medium text-ink" : "text-body"} title={lead ? `${x.name} leads this topic` : undefined}>
+                            {pct(g.values[x.name])}
                           </span>
                         </td>
                       );
@@ -488,9 +516,9 @@ function AiCompetitors({ view, auth = null, initial, limit, onTopic }: Props) {
           {/* Click Visibility, Sentiment or Position to chart it */}
           <div className="grid gap-px bg-rule-faint md:grid-cols-2 xl:grid-cols-4" role="tablist" aria-label="Chart metric">
             {[
-              { id: "visibility" as const, lab: "Visibility", tip: TIPS.visibility, f: (s: BrandStat) => pct(s.visibility), d: (s: BrandStat) => (hadBefore ? <Delta now={s.visibility} before={was(s.name)?.visibility ?? 0} /> : null) },
-              { id: "sentiment" as const, lab: "Sentiment", tip: TIPS.sentiment, f: (s: BrandStat) => score(s.sentiment), d: (s: BrandStat) => (hadBefore && was(s.name) ? <Delta now={s.sentiment} before={was(s.name)!.sentiment} digits={0} /> : null) },
-              { id: "position" as const, lab: "Position", tip: TIPS.position, f: (s: BrandStat) => pos(s.position), d: (s: BrandStat) => (hadBefore && was(s.name) ? <Delta now={s.position} before={was(s.name)!.position} lowerIsBetter /> : null) },
+              { id: "visibility" as const, lab: "Visibility", tip: TIPS.visibility, f: (s: BrandStat) => pct(s.visibility), d: (s: BrandStat) => (hadBefore ? <Delta now={s.visibility} before={was(s.name)?.visibility ?? 0} good={tone(s)} /> : null) },
+              { id: "sentiment" as const, lab: "Sentiment", tip: TIPS.sentiment, f: (s: BrandStat) => score(s.sentiment), d: (s: BrandStat) => (hadBefore && was(s.name) ? <Delta now={s.sentiment} before={was(s.name)!.sentiment} digits={0} good={tone(s)} /> : null) },
+              { id: "position" as const, lab: "Position", tip: TIPS.position, f: (s: BrandStat) => pos(s.position), d: (s: BrandStat) => (hadBefore && was(s.name) ? <Delta now={s.position} before={was(s.name)!.position} lowerIsBetter good={tone(s)} /> : null) },
               {
                 id: "rank" as const,
                 lab: "Rank by visibility",
@@ -541,6 +569,11 @@ function AiCompetitors({ view, auth = null, initial, limit, onTopic }: Props) {
             })}
           </div>
 
+          {hadBefore ? (
+            <div className="border-t border-rule-faint px-6 py-2.5">
+              <Since days={days} />
+            </div>
+          ) : null}
           <div className="border-t border-rule-faint px-4 pt-4 pb-2">
             <TrendChart
               wide
@@ -580,7 +613,7 @@ function AiCompetitors({ view, auth = null, initial, limit, onTopic }: Props) {
                   <SortTh id="b" sort={h2h} onSort={setH2h} className="w-56">
                     {B.name}
                   </SortTh>
-                  <SortTh id="gap" sort={h2h} onSort={setH2h} className="w-36">
+                  <SortTh id="gap" sort={h2h} onSort={setH2h} className="w-36 text-right">
                     Gap
                     <Tip text={`${A.name}'s visibility minus ${B.name}'s, in points.`} />
                   </SortTh>
@@ -612,13 +645,14 @@ function AiCompetitors({ view, auth = null, initial, limit, onTopic }: Props) {
                       <td>
                         <Bar v={r.b} color={B_COLOR} />
                       </td>
-                      <td className="aw-num whitespace-nowrap">
+                      <td className="aw-td-num whitespace-nowrap">
                         {gap === null ? (
                           <span className="text-muted">–</span>
                         ) : gap === 0 ? (
                           <span className="text-muted">Even</span>
                         ) : (
-                          <span className={gap > 0 ? "text-pos" : "text-neg"}>{gap > 0 ? `${A.name} +${gap}` : `${B.name} +${-gap}`}</span>
+                          // Colour only says good or bad when side A is you.
+                          <span className={A.isYou ? (gap > 0 ? "text-pos" : "text-neg") : ""}>{gap > 0 ? `${A.name} +${gap}` : `${B.name} +${-gap}`}</span>
                         )}
                       </td>
                     </tr>
