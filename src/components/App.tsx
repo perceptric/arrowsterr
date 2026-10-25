@@ -944,6 +944,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
           ) : page === "summary" ? (
             <ReportsPage
               key={ws.id}
+              onOpenPrompts={() => go("prompts")}
               sb={sb}
               auth={auth}
               brands={(brands ?? []).map((b) => ({ id: b.id, name: b.name }))}
