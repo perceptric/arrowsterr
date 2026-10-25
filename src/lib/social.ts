@@ -189,3 +189,13 @@ export function splitSnippetDate(snippet: string, now = Date.now()): { at: strin
   if (on && month >= 0) return { at: new Date(Date.UTC(Number(on[3]), month, Number(on[2]))).toISOString(), text: rest };
   return { at: null, text: s };
 }
+
+/**
+ * The items of one DataForSEO Google search. "No Search Results" (40102) is a normal answer for a name nobody
+ * posted about this week, so it is an empty list. Any other non-20000 status throws, so the job retries.
+ */
+export function serpItems<T>(task: { status_code?: number; status_message?: string; result?: { items?: T[] | null }[] | null } | undefined): T[] {
+  if (task?.status_code === 40102) return [];
+  if (task?.status_code !== 20000) throw new Error(`DataForSEO: ${task?.status_message ?? "no result"}`);
+  return task.result?.[0]?.items ?? [];
+}

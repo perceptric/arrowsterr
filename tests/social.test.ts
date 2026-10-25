@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { authorOf, citedKeys, namesBrand, pickTargets, shareOfVoice, socialSourceOf, splitSnippetDate, threadKey, type Mention } from "../src/lib/social.ts";
+import { authorOf, citedKeys, namesBrand, pickTargets, serpItems, shareOfVoice, socialSourceOf, splitSnippetDate, threadKey, type Mention } from "../src/lib/social.ts";
 
 test("namesBrand: whole words only, any case, also the domain", () => {
   assert.ok(namesBrand("Has anyone tried Notion for wikis?", "Notion"));
@@ -105,4 +105,12 @@ test("shareOfVoice: counts, shares, warmth, top source and threads AI cites", ()
   );
   assert.equal(rows[1].sentiment, 50);
   assert.equal(rows[2].sentiment, null);
+});
+
+test("a Google search with no results is an empty list, so the listening job finishes instead of retrying and paying again", () => {
+  assert.deepEqual(serpItems({ status_code: 40102, status_message: "No Search Results." }), []);
+  assert.deepEqual(serpItems({ status_code: 20000, result: [{ items: [{ url: "https://reddit.com/r/x" }] }] }), [{ url: "https://reddit.com/r/x" }]);
+  assert.deepEqual(serpItems({ status_code: 20000, result: [{ items: null }] }), []);
+  assert.throws(() => serpItems({ status_code: 50000, status_message: "Internal SE Server Error." }), /Internal SE Server Error/);
+  assert.throws(() => serpItems(undefined), /no result/);
 });

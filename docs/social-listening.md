@@ -19,6 +19,7 @@ A Social tab on the Competitors page. It finds posts about your brand and the co
 
 - The first run for a name looks back a month. After that, a week, every day. Repeats are dropped by URL.
 - Google results for the same name on the same day are cached and shared across workspaces, like AI answers, so a popular competitor is searched once a day in total.
+- Each Google search is also saved on its own for the day, so a job that retries reuses the searches that already worked. "No Search Results" is a normal answer (an empty list), never a failure.
 - Later: Reddit's own API for comments and hourly checks (needs Reddit's approval), X's API as a paid add-on, custom keywords.
 
 ## Accuracy

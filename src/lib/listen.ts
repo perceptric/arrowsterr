@@ -6,7 +6,7 @@ import { askJson } from "./claude";
 import { call, dfsReady } from "./dataforseo";
 import { entitlement } from "./entitlements";
 import { enqueueMany, finish, rateOk, retry, type Job } from "./jobs";
-import { namesBrand, pickTargets, SOCIAL_SITES, socialSourceOf, splitSnippetDate, threadKey, authorOf, type ListenSettings, type MentionKind, type SocialSource } from "./social";
+import { namesBrand, pickTargets, serpItems, SOCIAL_SITES, socialSourceOf, splitSnippetDate, threadKey, authorOf, type ListenSettings, type MentionKind, type SocialSource } from "./social";
 
 // Social listening: find posts about a brand and its top competitors, keep the ones that are really
 // about them, and save them to `mentions`. See docs/social-listening.md.
@@ -111,10 +111,17 @@ const quoted = (name: string) => `"${name.replace(/"/g, "")}"`;
 
 type GoogleItem = { type?: string; url?: string; title?: string; description?: string; snippet?: string; timestamp?: string };
 
+/**
+ * One Google search through DataForSEO, saved for the day. A job that retries after one search fails
+ * reuses the searches that already worked, so each is paid for once a day.
+ */
 async function google(path: string, keyword: string, window: "w" | "m", depth: number): Promise<GoogleItem[]> {
-  const [task] = await call(path, [{ keyword, ...MARKET(), depth, search_param: `&tbs=qdr:${window}` }]);
-  if (task?.status_code !== 20000) throw new Error(`DataForSEO: ${task?.status_message ?? "no result"}`);
-  return (task.result?.[0]?.items ?? []) as GoogleItem[];
+  const day = new Date().toISOString().slice(0, 10);
+  const { data } = await cached(`listen:serp:v1:${path}:${depth}:${window}:${day}:${keyword}`, DAY, async () => {
+    const [task] = await call(path, [{ keyword, ...MARKET(), depth, search_param: `&tbs=qdr:${window}` }]);
+    return serpItems<GoogleItem>(task);
+  });
+  return data;
 }
 
 const stamp = (t: string | undefined) => {
@@ -163,7 +170,7 @@ async function hackerNews(name: string, window: "w" | "m"): Promise<Found[]> {
   }));
 }
 
-/** Every post from the past week (or month) that names the brand, one per thread. Google failures throw so the job retries. */
+/** Every post from the past week (or month) that names the brand, one per thread. Google errors throw so the job retries; no results is an empty list. */
 async function search(t: Pick<Target, "name" | "domain">, window: "w" | "m"): Promise<Found[]> {
   const q = quoted(t.name);
   const own = t.domain ? ` -site:${t.domain}` : "";
