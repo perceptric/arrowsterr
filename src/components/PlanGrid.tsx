@@ -40,9 +40,6 @@ function visibility(p: Plan): Group {
       { text: `${n(p.competitors)} competitors per brand`, on: true },
       { text: "Sources AI cites", on: true },
       { text: history(p.historyDays), on: true },
-      p.listenBrands > 0
-        ? { text: `Social listening: ${count(p.listenBrands, "brand")}, ${n(p.listenNames)} competitors each`, on: true }
-        : { text: "Social listening", ...on(false, "On Starter") },
     ],
   };
 }

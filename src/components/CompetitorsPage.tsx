@@ -1,6 +1,5 @@
 "use client";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { Dropdown } from "./Pickers";
 import { useState } from "react";
 import { answered, battle, brandStats, rankOf, rankTrend, topicGrid, trend, type BattleRow, type BrandStat } from "@/lib/metrics";
@@ -10,7 +9,6 @@ import type { View } from "@/lib/view";
 import { BrandLogo } from "./BrandLogo";
 import { B_COLOR, Bar, CompetitorPanel } from "./CompetitorPanel";
 import { EngineName } from "./Engines";
-import { SocialPage } from "./SocialPage";
 import { TrendChart } from "./TrendChart";
 import { BrandName, Card, Delta, Empty, favicon, guessDomain, pct, pos, score, Seg, sortRows, SidePanel, SortTh, Tip, TIPS, useSort, YOU_COLOR } from "./ui";
 
@@ -167,24 +165,12 @@ type Props = {
   onTopic: (topic: string) => void;
 };
 
-/** Competitors in AI answers, and on social sites. */
-export function CompetitorsPage({ sb, reader = null, ...props }: Props & { sb: SupabaseClient; reader?: RunAuth | null }) {
-  const [tab, setTab] = useState<"ai" | "social">("ai");
+/** Competitors in AI answers. */
+export function CompetitorsPage(props: Props) {
   return (
     <div className="flex flex-col gap-8">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="aw-h2 mb-0!">Competitors</h1>
-        <Seg
-          label="Competitors view"
-          value={tab}
-          onChange={setTab}
-          options={[
-            { id: "ai", label: "AI answers" },
-            { id: "social", label: "Social" },
-          ]}
-        />
-      </div>
-      {tab === "social" ? <SocialPage view={props.view} sb={sb} reader={reader} auth={props.auth ?? null} /> : <AiCompetitors {...props} />}
+      <h1 className="aw-h2 mb-0!">Competitors</h1>
+      <AiCompetitors {...props} />
     </div>
   );
 }
