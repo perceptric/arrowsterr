@@ -24,12 +24,15 @@ import { treemap } from "@/lib/treemap";
 import type { RunAuth } from "@/lib/runner";
 import { isAnswered, type Run } from "@/lib/chats";
 import type { View } from "@/lib/view";
+import { formatDate } from "@/lib/dates";
 import type { Scope } from "./research/DomainResearch";
 import { BrandLogo } from "./BrandLogo";
 import { StopButton, stopped } from "./research/shared";
 import { ENGINE_LOGOS, EngineName } from "./Engines";
+import { ChevronDown, ChevronRight, ExternalLink } from "./Icons";
 import { Markdown } from "./Markdown";
-import { Card, Empty, favicon, pct, Seg, SidePanel, sortRows, SortTh, Tip, TIPS, useSort } from "./ui";
+import { BlockError, EmptyBlock, EmptyRow, SkelBlock } from "./states";
+import { Card, favicon, pct, Seg, SidePanel, sortRows, SortTh, Tip, TIPS, useSort } from "./ui";
 
 export const TYPE_COLORS: Record<SourceType, string> = {
   You: "#0943B0",
@@ -95,10 +98,16 @@ type AiPages = { pages: { path: string; visits: number; engines: Record<string, 
 
 const TOP = 20; // rows in the list before "Open all"
 
-export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseClient; view: View; auth: RunAuth | null; reader: RunAuth; onSeo: (target: string, scope: Scope) => void; sub?: string; onSub?: (sub?: string) => void }) {
+export function SourcesPage({ sb, view, auth, reader, onSeo, sub, onSub }: { sb: SupabaseClient; view: View; auth: RunAuth | null; reader: RunAuth; onSeo: (target: string, scope: Scope) => void; sub?: string; onSub?: (sub?: string) => void }) {
   const { brand, current, filter, days, topics, engines } = view;
   const [group, setGroup] = useState<Group>("third");
-  const [list, setList] = useState<"sites" | "links">("links");
+  // The list follows the address: /sources lists sites, /sources/urls lists links.
+  const [ownList, setOwnList] = useState<"sites" | "links">(sub === "urls" ? "links" : "sites");
+  const list = onSub ? (sub === "urls" ? "links" : "sites") : ownList;
+  const setList = (v: "sites" | "links") => {
+    setOwnList(v);
+    onSub?.(v === "links" ? "urls" : undefined);
+  };
   const [focus, setFocus] = useState<string | null>(null);
   const [sort, setSort] = useSort("used");
   const [linkSort, setLinkSort] = useSort("used");
@@ -136,7 +145,15 @@ export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseCli
   const [analyzing, setAnalyzing] = useState<AbortController | null>(null);
 
   const chats = answered(current, filter);
-  if (!chats.length) return <Empty>No results in the last {days} days yet. They show up after the first check finishes, then update every day.</Empty>;
+  if (!chats.length)
+    return (
+      <div className="flex flex-col gap-6">
+        <h1 className="aw-h2">Sources</h1>
+        <Card title="Most cited links">
+          <EmptyBlock>No results in the last {days} days yet. They show up after the first check finishes, then update every day.</EmptyBlock>
+        </Card>
+      </div>
+    );
   const stats = brandStats(chats, { name: brand.name, domain: brand.domain });
   const comp = competitorDomains(stats);
   const domains = domainRows(chats, brand.domain, comp);
@@ -203,29 +220,31 @@ export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseCli
 
   const toggle = (set: Set<string>, key: string) => (set.has(key) ? new Set([...set].filter((x) => x !== key)) : new Set([...set, key]));
   const total = list === "sites" ? sites.length : Math.min(links.length, 300);
+  const emptyLine = `No ${GROUPS.find((g) => g.id === group)!.label.toLowerCase()} sites cited in this period.`;
+  const listTitle = `${focus ? `Links on ${focus}` : list === "sites" ? "Top sites" : "Most cited links"} · ${total}`;
   /** The site or link table, with its first `max` rows. */
   const table = (max: number) =>
     list === "sites" ? (
             <table className="aw-table">
               <thead>
                 <tr>
-                  <th className="w-10">#</th>
+                  <th className="w-10 text-right">#</th>
                   <SortTh id="domain" sort={sort} onSort={setSort} text>
                     Site
                   </SortTh>
-                  <SortTh id="used" sort={sort} onSort={setSort} className="w-32">
+                  <SortTh id="used" sort={sort} onSort={setSort} className="w-28 text-right">
                     Used
                     <Tip text={TIPS.used} />
                   </SortTh>
-                  <SortTh id="chats" sort={sort} onSort={setSort} className="w-32">
+                  <SortTh id="chats" sort={sort} onSort={setSort} className="w-28 text-right">
                     Answers
                     <Tip text={TIPS.answers} />
                   </SortTh>
-                  <SortTh id="pages" sort={sort} onSort={setSort} className="w-28">
+                  <SortTh id="pages" sort={sort} onSort={setSort} className="w-24 text-right">
                     Pages
                     <Tip text={TIPS.pages} />
                   </SortTh>
-                  <th className="w-40" aria-label="Actions" />
+                  <th className="w-32" aria-label="Actions" />
                 </tr>
               </thead>
               <tbody>
@@ -235,18 +254,29 @@ export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseCli
                   const isOpen = open.has(g.domain);
                   return (
                     <Fragment key={g.domain}>
-                      <tr className={`cursor-pointer ${g.type === "You" ? "is-you" : ""}`} onClick={() => setOpen(toggle(open, g.domain))} aria-expanded={isOpen}>
-                        <td className="aw-num text-muted">{i + 1}</td>
+                      <tr className={`cursor-pointer ${g.type === "You" ? "is-you" : ""}`} onClick={() => setOpen(toggle(open, g.domain))}>
+                        <td className="aw-td-num text-muted">{i + 1}</td>
                         <td>
                           <span className="flex items-center gap-2.5">
                             <BrandLogo src={favicon(g.domain)} name={g.domain} size={20} />
-                            <span className="font-medium text-ink">{g.domain}</span>
+                            {/* The site is the row's button, so the keyboard can open its pages too. */}
+                            <button
+                              type="button"
+                              className="text-left font-medium text-ink"
+                              aria-expanded={isOpen}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpen(toggle(open, g.domain));
+                              }}
+                            >
+                              {g.domain}
+                            </button>
                             {g.type === "Competitor" ? <TypeTag type="Competitor" /> : null}
                           </span>
                         </td>
-                        <td className="aw-num">{pct(g.used)}</td>
-                        <td className="aw-num">{g.chats}</td>
-                        <td className="aw-num">{g.pages.length}</td>
+                        <td className="aw-td-num">{pct(g.used)}</td>
+                        <td className="aw-td-num">{g.chats}</td>
+                        <td className="aw-td-num">{g.pages.length}</td>
                         <td className="text-right whitespace-nowrap">
                           <button
                             type="button"
@@ -258,9 +288,7 @@ export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseCli
                           >
                             Analyze SEO
                           </button>
-                          <span className="text-muted" aria-hidden="true">
-                            {isOpen ? "▴" : "▾"}
-                          </span>
+                          <ChevronDown size={14} className={`inline align-middle text-muted ${isOpen ? "rotate-180" : ""}`} />
                         </td>
                       </tr>
                       {isOpen
@@ -271,29 +299,30 @@ export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseCli
                     </Fragment>
                   );
                 })}
+                {!sites.length ? <EmptyRow colSpan={6}>{emptyLine}</EmptyRow> : null}
               </tbody>
             </table>
           ) : (
             <table className="aw-table">
               <thead>
                 <tr>
-                  <th className="w-10">#</th>
+                  <th className="w-10 text-right">#</th>
                   <SortTh id="title" sort={linkSort} onSort={setLinkSort} text>
                     Link
                   </SortTh>
-                  <SortTh id="used" sort={linkSort} onSort={setLinkSort} className="w-32">
+                  <SortTh id="used" sort={linkSort} onSort={setLinkSort} className="w-28 text-right">
                     Used
                     <Tip text="Share of AI answers that cite this link." />
                   </SortTh>
-                  <SortTh id="chats" sort={linkSort} onSort={setLinkSort} className="w-32">
+                  <SortTh id="chats" sort={linkSort} onSort={setLinkSort} className="w-28 text-right">
                     Answers
                   </SortTh>
-                  {aiPages && group === "owned" ? <th className="w-28">AI visits</th> : null}
-                  <SortTh id="prompts" sort={linkSort} onSort={setLinkSort} className="w-28">
+                  {aiPages && group === "owned" ? <th className="w-28 text-right">AI visits</th> : null}
+                  <SortTh id="prompts" sort={linkSort} onSort={setLinkSort} className="w-24 text-right">
                     Prompts
                     <Tip text="How many of your prompts got an answer citing this link." />
                   </SortTh>
-                  <th className={auth ? "w-48" : "w-10"} aria-label="Actions" />
+                  <th className="w-10" aria-label="Actions" />
                 </tr>
               </thead>
               <tbody>
@@ -302,6 +331,7 @@ export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseCli
                   .map((u, i) => (
                   <LinkRow key={u.url} u={u} n={i + 1} note={notes.get(pageKey(u.url))} ai={aiPages && group === "owned" ? aiVisitsOf(u.url) : undefined} onOpen={() => setDeep(u)} />
                 ))}
+                {!links.length ? <EmptyRow colSpan={aiPages && group === "owned" ? 7 : 6}>{emptyLine}</EmptyRow> : null}
               </tbody>
             </table>
           );
@@ -310,7 +340,7 @@ export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseCli
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="aw-h2">Sources</h1>
-        <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => onSeo(focus ?? brand.domain, "domain")}>
+        <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => onSeo(focus ?? brand.domain, "domain")}>
           Analyze SEO performance
         </button>
       </div>
@@ -335,42 +365,50 @@ export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseCli
             </button>
           ))}
         </div>
-        <ul className="flex flex-wrap gap-x-6 gap-y-1 text-[13px] text-ink">
-          {GROUPS.map((g) => (
-            <li key={g.id} className="flex items-center gap-2">
-              <i className="inline-block h-3 w-3" style={{ background: g.color }} />
-              {g.label}
-              <b className="aw-num font-medium">{pct(groupShare(g.id))}</b>
-              <Tip text={g.help} />
-            </li>
-          ))}
-        </ul>
       </section>
 
-      {/* 2. Tabs */}
+      {/* 2. Tabs, each with its share and its count of sites */}
       <div className="aw-tabs aw-tabs--lg flex" role="tablist" aria-label="Kind of site">
         {GROUPS.map((g) => (
-          <button
-            key={g.id}
-            type="button"
-            role="tab"
-            aria-selected={group === g.id}
-            onClick={() => pickGroup(g.id)}
-          >
+          <button key={g.id} type="button" role="tab" aria-selected={group === g.id} onClick={() => pickGroup(g.id)} title={g.help}>
             <i className="inline-block h-2.5 w-2.5" style={{ background: g.color }} />
             {g.label}
-            <span className="aw-num text-[12px] text-muted">{domains.filter((d) => groupOf(d.type) === g.id).length}</span>
+            <span className="aw-num text-[12px] text-muted">
+              {pct(groupShare(g.id))} · {domains.filter((d) => groupOf(d.type) === g.id).length}
+            </span>
           </button>
         ))}
       </div>
 
-      {/* 3. Site map */}
+      {/* 3. One list, first so its top rows show on the first screen */}
+      <section className="aw-frame">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-rule-faint px-5 py-3">
+          <h2 className="aw-label">{listTitle}</h2>
+          <Seg
+            label="List"
+            value={list}
+            onChange={setList}
+            options={[
+              { id: "sites", label: "By site" },
+              { id: "links", label: "By link" },
+            ]}
+          />
+        </div>
+        {table(TOP)}
+        {total > TOP ? (
+          <div className="border-t border-rule-faint px-5 py-3">
+            <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setFull(true)}>
+              Open all {total}
+            </button>
+          </div>
+        ) : null}
+      </section>
+
+      {/* 4. Site map */}
       {boxes.length ? (
         <section className="aw-frame">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-rule-faint px-5 py-3">
-            <span className="aw-label">
-              Site map
-            </span>
+            <h2 className="aw-label">Site map</h2>
             {focus ? (
               <button type="button" className="aw-text-link text-[13px]" onClick={() => setFocus(null)}>
                 Show all sites
@@ -404,36 +442,7 @@ export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseCli
             })}
           </div>
         </section>
-      ) : (
-        <Empty>No {GROUPS.find((g) => g.id === group)!.label.toLowerCase()} sites cited in this period.</Empty>
-      )}
-
-      {/* 4. One list */}
-      {boxes.length ? (
-        <section className="aw-frame">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-rule-faint px-5 py-3">
-            <span className="aw-label">{focus ? `Links on ${focus}` : list === "sites" ? "Top sites" : "Most cited links"}</span>
-            <Seg
-              label="List"
-              value={list}
-              onChange={setList}
-              options={[
-                { id: "links", label: "By link" },
-                { id: "sites", label: "By site" },
-              ]}
-            />
-          </div>
-          {table(TOP)}
-          {total > TOP ? (
-            <div className="border-t border-rule-faint px-5 py-3">
-              <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setFull(true)}>
-                Open all {total}
-              </button>
-            </div>
-          ) : null}
-        </section>
       ) : null}
-
 
       {full ? (
         <SidePanel title={focus ? `Links on ${focus}` : list === "sites" ? "Every site" : "Most cited links"} kicker={`${total} ${list === "sites" ? "sites" : "links"} · last ${days} days`} onClose={() => setFull(false)}>
@@ -446,15 +455,19 @@ export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseCli
       <Card
         title="Executive summary"
         action={
-          auth ? (
-            <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={analyze} disabled={busy}>
-              {busy ? "Analyzing..." : insights ? "Refresh" : "Analyze"}
-            </button>
-          ) : null
+          <span className="flex items-center gap-3">
+            {insights && !busy ? <span className="aw-small">Made {formatDate(insights.at)}</span> : null}
+            {auth ? (
+              <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={analyze} disabled={busy}>
+                {busy ? "Analyzing..." : insights ? "Refresh" : "Analyze"}
+              </button>
+            ) : null}
+          </span>
         }
       >
         <div className="flex flex-col gap-4 p-5">
-          {error ? <p className="aw-error">{error}</p> : null}
+          {/* A failed run keeps the last summary on screen under the error. */}
+          {error && !busy ? <BlockError what={`a new summary (${error})`} lastGood={insights?.at} onRetry={auth ? analyze : undefined} /> : null}
           {busy ? (
             <span className="flex items-center gap-3 text-[14px] text-ink">
               Reading your sources...
@@ -475,9 +488,10 @@ export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseCli
                   </li>
                 ))}
               </ol>
-              <span className="aw-label">Made {new Date(insights.at).toLocaleString()}</span>
             </>
-          ) : null}
+          ) : (
+            <p className="aw-small">{auth ? "What these sources mean for you, and three things to do next." : "No summary yet."}</p>
+          )}
         </div>
       </Card>
     </div>
@@ -488,12 +502,21 @@ export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseCli
 function LinkRow({ u, n, note, indent = false, ai, onOpen }: { u: UrlRow; n?: number; note?: Insights["pages"][number]; indent?: boolean; ai?: number | null; onOpen: () => void }) {
   return (
     <tr className={`cursor-pointer hover:bg-brand-pale ${indent ? "bg-paper" : ""}`} onClick={onOpen}>
-      <td className="aw-num text-muted">{n ?? ""}</td>
+      <td className="aw-td-num text-muted">{n ?? ""}</td>
       <td>
         <span className={`flex min-w-0 flex-col gap-0.5 ${indent ? "pl-8" : ""}`}>
-          <span className="max-w-xl truncate text-[14px] font-medium text-ink" title={u.url}>
+          {/* The title is the row's button, so the keyboard can open it too. */}
+          <button
+            type="button"
+            className="max-w-xl truncate text-left text-[14px] font-medium text-ink"
+            title={u.url}
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpen();
+            }}
+          >
             {pageTitle(u.title, u.url)}
-          </span>
+          </button>
           <span className="flex min-w-0 items-center gap-1.5 text-[12px] text-muted">
             {!indent ? <BrandLogo src={favicon(u.domain)} name={u.domain} size={12} /> : null}
             <span className="max-w-xl truncate">{u.url.replace(/^https?:\/\/(www\.)?/, "")}</span>
@@ -506,14 +529,14 @@ function LinkRow({ u, n, note, indent = false, ai, onOpen }: { u: UrlRow; n?: nu
           ) : null}
         </span>
       </td>
-      <td className="aw-num">{pct(u.used)}</td>
-      <td className="aw-num">{u.chats}</td>
-      {ai !== undefined ? <td className="aw-num">{ai === null ? "–" : ai.toLocaleString("en-US")}</td> : null}
-      <td className="aw-num" title={u.prompts.join("\n")}>
+      <td className="aw-td-num">{pct(u.used)}</td>
+      <td className="aw-td-num">{u.chats}</td>
+      {ai !== undefined ? <td className="aw-td-num">{ai === null ? "–" : ai.toLocaleString("en-US")}</td> : null}
+      <td className="aw-td-num" title={u.prompts.join("\n")}>
         {u.prompts.length}
       </td>
       <td className="text-right whitespace-nowrap text-muted">
-        <span aria-hidden="true">›</span>
+        <ChevronRight size={14} className="inline align-middle" />
       </td>
     </tr>
   );
@@ -558,7 +581,7 @@ function LinkPanel({
     .sort((a, b) => b.n - a.n);
   const byEngine = [...new Set(cites.map((c) => c.engine))].map((engine) => ({ engine, n: cites.filter((c) => c.engine === engine).length })).sort((a, b) => b.n - a.n);
   const dates = cites.map((c) => c.at).sort();
-  const day = (iso?: string) => (iso ? new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "–");
+  const day = (iso?: string) => formatDate(iso);
   const most = Math.max(1, ...byEngine.map((e) => e.n));
 
   // The full answers behind each citation, loaded once the panel opens.
@@ -592,8 +615,9 @@ function LinkPanel({
   return (
     <SidePanel title={pageTitle(u.title, u.url)} kicker={`Link · ${u.domain} · last ${days} days`} onClose={onClose}>
       <div className="flex flex-wrap items-center gap-3">
-        <a href={u.url} target="_blank" rel="noopener noreferrer nofollow" className="max-w-full truncate text-[14px]">
-          {u.url.replace(/^https?:\/\//, "")} ↗
+        <a href={u.url} target="_blank" rel="noopener noreferrer nofollow" className="inline-flex max-w-full items-center gap-1 text-[14px]">
+          <span className="truncate">{u.url.replace(/^https?:\/\//, "")}</span>
+          <ExternalLink size={14} className="shrink-0" />
         </a>
         <TypeTag type={u.type} />
         <span className="ml-auto flex flex-wrap gap-2">
@@ -629,27 +653,35 @@ function LinkPanel({
             <thead>
               <tr>
                 <th>Prompt</th>
-                <th className="w-28">Times</th>
+                <th className="w-24 text-right">Times</th>
                 <th className="w-40">Models</th>
-                <th className="w-28">Last</th>
+                <th className="w-24 text-right">Last</th>
               </tr>
             </thead>
             <tbody>
               {byPrompt.map((p) => (
                 <Fragment key={p.prompt}>
-                <tr className={`cursor-pointer hover:bg-brand-pale ${shown === p.prompt ? "bg-brand-pale" : ""}`} onClick={() => setShown(shown === p.prompt ? null : p.prompt)} aria-expanded={shown === p.prompt}>
+                <tr className={`cursor-pointer hover:bg-brand-pale ${shown === p.prompt ? "bg-brand-pale" : ""}`} onClick={() => setShown(shown === p.prompt ? null : p.prompt)}>
                   <td>
                     <span className="flex flex-col gap-0.5">
                       <span className="flex items-start gap-2 text-[14px] text-ink">
-                        <span aria-hidden="true" className="text-muted">
-                          {shown === p.prompt ? "▾" : "▸"}
-                        </span>
-                        {p.prompt}
+                        <span className="pt-0.5 text-muted">{shown === p.prompt ? <ChevronDown size={14} /> : <ChevronRight size={14} />}</span>
+                        <button
+                          type="button"
+                          className="text-left"
+                          aria-expanded={shown === p.prompt}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShown(shown === p.prompt ? null : p.prompt);
+                          }}
+                        >
+                          {p.prompt}
+                        </button>
                       </span>
                       {topicOf(p.prompt) ? <span className="text-[12px] text-muted">{topicOf(p.prompt)}</span> : null}
                     </span>
                   </td>
-                  <td className="aw-num">{p.n}</td>
+                  <td className="aw-td-num">{p.n}</td>
                   <td>
                     <span className="flex items-center gap-1">
                       {p.engines.map((e) => (
@@ -659,7 +691,7 @@ function LinkPanel({
                       ))}
                     </span>
                   </td>
-                  <td className="aw-num text-muted">{day(p.last)}</td>
+                  <td className="aw-td-num text-muted">{day(p.last)}</td>
                 </tr>
                 {shown === p.prompt ? (
                   <tr>
@@ -672,7 +704,7 @@ function LinkPanel({
                               <span className="aw-small">Full answer · {day(a.at)}</span>
                             </div>
                             <div className="max-h-[480px] overflow-y-auto px-5 py-4">
-                              {texts === null ? <span className="aw-small">Loading...</span> : a.text ? <Markdown text={a.text} /> : <span className="aw-small">No full answer saved for this check.</span>}
+                              {texts === null ? <SkelBlock lines={4} /> : a.text ? <Markdown text={a.text} /> : <span className="aw-small">No full answer saved for this check.</span>}
                             </div>
                           </div>
                         ))}
