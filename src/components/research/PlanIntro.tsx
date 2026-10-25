@@ -6,7 +6,8 @@ import { nextMonday, type Stage } from "@/lib/research";
 import { Sheet, type Col } from "../Sheet";
 import { AiIcon, SidePanel } from "../ui";
 import { CalendarGrid } from "./CalendarGrid";
-import { byStage, Difficulty, fmtCpc, PLAN_VIEWS, statusLabel, StageTag, Tick, ViewSwitch, type PlanView } from "./shared";
+import { LinkIcon } from "../Icons";
+import { byStage, Difficulty, Done, fmtCpc, ListViewIcon, PLAN_VIEWS, statusLabel, StageTag, ViewSwitch, type PlanView } from "./shared";
 
 type Row = CalendarItem & { cpc: number | null };
 
@@ -81,10 +82,10 @@ export function PlanIntro({ canEdit, busy, built, onBuild, trial }: { canEdit: b
   return (
     <section className="aw-frame flex flex-col gap-3 p-6 md:p-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="aw-h3 mb-0!">Your Content Plan, built by an AI agent</h2>
+        <h2 className="aw-h3 mb-0!">Your Editorial Calendar, built by an AI agent</h2>
         {built ? (
           <span className="flex items-center gap-2 text-[13px] font-medium text-ink">
-            <Tick />
+            <Done />
             Your plan is built
           </span>
         ) : null}
@@ -96,7 +97,7 @@ export function PlanIntro({ canEdit, busy, built, onBuild, trial }: { canEdit: b
           "Cherry-pick the keywords that have the highest revenue potential",
           "Plan 12 weeks of content with dates, ready-to-buy topics first",
           "Find pages you already have that could rank higher with a quick content update",
-          "Read Google's top 10 for any keyword, write the brief, then write the draft with the Agentic Writer",
+          "Read Google's top 10 for any keyword, write the outline, then write the draft with the Agentic Writer",
         ].map((x) => (
           <li key={x} className="flex items-start gap-2.5">
             <span className="mt-0.5 text-brand">
@@ -110,7 +111,7 @@ export function PlanIntro({ canEdit, busy, built, onBuild, trial }: { canEdit: b
       {!built && canEdit ? (
         <button type="button" className="aw-btn aw-btn--accent mt-2 self-start" onClick={onBuild} disabled={busy}>
           <AiIcon />
-          {busy ? "Starting..." : "Build my content plan"}
+          {busy ? "Starting..." : "Build my Editorial Calendar"}
         </button>
       ) : null}
       {trial ? (
@@ -121,7 +122,7 @@ export function PlanIntro({ canEdit, busy, built, onBuild, trial }: { canEdit: b
           </button>
         </p>
       ) : null}
-      {built || canEdit ? null : <p className="aw-small">Ask an editor to build the Content Plan.</p>}
+      {built || canEdit ? null : <p className="aw-small">Ask an editor to build the Editorial Calendar.</p>}
     </section>
   );
 }
@@ -135,11 +136,11 @@ export function PlanSample() {
     <>
       <section className="aw-frame">
         <div className="aw-frame__head justify-between">
-          <h2 className="aw-h4">Sample: a Content Plan for Acme</h2>
+          <h2 className="aw-h4">Sample: an Editorial Calendar for Acme</h2>
           <span className="aw-chip">Example only · click a keyword</span>
         </div>
         {view === "list" ? (
-          <Sheet<Row> id="plan:sample" label="Sample Content Plan" rows={SAMPLE} cols={COLS} rowKey={(r) => r.id} sort={{ key: "stage", desc: false }} height="none" showFilters={false} counts={false} toolbar={toggle} onOpen={setOpen} />
+          <Sheet<Row> id="plan:sample" label="Sample Editorial Calendar" rows={SAMPLE} cols={COLS} rowKey={(r) => r.id} sort={{ key: "stage", desc: false }} height="none" showFilters={false} counts={false} toolbar={toggle} onOpen={setOpen} />
         ) : (
           <div className="p-4">
             <CalendarGrid items={SAMPLE} canEdit={false} onMove={() => {}} onDay={() => {}} onOpen={(id) => setOpen(SAMPLE.find((r) => r.id === id) ?? null)} toolbar={toggle} />
@@ -158,8 +159,8 @@ function DemoPiece({ row, onClose }: { row: Row; onClose: () => void }) {
   const [tab, setTab] = useState<DemoTab>("draft");
   const tabs: { id: DemoTab; label: React.ReactNode }[] = [
     { id: "overview", label: "Overview" },
-    { id: "serp", label: <>SERP analysis <Tick /></> },
-    { id: "brief", label: <>Content Brief <Tick /></> },
+    { id: "serp", label: <>SERP analysis <Done /></> },
+    { id: "brief", label: <>Outline <Done /></> },
     { id: "draft", label: "Agentic Writer" },
   ];
   const serp = [
@@ -247,9 +248,9 @@ function DemoPiece({ row, onClose }: { row: Row; onClose: () => void }) {
       ) : (
         <section className="aw-frame overflow-hidden">
           <div className="flex flex-wrap items-center gap-1 border-b border-rule bg-white px-3 py-2">
-            {["H1", "H2", "H3", "B", "I", "•", "1.", "🔗", "⊞"].map((b) => (
+            {["H1", "H2", "H3", "B", "I", "list", "1.", "link", "⊞"].map((b) => (
               <span key={b} className="aw-tool">
-                {b}
+                {b === "link" ? <LinkIcon size={14} /> : b === "list" ? <ListViewIcon /> : b}
               </span>
             ))}
             <span className="ml-auto aw-small">Saved</span>
@@ -260,7 +261,7 @@ function DemoPiece({ row, onClose }: { row: Row; onClose: () => void }) {
               <p className="text-[15px] leading-relaxed text-body">Picking the wrong tool costs more than its price. You lose hours to manual entry, miss tax deadlines and pay for features you never use. This guide compares the options on what matters to a small team.</p>
               <h2 className="text-[20px] font-semibold text-ink">How we picked</h2>
               <p className="text-[15px] leading-relaxed text-body">We tested each tool for two weeks with real invoices, a payroll run and three bank accounts.</p>
-              <div className="border-l-2 border-brand bg-brand-pale px-4 py-3 text-[13px] text-ink">✦ The agent is writing “The 8 best options, compared” with a pricing table…</div>
+              <div className="flex items-center gap-2 border-l-2 border-brand bg-brand-pale px-4 py-3 text-[13px] text-ink"><AiIcon /> The agent is writing “The 8 best options, compared” with a pricing table…</div>
             </div>
             <aside className="flex flex-col gap-2 border-t border-rule bg-surface-2 p-4 lg:border-t-0 lg:border-l">
               <span className="aw-label">Agentic Writer</span>
@@ -273,7 +274,7 @@ function DemoPiece({ row, onClose }: { row: Row; onClose: () => void }) {
               ].map(([s, done]) => (
                 <span key={String(s)} className="flex items-center justify-between gap-2 rounded-[6px] bg-white px-3 py-2 text-[13px] text-ink">
                   {s}
-                  {done ? <Tick /> : <span className="aw-chip">Write</span>}
+                  {done ? <Done /> : <span className="aw-chip">Write</span>}
                 </span>
               ))}
               <p className="mt-2 text-[12px] text-muted">On your own plan, click any keyword and write it here, section by section, in your brand&apos;s voice. Then publish to your CMS.</p>

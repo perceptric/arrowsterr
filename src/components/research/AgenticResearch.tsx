@@ -5,6 +5,8 @@ import { useCallback, useEffect, useState } from "react";
 import { keywordRunResult, listKeywordRuns, saveKeywordRunResult, type BankRow, type KeywordRun, type Site } from "@/lib/db";
 import { STAGES, type AgentResult } from "@/lib/research";
 import { useStash } from "@/lib/stash";
+import { askConfirm } from "../Dialogs";
+import { Check } from "../Icons";
 import { StopButton } from "./shared";
 
 const STEPS = [
@@ -143,7 +145,7 @@ export function PlanProgress({
 
   if (error) return <p className="aw-error">{error}</p>;
   if (run && run.status === "failed" && run.error === "Stopped.") return null;
-  if (run && (run.status === "failed" || stale)) return <p className="aw-error">{stale ? "The last content plan stopped before it finished." : `Content plan failed: ${run.error ?? "unknown error"}`}</p>;
+  if (run && (run.status === "failed" || stale)) return <p className="aw-error">{stale ? "The last Editorial Calendar build stopped before it finished." : `Building the Editorial Calendar failed: ${run.error ?? "unknown error"}`}</p>;
   if (!running || !run) return null;
 
   const at = stepIndex(run.step);
@@ -163,7 +165,7 @@ export function PlanProgress({
             <span className="ml-auto">
               <StopButton
                 onStop={async () => {
-                  if (!confirm("Stop building the content plan? You can start it again.")) return;
+                  if (!(await askConfirm({ title: "Stop building the Editorial Calendar?", text: "You can start it again.", action: "Stop" }))) return;
                   try {
                     await onStop(run.id);
                   } catch (e) {
@@ -178,8 +180,8 @@ export function PlanProgress({
         <ol className="flex flex-col gap-2">
           {STEPS.map((s, i) => (
             <li key={s} className={`flex items-center gap-3 text-[14px] ${i < at ? "text-ink" : i === at ? "font-medium text-brand" : "text-muted"}`}>
-              <span className="w-5 text-center" aria-hidden="true">
-                {i < at ? "✓" : i === at ? "●" : "○"}
+              <span className="flex w-5 justify-center" aria-hidden="true">
+                {i < at ? <Check size={14} /> : <i className={`inline-block h-2 w-2 ${i === at ? "bg-brand" : "border border-rule"}`} />}
               </span>
               {s}
               <span className="sr-only">{i < at ? "done" : i === at ? "in progress" : "waiting"}</span>

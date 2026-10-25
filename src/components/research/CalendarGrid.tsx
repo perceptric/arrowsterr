@@ -133,8 +133,17 @@ export function CalendarGrid({
             <div
               key={key}
               {...drop(key)}
+              role="button"
+              tabIndex={0}
+              aria-label={`Open ${d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}`}
               onClick={() => onDay(key)}
-              className={`group flex ${mode === "week" ? "min-h-[60vh]" : "min-h-28"} min-w-0 flex-col gap-1 border-r border-b border-rule-faint p-1.5 [&:nth-child(7n)]:border-r-0 ${inMonth ? "bg-white" : "bg-paper"} ${over === key ? "bg-brand-pale! outline-2 -outline-offset-2 outline-brand" : ""} cursor-pointer hover:bg-brand-pale/60`}
+              onKeyDown={(e) => {
+                // Enter or Space on the day itself opens it; keys on a piece inside stay with the piece.
+                if (e.target !== e.currentTarget || (e.key !== "Enter" && e.key !== " ")) return;
+                e.preventDefault();
+                onDay(key);
+              }}
+              className={`group flex ${mode === "week" ? "min-h-[60vh]" : "min-h-28"} min-w-0 flex-col gap-1 border-r border-b border-rule-faint p-1.5 [&:nth-child(7n)]:border-r-0 ${inMonth ? "bg-white" : "bg-paper"} ${over === key ? "bg-brand-pale! outline-2 -outline-offset-2 outline-brand" : ""} cursor-pointer hover:bg-brand-pale/60 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand`}
             >
               <span className="flex items-center justify-between">
                 <span className={`aw-num text-[12px] ${key === today ? "bg-brand px-1.5 text-white" : inMonth ? "text-ink" : "text-faint"}`}>{d.getDate()}</span>
