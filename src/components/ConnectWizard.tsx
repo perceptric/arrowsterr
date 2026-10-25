@@ -7,6 +7,7 @@ import { CMS, type CmsConnection, type CmsKind } from "@/lib/cmsTypes";
 import { authorizeUrl, newState, siteAddress, WP_ANSWER_KEY, WP_STATE_KEY, type WpAnswer } from "@/lib/wpAuthorize";
 import type { RunAuth } from "@/lib/runner";
 import { Modal } from "./reports/Dialog";
+import { ExternalLink } from "./Icons";
 
 async function call<T>(auth: RunAuth, body: Record<string, unknown>): Promise<T> {
   const res = await fetch("/api/cms", {
@@ -244,7 +245,8 @@ export function ConnectWizard({
               />
               {i === 0 && link ? (
                 <a href={link.href} target="_blank" rel="noopener noreferrer" className="aw-btn aw-btn--secondary aw-btn--sm mt-1 self-start">
-                  {link.label} ↗
+                  {link.label}
+                  <ExternalLink size={12} />
                 </a>
               ) : null}
             </label>

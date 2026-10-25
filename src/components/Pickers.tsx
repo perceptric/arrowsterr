@@ -5,6 +5,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { Check } from "./Icons";
 
 export type Option = {
   id: string;
@@ -119,7 +120,11 @@ export function SelectPop({ anchor, options, value, onPick, onClose, label }: { 
           <li key={o.id || "none"} role="option" aria-selected={o.id === value}>
             <button type="button" className={`aw-pop__opt ${k === i ? "is-hot" : ""}`} onMouseEnter={() => setI(k)} onClick={() => onPick(o.id)}>
               {o.tone ? <span className={`aw-status ${o.tone}`}>{o.label}</span> : <span>{o.label}</span>}
-              {o.id === value ? <span className="aw-pop__check">✓</span> : null}
+              {o.id === value ? (
+                <span className="aw-pop__check">
+                  <Check size={14} />
+                </span>
+              ) : null}
             </button>
           </li>
         ))}

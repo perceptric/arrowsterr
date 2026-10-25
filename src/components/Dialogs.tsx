@@ -68,7 +68,7 @@ function Question({ ask }: { ask: Ask }) {
     else if (ask.kind === "text") ask.done(null);
     else ask.done();
   };
-  const confirm = () => {
+  const accept = () => {
     settle(ask);
     if (ask.kind === "confirm") ask.done(true);
     else if (ask.kind === "text") ask.done(text.trim() || null);
@@ -80,7 +80,7 @@ function Question({ ask }: { ask: Ask }) {
         className="flex flex-col gap-4"
         onSubmit={(e) => {
           e.preventDefault();
-          confirm();
+          accept();
         }}
       >
         {ask.kind === "text" ? (

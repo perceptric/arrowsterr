@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { limitsFor, PLANS, SELF_SERVE, UNLIMITED, type Interval, type Plan, type PlanId, type Track } from "@/lib/plans";
 import { BrandLogo } from "./BrandLogo";
+import { Check } from "./Icons";
 import { ENGINE_LOGOS } from "./Engines";
 import { Seg } from "./ui";
 
@@ -134,7 +135,7 @@ function Line({ f }: { f: Feature }) {
   return (
     <li className={`flex items-start gap-2.5 text-[14px] leading-snug ${f.on ? "text-body" : "text-faint line-through decoration-rule"}`}>
       <span aria-hidden="true" className={`mt-px flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] ${f.on ? "bg-brand-pale text-brand" : "bg-surface-2 text-faint"}`}>
-        {f.on ? "✓" : "–"}
+        {f.on ? <Check size={10} /> : "–"}
       </span>
       <span className="flex flex-col gap-1.5">
         {f.text}
