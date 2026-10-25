@@ -28,7 +28,7 @@ const readSection = (): Section => {
  * the Brand Kit and written guidelines, one section at a time beside a sub-nav. The writer reads all three
  * through loadBrandContext in src/lib/brandContext.ts.
  */
-export function BrandPage({ sb, auth, brand, brandCount, canEdit }: { sb: SupabaseClient; auth: RunAuth; brand: { id: string; name: string; domain: string }; brandCount: number; canEdit: boolean }) {
+export function BrandPage({ sb, auth, brand, brandCount, canEdit }: { sb: SupabaseClient; auth: RunAuth; brand: { id: string; name: string; domain: string }; brandCount: number; canEdit: boolean; sub?: string; onSub?: (sub?: string) => void }) {
   const [section, setSectionState] = useState<Section>(readSection);
   const setSection = (s: Section) => {
     setSectionState(s);

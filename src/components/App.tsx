@@ -5,6 +5,10 @@ import { Dropdown } from "./Pickers";
 import { withoutResearch } from "@/lib/researchUrl";
 import { recordUndo } from "@/lib/undo";
 import { UndoKeys } from "./UndoKeys";
+import { askConfirm, askText, DialogHost } from "./Dialogs";
+import { SnackHost } from "./Snack";
+import { ago } from "@/lib/dates";
+import { pathFor, routeFromPath, zippieFromPath, zippiePath, type Page } from "@/lib/routes";
 import type { Session, SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { loadRuns, type Run } from "@/lib/chats";
@@ -47,7 +51,8 @@ import { WorkspaceAvatar } from "./WorkspaceAvatar";
 import { BrandLogo } from "./BrandLogo";
 import { CompetitorsPage } from "./CompetitorsPage";
 import { MembersPage } from "./MembersPage";
-import { isBrandTab, SettingsPage, SETTINGS_TABS, type SettingsTab } from "./SettingsPage";
+import { isBrandTab, SettingsPage, SETTINGS_TABS } from "./SettingsPage";
+import { isSettingsTab, type SettingsTab } from "@/lib/settingsTabs";
 import { BrandSettings } from "./BrandSettings";
 import { NotificationSettings, ProfileSettings, SecuritySettings } from "./AccountSettings";
 import { AccessSettings, AiSettingsPage, RetentionSettings, TimezoneSetting } from "./WorkspaceSettings";
@@ -65,15 +70,12 @@ import { ResearchPage, type Tool } from "./research/ResearchPage";
 import type { SeoStart } from "./research/DomainResearch";
 import { post } from "./research/shared";
 import { SourcesPage } from "./SourcesPage";
-import { TrafficPage } from "./TrafficPage";
 import { ReportsPage } from "./reports/ReportsPage";
 import { ZippieWidget } from "./ZippieWidget";
 import { LibraryPage } from "./writer/LibraryPage";
 import { BrandPage } from "./BrandPage";
-import { CONTENT_ALIASES, CONTENT_SLUGS, type ContentPage } from "@/lib/contentRoutes";
 
 export type { Brand } from "@/lib/db";
-type Page = "prompts" | "competitors" | "domains" | "urls" | "traffic" | "visitors" | "keywords" | "domain" | "gap" | ContentPage | "summary" | SettingsTab;
 const RESEARCH: Page[] = ["keywords", "domain", "gap", "calendar"];
 const VISIBILITY: Page[] = ["prompts", "competitors", "domains", "urls"];
 /** Pages with their own PDF (docs/reports.md, section 32.3). */
@@ -81,61 +83,9 @@ const PDF_OF: Partial<Record<Page, PdfPage>> = { prompts: "prompts", competitors
 /** Pages with Share, a frozen link anyone can open (docs/reports.md, section 32.7). */
 const SHARE_OF: Partial<Record<Page, "prompts" | "competitors">> = { prompts: "prompts", competitors: "competitors" };
 
-/** Each page's address. "/" opens Prompts. */
-const SLUGS: Record<Page, string> = {
-  prompts: "/prompts",
-  competitors: "/competitors",
-  domains: "/sources",
-  urls: "/sources/urls",
-  traffic: "/traffic",
-  visitors: "/visitors",
-  keywords: "/keywords",
-  domain: "/domain-research",
-  gap: "/competitive-analysis",
-  ...CONTENT_SLUGS,
-  summary: "/reports",
-  profile: "/settings/profile",
-  security: "/settings/security",
-  notifications: "/settings/notifications",
-  settings: "/settings",
-  members: "/settings/members",
-  access: "/settings/access",
-  ai: "/settings/ai",
-  brandkit: "/settings/brand-kit",
-  retention: "/settings/data-retention",
-  integrations: "/settings/integrations",
-  publishing: "/settings/publishing",
-  google: "/settings/google-analytics",
-  alerts: "/settings/alerts",
-  billing: "/settings/billing",
-  exports: "/settings/imports-exports",
-  jobs: "/settings/background-actions",
-};
-/** Older addresses still open the right page. */
-const ALIASES: Record<string, Page> = {
-  "/zippie": "prompts",
-  "/ask": "prompts",
-  "/agent": "prompts",
-  "/overview": "prompts",
-  "/domains": "domains",
-  "/urls": "urls",
-  "/analytics": "traffic",
-  "/keyword-research": "keywords",
-  "/keyword-gap": "gap",
-  "/industry-research": "gap",
-  "/ai-gap": "gap",
-  ...CONTENT_ALIASES,
-  "/plan": "billing",
-  "/billing": "billing",
-};
-const isSettings = (p: Page): p is SettingsTab => SETTINGS_TABS.some((t) => t.id === p);
-/** Zippie's old addresses open the Ask Zippie panel, over Prompts. */
-const ZIPPIE_PATHS = ["/zippie", "/ask", "/agent"];
-const onZippiePath = () => ZIPPIE_PATHS.includes(window.location.pathname.replace(/\/+$/, ""));
-const pageFromPath = (path: string): Page => {
-  const p = path.replace(/\/+$/, "") || "/";
-  return (Object.entries(SLUGS).find(([, slug]) => slug === p)?.[0] as Page | undefined) ?? ALIASES[p] ?? "prompts";
-};
+const isSettings = (p: Page): p is SettingsTab => isSettingsTab(p);
+/** Zippie's addresses open the Ask Zippie panel over the page: /zippie, /zippie/knowledge, /zippie/skills. */
+const onZippiePath = () => zippieFromPath(window.location.pathname).open;
 const PENDING_BRAND = "arrowsterr.brand.pending";
 /** Adding a brand has its own address. */
 const ONBOARDING = "/onboarding";
@@ -243,13 +193,14 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [adding, setAdding] = useState(() => window.location.pathname.replace(/\/+$/, "") === ONBOARDING);
   const [promptRoom, setPromptRoom] = useState<number | undefined>(undefined); // prompts the plan still has room for, while adding a brand
-  // The Website pages are gone: old links land on Prompts.
-  const allowed = useCallback((p: Page): Page => (p === "traffic" || p === "visitors" ? "prompts" : p), []);
-  const [page, setPage] = useState<Page>(() => allowed(pageFromPath(window.location.pathname)));
+  // The page and its tab come from the address: /brand/voice is Brand on its Voice tab.
+  const [page, setPage] = useState<Page>(() => routeFromPath(window.location.pathname).page);
+  const [sub, setSub] = useState<string | undefined>(() => routeFromPath(window.location.pathname).sub);
   // Hide the sidebar for more room. Remembered on this device. ⌘B / Ctrl+B toggles it outside text fields.
   const [navHidden, setNavHidden] = useState(() => readLocal(NAV_HIDDEN) === "1");
   // Ask Zippie's panel, open or closed, is remembered on this device.
   const [zippie, setZippie] = useState(() => onZippiePath() || readLocal(ZIPPIE_OPEN) === "1");
+  const [zippieSub, setZippieSub] = useState<string | undefined>(() => zippieFromPath(window.location.pathname).sub);
   const openZippie = useCallback((open: boolean) => {
     setZippie(open);
     writeLocal(ZIPPIE_OPEN, open ? "1" : null);
@@ -271,17 +222,49 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [toggleNav]);
-  // Keep the address bar in step with the page, and follow the back and forward buttons.
-  const go = useCallback((p: Page) => {
-    setPage(p);
-    // A search belongs to the page it was made on, so it stays behind.
-    if (window.location.pathname !== SLUGS[p]) window.history.pushState(null, "", SLUGS[p] + withoutResearch(window.location.search));
-  }, []);
+  const pageRef = useRef(page);
+  const subRef = useRef(sub);
   useEffect(() => {
-    if (window.location.pathname !== SLUGS[page] && !onOnboarding()) window.history.replaceState(null, "", SLUGS[page] + window.location.search);
-    const back = () => {
-      if (onZippiePath()) openZippie(true);
-      setPage(allowed(pageFromPath(window.location.pathname)));
+    pageRef.current = page;
+    subRef.current = sub;
+  }, [page, sub]);
+  // Keep the address bar in step with the page and its tab, and follow the back and forward buttons.
+  // Each entry remembers its page, so going back to a Zippie address keeps the page under the panel.
+  const go = useCallback((p: Page, tab?: string) => {
+    const same = p === pageRef.current;
+    setPage(p);
+    setSub(tab);
+    const to = pathFor(p, tab);
+    // A search belongs to the page it was made on, so it stays behind. A tab keeps it.
+    if (window.location.pathname !== to) window.history.pushState({ page: p, sub: tab }, "", to + (same ? window.location.search : withoutResearch(window.location.search)));
+  }, []);
+  // Zippie's tabs have addresses too. Closing the panel puts the page's own address back.
+  const zippieTab = useCallback((tab?: string) => {
+    setZippieSub(tab);
+    const to = zippiePath(tab);
+    if (window.location.pathname !== to) window.history.pushState({ page: pageRef.current, sub: subRef.current }, "", to + window.location.search);
+  }, []);
+  const showZippie = useCallback(
+    (open: boolean) => {
+      openZippie(open);
+      if (open || !zippieFromPath(window.location.pathname).open) return;
+      setZippieSub(undefined);
+      window.history.replaceState({ page: pageRef.current, sub: subRef.current }, "", pathFor(pageRef.current, subRef.current) + window.location.search);
+    },
+    [openZippie],
+  );
+  useEffect(() => {
+    const z = zippieFromPath(window.location.pathname);
+    const want = z.open ? zippiePath(z.sub) : pathFor(page, sub);
+    if (window.location.pathname !== want && !onOnboarding()) window.history.replaceState({ page, sub }, "", want + window.location.search);
+    const back = (e: PopStateEvent) => {
+      const z = zippieFromPath(window.location.pathname);
+      const saved = e.state as { page?: Page; sub?: string } | null;
+      const r = saved?.page ? { page: saved.page, sub: saved.sub } : routeFromPath(window.location.pathname);
+      if (z.open) openZippie(true);
+      setZippieSub(z.sub);
+      setPage(r.page);
+      setSub(r.sub);
       setAdding(onOnboarding());
     };
     window.addEventListener("popstate", back);
@@ -409,8 +392,8 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
   useEffect(() => {
     if (!brands) return;
     if (onboarding && !onOnboarding()) window.history.pushState(null, "", ONBOARDING + window.location.search);
-    else if (!onboarding && onOnboarding()) window.history.replaceState(null, "", SLUGS[page] + window.location.search);
-  }, [onboarding, brands, page]);
+    else if (!onboarding && onOnboarding()) window.history.replaceState(null, "", pathFor(page, sub) + window.location.search);
+  }, [onboarding, brands, page, sub]);
   const loadPlan = useCallback(() => {
     if (ws) getPlanUsage(sb, ws.id).then(setPlan).catch(() => setPlan(null));
   }, [sb, ws]);
@@ -669,6 +652,8 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       <UndoKeys />
+      <DialogHost />
+      <SnackHost />
       <Sidebar
         hidden={navHidden}
         onHide={toggleNav}
@@ -711,8 +696,8 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
               setTopic("All");
             }}
             onAdd={() => setAdding(true)}
-            onRemove={(b) => {
-              if (confirm(`Stop tracking ${b.name}? Its results will be deleted.`)) remove(b.id);
+            onRemove={async (b) => {
+              if (await askConfirm({ title: `Delete ${b.name}?`, text: "Its prompts and results will be deleted.", action: "Delete", danger: true })) remove(b.id);
             }}
             days={days}
             onDays={setDays}
@@ -724,7 +709,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
             onModel={setModel}
             running={running === active?.id}
             progress={progress}
-            hasRuns={brandRuns.length > 0}
+            lastRunAt={brandRuns.reduce<string | null>((t, r) => (!t || r.at > t ? r.at : t), null)}
             share={
               active && view && canEdit && SHARE_OF[page] ? (
                 <ShareButton
@@ -922,7 +907,16 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
           ) : page === "library" ? (
             <LibraryPage key={view.brand.id} view={view} auth={auth} canEdit={canEdit} />
           ) : page === "brand" ? (
-            <BrandPage key={view.brand.id} sb={sb} auth={auth} brand={{ id: view.brand.id, name: view.brand.name, domain: view.brand.domain }} brandCount={brands?.length ?? 1} canEdit={canEdit} />
+            <BrandPage
+              key={view.brand.id}
+              sb={sb}
+              auth={auth}
+              brand={{ id: view.brand.id, name: view.brand.name, domain: view.brand.domain }}
+              brandCount={brands?.length ?? 1}
+              canEdit={canEdit}
+              sub={sub}
+              onSub={(t) => go("brand", t)}
+            />
           ) : RESEARCH.includes(page) ? (
             <ResearchPage key={view.brand.id} sb={sb} auth={auth} view={view} canEdit={canEdit} tool={page as Tool} onTool={(t) => go(t)} seoStart={seoStart}
               refresh={{ paid: Boolean(plan && plan.plan !== "free" && plan.plan !== "trial"), onUpgrade: () => go("billing") }}
@@ -932,6 +926,8 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
                 setSeoStart({ target, scope });
                 go("domain");
               }}
+              sub={page === "calendar" ? sub : undefined}
+              onSub={(t) => go("calendar", t)}
             />
           ) : page === "competitors" ? (
             <CompetitorsPage
@@ -955,9 +951,9 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
               limits={plan ? reportLimits(plan.plan) : null}
               historyDays={plan?.limits.historyDays ?? 30}
               onUpgrade={() => go("billing")}
+              sub={sub}
+              onSub={(t) => go("summary", t)}
             />
-          ) : page === "traffic" ? (
-            <TrafficPage key={view.brand.id} view={view} auth={auth} canEdit={canEdit} />
           ) : page === "domains" || page === "urls" ? (
             <SourcesPage
               key={view.brand.id}
@@ -969,6 +965,8 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
                 setSeoStart({ target, scope });
                 go("domain");
               }}
+              sub={page === "urls" ? "urls" : undefined}
+              onSub={(t) => go(t === "urls" ? "urls" : "domains")}
             />
           ) : (
             <PromptsPage
@@ -989,7 +987,16 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
           )}
         </main>
       </div>
-      <ZippieWidget key={ws.id} auth={auth} canEdit={canEdit} where={{ brand: active?.name ?? null, page: pageTitle(page).label }} open={zippie} onOpen={openZippie} />
+      <ZippieWidget
+        key={ws.id}
+        auth={auth}
+        canEdit={canEdit}
+        where={{ brand: active?.name ?? null, page: pageTitle(page).label }}
+        open={zippie}
+        onOpen={showZippie}
+        sub={zippieSub}
+        onSub={zippieTab}
+      />
     </div>
   );
 }
@@ -1083,7 +1090,7 @@ const NAV: { group: string; icon: string; items: { id: Page; label: string; icon
     items: [{ id: "summary", label: "Reports", icon: "report" }],
   },
 ];
-/** Tasks left this month, with the reset date. Opens Plans & billing. */
+/** Tasks left this month, with the reset date. Opens Plans and billing. */
 function TaskBar({ plan, onOpen }: { plan: PlanUsage; onOpen: () => void }) {
   const tasks = plan.allowances.find((a) => a.metric === "tasks");
   if (!tasks || tasks.limit <= 0) return null;
@@ -1092,7 +1099,7 @@ function TaskBar({ plan, onOpen }: { plan: PlanUsage; onOpen: () => void }) {
   const low = left / tasks.limit < 0.1;
   const reset = new Date(plan.resetsAt).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
   return (
-    <button type="button" onClick={onOpen} className="aw-taskbar" title="See Plans & billing">
+    <button type="button" onClick={onOpen} className="aw-taskbar" title="See Plans and billing">
       <span className="flex items-baseline justify-between gap-2">
         <span className="text-[12px] font-semibold text-ink">Tasks</span>
         <span className="aw-num text-[11px] text-muted">
@@ -1223,9 +1230,9 @@ function Sidebar({
             <button
               type="button"
               onClick={async () => {
-                const name = prompt("Name your new workspace");
-                if (name?.trim()) await onNewWorkspace(name.trim());
                 setOpen(false);
+                const name = await askText({ title: "New workspace", label: "Name", action: "Create" });
+                if (name) await onNewWorkspace(name);
               }}
               className="flex h-8 w-full items-center rounded-aw px-2 text-left text-[13px] text-body hover:bg-surface-2"
             >
@@ -1299,7 +1306,9 @@ function Sidebar({
         {plan && (plan.plan === "trial" || plan.status !== "active") ? (
           <button type="button" onClick={() => onPage("billing")} className="aw-nav-link text-brand!">
             <span className="flex-1">{plan.status === "past_due" ? "Payment failed" : plan.trialLeft ? `${plan.trialLeft} days of trial left` : plan.plan === "trial" || plan.status !== "active" ? "Pick a plan" : plan.name}</span>
-            <span aria-hidden="true">→</span>
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <path d="m9 6 6 6-6 6" />
+            </svg>
           </button>
         ) : null}
         <button
@@ -1326,7 +1335,7 @@ const TIMEFRAMES = [7, 30, 60, 90];
 
 /** Where a page sits in the sidebar, for the page header: "AI Visibility / Prompts". */
 function pageTitle(page: Page): { group: string; label: string } {
-  if (isSettings(page)) return { group: "Settings", label: page === "settings" ? "Workspace" : (SETTINGS_TABS.find((t) => t.id === page)?.label ?? page) };
+  if (isSettings(page)) return { group: "Settings", label: SETTINGS_TABS.find((t) => t.id === page)?.label ?? page };
   for (const g of NAV) {
     const item = g.items.find((i) => i.id === page || i.also?.includes(page));
     if (item) return { group: g.group, label: item.label };
@@ -1334,9 +1343,10 @@ function pageTitle(page: Page): { group: string; label: string } {
   return { group: "", label: "" };
 }
 
+/** Where you are in the sidebar. A div, not a heading: each screen's own title is its one h1. */
 function PageTitle({ group, label }: { group: string; label: string }) {
   return (
-    <h1 className="aw-page-title">
+    <div className="aw-page-title">
       {group && group !== label ? (
         <>
           <span className="aw-page-title__group">{group}</span>
@@ -1346,7 +1356,7 @@ function PageTitle({ group, label }: { group: string; label: string }) {
         </>
       ) : null}
       <span className="truncate">{label}</span>
-    </h1>
+    </div>
   );
 }
 
@@ -1370,8 +1380,9 @@ function TopBar(p: {
   onModel: (m: string) => void;
   running: boolean;
   progress: { done: number; total: number };
-  hasRuns: boolean;
-  /** The page's own Download PDF. Pages without one yet print the screen. */
+  /** When the brand's newest check ran, for the freshness stamp. Null before the first one. */
+  lastRunAt: string | null;
+  /** The page's own Download PDF. Pages without one show no button. */
   download?: React.ReactNode;
   /** Share on Prompts and Competitors, next to Download PDF. */
   share?: React.ReactNode;
@@ -1409,15 +1420,17 @@ function TopBar(p: {
                 {p.canEdit ? (
                   <button
                     type="button"
-                    aria-label={`Remove ${b.name}`}
-                    title={`Remove ${b.name}`}
+                    aria-label={`Delete ${b.name}`}
+                    title={`Delete ${b.name}`}
                     onClick={() => {
                       setOpen(false);
                       p.onRemove(b);
                     }}
                     className="mr-1.5 rounded-none px-1.5 text-[15px] leading-none text-muted hover:text-neg"
                   >
-                    ×
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+                      <path d="M18 6 6 18M6 6l12 12" />
+                    </svg>
                   </button>
                 ) : null}
               </div>
@@ -1446,11 +1459,7 @@ function TopBar(p: {
       )}
       <div className="ml-auto flex items-center gap-3">
         {p.share}
-        {p.download ?? (
-          <button type="button" className="aw-ctl" onClick={() => window.print()} title="Download this page as a PDF">
-            Download PDF
-          </button>
-        )}
+        {p.download}
         {!p.visibility ? null : p.running ? (
           <span className="flex items-center gap-3">
             <span className="aw-label aw-label--brand">First check running</span>
@@ -1463,7 +1472,7 @@ function TopBar(p: {
           </span>
         ) : (
           <span className="aw-live" title="The daily job checks every prompt on every model">
-            {p.hasRuns ? "Updates daily" : "First results after the next daily check"}
+            {p.lastRunAt ? `Checked ${ago(p.lastRunAt)} · next check daily` : "First results after the next daily check"}
           </span>
         )}
       </div>

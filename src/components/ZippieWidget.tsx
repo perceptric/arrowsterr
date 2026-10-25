@@ -9,7 +9,24 @@ import { ZippiePage, type ZippieWhere } from "./ZippiePage";
  * Ask Zippie, on every page: a round button in the bottom-right corner that opens Zippie's chat over the page.
  * The chat loads on first open and then stays mounted, so a reply keeps streaming while the panel is closed.
  */
-export function ZippieWidget({ auth, canEdit, where, open, onOpen }: { auth: RunAuth; canEdit: boolean; where: ZippieWhere; open: boolean; onOpen: (open: boolean) => void }) {
+export function ZippieWidget({
+  auth,
+  canEdit,
+  where,
+  open,
+  onOpen,
+  sub,
+  onSub,
+}: {
+  auth: RunAuth;
+  canEdit: boolean;
+  where: ZippieWhere;
+  open: boolean;
+  onOpen: (open: boolean) => void;
+  /** Zippie's tab from the address (/zippie/knowledge, /zippie/skills) and how to change it. */
+  sub?: string;
+  onSub?: (sub?: string) => void;
+}) {
   const [seen, setSeen] = useState(open);
   if (open && !seen) setSeen(true);
   useEffect(() => {
@@ -30,7 +47,7 @@ export function ZippieWidget({ auth, canEdit, where, open, onOpen }: { auth: Run
       )}
       {seen ? (
         <div className={open ? "aw-zippie-panel" : "hidden"} role="dialog" aria-label="Zippie">
-          <ZippiePage auth={auth} canEdit={canEdit} compact where={where} onClose={() => onOpen(false)} />
+          <ZippiePage auth={auth} canEdit={canEdit} compact where={where} onClose={() => onOpen(false)} sub={sub} onSub={onSub} />
         </div>
       ) : null}
     </div>

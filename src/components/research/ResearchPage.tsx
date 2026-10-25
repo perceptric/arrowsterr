@@ -48,6 +48,9 @@ export function ResearchPage({
   onSeo?: (target: string, scope: SeoStart["scope"]) => void;
   refresh?: Refresh;
   writer?: WriterAccess;
+  /** The Editorial Calendar's tab from the address (/editorial-calendar/list) and how to change it. */
+  sub?: string;
+  onSub?: (sub?: string) => void;
 }) {
   const brand = view.brand;
   const [site, setSite] = useStash<Site | null | undefined>(`site:${brand.id}`, undefined);

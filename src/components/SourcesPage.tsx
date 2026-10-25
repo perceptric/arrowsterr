@@ -95,7 +95,7 @@ type AiPages = { pages: { path: string; visits: number; engines: Record<string, 
 
 const TOP = 20; // rows in the list before "Open all"
 
-export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseClient; view: View; auth: RunAuth | null; reader: RunAuth; onSeo: (target: string, scope: Scope) => void }) {
+export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseClient; view: View; auth: RunAuth | null; reader: RunAuth; onSeo: (target: string, scope: Scope) => void; sub?: string; onSub?: (sub?: string) => void }) {
   const { brand, current, filter, days, topics, engines } = view;
   const [group, setGroup] = useState<Group>("third");
   const [list, setList] = useState<"sites" | "links">("links");

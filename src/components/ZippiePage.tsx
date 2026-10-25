@@ -124,7 +124,7 @@ export type ZippieWhere = { brand: string | null; page: string };
  * Zippie's chat. As a page it shows the chats on the right. compact fits it in the floating panel: the chats
  * list takes the panel's place when opened, and onClose closes the panel.
  */
-export function ZippiePage({ auth, canEdit, compact = false, where = null, onClose }: { auth: RunAuth; canEdit: boolean; compact?: boolean; where?: ZippieWhere | null; onClose?: () => void }) {
+export function ZippiePage({ auth, canEdit, compact = false, where = null, onClose }: { auth: RunAuth; canEdit: boolean; compact?: boolean; where?: ZippieWhere | null; onClose?: () => void; sub?: string; onSub?: (sub?: string) => void }) {
   const api = useApi(auth);
   const [view, setView] = useState<View>("chat");
   const [threads, setThreads] = useState<Thread[]>([]);

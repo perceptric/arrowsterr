@@ -36,6 +36,9 @@ export function ReportsPage({
   limits: ReportLimits | null;
   historyDays: number;
   onUpgrade: () => void;
+  /** The tab from the address (/reports/schedules, /reports/links) and how to change it. */
+  sub?: string;
+  onSub?: (sub?: string) => void;
 }) {
   const [tab, setTab] = useState<Tab>("files");
   return (

@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { onUndoMessage, ownUndo, redoLast, undoLast } from "@/lib/undo";
+import { snack } from "./Snack";
 
-/** Ctrl or Cmd + Z anywhere in the app, and a short note at the bottom saying what it did. */
+/** Ctrl or Cmd + Z anywhere in the app. What it did shows in the one snackbar. */
 export function UndoKeys() {
-  const [message, setMessage] = useState("");
-
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
       if (!(e.metaKey || e.ctrlKey) || e.altKey || e.defaultPrevented || ownUndo(e.target)) return;
@@ -20,22 +19,12 @@ export function UndoKeys() {
       }
     };
     window.addEventListener("keydown", key);
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const off = onUndoMessage((m) => {
-      setMessage(m);
-      clearTimeout(timer);
-      timer = setTimeout(() => setMessage(""), 3000);
-    });
+    const off = onUndoMessage((m) => snack(m));
     return () => {
       window.removeEventListener("keydown", key);
       off();
-      clearTimeout(timer);
     };
   }, []);
 
-  return message ? (
-    <div className="aw-undo" role="status" aria-live="polite">
-      {message}
-    </div>
-  ) : null;
+  return null;
 }
