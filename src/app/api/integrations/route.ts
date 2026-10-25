@@ -1,5 +1,5 @@
 import { entitlement } from "@/lib/entitlements";
-import { newKey, slackSend } from "@/lib/integrations";
+import { newKey, sealSlack, slackSend } from "@/lib/integrations";
 import { DEFAULT_ALERT_POINTS, SLACK_HOOK } from "@/lib/integrationTypes";
 import { adminClient, requireRole } from "@/lib/serverAuth";
 
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
       } catch (x) {
         return err(`Slack said no: ${x instanceof Error ? x.message : String(x)}`);
       }
-      return save({ slack_channel: url });
+      return save({ slack_channel: sealSlack(url) });
     }
     if (body.action === "brandSlackOff") return save({ slack_channel: null });
     if (body.action === "brandPoints") return save({ alert_points: body.points === null ? null : Math.min(50, Math.max(1, Number(body.points) || DEFAULT_ALERT_POINTS)) });
@@ -93,7 +93,7 @@ export async function POST(request: Request) {
       return err(`Slack said no: ${x instanceof Error ? x.message : String(x)}`);
     }
     const points = Math.min(50, Math.max(1, Number(body.points) || 5));
-    const { error } = await db.from("integrations").upsert({ workspace_id: ws, slack_webhook: url, alert_points: points, updated_at: new Date().toISOString() });
+    const { error } = await db.from("integrations").upsert({ workspace_id: ws, slack_webhook: sealSlack(url), alert_points: points, updated_at: new Date().toISOString() });
     if (error) return err(/integrations/.test(error.message) ? SETUP : error.message, 500);
     return Response.json({ ok: true });
   }
