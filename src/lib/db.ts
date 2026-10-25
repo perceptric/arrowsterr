@@ -126,7 +126,8 @@ export async function getWorkspaceSettings(sb: SupabaseClient, id: string): Prom
   return { ...(data as WorkspaceSettings), ai_settings: (data.ai_settings ?? {}) as AiSettings };
 }
 
-export async function saveWorkspaceSettings(sb: SupabaseClient, id: string, patch: Partial<WorkspaceSettings>) {
+/** Save the time zone or AI notes. Who may join by email domain is saved by /api/workspace/join. */
+export async function saveWorkspaceSettings(sb: SupabaseClient, id: string, patch: Partial<Pick<WorkspaceSettings, "timezone" | "ai_settings">>) {
   check(await sb.from("workspaces").update(patch).eq("id", id));
 }
 
@@ -297,7 +298,10 @@ export async function getUsage(sb: SupabaseClient, workspaceId: string): Promise
 
 /** The workspace's plan and how much of each allowance it used. Null before 015_billing.sql. */
 export async function getPlanUsage(sb: SupabaseClient, workspaceId: string) {
-  const { data, error } = await sb.from("workspaces").select("*").eq("id", workspaceId).maybeSingle();
+  // The Stripe ids are server-only; has_customer says whether there is one. Before supabase/058_security.sql it is missing.
+  const cols = "plan, plan_status, trial_ends_at, period_end, extras, billing_anchor, billing_interval, cancel_at, task_credits";
+  let { data, error } = await sb.from("workspaces").select(`${cols}, has_customer`).eq("id", workspaceId).maybeSingle();
+  if (error && /has_customer/.test(error.message)) ({ data, error } = await sb.from("workspaces").select(`${cols}, has_customer:stripe_customer_id`).eq("id", workspaceId).maybeSingle());
   if (error || !data?.plan) return null;
   const w = data as {
     plan: PlanId;
@@ -308,7 +312,7 @@ export async function getPlanUsage(sb: SupabaseClient, workspaceId: string) {
     billing_anchor?: string | null;
     billing_interval?: "month" | "year" | null;
     cancel_at?: string | null;
-    stripe_customer_id?: string | null;
+    has_customer?: boolean | string | null;
     task_credits?: number;
   };
   const now = effectivePlan(w.plan, w.plan_status, w.trial_ends_at);
@@ -335,7 +339,7 @@ export async function getPlanUsage(sb: SupabaseClient, workspaceId: string) {
     periodEnd: w.period_end,
     interval: w.billing_interval ?? null,
     cancelAt: w.cancel_at ?? null,
-    customer: Boolean(w.stripe_customer_id),
+    customer: Boolean(w.has_customer),
     limits,
     boost: nextPlan(now.plan),
     allowances: metrics.map((m) => ({ metric: m, label: METRICS[m].label, period: METRICS[m].period, used: used(m), limit: METRICS[m].limit(limits) })),

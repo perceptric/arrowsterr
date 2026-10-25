@@ -1,10 +1,14 @@
+import { clientIp } from "@/lib/clientIp";
+import { limitKey, underLimit } from "@/lib/limit";
 import { OAUTH_CORS, oauthError, redirectOk, token } from "@/lib/oauth";
 import { adminClient } from "@/lib/serverAuth";
 
 // Dynamic client registration (RFC 7591): an AI app tells us its name and where to send people back.
+// 10 new apps an hour per address, so nobody can fill the table.
 export async function POST(request: Request) {
   const db = adminClient();
   if (!db) return oauthError("server_error", "OAuth is not set up on the server.", 500);
+  if (!(await underLimit(db, limitKey("oauth-register", clientIp(request)), 10, 3600))) return oauthError("too_many_requests", "Too many apps added from this address. Try again in an hour.", 429);
   const body = (await request.json().catch(() => ({}))) as { client_name?: unknown; redirect_uris?: unknown };
   const uris = Array.isArray(body.redirect_uris) ? body.redirect_uris.filter((u): u is string => typeof u === "string").slice(0, 10) : [];
   if (!uris.length || !uris.every(redirectOk)) return oauthError("invalid_redirect_uri", "Send redirect_uris: https addresses, a localhost port, or an app scheme.");

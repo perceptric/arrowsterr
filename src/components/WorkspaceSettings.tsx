@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Dropdown } from "./Pickers";
 import { recordUndo } from "@/lib/undo";
 import { atLeast, getWorkspaceSettings, saveWorkspaceSettings, type AiSettings, type PlanUsage, type Workspace, type WorkspaceSettings } from "@/lib/db";
+import { post } from "./research/shared";
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 const NOT_RUN = "These settings turn on once supabase/034_settings.sql has been run in Supabase → SQL Editor.";
@@ -236,13 +237,16 @@ export function AccessSettings({ sb, ws, email }: { sb: SupabaseClient; ws: Work
   const domain = email.split("@")[1]?.toLowerCase() ?? "";
   const shared = SHARED_EMAIL.has(domain);
   const on = Boolean(s?.allowed_domain);
+  const auth = useMemo(() => ({ workspaceId: ws.id, token: async () => (await sb.auth.getSession()).data.session?.access_token ?? "" }), [sb, ws.id]);
 
-  async function save(patch: Partial<WorkspaceSettings>, note: string, undo?: Partial<WorkspaceSettings>) {
+  type Access = Partial<Pick<WorkspaceSettings, "allowed_domain" | "join_role">>;
+  async function save(patch: Access, note: string, undo?: Access) {
     setBusy(true);
     setError("");
     setSaved("");
     try {
-      await saveWorkspaceSettings(sb, ws.id, patch);
+      // Saved by the server, which checks the domain is the admin's own.
+      await post(auth, "/api/workspace/join", { allowedDomain: patch.allowed_domain, joinRole: patch.join_role });
       setS((x) => (x ? { ...x, ...patch } : x));
       setSaved(note);
       if (undo)

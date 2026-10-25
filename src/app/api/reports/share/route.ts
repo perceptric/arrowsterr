@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+import { appOrigin, shareToken, tokenHash } from "@/lib/reportLinks";
 import { migrationHint, userIdOf } from "@/lib/reportServer";
 import { shareProblem, SHARE_MAX_BYTES } from "@/lib/shareSnapshot";
 import { adminClient, requireRole } from "@/lib/serverAuth";
@@ -22,14 +24,12 @@ export async function POST(request: Request) {
 
   const { data: brand } = await auth.sb.from("brands").select("id").eq("id", typeof body.brandId === "string" ? body.brandId : "").eq("workspace_id", body.workspaceId).maybeSingle();
   if (!brand) return Response.json({ error: "That brand is not in this workspace." }, { status: 404 });
-  const { data: link, error } = await db
-    .from("report_links")
-    .insert({ workspace_id: body.workspaceId, brand_id: brand.id, mode: "frozen", snapshot: body.data, created_by: await userIdOf(auth.sb, request) })
-    .select("id, token")
-    .single();
+  // Only the token's hash is saved. Before supabase/058_security.sql the token itself is saved instead.
+  const id = randomUUID();
+  const token = shareToken(id);
+  const row = { id, workspace_id: body.workspaceId, brand_id: brand.id, mode: "frozen", snapshot: body.data, created_by: await userIdOf(auth.sb, request) };
+  let { error } = await db.from("report_links").insert({ ...row, token: null, token_hash: tokenHash(token) });
+  if (error && /token_hash/.test(error.message)) ({ error } = await db.from("report_links").insert({ ...row, token }));
   if (error) return Response.json({ error: migrationHint(error.message) }, { status: 500 });
-  const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
-  const origin = process.env.APP_URL?.trim().replace(/\/+$/, "") || (host ? `https://${host}` : "https://app.arrowsterr.com");
-  const made = link as { id: string; token: string };
-  return Response.json({ url: `${origin}/r/${made.token}`, id: made.id });
+  return Response.json({ url: `${appOrigin(request.headers)}/r/${token}`, id });
 }

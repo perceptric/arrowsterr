@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { readAnswer } from "@/lib/answer";
 import { askClaude, parseJson } from "@/lib/claude";
 import type { Chat } from "@/lib/chats";
+import { clientIp } from "@/lib/clientIp";
 import { dfsReady } from "@/lib/dataforseo";
 import { askEngine, type Engine } from "@/lib/engines";
 import { adminClient } from "@/lib/serverAuth";
@@ -44,7 +45,7 @@ export async function POST(request: Request) {
   if (savedErr && /snapshots/.test(savedErr.message)) return json(request, { error: "The snapshot is not set up yet." }, 503);
   if (saved?.result) return json(request, { ...saved.result, cached: true });
 
-  const ip = (request.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || request.headers.get("x-real-ip") || "unknown";
+  const ip = clientIp(request);
   const ipHash = createHash("sha256").update(`${ip}:${process.env.SUPABASE_SECRET_KEY ?? ""}`).digest("hex").slice(0, 32);
   const [{ count: mine }, { count: today }] = await Promise.all([
     db.from("snapshots").select("id", { count: "exact", head: true }).eq("ip_hash", ipHash).gte("created_at", since(DAY)),

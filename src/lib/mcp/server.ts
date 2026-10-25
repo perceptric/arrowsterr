@@ -1,5 +1,6 @@
 import "server-only";
 import { apiAuth } from "../integrations";
+import { limitKey, underLimit } from "../limit";
 import { metered } from "../meter";
 import { BAD_PARAMS, fail, INVALID_REQUEST, NO_METHOD, ok, PARSE_ERROR, ToolError, VERSIONS, errorResult, type RpcReply, type RpcRequest } from "./protocol";
 import { PROMPTS, TOOLS, type Ctx } from "./tools";
@@ -24,22 +25,8 @@ export const CORS = {
   "Access-Control-Expose-Headers": "WWW-Authenticate, Mcp-Session-Id",
 };
 
-// A fair-use limit per workspace, so a runaway agent loop cannot burn the plan in a minute.
-const WINDOW = 60_000;
+// A fair-use limit per API key, counted in the database, so a runaway agent loop cannot burn the plan in a minute.
 const MAX_CALLS = 60;
-const calls = new Map<string, number[]>();
-function allowed(ws: string) {
-  const now = Date.now();
-  const recent = (calls.get(ws) ?? []).filter((t) => now - t < WINDOW);
-  if (recent.length >= MAX_CALLS) {
-    calls.set(ws, recent);
-    return false;
-  }
-  recent.push(now);
-  calls.set(ws, recent);
-  if (calls.size > 5000) calls.delete(calls.keys().next().value!);
-  return true;
-}
 
 const json = (body: unknown, status = 200, headers: Record<string, string> = {}) => Response.json(body, { status, headers: { ...CORS, ...headers } });
 
@@ -54,6 +41,8 @@ export async function handleMcp(request: Request): Promise<Response> {
     return json(await auth.denied.json(), status, status === 401 ? challenge : {});
   }
   const ctx: Ctx = { db: auth.db, ws: auth.ws };
+  const key = request.headers.get("x-api-key")?.trim() || request.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim() || auth.ws;
+  const allow = () => underLimit(auth.db, limitKey("mcp", key), MAX_CALLS, 60);
 
   let body: unknown;
   try {
@@ -66,7 +55,7 @@ export async function handleMcp(request: Request): Promise<Response> {
   if (!messages.length) return json(fail(null, INVALID_REQUEST, "Empty batch."), 400);
   const replies: RpcReply[] = [];
   for (const m of messages) {
-    const reply = await handleOne(ctx, m);
+    const reply = await handleOne(ctx, m, allow);
     if (reply) replies.push(reply);
   }
   // Only notifications or replies from the client: nothing to send back.
@@ -74,7 +63,7 @@ export async function handleMcp(request: Request): Promise<Response> {
   return json(batch ? replies : replies[0]);
 }
 
-export async function handleOne(ctx: Ctx, m: RpcRequest): Promise<RpcReply | null> {
+export async function handleOne(ctx: Ctx, m: RpcRequest, allow: () => Promise<boolean> = async () => true): Promise<RpcReply | null> {
   if (!m || typeof m !== "object" || m.jsonrpc !== "2.0") return fail(null, INVALID_REQUEST, "Send JSON-RPC 2.0.");
   // A response from the client, or a notification: no reply.
   if (typeof m.method !== "string") return null;
@@ -97,7 +86,7 @@ export async function handleOne(ctx: Ctx, m: RpcRequest): Promise<RpcReply | nul
     case "tools/call": {
       const tool = TOOLS.find((t) => t.name === p.name);
       if (!tool) return fail(m.id, BAD_PARAMS, `Unknown tool: ${String(p.name)}`);
-      if (!allowed(ctx.ws)) return ok(m.id, errorResult(`Rate limit: ${MAX_CALLS} tool calls a minute. Wait a moment and try again.`));
+      if (!(await allow())) return ok(m.id, errorResult(`Rate limit: ${MAX_CALLS} tool calls a minute. Wait a moment and try again.`));
       const args = p.arguments && typeof p.arguments === "object" ? (p.arguments as Record<string, unknown>) : {};
       try {
         return ok(m.id, await metered(ctx.ws, `mcp ${tool.name}`, () => tool.run(ctx, args)));

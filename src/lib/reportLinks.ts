@@ -1,6 +1,7 @@
 // Share link rules, signed links and passwords (docs/reports.md, sections 12 and 13). No server imports, so tests can use it.
-import { createHmac, randomBytes, scrypt, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, randomBytes, scrypt, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ReportLimits } from "./plans.ts";
 import type { Kind } from "./reportDoc.ts";
 import type { ReportRange } from "./reportRange.ts";
@@ -32,6 +33,25 @@ export function printPath(reportId: string, range: ReportRange, ttlMs = 15 * 60_
 }
 export function checkPrint(reportId: string, rangeJson: string, exp: string, sig: string, now = Date.now()) {
   return Number(exp) > now && checkSig(`print:${reportId}:${exp}:${rangeJson}`, sig);
+}
+
+/** The sha256 of a share token. Only this is stored; the token itself lives in the link. */
+export const tokenHash = (token: string) => createHash("sha256").update(token).digest("hex");
+
+/** A new link's token, made from its id and the server secret, so the app can copy the link again without storing it. */
+export const shareToken = (id: string) => sign(`share:${id}`);
+
+/** The app's address for share links. */
+export function appOrigin(headers: Headers) {
+  const host = headers.get("x-forwarded-host") ?? headers.get("host");
+  return process.env.APP_URL?.trim().replace(/\/+$/, "") || (host ? `https://${host}` : "https://app.arrowsterr.com");
+}
+
+/** Find a share link by its token's hash, or by the token itself before supabase/058_security.sql is run. */
+export async function findLink(db: SupabaseClient, token: string, cols: string) {
+  const res = await db.from("report_links").select(cols).eq("token_hash", tokenHash(token)).maybeSingle();
+  if (res.error && /token_hash/.test(res.error.message)) return db.from("report_links").select(cols).eq("token", token).maybeSingle();
+  return res;
 }
 
 /** Passwords on share links: scrypt with a random salt. */
