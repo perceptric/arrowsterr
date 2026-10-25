@@ -7,6 +7,7 @@ import { recordUndo } from "@/lib/undo";
 import { UndoKeys } from "./UndoKeys";
 import { askConfirm, askText, DialogHost } from "./Dialogs";
 import { SnackHost } from "./Snack";
+import { CommandBar, type CommandItem } from "./CommandBar";
 import { ago } from "@/lib/dates";
 import { pathFor, routeFromPath, zippieFromPath, zippiePath, type Page } from "@/lib/routes";
 import type { Session, SupabaseClient } from "@supabase/supabase-js";
@@ -35,7 +36,9 @@ import {
   latestAnswersFor,
   topicsOf,
   type Brand,
+  type CalendarItem,
   type PlanUsage,
+  type Site,
   type SavedRun,
   type Workspace,
 } from "@/lib/db";
@@ -45,7 +48,7 @@ import { splitPeriods, type Filter } from "@/lib/metrics";
 import type { View } from "@/lib/view";
 import { runAll, type RunAuth } from "@/lib/runner";
 import { getSupabase, type SupaConfig } from "@/lib/supa";
-import { clearStash, primeStash } from "@/lib/stash";
+import { clearStash, peek, primeStash } from "@/lib/stash";
 import { AuthScreen, CodeCheck, NewPassword } from "./AuthScreen";
 import { WorkspaceAvatar } from "./WorkspaceAvatar";
 import { BrandLogo } from "./BrandLogo";
@@ -283,6 +286,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
   const [focus, setFocus] = useState<string | null>(null); // competitor to open on the Competitors page
   const [focusTopic, setFocusTopic] = useState<string | null>(null); // topic to scroll to on the Prompts page
   const [seoStart, setSeoStart] = useState<SeoStart | null>(null); // a site or link from Sources to open in Domain Research
+  const [askTopic, setAskTopic] = useState(0); // the command bar's Add prompts: opens the Prompts page's new topic box
   const [error, setError] = useState("");
   const [plan, setPlan] = useState<PlanUsage | null>(null);
   // A Starter on the SEO toolset opens on Keyword Research, the first page it has.
@@ -649,8 +653,69 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
     ? { brand: active, current, previous, filter, topics: topicList, engines: model === "All" ? modelList : [model], days }
     : null;
 
+  // Everything the ⌘K bar can find and run, read when it opens. Prompts and keywords come from what is already loaded.
+  const commands = (): CommandItem[] => {
+    const open = (p: Page) => () => {
+      setFocus(null);
+      setFocusTopic(null);
+      setAskTopic(0);
+      go(p);
+    };
+    const list: CommandItem[] = [];
+    if (canEdit)
+      list.push({
+        id: "add-prompts",
+        label: "Add prompts",
+        group: "Actions",
+        words: "new topic",
+        run: () => {
+          setFocusTopic(null);
+          setAskTopic((n) => n + 1);
+          go("prompts");
+        },
+      });
+    list.push({ id: "new-report", label: "New report", group: "Actions", words: "pdf download schedule", run: open("summary") });
+    list.push({ id: "ask-zippie", label: "Ask Zippie", group: "Actions", words: "chat ai assistant", run: () => showZippie(true) });
+    if (canEdit) list.push({ id: "add-brand", label: "Add a brand", group: "Actions", words: "new brand", run: () => setAdding(true) });
+    for (const g of NAV) for (const item of g.items) list.push({ id: item.id, label: item.label, group: "Screens", words: g.group, hint: g.group, run: open(item.id) });
+    for (const t of SETTINGS_TABS) list.push({ id: t.id, label: t.label, group: "Settings", words: "settings", hint: "Settings", run: open(t.id) });
+    for (const b of brands ?? [])
+      list.push({
+        id: b.id,
+        label: b.name,
+        group: "Brands",
+        words: `brand switch ${b.domain}`,
+        hint: b.id === active?.id ? "Brand on screen" : b.domain,
+        run: () => {
+          setActiveId(b.id);
+          setTopic("All");
+          setAskTopic(0);
+        },
+      });
+    for (const t of allTopics)
+      for (const pr of t.prompts)
+        list.push({
+          id: `${t.name}:${pr}`,
+          label: pr,
+          group: "Prompts",
+          hint: t.name,
+          searchOnly: true,
+          run: () => {
+            setFocus(null);
+            setAskTopic(0);
+            setFocusTopic(t.name);
+            go("prompts");
+          },
+        });
+    const site = active ? peek<Site | null>(`site:${active.id}`) : null;
+    const planned = site ? peek<CalendarItem[] | null>(`cal:${site.id}:items`) : null;
+    for (const it of planned ?? []) list.push({ id: it.id, label: it.keyword, group: "Editorial Calendar", hint: "Editorial Calendar", searchOnly: true, run: open("calendar") });
+    return list;
+  };
+
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
+      <CommandBar commands={commands} />
       <UndoKeys />
       <DialogHost />
       <SnackHost />
@@ -680,6 +745,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
         onPage={(p) => {
           setFocus(null);
           setFocusTopic(null);
+          setAskTopic(0);
           go(p);
         }}
       />
@@ -694,6 +760,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
             onSwitch={(id) => {
               setActiveId(id);
               setTopic("All");
+              setAskTopic(0);
             }}
             onAdd={() => setAdding(true)}
             onRemove={async (b) => {
@@ -980,6 +1047,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
               checking={running === view.brand.id ? checking : null}
               readOnly={!canEdit}
               onChange={update}
+              askAdd={askTopic}
               onCompetitor={(name) => {
                 setFocus(name);
                 go("competitors");

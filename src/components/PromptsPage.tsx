@@ -29,6 +29,8 @@ type Props = {
   /** The first check while it runs: models still answering show as loading. */
   checking?: { engine: string; done: number; total: number }[] | null;
   onChange: (b: Brand) => void;
+  /** Goes up each time the command bar's Add prompts runs: opens the new topic box. */
+  askAdd?: number;
   onCompetitor: (name: string) => void;
 };
 
@@ -61,6 +63,12 @@ export function PromptsPage(p: Props) {
         },
       };
   const addTopic = readOnly || all.length >= MAX_TOPICS ? null : () => setNewTopic("");
+  // Add prompts from the command bar opens the new topic box, once per ask.
+  const [askSeen, setAskSeen] = useState(0);
+  if (p.askAdd && p.askAdd !== askSeen) {
+    setAskSeen(p.askAdd);
+    if (addTopic) setNewTopic("");
+  }
 
   // The finding under the title, and when the newest answer came in.
   const rows = promptRows(view.current, view.topics, shown, brand.name, view.filter, brand.domain);
