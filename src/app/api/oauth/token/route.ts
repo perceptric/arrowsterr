@@ -33,19 +33,27 @@ export async function POST(request: Request) {
       client_id: code.client_id,
       created_by: code.user_id,
     });
-    if (error) return oauthError("server_error", error.message, 500);
+    if (error) {
+      console.error("OAuth token failed:", error.message);
+      return oauthError("server_error", "Could not issue a token. Try again.", 500);
+    }
     return issue(k.key, refresh);
   }
 
   if (p("grant_type") === "refresh_token") {
     const { data: row } = await db.from("api_keys").select("id, client_id, revoked_at").eq("refresh_hash", sha256(p("refresh_token"))).maybeSingle();
     if (!row || row.revoked_at) return oauthError("invalid_grant", "This connection was removed. Connect again.");
-    if (p("client_id") && row.client_id && p("client_id") !== row.client_id) return oauthError("invalid_grant", "The refresh token belongs to a different app.");
+    // The app must say who it is, and it must be the app the token was issued to.
+    if (!p("client_id")) return oauthError("invalid_request", "Send client_id with the refresh token.");
+    if (!row.client_id || p("client_id") !== row.client_id) return oauthError("invalid_grant", "The refresh token belongs to a different app.");
     // Rotate both: the old access token and refresh token stop working.
     const k = newKey();
     const refresh = `awr_${token(32)}`;
     const { error } = await db.from("api_keys").update({ prefix: k.prefix, hash: k.hash, refresh_hash: sha256(refresh) }).eq("id", row.id);
-    if (error) return oauthError("server_error", error.message, 500);
+    if (error) {
+      console.error("OAuth token failed:", error.message);
+      return oauthError("server_error", "Could not issue a token. Try again.", 500);
+    }
     return issue(k.key, refresh);
   }
 

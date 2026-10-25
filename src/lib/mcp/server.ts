@@ -94,7 +94,7 @@ export async function handleOne(ctx: Ctx, m: RpcRequest, allow: () => Promise<bo
         if (e instanceof ToolError) return ok(m.id, errorResult(e.message));
         const message = e instanceof Error ? e.message : String(e);
         console.error(`MCP ${tool.name} failed:`, message);
-        return ok(m.id, errorResult(`Something went wrong: ${message}`));
+        return ok(m.id, errorResult("Something went wrong. Try again in a moment."));
       }
     }
     case "prompts/list":

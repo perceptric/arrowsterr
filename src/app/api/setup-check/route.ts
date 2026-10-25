@@ -1,8 +1,14 @@
+import { allowed } from "@/lib/cronAuth";
 import { availableEngines, ENGINES, viaDfs } from "@/lib/engines";
-import { supabaseUrl } from "@/lib/serverAuth";
+import { requireRole, supabaseUrl } from "@/lib/serverAuth";
 
 // Open /api/setup-check to test the server's settings. Secrets are never shown, only whether they work.
-export async function GET() {
+// Needs CRON_SECRET as a Bearer token, or a workspace owner or admin: ?workspaceId=... with their sign-in token.
+export async function GET(request: Request) {
+  if (!allowed(request)) {
+    const auth = await requireRole(request, new URL(request.url).searchParams.get("workspaceId"), "admin");
+    if ("denied" in auth) return auth.denied;
+  }
   const url = supabaseUrl();
   const key = (process.env.SUPABASE_PUBLISHABLE_KEY ?? "").trim();
   const secret = (process.env.SUPABASE_SECRET_KEY ?? "").trim();
@@ -74,23 +80,6 @@ export async function GET() {
     }
   } else {
     report.DataForSEO = "MISSING DFS_LOGIN and DFS_PASSWORD (needed for Google AI Overview)";
-  }
-  // Website tracking: which Umami the server will use, and whether it answers.
-  const umamiKey = process.env.UMAMI_API_KEY?.trim();
-  const own = process.env.UMAMI_URL?.trim();
-  if (!umamiKey && !own) {
-    report.Umami = "MISSING UMAMI_API_KEY (needed for AI traffic)";
-  } else {
-    try {
-      const res = own
-        ? await fetch(`${own.replace(/\/+$/, "")}/api/heartbeat`, { signal: AbortSignal.timeout(10_000) })
-        : await fetch("https://api.umami.is/v1/websites?pageSize=1", { headers: { "x-umami-api-key": umamiKey!, Accept: "application/json" }, signal: AbortSignal.timeout(10_000) });
-      report.Umami = res.ok
-        ? `OK, ${own ? "self-hosted at " + own : "Umami Cloud"}`
-        : `Failed (${res.status}): ${(await res.text()).slice(0, 150)}${own ? "" : ". Check the key, and that your Umami Cloud plan includes API access."}`;
-    } catch (e) {
-      report.Umami = `Could not reach Umami: ${e instanceof Error ? e.message : String(e)}`;
-    }
   }
   return Response.json(report);
 }

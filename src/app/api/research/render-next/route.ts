@@ -1,4 +1,4 @@
-import { allowed } from "@/lib/cronAuth";
+import { workerAllowed } from "@/lib/cronAuth";
 import { leaseNextPage } from "@/lib/articleResearchServer";
 import { adminClient } from "@/lib/serverAuth";
 
@@ -7,7 +7,7 @@ import { adminClient } from "@/lib/serverAuth";
 export const maxDuration = 120;
 
 export async function POST(request: Request) {
-  if (!allowed(request)) return Response.json({ error: "Wrong or missing CRON_SECRET." }, { status: 401 });
+  if (!workerAllowed(request)) return Response.json({ error: "Wrong or missing CRON_SECRET." }, { status: 401 });
   const db = adminClient();
   if (!db) return Response.json({ error: "Add SUPABASE_SECRET_KEY to the server's settings." }, { status: 500 });
   const worker = (new URL(request.url).searchParams.get("worker") ?? "read").replace(/[^\w-]/g, "").slice(0, 40) || "read";

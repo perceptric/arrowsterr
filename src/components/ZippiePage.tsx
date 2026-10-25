@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { AuditIssue, AuditResult } from "@/lib/audit";
 import type { RunAuth } from "@/lib/runner";
 import { CMS, type CmsKind } from "@/lib/cmsTypes";
+import { ApprovalCard } from "./ApprovalCard";
 import { ConnectWizard } from "./ConnectWizard";
 import { Markdown } from "./Markdown";
 import { Zippie } from "./Zippie";
@@ -13,7 +14,7 @@ import { Zippie } from "./Zippie";
 
 type View = "chat" | "knowledge" | "skills" | "project";
 type Thread = { id: string; title: string; updated_at: string; project_id: string | null; created_by?: string | null };
-type Card = { kind: "changeset" | "audit" | "setup"; id: string };
+type Card = { kind: "changeset" | "audit" | "setup" | "approval"; id: string };
 type Msg = { id: number | string; role: "user" | "assistant"; text: string; tools: string[]; cards: Card[]; working?: string; skill?: string };
 type Project = { id: string; name: string; instructions: string; updated_at: string };
 type Knowledge = { id: string; kind: "file" | "url" | "note"; name: string; source: string; chars: number; project_id: string | null; created_at: string };
@@ -229,6 +230,7 @@ export function ZippiePage({ auth, canEdit, compact = false, where = null, onClo
           else if (e.type === "changeset") patch((m) => ({ ...m, cards: [...m.cards, { kind: "changeset", id: e.id }] }));
           else if (e.type === "audit") patch((m) => ({ ...m, cards: [...m.cards, { kind: "audit", id: e.id }] }));
           else if (e.type === "setup") patch((m) => ({ ...m, cards: [...m.cards, { kind: "setup", id: e.id }] }));
+          else if (e.type === "approval") patch((m) => ({ ...m, cards: [...m.cards, { kind: "approval", id: e.id }] }));
           else if (e.type === "error") setError(e.error);
         }
       }
@@ -543,6 +545,8 @@ function Reply({ m, api, auth, canEdit, onSend }: { m: Msg; api: ReturnType<type
             <ChangeSetCard key={c.id} id={c.id} api={api} canEdit={canEdit} />
           ) : c.kind === "setup" ? (
             <SetupCard key={c.id} id={c.id} auth={auth} canEdit={canEdit} onSend={onSend} />
+          ) : c.kind === "approval" ? (
+            <ApprovalCard key={c.id} id={c.id} api={api} canEdit={canEdit} />
           ) : (
             <AuditCard key={c.id} id={c.id} api={api} />
           ),

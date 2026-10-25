@@ -12,10 +12,12 @@ import { NodeSelection, Plugin, PluginKey } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
 import { EditorContent, Extension, useEditor, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import DOMPurify from "dompurify";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { getBrief, getDocMeta, saveDoc, saveDocMeta, saveSite, type Doc, type DocMeta, type Site } from "@/lib/db";
 import type { RunAuth } from "@/lib/runner";
 import type { Brief } from "@/lib/briefTypes";
+import { cleanWith } from "@/lib/cleanHtml";
 import { briefGuides, briefToDoc, guideKey, type Guide } from "@/lib/writer";
 import { AGENT_TASKS, knowledgeText, REWRITES, tasksFor, type AgentTask, type WriterAgentResult } from "@/lib/writerAgent";
 import type { BrandGuideline } from "@/lib/writerTypes";
@@ -108,24 +110,8 @@ function layOut(ed: Editor): { breaks: Break[]; blocks: Block[]; pages: number }
   return { breaks, blocks, pages: Math.max(1, Math.floor(bottom / PITCH) + 1) };
 }
 
-/** Agent HTML, kept to the tags the article may use, before it is shown. */
-function cleanHtml(html: string) {
-  const ok = new Set(["P", "H3", "H4", "UL", "OL", "LI", "STRONG", "EM", "B", "I", "A", "BLOCKQUOTE", "TABLE", "THEAD", "TBODY", "TR", "TH", "TD", "BR"]);
-  const doc = new DOMParser().parseFromString(`<div>${html}</div>`, "text/html");
-  const walk = (el: Element) => {
-    for (const c of [...el.children]) {
-      if (!ok.has(c.tagName)) {
-        c.replaceWith(...[...c.childNodes]);
-        continue;
-      }
-      for (const a of [...c.attributes]) if (!(c.tagName === "A" && a.name === "href" && /^https?:\/\//.test(a.value))) c.removeAttribute(a.name);
-      walk(c);
-    }
-  };
-  const root = doc.body.firstElementChild!;
-  walk(root);
-  return root.innerHTML;
-}
+/** Agent HTML, kept to the tags the article may use, before it is shown. DOMPurify checks every child too. */
+const cleanHtml = (html: string) => cleanWith(DOMPurify, html);
 
 type Target = { kind: "block"; pos: number; type: string; level: number; text: string } | { kind: "selection"; from: number; to: number; text: string };
 type Result = { task: AgentTask; html?: string; note?: string; done?: string; preview?: boolean };

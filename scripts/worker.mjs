@@ -6,7 +6,7 @@
 //          and sends its headings, text, tables and date to /api/research/render-done (docs/content-v2.md).
 //   images: asks /api/writer/image-next for an image a draft needs, takes a screenshot of a page or pictures a
 //          drawn image in Chromium, and sends it to /api/writer/image-done (docs/agentic-writing.md, section 5).
-// Needs APP_URL (like https://app.arrowsterr.com) and CRON_SECRET (the same value as the app's).
+// Needs APP_URL (like https://app.arrowsterr.com) and WORKER_SECRET, or CRON_SECRET, (the same value as the app's).
 // Optional: LIMIT (jobs per tick, default 20), IDLE_MS (wait when there is nothing to do, default 20000),
 // PDF_IDLE_MS (wait when no PDF is queued, default 4000), READ_IDLE_MS (wait when no page is queued, default 5000),
 // READERS (pages read at once, default 2; 0 turns reading off), IMAGERS (images made at once, default 1; 0 turns
@@ -17,9 +17,9 @@ import { createServer, request as httpRequest } from "node:http";
 import { connect as tcpConnect, isIP } from "node:net";
 
 const url = (process.env.APP_URL ?? "").trim().replace(/\/+$/, "");
-const secret = (process.env.CRON_SECRET ?? "").trim();
+const secret = (process.env.WORKER_SECRET || process.env.CRON_SECRET || "").trim();
 if (!url || !secret) {
-  console.error("Set APP_URL and CRON_SECRET on this worker.");
+  console.error("Set APP_URL and WORKER_SECRET (or CRON_SECRET) on this worker.");
   process.exit(1);
 }
 const limit = Number(process.env.LIMIT) || 20;
@@ -49,7 +49,7 @@ async function jobs() {
       data = { error: e instanceof Error ? e.message : String(e) };
     }
     if (status === 401) {
-      console.error("Wrong CRON_SECRET.");
+      console.error("Wrong WORKER_SECRET or CRON_SECRET.");
       process.exit(1);
     }
     if (!data || data.error) {
@@ -173,7 +173,7 @@ async function pdfs(chromium) {
     try {
       const res = await fetch(`${url}/api/pdf/next?worker=${worker}`, { method: "POST", headers: auth, signal: AbortSignal.timeout(30_000) });
       if (res.status === 401) {
-        console.error("Wrong CRON_SECRET.");
+        console.error("Wrong WORKER_SECRET or CRON_SECRET.");
         process.exit(1);
       }
       job = await res.json().catch(() => null);
@@ -412,7 +412,7 @@ async function pages(chromium, n) {
     try {
       const res = await fetch(`${url}/api/research/render-next?worker=${worker}`, { method: "POST", headers: auth, signal: AbortSignal.timeout(130_000) });
       if (res.status === 401) {
-        console.error("Wrong CRON_SECRET.");
+        console.error("Wrong WORKER_SECRET or CRON_SECRET.");
         process.exit(1);
       }
       task = await res.json().catch(() => null);
@@ -614,7 +614,7 @@ async function images(chromium, n) {
     try {
       const res = await fetch(`${url}/api/writer/image-next?worker=${worker}`, { method: "POST", headers: auth, signal: AbortSignal.timeout(60_000) });
       if (res.status === 401) {
-        console.error("Wrong CRON_SECRET.");
+        console.error("Wrong WORKER_SECRET or CRON_SECRET.");
         process.exit(1);
       }
       task = await res.json().catch(() => null);

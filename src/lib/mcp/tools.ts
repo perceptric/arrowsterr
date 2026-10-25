@@ -24,6 +24,11 @@ const str = (v: unknown, max = 300) => (typeof v === "string" ? v.trim().slice(0
 const daysOf = (v: unknown) => Math.min(365, Math.max(1, Math.round(Number(v) || 30)));
 const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
 
+// Tools that spend or delete need confirm: true, sent only after the person said yes to that exact change.
+const confirmArg = { type: "boolean", description: "Set to true only after the person said yes to this exact change. Without it nothing happens." };
+const needsConfirm = (args: Record<string, unknown>, what: string) =>
+  args.confirm === true ? null : textResult({ confirmed: false, needs_confirmation: true }, `Nothing changed yet. Ask the person to confirm: ${what}. If they say yes, call this tool again with the same arguments and confirm: true.`);
+
 // Inputs most tools share.
 const brandArg = { type: "string", description: "The brand's name, domain or id. Optional when the workspace has one brand. Call list_brands to see them." };
 const daysArg = { type: "number", description: "How many days back to look. Default 30, max 365. Changes are against the same number of days before.", minimum: 1, maximum: 365 };
@@ -500,13 +505,14 @@ export const TOOLS: Tool[] = [
   {
     name: "remove_from_content_plan",
     title: "Remove from Content Plan",
-    description: "Delete pieces from the brand's Content Plan, by id or keyword from get_content_plan. Their briefs go with them; drafts in the writer stay. Confirm with the person first.",
+    description: "Delete pieces from the brand's Content Plan, by id or keyword from get_content_plan. Their briefs go with them; drafts in the writer stay. Confirm with the person first, then send confirm: true.",
     inputSchema: {
       type: "object",
       properties: {
         brand: brandArg,
         ids: { type: "array", items: { type: "string" }, description: "Piece ids from get_content_plan." },
         keywords: { type: "array", items: { type: "string" }, description: "Keywords of pieces to delete, when there are no ids." },
+        confirm: confirmArg,
       },
     },
     annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
@@ -520,6 +526,8 @@ export const TOOLS: Tool[] = [
       if (error) throw new Error(error.message);
       const hit = ((rows ?? []) as { id: string; keyword: string }[]).filter((r) => ids.has(r.id) || kws.has(r.keyword.toLowerCase()));
       if (!hit.length) throw new ToolError("None of those are on the plan. Call get_content_plan to see the ids and keywords.");
+      const ask = needsConfirm(args, `delete ${hit.length} piece${hit.length === 1 ? "" : "s"} from ${brand.name}'s Content Plan (${hit.map((r) => r.keyword).join(", ")})`);
+      if (ask) return ask;
       const { error: delError } = await ctx.db.from("calendar_items").delete().in("id", hit.map((r) => r.id)).eq("site_id", site.id);
       if (delError) throw new Error(delError.message);
       return textResult({ brand: { name: brand.name, domain: brand.domain }, removed: hit.map((r) => r.keyword) }, `Removed ${hit.length} piece${hit.length === 1 ? "" : "s"} from the Content Plan.`);
@@ -528,13 +536,14 @@ export const TOOLS: Tool[] = [
   {
     name: "add_prompts",
     title: "Track new prompts",
-    description: "Start tracking new prompts for the brand under a topic. Daily checks ask every AI model these prompts. Respects the plan's prompt limit.",
+    description: "Start tracking new prompts for the brand under a topic. Daily checks ask every AI model these prompts. Respects the plan's prompt limit. Confirm with the person first, then send confirm: true.",
     inputSchema: {
       type: "object",
       properties: {
         brand: brandArg,
         topic: { type: "string", description: "The topic to add them to. A new topic is made if none has this name." },
         prompts: { type: "array", items: { type: "string" }, description: "Questions a buyer would ask an AI, like 'best crm for small agencies'. Up to 20." },
+        confirm: confirmArg,
       },
       required: ["topic", "prompts"],
     },
@@ -553,6 +562,8 @@ export const TOOLS: Tool[] = [
       const room = Math.max(0, e.limits.prompts - used);
       if (!room) throw new ToolError(`The plan tracks ${e.limits.prompts} prompts and all are in use. Remove some or upgrade.`);
       const adding = fresh.slice(0, room);
+      const ask = needsConfirm(args, `track ${adding.length} new prompt${adding.length === 1 ? "" : "s"} for ${brand.name} under "${topicName}", checked every day on the plan (${adding.join("; ")})`);
+      if (ask) return ask;
       const topics = (brand.topics ?? []).filter((t) => t?.name).map((t) => ({ ...t, prompts: [...t.prompts] }));
       const t = topics.find((x) => same(x.name, topicName));
       if (t) t.prompts.push(...adding);

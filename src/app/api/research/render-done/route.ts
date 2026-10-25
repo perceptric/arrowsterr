@@ -1,11 +1,11 @@
-import { allowed } from "@/lib/cronAuth";
+import { workerAllowed } from "@/lib/cronAuth";
 import { savePage } from "@/lib/articleResearchServer";
 import { adminClient } from "@/lib/serverAuth";
 
 // The Fly worker sends what it read on a page: { ok: true, final_url, title, headings, body, word_count, tables, published_at },
 // or why it could not: { ok: false, reason: "timeout" | "failed" | "blocked" | "private" | "empty", error }.
 export async function POST(request: Request) {
-  if (!allowed(request)) return Response.json({ error: "Wrong or missing CRON_SECRET." }, { status: 401 });
+  if (!workerAllowed(request)) return Response.json({ error: "Wrong or missing CRON_SECRET." }, { status: 401 });
   const db = adminClient();
   if (!db) return Response.json({ error: "Add SUPABASE_SECRET_KEY to the server's settings." }, { status: 500 });
   const url = new URL(request.url);

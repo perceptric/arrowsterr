@@ -1,22 +1,38 @@
 import "server-only";
 import { access, cycleEnd, dailyAnswers, effectivePlan, firstWith, limitsFor, TRACKS, METRICS, nextPlan, PLANS, periodOf, type Extras, type Metric, type Plan, type PlanId, type Track } from "./plans";
+import { failClosed, notSetUp } from "./failClosed";
 import { onRefund } from "./meter";
 import { adminClient } from "./serverAuth";
 
 // What a workspace may use right now, and the allowance checks every paid route runs.
-// Counting needs the server's secret key. Without it, or before 015_billing.sql, nothing is blocked.
+// Counting needs the server's secret key. Before 015_billing.sql nothing is blocked. In production, a plan or count
+// that can't be read for any other reason denies the work (fail closed) until it can be read again.
 
 export type Entitlement = { plan: PlanId; status: string; limits: Plan; readOnly: boolean; trialEndsAt: string | null; periodEnd: string | null; anchor: string | null; credits: number; open: Record<Track, boolean> };
 
 const cache = new Map<string, { at: number; e: Entitlement }>();
+
+// When the plan can't be read in production: Free's limits, and every change waits (never cached).
+const unavailable: Entitlement = { plan: "free", status: "unavailable", limits: PLANS.free, readOnly: true, trialEndsAt: null, periodEnd: null, anchor: null, credits: 0, open: { visibility: false, seo: false } };
+const UNAVAILABLE = "Could not check your plan just now. Try again in a minute.";
+const down = (e: Entitlement) => (e.status === "unavailable" ? Response.json({ error: UNAVAILABLE }, { status: 503 }) : null);
 
 export async function entitlement(workspaceId: string): Promise<Entitlement> {
   const hit = cache.get(workspaceId);
   if (hit && Date.now() - hit.at < 60_000) return hit.e;
   const db = adminClient();
   const legacy: Entitlement = { plan: "legacy", status: "active", limits: PLANS.legacy, readOnly: false, trialEndsAt: null, periodEnd: null, anchor: null, credits: 0, open: { visibility: true, seo: true } };
-  if (!db) return legacy;
+  if (!db) {
+    if (!failClosed()) return legacy;
+    console.error("Plan check failed: SUPABASE_SECRET_KEY is missing.");
+    return unavailable;
+  }
   const { data, error } = await db.from("workspaces").select("*").eq("id", workspaceId).maybeSingle();
+  if (error && !notSetUp(error) && failClosed()) {
+    console.error("Plan check failed:", error.message);
+    return unavailable;
+  }
+  if (!error && !data && failClosed()) return unavailable; // no such workspace
   if (error || !data?.plan) return legacy; // before 015_billing.sql
   const w = data as { plan: PlanId; plan_status: string; trial_ends_at: string | null; period_end: string | null; extras: Extras; billing_anchor?: string | null; task_credits?: number };
   // A trial that ended, or a canceled plan, drops to Free. Nothing goes read-only for that.
@@ -78,6 +94,7 @@ function limitReached(e: Entitlement, m: Metric, limit: number) {
 export async function requireTrack(workspaceId: string, track: Track): Promise<Response | null> {
   const e = await entitlement(workspaceId);
   if (e.open[track]) return null;
+  if (down(e)) return down(e);
   return Response.json({ error: `Your Starter plan has ${TRACKS[e.open.seo ? "seo" : "visibility"].label}. Get ${TRACKS[track].label} too on Pro.`, limit: true, boost: "scale" }, { status: 429 });
 }
 
@@ -85,6 +102,7 @@ export async function requireTrack(workspaceId: string, track: Track): Promise<R
 export async function requireContentPlan(workspaceId: string): Promise<Response | null> {
   const e = await entitlement(workspaceId);
   if (e.limits.plansPerMonth > 0) return null;
+  if (down(e)) return down(e);
   return Response.json({ error: "The Content Plan and content briefs start on Starter.", limit: true, boost: "foundation" }, { status: 429 });
 }
 
@@ -92,10 +110,12 @@ export async function requireContentPlan(workspaceId: string): Promise<Response 
 export async function requireWriter(workspaceId: string): Promise<Response | null> {
   const e = await entitlement(workspaceId);
   if (e.limits.writer === "full" && e.open.seo) return null;
+  if (down(e)) return down(e);
   return Response.json({ error: "The Agentic Writer is on Pro. Starter's Organic Research goes up to content briefs.", limit: true, boost: "scale" }, { status: 429 });
 }
 
 function readOnly(e: Entitlement) {
+  if (down(e)) return down(e)!;
   const error = e.plan === "trial" ? "Your free trial has ended. Pick a plan to keep going. Your data is safe." : "This workspace is read-only until billing is sorted out. Your data is safe.";
   return Response.json({ error, readOnly: true }, { status: 402 });
 }
@@ -111,7 +131,8 @@ export type Taken = { ok: true; giveBack: () => Promise<void>; used: number; lim
 /**
  * Use n of a counted allowance. In a metered route it is handed back on its own when the route fails
  * or spends nothing. Elsewhere, call giveBack().
- * Fails open (allows) when counting is not set up, so a missing migration never blocks customers.
+ * Allows when counting is not set up yet, so a missing migration never blocks customers.
+ * In production any other error denies (fail closed).
  */
 export async function take(workspaceId: string, metric: Metric, n = 1, opts: { refundIfFree?: boolean } = {}): Promise<Taken> {
   const e = await entitlement(workspaceId);
@@ -120,7 +141,11 @@ export async function take(workspaceId: string, metric: Metric, n = 1, opts: { r
   const period = periodOf(metric, new Date(), e.anchor);
   const db = adminClient();
   const noop = { ok: true as const, giveBack: async () => {}, used: 0, limit, period };
-  if (!db) return noop;
+  const deny = (why: string): Taken => {
+    console.error("Allowance check failed:", why);
+    return { ok: false, response: Response.json({ error: "Could not check your allowance just now. Try again in a minute." }, { status: 503 }) };
+  };
+  if (!db) return failClosed() ? deny("SUPABASE_SECRET_KEY is missing.") : noop;
   if (metric === "tasks") {
     // The month's tasks first, then task packs.
     const { data, error } = await db.rpc("take_tasks", { p_ws: workspaceId, p_period: period, p_limit: limit, p_n: n });
@@ -134,12 +159,17 @@ export async function take(workspaceId: string, metric: Metric, n = 1, opts: { r
       forgetEntitlement(workspaceId);
       return { ok: true, used: n, limit, giveBack, period, fromPack };
     }
-    if (!/take_tasks/.test(error.message)) console.error("Task check failed:", error.message);
+    if (!notSetUp(error)) {
+      if (failClosed()) return deny(error.message);
+      console.error("Task check failed:", error.message);
+    }
     // Before 022_tasks.sql: count tasks like any other allowance.
   }
   const { data, error } = await db.rpc("take_allowance", { p_ws: workspaceId, p_metric: metric, p_period: period, p_limit: limit, p_n: n });
   if (error) {
-    if (!/take_allowance|usage_counters/.test(error.message)) console.error("Allowance check failed:", error.message);
+    if (notSetUp(error)) return noop;
+    if (failClosed()) return deny(error.message);
+    console.error("Allowance check failed:", error.message);
     return noop;
   }
   if (data === -1) return { ok: false, response: limitReached(e, metric, limit) };

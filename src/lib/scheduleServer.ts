@@ -8,6 +8,7 @@ import type { AiPage, PdfParams, PdfSnapshot } from "./pdf/pages";
 import { makeSnapshot } from "./pdf/server";
 import { reportLimits } from "./plans";
 import { reportEmail } from "./reportEmail";
+import { senderName } from "./senderName";
 import { dueWork, sendKey, sendStep, whenLine, type FileState, type SendRow, type When } from "./schedules";
 
 // Scheduled reports (docs/reports.md, section 32.4). The worker's scheduler tick queues one send per schedule per
@@ -120,8 +121,8 @@ async function email(db: SupabaseClient, s: Schedule, send: Send, files: FileRow
     text: mail.text,
     attachments,
     replyTo,
-    // The brand design sends under the kit's name; the address stays the app's.
-    fromName: first.tokens.design === "brand" ? first.tokens.maker : undefined,
+    // The brand design sends under the kit's name plus " via Arrowsterr"; the address stays the app's.
+    fromName: first.tokens.design === "brand" ? senderName(first.tokens.maker) : undefined,
     idempotencyKey: sendKey(send.id),
   });
   const done = { status: "sent", sent_at: new Date().toISOString(), error: null };

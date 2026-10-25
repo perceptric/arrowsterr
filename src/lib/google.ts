@@ -9,9 +9,14 @@ const SCOPES = ["openid", "email", "https://www.googleapis.com/auth/analytics.re
 
 export const googleReady = () => Boolean(process.env.GOOGLE_CLIENT_ID?.trim() && process.env.GOOGLE_CLIENT_SECRET?.trim() && secret());
 
+const keyOf = (raw: string | undefined) => (raw ? createHash("sha256").update(`arrowsterr-google:${raw}`).digest() : null);
+/** The key for new seals: GOOGLE_TOKEN_KEY, or the one made from SUPABASE_SECRET_KEY. */
 function secret() {
-  const raw = process.env.GOOGLE_TOKEN_KEY?.trim() || process.env.SUPABASE_SECRET_KEY?.trim();
-  return raw ? createHash("sha256").update(`arrowsterr-google:${raw}`).digest() : null;
+  return keyOf(process.env.GOOGLE_TOKEN_KEY?.trim() || process.env.SUPABASE_SECRET_KEY?.trim());
+}
+/** Every key that may have sealed a token, newest first, so tokens sealed before GOOGLE_TOKEN_KEY was set still open. */
+function keys() {
+  return [process.env.GOOGLE_TOKEN_KEY?.trim(), process.env.SUPABASE_SECRET_KEY?.trim()].filter((k, i, all): k is string => Boolean(k) && all.indexOf(k) === i).map((k) => keyOf(k)!);
 }
 
 /** Encrypt a refresh token for the database. */
@@ -23,9 +28,17 @@ export function seal(text: string) {
 }
 export function unseal(sealed: string) {
   const [iv, tag, body] = sealed.split(".").map((p) => Buffer.from(p, "base64url"));
-  const d = createDecipheriv("aes-256-gcm", secret()!, iv);
-  d.setAuthTag(tag);
-  return Buffer.concat([d.update(body), d.final()]).toString("utf8");
+  let last: unknown = new Error("No key to open the Google token.");
+  for (const key of keys()) {
+    try {
+      const d = createDecipheriv("aes-256-gcm", key, iv);
+      d.setAuthTag(tag);
+      return Buffer.concat([d.update(body), d.final()]).toString("utf8");
+    } catch (e) {
+      last = e;
+    }
+  }
+  throw last;
 }
 
 /** A signed, short-lived note that rides through Google's sign-in and comes back to the callback. */

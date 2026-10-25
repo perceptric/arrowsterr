@@ -25,7 +25,10 @@ export async function requireRole(request: Request, workspaceId: unknown, min: M
   const { data: user } = await sb.auth.getUser(token);
   if (!user?.user) return deny("Please sign in again.", 401);
   const { data: ok, error } = await sb.rpc("has_role", { ws: workspaceId, min });
-  if (error) return deny(error.message, 500);
+  if (error) {
+    console.error("Role check failed:", error.message);
+    return deny("Could not check your access. Try again in a moment.", 500);
+  }
   if (!ok) return deny(`You need ${min} access in this workspace to do that.`, 403);
   return { sb };
 }

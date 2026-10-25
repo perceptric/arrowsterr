@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { allowed } from "@/lib/cronAuth";
+import { workerAllowed } from "@/lib/cronAuth";
 import { claim, enqueue, prune, queueReady, retry, type Job, type WebJobKind } from "@/lib/jobs";
 import { metered } from "@/lib/meter";
 import { sendNudges } from "@/lib/nudges";
@@ -28,7 +28,7 @@ async function pool<T>(items: T[], n: number, fn: (item: T) => Promise<void>) {
 }
 
 export async function POST(request: Request) {
-  if (!allowed(request)) return Response.json({ error: "Wrong or missing CRON_SECRET." }, { status: 401 });
+  if (!workerAllowed(request)) return Response.json({ error: "Wrong or missing CRON_SECRET." }, { status: 401 });
   const db = adminClient();
   if (!db) return Response.json({ error: "Add SUPABASE_SECRET_KEY to the server's settings." }, { status: 500 });
   if (!(await queueReady())) return Response.json({ error: "Run supabase/016_queue.sql in Supabase." }, { status: 500 });

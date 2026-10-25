@@ -54,11 +54,18 @@ const deps: Deps = {
 };
 
 // ─────────────── start ───────────────
+/** What a new run paid: the tasks, the month they came from, and how many came from a task pack. */
+export type Paid = { period: string; tasks: number; fromPack: number };
+
 /**
  * Start research for one content plan item, or pick up the one already open. Returns the run.
  * A finished run for the same keyword is reused (nothing is paid again) unless fresh is set (Regenerate).
+ * pay runs only before a new run starts. It takes the tasks and says what it took, or null when the limit is reached.
  */
-export async function startArticleResearch(db: SupabaseClient, opts: { workspaceId: string; itemId: string; userId?: string | null; fresh?: boolean }): Promise<{ runId: string; started: boolean }> {
+export async function startArticleResearch(
+  db: SupabaseClient,
+  opts: { workspaceId: string; itemId: string; userId?: string | null; fresh?: boolean; pay?: () => Promise<Paid | null> },
+): Promise<{ runId: string; started: boolean; unpaid?: boolean }> {
   const item = must(await db.from("calendar_items").select("id, workspace_id, site_id, keyword").eq("id", opts.itemId).eq("workspace_id", opts.workspaceId).maybeSingle()) as { id: string; workspace_id: string; site_id: string; keyword: string } | null;
   if (!item) throw new Error("Calendar item not found.");
   const latest = must(await db.from("article_runs").select("id, status, keyword").eq("item_id", item.id).neq("status", "failed").order("created_at", { ascending: false }).limit(1).maybeSingle()) as { id: string; status: string; keyword: string } | null;
@@ -68,22 +75,25 @@ export async function startArticleResearch(db: SupabaseClient, opts: { workspace
     return { runId: latest.id, started: false };
   }
   const site = must(await db.from("sites").select("brand_id").eq("id", item.site_id).maybeSingle()) as { brand_id: string | null } | null;
+  const paid = opts.pay ? await opts.pay() : undefined;
+  if (paid === null) return { runId: "", started: false, unpaid: true };
   const { data, error } = await db
     .from("article_runs")
     .insert({ workspace_id: item.workspace_id, site_id: item.site_id, brand_id: site?.brand_id ?? null, item_id: item.id, keyword: item.keyword, created_by: opts.userId ?? null })
     .select("id")
     .single();
-  // Two starts at once: the open-run index lets one in. Use that one.
-  if (error?.code === "23505") return startArticleResearch(db, { ...opts, fresh: false });
+  // Two starts at once: the open-run index lets one in. Use that one (the caller hands back what it paid).
+  if (error?.code === "23505") return startArticleResearch(db, { ...opts, fresh: false, pay: undefined });
   const run = must({ data, error }) as { id: string };
-  await queueRun(db, run.id, item.workspace_id);
+  await queueRun(db, run.id, item.workspace_id, paid);
   return { runId: run.id, started: true };
 }
 
 /** Make sure an open run has a live job. A job that died is woken up again. */
-async function queueRun(db: SupabaseClient, runId: string, workspaceId: string) {
+async function queueRun(db: SupabaseClient, runId: string, workspaceId: string, paid?: Paid) {
   const key = `article_research:${runId}`;
-  const id = await enqueue("article_research", { runId }, { workspaceId, key, maxAttempts: 6 });
+  // What the run paid rides on the job, so a run that fails for good hands its tasks back.
+  const id = await enqueue("article_research", { runId, ...(paid ?? {}) }, { workspaceId, key, maxAttempts: 6 });
   if (id !== null) return;
   await db.from("jobs").update({ status: "queued", attempts: 0, run_at: new Date().toISOString(), finished_at: null, last_error: null }).eq("key", key).in("status", ["dead", "done"]);
 }
@@ -99,7 +109,11 @@ export async function articleResearchJob(db: SupabaseClient, job: Job) {
     // A paid call or the database failed. The worker route retries with a growing wait, up to max_attempts.
     if (job.attempts < job.max_attempts) throw e;
     const error = e instanceof Error ? e.message : String(e);
-    await db.from("article_runs").update({ status: "failed", error: error.slice(0, 1000), finished_at: new Date().toISOString() }).eq("id", runId).not("status", "in", "(done,failed)");
+    const { data: failed } = await db.from("article_runs").update({ status: "failed", error: error.slice(0, 1000), finished_at: new Date().toISOString() }).eq("id", runId).not("status", "in", "(done,failed)").select("id");
+    const p = job.payload as Partial<Paid>;
+    if (failed?.length && job.workspace_id && p.period && p.tasks) {
+      await db.rpc("give_back_tasks", { p_ws: job.workspace_id, p_period: p.period, p_plan_n: p.tasks - (p.fromPack ?? 0), p_pack_n: p.fromPack ?? 0 });
+    }
     return finish(job.id);
   }
   if (out.state === "wait") return retry(job.id, out.why, out.seconds, { count: false });

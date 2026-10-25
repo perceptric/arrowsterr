@@ -4,7 +4,7 @@ import { track } from "@/lib/analytics";
 import { useEffect, useState } from "react";
 import { CMS_GUIDE } from "@/lib/cmsGuide";
 import { CMS, type CmsConnection, type CmsKind } from "@/lib/cmsTypes";
-import { authorizeUrl, siteAddress, WP_ANSWER_KEY, type WpAnswer } from "@/lib/wpAuthorize";
+import { authorizeUrl, newState, siteAddress, WP_ANSWER_KEY, WP_STATE_KEY, type WpAnswer } from "@/lib/wpAuthorize";
 import type { RunAuth } from "@/lib/runner";
 import { Modal } from "./reports/Dialog";
 
@@ -116,7 +116,14 @@ export function ConnectWizard({
     const site = siteAddress(form.siteUrl ?? "");
     if (!site) return setError("Type your site address, like example.com.");
     setError("");
-    const w = window.open(authorizeUrl(site, window.location.origin), "arrowsterr-wordpress", "width=760,height=780");
+    // A random state for this connect only. The callback page checks it, so a link from elsewhere can't connect a site.
+    const state = newState();
+    try {
+      localStorage.setItem(WP_STATE_KEY, state);
+    } catch {
+      return setError("Your browser blocked storage for this site, so WordPress can't connect this way. Use an application password.");
+    }
+    const w = window.open(authorizeUrl(site, window.location.origin, state), "arrowsterr-wordpress", "width=760,height=780");
     if (!w) return setError("Your browser blocked the WordPress window. Allow pop-ups for this site, or use an application password.");
     setWaiting(true);
   }

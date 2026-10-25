@@ -1,4 +1,4 @@
-import { allowed } from "@/lib/cronAuth";
+import { workerAllowed } from "@/lib/cronAuth";
 import { adminClient } from "@/lib/serverAuth";
 import { failImage, saveImage } from "@/lib/writerImagesServer";
 
@@ -7,7 +7,7 @@ import { failImage, saveImage } from "@/lib/writerImagesServer";
 export const maxDuration = 60;
 
 export async function POST(request: Request) {
-  if (!allowed(request)) return Response.json({ error: "Wrong or missing CRON_SECRET." }, { status: 401 });
+  if (!workerAllowed(request)) return Response.json({ error: "Wrong or missing CRON_SECRET." }, { status: 401 });
   const db = adminClient();
   if (!db) return Response.json({ error: "Add SUPABASE_SECRET_KEY to the server's settings." }, { status: 500 });
   const url = new URL(request.url);

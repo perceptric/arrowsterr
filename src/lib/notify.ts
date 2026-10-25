@@ -19,19 +19,24 @@ export const KINDS: Record<Kind, string> = {
 };
 
 const app = () => process.env.APP_URL?.trim().replace(/\/+$/, "") || "https://app.arrowsterr.com";
-const secret = () => process.env.CRON_SECRET?.trim() || process.env.SUPABASE_SECRET_KEY?.trim() || "";
+// UNSUBSCRIBE_SECRET signs new links. The old key (CRON_SECRET, then SUPABASE_SECRET_KEY) still opens links already sent.
+const oldSecret = () => process.env.CRON_SECRET?.trim() || process.env.SUPABASE_SECRET_KEY?.trim() || "";
+const secret = () => process.env.UNSUBSCRIBE_SECRET?.trim() || oldSecret();
 const DAY = 864e5;
 
 /** A signature for an unsubscribe link, so nobody can turn off someone else's emails. */
-function sign(user: string, ws: string, kind: Kind) {
-  return createHmac("sha256", secret()).update(`${user}.${ws}.${kind}`).digest("base64url").slice(0, 32);
+function sign(user: string, ws: string, kind: Kind, key = secret()) {
+  return createHmac("sha256", key).update(`${user}.${ws}.${kind}`).digest("base64url").slice(0, 32);
 }
 
 export function signedOk(user: string, ws: string, kind: string, sig: string) {
   if (!secret() || !(kind in KINDS)) return false;
-  const want = Buffer.from(sign(user, ws, kind as Kind));
   const got = Buffer.from(sig);
-  return want.length === got.length && timingSafeEqual(want, got);
+  const keys = [...new Set([secret(), oldSecret()].filter(Boolean))];
+  return keys.some((key) => {
+    const want = Buffer.from(sign(user, ws, kind as Kind, key));
+    return want.length === got.length && timingSafeEqual(want, got);
+  });
 }
 
 export const unsubscribeUrl = (user: string, ws: string, kind: Kind) => `${app()}/api/notifications/unsubscribe?u=${user}&w=${ws}&k=${kind}&s=${sign(user, ws, kind)}`;
