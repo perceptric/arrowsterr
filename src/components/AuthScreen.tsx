@@ -96,10 +96,14 @@ export function AuthScreen({ sb, invited, googleClientId = null }: { sb: Supabas
       {mode === "forgot" ? (
         <h1 className="aw-h3 mb-0!">Reset your password</h1>
       ) : (
-        <div role="tablist" aria-label="Account" className="aw-tabs aw-tabs--lg">
-          {tab("signin", "Sign in")}
-          {tab("signup", "Create account")}
-        </div>
+        <>
+          {/* The screen's title for screen readers; the tabs show it on screen. */}
+          <h1 className="sr-only">{mode === "signup" ? "Create your Arrowsterr account" : "Sign in to Arrowsterr"}</h1>
+          <div role="tablist" aria-label="Account" className="aw-tabs aw-tabs--lg">
+            {tab("signin", "Sign in")}
+            {tab("signup", "Create account")}
+          </div>
+        </>
       )}
       {invited ? (
         <p className="aw-callout">You were invited to a workspace. Use the email address the invite was sent to.</p>

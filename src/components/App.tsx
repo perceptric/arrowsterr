@@ -246,6 +246,8 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
     const to = pathFor(p, tab);
     // A search belongs to the page it was made on, so it stays behind. A tab keeps it.
     if (window.location.pathname !== to) window.history.pushState({ page: p, sub: tab }, "", to + (same ? window.location.search : withoutResearch(window.location.search)));
+    // A new screen starts at the top; Back still returns to where you were (scrollKeep.ts).
+    if (!same) window.scrollTo(0, 0);
   }, []);
   // Zippie's tabs have addresses too. Closing the panel puts the page's own address back.
   const zippieTab = useCallback((tab?: string) => {
