@@ -16,8 +16,9 @@ used; only its structure and accessibility rules are.
 | 4 | Rule breaks fixed: browser pop-ups, emoji, glyph icons, raw hex, help text | 1.5 days |
 | 5 | Dead screens removed | 0.5 day |
 | 6 | Tests, screens check, screenshots, docs | 1.5 days |
+| 7 | Polish: one question per screen, motion, charts, speed, keyboard, undo, dark mode, phone | 7 days |
 
-About 2.5 weeks. Running cost: $0 added at Beta (50 teams) and at Growth (500 teams). Nothing new is paid for: no
+About 4 weeks with Part 7. Running cost: $0 added at Beta (50 teams) and at Growth (500 teams). Nothing new is paid for: no
 new service, no AI calls, no new fonts.
 
 ---
@@ -218,6 +219,81 @@ Many of the pop-ups in Part 4 sit in this code, so removing it first makes Part 
 
 ---
 
+## Part 7. Polish (suggested)
+
+Each item names the skill that drives it and checks it.
+
+### 7.1 One question per screen (taste-skill, app-screen rules)
+
+Run `inspect.mjs --app` on every screen at 1440, 768 and 390 before and after, and critique the screenshots with
+its rubric. Its app rules, applied to Arrowsterr:
+- **The biggest block answers the screen's question.** Prompts: "Does AI name us?" Visibility with its trend and
+  delta is the largest thing on the screen. Competitors: "Who does AI pick over us?" Sources: "Which pages does AI
+  quote?"
+- **Evidence sits next to the answer.** Every headline number gets its sparkline and baseline ("38.4%, up 6.1
+  since 1 Oct").
+- **The most frequent job is one click away.** "Add prompts" on Prompts, "Write this page" on a keyword, "Fix this
+  page" on a source.
+- **One chart colour on the main data.** Your brand's line in the accent, competitors in greys.
+- **Words of the trade in empty states:** "No answers yet. The first check runs at 6:00."
+
+### 7.2 Motion (motion-director, then web-motion-auditor)
+
+- Three speeds (100, 200 and 300ms) and two curves, transform and opacity only.
+- The side panel slides in at 200ms and out at 150ms. Menus and dialogs scale from 98%.
+- Skeletons cross-fade into content in the same layout, so nothing jumps (CLS under 0.1).
+- A changed number rolls to its new value once. Rows of a new result rise in once, 40ms apart.
+- Under reduced motion every move becomes an instant change.
+- web-motion-auditor checks every transition at the end: no animated width or height, no hover-only feedback.
+
+### 7.3 Charts (dataviz)
+
+- One chart system for the app, the PDF and share links: one validated palette in light and dark, labels on the
+  lines instead of legends, one tooltip style, the same number formats as the tables.
+- Sparklines in table rows (visibility per prompt, rank per keyword).
+- Green and red always carry a sign or a chevron.
+
+### 7.4 Speed you can feel (performance-optimization, UI/UX Pro Max `react` domain)
+
+- Optimistic updates: toggles, renames, status changes and deletes change on screen at once and roll back on error.
+- Hovering a sidebar item fetches its data, so the screen opens filled.
+- Long tables (keywords, pages, bulk results) render only the rows in view.
+- Going back restores filters and scroll position.
+- Web vitals (INP under 200ms, CLS under 0.1) go to PostHog for each screen, so slow screens show up.
+
+### 7.5 Keyboard (Twenty pattern, UI/UX Pro Max navigation rules)
+
+- A command bar on ⌘K: jump to any screen, brand, prompt, keyword or report, and run "Add prompts", "New report",
+  "Ask Zippie".
+- Shortcuts for the common jobs, listed on "?". Arrow keys move through table rows; Enter opens; Escape closes.
+
+### 7.6 Undo instead of "Are you sure?" (UI/UX Pro Max confirm rules)
+
+- Deletes that can be brought back happen at once with a snackbar: "Deleted 3 prompts. Undo." The app already
+  has Ctrl+Z.
+- `askConfirm` stays only for what can't come back: deleting a brand, a workspace, billing changes.
+
+### 7.7 Dark mode (UI/UX Pro Max colour rules)
+
+The Twenty tokens already carry dark values and nothing switches them on. Follow the system setting, with a
+Light, Dark and System switch in Profile. Charts, tags and the PDF preview get checked at 4.5:1 in both.
+
+### 7.8 Phone (taste-skill phone composition, UI/UX Pro Max touch rules)
+
+- Each page type gets its own phone layout: lists turn into cards under 720px, reports stack the stat cards in two
+  columns, side panels open as bottom sheets.
+- Touch targets at least 44px, with 8px between them.
+
+### 7.9 Checks that keep it smooth (webapp-testing, browser-testing-with-devtools)
+
+- The screens check (Part 6) also runs an axe accessibility scan on every screen, and fails on a serious finding.
+- Screenshot diffs against the last approved set catch a screen that changed by accident.
+
+Running cost for Part 7: $0 at Beta and at Growth. Web vitals stay inside PostHog's free tier (about 20 events
+per team a month); nothing else is new.
+
+---
+
 ## Decisions for you
 
 1. **Publishing word.** Pick one for sending a piece to a site. "Publish" is used on 4 screens and "Sync to CMS" on 3.
@@ -225,3 +301,5 @@ Many of the pop-ups in Part 4 sit in this code, so removing it first makes Part 
 2. **Settings › Brand Kit** is the workspace's own kit, and Content › Brand › Brand Kit is each brand's. Keep both,
    or show the workspace kit only for agencies. Recommended: keep both, renamed "Your Brand Kit" in Settings.
 3. **Dead screens** (Part 5). Recommended: delete them; they stay in git history.
+4. **Part 7.** Build all of it after Parts 1 to 6, or pick items. Recommended: 7.1, 7.4 and 7.6 first; they change
+   how the app feels the most.
