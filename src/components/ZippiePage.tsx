@@ -547,7 +547,7 @@ function ChatView(p: {
       <div className="zp-scroll">
         <div className="zp-empty">
           <Zippie size={96} mood="happy" />
-          <h1 className="zp-hello">{p.project ? `What should we do in ${p.project.name}?` : "What should Zippie do?"}</h1>
+          <h2 className="zp-hello">{p.project ? `What should we do in ${p.project.name}?` : "What should Zippie do?"}</h2>
           <p className="max-w-md text-center text-[14px] text-muted">He reads your Arrowsterr data, audits your site and prepares fixes for your CMS. You approve every change.</p>
           <div className="w-full">
             <Composer {...p} big />
@@ -1361,9 +1361,9 @@ function ProjectView(p: {
     <div className="zp-scroll">
       <div className="zp-page">
         <div className="flex items-center justify-between gap-3">
-          <h1 className="zp-title">
+          <h2 className="zp-title">
             <Icon d={I.folder} size={22} /> {p.project.name}
-          </h1>
+          </h2>
           {p.canEdit ? (
             <div className="flex gap-2">
               <button
@@ -1478,9 +1478,9 @@ function KnowledgeView(p: { api: ReturnType<typeof useApi>; lib: Library; canEdi
     <div className="zp-scroll">
       <div className="zp-page">
         <div>
-          <h1 className="zp-title">
+          <h2 className="zp-title">
             <Icon d={I.book} size={22} /> Knowledge
-          </h1>
+          </h2>
           <p className="mt-1 text-[14px] text-muted">Teach Zippie about your business: brand guides, product docs, pricing, sales notes, past posts. He reads these before he answers.</p>
         </div>
         {p.canEdit ? (
@@ -1614,9 +1614,9 @@ function SkillsView(p: { api: ReturnType<typeof useApi>; lib: Library; canEdit: 
       <div className="zp-page">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h1 className="zp-title">
+            <h2 className="zp-title">
               <Icon d={I.bolt} size={22} /> Skills
-            </h1>
+            </h2>
             <p className="mt-1 text-[14px] text-muted">Teach Zippie how to do a kind of task. He picks the right skill on his own, or you pick one with + in the chat.</p>
           </div>
           {p.canEdit ? (
