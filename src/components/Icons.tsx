@@ -24,6 +24,8 @@ export const Close = (p: P = {}) => icon(<path d="M6 6l12 12M18 6L6 18" />, p);
 export const ChevronDown = (p: P = {}) => icon(<path d="M6 9l6 6 6-6" />, p);
 /** ▸ ▶ collapsed, or a row that opens */
 export const ChevronRight = (p: P = {}) => icon(<path d="M9 6l6 6-6 6" />, p);
+/** ‹ back a step */
+export const ChevronLeft = (p: P = {}) => icon(<path d="M15 6l-6 6 6 6" />, p);
 /** ↑ a rise, or sorted high first */
 export const ArrowUp = (p: P = {}) => icon(<path d="M12 19V5M6 11l6-6 6 6" />, p);
 /** ↓ a fall, or sorted low first */

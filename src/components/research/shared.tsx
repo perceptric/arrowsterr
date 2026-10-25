@@ -53,7 +53,7 @@ export const slugOf = (i: { keyword: string; stage?: string | null; extra?: Reco
 export function Tick() {
   return (
     <span className="aw-tick" aria-label="done">
-      ✓
+      <CheckIcon size={11} />
     </span>
   );
 }

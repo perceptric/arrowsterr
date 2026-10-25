@@ -36,6 +36,8 @@ export function ResearchPage({
   onSeo,
   refresh,
   writer,
+  sub,
+  onSub,
 }: {
   sb: SupabaseClient;
   auth: RunAuth;
@@ -113,7 +115,7 @@ export function ResearchPage({
           me={{ name: brand.name, logo: brand.logo }}
         />
       ) : (
-        <EditorialCalendar sb={sb} auth={auth} site={site} canEdit={canEdit} refresh={refresh} writer={writer} brandName={brand.name} onSite={setSite} />
+        <EditorialCalendar sb={sb} auth={auth} site={site} canEdit={canEdit} refresh={refresh} writer={writer} brandName={brand.name} onSite={setSite} sub={sub} onSub={onSub} />
       )}
     </div>
     </ResearchKeyword.Provider>

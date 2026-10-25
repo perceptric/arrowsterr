@@ -7,7 +7,7 @@ import { flatPrompts, type Brand, type Profile, type Topic } from "@/lib/db";
 import { ANGLES, BUSINESS_TYPES, MAX_PROMPTS, TOPIC_KINDS, type Angle, type PickedTopic } from "@/lib/onboarding";
 import type { RunAuth } from "@/lib/runner";
 import { BrandLogo } from "./BrandLogo";
-import { ArrowRight, Check } from "./Icons";
+import { ArrowLeft, ArrowRight, Check, ChevronDown } from "./Icons";
 import { KitLearn } from "./BrandKit";
 import { ENGINE_LOGOS } from "./Engines";
 import { Dropdown } from "./Pickers";
@@ -268,7 +268,7 @@ export function Onboarding({
             {steps.map((s, i) => (
               <li key={s.id} className={`aw-steps__item ${i === at ? "is-on" : i < at ? "is-done" : ""}`}>
                 <button type="button" disabled={i > at || Boolean(busy) || step === "done" || (s.id === "prompts" && !plan.length)} onClick={() => go(s.id)} aria-current={i === at ? "step" : undefined}>
-                  <span className="aw-steps__dot">{i < at ? "✓" : i + 1}</span>
+                  <span className="aw-steps__dot">{i < at ? <Check size={12} /> : i + 1}</span>
                   <span className="aw-steps__label">{s.label}</span>
                 </button>
               </li>
@@ -301,7 +301,7 @@ export function Onboarding({
             <Thinking text={leaving ? (ready === "done" ? "Opening your brand..." : "Loading your topics...") : ready ? (ready === "done" ? "Setup done" : "Research done") : busy} done={Boolean(ready) && !leaving}>
               {ready && !leaving ? (
                 <button type="button" className="aw-btn aw-btn--accent aw-btn--lg" onClick={() => advance(ready)}>
-                  {ready === "done" ? "Your brand is ready" : "Your topics are ready"} →
+                  {ready === "done" ? "Your brand is ready" : "Your topics are ready"} <ArrowRight />
                 </button>
               ) : (
                 <Musing />
@@ -426,8 +426,8 @@ function Footer({ onBack, next, onNext, disabled, note, quick }: { onBack?: () =
   return (
     <div className="aw-onb__foot">
       {onBack ? (
-        <button type="button" className="aw-text-link text-muted!" onClick={onBack}>
-          ← Back
+        <button type="button" className="aw-text-link inline-flex items-center gap-1 text-muted!" onClick={onBack}>
+          <ArrowLeft /> Back
         </button>
       ) : (
         <span />
@@ -440,7 +440,7 @@ function Footer({ onBack, next, onNext, disabled, note, quick }: { onBack?: () =
           </button>
         ) : null}
         <button type="button" className="aw-btn aw-btn--accent aw-btn--lg" disabled={disabled} onClick={onNext}>
-          {next} →
+          {next} <ArrowRight />
         </button>
       </div>
     </div>
@@ -500,8 +500,8 @@ function WorkspaceStep({ step, init, onBack, onNext }: { step: string; init: str
         Continue
       </button>
       {onBack ? (
-        <button type="button" className="aw-text-link self-start text-muted!" onClick={onBack}>
-          ← Back
+        <button type="button" className="aw-text-link inline-flex items-center gap-1 self-start text-muted!" onClick={onBack}>
+          <ArrowLeft /> Back
         </button>
       ) : null}
     </WelcomeCard>
@@ -531,7 +531,7 @@ function SiteStep(p: { seo: boolean; website: string; setWebsite: (v: string) =>
             <input id="website" value={p.website} onChange={(e) => p.setWebsite(e.target.value)} placeholder="acme.com" required autoFocus className="aw-input aw-input--hero" />
           </div>
           <button type="submit" className="aw-btn aw-btn--accent aw-btn--lg self-start">
-            Analyze my brand →
+            Analyze my brand <ArrowRight />
           </button>
         </div>
         {p.seo ? null : (
@@ -634,7 +634,7 @@ function PromptsStep(p: { plan: PlanTopic[]; setPlan: (v: PlanTopic[]) => void; 
                 <td colSpan={2}>
                   <span className="flex items-center gap-2 text-[15px] font-medium text-ink">
                     <span aria-hidden="true" className="text-muted">
-                      ▾
+                      <ChevronDown />
                     </span>
                     {t.name}
                     <span className="font-normal text-muted">· {t.prompts.filter((x) => x.on).length} prompts</span>

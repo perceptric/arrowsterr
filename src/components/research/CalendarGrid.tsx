@@ -1,5 +1,6 @@
 "use client";
 
+import { ChevronLeft, ChevronRight } from "../Icons";
 import { Dropdown } from "../Pickers";
 import { useState } from "react";
 import type { CalendarItem } from "@/lib/db";
@@ -107,13 +108,13 @@ export function CalendarGrid({
         </span>
         <span className="flex items-center gap-1">
           <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => shift(-1)} aria-label={mode === "week" ? "Previous week" : "Previous month"}>
-            ‹
+            <ChevronLeft />
           </button>
           <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setCursor(new Date())}>
             Today
           </button>
           <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => shift(1)} aria-label={mode === "week" ? "Next week" : "Next month"}>
-            ›
+            <ChevronRight />
           </button>
         </span>
       </div>
