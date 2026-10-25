@@ -1,4 +1,4 @@
-// The tags and links agent HTML may keep before the writer shows it (DocsEditor.tsx).
+// The tags and links agent HTML may keep before the writer shows it.
 // DOMPurify does the cleaning; this file holds its rules, so tests can check them without a browser.
 import type { Config, DOMPurify, UponSanitizeAttributeHook } from "dompurify";
 

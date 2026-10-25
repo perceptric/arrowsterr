@@ -8,7 +8,7 @@ import { Dropdown } from "./Pickers";
 import { Confirm } from "./reports/Dialog";
 import { post } from "./research/shared";
 import type { BrandTab } from "./SettingsPage";
-import { Ga4Connect, type SiteStatus } from "./TrafficPage";
+import { Ga4Connect, type SiteStatus } from "./Ga4Connect";
 import { BrandLogo } from "./BrandLogo";
 import { favicon, Thinking } from "./ui";
 

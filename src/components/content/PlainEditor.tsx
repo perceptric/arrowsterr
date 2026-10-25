@@ -12,11 +12,11 @@ import { EditorContent, useEditor, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { saveDoc, type Doc, type DocMeta } from "@/lib/db";
-import { SLASH, SlashMenu, slashKeysExtension } from "../research/DocsEditor";
+import { SLASH, SlashMenu, slashKeysExtension } from "../research/SlashMenu";
 import { draftText } from "../research/Writer";
 import { Embed, Note } from "../research/writerNodes";
 
-// The plain editor in Content: the editing core of the Agentic Writer (DocsEditor) with no AI in it.
+// The plain editor in Content: the editing core of the old Agentic Writer with no AI in it.
 // Text, headings, lists, links, images, tables and interactive blocks. It saves as you type.
 
 const PLAIN_SLASH = SLASH.filter((s) => !s.ai);
