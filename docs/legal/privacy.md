@@ -55,7 +55,6 @@ We use these service providers (sub-processors) to run Arrowsterr:
 | Google (Gemini, Google Analytics API) | AI answers, GA4 data you connect | United States |
 | Perplexity | AI answers | United States |
 | DataForSEO | Search and AI answer data | [REGION] |
-| Umami | Website analytics for the tracking script | [REGION] |
 | Sentry | Error monitoring | [REGION] |
 | [EMAIL PROVIDER] | Service emails | [REGION] |
 

@@ -44,7 +44,7 @@ function Bars({ rows, label, onPick }: { rows: { key: string; label: string; val
 
 /**
  * Content Intelligence: every page on the brand's site, how it performs and what to do next.
- * Google numbers come from SEO data. Visits come from Google Analytics 4 (or the tracking script) when connected.
+ * Google numbers come from SEO data. Visits come from Google Analytics 4 when connected.
  * AI citations come from the daily prompt checks.
  */
 export function ContentIntel({
@@ -224,7 +224,7 @@ export function ContentIntel({
       {error ? <p className="aw-error">{error}</p> : null}
       <p className="max-w-3xl text-[15px] text-ink">
         Every page on {site.domain}, tagged by how it performs. Google numbers come from SEO data for {flag(country)} {country}.{" "}
-        {linked ? (fromGa4 ? `Views come from Google Analytics 4, last ${days} days.` : `Views come from your tracking script, last ${days} days.`) : "Link Google Analytics 4 to add real views and visits from AI."}
+        {linked ? `Views come from Google Analytics 4, last ${days} days.` : "Link Google Analytics 4 to add real views and visits from AI."}
       </p>
 
       {!fromGa4 && status && canEdit ? <Ga4Connect status={status} canEdit={canEdit} call={call} onDone={() => checkStatus().then(() => setTraffic({}))} /> : null}

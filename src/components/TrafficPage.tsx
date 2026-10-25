@@ -7,7 +7,6 @@ import type { RunAuth } from "@/lib/runner";
 import type { View } from "@/lib/view";
 import { BrandLogo } from "./BrandLogo";
 import { ENGINE_LOGOS } from "./Engines";
-import { Copy, InstallGuide, snippetFor } from "./InstallGuide";
 import { TrendChart, type Line } from "./TrendChart";
 import { aiSourceOf } from "@/lib/aiSources";
 import { useStash } from "@/lib/stash";
@@ -19,13 +18,8 @@ export type SiteStatus = Status;
 type Status = {
   connected: boolean;
   source?: "ga4";
-  websiteId?: string;
   domain?: string;
-  platform?: string;
-  token?: string;
-  installed?: boolean;
   live?: boolean;
-  pageviews?: number;
   ga4?: Ga4 | null;
 };
 
@@ -126,7 +120,6 @@ type Traffic = {
   pages: { path: string; visits: number; engines: Record<string, number> }[];
   breakdowns: Record<string, Row[]>;
 };
-type Verify = { checks: { label: string; state: "ok" | "warn" | "fail"; note: string }[]; live: boolean; at: string };
 
 const AI_COLORS: Record<string, string> = { ChatGPT: "#10A37F", Perplexity: "#20808D", Gemini: "#4285F4", Claude: "#D97757", Copilot: "#0F141F", "Other AI": "#A8AEBA" };
 const LOGO: Record<string, string> = { ...ENGINE_LOGOS, Copilot: "https://www.google.com/s2/favicons?domain=copilot.microsoft.com&sz=64" };
@@ -228,56 +221,14 @@ function Breakdown({ title, tabs }: { title: string; tabs: Tab[] }) {
   );
 }
 
-const MARK = { ok: "✓", warn: "!", fail: "✕" } as const;
-const MARK_CLASS = { ok: "aw-status--ranked", warn: "aw-status--warn", fail: "aw-status--missed" } as const;
-
-/** The install check, step by step. */
-function VerifyResult({ result, onClose }: { result: Verify; onClose?: () => void }) {
-  const failed = result.checks.filter((c) => c.state === "fail").length;
-  return (
-    <section className="aw-frame">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-rule px-6 py-4">
-        <span className="text-[15px] font-medium text-ink">
-          {failed ? `${failed} ${failed === 1 ? "thing" : "things"} to fix` : result.live ? "Everything works" : "Installed. Waiting for a visit"}
-        </span>
-        <span className="flex items-center gap-3">
-          <span className="aw-label">Checked {new Date(result.at).toLocaleTimeString()}</span>
-          {onClose ? (
-            <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={onClose}>
-              Close
-            </button>
-          ) : null}
-        </span>
-      </div>
-      <ol className="divide-y divide-rule-faint">
-        {result.checks.map((c) => (
-          <li key={c.label} className="flex items-start gap-3 px-6 py-3">
-            <span className={`aw-status ${MARK_CLASS[c.state]} shrink-0`} aria-label={c.state === "ok" ? "Passed" : c.state === "warn" ? "Check" : "Failed"}>
-              {MARK[c.state]}
-            </span>
-            <span className="flex min-w-0 flex-col gap-0.5">
-              <span className="text-[14px] font-medium text-ink">{c.label}</span>
-              <span className="break-words text-[13px] text-body">{c.note}</span>
-            </span>
-          </li>
-        ))}
-      </ol>
-    </section>
-  );
-}
-
 /** Website analytics for the brand's site, visits from AI, and setup when it isn't connected yet. */
 export function TrafficPage({ view, auth, canEdit }: { view: View; auth: RunAuth; canEdit: boolean }) {
   const { brand, current, filter, days } = view;
   const [status, setStatus] = useStash<Status | null>(`traffic:${brand.id}:status`, null);
   const [saved, setSaved] = useStash<Record<number, Traffic>>(`traffic:${brand.id}:data`, {});
   const traffic = saved[days] ?? null;
-  const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
-  const [setup, setSetup] = useState(false);
   const [chart, setChart] = useState<"visitors" | "pageviews">("visitors");
-  const [verifying, setVerifying] = useState(false);
-  const [verified, setVerified] = useState<Verify | null>(null);
   const [pageSort, setPageSort] = useSort("visits");
   // Back from Google's sign-in: say how it went, then tidy the address.
   const [back] = useState(() => (typeof window === "undefined" ? null : new URLSearchParams(window.location.search)));
@@ -312,21 +263,12 @@ export function TrafficPage({ view, auth, canEdit }: { view: View; auth: RunAuth
 
   const check = useCallback(() => call("/api/site", { action: "status" }).then(setStatus), [call, setStatus]);
 
-  // Load the status, then keep checking every 10 seconds until the first visit arrives.
   const isLive = Boolean(status?.live);
   useEffect(() => {
     let live = true;
-    const tick = () => check().catch((e) => live && setError(e instanceof Error ? e.message : String(e)));
-    tick();
-    if (isLive) return () => void (live = false);
-    const t = setInterval(() => {
-      if (live) tick();
-    }, 10_000);
-    return () => {
-      live = false;
-      clearInterval(t);
-    };
-  }, [check, isLive]);
+    check().catch((e) => live && setError(e instanceof Error ? e.message : String(e)));
+    return () => void (live = false);
+  }, [check]);
 
   useEffect(() => {
     if (!isLive) return;
@@ -339,18 +281,6 @@ export function TrafficPage({ view, auth, canEdit }: { view: View; auth: RunAuth
     };
   }, [isLive, days, call, setSaved]);
 
-  async function connect() {
-    setBusy("Setting up tracking for your website...");
-    setError("");
-    try {
-      setStatus(await call("/api/site", { action: "connect" }));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setBusy("");
-    }
-  }
-
   async function disconnectGa4() {
     if (!confirm("Disconnect Google Analytics from this brand?")) return;
     try {
@@ -362,31 +292,6 @@ export function TrafficPage({ view, auth, canEdit }: { view: View; auth: RunAuth
     }
   }
 
-  async function verify() {
-    setVerifying(true);
-    setError("");
-    try {
-      const v: Verify = await call("/api/site", { action: "verify" });
-      setVerified(v);
-      if (v.live && !isLive) await check();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setVerifying(false);
-    }
-  }
-
-  const verifyButton = (
-    <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={verify} disabled={verifying}>
-      {verifying ? "Checking..." : "Verify install"}
-    </button>
-  );
-
-  const origin = typeof window === "undefined" ? "" : window.location.origin;
-  const snippet = status?.websiteId ? snippetFor(origin, status.websiteId, status.domain ?? brand.domain) : "";
-  const shareUrl = status?.token ? `${origin}/install/${status.token}` : "";
-
-  if (busy) return <Thinking text={busy} />;
   if (!status) return error ? <p className="aw-error">{error}</p> : <Thinking text="Checking your website..." />;
 
   // ── Not connected yet ──
@@ -397,20 +302,10 @@ export function TrafficPage({ view, auth, canEdit }: { view: View; auth: RunAuth
         {error ? <p className="aw-error">{error}</p> : null}
         {notice}
         <Ga4Connect status={status} canEdit={canEdit} call={call} onDone={check} />
-        <span className="aw-label">Or use the Arrowsterr tracking script</span>
         <ToolIntro
           eyebrow="Start here"
           title={`See every visit to ${brand.domain}, including visits from AI`}
-          lead="Add one line of code to your site and see your visitors, top pages, sources, countries and devices. Arrowsterr also shows exactly how many people arrive from ChatGPT, Perplexity, Gemini and other AI assistants."
-          action={
-            canEdit ? (
-              <button type="button" className="aw-btn aw-btn--accent" onClick={connect}>
-                Connect {brand.domain}
-              </button>
-            ) : (
-              <p className="aw-small">Ask an editor or admin in this workspace to connect the website.</p>
-            )
-          }
+          lead="Connect Google Analytics and see your visitors, top pages, sources, countries and devices. Arrowsterr also shows how many people arrive from ChatGPT, Perplexity, Gemini and other AI assistants."
           features={[
             { title: "Visitors and visits", text: "Visitors, visits, pageviews, bounce rate and time on site, with the change from last period.", visual: <SampleStats items={[["Visitors", "4.2K"], ["Visits", "5.8K"], ["Bounce", "41%"]]} /> },
             { title: "Visits from AI", text: "How many visitors each AI assistant sends you, day by day.", visual: <SampleRows rows={[["ChatGPT", 120], ["Perplexity", 48], ["Gemini", 22]]} /> },
@@ -419,65 +314,8 @@ export function TrafficPage({ view, auth, canEdit }: { view: View; auth: RunAuth
             { title: "Locations and devices", text: "Countries, cities, languages, browsers and devices, all in one place." },
             { title: "AI citations meet visits", text: "Your pages that AI answers cite, next to the visits those pages get from AI." },
           ]}
-          steps={["Click Connect.", "Copy the one-line code into your site's head. Guides cover WordPress, Shopify, Webflow, Wix and more.", "Click Verify install. Visits show up within minutes."]}
-          faqs={[
-            { q: "Does it use cookies?", a: "No. Visitors are counted without cookies and no IP addresses are stored." },
-            { q: "Will it slow down my site?", a: "No. The script is tiny and loads after your page." },
-            { q: "Can my web person install it?", a: "Yes. Send them the private install link from the setup page. They don't need an account." },
-          ]}
+          steps={["Click Connect Google Analytics.", "Sign in with Google.", "Pick the property for your website."]}
         />
-      </div>
-    );
-  }
-
-  // ── Connected, waiting for the first visit (or the user opened setup again) ──
-  if (!isLive || setup) {
-    return (
-      <div className="flex max-w-3xl flex-col gap-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="aw-h2">Traffic</h1>
-          {isLive ? (
-            <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setSetup(false)}>
-              Back to analytics
-            </button>
-          ) : null}
-        </div>
-        {error ? <p className="aw-error">{error}</p> : null}
-        <section className="aw-frame">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-rule px-6 py-4">
-            <span className="text-[15px] font-medium text-ink">Install on {status.domain}</span>
-            <span className={`aw-status ${isLive ? "aw-status--ranked" : status.installed ? "aw-status--warn" : "aw-status--pending"}`}>
-              {isLive ? "Live" : status.installed ? "Installed · waiting for a visit" : "Not installed yet"}
-            </span>
-          </div>
-          <div className="aw-frame__body flex flex-col gap-6">
-            <InstallGuide snippet={snippet} platform={status.platform ?? "other"} />
-            <div className="flex flex-col gap-3 border-t border-rule pt-5">
-              <span className="aw-label">3 · Check it</span>
-              <p className="text-[14px] text-body">
-                Open <a href={`https://${status.domain}`} target="_blank" rel="noopener noreferrer">{status.domain}</a> in a new tab, then click Verify. It checks
-                every step and tells you what to fix.
-              </p>
-              <div>
-                <button type="button" className="aw-btn aw-btn--accent" onClick={verify} disabled={verifying}>
-                  {verifying ? "Checking..." : "Verify install"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
-        {verified ? <VerifyResult result={verified} /> : null}
-        {shareUrl ? (
-          <section className="aw-frame">
-            <div className="aw-frame__body flex flex-col gap-3">
-              <span className="text-[15px] font-medium text-ink">Not your job? Send it to your web person.</span>
-              <div className="flex flex-col gap-3 border border-rule bg-surface-2 p-3 sm:flex-row sm:items-center">
-                <code className="min-w-0 flex-1 truncate font-mono text-[12px] text-ink">{shareUrl}</code>
-                <Copy text={shareUrl} label="Copy link" />
-              </div>
-            </div>
-          </section>
-        ) : null}
       </div>
     );
   }
@@ -547,7 +385,7 @@ export function TrafficPage({ view, auth, canEdit }: { view: View; auth: RunAuth
         <h1 className="aw-h2">Traffic</h1>
         <span className="flex flex-wrap items-center gap-3">
           <span className="aw-live">
-            {traffic.now === null ? `Live on ${status.domain}` : `${num(traffic.now)} ${traffic.now === 1 ? "visitor" : "visitors"} online now`}
+            {traffic.now == null ? `Live on ${status.domain}` : `${num(traffic.now)} ${traffic.now === 1 ? "visitor" : "visitors"} online now`}
           </span>
           {status.source === "ga4" ? (
             <>
@@ -560,21 +398,11 @@ export function TrafficPage({ view, auth, canEdit }: { view: View; auth: RunAuth
                 </button>
               ) : null}
             </>
-          ) : (
-            <>
-              {verifyButton}
-              {canEdit ? (
-                <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setSetup(true)}>
-                  Setup
-                </button>
-              ) : null}
-            </>
-          )}
+          ) : null}
         </span>
       </div>
       {error ? <p className="aw-error">{error}</p> : null}
       {notice}
-      {verified ? <VerifyResult result={verified} onClose={() => setVerified(null)} /> : null}
 
       <div className="aw-stats aw-stats--tight" style={{ ["--cols" as string]: 6 }}>
         {[

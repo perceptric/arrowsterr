@@ -41,43 +41,6 @@ test("cleanUrl keeps real pages and drops junk", async () => {
   assert.equal(cleanUrl("https://blog.acme.com/post-one", "acme.com"), "https://blog.acme.com/post-one");
 });
 
-test("visitor journeys: sources, visits and score", async () => {
-  const { sourceOf, summarize } = await import("../src/lib/journey.ts");
-  const { persona } = await import("../src/lib/names.ts");
-  assert.deepEqual(sourceOf("chatgpt.com", "acme.com"), { source: "ChatGPT", kind: "ai" });
-  assert.deepEqual(sourceOf("www.google.com", "acme.com"), { source: "Google", kind: "search" });
-  assert.deepEqual(sourceOf("www.acme.com", "acme.com"), { source: "Direct", kind: "direct" });
-  assert.equal(sourceOf("lnkd.in", "acme.com").source, "LinkedIn");
-  assert.equal(persona("abc").name, persona("abc").name);
-
-  const s = { id: "abc", browser: "chrome", os: "Mac OS", device: "laptop", country: "US", region: null, city: "Austin", firstAt: "", lastAt: "", visits: 1, views: 0 };
-  const steps = [
-    { at: "2026-10-01T10:00:00Z", visitId: "v1", path: "/blog/x", query: null, referrer: "chatgpt.com", title: null, event: null },
-    { at: "2026-10-01T10:02:00Z", visitId: "v1", path: "/pricing", query: null, referrer: null, title: null, event: null },
-    { at: "2026-10-04T09:00:00Z", visitId: "v2", path: "/pricing", query: null, referrer: null, title: null, event: null },
-    { at: "2026-10-04T09:04:00Z", visitId: "v2", path: "/pricing", query: null, referrer: null, title: null, event: "Booking click" },
-  ];
-  const v = summarize(s, steps, "acme.com");
-  assert.equal(v.visits, 2);
-  assert.equal(v.source, "ChatGPT");
-  assert.deepEqual(v.intentPages, ["Pricing"]);
-  assert.deepEqual(v.actions, ["Booking click"]);
-  assert.equal(v.label, "Hot");
-});
-
-test("scroll actions are not counted as pages", async () => {
-  const { visitsOf } = await import("../src/lib/journey.ts");
-  const at = (s: number) => new Date(Date.UTC(2026, 9, 8, 10, 0, s)).toISOString();
-  const steps = [
-    { at: at(0), visitId: "v", path: "/a", query: null, referrer: null, title: null, event: null },
-    { at: at(1), visitId: "v", path: "/a", query: null, referrer: null, title: null, event: null },
-    { at: at(20), visitId: "v", path: "/a", query: null, referrer: null, title: null, event: "Scrolled 50%" },
-  ];
-  const [v] = visitsOf(steps, "acme.com");
-  assert.equal(v.steps.filter((s) => !s.event).length, 1);
-  assert.equal(v.steps.filter((s) => s.event).length, 1);
-});
-
 test("keyword clusters group by core keyword", async () => {
   const { clustersOf } = await import("../src/lib/research.ts");
   const k = (keyword: string, core: string | null, volume: number) => ({ keyword, core, volume, kd: null, cpc: null, competition: null, intent: null, otherIntents: [], trend: [], serp: [], results: null });
@@ -115,8 +78,8 @@ test("reports: wins, drops and content rows", async () => {
   assert.equal(wd.drops[0].text, "Visibility on Gemini");
   const rows = contentRows({
     items: [{ id: "1", keyword: "crm for dentists", url: "https://acme.com/blog/a/", current_url: null, due_date: "2026-10-01", action: "new", status: "published" }, { id: "2", keyword: "x", url: null, current_url: null, due_date: null, action: "new", status: "planned" }],
-    citedPaths: new Map([["/blog/a", 25]]), traffic, visitors: [{ entry: "/blog/a", label: "Hot" }, { entry: "/", label: "Cold" }],
+    citedPaths: new Map([["/blog/a", 25]]), traffic,
   });
   assert.equal(rows.length, 1);
-  assert.deepEqual([rows[0].cited, rows[0].visits, rows[0].aiVisits, rows[0].landed, rows[0].hot], [25, 120, 4, 1, 1]);
+  assert.deepEqual([rows[0].cited, rows[0].visits, rows[0].aiVisits], [25, 120, 4]);
 });

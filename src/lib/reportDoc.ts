@@ -3,7 +3,7 @@
 import type { ReportSection } from "./reportTypes.ts";
 
 /** The client report's blocks between the cover and the footer, which always show. */
-export type BlockId = "kpis" | "summary" | "wins" | "models" | "competitors" | "traffic" | "visitors" | "content";
+export type BlockId = "kpis" | "summary" | "wins" | "models" | "competitors" | "traffic" | "content";
 export const BLOCKS: { id: BlockId; label: string; website?: boolean }[] = [
   { id: "kpis", label: "AI scorecard" },
   { id: "summary", label: "AI summary" },
@@ -11,7 +11,6 @@ export const BLOCKS: { id: BlockId; label: string; website?: boolean }[] = [
   { id: "models", label: "Visibility on each AI" },
   { id: "competitors", label: "Who AI recommends" },
   { id: "traffic", label: "Website traffic", website: true },
-  { id: "visitors", label: "Visitors and leads", website: true },
   { id: "content", label: "Content" },
 ];
 const IDS = new Set<string>(BLOCKS.map((b) => b.id));

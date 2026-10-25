@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import type { Chat } from "@/lib/chats";
 import type { CalendarItem } from "@/lib/db";
-import type { Visitor } from "@/lib/journey";
 import { citedPathsOf, contentRows, type ContentRow, type TrafficData } from "@/lib/reports";
 import type { RunAuth } from "@/lib/runner";
 import { useStash } from "@/lib/stash";
@@ -14,9 +13,9 @@ const num = (n: number | null | undefined) => (n === null || n === undefined ? "
 
 export { citedPathsOf };
 
-/** Results for every published page: AI citations, visits, visits from AI and visitors who landed there. */
+/** Results for every published page: AI citations, visits and visits from AI. */
 export function ContentResults({ auth, brandId, domain, days, chats, items }: { auth: RunAuth; brandId: string; domain: string; days: number; chats: Chat[]; items: CalendarItem[] }) {
-  const [saved, setSaved] = useStash<Record<number, { traffic: TrafficData | null; visitors: Visitor[] | null }>>(`results:${brandId}`, {});
+  const [saved, setSaved] = useStash<Record<number, { traffic: TrafficData | null }>>(`results:${brandId}`, {});
   const data = saved[days];
 
   useEffect(() => {
@@ -33,29 +32,25 @@ export function ContentResults({ auth, brandId, domain, days, chats, items }: { 
         return null;
       }
     };
-    Promise.all([call<TrafficData>("/api/traffic", { days }), call<{ visitors: Visitor[] }>("/api/visitors", { action: "list", days })]).then(
-      ([traffic, v]) => live && setSaved((x) => ({ ...x, [days]: { traffic, visitors: v?.visitors ?? null } })),
-    );
+    call<TrafficData>("/api/traffic", { days }).then((traffic) => live && setSaved((x) => ({ ...x, [days]: { traffic } })));
     return () => {
       live = false;
     };
   }, [auth, brandId, days, setSaved]);
 
   const t = data?.traffic ?? null;
-  const v = data?.visitors ?? null;
-  const rows = contentRows({ items, citedPaths: chats.length ? citedPathsOf(chats, domain) : null, traffic: t, visitors: v });
+  const rows = contentRows({ items, citedPaths: chats.length ? citedPathsOf(chats, domain) : null, traffic: t });
 
   if (!rows.length)
     return <div className="aw-callout">No published pages yet. Set a page to Published and add its live URL. Its AI citations and visits show up here.</div>;
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="aw-stats aw-stats--tight" style={{ ["--cols" as string]: 4 }}>
+      <div className="aw-stats aw-stats--tight" style={{ ["--cols" as string]: 3 }}>
         {[
           { lab: "Published pages", v: rows.length },
           { lab: "Cited by AI", v: chats.length ? rows.filter((r) => (r.cited ?? 0) > 0).length : "–" },
           { lab: "Visits from AI", v: t ? num(rows.reduce((n, r) => n + (r.aiVisits ?? 0), 0)) : "–" },
-          { lab: "Hot visitors landed", v: v ? num(rows.reduce((n, r) => n + (r.hot ?? 0), 0)) : "–" },
         ].map((s) => (
           <div key={s.lab} className="aw-stat">
             <div className="aw-stat__lab">{s.lab}</div>
@@ -90,13 +85,11 @@ export function ContentResults({ auth, brandId, domain, days, chats, items }: { 
             { id: "cited", label: "Cited in AI answers", type: "number", value: (r) => (r.cited === null ? null : Math.round(r.cited)), cell: (r) => (r.cited === null ? "–" : r.cited ? pct(r.cited) : <span className="text-muted">Not yet</span>) },
             { id: "visits", label: "Visits", type: "number", value: (r) => r.visits },
             { id: "ai", label: "From AI", type: "number", value: (r) => r.aiVisits },
-            { id: "landed", label: "Visitors landed", type: "number", value: (r) => r.landed },
-            { id: "hot", label: "Hot", type: "number", value: (r) => r.hot },
           ]}
         />
       </Card>
       <p className="aw-small">
-        {!t ? "Connect the tracking code in Traffic for visits. " : ""}AI citations come from the daily prompt checks in the period picked in the top bar.
+        {!t ? "Connect Google Analytics in Brand settings for visits. " : ""}AI citations come from the daily prompt checks in the period picked in the top bar.
       </p>
     </div>
   );

@@ -400,7 +400,7 @@ Data: `calendar_items`, `intel.ts`, `reports.ts` (`contentRows`).
 
 ### 6.6 Website
 
-Data: `/api/traffic` (GA4 via `ga4.ts`, or Umami), `/api/visitors` (`journey.ts`).
+Data: `/api/traffic` (GA4 via `ga4.ts`).
 
 | Widget | Shapes | Key settings |
 |---|---|---|
@@ -409,10 +409,8 @@ Data: `/api/traffic` (GA4 via `ga4.ts`, or Umami), `/api/visitors` (`journey.ts`
 | AI share of visits | KPI, gauge | – |
 | Visits by AI assistant | bar, table | Top N |
 | Top landing pages | table | From AI only, or all |
-| Visitors and leads | table | Score (Hot, Warm, Cold), top N |
-| Key actions | KPI row | Actions to count |
 
-Website widgets show only when the brand has GA4 or Umami connected. The Traffic and Visitors pages are tester-only today; their report widgets follow the same flag until those pages ship.
+Website widgets show only when the brand has GA4 connected. The Traffic page is tester-only today; its report widgets follow the same flag until that page ships. The Umami tracking script and the Visitors page were removed on 2026-10-25.
 
 ### 6.7 Search Console (new, phase 5)
 

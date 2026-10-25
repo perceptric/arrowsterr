@@ -9,7 +9,7 @@ import { citedPathsOf, contentRows, winsAndDrops, type TrafficData } from "./rep
 import type { ReportSnapshot, ReportStyle, ReportSection } from "./reportTypes";
 import { cleanSources } from "./sources";
 import { cleanMentions } from "./brandNames";
-import { brandTraffic, brandVisitors, type Span } from "./traffic";
+import { brandTraffic, type Span } from "./traffic";
 
 // Builds a client report on the server for any date range (docs/reports.md, sections 9 and 12).
 // The editor's preview, live links and PDFs all come from here, so they always show the same numbers.
@@ -28,7 +28,7 @@ export type BuildInput = {
 const all = () => true;
 const sectionsOf = (doc: ReportDocument): ReportSection[] => {
   const on = new Set(doc.blocks.filter((b) => b.on).map((b) => b.id));
-  return [...(on.has("kpis") || on.has("models") ? (["ai"] as const) : []), ...(["competitors", "traffic", "visitors", "content"] as const).filter((s) => on.has(s))];
+  return [...(on.has("kpis") || on.has("models") ? (["ai"] as const) : []), ...(["competitors", "traffic", "content"] as const).filter((s) => on.has(s))];
 };
 
 function spanOf(start: string, end: string, tz: string | null): Span {
@@ -68,15 +68,14 @@ export async function buildClientReport(input: BuildInput): Promise<Built> {
   const cur = spanOf(range.start, range.end, tz);
   const prev = range.prevStart && range.prevEnd ? spanOf(range.prevStart, range.prevEnd, tz) : null;
   const on = new Set(doc.blocks.filter((x) => x.on).map((x) => x.id));
-  const wantWebsite = on.has("traffic") || on.has("visitors") || on.has("content") || on.has("wins");
+  const wantWebsite = on.has("traffic") || on.has("content") || on.has("wins");
 
   const soft = <T>(p: Promise<T>): Promise<T | null> => p.catch((e) => (console.error("Report data:", e instanceof Error ? e.message : e), null));
   // A comparison a year back needs a second, separate read; a previous period sits right before.
-  const [runs, prevRuns, traffic, visitors, items] = await Promise.all([
+  const [runs, prevRuns, traffic, items] = await Promise.all([
     runsBetween(db, brand.id, prev && prev.endAt === cur.startAt ? prev.startAt : cur.startAt, cur.endAt),
     prev && prev.endAt !== cur.startAt ? runsBetween(db, brand.id, prev.startAt, prev.endAt) : Promise.resolve([] as Run[]),
     wantWebsite ? soft(brandTraffic(db, brand.id, cur, prev)) : Promise.resolve(null),
-    on.has("visitors") || on.has("content") ? soft(brandVisitors(db, brand.id, cur)) : Promise.resolve(null),
     on.has("content") ? soft(calendarFor(db, brand)) : Promise.resolve(null),
   ]);
   const t = Date.parse;
@@ -128,24 +127,13 @@ export async function buildClientReport(input: BuildInput): Promise<Built> {
       : null,
     competitors: chats.length ? ranked.slice(0, 10).map((s) => ({ name: s.name, domain: s.domain ?? null, visibility: s.visibility, sentiment: s.sentiment, position: s.position, isYou: s.isYou })) : null,
     traffic: tr ? { visits: tr.totals.visits, visitsBefore: prev ? tr.totalsPrev.visits : null, ai: tr.ai, aiBefore: prev ? tr.aiPrev : null, byEngine: tr.byEngine.map((e) => ({ ...e, prev: prev ? e.prev : null })) } : null,
-    visitors: visitors
-      ? {
-          total: visitors.length,
-          hot: visitors.filter((x) => x.label === "Hot").length,
-          actions: visitors.filter((x) => x.actions.length).length,
-          top: [...visitors]
-            .sort((a, b) => b.score - a.score)
-            .slice(0, 5)
-            .map((x) => ({ name: x.name, emoji: x.emoji, score: x.score, label: x.label, source: x.source })),
-        }
-      : null,
     content: items
       ? {
           published: list.filter((i) => i.status === "published" && inRange(i.due_date)).length,
           writing: list.filter((i) => i.status === "writing" || i.status === "review").length,
           briefs: list.filter((i) => i.status === "brief").length,
           planned: list.filter((i) => i.status === "planned").length,
-          pages: contentRows({ items: list, citedPaths: chats.length ? citedPathsOf(chats, brand.domain) : null, traffic: tr, visitors }),
+          pages: contentRows({ items: list, citedPaths: chats.length ? citedPathsOf(chats, brand.domain) : null, traffic: tr }),
         }
       : null,
     wins: prev ? wins : [],

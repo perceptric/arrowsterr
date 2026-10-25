@@ -26,7 +26,7 @@ export type IntelRow = {
   path: string;
   url: string;
   seo: PagePerf | null;
-  views: number | null; // from Google Analytics or the tracking script
+  views: number | null; // from Google Analytics
   ai: number | null; // visits from AI assistants
   cited: number | null; // share of AI answers that cite it
   tag: Tag;

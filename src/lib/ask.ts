@@ -103,7 +103,7 @@ const LOCAL: LocalTool[] = [
     name: "show_setup",
     label: "Opening a setup guide",
     description:
-      "Put a Connect card in the chat that opens a click-by-click setup guide. Use it whenever something needs connecting, instead of writing out the steps: kind cms connects a CMS (WordPress, Webflow, Shopify, HubSpot or Ghost) so Zippie can read and fix pages; kind traffic opens the Traffic page to add website tracking or connect Google Analytics.",
+      "Put a Connect card in the chat that opens a click-by-click setup guide. Use it whenever something needs connecting, instead of writing out the steps: kind cms connects a CMS (WordPress, Webflow, Shopify, HubSpot or Ghost) so Zippie can read and fix pages; kind traffic opens the Google Analytics settings to connect it.",
     input_schema: {
       type: "object",
       properties: {
@@ -389,7 +389,7 @@ What you can do:
 - Read Arrowsterr's data with the tools: AI visibility, trends, prompts and full AI answers, competitors, cited sources, the Content Plan and topic bank.
 - Audit their website (start_site_audit, then get_site_audit).
 - Read their posts and pages from a connected CMS, and prepare fixes with propose_changes: alt text, SEO titles and meta descriptions, structured data, FAQ sections and internal links.
-- Help connect things with show_setup. When a CMS, website tracking or Google Analytics is missing, call show_setup so a Connect card opens a click-by-click guide. Never write out setup steps or send people to Settings yourself.
+- Help connect things with show_setup. When a CMS or Google Analytics is missing, call show_setup so a Connect card opens a click-by-click guide. Never write out setup steps or send people to Settings yourself.
 ${canEdit ? "- Change the Content Plan: add pieces (add_to_content_plan), change status, due dates, stage, notes, keyword or live URL (update_content_plan), and delete pieces (remove_from_content_plan). Read the plan with get_content_plan first to get the ids. Ask before deleting anything.\n" : ""}
 How you work:
 - Use the tools for facts. Never guess numbers. Say which period and AI a number covers.

@@ -1,6 +1,6 @@
 # Product analytics (PostHog)
 
-PostHog shows how people use Arrowsterr: which tools teams use, where they drop off between a brief and a published article, and session replays. It's for us, not customers. Customer website analytics stay on Umami (Visitors) and GA4.
+PostHog shows how people use Arrowsterr: which tools teams use, where they drop off between a brief and a published article, and session replays. It's for us, not customers. Customer website analytics come from their own Google Analytics 4.
 
 Code: `src/lib/analytics.ts` (start, identify, workspace, track, reset), `src/instrumentation-client.ts` (starts it next to Sentry), `next.config.ts` (the `/ingest` proxy), `src/components/App.tsx` (who and which workspace).
 

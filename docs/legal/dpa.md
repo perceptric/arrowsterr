@@ -46,7 +46,6 @@ The Customer gives general approval for Arrowsterr to use sub-processors. The cu
 | Google | AI processing, Google Analytics API | United States |
 | Perplexity | AI processing | United States |
 | DataForSEO | Search and AI answer data | [REGION] |
-| Umami | Website analytics | [REGION] |
 | Sentry | Error monitoring | [REGION] |
 | [EMAIL PROVIDER] | Service emails | [REGION] |
 

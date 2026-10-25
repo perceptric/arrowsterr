@@ -73,7 +73,7 @@ Seventeen free tools on arrowsterr.com. Each one answers a real question in unde
 - "Track this daily" opens `app.arrowsterr.com/?from={tool}&q={input}`.
 - Onboarding reads it, so the brand, prompts or keyword are already filled in when the Free plan starts.
 
-**Tracking:** each run and each CTA click is an Umami event, so we can see which tool brings sign-ups.
+**Tracking:** the site scripts send each run and each CTA click to `window.umami.track` only when it exists. Umami was removed on 2026-10-25, so these calls do nothing until they move to PostHog.
 
 ## The tools
 

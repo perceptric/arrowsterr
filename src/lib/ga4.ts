@@ -2,14 +2,14 @@ import "server-only";
 import { aiSourceOf, AI_SOURCES } from "./aiSources";
 import { activeNow, runReports, type ReportRequest, type ReportRow } from "./google";
 
-// The Traffic data from Google Analytics 4, in the same shape the Umami route returns,
+// The Traffic data from Google Analytics 4, in the shape the Traffic page reads,
 // so the Traffic page, Content Performance, Sources and client reports work with either.
 
 type XY = { x: string; y: number };
 const AI_DOMAINS = [...new Set(Object.values(AI_SOURCES).flat().flatMap((d) => [d, d.replace(/^www\./, "")]))];
 const aiFilter = { filter: { fieldName: "sessionSource", inListFilter: { values: AI_DOMAINS, caseSensitive: false } } };
 
-// Each breakdown on the Traffic page, as a GA4 dimension and metric. Umami-only lists stay empty.
+// Each breakdown on the Traffic page, as a GA4 dimension and metric. Lists GA4 has no match for stay empty.
 const BREAKDOWNS: Record<string, [string, string] | null> = {
   pages: ["pagePath", "screenPageViews"],
   entry: ["landingPage", "sessions"],

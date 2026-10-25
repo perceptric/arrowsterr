@@ -55,23 +55,19 @@ export type ContentRow = {
   cited: number | null;
   visits: number | null;
   aiVisits: number | null;
-  landed: number | null;
-  hot: number | null;
 };
 
-/** One row per published page: AI citations, visits and visitors who landed there. */
+/** One row per published page: AI citations and visits. */
 export function contentRows(input: {
   items: { id: string; keyword: string; url: string | null; current_url: string | null; due_date: string | null; action: "new" | "update"; status: string }[];
   citedPaths: Map<string, number> | null; // path → share of AI answers citing it, 0 to 100
   traffic: TrafficData | null;
-  visitors: { entry: string | null; label: string }[] | null;
 }): ContentRow[] {
   return input.items
     .filter((i) => i.status === "published" && (i.url || i.current_url))
     .map((i) => {
       const url = (i.url || i.current_url)!;
       const path = pathOf(url);
-      const landed = input.visitors?.filter((v) => v.entry && pathOf(v.entry) === path);
       const visits = input.traffic?.breakdowns.pages?.find((r) => pathOf(r.x) === path)?.y;
       const ai = input.traffic?.pages.filter((p) => pathOf(p.path) === path).reduce((n, p) => n + p.visits, 0);
       return {
@@ -84,8 +80,6 @@ export function contentRows(input: {
         cited: input.citedPaths ? (input.citedPaths.get(path) ?? 0) : null,
         visits: input.traffic ? (visits ?? 0) : null,
         aiVisits: input.traffic ? (ai ?? 0) : null,
-        landed: landed ? landed.length : null,
-        hot: landed ? landed.filter((v) => v.label === "Hot").length : null,
       };
     });
 }

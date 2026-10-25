@@ -60,7 +60,6 @@ const ROWS: { group: string; rows: { label: React.ReactNode; value: (p: Plan) =>
       { label: "Live report links", value: () => "✓" },
       { label: "8 report templates", value: (p) => yes(p.reports === "templates" || p.reports === "whitelabel") },
       { label: "White-label reports", value: (p) => yes(p.reports === "whitelabel") },
-      { label: "Traffic & AI visits", value: (p) => (p.pageviewsPerMonth >= 1_000_000 ? `${p.pageviewsPerMonth / 1_000_000}M` : `${p.pageviewsPerMonth / 1000}k`) },
       { label: "Google Analytics 4", value: () => "✓" },
       { label: "CSV export", value: () => "✓" },
       { label: "Slack, Zapier & API", value: (p) => yes(p.alerts) },

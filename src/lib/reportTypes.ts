@@ -3,12 +3,12 @@ import type { DocBlock } from "./reportDoc.ts";
 import type { ContentRow } from "./reports.ts";
 import type { ReportTheme } from "./reportTheme.ts";
 
+// "visitors" is only in links made before the Visitors section was removed.
 export type ReportSection = "ai" | "competitors" | "traffic" | "visitors" | "content";
 export const SECTIONS: { id: ReportSection; label: string }[] = [
   { id: "ai", label: "AI visibility" },
   { id: "competitors", label: "Competitors" },
   { id: "traffic", label: "Traffic" },
-  { id: "visitors", label: "Visitors" },
   { id: "content", label: "Content" },
 ];
 
@@ -49,7 +49,6 @@ export type ReportSnapshot = {
   } | null;
   competitors: { name: string; domain: string | null; visibility: number; sentiment: number | null; position: number | null; isYou: boolean }[] | null;
   traffic: { visits: number; visitsBefore: number | null; ai: number; aiBefore: number | null; byEngine: { engine: string; visits: number; prev: number | null }[] } | null; // before: null with no comparison
-  visitors: { total: number; hot: number; actions: number; top: { name: string; emoji: string; score: number; label: string; source: string }[] } | null;
   content: { published: number; writing: number; briefs: number; planned: number; pages: ContentRow[] } | null;
   wins: { text: string; change: number; unit: string; area: string }[];
   drops: { text: string; change: number; unit: string; area: string }[];
@@ -98,7 +97,7 @@ export type IntelSnapshot = {
   days: number;
   at: string;
   sample: boolean; // example numbers, shown before the site's pages are loaded
-  linked: boolean; // real visits from Google Analytics or the tracking script
+  linked: boolean; // real visits from Google Analytics
   totals: { pages: number; visits: number; cited: number | null };
   byTag: { tag: string; pages: number }[];
   keywords: { top3: number; top10: number; all: number };

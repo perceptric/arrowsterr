@@ -141,8 +141,7 @@ const EMPTY: Partial<Record<BlockId, string>> = {
   wins: "Nothing moved enough to flag, or there is no earlier period to compare with.",
   models: "No AI answers in these dates yet.",
   competitors: "No AI answers in these dates yet.",
-  traffic: "Connect Google Analytics or the tracking script to show website traffic.",
-  visitors: "Connect the tracking script to show visitors and leads.",
+  traffic: "Connect Google Analytics to show website traffic.",
   content: "No Content Plan for this brand yet.",
 };
 
@@ -360,44 +359,6 @@ export function ReportDoc({ r, id = "report", editing = false }: { r: ReportSnap
                     </span>
                   </div>
                 ))}
-            </div>
-          ) : null}
-        </section>
-    ) : null,
-    visitors: (n) => r.visitors ? (
-        <section className="sec">
-          <SectionHead n={n} title="Visitors and leads" />
-          <div className="grid g3">
-            <Kpi label="Visitors" value={num(r.visitors.total)} />
-            <Kpi label="Hot buyers" value={num(r.visitors.hot)} />
-            <Kpi label="Took a key action" value={num(r.visitors.actions)} />
-          </div>
-          {r.visitors.top.length ? (
-            <div className="card">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Top visitors</th>
-                    <th>Came from</th>
-                    <th className="r">Buyer score</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {r.visitors.top.map((v) => (
-                    <tr key={v.name}>
-                      <td style={{ color: "var(--ink)" }}>
-                        {v.emoji} {v.name}
-                      </td>
-                      <td>{v.source}</td>
-                      <td className="r">
-                        <span className="pill">
-                          {v.score} · {v.label}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
             </div>
           ) : null}
         </section>

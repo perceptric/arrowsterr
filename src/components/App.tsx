@@ -67,7 +67,6 @@ import { post } from "./research/shared";
 import { SourcesPage } from "./SourcesPage";
 import { TrafficPage } from "./TrafficPage";
 import { ReportsPage } from "./reports/ReportsPage";
-import { VisitorsPage } from "./VisitorsPage";
 import { ZippieWidget } from "./ZippieWidget";
 import { LibraryPage } from "./writer/LibraryPage";
 import { BrandPage } from "./BrandPage";
@@ -957,8 +956,6 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
               historyDays={plan?.limits.historyDays ?? 30}
               onUpgrade={() => go("billing")}
             />
-          ) : page === "visitors" ? (
-            <VisitorsPage key={view.brand.id} view={view} auth={auth} />
           ) : page === "traffic" ? (
             <TrafficPage key={view.brand.id} view={view} auth={auth} canEdit={canEdit} />
           ) : page === "domains" || page === "urls" ? (
