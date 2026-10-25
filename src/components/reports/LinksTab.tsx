@@ -12,7 +12,7 @@ import { ago, errText, post } from "./reportApi";
 // Reports → Links (docs/reports.md, section 32.7): every link shared from the app, with its views. Editors add a
 // password or an expiry date, or revoke a link so it stops opening at once.
 
-type LinkRow = LinkLock & { token: string; mode: "live" | "frozen"; brand_id: string | null; kind: string | null; revoked_at: string | null; views: number; last_viewed_at: string | null; created_at: string };
+type LinkRow = LinkLock & { token: string | null; mode: "live" | "frozen"; brand_id: string | null; kind: string | null; revoked_at: string | null; views: number; last_viewed_at: string | null; created_at: string };
 const expired = (l: LinkLock, now: number) => Boolean(l.expires_at && Date.parse(l.expires_at) < now);
 // The kind is read from inside the snapshot, so the snapshot itself (up to a few MB) never loads here.
 const COLS = "id, token, mode, brand_id, kind:snapshot->>kind, locked, expires_at, revoked_at, views, last_viewed_at, created_at";
@@ -48,7 +48,9 @@ export function LinksTab({ sb, auth, brands, canEdit, secure }: { sb: SupabaseCl
 
   async function copy(l: LinkRow) {
     try {
-      await navigator.clipboard.writeText(url(l));
+      // Links made after tokens were hashed have no token saved: the server rebuilds the address.
+      const link = l.token ? url(l) : (await post<{ url: string }>(auth, "/api/reports/links", { action: "url", id: l.id })).url;
+      await navigator.clipboard.writeText(link);
       setCopied(l.id);
     } catch {
       setError("The link could not be copied. Open it and copy it from the address bar.");
