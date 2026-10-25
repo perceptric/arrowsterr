@@ -1,305 +1,233 @@
-# One app, one screen system (plan)
+# Peak UI and UX (plan, v2)
 
-Arrowsterr keeps its four sidebar groups, and every screen moves onto one small set of page types and shared parts,
-so the app looks and works the same everywhere. Same approach as Claritia's `docs/unify-plan.md`.
+Every screen answers its one question with its biggest block, shows the proof next to each number, puts its main
+job one click away, and behaves the same way everywhere. Planned with the skills in `.claude/skills/`: taste-skill's
+app-screen rules (`references/app-screens.md`, built from 23 studied product screens), UI/UX Pro Max (navigation,
+tables, states, accessibility), and a review of every screen's code on 25 Oct.
 
-Planned with the UI/UX Pro Max skill (navigation, tables, empty states, loading, focus, labels and confirm rules) and
-an audit of every screen on 25 Oct. The look stays as it is: Twenty's design system in `src/app/twenty-ui.css`
-(`docs/ui-twenty.md`), with the logo and copy rules from `docs/brand.md`. The skill's palette and font picks are not
-used; only its structure and accessibility rules are.
+**The CSS stays exactly as it is.** No new CSS, no new tokens, no colour changes. Every change is in the JSX: which
+existing classes are used (`aw-stats`, `aw-stat__delta--up/--down/--flat`, `aw-td-num`, `aw-status`, `aw-skel`,
+`tw-snack`, `tw-modal`, `tw-side-panel`, `aw-toggle`, `Seg`, `Sheet`, `ToolIntro`, `Empty`), the order of blocks,
+the words, the data shown and how things behave.
 
 | Part | Work | Time |
 |---|---|---|
-| 1 | Addresses for every tab, one h1 per screen, Settings regrouped | 1 day |
-| 2 | Shared parts: one of each, copies deleted | 3 days |
-| 3 | Every screen moved onto the page types, group by group | 5 days |
-| 4 | Rule breaks fixed: browser pop-ups, emoji, glyph icons, raw hex, help text | 1.5 days |
-| 5 | Dead screens removed | 0.5 day |
-| 6 | Tests, screens check, screenshots, docs | 1.5 days |
-| 7 | Polish: one question per screen, motion, charts, speed, keyboard, undo, dark mode, phone | 7 days |
+| 1 | Eight fixes that change every screen | 4 days |
+| 2 | Screen by screen | 6 days |
+| 3 | The writing flow: 8 clicks to 4 | 2 days |
+| 4 | How it feels: undo, instant changes, keyboard, back keeps your place | 3 days |
+| 5 | Addresses for every tab, Settings regrouped, dead screens removed | 1.5 days |
+| 6 | Checks: screenshots scored before and after, accessibility scan, rule tests | 1.5 days |
 
-About 4 weeks with Part 7. Running cost: $0 added at Beta (50 teams) and at Growth (500 teams). Nothing new is paid for: no
-new service, no AI calls, no new fonts.
+About 3.5 weeks. Running cost: $0 added at Beta (50 teams) and at Growth (500 teams). No new service, no AI calls,
+no new fonts; page timings go to PostHog inside its free tier.
 
 ---
 
-## Part 1. Navigation
+## Part 1. Eight fixes that change every screen
 
-### 1.1 The sidebar stays
+1. **One title and one freshness stamp.**
+   - The shell's breadcrumb stops being an h1 (`App.tsx:1338`), so each screen has one h1: its own title.
+   - "Updates daily" becomes "Checked 2 h ago · next check daily", from the newest run (`App.tsx:1466`). The
+     repeated "Last checked" column on Prompts goes.
+   - "Download PDF" shows only where a PDF exists (today `window.print()` stands in on Reports).
+2. **Every change says what it's measured against.** One `Delta` (`ui.tsx:44`) for the whole app:
+   - the window in words once per strip ("vs prior 30 days");
+   - colour means good or bad for you, never up or down: a rival's gain is grey, a better position is green;
+   - no change is a grey "no change", and growth from nothing is "new", never a green "+100%".
+   - It uses the existing `aw-stat__delta--up/--down/--flat` classes.
+3. **The answer number leads.** On each screen the one figure that answers its question is the largest; the
+   others step down to the existing 24px size. Prompts: Visibility. Keyword Research: Volume and KD, with the idea
+   counts dropped from 32px brand blue to ink.
+4. **Numbers line up.** Every numeric column gets `aw-td-num` (right-aligned tabular figures) and its header
+   `text-right`. Today every table left-aligns its numbers.
+5. **Marks only for exceptions.** A row carries one status mark at most, and only when it needs attention. Prompts
+   loses six "#3" pills per row for plain numbers, with "Not named" when a model misses you and "–" when there's no
+   data (today a miss and missing data look the same). Links show a tag only when revoked or expired; schedules only
+   when paused.
+6. **States that keep the screen.**
+   - Loading shows the real layout with `aw-skel` bars at each value's size; the header and labels show at once.
+     Today `Thinking` clears the screen in 38 places.
+   - An error sits inside the block that failed, with what failed, when the data was last good, and Retry. Today
+     errors are bare red text, and three of them tell people to run SQL files.
+   - An empty section keeps its frame and header with one sentence and its first action. Today `Empty` replaces
+     whole pages on Prompts, Competitors and Sources.
+   - Zero prints as 0; missing prints as "–".
+7. **One set of words.**
+
+| Today | After |
+|---|---|
+| Content Plan, Editorial Calendar, calendar | Editorial Calendar |
+| Brief, Generate brief, Generate Brief | Outline, Write outline |
+| Generate Draft, View Draft | Write draft, Open draft |
+| Sync to CMS, Sync, Publish | Publish (its panel already offers "Save as a draft") |
+| Distill | Learn the voice |
+| Delete, Remove, Stop tracking | Delete for anything people make; Remove for a person; Disconnect for a connection |
+| Cancel, Close, Done, Apply | Cancel in dialogs, Close on panels, Save |
+| Difficulty, KD | KD % |
+
+8. **No pop-ups, no cost notes, no symbols for icons.**
+   - The 21 `confirm()` and 6 `prompt()` calls and the one `<select>` move to the existing `Modal` and `Dropdown`.
+   - "Cost $0.012" and "Free, saved results" go from the research screens; the saved date stays ("Saved Oct 3").
+     The task bar in the sidebar already shows what's left.
+   - Emoji (👑 👉 ✎ 🔗 🌐) and text symbols used as icons (→ ✓ ↗ ×) become the existing icon set.
+   - The selection bar copied four times (Keyword Research, Domain Research, Competitive Analysis, Bulk) becomes one.
+
+---
+
+## Part 2. Screen by screen
+
+Each screen's question, then what changes. File and line references are in the 25 Oct review.
+
+**Prompts** · "Are AI answers naming us more or less, and on which prompts?"
+- Visibility stays large; Sentiment and Position step down; the gauge ring goes (it repeats the number).
+- A finding line under the title: "8 of 40 prompts aren't named by any model" or the biggest drop.
+- The empty state keeps the table header with "Add topic" inside it.
+
+**Competitors** · "Who does AI name instead of us, and where do they win?"
+- A finding line under the title: "HubSpot is named in 41% of answers, you in 23%; it leads on 5 of 8 topics."
+  Today the 600px quadrant fills the first screen and the answer sits below it.
+- Rankings capped at 6 rows with "View all 14"; "new" instead of a green rise for rivals new this period.
+- The rival panel: one mark ("Leads you · #2 of 14"), the window under its numbers, empty sources in words
+  ("No sites cited in answers that name HubSpot."), Retry on the SEO error, a heading over the model breakdown.
+
+**Sources** · "Which sites does AI cite, and are we among them?"
+- The list moves above the site map, so its first rows show on the first screen.
+- Group shares move into the tab labels ("Third-party 62% · 41"); the legend that repeats them goes.
+- The total in the list header; the executive summary keeps its last result on error and shows "Made Oct 3".
+- "Analyze SEO performance" stops being the primary button.
+
+**Keyword Research** · "Is this keyword worth a page, and can we win it?"
+- Top 10 on Google moves above Keyword ideas, so the proof shows on the first screen.
+- "Write outline" in the keyword header (Part 3); after "Add to Editorial Calendar", a link to open it.
+- Retry on the SERP error; the saved date on saved results.
+
+**Domain Research** · "Where does this site get Google traffic, and which keywords should we chase?"
+- "New · lost vs last month" with grey zeros; tab counts show the real total ("100 of 12.4K").
+- The footnote says "by visits", which is how the table is sorted.
+
+**Competitive Analysis** · "Which keywords does this rival win that we don't?"
+- The Venn becomes a `Seg` in the table header ("Missing 1,234 · Weaker · Lead · Only"), so the table starts on
+  the first screen.
+- A first-run state ("Pick a rival above"); errors go to the error line, not the notice line.
+
+**Keyword deep dive** · "What's the next step for this keyword?"
+- Status shows once (the stepper); the top 5 results from Google show under the stats with "Read Oct 3"; a
+  Saved stamp after each edit.
+
+**Editorial Calendar** · "What do we publish next, and what's stuck?"
+- Rows get secondary "Write outline" buttons; the screen keeps one primary.
+- Search and counts on ("32 pieces · 6 unscheduled"); Auto-schedule shows only when something is unscheduled.
+- Columns: Keyword, Volume, KD %, Status, Due, then the rest.
+
+**Library** · "Which articles need writing or review next?"
+- One status per row, with a tag only on Failed; filter counts ("Drafts 4"); the A, B, C column letters go.
+- The first screen gets an "Open Editorial Calendar" button.
+
+**Draft, Doc and Outline editors** · "Finish and publish this article."
+- The title becomes the h1; one "Publish"; the outline comes first in the outline editor.
+- Removing a section can be undone; each outline item shows its sources as [1] [2].
+
+**Brand** · "What will the writer use, and is it complete?"
+- Each section in the side list shows its state ("Not set", "Saved Oct 3").
+- The learned voice comes first, with the sample pages folded under "Sources"; Brand Kit's tone links to Tone
+  of voice instead of repeating it; a Saved stamp after saving.
+
+**Reports** · "Which reports are ready or sent, and to whom?"
+- Schedules show "Next Nov 3 · last sent Oct 27"; links show last viewed under Views; Downloads show the total.
+- Schedule rows keep History and Edit; Pause and Delete move into the edit dialog.
+
+**Zippie** · "What should Zippie do next, and what's waiting for me?"
+- A content starter ("Write an outline for my next Editorial Calendar keyword"); Retry on a failed reply.
+- Threads with changes waiting for approval show a count in the chat list.
+
+**Settings and Billing** · "How many tasks are left, and when do they reset?"
+- Billing leads with "1,240 of 5,000 tasks left · resets Nov 1"; "Payment failed" gets "Update payment".
+- "Buy" buttons become secondary; "Cancel plan" moves to its own last section as a danger button.
+
+**Onboarding finish and the upgrade preview**
+- Finish: "Checking now" until the check is done (today "All set" shows while it runs); "See results on Prompts".
+- Upgrade preview: believable sample brands instead of "Rival A, B, C"; the price once.
+
+---
+
+## Part 3. The writing flow
+
+Today: 8 clicks, a page switch and a hunt for the row (the calendar has no search).
 
 ```
-AI Visibility       Prompts · Competitors · Sources
-Organic Research    Keyword Research · Domain Research · Competitive Analysis
-Content             Editorial Calendar · Library · Brand
-Reports             Reports
-Settings
+Keyword Research → Analyze → Add to calendar → Editorial Calendar → find the row → Write outline → wait
+→ open the outline sidebar → Write draft (at the bottom) → wait → Publish content → Publish
 ```
 
-It already follows the skill's rule of at most 4 items in a group. Two fixes:
-- The "Pro" lock chip on a group header goes from 10px to the 12px tag size.
-- The trial link's "→" glyph becomes the arrow icon.
-
-### 1.2 Every tab gets its own address
-
-Today 9 screens keep their inner tabs in memory or localStorage, so back, refresh and shared links lose the view
-(skill: deep linking, predictable back). After:
-
-| Screen | Tabs | Addresses |
-|---|---|---|
-| Brand | Tone of voice · Brand Kit · Guidelines | `/brand/voice`, `/brand/kit`, `/brand/guidelines` |
-| Reports | Downloads · Schedules · Links | `/reports`, `/reports/schedules`, `/reports/links` |
-| Sources | Domains · URLs, and the site kind filter | `/sources`, `/sources/urls` (the page id is passed in; today both render the same), `?kind=` |
-| Editorial Calendar | Calendar · List | `/editorial-calendar`, `/editorial-calendar/list` |
-| Library | the filter and Edit/HTML | `?filter=`, `?doc=&view=html` |
-| Competitive Analysis | Venn region tabs | `?region=` |
-| Competitors | the tile picker | `?metric=` |
-| Zippie | Chat · Knowledge · Skills · Project | `/zippie`, `/zippie/knowledge`, `/zippie/skills`, `/zippie/project/:id` |
-| Keyword and Domain Research | already in the address | no change |
-
-Old addresses keep working. `/traffic` and `/visitors` already forward to Prompts.
-
-### 1.3 One h1 per screen
-
-Today most screens have two h1s: TopBar's 13px breadcrumb and the page's 20px title. The breadcrumb becomes a
-`nav` with an `aria-label`, and the page title is the only h1. Headings go h1, h2, h3 in order (skill: heading
-hierarchy).
-
-### 1.4 Settings regrouped
-
-The Workspace group has 8 tabs. It splits so no group passes 4:
+After: 4 clicks, no page switch.
 
 ```
-Account       Profile · Password and security · Notifications
-Brand         Publishing sites · Google Analytics · Slack and alerts
-Workspace     General · Members · Identity and access · Data retention
-Tools         AI · Brand Kit · Slack, API and MCP · Plans and billing
-Jobs          Imports and exports · Background actions
+Analyze → Write outline (adds it to the plan and starts) → the outline opens with Write draft on top → Publish
 ```
 
-The header says "General" on the General tab (today it says "Workspace"), and the extra "Settings" h1 goes.
+The same "Write outline" sits on Domain Research and Competitive Analysis rows, and the calendar gets search.
 
 ---
 
-## Part 2. The screen system
+## Part 4. How it feels
 
-### 2.1 Five page types
+- **Undo instead of "Are you sure?"** Deletes that can come back happen at once with a `tw-snack` snackbar:
+  "Deleted 3 prompts. Undo." The app already has Ctrl+Z. A confirm dialog stays only for a brand, a workspace and
+  billing.
+- **Instant changes.** Toggles, renames, status changes and deletes change on screen at once and roll back with
+  a message if the save fails.
+- **Screens open filled.** Hovering a sidebar item starts loading its data. A refresh keeps the old numbers on
+  screen and updates the stamp.
+- **Back keeps your place.** Filters, sort and scroll come back when you return to a list.
+- **Keyboard.** A ⌘K command bar in the existing `tw-modal`: go to any screen, brand, prompt, keyword or report,
+  and run Add prompts, New report or Ask Zippie. Arrow keys move through table rows, Enter opens, Escape closes.
+  Rows that open something are buttons or links (today 8 table rows, a calendar cell and a list item use `onClick`
+  alone).
+- **Long tables stay quick.** Keyword, page and bulk tables render only the rows in view.
+- **Page timings.** Each screen's response time and layout shift go to PostHog, so a slow screen shows up.
 
-Every screen is one of these. Each type has one layout and one set of parts.
-
-| Type | Used by | Layout |
-|---|---|---|
-| **List** | Prompts, Editorial Calendar (list view), Library, Reports, Members, Zippie knowledge and skills | Header (title, count, tabs, one primary button) · `FilterBar` · `Sheet` · bulk bar when rows are picked · a row opens a side panel or a record |
-| **Report** | Competitors, Sources, Keyword Research, Domain Research, Competitive Analysis | Header (title, the period, topic and model pickers, Share, PDF) · `StatCards` · one chart · one table |
-| **Record** | Keyword deep dive, a prompt, a competitor, a report | Back crumb ("Keyword Research / crm for dentists") · tabs · main column and a right rail |
-| **Editor** | Draft, Doc, Brief, Brand Kit | `EditorFrame`: back crumb, name you can rename, save state, Undo and Redo, the one primary action on the right |
-| **Settings** | Settings, Brand voice and guidelines | Section list on the left, one panel at a time, max width 3xl |
-
-### 2.2 One of each shared part
-
-The audit found these doing the same job in several ways. Each becomes one part in `src/components/ui/`, and the
-copies are deleted.
-
-| Part | Today | After |
-|---|---|---|
-| Side panel | 5 (SidePanel, Prompts' own panel, PromptsDoc overlay, KeywordOverview full screen, Zippie widget) | `SidePanel`: right side, inset 8px, X to close, Escape, focus kept inside, a `button` backdrop |
-| Modal | 2 plus 21 `confirm()` and 6 `prompt()` | `Modal`, plus `askConfirm` and `askText` built on it |
-| Tabs | 7 (Seg, ViewSwitch, inline `aw-seg`, inline `aw-tabs`, radio buttons, two tile tablists, two side navs) | `Tabs` with addresses for pages; `Segmented` only to switch a view in place |
-| Toggle | native checkboxes in 4 styles, two with a hard-coded blue; chips used as toggles | `Toggle` (switch) and `Checkbox`; chips only as removable filters |
-| Icon button | 6 classes (24px and 32px) | `IconButton`: 32px, label required, tooltip |
-| Stat tile | 5, numbers at 20, 22, 24 and 28px | `StatCards`: one size (20px mono, today's twenty-ui value), label, number, `aw-delta` |
-| Copy button | 3 named, 8 inline | `CopyButton` |
-| Dropdown and menu | Pickers, 2 `useMenu` menus, Zippie menu, Writer menu, a native `<select>` | `Dropdown` and `Menu` from Pickers |
-| Table | `Sheet`, `aw-table` in 6 variants, ContentGrid's own table | `Sheet` for every list; `aw-table` (one variant) only for small read-only tables inside a card |
-| Filter bar | each list has its own | `FilterBar` |
-| Empty state | ToolIntro, Empty, 55 raw `aw-callout`s, PlanIntro, Glimpse | `ToolIntro` before the first record; `Empty` for "No matches" with a way out; `aw-callout` only for real notices |
-| Loading | `Thinking`, "Loading..." 14 times, "Loading…" 3 times | the header always shows; the body shows `Skeleton` in its own layout; `Thinking` only for work over 2 seconds |
-| Tag | 9 (`aw-status`, `aw-chip`, `aw-badge`, `aw-tag`, `tw-tag`, `aw-label`, StageTag, StateTag, `.pill`) | `Tag` (state, 20px, Twenty step 3 fill and step 11 text), `Chip` (filter), `Delta` (change) |
-| Save state | the same line copied in 3 settings files | `SaveState` ("Saved" or "Not saved. Retrying…") |
-| Dates | 7 helpers (`ago`, `when`, `fmtDate`) | `formatDate` and `ago` in `src/lib/dates.ts`, en-US, the workspace's time zone |
-
-### 2.3 One way to do each thing
-
-- **Words.**
-  - **Delete** for anything people make. **Remove** only for taking a person out of the workspace.
-    **Disconnect** for connections.
-  - **Cancel** in dialogs, **Close** on panels. **Save** (never Done or Apply). **Export CSV** everywhere.
-  - Publishing: one word for sending a piece to the site (decision 1).
-  - The brand delete says "Delete {brand}" and confirms the same words (today it says "Remove" and confirms
-    "Stop tracking").
-- **Saving.** Every editor and settings panel saves by itself and shows `SaveState`.
-- **The primary button** sits in the header, top right, and shows on the first screen too. One per screen.
-- **First screens.** `ToolIntro` on every list before its first record, with the same button as the header.
-- **Tables** (skill: bulk actions, table handling):
-  - 32px rows (Twenty), numbers right-aligned in mono, sortable headers (`SortTh` today on 3 screens).
-  - A checkbox column and a bulk bar with Delete on every list where people make things: Prompts, Library, Reports
-    links and schedules, Members, Zippie knowledge.
-  - `aw-table-wrap` scrolls sideways instead of clipping, and no fixed `min-w` forces it.
-  - Clickable rows are links or buttons the keyboard can reach. Today 8 `<tr>`, a `<div>` and an `<li>` use `onClick`
-    alone.
-- **Widths.** Lists and reports use the full panel; records max 6xl; settings max 3xl.
-- **Numbers.** Every `toLocaleString()` without a locale becomes en-US (9 places).
-
-### 2.4 Accessibility (UI/UX skill, priority 1)
-
-- **Focus:** the global ring moves to a 2px offset, as `docs/brand.md` asks (1px today). The editor keeps its own.
-- **Labels:** every icon button keeps a label. Today all 51 have one, and `IconButton` makes it required.
-- **Keyboard:** every action can be reached by keyboard: rows, calendar cells, backdrops.
-- **Text size:** nothing under 11px. The 9px and 10px text in 12 places goes to 11px; sidebar group labels and the
-  TaskBar stay at 11px.
-- **Colour:** text contrast at least 4.5:1. Green and red always come with a word or a chevron.
-- **Motion:** the reduced-motion switch stays as it is.
+Motion stays as the CSS has it today.
 
 ---
 
-## Part 3. Moving the screens
+## Part 5. Navigation and clean-up
 
-Group by group, so the app works at the end of each day.
-
-1. **AI Visibility.**
-   - Prompts on List, with its own panel replaced by `SidePanel`, keyboard rows and a bulk bar.
-   - Competitors and Sources on Report, with `StatCards`, `Tabs` with addresses and keyboard rows.
-2. **Organic Research.** Keyword Research, Domain Research and Competitive Analysis on Report. KeywordOverview's
-   full-screen region becomes `SidePanel`. Keyword deep dive on Record.
-3. **Content.**
-   - Editorial Calendar on List with Calendar and List tabs.
-   - Library on List, with ContentGrid's table moved to `Sheet` and its bulk Generate in the bulk bar.
-   - Draft, Doc and Brief on `EditorFrame`.
-   - Brand on Settings with addresses.
-4. **Reports.** Downloads, Schedules and Links as tabs with addresses; links and schedules get bulk delete.
-5. **Settings and Zippie.** The regrouped Settings (1.4); `SaveState` everywhere; Zippie's views get addresses
-   and its menus, `<select>` and pop-ups move to the shared parts.
+- **Every tab has its own address**, so back, refresh and shared links keep the view: Brand (`/brand/voice`,
+  `/brand/kit`, `/brand/guidelines`), Reports (`/reports/schedules`, `/reports/links`), Sources (`/sources/urls`
+  shows URLs; today both addresses show the same), Editorial Calendar (`/editorial-calendar/list`), Zippie
+  (`/zippie/knowledge`, `/zippie/skills`), plus `?region=`, `?metric=` and `?filter=` where a tab filters a table.
+- **Settings regrouped** so no group passes 4 tabs: Account, Brand, Workspace (General, Members, Identity and
+  access, Data retention), Tools (AI, Brand Kit, Slack, API and MCP, Plans and billing), Jobs. The page title says
+  "General", and the extra "Settings" h1 goes.
+- **Dead screens removed** (nothing can reach them): `TrafficPage` (its Google Analytics connect moves to its own
+  file), `ContentPage`, `AiBar`, `ContentIntel`, `SitePages`, `ResearchPanel`, `ContentResults`, and the unused
+  screens inside `ContentPiece`, `DocsEditor`, `Writer` and `AgenticResearch`. Several pop-ups from Part 1 live
+  in this code.
 
 ---
 
-## Part 4. Rule breaks
+## Part 6. Checks
 
-| Rule | Today | Fix |
-|---|---|---|
-| No browser pop-ups | 21 `confirm()`, 6 `prompt()` | `askConfirm`, `askText` |
-| No browser dropdowns | 1 `<select>` (ZippiePage:1364) | `Dropdown` |
-| No emoji | 👑 👉 ✎ ⌨ 🔗 🌐 ▶▼ in 9 places | icons |
-| Icons, not glyphs | → ✓ ↗ • ▾ × ← ↑ ↓ ❝ ↘ ▸ ✕ in about 130 places | the icon set, with sort arrows from `SortTh` |
-| Tokens, not hex | 159 raw hex in TSX (52 of them in DinoGame), 238 in the older CSS files | tokens in TSX; the older CSS is folded into `twenty-ui.css` where it still applies, and dropped where twenty-ui already wins. DinoGame keeps its own colours. |
-| Minimal copy | "Cost $x.xxx" and "Free, saved results" on 4 research screens; a tasks note on Billing; info tips on 4 screens | the cost lines and the tasks note go; the tips move into each tool's first screen |
-
-`tests/brandCheck.test.ts` fails on any new `confirm(`, `prompt(`, `alert(`, `<select`, emoji, raw hex in TSX, or a
-second side panel or modal part.
-
----
-
-## Part 5. Dead screens
-
-Nothing imports these, or they're only used by other dead code. They go, and the parts still used move to their
-own files:
-
-- `TrafficPage.tsx` (can't be reached; `Ga4Connect` moves to `Ga4Connect.tsx` for Brand settings and Content
-  Intelligence).
-- `content/ContentPage.tsx`, `research/AiBar.tsx`, `research/ContentIntel.tsx`, `research/SitePages.tsx`,
-  `content/ResearchPanel.tsx` and `research/ContentResults.tsx`.
-- From files still in use, only the unused screens go: `ContentPiece` (keep `STATUSES` and `WriterAccess`),
-  `DocsEditor` (keep `SLASH` and `SlashMenu`), `Writer`/`DocEditor` (keep `brandTables`, `draftText` and `Toolbar`),
-  and the `AgenticResearch` screen (keep `PlanProgress` and `planRows`). Then `SerpView`, `BriefView` and
-  `CommentRail` go once nothing uses them.
-
-Many of the pop-ups in Part 4 sit in this code, so removing it first makes Part 4 smaller.
-
----
-
-## Part 6. Tests and checks
-
-- `tests/nav.test.ts`: every sidebar item and tab address, every old address forwarding, Settings groups of 4 or
-  fewer.
-- `tests/brandCheck.test.ts` (Part 4).
-- `scripts/screens-check.ts` (Playwright, the browser is already installed):
-  - walks every screen from an empty workspace and from one with sample data;
-  - checks one h1 per screen, a header that stays while loading, keyboard focus on each primary button, and no page
-    errors;
-  - saves screenshots of each screen for you to review before merge.
+- **Scored screenshots before and after.** taste-skill's `inspect.mjs --app` opens each screen at 1440, 768 and
+  390 wide, measures it and saves screenshots; its critique rubric scores them. Run before the work starts and
+  after each part. It needs a signed-in test workspace (decision 2).
+- **Accessibility.** An axe scan on every screen in the same run; a serious finding fails it. Keyboard focus is
+  checked on each primary button.
+- **Rule tests.** `tests/uiRules.test.ts` fails on a new `confirm(`, `prompt(`, `alert(`, `<select`, emoji,
+  `Thinking` used as a page loader, or a numeric column without `aw-td-num`. `tests/nav.test.ts` checks every tab
+  address and every old address.
 - Lint, typecheck, the unit tests and `next build` before every push.
-
----
-
-## Part 7. Polish (suggested)
-
-Each item names the skill that drives it and checks it.
-
-### 7.1 One question per screen (taste-skill, app-screen rules)
-
-Run `inspect.mjs --app` on every screen at 1440, 768 and 390 before and after, and critique the screenshots with
-its rubric. Its app rules, applied to Arrowsterr:
-- **The biggest block answers the screen's question.** Prompts: "Does AI name us?" Visibility with its trend and
-  delta is the largest thing on the screen. Competitors: "Who does AI pick over us?" Sources: "Which pages does AI
-  quote?"
-- **Evidence sits next to the answer.** Every headline number gets its sparkline and baseline ("38.4%, up 6.1
-  since 1 Oct").
-- **The most frequent job is one click away.** "Add prompts" on Prompts, "Write this page" on a keyword, "Fix this
-  page" on a source.
-- **One chart colour on the main data.** Your brand's line in the accent, competitors in greys.
-- **Words of the trade in empty states:** "No answers yet. The first check runs at 6:00."
-
-### 7.2 Motion (motion-director, then web-motion-auditor)
-
-- Three speeds (100, 200 and 300ms) and two curves, transform and opacity only.
-- The side panel slides in at 200ms and out at 150ms. Menus and dialogs scale from 98%.
-- Skeletons cross-fade into content in the same layout, so nothing jumps (CLS under 0.1).
-- A changed number rolls to its new value once. Rows of a new result rise in once, 40ms apart.
-- Under reduced motion every move becomes an instant change.
-- web-motion-auditor checks every transition at the end: no animated width or height, no hover-only feedback.
-
-### 7.3 Charts (dataviz)
-
-- One chart system for the app, the PDF and share links: one validated palette in light and dark, labels on the
-  lines instead of legends, one tooltip style, the same number formats as the tables.
-- Sparklines in table rows (visibility per prompt, rank per keyword).
-- Green and red always carry a sign or a chevron.
-
-### 7.4 Speed you can feel (performance-optimization, UI/UX Pro Max `react` domain)
-
-- Optimistic updates: toggles, renames, status changes and deletes change on screen at once and roll back on error.
-- Hovering a sidebar item fetches its data, so the screen opens filled.
-- Long tables (keywords, pages, bulk results) render only the rows in view.
-- Going back restores filters and scroll position.
-- Web vitals (INP under 200ms, CLS under 0.1) go to PostHog for each screen, so slow screens show up.
-
-### 7.5 Keyboard (Twenty pattern, UI/UX Pro Max navigation rules)
-
-- A command bar on ⌘K: jump to any screen, brand, prompt, keyword or report, and run "Add prompts", "New report",
-  "Ask Zippie".
-- Shortcuts for the common jobs, listed on "?". Arrow keys move through table rows; Enter opens; Escape closes.
-
-### 7.6 Undo instead of "Are you sure?" (UI/UX Pro Max confirm rules)
-
-- Deletes that can be brought back happen at once with a snackbar: "Deleted 3 prompts. Undo." The app already
-  has Ctrl+Z.
-- `askConfirm` stays only for what can't come back: deleting a brand, a workspace, billing changes.
-
-### 7.7 Dark mode (UI/UX Pro Max colour rules)
-
-The Twenty tokens already carry dark values and nothing switches them on. Follow the system setting, with a
-Light, Dark and System switch in Profile. Charts, tags and the PDF preview get checked at 4.5:1 in both.
-
-### 7.8 Phone (taste-skill phone composition, UI/UX Pro Max touch rules)
-
-- Each page type gets its own phone layout: lists turn into cards under 720px, reports stack the stat cards in two
-  columns, side panels open as bottom sheets.
-- Touch targets at least 44px, with 8px between them.
-
-### 7.9 Checks that keep it smooth (webapp-testing, browser-testing-with-devtools)
-
-- The screens check (Part 6) also runs an axe accessibility scan on every screen, and fails on a serious finding.
-- Screenshot diffs against the last approved set catch a screen that changed by accident.
-
-Running cost for Part 7: $0 at Beta and at Growth. Web vitals stay inside PostHog's free tier (about 20 events
-per team a month); nothing else is new.
 
 ---
 
 ## Decisions for you
 
-1. **Publishing word.** Pick one for sending a piece to a site. "Publish" is used on 4 screens and "Sync to CMS" on 3.
-   Recommended: "Publish", with "Publish as draft" where it only saves a draft on the site.
-2. **Settings › Brand Kit** is the workspace's own kit, and Content › Brand › Brand Kit is each brand's. Keep both,
-   or show the workspace kit only for agencies. Recommended: keep both, renamed "Your Brand Kit" in Settings.
-3. **Dead screens** (Part 5). Recommended: delete them; they stay in git history.
-4. **Part 7.** Build all of it after Parts 1 to 6, or pick items. Recommended: 7.1, 7.4 and 7.6 first; they change
-   how the app feels the most.
+1. **Words.** The table in Part 1.7. Recommended as written: Editorial Calendar, Outline, Write, Publish.
+2. **A test workspace for screenshots.** The checks in Part 6 need a sign-in. Recommended: a "UI check" workspace
+   in production with the five sample brands and their data, used only by the screenshot run, its password kept
+   as a GitHub secret.
+3. **Cost notes.** Recommended: remove them from working screens and keep the task bar, as Part 1.8 says. The
+   other choice is a task count on each paid button ("Analyze · 10 tasks").
+4. **Dead screens.** Recommended: delete them; they stay in git history.
+5. **Order.** Recommended: Part 1, then Part 3 (the writing flow), then Part 2 group by group, then Parts 4 to 6.
