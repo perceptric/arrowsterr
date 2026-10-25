@@ -31,6 +31,7 @@ import {
   saveRunChats,
   siteForBrand,
   listKeywordRuns,
+  listCalendar,
   saveAnswers,
   answerRows,
   startRun as startSavedRun,
@@ -74,7 +75,9 @@ import { ResearchPage, type Tool } from "./research/ResearchPage";
 import type { SeoStart } from "./research/DomainResearch";
 import { post } from "./research/shared";
 import { SourcesPage } from "./SourcesPage";
-import { ReportsPage } from "./reports/ReportsPage";
+import { listReportFiles, reportFilesKey, ReportsPage } from "./reports/ReportsPage";
+import { listGrid } from "@/lib/gridData";
+import { listTopics } from "@/lib/writerLibrary";
 import { ZippieWidget } from "./ZippieWidget";
 import { LibraryPage } from "./writer/LibraryPage";
 import { BrandPage } from "./BrandPage";
@@ -454,6 +457,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
   // Load a brand's run history: the chosen timeframe and the one before it, for the change numbers.
   // A longer timeframe loads more; a shorter one keeps what is already loaded.
   const loaded = useRef<Record<string, number>>({});
+  const warmed = useRef<Record<string, number>>({}); // when each stash was last loaded from a sidebar hover
   useEffect(() => {
     if (!active) return;
     const want = Math.min(plan?.limits.historyDays ?? 400, 400, Math.max(14, days * 2));
@@ -656,6 +660,26 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
     ? { brand: active, current, previous, filter, topics: topicList, engines: model === "All" ? modelList : [model], days }
     : null;
 
+  // Screens open filled: hovering or focusing a sidebar item loads what that screen reads first into its stash.
+  // Only when the stash is empty, and once per 30 seconds; the screen still refreshes when it opens.
+  const warm = (p: Page) => {
+    const once = (key: string, load: () => Promise<unknown>) => {
+      if (peek(key) !== undefined || Date.now() - (warmed.current[key] ?? 0) < 30_000) return;
+      warmed.current[key] = Date.now();
+      load()
+        .then((v) => primeStash(key, v))
+        .catch(() => {});
+    };
+    if (p === "summary") once(reportFilesKey(ws.id), () => listReportFiles(sb, ws.id));
+    const site = active ? peek<Site | null>(`site:${active.id}`) : null;
+    if (!active || !site) return;
+    if (p === "calendar") once(`cal:${site.id}:items`, () => listCalendar(sb, site.id));
+    if (p === "library") {
+      once(`library:${active.id}:topics`, () => listTopics(sb, site.id));
+      once(`library:${site.id}:rows`, () => listGrid(sb, site.id));
+    }
+  };
+
   // Everything the ⌘K bar can find and run, read when it opens. Prompts and keywords come from what is already loaded.
   const commands = (): CommandItem[] => {
     const open = (p: Page) => () => {
@@ -745,6 +769,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
         }}
         page={page}
         plan={plan}
+        onWarm={warm}
         onPage={(p) => {
           setFocus(null);
           setFocusTopic(null);
@@ -1213,6 +1238,7 @@ function Sidebar({
   page,
   plan,
   onPage,
+  onWarm,
 }: {
   sb: SupabaseClient;
   email: string;
@@ -1224,6 +1250,8 @@ function Sidebar({
   page: Page;
   plan: PlanUsage | null;
   onPage: (p: Page) => void;
+  /** Start loading a screen's data before it opens. */
+  onWarm?: (p: Page) => void;
   hidden: boolean;
   onHide: () => void;
 }) {
@@ -1361,6 +1389,8 @@ function Sidebar({
                           setMenu(false);
                           onPage(item.id);
                         }}
+                        onMouseEnter={() => onWarm?.(item.id)}
+                        onFocus={() => onWarm?.(item.id)}
                         aria-current={on ? "page" : undefined} className={`aw-nav-link ${on ? "is-on" : ""}`}>
                         <NavIcon name={item.icon} />
                         <span className="min-w-0 truncate">{item.label}</span>
