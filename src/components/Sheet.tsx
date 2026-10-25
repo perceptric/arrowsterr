@@ -1,10 +1,11 @@
 "use client";
 
 import { Fragment, useEffect, useRef, useState } from "react";
+import { peek, putStash } from "@/lib/stash";
 import { quietly, recordUndo } from "@/lib/undo";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ChevronDown, ChevronRight, Close, Keyboard } from "./Icons";
 import { DateField, DatePop, Dropdown, Pop, SelectPop, type Option } from "./Pickers";
-import { sortRows, useSort, type Sort } from "./ui";
+import { sortRows, type Sort } from "./ui";
 
 // A spreadsheet that works like Google Sheets.
 // Click a cell to edit it. Lists and dates open a picker in Arrowsterr's style.
@@ -13,6 +14,8 @@ import { sortRows, useSort, type Sort } from "./ui";
 // The keyboard works like Sheets: arrows, Tab, Enter, Home, End, Page Up and Down, Shift to select a range,
 // Ctrl or Cmd with C, X, V, Z and A, Delete to clear, and Shift+Space to pick rows.
 // Show, hide, move and resize columns. The layout is saved per sheet in this browser.
+// Sort, filters and page are kept per sheet for this browser tab, so coming back to a list finds it as it was.
+// A long list without pages shows its first 200 rows, with Show all.
 
 type Value = string | number | null | undefined;
 export type { Option } from "./Pickers";
@@ -47,6 +50,13 @@ type Layout = {
 };
 const EMPTY: Layout = { hidden: [], order: [], widths: {} };
 const KEY = (id: string) => `arrowsterr.sheet.${id}`;
+/** Sort, filters and page for this browser tab (src/lib/stash.ts). */
+type View = { sort: Sort; filters: Record<string, Filter>; per: number; page: number };
+const VIEW = (id: string) => `sheet:${id}:view`;
+const readView = (id?: string) => (id ? peek<View>(VIEW(id)) : undefined);
+/** Lists without pages show this many rows at first once they pass LONG rows. */
+const FIRST_ROWS = 200;
+const LONG = 300;
 
 function readLayout(id?: string): Layout {
   if (!id) return EMPTY;
@@ -465,10 +475,25 @@ export function Sheet<T>({
   /** False hides the row count above the sheet. */
   counts?: boolean;
 }) {
-  const [sort, setSort] = useSort(initial.key, initial.desc);
-  const [per, setPer] = useState(pageSize ?? 0);
-  const [page, setPage] = useState(0);
-  const [filters, setFilters] = useState<Record<string, Filter>>({});
+  const [sort, setSort] = useState<Sort>(() => readView(id)?.sort ?? initial);
+  const [per, setPer] = useState(() => (pageSize ? (readView(id)?.per ?? pageSize) : 0));
+  const [page, setPage] = useState(() => readView(id)?.page ?? 0);
+  const [filters, setFilters] = useState<Record<string, Filter>>(() => readView(id)?.filters ?? {});
+  const [everyRow, setEveryRow] = useState(false);
+  // Another sheet in the same place (a tab switch) picks up its own saved view.
+  const [viewOf, setViewOf] = useState(id);
+  if (viewOf !== id) {
+    const v = readView(id);
+    setViewOf(id);
+    setSort(v?.sort ?? initial);
+    setPer(pageSize ? (v?.per ?? pageSize) : 0);
+    setPage(v?.page ?? 0);
+    setFilters(v?.filters ?? {});
+    setEveryRow(false);
+  }
+  useEffect(() => {
+    if (id && viewOf === id) putStash(VIEW(id), { sort, filters, per, page } satisfies View);
+  }, [id, viewOf, sort, filters, per, page]);
   const [layout, setLayoutState] = useState<Layout>(() => readLayout(id));
   const [menu, setMenu] = useState(false);
   const [colMenu, setColMenu] = useState<{ id: string; rect: DOMRect } | null>(null);
@@ -575,7 +600,8 @@ export function Sheet<T>({
   const pages = per ? Math.max(1, Math.ceil(sorted.length / per)) : 1;
   const pg = Math.min(page, pages - 1);
   const first = per ? pg * per : 0;
-  const shown = per ? sorted.slice(first, first + per) : sorted;
+  const capped = !per && !everyRow && sorted.length > LONG;
+  const shown = per ? sorted.slice(first, first + per) : capped ? sorted.slice(0, FIRST_ROWS) : sorted;
   const pickable = sorted.filter(canSelect);
   const allOn = pickable.length > 0 && pickable.every((r) => selected?.has(rowKey(r)));
   const someOn = pickable.some((r) => selected?.has(rowKey(r)));
@@ -1248,6 +1274,16 @@ export function Sheet<T>({
           </tbody>
         </table>
       </div>
+      {capped ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-rule px-4 py-2.5 text-[12px] text-muted">
+          <span className="aw-num">
+            {FIRST_ROWS.toLocaleString("en-US")} of {sorted.length.toLocaleString("en-US")}
+          </span>
+          <button type="button" className="aw-chip aw-chip--btn" onClick={() => setEveryRow(true)}>
+            Show all {sorted.length.toLocaleString("en-US")}
+          </button>
+        </div>
+      ) : null}
       {per ? (
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-rule px-4 py-2.5 text-[12px] text-muted">
           <label className="flex items-center gap-2">

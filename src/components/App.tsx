@@ -4,6 +4,7 @@ import { identify, inWorkspace, resetAnalytics } from "@/lib/analytics";
 import { Dropdown } from "./Pickers";
 import { withoutResearch } from "@/lib/researchUrl";
 import { recordUndo } from "@/lib/undo";
+import { keepScroll } from "@/lib/scrollKeep";
 import { UndoKeys } from "./UndoKeys";
 import { askConfirm, askText, DialogHost } from "./Dialogs";
 import { snack, SnackHost } from "./Snack";
@@ -225,6 +226,8 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [toggleNav]);
+  // Back and forward scroll to where each address was left (src/lib/scrollKeep.ts).
+  useEffect(() => keepScroll(), []);
   const pageRef = useRef(page);
   const subRef = useRef(sub);
   useEffect(() => {
@@ -252,7 +255,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
       openZippie(open);
       if (open || !zippieFromPath(window.location.pathname).open) return;
       setZippieSub(undefined);
-      window.history.replaceState({ page: pageRef.current, sub: subRef.current }, "", pathFor(pageRef.current, subRef.current) + window.location.search);
+      window.history.replaceState({ ...window.history.state, page: pageRef.current, sub: subRef.current }, "", pathFor(pageRef.current, subRef.current) + window.location.search);
     },
     [openZippie],
   );
