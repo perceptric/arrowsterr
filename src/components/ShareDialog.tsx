@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { RunAuth } from "@/lib/runner";
 import { fitSnapshot } from "@/lib/shareSnapshot";
 import type { CompetitorsSnapshot, PromptsSnapshot } from "@/lib/reportTypes";
+import { CopyButton } from "./CopyButton";
 import { Modal } from "./reports/Dialog";
 import { LinkSettings, type LinkLock } from "./reports/LinkSettings";
 import { errText, post } from "./reports/reportApi";
@@ -71,12 +72,8 @@ export function ShareButton({
           ) : (
             <div className="flex items-center gap-2">
               <input readOnly value={state.busy ? "Creating link…" : state.url} aria-label="Share link" onFocus={(e) => e.target.select()} className="aw-input min-w-0 flex-1" />
-              <button type="button" className="aw-btn aw-btn--primary shrink-0" disabled={state.busy} onClick={async () => {
-                const ok = await copy(state.url);
-                setState((s) => s && { ...s, copied: ok });
-              }}>
-                {state.copied ? "Copied" : "Copy link"}
-              </button>
+              {/* A new button once the link is ready, so it opens on "Copied" when the link was copied for you. */}
+              <CopyButton key={state.url} text={state.url} className="aw-btn aw-btn--primary shrink-0" disabled={state.busy} startCopied={state.copied} />
             </div>
           )}
           {state.url ? (

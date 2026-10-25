@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { Approval } from "@/lib/ask";
+import { BlockError, SkelBlock } from "./states";
 
-// Something Zippie asked to do (start an audit, change or delete Content Plan pieces). It runs only when an
+// Something Zippie asked to do (start an audit, change or delete Editorial Calendar pieces). It runs only when an
 // editor presses Approve here (/api/ask approve).
 
 type Api = <T>(path: string, body: Record<string, unknown>) => Promise<T>;
@@ -43,7 +44,22 @@ export function ApprovalCard({ id, api, canEdit }: { id: string; api: Api; canEd
       setBusy(false);
     }
   };
-  if (!a) return <div className="zp-card text-[13px] text-muted">{error || "Loading..."}</div>;
+  if (!a)
+    return (
+      <div className="zp-card">
+        {error ? (
+          <BlockError
+            what="this request"
+            onRetry={() => {
+              setError("");
+              void load();
+            }}
+          />
+        ) : (
+          <SkelBlock lines={2} />
+        )}
+      </div>
+    );
   const label = LABEL[a.status] ?? { text: a.status, tone: "" };
   return (
     <div className="zp-card">

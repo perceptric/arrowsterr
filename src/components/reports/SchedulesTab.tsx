@@ -7,10 +7,13 @@ import { PDF_PAGES } from "@/lib/pdf/pages";
 import type { ReportLimits } from "@/lib/plans";
 import type { RunAuth } from "@/lib/runner";
 import { MAX_MONTHDAY, recipientList, WEEKDAYS, whenLine, type Cadence } from "@/lib/schedules";
+import { formatDate } from "@/lib/dates";
+import { askConfirm } from "../Dialogs";
 import { Dropdown } from "../Pickers";
+import { BlockError, SkelBlock, SkelRows } from "../states";
 import { ToolIntro } from "../ToolIntro";
-import { Seg, Thinking } from "../ui";
-import { Confirm, Modal } from "./Dialog";
+import { Seg } from "../ui";
+import { Modal } from "./Dialog";
 import { errText, openFile, post } from "./reportApi";
 
 // Reports → Schedules (docs/reports.md, section 32.4): a brand's pages emailed weekly or monthly as PDFs, one email
@@ -60,17 +63,17 @@ export function SchedulesTab({
   onUpgrade: () => void;
 }) {
   const [list, setList] = useState<Schedule[] | null>(null);
-  const [error, setError] = useState("");
+  const [failed, setFailed] = useState(false);
   const [editing, setEditing] = useState<Schedule | "new" | null>(null);
   const [history, setHistory] = useState<Schedule | null>(null);
-  const [deleting, setDeleting] = useState<Schedule | null>(null);
-  const [busy, setBusy] = useState("");
-  const [limitHit, setLimitHit] = useState(false);
 
   const load = useCallback(async () => {
+    setFailed(false);
     const { data, error: e } = await sb.from("report_schedules").select(COLS).eq("workspace_id", auth.workspaceId).order("created_at");
-    if (e) setError(/report_schedules/.test(e.message) ? "Run supabase/046_report_files.sql in Supabase." : e.message);
-    else setList((data ?? []) as Schedule[]);
+    if (e) {
+      console.error("report_schedules", e.message);
+      setFailed(true);
+    } else setList((data ?? []) as Schedule[]);
   }, [sb, auth.workspaceId]);
   useEffect(() => {
     // Loading the schedules when the tab opens is the point of this effect.
@@ -78,38 +81,6 @@ export function SchedulesTab({
     void load();
   }, [load]);
 
-  const fail = (e: unknown) => {
-    setError(errText(e));
-    setLimitHit(Boolean((e as { limit?: boolean }).limit));
-  };
-
-  async function pause(s: Schedule) {
-    setBusy(s.id);
-    setError("");
-    try {
-      const { schedule } = await post<{ schedule: Schedule }>(auth, "/api/schedules", { action: "pause", id: s.id, active: !s.active });
-      setList((x) => x?.map((y) => (y.id === s.id ? schedule : y)) ?? null);
-    } catch (e) {
-      fail(e);
-    } finally {
-      setBusy("");
-    }
-  }
-
-  async function remove(s: Schedule) {
-    setBusy(s.id);
-    try {
-      await post(auth, "/api/schedules", { action: "delete", id: s.id });
-      setList((x) => x?.filter((y) => y.id !== s.id) ?? null);
-      setDeleting(null);
-    } catch (e) {
-      fail(e);
-    } finally {
-      setBusy("");
-    }
-  }
-
-  if (!list) return error ? <p className="aw-error max-w-2xl">{error}</p> : <Thinking text="Loading your schedules..." />;
   const max = limits?.schedules ?? 0;
   const brandName = (id: string) => brands.find((b) => b.id === id)?.name ?? "–";
   const pageTitle = (p: string) => AI_PAGES.find((x) => x.id === p)?.title ?? p;
@@ -127,18 +98,10 @@ export function SchedulesTab({
 
   return (
     <>
-      {error ? (
-        <div className="flex flex-wrap items-center gap-3">
-          <p className="aw-error">{error}</p>
-          {limitHit ? upgrade : null}
-        </div>
-      ) : null}
-      {!list.length ? (
+      {list && !list.length ? (
         <div className="flex flex-col gap-4">
-          <ToolIntro eyebrow="Schedules" title="Send reports on a schedule" lead="Pick a brand, its pages and who gets them. Each week or month, one email goes out with a PDF for each page." />
-          {max > 0 ? (
-            addButton
-          ) : (
+          <ToolIntro eyebrow="Schedules" title="Send reports on a schedule" lead="Pick a brand, its pages and who gets them. Each week or month, one email goes out with a PDF for each page." action={addButton} />
+          {max > 0 ? null : (
             <div className="aw-callout flex flex-wrap items-center gap-3 self-start">
               Scheduled reports are on Starter and up.
               {canEdit ? upgrade : null}
@@ -149,59 +112,72 @@ export function SchedulesTab({
         <>
           {addButton}
           <section className="aw-frame overflow-x-auto">
-            <table className="aw-table aw-table--compact">
-              <thead>
-                <tr>
-                  <th>Schedule</th>
-                  <th>Pages</th>
-                  <th>When</th>
-                  <th>To</th>
-                  <th>Next send</th>
-                  <th>State</th>
-                  <th className="w-72" aria-label="Actions" />
-                </tr>
-              </thead>
-              <tbody>
-                {list.map((s) => (
-                  <tr key={s.id}>
-                    <td>
-                      <span className="block font-medium text-ink">{s.name}</span>
-                      <span className="text-[12px] text-muted">{brandName(s.brand_id)}</span>
-                    </td>
-                    <td className="text-[13px]">{s.pages.map(pageTitle).join(", ")}</td>
-                    <td className="text-[13px]">
-                      {whenLine(s)}
-                      <span className="block text-[12px] text-muted">{s.timezone.replace(/_/g, " ")}</span>
-                    </td>
-                    <td className="text-[13px]" title={s.recipients.join(", ")}>
-                      {s.recipients.length === 1 ? s.recipients[0] : `${s.recipients.length} people`}
-                    </td>
-                    <td className="text-[13px] text-muted">{s.active && s.next_run_at ? at(s.next_run_at, s.timezone) : "–"}</td>
-                    <td>{s.active ? <span className="aw-status aw-status--ranked">Active</span> : <span className="aw-status aw-status--pending">Paused</span>}</td>
-                    <td className="text-right">
-                      <span className="inline-flex items-center gap-2">
-                        <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setHistory(s)}>
-                          History
-                        </button>
-                        {canEdit ? (
-                          <>
-                            <button type="button" className="aw-btn aw-btn--ghost aw-btn--sm" disabled={busy === s.id} onClick={() => pause(s)}>
-                              {s.active ? "Pause" : "Resume"}
-                            </button>
-                            <button type="button" className="aw-btn aw-btn--ghost aw-btn--sm" onClick={() => setEditing(s)}>
-                              Edit
-                            </button>
-                            <button type="button" className="aw-btn aw-btn--ghost aw-btn--sm" disabled={busy === s.id} onClick={() => setDeleting(s)}>
-                              Delete
-                            </button>
-                          </>
-                        ) : null}
-                      </span>
-                    </td>
+            {failed ? (
+              <div className="p-4">
+                <BlockError what="schedules" onRetry={load} />
+              </div>
+            ) : (
+              <table className="aw-table aw-table--compact">
+                <thead>
+                  <tr>
+                    <th>Schedule</th>
+                    <th>Pages</th>
+                    <th>When</th>
+                    <th>To</th>
+                    <th>Sends</th>
+                    <th className="w-44" aria-label="Actions" />
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {!list ? (
+                    <SkelRows rows={3} cols={6} />
+                  ) : (
+                    list.map((s) => (
+                      <tr key={s.id}>
+                        <td>
+                          <span className="block font-medium text-ink">{s.name}</span>
+                          <span className="text-[12px] text-muted">{brandName(s.brand_id)}</span>
+                        </td>
+                        <td className="text-[13px]">{s.pages.map(pageTitle).join(", ")}</td>
+                        <td className="text-[13px]">
+                          {whenLine(s)}
+                          <span className="block text-[12px] text-muted">{s.timezone.replace(/_/g, " ")}</span>
+                        </td>
+                        <td className="text-[13px]" title={s.recipients.join(", ")}>
+                          {s.recipients.length === 1 ? s.recipients[0] : `${s.recipients.length} people`}
+                        </td>
+                        <td className="text-[13px]">
+                          {!s.active ? (
+                            <span className="aw-status aw-status--pending">Paused</span>
+                          ) : (
+                            <span className="block" title={s.next_run_at ? at(s.next_run_at, s.timezone) : undefined}>
+                              {s.next_run_at ? `Next ${formatDate(s.next_run_at)}` : "–"}
+                            </span>
+                          )}
+                          {s.last_run_at ? (
+                            <span className="block text-[12px] text-muted" title={at(s.last_run_at, s.timezone)}>
+                              Last sent {formatDate(s.last_run_at)}
+                            </span>
+                          ) : null}
+                        </td>
+                        <td className="text-right">
+                          <span className="inline-flex items-center gap-2">
+                            <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setHistory(s)}>
+                              History
+                            </button>
+                            {canEdit ? (
+                              <button type="button" className="aw-btn aw-btn--ghost aw-btn--sm" onClick={() => setEditing(s)}>
+                                Edit
+                              </button>
+                            ) : null}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            )}
           </section>
         </>
       )}
@@ -217,13 +193,18 @@ export function SchedulesTab({
             setList((x) => (x?.some((y) => y.id === s.id) ? x.map((y) => (y.id === s.id ? s : y)) : [...(x ?? []), s]));
             setEditing(null);
           }}
+          onPaused={(s) => {
+            setList((x) => x?.map((y) => (y.id === s.id ? s : y)) ?? null);
+            setEditing(s);
+          }}
+          onDeleted={(id) => {
+            setList((x) => x?.filter((y) => y.id !== id) ?? null);
+            setEditing(null);
+          }}
           onUpgrade={onUpgrade}
         />
       ) : null}
       {history ? <History sb={sb} auth={auth} schedule={history} onClose={() => setHistory(null)} /> : null}
-      {deleting ? (
-        <Confirm title="Delete this schedule?" text="No more emails go out from it. PDFs it already made stay in Downloads." action="Delete" busy={busy === deleting.id} onConfirm={() => remove(deleting)} onClose={() => setDeleting(null)} />
-      ) : null}
     </>
   );
 }
@@ -237,6 +218,8 @@ function Editor({
   historyDays,
   onClose,
   onSaved,
+  onPaused,
+  onDeleted,
   onUpgrade,
 }: {
   auth: RunAuth;
@@ -246,6 +229,8 @@ function Editor({
   historyDays: number;
   onClose: () => void;
   onSaved: (s: Schedule) => void;
+  onPaused: (s: Schedule) => void;
+  onDeleted: (id: string) => void;
   onUpgrade: () => void;
 }) {
   const [name, setName] = useState(start?.name ?? "");
@@ -278,6 +263,32 @@ function Editor({
     } catch (e) {
       setError({ text: errText(e), limit: Boolean((e as { limit?: boolean }).limit) });
     } finally {
+      setBusy(false);
+    }
+  }
+
+  async function pause(s: Schedule) {
+    setBusy(true);
+    setError(null);
+    try {
+      const { schedule } = await post<{ schedule: Schedule }>(auth, "/api/schedules", { action: "pause", id: s.id, active: !s.active });
+      onPaused(schedule);
+    } catch (e) {
+      setError({ text: errText(e), limit: Boolean((e as { limit?: boolean }).limit) });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function remove(s: Schedule) {
+    if (!(await askConfirm({ title: "Delete this schedule?", text: "No more emails go out from it. PDFs it already made stay in Downloads.", action: "Delete", danger: true }))) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await post(auth, "/api/schedules", { action: "delete", id: s.id });
+      onDeleted(s.id);
+    } catch (e) {
+      setError({ text: errText(e), limit: false });
       setBusy(false);
     }
   }
@@ -358,6 +369,16 @@ function Editor({
         </div>
       ) : null}
       <div className="tw-modal__actions">
+        {start ? (
+          <span className="mr-auto inline-flex gap-2">
+            <button type="button" className="aw-btn aw-btn--secondary" disabled={busy} onClick={() => pause(start)}>
+              {start.active ? "Pause" : "Resume"}
+            </button>
+            <button type="button" className="aw-btn aw-btn--danger" disabled={busy} onClick={() => remove(start)}>
+              Delete
+            </button>
+          </span>
+        ) : null}
         <button type="button" className="aw-btn aw-btn--secondary" onClick={onClose}>
           Cancel
         </button>
@@ -410,7 +431,7 @@ function History({ sb, auth, schedule, onClose }: { sb: SupabaseClient; auth: Ru
     <Modal title={schedule.name} onClose={onClose} width="max-w-2xl">
       {error ? <p className="aw-error">{error}</p> : null}
       {!sends ? (
-        error ? null : <Thinking text="Loading the history..." />
+        error ? null : <SkelBlock lines={3} />
       ) : !sends.length ? (
         <p className="text-[13px] text-muted">{schedule.active && schedule.next_run_at ? `First send ${at(schedule.next_run_at, schedule.timezone)}.` : "Nothing sent yet."}</p>
       ) : (

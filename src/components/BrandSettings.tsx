@@ -10,7 +10,8 @@ import { post } from "./research/shared";
 import type { BrandTab } from "./SettingsPage";
 import { Ga4Connect, type SiteStatus } from "./Ga4Connect";
 import { BrandLogo } from "./BrandLogo";
-import { favicon, Thinking } from "./ui";
+import { SkelBlock } from "./states";
+import { favicon } from "./ui";
 
 type BrandRef = { id: string; name: string; domain: string };
 
@@ -99,7 +100,9 @@ function BrandGoogle({ auth, brand, canEdit }: { auth: RunAuth; brand: BrandRef;
       {result === "error" ? <p className="aw-error">{back?.get("reason") ?? "Could not connect Google Analytics."}</p> : null}
       {error ? <p className="aw-error">{error}</p> : null}
       {!status ? (
-        <Thinking text="Loading..." />
+        <div className="aw-frame px-5 py-4">
+          <SkelBlock lines={2} />
+        </div>
       ) : status.ga4?.property ? (
         <div className="aw-frame flex items-center justify-between gap-3 px-5 py-3">
           <span className="flex flex-col">
@@ -153,7 +156,14 @@ function BrandAlerts({ auth, brand, isAdmin }: { auth: RunAuth; brand: BrandRef;
     }
   }
 
-  if (!s) return error ? <p className="aw-error max-w-2xl">{error}</p> : <Thinking text="Loading..." />;
+  if (!s)
+    return error ? (
+      <p className="aw-error max-w-2xl">{error}</p>
+    ) : (
+      <div className="aw-frame max-w-2xl px-5 py-4">
+        <SkelBlock lines={3} />
+      </div>
+    );
   const off = !s.allowed;
   const can = isAdmin && !off && !s.setup;
   return (

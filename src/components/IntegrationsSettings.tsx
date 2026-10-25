@@ -5,7 +5,10 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { ALERT_POINTS, EVENTS } from "@/lib/integrationTypes";
 import type { RunAuth } from "@/lib/runner";
 import { formatDate } from "@/lib/dates";
-import { Confirm } from "./reports/Dialog";
+import { CopyButton } from "./CopyButton";
+import { askConfirm } from "./Dialogs";
+import { ArrowRight } from "./Icons";
+import { BlockError, SkelBlock } from "./states";
 import { post } from "./research/shared";
 
 type Key = { id: string; name: string; prefix: string; created_at: string; last_used_at: string | null };
@@ -29,23 +32,12 @@ const MCP_TOOLS = [
 
 /** Copy a value, with a short "Copied" on the button. */
 function CopyRow({ value, label }: { value: string; label: string }) {
-  const [done, setDone] = useState(false);
   return (
     <span className="flex items-center gap-2">
       <code aria-label={label} className="min-w-0 flex-1 truncate rounded-[6px] border border-rule bg-surface-2 px-2 py-1.5 text-[12px] text-ink">
         {value}
       </code>
-      <button
-        type="button"
-        className="aw-btn aw-btn--secondary aw-btn--sm shrink-0"
-        onClick={() => {
-          navigator.clipboard.writeText(value).catch(() => {});
-          setDone(true);
-          setTimeout(() => setDone(false), 1500);
-        }}
-      >
-        {done ? "Copied" : "Copy"}
-      </button>
+      <CopyButton text={value} label="Copy" className="aw-btn aw-btn--secondary aw-btn--sm shrink-0" />
     </span>
   );
 }
@@ -69,7 +61,7 @@ function McpCard({ off }: { off: boolean }) {
         <span className="aw-chip">MCP</span>
       </div>
       <p className="text-[13px] text-muted">
-        Ask your AI app about your AI visibility, competitors and Content Plan, in plain words. &quot;How did our visibility change this week, and who passed us?&quot; Add this server address to any app that supports MCP.
+        Ask your AI app about your AI visibility, competitors and Editorial Calendar, in plain words. &quot;How did our visibility change this week, and who passed us?&quot; Add this server address to any app that supports MCP.
       </p>
       {off ? <p className="text-[13px] text-body">Connecting AI apps is on Pro and up.</p> : null}
       <CopyRow value={url} label="MCP server address" />
@@ -127,7 +119,9 @@ export function IntegrationsSettings({ auth, isAdmin }: { auth: RunAuth; isAdmin
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [asking, setAsking] = useState<{ title: string; text: string; action: string; run: () => void } | null>(null);
+  const ask = async (q: { title: string; text: string; action: string }, run: () => void) => {
+    if (await askConfirm({ ...q, danger: true })) run();
+  };
 
   const load = () =>
     post<State>(auth, "/api/integrations", { action: "get" })
@@ -158,14 +152,24 @@ export function IntegrationsSettings({ auth, isAdmin }: { auth: RunAuth; isAdmin
     }
   }
 
-  if (!s) return null;
+  if (!s)
+    return error ? (
+      <BlockError
+        what="integrations"
+        onRetry={() => {
+          setError("");
+          load();
+        }}
+      />
+    ) : (
+      <div className="aw-frame max-w-2xl p-5">
+        <SkelBlock lines={3} />
+      </div>
+    );
   const off = !s.allowed;
   return (
     <section className="flex flex-col gap-4">
-      <div className="flex flex-col gap-1">
-        <h2 className="aw-h4">Integrations</h2>
-        <p className="max-w-2xl text-[14px] text-body">Use Arrowsterr from Claude, ChatGPT and Cursor, get alerts in Slack, and connect Zapier or your own tools with the API.</p>
-      </div>
+      <p className="max-w-2xl text-[14px] text-body">Use Arrowsterr from Claude, ChatGPT and Cursor, get alerts in Slack, and connect Zapier or your own tools with the API.</p>
       {off ? <div className="aw-callout max-w-2xl">AI apps, Slack, Zapier and the API are on Pro and up.</div> : null}
       {s.setup ? <div className="aw-callout max-w-2xl">{s.setup}</div> : null}
       {error ? <p className="aw-error max-w-2xl">{error}</p> : null}
@@ -201,7 +205,7 @@ export function IntegrationsSettings({ auth, isAdmin }: { auth: RunAuth; isAdmin
                   <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={Boolean(busy)} onClick={() => act("points", { action: "points", points }, "Saved.")}>
                     Save
                   </button>
-                  <button type="button" className="aw-text-link text-[13px] text-neg!" onClick={() => setAsking({ title: "Disconnect Slack", text: "Stop Slack alerts for brands without their own channel?", action: "Disconnect", run: () => act("off", { action: "slackOff" }) })}>
+                  <button type="button" className="aw-text-link text-[13px] text-neg!" onClick={() => ask({ title: "Disconnect Slack?", text: "Slack alerts stop for brands without their own channel.", action: "Disconnect" }, () => act("off", { action: "slackOff" }))}>
                     Disconnect
                   </button>
                 </>
@@ -229,9 +233,7 @@ export function IntegrationsSettings({ auth, isAdmin }: { auth: RunAuth; isAdmin
             <span className="text-[13px] font-medium text-ink">Copy your key now. It won&apos;t be shown again.</span>
             <span className="flex items-center gap-2">
               <code className="min-w-0 flex-1 truncate rounded-[6px] bg-white px-2 py-1.5 text-[12px]">{fresh}</code>
-              <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => navigator.clipboard.writeText(fresh)}>
-                Copy
-              </button>
+              <CopyButton text={fresh} label="Copy" />
             </span>
           </div>
         ) : null}
@@ -246,7 +248,7 @@ export function IntegrationsSettings({ auth, isAdmin }: { auth: RunAuth; isAdmin
                   </span>
                 </span>
                 {isAdmin ? (
-                  <button type="button" className="aw-text-link text-[13px] text-neg!" onClick={() => setAsking({ title: "Revoke key", text: `Revoke "${k.name}"? Anything using it stops working.`, action: "Revoke", run: () => act("revoke", { action: "revoke", id: k.id }) })}>
+                  <button type="button" className="aw-text-link text-[13px] text-neg!" onClick={() => ask({ title: `Revoke ${k.name}?`, text: "Anything using this key stops working.", action: "Revoke" }, () => act("revoke", { action: "revoke", id: k.id }))}>
                     Revoke
                   </button>
                 ) : null}
@@ -298,32 +300,22 @@ export function IntegrationsSettings({ auth, isAdmin }: { auth: RunAuth; isAdmin
             {s.hooks.map((h) => (
               <li key={h.id} className="flex items-center justify-between gap-3 py-2 text-[13px]">
                 <span className="flex min-w-0 flex-col">
-                  <span className="text-ink">
-                    <code>{h.event}</code> → {h.url}
+                  <span className="inline-flex min-w-0 items-center gap-1.5 text-ink">
+                    <code>{h.event}</code>
+                    <ArrowRight size={12} className="shrink-0" />
+                    <span className="truncate">{h.url}</span>
                   </span>
                   <span className="text-muted">{h.source === "zapier" ? "Zapier" : "API"} · {date(h.created_at)}</span>
                 </span>
                 {isAdmin ? (
                   <button type="button" className="aw-text-link text-[13px] text-neg!" onClick={() => act("unhook", { action: "unhook", id: h.id })}>
-                    Remove
+                    Delete
                   </button>
                 ) : null}
               </li>
             ))}
           </ul>
         </div>
-      ) : null}
-      {asking ? (
-        <Confirm
-          title={asking.title}
-          text={asking.text}
-          action={asking.action}
-          onConfirm={() => {
-            asking.run();
-            setAsking(null);
-          }}
-          onClose={() => setAsking(null)}
-        />
       ) : null}
     </section>
   );

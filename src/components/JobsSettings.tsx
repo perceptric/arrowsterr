@@ -3,6 +3,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useState } from "react";
 import { Dropdown } from "./Pickers";
+import { SaveState } from "./SaveState";
+import { SkelRows } from "./states";
 import { downloadCsv } from "./research/shared";
 import { atLeast, getUsage, getWorkspaceSettings, topicsOf, type Brand, type Workspace } from "@/lib/db";
 import { mergePrompts, promptsFromCsv } from "@/lib/csvImport";
@@ -15,13 +17,8 @@ const slug = (s: string) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "") || "workspace";
 
-function Status({ error, saved }: { error: string; saved: string }) {
-  if (error) return <p className="aw-error">{error}</p>;
-  if (saved) return <p className="aw-callout text-[15px]!">{saved}</p>;
-  return null;
-}
 
-/** Bring prompts in from a CSV, and take prompts, answers and the Content Plan out as CSV. */
+/** Bring prompts in from a CSV, and take prompts, answers and the Editorial Calendar out as CSV. */
 export function ExportsSettings({ sb, ws, brands, onBrand }: { sb: SupabaseClient; ws: Workspace; brands: Brand[]; onBrand: (b: Brand) => Promise<void> }) {
   const canEdit = atLeast(ws.role, "editor");
   const [brandId, setBrandId] = useState(brands[0]?.id ?? "");
@@ -95,7 +92,7 @@ export function ExportsSettings({ sb, ws, brands, onBrand }: { sb: SupabaseClien
           .limit(5000),
       ]);
       if (err) throw new Error(err.message);
-      if (!data?.length) throw new Error("The Content Plan is empty.");
+      if (!data?.length) throw new Error("The Editorial Calendar is empty.");
       const site = new Map((sites ?? []).map((s) => [s.id as string, s.name as string]));
       downloadCsv(
         `${name}-content-plan-${day()}.csv`,
@@ -121,11 +118,11 @@ export function ExportsSettings({ sb, ws, brands, onBrand }: { sb: SupabaseClien
 
   return (
     <div className="flex max-w-3xl flex-col gap-8">
-      <Status error={error} saved={saved} />
+      <SaveState error={error} saved={saved} />
 
       <section className="flex flex-col gap-4">
         <div>
-          <h3 className="aw-h4">Import prompts</h3>
+          <h2 className="aw-h4">Import prompts</h2>
           <p className="aw-small mt-1">A CSV with one prompt per row. Name the columns prompt and topic to sort them into topics. Prompts already tracked are skipped.</p>
         </div>
         {brands.length ? (
@@ -164,7 +161,7 @@ export function ExportsSettings({ sb, ws, brands, onBrand }: { sb: SupabaseClien
       </section>
 
       <section className="flex flex-col gap-3">
-        <h3 className="aw-h4">Export</h3>
+        <h2 className="aw-h4">Export</h2>
         <div className="aw-table-wrap">
           <table className="aw-table">
             <tbody>
@@ -175,7 +172,7 @@ export function ExportsSettings({ sb, ws, brands, onBrand }: { sb: SupabaseClien
                 </td>
                 <td className="text-right">
                   <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={Boolean(busy)} onClick={exportPrompts}>
-                    Download CSV
+                    Export CSV
                   </button>
                 </td>
               </tr>
@@ -212,18 +209,18 @@ export function ExportsSettings({ sb, ws, brands, onBrand }: { sb: SupabaseClien
                 </td>
                 <td className="text-right align-top">
                   <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={Boolean(busy) || !brand} onClick={exportAnswers}>
-                    {busy === "answers" ? "Getting..." : "Download CSV"}
+                    {busy === "answers" ? "Getting..." : "Export CSV"}
                   </button>
                 </td>
               </tr>
               <tr>
                 <td>
-                  <div className="font-medium text-ink">Content Plan</div>
+                  <div className="font-medium text-ink">Editorial Calendar</div>
                   <div className="aw-small">Every planned page across your websites.</div>
                 </td>
                 <td className="text-right">
                   <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={Boolean(busy)} onClick={exportPlan}>
-                    {busy === "plan" ? "Getting..." : "Download CSV"}
+                    {busy === "plan" ? "Getting..." : "Export CSV"}
                   </button>
                 </td>
               </tr>
@@ -251,7 +248,7 @@ const STATUS: Record<Action["status"], { label: string; tone: string }> = {
   limited: { label: "Stopped at daily limit", tone: "aw-status--warn" },
 };
 
-/** What Arrowsterr has been doing in the background: checks, plan builds, briefs and bulk analyses. */
+/** What Arrowsterr has been doing in the background: checks, plan builds, outlines and bulk analyses. */
 export function JobsSettings({ sb, ws, brands }: { sb: SupabaseClient; ws: Workspace; brands: Brand[] }) {
   const [list, setList] = useState<Action[] | null>(null);
   const [tz, setTz] = useState<string | undefined>(undefined);
@@ -286,7 +283,7 @@ export function JobsSettings({ sb, ws, brands }: { sb: SupabaseClient; ws: Works
         ...(plans.data ?? []).map((r) => ({
           id: `plan-${r.id}`,
           at: r.created_at,
-          what: `Content Plan build · ${site.get(r.site_id) ?? "Website"}`,
+          what: `Editorial Calendar build · ${site.get(r.site_id) ?? "Website"}`,
           detail: r.status === "running" ? r.step || "Working" : "",
           status: r.status as Action["status"],
           error: r.error,
@@ -294,7 +291,7 @@ export function JobsSettings({ sb, ws, brands }: { sb: SupabaseClient; ws: Works
         ...(briefs.data ?? []).map((r) => ({
           id: `brief-${r.id}`,
           at: r.brief_at ?? r.brief_started_at ?? new Date().toISOString(),
-          what: `Content brief · ${r.keyword}`,
+          what: `Outline · ${r.keyword}`,
           detail: "",
           status: r.brief_status as Action["status"],
           error: r.brief_error,
@@ -357,10 +354,8 @@ export function JobsSettings({ sb, ws, brands }: { sb: SupabaseClient; ws: Works
         </button>
       </div>
       {error ? <p className="aw-error">{error}</p> : null}
-      {list === null ? (
-        <p className="aw-small">Loading...</p>
-      ) : !list.length ? (
-        <p className="aw-callout text-[15px]!">Nothing has run yet. Checks, Content Plan builds, briefs and bulk analyses show up here.</p>
+      {list && !list.length ? (
+        <p className="aw-callout text-[15px]!">Nothing has run yet. Checks, Editorial Calendar builds, outlines and bulk analyses show up here.</p>
       ) : (
         <div className="aw-table-wrap">
           <table className="aw-table aw-table--compact">
@@ -372,7 +367,8 @@ export function JobsSettings({ sb, ws, brands }: { sb: SupabaseClient; ws: Works
               </tr>
             </thead>
             <tbody>
-              {list.map((a) => (
+              {!list ? <SkelRows rows={5} cols={3} /> : null}
+              {(list ?? []).map((a) => (
                 <tr key={a.id}>
                   <td>
                     <div className="line-clamp-2 text-ink">{a.what}</div>

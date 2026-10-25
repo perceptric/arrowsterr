@@ -5,11 +5,14 @@ import { Fragment, useState } from "react";
 import { PLANS, SELF_SERVE, UNLIMITED, type Interval, type Plan } from "@/lib/plans";
 import { SALES } from "./BillingPage";
 import { BrandLogo } from "./BrandLogo";
+import { Check } from "./Icons";
 import { Logo } from "./Logo";
 import { AIS, IntervalSwitch, LogoStack, PlanGrid } from "./PlanGrid";
 
 const n = (v: number) => (v >= UNLIMITED ? "Unlimited" : v.toLocaleString("en-US"));
-const yes = (on: boolean) => (on ? "✓" : "–");
+// A plain "yes" in the table data, drawn as a check mark.
+const YES = "yes";
+const yes = (on: boolean) => (on ? YES : "–");
 
 const COLS = ["free", ...SELF_SERVE] as const;
 
@@ -19,8 +22,8 @@ const ROWS: { group: string; rows: { label: React.ReactNode; value: (p: Plan) =>
   {
     group: "Toolsets",
     rows: [
-      { label: "AI Visibility", value: (p) => (starter(p) ? "Pick one" : "✓") },
-      { label: "Organic Research", value: (p) => (starter(p) ? "Pick one" : "✓") },
+      { label: "AI Visibility", value: (p) => (starter(p) ? "Pick one" : YES) },
+      { label: "Organic Research", value: (p) => (starter(p) ? "Pick one" : YES) },
     ],
   },
   {
@@ -41,27 +44,27 @@ const ROWS: { group: string; rows: { label: React.ReactNode; value: (p: Plan) =>
       { label: "Competitors per brand", value: (p) => n(p.competitors) },
       { label: "History", value: (p) => (p.historyDays >= 365 ? `${Math.round(p.historyDays / 365)} yr` : `${p.historyDays} days`) },
       { label: "On-demand checks a day", value: (p) => (p.checkNowPerDay ? n(p.checkNowPerDay) : "–") },
-      { label: "Sources, Competitors & Prompts", value: () => "✓" },
+      { label: "Sources, Competitors & Prompts", value: () => YES },
     ],
   },
   {
     group: "Organic Research",
     rows: [
       { label: "Tasks a month", value: (p) => (starter(p) ? "3,000 on Organic Research" : n(p.tasksPerMonth)) },
-      { label: "Task packs to top up", value: () => "✓" },
-      { label: "Keyword, Domain & Competitive Analysis", value: () => "✓" },
-      { label: "Revenue-driven Content Plan & briefs", value: (p) => yes(p.plansPerMonth > 0) },
+      { label: "Task packs to top up", value: () => YES },
+      { label: "Keyword, Domain & Competitive Analysis", value: () => YES },
+      { label: "Revenue-driven Editorial Calendar & outlines", value: (p) => yes(p.plansPerMonth > 0) },
       { label: "Agentic Writer & publishing", value: (p) => yes(p.writer === "full") },
     ],
   },
   {
     group: "Reports & data",
     rows: [
-      { label: "Live report links", value: () => "✓" },
+      { label: "Live report links", value: () => YES },
       { label: "8 report templates", value: (p) => yes(p.reports === "templates" || p.reports === "whitelabel") },
       { label: "White-label reports", value: (p) => yes(p.reports === "whitelabel") },
-      { label: "Google Analytics 4", value: () => "✓" },
-      { label: "CSV export", value: () => "✓" },
+      { label: "Google Analytics 4", value: () => YES },
+      { label: "CSV export", value: () => YES },
       { label: "Slack, Zapier & API", value: (p) => yes(p.alerts) },
     ],
   },
@@ -73,9 +76,9 @@ const FAQ: { q: string; a: string }[] = [
   { q: "Which AIs do you track?", a: "ChatGPT, Claude, Gemini, Perplexity, Google AI Overviews and Google AI Mode. Free tracks ChatGPT and AI Overviews. Paid plans track all six." },
   { q: "Do my brands share prompts?", a: "Yes. Your prompts are one pool for the whole workspace. Split them between your brands any way you like." },
   { q: "Weekly or daily checks?", a: "AI answers change all the time. Weekly checks show the trend. Daily checks catch a drop the day it happens, which matters when you are shipping content to win a prompt." },
-  { q: "What is a task?", a: "Every action you run costs a few tasks: a keyword lookup is 10, a domain report is 10, a content brief is 100 and a writer agent job is 15. Tracking your prompts never uses tasks." },
+  { q: "What is a task?", a: "Every action you run costs a few tasks: a keyword lookup is 10, a domain report is 10, an outline is 100 and a writer agent job is 15. Tracking your prompts never uses tasks." },
   { q: "What if I run out of tasks?", a: "Buy a task pack from 1,000 tasks for $15. Pack tasks never expire and are used after your monthly tasks." },
-  { q: "What does Starter include?", a: "One toolset of your choice. AI Visibility: 50 prompts checked daily on all six AIs. Organic Research: 3,000 tasks a month and the Content Plan. You can switch once a month. Pro and up include both, plus the Agentic Writer." },
+  { q: "What does Starter include?", a: "One toolset of your choice. AI Visibility: 50 prompts checked daily on all six AIs. Organic Research: 3,000 tasks a month and the Editorial Calendar. You can switch once a month. Pro and up include both, plus the Agentic Writer." },
   { q: "What happens after the free trial?", a: "The 7-day trial includes the Agentic Writer. When it ends, your workspace moves to Free. Nothing is deleted. No card is needed to start." },
   { q: "Can I change plans later?", a: "Any time. Upgrades start right away and you only pay the difference. Downgrades credit what is left of your month." },
 ];
@@ -167,8 +170,15 @@ export function PricingPage() {
                       {COLS.map((id) => {
                         const v = r.value(PLANS[id]);
                         return (
-                          <td key={id} className={`p-4 text-center ${id === "scale" ? "bg-brand-pale/50" : ""} ${v === "✓" ? "text-brand" : v === "–" ? "text-faint" : "aw-num text-ink"}`}>
-                            {v}
+                          <td key={id} className={`p-4 text-center ${id === "scale" ? "bg-brand-pale/50" : ""} ${v === YES ? "text-brand" : v === "–" ? "text-faint" : "aw-num text-ink"}`}>
+                            {v === YES ? (
+                              <span className="inline-flex justify-center">
+                                <Check />
+                                <span className="sr-only">Included</span>
+                              </span>
+                            ) : (
+                              v
+                            )}
                           </td>
                         );
                       })}

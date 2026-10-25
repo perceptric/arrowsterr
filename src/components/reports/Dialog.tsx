@@ -1,17 +1,36 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 /** Tailwind width names the callers pass, as Twenty's modal sizes. */
 const MODAL_SIZE: Record<string, string> = { "max-w-sm": "tw-modal--sm", "max-w-md": "", "max-w-lg": "tw-modal--md", "max-w-xl": "tw-modal--md", "max-w-2xl": "tw-modal--lg", "max-w-3xl": "tw-modal--lg", "max-w-4xl": "tw-modal--lg" };
 
+// Open dialogs, newest last.
+const stack: object[] = [];
+
 /** The app's dialog, in place of the browser's. Escape or a click outside closes it. */
 export function Modal({ title, onClose, children, width = "max-w-lg" }: { title: string; onClose: () => void; children: React.ReactNode; width?: string }) {
+  const close = useRef(onClose);
   useEffect(() => {
-    const esc = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", esc);
-    return () => window.removeEventListener("keydown", esc);
+    close.current = onClose;
   }, [onClose]);
+  useEffect(() => {
+    // Only the newest dialog answers Escape, so a question asked from a dialog closes first. On document, so a
+    // pop-up inside closes before it (pop-ups stop Escape on the way down), and marked handled, so the Zippie
+    // panel under a dialog stays open.
+    const me = {};
+    stack.push(me);
+    const esc = (e: KeyboardEvent) => {
+      if (e.key !== "Escape" || e.defaultPrevented || stack[stack.length - 1] !== me) return;
+      e.preventDefault();
+      close.current();
+    };
+    document.addEventListener("keydown", esc);
+    return () => {
+      stack.splice(stack.indexOf(me), 1);
+      document.removeEventListener("keydown", esc);
+    };
+  }, []);
   return (
     <div className="tw-overlay print:hidden" onMouseDown={onClose}>
       <div role="dialog" aria-modal="true" aria-label={title} onMouseDown={(e) => e.stopPropagation()} className={`tw-modal ${MODAL_SIZE[width] ?? "tw-modal--md"}`}>
