@@ -255,3 +255,22 @@ export function KeywordLink({ keyword }: { keyword: string }) {
 
 /** Opens Domain Research on a site or page. Set by the Research page, so any panel can offer "Analyze SEO". */
 export const AnalyzeSeo = createContext<((target: string, scope: "domain" | "subdomain" | "subfolder" | "url") => void) | null>(null);
+
+/**
+ * The bar over a table with rows picked: "12 keywords selected", the actions, and Clear.
+ * children are the action buttons, like <button className="aw-btn aw-btn--primary aw-btn--sm">Add to Editorial Calendar</button>.
+ * Show it only while count is above 0.
+ */
+export function SelectionBar({ count, noun = "", onClear, children }: { count: number; noun?: string; onClear: () => void; children?: React.ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-center gap-3 border-b border-rule-faint bg-brand-pale px-5 py-2.5">
+      <span className="text-[13px] font-medium text-ink">
+        {count.toLocaleString("en-US")} {noun ? `${noun} ` : ""}selected
+      </span>
+      {children}
+      <button type="button" className="aw-text-link text-[13px]" onClick={onClear}>
+        Clear
+      </button>
+    </div>
+  );
+}

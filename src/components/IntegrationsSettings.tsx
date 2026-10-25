@@ -4,6 +4,7 @@ import { Dropdown } from "./Pickers";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { ALERT_POINTS, EVENTS } from "@/lib/integrationTypes";
 import type { RunAuth } from "@/lib/runner";
+import { formatDate } from "@/lib/dates";
 import { Confirm } from "./reports/Dialog";
 import { post } from "./research/shared";
 
@@ -11,7 +12,7 @@ type Key = { id: string; name: string; prefix: string; created_at: string; last_
 type Hook = { id: string; url: string; event: string; source: string; created_at: string };
 type State = { allowed: boolean; setup?: string; slack?: boolean; points?: number; keys?: Key[]; hooks?: Hook[] };
 
-const date = (s: string | null) => (s ? new Date(s).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Never");
+const date = (s: string | null) => (s ? formatDate(s) : "Never");
 const api = () => `${window.location.origin}/api/v1`;
 
 const MCP_TOOLS = [

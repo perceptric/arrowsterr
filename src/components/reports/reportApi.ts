@@ -14,16 +14,8 @@ export async function post<T>(auth: RunAuth, path: string, body: Record<string, 
 
 export const errText = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
-/** "2h ago", "3d ago", or a date. */
-export function ago(iso: string | null | undefined) {
-  if (!iso) return "–";
-  const s = (Date.now() - Date.parse(iso)) / 1000;
-  if (s < 60) return "just now";
-  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
-  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
-  if (s < 30 * 86400) return `${Math.floor(s / 86400)}d ago`;
-  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-}
+/** "2 h ago", "Yesterday", or a date: the app's one ago. */
+export { ago } from "@/lib/dates";
 
 /** Download a saved PDF. Returns the reason when it can't, like a file still being made. */
 export async function openFile(auth: RunAuth, fileId: string): Promise<string | null> {

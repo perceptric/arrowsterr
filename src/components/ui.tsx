@@ -40,19 +40,54 @@ export function BrandName({ name, domain, logo, isYou, size = 20 }: { name: stri
   );
 }
 
-/** Change since the period before, with an arrow. For position, lower is better. */
-export function Delta({ now, before, unit = "", lowerIsBetter = false, digits = 1 }: { now: number | null; before: number | null; unit?: string; lowerIsBetter?: boolean; digits?: number }) {
-  if (now === null || before === null) return null;
+/**
+ * Change since the period before. Colour means good or bad for the viewer, never up or down.
+ * - before null: nothing to compare with, so nothing shows.
+ * - before 0 and now above 0: a grey "new", never a green "+100%".
+ * - a change that rounds to 0: a grey "no change".
+ * - good says which way is good: "up" (the default), "down" (same as lowerIsBetter, like position),
+ *   or "none" for a rival's change, which always stays grey.
+ * Put one Since line under a stats strip to say what it's measured against.
+ */
+export function Delta({
+  now,
+  before,
+  unit = "",
+  lowerIsBetter = false,
+  digits = 1,
+  good,
+}: {
+  now: number | null | undefined;
+  before: number | null | undefined;
+  unit?: string;
+  lowerIsBetter?: boolean;
+  digits?: number;
+  good?: "up" | "down" | "none";
+}) {
+  if (now === null || now === undefined || before === null || before === undefined) return null;
+  if (before === 0 && now > 0) return <span className="aw-stat__delta aw-stat__delta--flat whitespace-nowrap">new</span>;
   const d = now - before;
   const shown = Math.abs(d).toFixed(digits);
-  if (Number(shown) === 0) return null;
-  const good = lowerIsBetter ? d < 0 : d > 0;
+  if (Number(shown) === 0) return <span className="aw-stat__delta aw-stat__delta--flat whitespace-nowrap">no change</span>;
+  const way = good ?? (lowerIsBetter ? "down" : "up");
+  const better = way === "up" ? d > 0 : d < 0;
+  const tone = way === "none" ? "flat" : better ? "up" : "down";
+  const title = way === "none" ? (d > 0 ? "Up from the period before" : "Down from the period before") : better ? "Better than the period before" : "Worse than the period before";
   return (
-    <span className={`whitespace-nowrap text-[12px] font-medium ${good ? "text-pos" : "text-neg"}`} title={good ? "Better than the period before" : "Worse than the period before"}>
-      {d > 0 ? "↗" : "↘"} {shown}
+    <span className={`aw-stat__delta aw-stat__delta--${tone} inline-flex items-center gap-0.5 whitespace-nowrap`} title={title}>
+      <svg viewBox="0 0 12 12" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d={d > 0 ? "M3 7.5 6 4.5l3 3" : "M3 4.5 6 7.5l3-3"} />
+      </svg>
+      {d > 0 ? "+" : "−"}
+      {shown}
       {unit}
     </span>
   );
+}
+
+/** The one line under a stats strip that says what each change is measured against: "vs prior 30 days". */
+export function Since({ days, text }: { days?: number; text?: string }) {
+  return <p className="aw-small text-muted">{text ?? `vs prior ${days} days`}</p>;
 }
 
 /** A row of tabs where one is picked: text on a hairline, the picked one underlined in Signal Blue (brand v5). */
