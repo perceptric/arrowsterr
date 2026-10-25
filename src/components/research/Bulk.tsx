@@ -5,17 +5,18 @@
 import { Dropdown } from "../Pickers";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { ago, formatDate } from "@/lib/dates";
 import { addCalendarItems, type Site } from "@/lib/db";
-import { TASK_COST } from "@/lib/plans";
 import { BULK_LIMIT, bulkList, MARKETS, stageFromIntent, type DomainBulkRow, type KwSummary } from "@/lib/research";
 import type { RunAuth } from "@/lib/runner";
 import { domainHref, keywordHref, plainClick, setUrl, urlParams } from "@/lib/researchUrl";
 import { useStash } from "@/lib/stash";
 import { BrandLogo } from "../BrandLogo";
 import { Sheet } from "../Sheet";
+import { ExternalLink } from "../Icons";
 import { CalendarIcon, favicon, Thinking } from "../ui";
-import { flag, KdDot, short } from "./KeywordOverview";
-import { BAR_BUTTON, BAR_FIELD, downloadCsv, fmtCpc, post, Sparkline } from "./shared";
+import { countryLabel, Flag, KdDot, short } from "./KeywordOverview";
+import { AddedNotice, BAR_BUTTON, BAR_FIELD, downloadCsv, fmtCpc, post, SelectionBar, Sparkline } from "./shared";
 
 const HEADER = /^(keywords?|domains?|urls?|sites?|websites?|pages?|query|queries|term|terms)$/i;
 
@@ -28,8 +29,8 @@ function readFile(text: string): string[] {
   return cells.length && HEADER.test(cells[0]) ? cells.slice(1) : cells;
 }
 
-/** A big paste box with a file upload and a live count against the limit. */
-function BulkInput({ value, onChange, noun, placeholder, disabled }: { value: string; onChange: (v: string) => void; noun: string; placeholder: string; disabled?: boolean }) {
+/** A big paste box with a file upload and a live count against the limit. small makes it three lines, once there are results. */
+function BulkInput({ value, onChange, noun, placeholder, disabled, small = false }: { value: string; onChange: (v: string) => void; noun: string; placeholder: string; disabled?: boolean; small?: boolean }) {
   const file = useRef<HTMLInputElement | null>(null);
   const count = bulkList(value).length;
   const over = count > BULK_LIMIT;
@@ -40,9 +41,9 @@ function BulkInput({ value, onChange, noun, placeholder, disabled }: { value: st
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         aria-label={`${noun} to analyze, one per line`}
-        rows={8}
+        rows={small ? 3 : 8}
         disabled={disabled}
-        className="aw-textarea min-h-40 w-full resize-y font-mono text-[14px]"
+        className={`aw-textarea ${small ? "" : "min-h-40"} w-full resize-y font-mono text-[14px]`}
       />
       <div className="flex flex-wrap items-center gap-3 text-[12px] text-muted">
         <span className={`aw-num ${over ? "font-medium text-neg" : ""}`}>
@@ -79,14 +80,11 @@ function BulkInput({ value, onChange, noun, placeholder, disabled }: { value: st
 
 function CountrySelect({ value, onChange }: { value: string; onChange: (c: string) => void }) {
   return (
-    <Dropdown label="Country" value={value} onChange={onChange} className={BAR_FIELD} options={Object.keys(MARKETS).map((c) => ({ id: c, label: `${flag(c)} ${c}` }))} />
+    <Dropdown label="Country" value={value} onChange={onChange} className={BAR_FIELD} options={Object.keys(MARKETS).map((c) => ({ id: c, label: countryLabel(c) }))} />
   );
 }
 
-/** What a run costs, shown before it starts. */
-const costNote = (n: number) => (n ? `Uses ${TASK_COST.bulk(Math.min(n, BULK_LIMIT))} tasks · free when the results are saved` : "");
-
-function Stats({ items }: { items: [string, string, string?][] }) {
+function Stats({ items }: { items: [string, string, React.ReactNode?][] }) {
   return (
     <div className="aw-stats aw-stats--tight" style={{ ["--cols" as string]: items.length }}>
       {items.map(([lab, num, sub]) => (
@@ -106,17 +104,16 @@ const pct = (c: number | null) => (c === null ? null : Math.round(c <= 1 ? c * 1
 const FEATURE = (t: string) => t.replace(/_/g, " ");
 const NewTab = ({ href }: { href: string }) => (
   <a href={href} target="_blank" rel="noopener noreferrer nofollow" aria-label={`Open ${href} in a new tab`} title="Open in a new tab" className="inline-flex shrink-0 p-0.5 text-muted hover:text-brand">
-    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" />
-    </svg>
+    <ExternalLink size={13} />
   </a>
 );
 
 type Recent = { id: string; count: number; country: string; created_at: string };
 
-const ago = (iso: string) => {
-  const m = Math.max(1, Math.round((Date.now() - Date.parse(iso)) / 60000));
-  return m < 60 ? `${m}m ago` : m < 1440 ? `${Math.round(m / 60)}h ago` : `${Math.round(m / 1440)}d ago`;
+/** "Saved Oct 3" for a run from the saved list. */
+const savedOn = (runs: Recent[] | null, id?: string | null) => {
+  const r = id ? runs?.find((x) => x.id === id) : null;
+  return r ? `Saved ${formatDate(r.created_at)}` : "";
 };
 
 /**
@@ -190,7 +187,7 @@ function RecentRuns({ runs, current, noun, path, onOpen }: { runs: Recent[] | nu
             onOpen(r.id);
           }}
         >
-          {r.count.toLocaleString("en-US")} {noun} · {flag(r.country)} · {ago(r.created_at)}
+          {r.count.toLocaleString("en-US")} {noun} · <Flag country={r.country} /> · {ago(r.created_at)}
         </a>
       ))}
     </div>
@@ -209,6 +206,7 @@ export function BulkKeywords({ sb, auth, site, canEdit, onResearch }: { sb: Supa
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [added, setAdded] = useState("");
   const list = bulkList(text);
   const saved = useSavedRuns<KwResult>(sb, site, "keywords", result, (items, c, r) => {
     setText(items.join("\n"));
@@ -221,6 +219,7 @@ export function BulkKeywords({ sb, auth, site, canEdit, onResearch }: { sb: Supa
     if (!list.length || list.length > BULK_LIMIT) return;
     setError("");
     setNotice("");
+    setAdded("");
     setPicked(new Set());
     setBusy(`Checking ${list.length.toLocaleString("en-US")} keywords...`);
     try {
@@ -237,13 +236,14 @@ export function BulkKeywords({ sb, auth, site, canEdit, onResearch }: { sb: Supa
 
   async function addToPlan(rows: KwSummary[]) {
     setError("");
+    setNotice("");
     try {
       const n = await addCalendarItems(
         sb,
         auth.workspaceId,
         rows.map((r) => ({ site_id: site.id, keyword: r.keyword, secondary: [], stage: stageFromIntent(r.intent), theme: null, volume: r.volume, difficulty: r.kd, intent: r.intent, cpc: r.cpc, source: "bulk analysis" })),
       );
-      setNotice(`${n} added to the Content Plan.${n < rows.length ? ` ${rows.length - n} were already in it.` : ""}`);
+      setAdded(`${n} added to the Editorial Calendar.${n < rows.length ? ` ${rows.length - n} ${rows.length - n === 1 ? "was" : "were"} already in it.` : ""}`);
       setPicked(new Set());
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -269,18 +269,18 @@ export function BulkKeywords({ sb, auth, site, canEdit, onResearch }: { sb: Supa
           run();
         }}
       >
-        <BulkInput value={text} onChange={setText} noun="keywords" placeholder={"crm software\nbest crm for small business\nhubspot alternatives"} disabled={Boolean(busy)} />
+        <BulkInput value={text} onChange={setText} noun="keywords" placeholder={"crm software\nbest crm for small business\nhubspot alternatives"} disabled={Boolean(busy)} small={Boolean(result)} />
         <div className="flex flex-wrap items-center gap-3">
           <CountrySelect value={country} onChange={setCountry} />
           <button type="submit" className={BAR_BUTTON} disabled={!canEdit || Boolean(busy) || !list.length || list.length > BULK_LIMIT}>
             Analyze {list.length > 1 ? `${list.length.toLocaleString("en-US")} keywords` : ""}
           </button>
-          <span className="text-[12px] text-muted">{costNote(list.length)}</span>
         </div>
         <RecentRuns runs={saved.recent} current={result?.id} noun="keywords" path="/keywords" onOpen={(id) => saved.open(id, true)} />
       </form>
 
       {error || saved.error ? <p className="aw-error">{error || saved.error}</p> : null}
+      {added ? <AddedNotice text={added} /> : null}
       {notice ? <div className="aw-callout">{notice}</div> : null}
       {busy ? <Thinking text={busy} /> : null}
 
@@ -288,7 +288,13 @@ export function BulkKeywords({ sb, auth, site, canEdit, onResearch }: { sb: Supa
         <>
           <Stats
             items={[
-              ["Keywords", rows.length.toLocaleString("en-US"), `${flag(result.country)} ${result.country}`],
+              [
+                "Keywords",
+                rows.length.toLocaleString("en-US"),
+                <>
+                  <Flag country={result.country} /> {result.country}
+                </>,
+              ],
               ["Total volume", short(rows.reduce((n, r) => n + (r.volume ?? 0), 0)), "searches a month"],
               ["Average KD", withKd.length ? String(Math.round(withKd.reduce((n, r) => n + r.kd!, 0) / withKd.length)) : "–", "0 easy, 100 hard"],
               ["AI Overview", String(rows.filter((r) => r.serp.includes("ai_overview")).length), "show one on Google"],
@@ -297,9 +303,12 @@ export function BulkKeywords({ sb, auth, site, canEdit, onResearch }: { sb: Supa
           />
           <div className="aw-frame">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-rule-faint px-5 py-3">
-              <span className="text-[13px] text-muted">{result.cost ? `Cost $${result.cost.toFixed(3)}` : "Free, saved results"}</span>
+              <span className="text-[13px] text-muted">{savedOn(saved.recent, result.id)}</span>
               <span className="flex flex-wrap items-center gap-2">
-                <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => navigator.clipboard?.writeText(rows.map((r) => r.keyword).join("\n")).then(() => setNotice("Keywords copied."))}>
+                <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => navigator.clipboard?.writeText(rows.map((r) => r.keyword).join("\n")).then(() => {
+                      setAdded("");
+                      setNotice("Keywords copied.");
+                    })}>
                   Copy keywords
                 </button>
                 <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={exportCsv}>
@@ -308,16 +317,12 @@ export function BulkKeywords({ sb, auth, site, canEdit, onResearch }: { sb: Supa
               </span>
             </div>
             {picked.size && canEdit ? (
-              <div className="flex flex-wrap items-center gap-3 border-b border-rule-faint bg-brand-pale px-5 py-2.5">
-                <span className="text-[13px] font-medium text-ink">{picked.size} selected</span>
+              <SelectionBar count={picked.size} noun={picked.size === 1 ? "keyword" : "keywords"} onClear={() => setPicked(new Set())}>
                 <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => addToPlan(rows.filter((r) => picked.has(r.keyword)))}>
                   <CalendarIcon />
-                  Add to Content Plan
+                  Add to Editorial Calendar
                 </button>
-                <button type="button" className="aw-text-link text-[13px]" onClick={() => setPicked(new Set())}>
-                  Clear
-                </button>
-              </div>
+              </SelectionBar>
             ) : null}
             <Sheet<KwSummary>
               label="Bulk keywords"
@@ -357,7 +362,6 @@ export function BulkKeywords({ sb, auth, site, canEdit, onResearch }: { sb: Supa
                 { id: "kd", label: "KD %", type: "number", value: (r) => r.kd, cell: (r) => <KdDot kd={r.kd} /> },
                 { id: "intent", label: "Intent", type: "list", value: (r) => r.intent },
                 { id: "cpc", label: "CPC", type: "number", value: (r) => r.cpc, cell: (r) => fmtCpc(r.cpc) },
-                { id: "comp", label: "Competition", type: "number", value: (r) => pct(r.competition) },
                 {
                   id: "trend",
                   label: "Trend",
@@ -437,13 +441,12 @@ export function BulkDomains({ sb, auth, site, canEdit, onOpen }: { sb: SupabaseC
           run();
         }}
       >
-        <BulkInput value={text} onChange={setText} noun="sites" placeholder={"hubspot.com\nblog.hubspot.com\nsalesforce.com/products/crm"} disabled={Boolean(busy)} />
+        <BulkInput value={text} onChange={setText} noun="sites" placeholder={"hubspot.com\nblog.hubspot.com\nsalesforce.com/products/crm"} disabled={Boolean(busy)} small={Boolean(result)} />
         <div className="flex flex-wrap items-center gap-3">
           <CountrySelect value={country} onChange={setCountry} />
           <button type="submit" className={BAR_BUTTON} disabled={!canEdit || Boolean(busy) || !list.length || list.length > BULK_LIMIT}>
             Analyze {list.length > 1 ? `${list.length.toLocaleString("en-US")} sites` : ""}
           </button>
-          <span className="text-[12px] text-muted">{costNote(list.length)}</span>
         </div>
         <RecentRuns runs={saved.recent} current={result?.id} noun="sites" path="/domain-research" onOpen={(id) => saved.open(id, true)} />
       </form>
@@ -455,7 +458,13 @@ export function BulkDomains({ sb, auth, site, canEdit, onOpen }: { sb: SupabaseC
         <>
           <Stats
             items={[
-              ["Sites", rows.length.toLocaleString("en-US"), `${flag(result.country)} ${result.country}`],
+              [
+                "Sites",
+                rows.length.toLocaleString("en-US"),
+                <>
+                  <Flag country={result.country} /> {result.country}
+                </>,
+              ],
               ["Visits / mo", short(sum((r) => r.traffic)), "from Google, all sites"],
               ["Keywords", short(sum((r) => r.keywords)), "ranked in the top 100"],
               ["Traffic value", `$${short(sum((r) => r.value))}`, "what those visits cost in ads"],
@@ -464,7 +473,7 @@ export function BulkDomains({ sb, auth, site, canEdit, onOpen }: { sb: SupabaseC
           />
           <div className="aw-frame">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-rule-faint px-5 py-3">
-              <span className="text-[13px] text-muted">{result.cost ? `Cost $${result.cost.toFixed(3)}` : "Free, saved results"}</span>
+              <span className="text-[13px] text-muted">{savedOn(saved.recent, result.id)}</span>
               <button
                 type="button"
                 className="aw-btn aw-btn--secondary aw-btn--sm"

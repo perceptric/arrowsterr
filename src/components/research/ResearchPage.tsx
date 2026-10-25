@@ -1,13 +1,13 @@
 "use client";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { putStash, useStash } from "@/lib/stash";
 import { siteForBrand, type Site } from "@/lib/db";
 import { answered, brandStats } from "@/lib/metrics";
 import type { View } from "@/lib/view";
 import type { RunAuth } from "@/lib/runner";
-import { Thinking } from "../ui";
+import { BlockError, SkelBlock } from "../states";
 import { EditorialCalendar, type Refresh } from "./EditorialCalendar";
 import { DomainResearch, type SeoStart } from "./DomainResearch";
 import { KeywordGap } from "./KeywordGap";
@@ -55,21 +55,25 @@ export function ResearchPage({
   const brand = view.brand;
   const [site, setSite] = useStash<Site | null | undefined>(`site:${brand.id}`, undefined);
   const [error, setError] = useStash(`site-error:${brand.id}`, "");
+  const [tries, setTries] = useState(0);
 
   useEffect(() => {
     let live = true;
     siteForBrand(sb, brand, canEdit)
-      .then((s) => live && setSite(s))
+      .then((s) => {
+        if (!live) return;
+        setSite(s);
+        setError("");
+      })
       .catch((e) => {
         if (!live) return;
-        const message = e instanceof Error ? e.message : String(e);
-        setError(/sites/.test(message) ? `${message}. Run supabase/006_research.sql in Supabase → SQL Editor.` : message);
+        setError(e instanceof Error ? e.message : String(e));
         setSite(null);
       });
     return () => {
       live = false;
     };
-  }, [sb, brand, canEdit, setSite, setError]);
+  }, [sb, brand, canEdit, setSite, setError, tries]);
 
   return (
     <AnalyzeSeo.Provider value={onSeo ?? null}>
@@ -86,21 +90,25 @@ export function ResearchPage({
     <div className="flex flex-col gap-5">
       {/* The Editorial Calendar draws its own header, with its actions beside the title. */}
       {tool === "calendar" ? null : <h1 className="aw-h2">{TITLES[tool]}</h1>}
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <BlockError what={`research for ${brand.domain}`} onRetry={() => setTries((n) => n + 1)} /> : null}
       {site === undefined ? (
-        <Thinking text={`Loading ${brand.domain}...`} />
+        <section className="aw-frame p-5">
+          <SkelBlock lines={3} />
+        </section>
       ) : !site ? (
         error ? null : <div className="aw-callout max-w-xl">Ask an editor to open Research once for {brand.domain} to set it up.</div>
       ) : tool === "keywords" ? (
-        <KeywordOverview sb={sb} auth={auth} site={site} canEdit={canEdit} />
+        <KeywordOverview sb={sb} auth={auth} site={site} canEdit={canEdit} writer={writer} />
       ) : tool === "domain" ? (
-        <DomainResearch sb={sb} auth={auth} site={site} canEdit={canEdit} start={seoStart} onStarted={onSeoStarted} />
+        <DomainResearch sb={sb} auth={auth} site={site} canEdit={canEdit} writer={writer} start={seoStart} onStarted={onSeoStarted} />
       ) : tool === "gap" ? (
         <KeywordGap
           sb={sb}
           auth={auth}
           site={site}
           canEdit={canEdit}
+          writer={writer}
+          days={view.days}
           stats={brandStats(answered(view.current, view.filter), { name: brand.name, domain: brand.domain })}
           me={{ name: brand.name, logo: brand.logo }}
         />

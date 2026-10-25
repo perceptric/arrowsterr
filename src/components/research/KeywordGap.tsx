@@ -1,7 +1,7 @@
 "use client";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useState } from "react";
 import { addCalendarItems, type Site } from "@/lib/db";
 import { stageFromIntent } from "@/lib/research";
 import type { BrandStat } from "@/lib/metrics";
@@ -10,17 +10,36 @@ import type { RunAuth } from "@/lib/runner";
 import { useStash } from "@/lib/stash";
 import { BrandLogo } from "../BrandLogo";
 import { Sheet, type Col } from "../Sheet";
-import { CalendarIcon, Card, favicon, RIVAL_COLOR, Thinking, YOU_COLOR } from "../ui";
-import { BAR_BUTTON, BAR_INPUT, Difficulty, downloadCsv, fmtNum, KeywordLink, post } from "./shared";
+import { EmptyBlock } from "../states";
+import { CalendarIcon, Card, favicon, Seg, Thinking } from "../ui";
+import type { WriterAccess } from "./ContentPiece";
+import { AddedNotice, BAR_BUTTON, BAR_INPUT, Difficulty, downloadCsv, KeywordLink, OutlineStarted, post, SelectionBar, startOutline } from "./shared";
 
 type Tab = "missing" | "shared" | "weaker" | "lead" | "only";
+const TABS: Tab[] = ["missing", "weaker", "lead", "only", "shared"];
+const SHORT: Record<Tab, string> = { missing: "Missing", weaker: "Weaker", lead: "Lead", only: "Only", shared: "Shared" };
+/** What each region holds, for its tab's tooltip. */
 const LABEL = (them: string): Record<Tab, string> => ({
   missing: `Owned by ${them}`,
-  shared: "Shared Keywords",
-  weaker: "Opportunity",
-  lead: "You lead",
+  shared: "Shared keywords",
+  weaker: `${them} ranks higher`,
+  lead: "You rank higher",
   only: "Owned by you",
 });
+const isTab = (v: string | null): v is Tab => TABS.includes(v as Tab);
+/** The region in the address bar (?region=weaker), so Back, refresh and links keep it. Missing is the default. */
+const readRegion = (): Tab => {
+  if (typeof window === "undefined") return "missing";
+  const v = new URLSearchParams(window.location.search).get("region");
+  return isTab(v) ? v : "missing";
+};
+function writeRegion(t: Tab | null) {
+  const p = new URLSearchParams(window.location.search);
+  if (t && t !== "missing") p.set("region", t);
+  else p.delete("region");
+  const url = window.location.pathname + (p.size ? `?${p}` : "");
+  if (url !== window.location.pathname + window.location.search) window.history.replaceState(window.history.state, "", url);
+}
 const rank = (n: number | null) => (n === null ? <span className="text-muted">–</span> : <span className="aw-rank">#{n}</span>);
 
 /** A brand's logo and name side by side. */
@@ -37,14 +56,19 @@ export function KeywordGap({
   auth,
   site,
   canEdit,
+  writer,
   stats,
+  days = 30,
   me,
 }: {
   sb: SupabaseClient;
   auth: RunAuth;
   site: Site;
   canEdit: boolean;
+  writer?: WriterAccess;
   stats: BrandStat[];
+  /** The window the AI visibility numbers cover. */
+  days?: number;
   /** Your brand's name and logo. */
   me: { name: string; logo?: string | null };
 }) {
@@ -52,11 +76,26 @@ export function KeywordGap({
   const [rivals, setRivals] = useStash<string[] | null>(`rivals:${site.id}`, null);
   const [result, setResult] = useStash<{ gap: Gap; them: string } | null>(`gap:${site.id}`, null);
   const [query, setQuery] = useState(result?.them ?? "");
-  const [tab, setTab] = useState<Tab>("missing");
+  const [tab, setTabState] = useState<Tab>(readRegion);
+  const setTab = (t: Tab) => {
+    setTabState(t);
+    writeRegion(t);
+  };
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [outline, setOutline] = useState<{ keyword: string; briefId: string | null; writing?: boolean } | null>(null);
+
+  // Back and Forward bring their region back; leaving the screen takes it out of the address.
+  useEffect(() => {
+    const pop = () => setTabState(readRegion());
+    window.addEventListener("popstate", pop);
+    return () => {
+      window.removeEventListener("popstate", pop);
+      writeRegion(null);
+    };
+  }, []);
 
   useEffect(() => {
     if (rivals || !canEdit) return;
@@ -75,6 +114,7 @@ export function KeywordGap({
     setBusy(true);
     setError("");
     setNotice("");
+    setOutline(null);
     setPicked(new Set());
     try {
       const r = await post<{ gap: Gap; them: string }>(auth, "/api/research/gap", { siteId: site.id, competitor: domain });
@@ -99,11 +139,12 @@ export function KeywordGap({
   const themLogo = result ? favicon(bare(result.them)) : "";
   const myLogo = me.logo || favicon(bare(site.domain));
   const labels = LABEL(themName);
+  const toItem = (r: GapRow) => ({ site_id: site.id, keyword: r.keyword, secondary: [], stage: stageFromIntent(r.intent), theme: null, volume: r.volume, difficulty: r.kd, intent: r.intent, cpc: null, source: `keyword gap: ${themName}` });
 
   const cols: Col<GapRow>[] = [
     { id: "keyword", label: "Keyword", type: "text", value: (r) => r.keyword, cell: (r) => <KeywordLink keyword={r.keyword} />, width: 220 },
     { id: "volume", label: "Volume", type: "number", value: (r) => r.volume },
-    { id: "kd", label: "Difficulty", type: "number", value: (r) => r.kd, cell: (r) => <Difficulty kd={r.kd} /> },
+    { id: "kd", label: "KD %", type: "number", value: (r) => r.kd, cell: (r) => <Difficulty kd={r.kd} /> },
     { id: "intent", label: "Intent", type: "list", value: (r) => r.intent },
     { id: "them", label: themName, head: <Brand name={themName} logo={themLogo} size={14} />, type: "number", value: (r) => r.them, cell: (r) => rank(r.them) },
     { id: "you", label: me.name, head: <Brand name={me.name} logo={myLogo} size={14} />, type: "number", value: (r) => r.you, cell: (r) => rank(r.you) },
@@ -126,16 +167,28 @@ export function KeywordGap({
 
   async function bank() {
     const list = rows.filter((r) => picked.has(r.keyword));
+    setError("");
     try {
-      const n = await addCalendarItems(
-        sb,
-        auth.workspaceId,
-        list.map((r) => ({ site_id: site.id, keyword: r.keyword, secondary: [], stage: stageFromIntent(r.intent), theme: null, volume: r.volume, difficulty: r.kd, intent: r.intent, cpc: null, source: `keyword gap: ${themName}` })),
-      );
+      const n = await addCalendarItems(sb, auth.workspaceId, list.map(toItem));
       setPicked(new Set());
-      setNotice(n ? `${n} added to the Content Plan.` : "Already in the Content Plan.");
+      setNotice(n ? `${n} added to the Editorial Calendar.` : "Already in the Editorial Calendar.");
     } catch (e) {
-      setNotice(e instanceof Error ? e.message : String(e));
+      setError(e instanceof Error ? e.message : String(e));
+    }
+  }
+
+  /** Write outline for one picked keyword: adds it to the Editorial Calendar if needed and starts its outline. */
+  async function writeOutline(r: GapRow) {
+    if (writer && !writer.open) return writer.onUpgrade?.();
+    setError("");
+    setOutline({ keyword: r.keyword, briefId: null });
+    try {
+      const { briefId, writing } = await startOutline(sb, auth, toItem(r));
+      setOutline({ keyword: r.keyword, briefId, writing });
+      setPicked(new Set());
+    } catch (e) {
+      setOutline(null);
+      setError(e instanceof Error ? e.message : String(e));
     }
   }
 
@@ -163,7 +216,9 @@ export function KeywordGap({
               <button key={r.name} type="button" className={`aw-chip ${bare(result?.them) === bare(r.domain) ? "aw-chip--brand" : ""}`} onClick={() => run(r.domain!)} disabled={!canEdit || busy}>
                 <BrandLogo src={favicon(bare(r.domain))} name={r.name} size={14} />
                 {r.name}
-                <span className="text-muted">{Math.round(r.visibility)}%</span>
+                <span className="text-muted">
+                  {Math.round(r.visibility)}% visibility, {days} days
+                </span>
               </button>
             ))}
           </div>
@@ -185,31 +240,41 @@ export function KeywordGap({
       </form>
 
       {error ? <p className="aw-error">{error}</p> : null}
-      {notice ? <div className="aw-callout">{notice}</div> : null}
+      {notice ? <AddedNotice text={notice} /> : null}
+      {outline?.briefId ? (
+        <div className="aw-callout flex flex-wrap items-center gap-3">
+          <span>{outline.keyword}</span>
+          <OutlineStarted briefId={outline.briefId} brandId={site.brand_id} writing={outline.writing} />
+        </div>
+      ) : null}
       {busy ? <Thinking text={`Comparing ${me.name} with ${nameOf(query)}...`} /> : null}
+
+      {!busy && !gap ? (
+        <Card title="Keywords">
+          <EmptyBlock>Pick a rival above.</EmptyBlock>
+        </Card>
+      ) : null}
 
       {!busy && gap ? (
         <>
-          <Venn
-            them={themName}
-            you={me.name}
-            themLogo={themLogo}
-            youLogo={myLogo}
-            counts={counts}
-            tab={tab}
-            onTab={(t) => {
-              setTab(t);
-              setPicked(new Set());
-            }}
-          />
           <Card
-            title={labels[tab]}
+            title={
+              <Seg
+                label="Keyword overlap"
+                value={tab}
+                onChange={(t) => {
+                  setTab(t);
+                  setPicked(new Set());
+                }}
+                options={TABS.filter((t) => t !== "shared" || tab === "shared").map((t) => ({ id: t, label: <span title={labels[t]}>{`${SHORT[t]} ${counts[t].toLocaleString("en-US")}`}</span> }))}
+              />
+            }
             action={
               <button
                 type="button"
                 className="aw-btn aw-btn--secondary aw-btn--sm"
                 onClick={() =>
-                  downloadCsv(`keyword-gap-${site.domain}-${result!.them}-${tab}.csv`, ["keyword", "volume", "difficulty", "intent", themName, me.name, `${themName} page`], rows.map((r) => [r.keyword, r.volume, r.kd, r.intent, r.them, r.you, r.url]))
+                  downloadCsv(`keyword-gap-${site.domain}-${result!.them}-${tab}.csv`, ["keyword", "volume", "kd", "intent", themName, me.name, `${themName} page`], rows.map((r) => [r.keyword, r.volume, r.kd, r.intent, r.them, r.you, r.url]))
                 }
               >
                 Export CSV
@@ -217,13 +282,25 @@ export function KeywordGap({
             }
           >
             {picked.size && canEdit ? (
-              <div className="flex flex-wrap items-center gap-3 border-b border-rule-faint bg-brand-pale px-5 py-2.5">
-                <span className="text-[13px] font-medium text-ink">{picked.size} selected</span>
+              <SelectionBar count={picked.size} noun={picked.size === 1 ? "keyword" : "keywords"} onClear={() => setPicked(new Set())}>
                 <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={bank}>
                   <CalendarIcon />
-                  Add to Content Plan
+                  Add to Editorial Calendar
                 </button>
-              </div>
+                {picked.size === 1 ? (
+                  <button
+                    type="button"
+                    className="aw-btn aw-btn--secondary aw-btn--sm"
+                    disabled={Boolean(outline && !outline.briefId)}
+                    onClick={() => {
+                      const r = rows.find((x) => picked.has(x.keyword));
+                      if (r) writeOutline(r);
+                    }}
+                  >
+                    {outline && !outline.briefId ? "Starting..." : "Write outline"}
+                  </button>
+                ) : null}
+              </SelectionBar>
             ) : null}
             <Sheet<GapRow>
               id={`gap:${site.id}:${tab}`}
@@ -241,93 +318,5 @@ export function KeywordGap({
         </>
       ) : null}
     </div>
-  );
-}
-
-/** You vs one competitor as two circles. Each region is a button that filters the table below. */
-export function Venn({ them, you, themLogo, youLogo, counts, tab, onTab }: { them: string; you: string; themLogo: string; youLogo: string; counts: Record<Tab, number>; tab: Tab; onTab: (t: Tab) => void }) {
-  const id = useId().replace(/:/g, "");
-  const L = LABEL(them);
-  const on = (t: Tab) => tab === t || (tab === "shared" && (t === "weaker" || t === "lead"));
-  const region = (t: Tab) => ({
-    role: "button",
-    tabIndex: 0,
-    "aria-label": `${L[t]}: ${counts[t]} keywords`,
-    "aria-pressed": tab === t,
-    className: "cursor-pointer outline-none transition-opacity hover:opacity-80 focus-visible:opacity-80",
-    onClick: () => onTab(t),
-    onKeyDown: (e: React.KeyboardEvent) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), onTab(t)),
-  });
-  const fill = (color: string, t: Tab) => ({ fill: color, fillOpacity: on(t) ? 0.28 : 0.1 });
-  const text = (x: number, y: number, lines: string[], n: number, color: string, size = 30) => (
-    <g pointerEvents="none" textAnchor="middle">
-      {lines.map((l, i) => (
-        <text key={i} x={x} y={y + i * 16} fontSize="13" fill="var(--aw-body)">
-          {l}
-        </text>
-      ))}
-      <text x={x} y={y + (lines.length - 1) * 16 + size + 4} fontSize={size} fontWeight="500" fill={color}>
-        {fmtNum(n)}
-      </text>
-    </g>
-  );
-  // A brand's logo inside its circle, centered on x.
-  const logo = (x: number, y: number, src: string, name: string) => (
-    <foreignObject x={x - 14} y={y - 14} width="28" height="28" pointerEvents="none">
-      <div className="flex h-7 w-7 items-center justify-center">
-        <BrandLogo src={src} name={name} size={26} />
-      </div>
-    </foreignObject>
-  );
-  return (
-    <section className="aw-frame flex flex-col">
-      <div className="aw-frame__head justify-between">
-        <h3 className="aw-h4">Keyword overlap</h3>
-        <span className="flex items-center gap-4 text-[13px] text-body">
-          <span className="flex items-center gap-1.5">
-            <i className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: RIVAL_COLOR }} aria-hidden="true" />
-            <Brand name={them} logo={themLogo} />
-          </span>
-          <span className="flex items-center gap-1.5">
-            <i className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: YOU_COLOR }} aria-hidden="true" />
-            <Brand name={you} logo={youLogo} />
-          </span>
-        </span>
-      </div>
-      <div className="flex flex-col items-center gap-2 px-4 py-5">
-        <button type="button" onClick={() => onTab("shared")} aria-pressed={tab === "shared"} className={`aw-chip ${tab === "shared" ? "aw-chip--brand" : ""}`}>
-          Shared Keywords <span className="aw-num">{fmtNum(counts.shared)}</span>
-        </button>
-        <svg viewBox="0 0 760 380" className="w-full max-w-[820px]" role="group" aria-label={`Keywords ${them} and ${you} rank for`}>
-          <defs>
-            <clipPath id={`${id}t`}>
-              <circle cx="290" cy="190" r="180" />
-            </clipPath>
-            <clipPath id={`${id}y`}>
-              <circle cx="470" cy="190" r="180" />
-            </clipPath>
-          </defs>
-          <circle cx="290" cy="190" r="180" {...fill(RIVAL_COLOR, "missing")} {...region("missing")} />
-          <circle cx="470" cy="190" r="180" {...fill(YOU_COLOR, "only")} {...region("only")} />
-          <g clipPath={`url(#${id}t)`}>
-            <g clipPath={`url(#${id}y)`}>
-              <rect x="0" y="0" width="760" height="190" fill="#fff" />
-              <rect x="0" y="190" width="760" height="190" fill="#fff" />
-              <rect x="0" y="0" width="760" height="190" {...fill(RIVAL_COLOR, "weaker")} {...region("weaker")} />
-              <rect x="0" y="190" width="760" height="190" {...fill(YOU_COLOR, "lead")} {...region("lead")} />
-              <line x1="0" y1="190" x2="760" y2="190" stroke="var(--aw-rule)" pointerEvents="none" />
-            </g>
-          </g>
-          <circle cx="290" cy="190" r="180" fill="none" stroke={RIVAL_COLOR} strokeWidth={tab === "missing" ? 2.5 : 1.5} pointerEvents="none" />
-          <circle cx="470" cy="190" r="180" fill="none" stroke={YOU_COLOR} strokeWidth={tab === "only" ? 2.5 : 1.5} pointerEvents="none" />
-          {logo(195, 128, themLogo, them)}
-          {logo(565, 138, youLogo, you)}
-          {text(195, 168, ["Owned by", them.length > 22 ? `${them.slice(0, 21)}…` : them], counts.missing, RIVAL_COLOR, 34)}
-          {text(565, 178, [L.only], counts.only, YOU_COLOR, 34)}
-          {text(380, 116, [L.weaker], counts.weaker, RIVAL_COLOR, 22)}
-          {text(380, 236, [L.lead], counts.lead, YOU_COLOR, 22)}
-        </svg>
-      </div>
-    </section>
   );
 }

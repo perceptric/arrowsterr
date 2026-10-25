@@ -7,15 +7,18 @@ import { addCalendarItems, type Site } from "@/lib/db";
 import { MARKETS, stageFromIntent, type DomainReport, type Keyword } from "@/lib/research";
 import type { RunAuth } from "@/lib/runner";
 import { countryOf, dbOf, setUrl, urlParams } from "@/lib/researchUrl";
+import { countOf, signed } from "@/lib/researchFormat";
 import { scopeOf } from "@/lib/scope";
 import { peek, useStash } from "@/lib/stash";
 import { BrandLogo } from "../BrandLogo";
 import { Sheet } from "../Sheet";
+import { SkelRows, SkelStats } from "../states";
 import { SampleLine, SampleRows, SampleStats, ToolIntro } from "../ToolIntro";
 import { CalendarIcon, Card, favicon, Seg, Thinking } from "../ui";
 import { BulkDomains } from "./Bulk";
-import { flag, KdDot, short } from "./KeywordOverview";
-import { BAR_BUTTON, BAR_FIELD, BAR_INPUT, downloadCsv, KeywordLink, post } from "./shared";
+import type { WriterAccess } from "./ContentPiece";
+import { countryLabel, Flag, KdDot, short } from "./KeywordOverview";
+import { AddedNotice, BAR_BUTTON, BAR_FIELD, BAR_INPUT, downloadCsv, KeywordLink, OutlineStarted, post, SelectionBar, startOutline } from "./shared";
 
 export type Scope = NonNullable<DomainReport["scope"]>;
 const SCOPES: { id: Scope; label: string; hint: string }[] = [
@@ -28,7 +31,23 @@ const SCOPES: { id: Scope; label: string; hint: string }[] = [
 /** Any website on Google: how big it is, what it ranks for, its best pages and its competitors. */
 export type SeoStart = { target: string; scope: Scope };
 
-export function DomainResearch({ sb, auth, site, canEdit, start, onStarted }: { sb: SupabaseClient; auth: RunAuth; site: Site; canEdit: boolean; start?: SeoStart | null; onStarted?: () => void }) {
+export function DomainResearch({
+  sb,
+  auth,
+  site,
+  canEdit,
+  writer,
+  start,
+  onStarted,
+}: {
+  sb: SupabaseClient;
+  auth: RunAuth;
+  site: Site;
+  canEdit: boolean;
+  writer?: WriterAccess;
+  start?: SeoStart | null;
+  onStarted?: () => void;
+}) {
   const k = (name: string) => `dom:${site.id}:${name}`;
   const [domain, setDomain] = useStash(k("q"), site.domain);
   const [scope, setScope] = useStash<Scope>(k("scope"), "domain");
@@ -38,18 +57,21 @@ export function DomainResearch({ sb, auth, site, canEdit, start, onStarted }: { 
   const [mode, setMode] = useStash<"single" | "bulk">(k("mode"), "single");
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState("");
+  // Loading up to 500 keywords keeps the report on screen.
+  const [more, setMore] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [outline, setOutline] = useState<{ keyword: string; briefId: string | null; writing?: boolean } | null>(null);
 
   async function loadMore() {
     if (!report) return;
-    setBusy("Loading up to 500 keywords...");
+    setMore(true);
     try {
       setReport(await post<DomainReport>(auth, "/api/research/domain", { domain: report.domain, scope: report.scope ?? "domain", country: report.country, more: true }));
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
-      setBusy("");
+      setMore(false);
     }
   }
 
@@ -71,6 +93,7 @@ export function DomainResearch({ sb, auth, site, canEdit, start, onStarted }: { 
     setBusy(`Reading ${d} on Google...`);
     setError("");
     setNotice("");
+    setOutline(null);
     setPicked(new Set());
     try {
       setReport(await post<DomainReport>(auth, "/api/research/domain", { domain: d, scope: as, country: c }));
@@ -140,30 +163,42 @@ export function DomainResearch({ sb, auth, site, canEdit, start, onStarted }: { 
   }
 
   const own = (report?.scope ?? "domain") === "domain" && report?.domain === site.domain.replace(/^www\./, "");
+  const toItem = (r: Keyword) => ({
+    site_id: site.id,
+    keyword: r.keyword,
+    secondary: [],
+    stage: stageFromIntent(r.intent),
+    theme: null,
+    volume: r.volume,
+    difficulty: r.kd,
+    intent: r.intent,
+    cpc: r.cpc,
+    source: own ? "domain research" : `competitor: ${report?.domain}`,
+    // Your own ranking page gets improved. A competitor's keyword becomes a new page.
+    ...(own ? { action: "update" as const, current_url: r.url ?? null, current_rank: r.rank ?? null } : {}),
+  });
   async function addToCalendar(rows: Keyword[]) {
     setError("");
     try {
-      const n = await addCalendarItems(
-        sb,
-        auth.workspaceId,
-        rows.map((r) => ({
-          site_id: site.id,
-          keyword: r.keyword,
-          secondary: [],
-          stage: stageFromIntent(r.intent),
-          theme: null,
-          volume: r.volume,
-          difficulty: r.kd,
-          intent: r.intent,
-          cpc: r.cpc,
-          source: own ? "domain research" : `competitor: ${report?.domain}`,
-          // Your own ranking page gets improved. A competitor's keyword becomes a new page.
-          ...(own ? { action: "update" as const, current_url: r.url ?? null, current_rank: r.rank ?? null } : {}),
-        })),
-      );
-      setNotice(`${n} added to the Content Plan.${n < rows.length ? ` ${rows.length - n} were already in it.` : ""}`);
+      const n = await addCalendarItems(sb, auth.workspaceId, rows.map(toItem));
+      setNotice(`${n} added to the Editorial Calendar.${n < rows.length ? ` ${rows.length - n} ${rows.length - n === 1 ? "was" : "were"} already in it.` : ""}`);
       setPicked(new Set());
     } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    }
+  }
+
+  /** Write outline for one picked keyword: adds it to the Editorial Calendar if needed and starts its outline. */
+  async function writeOutline(r: Keyword) {
+    if (writer && !writer.open) return writer.onUpgrade?.();
+    setError("");
+    setOutline({ keyword: r.keyword, briefId: null });
+    try {
+      const { briefId, writing } = await startOutline(sb, auth, toItem(r));
+      setOutline({ keyword: r.keyword, briefId, writing });
+      setPicked(new Set());
+    } catch (e) {
+      setOutline(null);
       setError(e instanceof Error ? e.message : String(e));
     }
   }
@@ -215,15 +250,33 @@ export function DomainResearch({ sb, auth, site, canEdit, start, onStarted }: { 
             if (s) setScope(s);
           }}
           placeholder={SCOPES.find((x) => x.id === scope)!.hint} aria-label="Address" className={BAR_INPUT} />
-        <Dropdown label="Country" value={country} onChange={setCountry} className={BAR_FIELD} options={Object.keys(MARKETS).map((c) => ({ id: c, label: `${flag(c)} ${c}` }))} />
+        <Dropdown label="Country" value={country} onChange={setCountry} className={BAR_FIELD} options={Object.keys(MARKETS).map((c) => ({ id: c, label: countryLabel(c) }))} />
         <button type="submit" className={BAR_BUTTON} disabled={!canEdit || Boolean(busy) || !domain.trim()}>
           Analyze
         </button>
       </form>
 
       {error ? <p className="aw-error">{error}</p> : null}
-      {notice ? <div className="aw-callout">{notice}</div> : null}
-      {busy ? <Thinking text={busy} /> : null}
+      {notice ? <AddedNotice text={notice} /> : null}
+      {outline?.briefId ? (
+        <div className="aw-callout flex flex-wrap items-center gap-3">
+          <span>{outline.keyword}</span>
+          <OutlineStarted briefId={outline.briefId} brandId={site.brand_id} writing={outline.writing} />
+        </div>
+      ) : null}
+      {busy ? (
+        <>
+          <Thinking text={busy} />
+          <SkelStats tight labels={["Keywords on Google", "Est. visits / month", "In top 3", "In top 10", "New · lost vs last month"]} />
+          <section className="aw-frame">
+            <table className="aw-table" aria-busy="true">
+              <tbody>
+                <SkelRows rows={8} cols={6} />
+              </tbody>
+            </table>
+          </section>
+        </>
+      ) : null}
 
       {!busy && report ? (
         <>
@@ -236,7 +289,7 @@ export function DomainResearch({ sb, auth, site, canEdit, start, onStarted }: { 
                   {report.scope && report.scope !== "domain" ? <span className="aw-tag ml-2 align-middle">{SCOPES.find((x) => x.id === report.scope)?.label}</span> : null}
                 </h2>
                 <span className="text-[13px] text-muted">
-                  {flag(report.country)} {report.country} · {report.cached ? "Free, saved results" : `Cost $${report.cost.toFixed(3)}`}
+                  <Flag country={report.country} /> {report.country}
                 </span>
               </div>
             </div>
@@ -250,10 +303,12 @@ export function DomainResearch({ sb, auth, site, canEdit, start, onStarted }: { 
                 { lab: "In top 3", v: short(o.top3) },
                 { lab: "In top 10", v: short(o.top10) },
                 {
-                  lab: "New · lost this month",
+                  lab: "New · lost vs last month",
+                  // Gains are good and losses bad on your own site; on a rival's they stay grey.
                   v: (
-                    <span className="text-[22px]">
-                      <span className="text-pos">↗ {short(o.newKw)}</span> <span className="text-neg">↘ {short(o.lostKw)}</span>
+                    <span className="flex items-baseline gap-3">
+                      <span className={`aw-stat__delta aw-stat__delta--${!o.newKw || !own ? "flat" : "up"}`}>{signed(o.newKw, "+")}</span>
+                      <span className={`aw-stat__delta aw-stat__delta--${!o.lostKw || !own ? "flat" : "down"}`}>{signed(o.lostKw, "−")}</span>
                     </span>
                   ),
                 },
@@ -278,7 +333,7 @@ export function DomainResearch({ sb, auth, site, canEdit, start, onStarted }: { 
                   setPicked(new Set());
                 }}
                 options={[
-                  { id: "keywords", label: `Keywords ${report.keywords.length}` },
+                  { id: "keywords", label: `Keywords ${countOf(report.keywords.length, o?.keywords)}` },
                   { id: "pages", label: `Pages ${report.pages.length}` },
                   { id: "competitors", label: `Competitors ${report.competitors.length}` },
                 ]}
@@ -303,16 +358,25 @@ export function DomainResearch({ sb, auth, site, canEdit, start, onStarted }: { 
             {tab === "keywords" ? (
               <>
                 {picked.size && canEdit ? (
-                  <div className="flex flex-wrap items-center gap-3 border-b border-rule-faint bg-brand-pale px-5 py-2.5">
-                    <span className="text-[13px] font-medium text-ink">{picked.size} selected</span>
+                  <SelectionBar count={picked.size} noun={picked.size === 1 ? "keyword" : "keywords"} onClear={() => setPicked(new Set())}>
                     <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => addToCalendar(report.keywords.filter((r) => picked.has(r.keyword)))}>
                       <CalendarIcon />
-                      {own ? "Add to calendar as page updates" : "Add to calendar"}
+                      {own ? "Add to Editorial Calendar as page updates" : "Add to Editorial Calendar"}
                     </button>
-                    <button type="button" className="aw-text-link text-[13px]" onClick={() => setPicked(new Set())}>
-                      Clear
-                    </button>
-                  </div>
+                    {picked.size === 1 ? (
+                      <button
+                        type="button"
+                        className="aw-btn aw-btn--secondary aw-btn--sm"
+                        disabled={Boolean(outline && !outline.briefId)}
+                        onClick={() => {
+                          const r = report.keywords.find((x) => picked.has(x.keyword));
+                          if (r) writeOutline(r);
+                        }}
+                      >
+                        {outline && !outline.briefId ? "Starting..." : "Write outline"}
+                      </button>
+                    ) : null}
+                  </SelectionBar>
                 ) : null}
                 <Sheet<Keyword>
                   key="kw"
@@ -386,7 +450,7 @@ export function DomainResearch({ sb, auth, site, canEdit, start, onStarted }: { 
                 cols={[
                   {
                     id: "domain",
-                    label: "Competitor (click to analyze)",
+                    label: "Competitor",
                     type: "text",
                     value: (c) => c.domain,
                     cell: (c) => (
@@ -404,10 +468,10 @@ export function DomainResearch({ sb, auth, site, canEdit, start, onStarted }: { 
             )}
           </Card>
           <p className="aw-small">
-            Shows the top {report.keywords.length} keywords by search volume. Visits are estimates from Google rankings and search volume.{" "}
+            Shows the top {report.keywords.length} keywords by visits. Visits are estimates from Google rankings and search volume.{" "}
             {!report.more && report.keywords.length >= 100 && canEdit ? (
-              <button type="button" className="aw-text-link" onClick={loadMore}>
-                Load up to 500 (about 4 cents)
+              <button type="button" className="aw-text-link" onClick={loadMore} disabled={more}>
+                {more ? "Loading up to 500..." : "Load up to 500"}
               </button>
             ) : null}
           </p>
