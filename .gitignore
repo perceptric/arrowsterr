@@ -43,3 +43,7 @@ next-env.d.ts
 !.env.example
 .claude/worktrees/
 AGENTS.md
+
+# UI check screenshots (scripts/ui-check.mjs) and taste-skill's inspector output
+.ui-check/
+.taste-skill/

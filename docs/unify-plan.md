@@ -231,3 +231,41 @@ Motion stays as the CSS has it today.
    other choice is a task count on each paid button ("Analyze · 10 tasks").
 4. **Dead screens.** Recommended: delete them; they stay in git history.
 5. **Order.** Recommended: Part 1, then Part 3 (the writing flow), then Part 2 group by group, then Parts 4 to 6.
+
+---
+
+## What's built
+
+Parts 4 and 6, as they stand in the code:
+
+- **Command bar** (`src/components/CommandBar.tsx`, ranking in `src/lib/commands.ts`): ⌘K or Ctrl+K anywhere opens
+  it in the `tw-modal`. It finds every sidebar screen, settings tab and brand, the brand's prompts and the Editorial
+  Calendar's keywords already loaded, and runs Add prompts, New report, Ask Zippie and Add a brand. "?" outside text
+  boxes lists the shortcuts.
+- **Undo instead of confirm:** Editorial Calendar deletes (any size) and custom columns, Brand guidelines files and
+  Reports PDFs delete at once with Undo in the snackbar. Stored files wait 10 seconds before they go. A confirm stays
+  for a brand, a workspace, members, billing, revoking a link or key, disconnecting, schedules, and Zippie's chats,
+  projects and knowledge.
+- **Instant changes:** prompt and topic edits, Editorial Calendar edits and columns, Library status and meta,
+  schedule pause, Zippie skill toggles and chat names change on screen first and go back with "Couldn't save." when
+  the save fails.
+- **Back keeps your place** (`src/lib/scrollKeep.ts`): each history entry remembers its scroll. Sheets with an `id`
+  keep sort, filters and page for the browser tab.
+- **Screens open filled:** hovering a sidebar item loads Reports' downloads, the Editorial Calendar and the Library
+  into the stash those screens read. Brand and Settings keep their data in local state, so they load on open.
+- **Long tables:** paged Sheets show at most one page (100 by default). A Sheet without pages shows its first 200
+  rows past 300, with Show all.
+- **Page timings** (`src/components/WebVitals.tsx`): INP, LCP and CLS per screen to PostHog as `web_vital`, from 1
+  browser tab session in 10 (docs/analytics.md).
+- **Rule tests** (`tests/uiRules.test.ts`): fail on `confirm(`, `prompt(`, `alert(`, `<select`, emoji, the text
+  symbols → ✓ ✕ × ▾ ▸ ▶ ↗ as an element's whole text, and new `.css` files. `Thinking` as a page loader and numeric
+  columns without `aw-td-num` aren't checked yet.
+- **UI check** (`scripts/ui-check.mjs`, `npm run ui-check`): signs in, opens every sidebar screen and settings tab at
+  1440, 768 and 390 wide, saves `.ui-check/<width>/<screen>.png`, and fails on a screen without exactly one h1, a
+  page error in the console, or a serious or critical axe finding (`axe-core` is a dev dependency). It prints the
+  taste-skill inspector command for each screen
+  (`node .claude/skills/taste-skill/scripts/inspect.mjs <url> --app --out .taste-skill/<name>`).
+
+  Run it against a running app: `APP_URL=http://localhost:3000 UI_CHECK_EMAIL=... UI_CHECK_PASSWORD=... npm run ui-check`.
+  It needs a test workspace login (decision 2), which isn't created yet. Without one it checks the sign-in screen
+  and stops there.
