@@ -1,11 +1,18 @@
 "use client";
 
 // Small pieces the Research pages share.
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { track } from "@/lib/analytics";
+import { addCalendarItems, updateCalendarItem, type NewCalendarItem } from "@/lib/db";
 import { planSlug } from "@/lib/listicle";
-import { keywordHref, plainClick } from "@/lib/researchUrl";
+import { keywordHref, plainClick, withoutResearch } from "@/lib/researchUrl";
+import { canImport, importPatch } from "@/lib/writerImport";
+import { writerStateFor } from "@/lib/writerLibrary";
 import { createContext, useContext } from "react";
 import type { Stage } from "@/lib/research";
 import type { RunAuth } from "@/lib/runner";
+import { Check as CheckIcon } from "../Icons";
+import { openInLibrary } from "../writer/parts";
 
 export const STAGE_COLORS: Record<Stage, string> = { bofu: "#0943B0", mofu: "#F5B70A", tofu: "#28A745" };
 export const STAGE_LABEL: Record<Stage, string> = { bofu: "BOFU", mofu: "MOFU", tofu: "TOFU" };
@@ -272,5 +279,75 @@ export function SelectionBar({ count, noun = "", onClear, children }: { count: n
         Clear
       </button>
     </div>
+  );
+}
+
+/** Go to the Editorial Calendar, the way the app moves between screens. */
+export function openCalendar() {
+  window.history.pushState(null, "", `/editorial-calendar${withoutResearch(window.location.search)}`);
+  window.dispatchEvent(new PopStateEvent("popstate"));
+}
+
+/** "3 added to the Editorial Calendar." and a link to open it. */
+export function AddedNotice({ text }: { text: string }) {
+  return (
+    <div className="aw-callout flex flex-wrap items-center gap-x-3 gap-y-1">
+      <span>{text}</span>
+      <button type="button" className="aw-text-link" onClick={openCalendar}>
+        Open Editorial Calendar
+      </button>
+    </div>
+  );
+}
+
+/** The dot after an edit: Saving, then Saved (or Not saved). */
+export function SaveStamp({ state }: { state: "saving" | "saved" | "error" }) {
+  return (
+    <span className="flex items-center gap-1.5 px-1 text-[12px] whitespace-nowrap text-muted" aria-live="polite">
+      <i className={`inline-block h-1.5 w-1.5 ${state === "error" ? "bg-neg" : state === "saving" ? "bg-warn" : "bg-pos"}`} aria-hidden="true" />
+      {state === "error" ? "Not saved" : state === "saving" ? "Saving" : "Saved"}
+    </span>
+  );
+}
+
+/**
+ * Write outline from a research screen: puts the keyword on the Editorial Calendar if it isn't there yet,
+ * imports it to the Library, and starts the outline the same way the Write button does.
+ * A keyword that already has an outline keeps it (a failed one is written again). Returns the outline's id,
+ * and writing: true while it is being written.
+ */
+export async function startOutline(sb: SupabaseClient, auth: RunAuth, item: NewCalendarItem): Promise<{ briefId: string; writing: boolean }> {
+  await addCalendarItems(sb, auth.workspaceId, [item]);
+  const { data, error } = await sb.from("calendar_items").select("id, status, extra").eq("site_id", item.site_id).eq("keyword", item.keyword).single();
+  if (error || !data) throw new Error(error?.message ?? "Could not find the keyword on the Editorial Calendar.");
+  const row = data as { id: string; status: string; extra?: Record<string, string | number | null> };
+  const { brief } = await writerStateFor(sb, row.id);
+  if (brief && brief.status !== "failed") return { briefId: brief.id, writing: brief.status === "generating" };
+  if (canImport(row)) await updateCalendarItem(sb, row.id, importPatch(row, new Date().toISOString()));
+  const out = await post<{ briefId: string }>(auth, "/api/agentic-writer", { action: "brief", itemId: row.id });
+  track("outline_started", {});
+  return { briefId: out.briefId, writing: true };
+}
+
+/** After Write outline: the outline is being written (or is ready), and where to open it. */
+export function OutlineStarted({ briefId, brandId, writing = true }: { briefId: string; brandId: string | null | undefined; writing?: boolean }) {
+  return (
+    <span className="flex flex-wrap items-center gap-3">
+      {writing ? <span className="tw-tag tw-tag--orange whitespace-nowrap">Writing outline</span> : null}
+      {brandId ? (
+        <button type="button" className="aw-text-link text-[13px]" onClick={() => openInLibrary(brandId, { kind: "brief", id: briefId })}>
+          Open outline
+        </button>
+      ) : null}
+    </span>
+  );
+}
+
+/** A green tick for something done, drawn with the icon set. */
+export function Done() {
+  return (
+    <span className="aw-tick" aria-label="done">
+      <CheckIcon size={11} />
+    </span>
   );
 }

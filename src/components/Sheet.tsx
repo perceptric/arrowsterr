@@ -2,6 +2,7 @@
 
 import { Fragment, useEffect, useRef, useState } from "react";
 import { quietly, recordUndo } from "@/lib/undo";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ChevronDown, ChevronRight, Close, Keyboard } from "./Icons";
 import { DateField, DatePop, Dropdown, Pop, SelectPop, type Option } from "./Pickers";
 import { sortRows, useSort, type Sort } from "./ui";
 
@@ -214,7 +215,7 @@ function ColumnMenu<T>({
           <>
             <span className="my-1 border-t border-rule-faint" />
             <button type="button" className="aw-pop__item" aria-expanded={open === "cond"} onClick={() => setOpen(open === "cond" ? null : "cond")}>
-              <span className="text-[10px] text-muted">{open === "cond" ? "▼" : "▶"}</span>
+              <span className="inline-flex text-muted">{open === "cond" ? <ChevronDown size={12} /> : <ChevronRight size={12} />}</span>
               Filter by condition
               {useCond && condReady(cond) ? <span className="aw-pop__dot" /> : null}
             </button>
@@ -265,7 +266,7 @@ function ColumnMenu<T>({
               </div>
             ) : null}
             <button type="button" className="aw-pop__item" aria-expanded={open === "vals"} onClick={() => setOpen(open === "vals" ? null : "vals")}>
-              <span className="text-[10px] text-muted">{open === "vals" ? "▼" : "▶"}</span>
+              <span className="inline-flex text-muted">{open === "vals" ? <ChevronDown size={12} /> : <ChevronRight size={12} />}</span>
               Filter by values
               {picked.size < all.length ? <span className="aw-pop__dot" /> : null}
             </button>
@@ -965,7 +966,8 @@ export function Sheet<T>({
         <span className="ml-auto flex items-center gap-2">
           <div className="relative">
             <button type="button" className={`aw-chip aw-chip--btn ${keysOpen ? "is-on" : ""}`} onClick={() => setKeysOpen(!keysOpen)} aria-expanded={keysOpen} title="Keyboard shortcuts (Ctrl /)">
-              ⌨ Shortcuts
+              <Keyboard size={14} />
+              Shortcuts
             </button>
             {keysOpen ? (
               <div className="absolute right-0 z-30 mt-1 w-72 rounded-aw border border-rule bg-white p-3 text-[12px] text-ink shadow-aw" onMouseLeave={() => setKeysOpen(false)}>
@@ -1018,7 +1020,7 @@ export function Sheet<T>({
                       <span className="truncate">{c.label}</span>
                     </label>
                     <button type="button" aria-label={`Move ${c.label} left`} disabled={!i} onClick={() => move(c.id, -1)} className="px-1 text-muted hover:text-ink disabled:opacity-30">
-                      ↑
+                      <ArrowUp size={12} />
                     </button>
                     <button
                       type="button"
@@ -1027,11 +1029,11 @@ export function Sheet<T>({
                       onClick={() => move(c.id, 1)}
                       className="px-1 text-muted hover:text-ink disabled:opacity-30"
                     >
-                      ↓
+                      <ArrowDown size={12} />
                     </button>
                     {c.onRemove ? (
                       <button type="button" aria-label={`Delete column ${c.label}`} onClick={c.onRemove} className="px-1 text-muted hover:text-neg">
-                        ×
+                        <Close size={12} />
                       </button>
                     ) : null}
                   </div>
@@ -1108,7 +1110,7 @@ export function Sheet<T>({
                       >
                         {c.head ?? c.label}
                         <span aria-hidden="true" className="aw-sort__arrow">
-                          {on ? (sort.desc ? "↓" : "↑") : "↕"}
+                          {on ? sort.desc ? <ArrowDown size={11} /> : <ArrowUp size={11} /> : <ArrowDown size={11} />}
                         </span>
                       </button>
                       <button
@@ -1198,8 +1200,9 @@ export function Sheet<T>({
                           <>
                             <span className="aw-sheet__val">{content}</span>
                             {opener ? (
-                              <button type="button" className="aw-sheet__openbtn" onClick={() => onOpen!(r)} title="Open (Ctrl + Enter)">
-                                Open ↗
+                              <button type="button" className="aw-sheet__openbtn inline-flex items-center gap-1" onClick={() => onOpen!(r)} title="Open (Ctrl + Enter)">
+                                Open
+                                <ArrowRight size={11} />
                               </button>
                             ) : null}
                           </>
@@ -1263,13 +1266,15 @@ export function Sheet<T>({
           <span className="flex items-center gap-2">
             <span className="aw-num">{sorted.length ? `${(first + 1).toLocaleString("en-US")}–${(first + shown.length).toLocaleString("en-US")} of ${sorted.length.toLocaleString("en-US")}` : "0 rows"}</span>
             <button type="button" className="aw-chip aw-chip--btn disabled:opacity-40" disabled={pg === 0} onClick={() => setPage(pg - 1)}>
-              ‹ Prev
+              <ArrowLeft size={12} />
+              Prev
             </button>
             <span className="aw-num">
               Page {pg + 1} of {pages}
             </span>
             <button type="button" className="aw-chip aw-chip--btn disabled:opacity-40" disabled={pg >= pages - 1} onClick={() => setPage(pg + 1)}>
-              Next ›
+              Next
+              <ArrowRight size={12} />
             </button>
           </span>
         </div>
