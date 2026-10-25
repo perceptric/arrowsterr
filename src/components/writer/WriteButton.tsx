@@ -14,7 +14,7 @@ import { brandTables } from "../research/Writer";
 import { exportClean } from "../research/writerNodes";
 import { OutlinePanel } from "./OutlinePanel";
 
-// The Write cell (docs/agentic-writing.md, section 1): Write outline, Write draft, Publish content and View post,
+// The Write cell (docs/agentic-writing.md, section 1): Write outline, Write draft, Publish and View post,
 // with the open button beside it. The button is plain; useWriteActions runs what it does and draws the sidebar,
 // Publish and the confirm outside any grid, so typing in them never reaches the grid's keys.
 
@@ -24,13 +24,13 @@ const OpenIcon = () => (
   </svg>
 );
 
-/** One piece's Write cell. onAct runs the main button; onOpen the open button. */
-export function WriteButton({ state, busy, canEdit, onAct, onOpen }: { state: WriteState; busy: boolean; canEdit: boolean; onAct: () => void; onOpen: () => void }) {
+/** One piece's Write cell. onAct runs the main button; onOpen the open button. secondary draws it quiet, for table rows. */
+export function WriteButton({ state, busy, canEdit, onAct, onOpen, secondary = false }: { state: WriteState; busy: boolean; canEdit: boolean; onAct: () => void; onOpen: () => void; secondary?: boolean }) {
   const stop = (fn: () => void) => (e: React.MouseEvent) => {
     e.stopPropagation();
     fn();
   };
-  const main = (label: string, primary = true, title?: string) => (
+  const main = (label: string, primary = !secondary, title?: string) => (
     <button type="button" className={`aw-btn ${primary ? "aw-btn--primary" : "aw-btn--secondary"} aw-btn--sm whitespace-nowrap`} disabled={busy} title={title} onClick={stop(onAct)}>
       {busy ? "Starting..." : label}
     </button>
@@ -54,7 +54,7 @@ export function WriteButton({ state, busy, canEdit, onAct, onOpen }: { state: Wr
       ) : s.kind === "draft" ? (
         main("Write draft")
       ) : s.kind === "publish" ? (
-        main("Publish content")
+        main("Publish")
       ) : (
         main("Try again", true, s.error)
       )}

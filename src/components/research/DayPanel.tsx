@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { CalendarItem } from "@/lib/db";
 import type { Stage } from "@/lib/research";
+import { ChevronRight } from "../Icons";
 import { STATUSES } from "./ContentPiece";
 import { STAGE_COLORS } from "./shared";
 
@@ -46,12 +47,12 @@ export function DayPanel({
                   <span className="truncate text-[15px] font-medium text-ink">{i.keyword}</span>
                   <span className="text-[12px] text-muted">
                     {STATUSES.find((s) => s.id === i.status)?.label}
-                    {i.brief_status === "done" && i.status === "planned" ? " · Brief ready" : i.brief_status === "running" ? " · Brief writing" : ""}
+                    {i.brief_status === "done" && i.status === "planned" ? " · Outline ready" : i.brief_status === "running" ? " · Writing outline" : ""}
                     {i.volume ? ` · ${i.volume.toLocaleString()}/mo` : ""}
                   </span>
                 </span>
-                <span className="text-muted" aria-hidden="true">
-                  ›
+                <span className="text-muted">
+                  <ChevronRight />
                 </span>
               </button>
               {writeCell ? writeCell(i) : null}
