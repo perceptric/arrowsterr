@@ -6,7 +6,7 @@ import { withoutResearch } from "@/lib/researchUrl";
 import { recordUndo } from "@/lib/undo";
 import { UndoKeys } from "./UndoKeys";
 import { askConfirm, askText, DialogHost } from "./Dialogs";
-import { SnackHost } from "./Snack";
+import { snack, SnackHost } from "./Snack";
 import { CommandBar, type CommandItem } from "./CommandBar";
 import { ago } from "@/lib/dates";
 import { pathFor, routeFromPath, zippieFromPath, zippiePath, type Page } from "@/lib/routes";
@@ -527,7 +527,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
     } catch (e) {
       // Put the brand back the way it was, like when a limit blocks the change.
       if (before) setBrands((list) => list?.map((b) => (b.id === brand.id ? before : b)) ?? null);
-      setError(`Could not save: ${e instanceof Error ? e.message : String(e)}`);
+      snack(`Couldn't save. ${e instanceof Error ? e.message : String(e)}`);
     }
   }
 

@@ -55,7 +55,8 @@ export function usePlan({ sb, auth, site }: { sb: SupabaseClient; auth: RunAuth;
     try {
       await updateCalendarItem(sb, id, p);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      // Read the plan again, which puts the piece back as saved.
+      snack(`Couldn't save. ${e instanceof Error ? e.message : String(e)}`);
       load();
     }
   }

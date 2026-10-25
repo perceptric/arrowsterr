@@ -326,6 +326,9 @@ export function ZippiePage({
       : undefined;
 
   const threadAction = async (t: Thread, action: "rename" | "delete" | "move", extra: Record<string, unknown> = {}) => {
+    // A new name shows at once and goes back if the save fails.
+    const rename = action === "rename" && typeof extra.title === "string";
+    if (rename) setThreads((all) => all.map((x) => (x.id === t.id ? { ...x, title: extra.title as string } : x)));
     try {
       await api("/api/ask", { action, threadId: t.id, ...extra });
       if (action === "delete") {
@@ -334,7 +337,10 @@ export function ZippiePage({
       } else loadThreads();
       if (action === "move" && t.id === threadId) setProjectId((extra.projectId as string) ?? null);
     } catch (e) {
-      setError(msgOf(e));
+      if (rename) {
+        setThreads((all) => all.map((x) => (x.id === t.id ? { ...x, title: t.title } : x)));
+        snack(`Couldn't save. ${msgOf(e)}`);
+      } else setError(msgOf(e));
     }
   };
 
@@ -1662,7 +1668,13 @@ function SkillsView(p: { api: ReturnType<typeof useApi>; lib: Library; canEdit: 
                 </span>
                 {p.canEdit ? (
                   <label className="zp-switch" title={s.enabled ? "Turn off" : "Turn on"}>
-                    <input type="checkbox" checked={s.enabled} onChange={(e) => call({ action: "skill_toggle", key: s.key, enabled: e.target.checked })} />
+                    <input type="checkbox" checked={s.enabled} onChange={async (e) => {
+                        // On or off at once; back again if the save fails.
+                        const was = p.lib.skills;
+                        const enabled = e.target.checked;
+                        p.onChange(was.map((x) => (x.key === s.key ? { ...x, enabled } : x)));
+                        if (!(await call({ action: "skill_toggle", key: s.key, enabled }))) p.onChange(was);
+                      }} />
                     <span />
                   </label>
                 ) : null}

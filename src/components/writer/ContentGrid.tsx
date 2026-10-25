@@ -15,6 +15,7 @@ import { Dropdown, Pop } from "../Pickers";
 import { post, STATUS_PICK } from "../research/shared";
 import { libraryGroup, writeState, type WriteState } from "@/lib/writeFlow";
 import { Plus } from "../Icons";
+import { snack } from "../Snack";
 import { SkelRows } from "../states";
 import { Seg } from "../ui";
 import { usePoll, type LibraryOpen } from "./parts";
@@ -121,18 +122,32 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
     }
   }
 
+  // Status and meta change on screen at once and go back if the save fails.
   async function setStatus(r: GridRow, choice: string) {
     const patch = statusPatch(choice, r.topic.due_date, isoDay(nextMonday()));
+    const was = rowOf(r.topic.id)?.topic ?? r.topic;
+    const back = Object.fromEntries(Object.keys(patch).map((f) => [f, was[f as keyof typeof was]]));
     patchRow(r.topic.id, (x) => ({ ...x, topic: { ...x.topic, ...patch } }));
-    await updateCalendarItem(sb, r.topic.id, patch);
+    try {
+      await updateCalendarItem(sb, r.topic.id, patch);
+    } catch (e) {
+      patchRow(r.topic.id, (x) => ({ ...x, topic: { ...x.topic, ...back } }));
+      snack(`Couldn't save. ${e instanceof Error ? e.message : String(e)}`);
+    }
   }
 
   async function saveMeta(itemId: string, key: "metaTitle" | "description" | "slug", value: string) {
     const r = rowOf(itemId);
     if (!r?.doc) return;
-    const meta = { ...r.doc.meta, [key]: key === "slug" ? value.toLowerCase().replace(/[^a-z0-9/-]+/g, "-").replace(/^-+|-+$/g, "") : value };
+    const was = r.doc.meta;
+    const meta = { ...was, [key]: key === "slug" ? value.toLowerCase().replace(/[^a-z0-9/-]+/g, "-").replace(/^-+|-+$/g, "") : value };
     patchRow(itemId, (x) => (x.doc ? { ...x, doc: { ...x.doc, meta } } : x));
-    await saveGridMeta(sb, r.doc.id, meta);
+    try {
+      await saveGridMeta(sb, r.doc.id, meta);
+    } catch (e) {
+      patchRow(itemId, (x) => (x.doc ? { ...x, doc: { ...x.doc, meta: was } } : x));
+      snack(`Couldn't save. ${e instanceof Error ? e.message : String(e)}`);
+    }
   }
 
   async function generate(ids: string[]) {

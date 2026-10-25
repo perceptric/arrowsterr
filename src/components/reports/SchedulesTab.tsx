@@ -267,13 +267,16 @@ function Editor({
     }
   }
 
+  // Pause and resume change on screen at once and go back if the save fails.
   async function pause(s: Schedule) {
     setBusy(true);
     setError(null);
+    onPaused({ ...s, active: !s.active });
     try {
       const { schedule } = await post<{ schedule: Schedule }>(auth, "/api/schedules", { action: "pause", id: s.id, active: !s.active });
       onPaused(schedule);
     } catch (e) {
+      onPaused(s);
       setError({ text: errText(e), limit: Boolean((e as { limit?: boolean }).limit) });
     } finally {
       setBusy(false);
