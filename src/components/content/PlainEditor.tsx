@@ -215,6 +215,11 @@ const svg = (d: React.ReactNode) => (
   </svg>
 );
 const ICON = {
+  para: svg(<path d="M13 4v16M17 4v16M19 4H9.5a4.5 4.5 0 0 0 0 9H13" />),
+  bullets: svg(<path d="M9 7h11M9 12h11M9 17h11M4.5 7h.01M4.5 12h.01M4.5 17h.01" />),
+  quote: svg(<path d="M9 7H6a1 1 0 0 0-1 1v4h4v-4M18 7h-3a1 1 0 0 0-1 1v4h4v-4M9 12c0 3-1.5 5-4 5M18 12c0 3-1.5 5-4 5" />),
+  undo: svg(<path d="M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3" />),
+  redo: svg(<path d="m15 14 5-5-5-5M20 9H10a6 6 0 0 0 0 12h3" />),
   link: svg(<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" />),
   image: svg(
     <>
@@ -250,27 +255,27 @@ function PlainToolbar({ editor, onImage }: { editor: Editor; onImage: () => void
       {b("H1", editor.isActive("heading", { level: 1 }), () => c().toggleHeading({ level: 1 }).run(), "Heading 1")}
       {b("H2", editor.isActive("heading", { level: 2 }), () => c().toggleHeading({ level: 2 }).run(), "Heading 2")}
       {b("H3", editor.isActive("heading", { level: 3 }), () => c().toggleHeading({ level: 3 }).run(), "Heading 3")}
-      {b("¶", editor.isActive("paragraph"), () => c().setParagraph().run(), "Paragraph")}
+      {b(ICON.para, editor.isActive("paragraph"), () => c().setParagraph().run(), "Paragraph")}
       <span className="mx-1 h-5 w-px bg-rule" />
       {b("B", editor.isActive("bold"), () => c().toggleBold().run(), "Bold")}
       {b("I", editor.isActive("italic"), () => c().toggleItalic().run(), "Italic")}
-      {b("•", editor.isActive("bulletList"), () => c().toggleBulletList().run(), "Bullet list")}
+      {b(ICON.bullets, editor.isActive("bulletList"), () => c().toggleBulletList().run(), "Bullet list")}
       {b("1.", editor.isActive("orderedList"), () => c().toggleOrderedList().run(), "Numbered list")}
-      {b("❝", editor.isActive("blockquote"), () => c().toggleBlockquote().run(), "Quote")}
+      {b(ICON.quote, editor.isActive("blockquote"), () => c().toggleBlockquote().run(), "Quote")}
       {b(ICON.link, editor.isActive("link"), () => (editor.isActive("link") ? c().unsetLink().run() : setLink(String(editor.getAttributes("link").href ?? ""))), "Link")}
       {b(ICON.image, false, onImage, "Image")}
       {b(ICON.table, inTable, () => c().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(), "Table")}
       {inTable ? (
         <>
-          {b("+ Row", false, () => c().addRowAfter().run(), "Add row")}
-          {b("+ Col", false, () => c().addColumnAfter().run(), "Add column")}
-          {b("− Row", false, () => c().deleteRow().run(), "Delete row")}
-          {b("− Col", false, () => c().deleteColumn().run(), "Delete column")}
+          {b("Add row", false, () => c().addRowAfter().run(), "Add row")}
+          {b("Add column", false, () => c().addColumnAfter().run(), "Add column")}
+          {b("Delete row", false, () => c().deleteRow().run(), "Delete row")}
+          {b("Delete column", false, () => c().deleteColumn().run(), "Delete column")}
         </>
       ) : null}
       <span className="mx-1 h-5 w-px bg-rule" />
-      {b("↶", false, () => c().undo().run(), "Undo")}
-      {b("↷", false, () => c().redo().run(), "Redo")}
+      {b(ICON.undo, false, () => c().undo().run(), "Undo")}
+      {b(ICON.redo, false, () => c().redo().run(), "Redo")}
       {link !== null ? (
         <form
           className="ml-1 flex items-center gap-1"

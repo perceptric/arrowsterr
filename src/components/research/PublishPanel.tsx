@@ -9,14 +9,17 @@ import { getDocMeta } from "@/lib/db";
 import type { RunAuth } from "@/lib/runner";
 import type { DocPublishMeta } from "@/lib/writerAgent";
 import { ConnectWizard } from "../ConnectWizard";
-import { SidePanel, Thinking } from "../ui";
+import { ago, formatDate } from "@/lib/dates";
+import { SkelBlock } from "../states";
+import { SidePanel } from "../ui";
 import { downloadCsv, post } from "./shared";
 
 const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
 const pad = (n: number) => String(n).padStart(2, "0");
 const TIMES = Array.from({ length: 48 }, (_, i) => `${pad(Math.floor(i / 2))}:${i % 2 ? "30" : "00"}`);
 const localDay = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-const when = (iso: string) => new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
+/** A scheduled time: "Oct 3, 9:30 AM". */
+const when = (iso: string) => `${formatDate(iso)}, ${new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}`;
 
 type Mode = "draft" | "publish" | "schedule";
 /** A WordPress post this draft became, as the server last read it back (wpSyncServer.ts pubView). */
@@ -211,12 +214,12 @@ export function PublishPanel({ sb, auth, docId, brandId, title, html, onClose }:
 
   const modes: { v: Mode; label: string }[] = wp
     ? [
-        { v: "draft", label: "Draft" },
+        { v: "draft", label: "Save as a draft on the site" },
         { v: "publish", label: "Publish now" },
         { v: "schedule", label: "Schedule" },
       ]
     : [
-        { v: "draft", label: "As a draft" },
+        { v: "draft", label: "Save as a draft on the site" },
         { v: "publish", label: "Live now" },
       ];
   const late = mode === "schedule" && scheduleAt && Date.parse(scheduleAt) < now;
@@ -236,7 +239,7 @@ export function PublishPanel({ sb, auth, docId, brandId, title, html, onClose }:
   return (
     <SidePanel narrow kicker="Library" title="Publish" onClose={onClose}>
       {!conns || !meta ? (
-        <Thinking text="Loading..." />
+        <SkelBlock lines={6} />
       ) : (
         <div className="flex flex-col gap-5">
           {setup ? <div className="aw-callout">{setup}</div> : null}
@@ -261,7 +264,7 @@ export function PublishPanel({ sb, auth, docId, brandId, title, html, onClose }:
                 {pub.status === "future" && pub.scheduledFor ? <span className="text-[13px] text-ink">{when(pub.scheduledFor)}</span> : null}
                 {pub.edited && !gone ? <span className="aw-status aw-status--warn">Edited in WordPress</span> : null}
                 <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm ml-auto" disabled={syncing} onClick={() => void sync()}>
-                  {syncing ? "Syncing..." : "Sync"}
+                  {syncing ? "Checking..." : "Refresh"}
                 </button>
               </span>
               {pub.url && !gone ? (
@@ -269,7 +272,7 @@ export function PublishPanel({ sb, auth, docId, brandId, title, html, onClose }:
                   {pub.url}
                 </a>
               ) : null}
-              {pub.syncedAt ? <span className="text-[12px] text-muted">Synced {when(pub.syncedAt)}</span> : null}
+              {pub.syncedAt ? <span className="text-[12px] text-muted">Checked {ago(pub.syncedAt)}</span> : null}
               {pub.syncError ? <p className="aw-error">{pub.syncError}</p> : null}
             </div>
           ) : null}
@@ -309,7 +312,7 @@ export function PublishPanel({ sb, auth, docId, brandId, title, html, onClose }:
 
           {conns.length ? (
             <div className="flex flex-col gap-3 border-t border-rule-faint pt-4">
-              <div role="radiogroup" aria-label="Publish as" className="flex gap-2">
+              <div role="radiogroup" aria-label="Publish as" className="flex flex-wrap gap-2">
                 {modes.map((o) => (
                   <button key={o.v} type="button" role="radio" aria-checked={mode === o.v} onClick={() => setMode(o.v)} className={`aw-chip ${mode === o.v ? "aw-chip--brand" : ""}`}>
                     {o.label}

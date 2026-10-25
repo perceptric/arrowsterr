@@ -3,7 +3,7 @@
 import { track } from "@/lib/analytics";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { contentPairs, docToText, letter, notesFor, pairCount, partNodes, partOfPair, replacePart, type CellSummary, type Pair } from "@/lib/articleGrid";
+import { contentPairs, docToText, notesFor, pairCount, partNodes, partOfPair, replacePart, type CellSummary, type Pair } from "@/lib/articleGrid";
 import type { PmNode } from "@/lib/docHtml";
 import { updateCalendarItem, type Site } from "@/lib/db";
 import { listGrid, saveGridDoc, saveGridMeta, startDoc, type GridRow } from "@/lib/gridData";
@@ -14,24 +14,25 @@ import { useStash } from "@/lib/stash";
 import { Dropdown, Pop } from "../Pickers";
 import { post, STATUS_PICK } from "../research/shared";
 import { libraryGroup, writeState, type WriteState } from "@/lib/writeFlow";
-import { Seg, Thinking } from "../ui";
+import { Plus } from "../Icons";
+import { SkelRows } from "../states";
+import { Seg } from "../ui";
 import { usePoll, type LibraryOpen } from "./parts";
 import { ConnectWizard } from "../ConnectWizard";
 import { GenerateDialog } from "./GenerateDialog";
 import { SectionPanel } from "./SectionPanel";
 import { useWriteActions, WriteButton } from "./WriteButton";
 
-// The Library as a grid (docs/content-grid.md): one row per article, columns lettered like a sheet.
+// The Library as a grid (docs/content-grid.md): one row per article.
 // Metadata: Status (the same Content status as the Keyword Deep Dive), Meta title, Meta description, Slug.
 // Write (docs/agentic-writing.md): the same button as the Editorial Calendar, after the keyword. A filter at the top
 // shows all pieces, outlines, drafts or published posts.
-// Content: H1 and Section 1, H2 and Section 2, up to H20 and Section 20, and more with +. Generate brief fills the
-// headings and metadata. Writers fill the sections: each opens in the side panel with the brief's notes for it,
+// Content: H1 and Section 1, H2 and Section 2, up to H20 and Section 20, and more with +. Write outline fills the
+// headings and metadata. Writers fill the sections: each opens in the side panel with the outline's notes for it,
 // and Full view opens the whole article, with Publish.
 
 const W = { check: 36, keyword: 220, write: 200, status: 190, title: 220, description: 280, slug: 170, heading: 200, section: 260, add: 44 };
 const ADDED = (siteId: string) => `arrowsterr.grid.pairs.${siteId}`;
-const STEP: Record<string, string> = { research: "Researching", writing: "Planning", sections: "Writing", check: "Checking", modules: "Building modules", save: "Saving" };
 const isoDay = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
 type Filter = "all" | "outlines" | "drafts" | "published";
@@ -39,13 +40,12 @@ const stateOf = (r: GridRow): WriteState => writeState({ item: { status: r.topic
 
 const making = (r: GridRow) => r.topic.brief?.status === "generating" || r.topic.draft?.status === "generating";
 
-/** What the writer is doing on a row right now, if anything, or why it stopped. */
-function jobOf(r: GridRow): { label: string; tone: string; error?: string } | null {
+/** Why the writer stopped on a row, when it failed. The Write button shows the work in progress. */
+function failedOf(r: GridRow): { error?: string } | null {
   const { brief, draft } = r.topic;
-  if (draft?.status === "generating") return { label: STEP[draft.step] ?? "Writing", tone: "tw-tag--orange" };
-  if (brief?.status === "generating") return { label: STEP[brief.step] ?? "Planning", tone: "tw-tag--orange" };
-  if (draft?.status === "failed") return { label: "Failed", tone: "tw-tag--red", error: draft.error ?? undefined };
-  if (brief?.status === "failed" || (brief?.error && !r.doc)) return { label: "Failed", tone: "tw-tag--red", error: brief.error ?? undefined };
+  if (draft?.status === "generating" || brief?.status === "generating") return null;
+  if (draft?.status === "failed") return { error: draft.error ?? undefined };
+  if (brief?.status === "failed" || (brief?.error && !r.doc)) return { error: brief.error ?? undefined };
   return null;
 }
 
@@ -60,7 +60,6 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
   const [starting, setStarting] = useState("");
   const [gen, setGen] = useState<{ itemId: string; only: number | null; reopen: boolean } | null>(null);
   const [connecting, setConnecting] = useState(false);
-  const [synced, setSynced] = useState<Record<string, { s: "syncing" | "done"; url?: string | null }>>({});
   const [busy, setBusy] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useStash<Filter>(`library:${site.id}:filter`, "all");
   const [added, setAdded] = useState(() => {
@@ -93,6 +92,14 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
   const actions = useWriteActions({ sb, auth, brandId, siteId: site.id, canEdit, onChanged: () => void load() });
 
   const list = useMemo(() => (rows ?? []).filter((r) => filter === "all" || libraryGroup(stateOf(r)) === filter), [rows, filter]);
+  const counts = useMemo(() => {
+    const n: Record<Filter, number> = { all: rows?.length ?? 0, outlines: 0, drafts: 0, published: 0 };
+    for (const r of rows ?? []) {
+      const g = libraryGroup(stateOf(r));
+      if (g !== "none") n[g]++;
+    }
+    return n;
+  }, [rows]);
   const pairs = useMemo(() => new Map(list.map((r) => [r.topic.id, contentPairs(r.doc, r.plan)])), [list]);
   const count = pairCount(Math.max(0, ...[...pairs.values()].map((p) => p.length)), added);
 
@@ -144,35 +151,15 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
       setBusy((b) => new Set([...b].filter((x) => !ids.includes(x))));
     }
   }
-  /** Sync the article to the brand's site: the same post each time, kept a draft unless it's live there. */
-  async function syncRow(r: GridRow) {
-    if (!r.doc) return;
-    setError("");
-    setSynced((x) => ({ ...x, [r.topic.id]: { s: "syncing" } }));
-    try {
-      const out = await post<{ published: { url: string | null } }>(auth, "/api/cms", { action: "push", docId: r.doc.id });
-      setSynced((x) => ({ ...x, [r.topic.id]: { s: "done", url: out.published.url } }));
-      track("article_synced", { from: "grid" });
-    } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
-      setSynced((x) => {
-        const n = { ...x };
-        delete n[r.topic.id];
-        return n;
-      });
-      if (/connect a publishing site/i.test(message)) setConnecting(true);
-      else setError(`${r.topic.keyword}: ${message}`);
-    }
-  }
 
   const fullView = (r: GridRow) => (r.doc ? onOpen({ kind: "doc", id: r.doc.id }) : undefined);
 
-  /** The article's doc: the one there, or a new one from the brief, which moves the piece to Writing. */
+  /** The article's doc: the one there, or a new one from the outline, which moves the piece to Writing. */
   async function ensureDoc(itemId: string) {
     const r = rowOf(itemId);
     if (!r) throw new Error("This row is gone. Reload the Library.");
     if (r.doc) return r.doc;
-    if (!r.plan) throw new Error("Generate the brief first.");
+    if (!r.plan) throw new Error("Write the outline first.");
     const doc = await startDoc(sb, { workspaceId: auth.workspaceId, siteId: site.id, itemId, plan: r.plan });
     track("writing_started", { sections: r.plan.outline.length });
     patchRow(itemId, (x) => ({ ...x, doc }));
@@ -180,7 +167,7 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
     return doc;
   }
 
-  /** Open a section in the side panel, making the doc from the brief the first time. */
+  /** Open a section in the side panel, making the doc from the outline the first time. */
   async function write(r: GridRow, pair: number) {
     if (r.doc) return setPanel({ itemId: r.topic.id, pair });
     if (!r.plan || !canEdit) return;
@@ -205,9 +192,21 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
     patchRow(itemId, (x) => (x.doc ? { ...x, doc: { ...x.doc, words } } : x));
   }
 
-  if (!rows) return <Thinking text="Opening the Library..." />;
+  if (!rows)
+    return (
+      <div className="flex flex-col gap-3" aria-busy="true">
+        <h1 className="aw-h2">Library</h1>
+        <div className="aw-frame overflow-hidden">
+          <table className="aw-table">
+            <tbody>
+              <SkelRows rows={6} cols={5} />
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
 
-  // Letters: A Keyword, B to E Metadata, then the content pairs.
+  // Keyword, the Write button and the metadata, then the content pairs.
   const metaCols = [
     { key: "status", name: "Status", width: W.status },
     { key: "metaTitle", name: "Meta title", width: W.title },
@@ -229,34 +228,24 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
 
   const head = "sticky z-20 border-r border-b border-rule bg-[var(--bg-secondary)] px-2 text-left font-medium text-muted";
   const cell = "border-r border-b border-rule bg-white px-2 py-1.5 align-top group-hover:bg-[var(--bg-secondary)]";
-  const tag = (l: string) => <span className="tw-tag shrink-0">{l}</span>;
   const muted = (t: string) => (t ? <span className="line-clamp-3 text-muted">{t}</span> : <span className="text-faint">–</span>);
 
   function metaCell(r: GridRow, key: "status" | "metaTitle" | "description" | "slug") {
     if (key === "status") {
-      const job = jobOf(r);
+      const failed = failedOf(r);
       return (
         <span className="flex flex-col gap-1.5">
-          <span className="flex items-center gap-1">
-            <Dropdown
-              label="Content status"
-              value={statusChoice(r.topic)}
-              disabled={!canEdit}
-              onChange={(v) => void run(setStatus(r, v))}
-              className="aw-dropdown--field h-7! min-w-0 flex-1 text-[12px]!"
-              options={STATUS_PICK.map((x) => ({ id: x.id as string, label: x.label, tone: x.tone }))}
-            />
-              {canEdit && !making(r) && (!r.topic.brief || r.topic.brief.status === "failed") ? (
-              <button type="button" className="aw-iconbtn shrink-0" disabled={busy.has(r.topic.id)} title="Generate brief" aria-label="Generate brief" onClick={() => void generate([r.topic.id])}>
-                <svg className="aw-icon" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M7 5v14l11-7z" />
-                </svg>
-              </button>
-            ) : null}
-          </span>
-          {job ? (
-            <span className={`tw-tag self-start ${job.tone}`} title={job.error}>
-              {job.label}
+          <Dropdown
+            label="Content status"
+            value={statusChoice(r.topic)}
+            disabled={!canEdit}
+            onChange={(v) => void run(setStatus(r, v))}
+            className="aw-dropdown--field h-7! min-w-0 text-[12px]!"
+            options={STATUS_PICK.map((x) => ({ id: x.id as string, label: x.label, tone: x.tone }))}
+          />
+          {failed ? (
+            <span className="tw-tag tw-tag--red self-start" title={failed.error}>
+              Failed
             </span>
           ) : null}
         </span>
@@ -305,12 +294,14 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
             label="Show"
             value={filter}
             onChange={setFilter}
-            options={[
-              { id: "all", label: "All" },
-              { id: "outlines", label: "Outlines" },
-              { id: "drafts", label: "Drafts" },
-              { id: "published", label: "Published" },
-            ]}
+            options={(
+              [
+                ["all", "All"],
+                ["outlines", "Outlines"],
+                ["drafts", "Drafts"],
+                ["published", "Published"],
+              ] as const
+            ).map(([id, label]) => ({ id, label: `${label} ${counts[id]}` }))}
           />
         </span>
         {picked.length ? <span className="text-[12px] text-muted">{picked.length} selected</span> : null}
@@ -321,7 +312,7 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
         ) : null}
         {canEdit ? (
           <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" disabled={!picked.length || picked.every((id) => busy.has(id))} onClick={() => void generate(picked)}>
-            Generate brief
+            Write outline
           </button>
         ) : null}
       </div>
@@ -348,10 +339,7 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
                 <input type="checkbox" aria-label="Select all" checked={allOn} onChange={() => setSelected(allOn ? new Set() : new Set(list.map((r) => r.topic.id)))} />
               </th>
               <th rowSpan={2} className={`${head} top-0 z-30`} style={{ left: W.check }}>
-                <span className="flex items-center gap-2">
-                  {tag("A")}
-                  Keyword
-                </span>
+                Keyword
               </th>
               <th rowSpan={2} className={`${head} top-0 z-20`}>
                 Write
@@ -364,20 +352,15 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
               </th>
             </tr>
             <tr>
-              {[...metaCols, ...contentCols].map((c, i) => (
+              {[...metaCols, ...contentCols].map((c) => (
                 <th key={c.key} className={`${head} top-8 h-8`}>
-                  <span className="flex items-center gap-2">
-                    {tag(letter(i + 1))}
-                    <span className="truncate">{c.name}</span>
-                  </span>
+                  <span className="block truncate">{c.name}</span>
                 </th>
               ))}
               <th className={`${head} top-8 h-8 px-1`}>
                 {canEdit ? (
                   <button type="button" className="aw-iconbtn" title="Add a heading and section" aria-label="Add a heading and section" onClick={addPair}>
-                    <svg className="aw-icon" viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M12 5v14M5 12h14" />
-                    </svg>
+                    <Plus />
                   </button>
                 ) : null}
               </th>
@@ -412,31 +395,15 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
                         </button>
                       ) : r.plan ? (
                         <button type="button" className="aw-text-link text-[12px]" onClick={() => onOpen({ kind: "brief", id: r.topic.brief!.id })}>
-                          View brief
+                          View outline
                         </button>
-                      ) : null}
-                      {canEdit && r.plan ? (
-                        <button type="button" className="aw-text-link text-[12px]" onClick={() => setGen({ itemId: r.topic.id, only: null, reopen: false })}>
-                          Generate
-                        </button>
-                      ) : null}
-                      {canEdit && r.doc ? (
-                        synced[r.topic.id]?.s === "done" && synced[r.topic.id].url ? (
-                          <a href={synced[r.topic.id].url!} target="_blank" rel="noopener noreferrer" className="aw-text-link text-[12px]">
-                            Synced ↗
-                          </a>
-                        ) : (
-                          <button type="button" className="aw-text-link text-[12px]" disabled={synced[r.topic.id]?.s === "syncing"} onClick={() => void syncRow(r)}>
-                            {synced[r.topic.id]?.s === "syncing" ? "Syncing..." : synced[r.topic.id]?.s === "done" ? "Synced" : "Sync"}
-                          </button>
-                        )
                       ) : null}
                     </span>
                   </div>
                 </td>
                 <td className={cell}>
                   <div className="flex h-[63px] items-start pt-1">
-                    <WriteButton state={stateOf(r)} busy={actions.busy.has(r.topic.id)} canEdit={canEdit} onAct={() => void actions.act(r.topic, stateOf(r))} onOpen={() => actions.open(r.topic, stateOf(r))} />
+                    <WriteButton secondary state={stateOf(r)} busy={actions.busy.has(r.topic.id)} canEdit={canEdit} onAct={() => void actions.act(r.topic, stateOf(r))} onOpen={() => actions.open(r.topic, stateOf(r))} />
                   </div>
                 </td>
                 {metaCols.map((c) => (
@@ -476,7 +443,7 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
           workspaceId={auth.workspaceId}
           docId={panelRow.doc.id}
           part={partOfPair(panel.pair)}
-          label={`${letter(6 + panel.pair * 2)} · Section ${panel.pair + 1}${panelPair?.heading ? ` · ${panelPair.heading}` : ""}`}
+          label={`Section ${panel.pair + 1}${panelPair?.heading ? ` · ${panelPair.heading}` : ""}`}
           nodes={partNodes(panelRow.doc.content, partOfPair(panel.pair))}
           notes={notesFor(panelRow.plan, partOfPair(panel.pair), panelPair?.heading ?? "")}
           canEdit={canEdit}

@@ -8,11 +8,13 @@ import type { RunAuth } from "@/lib/runner";
 import { IMAGE_KIND_LABEL } from "@/lib/writerImageTypes";
 import { getBrief, type FullBrief } from "@/lib/writerLibrary";
 import { post } from "../research/shared";
+import { Close } from "../Icons";
 import { Seg, SidePanel } from "../ui";
 import { BriefEditor } from "./BriefEditor";
 
 // The outline in the right sidebar (docs/agentic-writing.md, section 2): the outline editor, the examples the article
-// features, the images the draft will make and the voice it writes in. Write draft sits at the bottom.
+// features, the images the draft will make and the voice it writes in. Once the outline is ready, Write draft sits on
+// top as the panel's one primary action.
 
 type Tab = "outline" | "examples" | "images" | "voice";
 
@@ -93,6 +95,11 @@ export function OutlinePanel({
   return (
     <SidePanel title={b?.h1 || row?.keyword || "Outline"} kicker="Outline" onClose={onClose}>
       <div className="flex min-h-full flex-col gap-4">
+        {canEdit && ready ? (
+          <button type="button" className="aw-btn aw-btn--primary self-start" disabled={busy} onClick={() => void writeDraft()}>
+            {busy ? "Starting..." : "Write draft"}
+          </button>
+        ) : null}
         <Seg
           label="Outline"
           value={tab}
@@ -112,13 +119,6 @@ export function OutlinePanel({
           {tab === "images" ? <Images brief={b} canEdit={canEdit && ready} onRemove={(i) => void removeImage(i)} /> : null}
           {tab === "voice" ? <Voice voice={voice} /> : null}
         </div>
-        {canEdit && ready ? (
-          <div className="sticky bottom-0 flex justify-end border-t border-rule bg-white py-3">
-            <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" disabled={busy} onClick={() => void writeDraft()}>
-              {busy ? "Starting..." : "Write draft"}
-            </button>
-          </div>
-        ) : null}
       </div>
     </SidePanel>
   );
@@ -169,10 +169,8 @@ function Images({ brief, canEdit, onRemove }: { brief: FullBrief["brief"]; canEd
             <span className="tw-tag">{m.kind ? IMAGE_KIND_LABEL[m.kind] : "Image"}</span>
             <span className="text-[12px] text-muted">{m.placement === "intro" ? "Intro" : m.placement}</span>
             {canEdit ? (
-              <button type="button" className="aw-iconbtn ml-auto" title="Remove" aria-label="Remove" onClick={() => onRemove(i)}>
-                <svg viewBox="0 0 24 24" width={15} height={15} fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" aria-hidden="true">
-                  <path d="M6 6l12 12M18 6L6 18" />
-                </svg>
+              <button type="button" className="aw-iconbtn ml-auto" title="Delete" aria-label="Delete" onClick={() => onRemove(i)}>
+                <Close size={15} />
               </button>
             ) : null}
           </span>

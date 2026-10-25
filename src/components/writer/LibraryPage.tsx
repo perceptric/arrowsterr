@@ -1,6 +1,5 @@
 "use client";
 
-import { track } from "@/lib/analytics";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Editor } from "@tiptap/react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -15,20 +14,20 @@ import type { View } from "@/lib/view";
 import { getBrief, getDraft, listTopics, type FullBrief, type FullDraft, type Topic } from "@/lib/writerLibrary";
 import type { BrandGuideline } from "@/lib/writerTypes";
 import { PlainEditor, type SaveState } from "../content/PlainEditor";
-import { ConnectWizard } from "../ConnectWizard";
 import { Pop } from "../Pickers";
 import { PublishPanel } from "../research/PublishPanel";
-import { post } from "../research/shared";
 import { brandTables } from "../research/Writer";
 import { exportClean } from "../research/writerNodes";
 import { ToolIntro } from "../ToolIntro";
-import { Seg, Thinking } from "../ui";
+import { ArrowLeft } from "../Icons";
+import { SkelBlock, SkelRows } from "../states";
+import { Seg } from "../ui";
 import { BriefEditor } from "./BriefEditor";
 import { ContentGrid } from "./ContentGrid";
-import { DraftProgress, libraryKey, RegenerateDialog, StateTag, useBrandSite, usePoll, type LibraryOpen } from "./parts";
+import { Back, DraftProgress, goToPath, libraryKey, RegenerateDialog, StateTag, useBrandSite, usePoll, type LibraryOpen } from "./parts";
 
 // The Library: every keyword imported from the Editorial Calendar, as a grid of articles (ContentGrid).
-// Generate starts there. A finished brief opens editable; an article opens in the plain editor with its
+// Write outline starts there. A finished outline opens editable; an article opens in the plain editor with its
 // interactive modules running in sandboxed frames, its HTML, Markdown and Text views, Export and Publish.
 
 const making = (t: Topic) => t.brief?.status === "generating" || t.draft?.status === "generating";
@@ -69,7 +68,19 @@ export function LibraryPage({ view, auth, canEdit }: { view: View; auth: RunAuth
     window.history.replaceState(null, "", window.location.pathname + (params.size ? `?${params}` : ""));
   }, [setOpen]);
 
-  if (site === undefined || (site && rows === null)) return <Thinking text="Opening the Library..." />;
+  if (site === undefined || (site && rows === null))
+    return (
+      <div className="flex flex-col gap-5" aria-busy="true">
+        <h1 className="aw-h2">Library</h1>
+        <div className="aw-frame overflow-hidden">
+          <table className="aw-table">
+            <tbody>
+              <SkelRows rows={6} cols={5} />
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
   if (!site) return <p className="aw-error">{siteError || "This brand has no website yet."}</p>;
 
   const back = () => {
@@ -90,28 +101,19 @@ export function LibraryPage({ view, auth, canEdit }: { view: View; auth: RunAuth
       ) : (
         <ToolIntro
           title="Library"
-          lead={`Import keywords from the Editorial Calendar. For each one, Arrowsterr researches Google and the AI answers and writes the brief. Your writers fill it in, section by section, in ${brand.name}'s voice.`}
+          lead={`Import keywords from the Editorial Calendar. For each one, Arrowsterr researches Google and the AI answers and writes the outline. Your writers fill it in, section by section, in ${brand.name}'s voice.`}
+          action={
+            <button type="button" className="aw-btn aw-btn--primary" onClick={() => goToPath("/editorial-calendar")}>
+              Open Editorial Calendar
+            </button>
+          }
           features={[
-            { title: "Brief", text: "Headings, meta, sources, FAQs and internal links, from the top pages and the AI answers." },
-            { title: "Write", text: "Open any section beside the grid with the brief's notes for it, or the whole article in full view." },
+            { title: "Outline", text: "Headings, meta, sources, FAQs and internal links, from the top pages and the AI answers." },
+            { title: "Write", text: "Open any section beside the grid with the outline's notes for it, or the whole article in full view." },
             { title: "Publish", text: "Send the article to WordPress or your CMS, with its meta title, description and slug." },
           ]}
         />
       )}
-    </div>
-  );
-}
-
-function Back({ onBack, title, children }: { onBack: () => void; title: string; children?: React.ReactNode }) {
-  return (
-    <div className="flex flex-wrap items-center justify-between gap-3">
-      <span className="flex min-w-0 items-center gap-3">
-        <button type="button" className="aw-text-link shrink-0 text-[13px]" onClick={onBack}>
-          ← Library
-        </button>
-        <span className="truncate text-[15px] font-medium text-ink">{title}</span>
-      </span>
-      {children ? <span className="flex flex-wrap items-center gap-2">{children}</span> : null}
     </div>
   );
 }
@@ -151,7 +153,7 @@ function DraftView({ sb, auth, site, brandId, id, canEdit, onBack }: { sb: Supab
   }, [load]);
   usePoll(draft?.status === "generating", 4000, load);
 
-  if (draft === undefined) return <Thinking text="Opening the draft..." />;
+  if (draft === undefined) return <Opening onBack={onBack} />;
   if (!draft) return <Back onBack={onBack} title="This draft was deleted." />;
   const head = doc?.title || brief?.brief?.h1 || brief?.keyword || "Draft";
   const regenerate =
@@ -184,7 +186,7 @@ function DraftView({ sb, auth, site, brandId, id, canEdit, onBack }: { sb: Supab
         {draft.error ? <p className="aw-error">{draft.error}</p> : null}
         {error ? <p className="aw-error">{error}</p> : null}
         {draft.status === "generating" ? <DraftProgress draft={draft} brief={brief} /> : null}
-        {draft.status === "ready" && !doc ? <Thinking text="Opening the draft..." /> : null}
+        {draft.status === "ready" && !doc ? <SkelBlock lines={8} /> : null}
         {regenerate}
       </div>
     );
@@ -213,7 +215,7 @@ function DraftView({ sb, auth, site, brandId, id, canEdit, onBack }: { sb: Supab
   );
 }
 
-/** An article's doc by its id: the one a writer started from the brief in the grid (Full view). */
+/** An article's doc by its id: the one a writer started from the outline in the grid (Full view). */
 function DocView({ sb, auth, site, brandId, id, canEdit, onBack }: { sb: SupabaseClient; auth: RunAuth; site: Site; brandId: string; id: string; canEdit: boolean; onBack: () => void }) {
   const [doc, setDoc] = useState<Doc | null | undefined>(undefined);
   const [error, setError] = useState("");
@@ -230,7 +232,7 @@ function DocView({ sb, auth, site, brandId, id, canEdit, onBack }: { sb: Supabas
       live = false;
     };
   }, [sb, id]);
-  if (doc === undefined) return <Thinking text="Opening the article..." />;
+  if (doc === undefined) return <Opening onBack={onBack} />;
   if (!doc) return <Back onBack={onBack} title={error || "This article was deleted."} />;
   return <ArticleView sb={sb} auth={auth} site={site} brandId={brandId} doc={doc} canEdit={canEdit} onBack={onBack} />;
 }
@@ -247,8 +249,6 @@ function ArticleView({ sb, auth, site, brandId, doc, canEdit, onBack, extra }: {
   const [view, setView] = useState<"edit" | "html" | "md" | "text">("edit");
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
-  const [sync, setSync] = useState<{ s: "idle" | "syncing" | "done"; url?: string | null }>({ s: "idle" });
-  const [connecting, setConnecting] = useState(false);
   useEffect(() => {
     let live = true;
     getGuideline(sb, site.id)
@@ -267,21 +267,6 @@ function ArticleView({ sb, auth, site, brandId, doc, canEdit, onBack, extra }: {
 
   const html = () => brandTables(exportClean(editor?.getHTML() ?? ""), guideline);
 
-  /** Sync the saved article to the brand's site: the same post each time, kept a draft unless it's live there. */
-  async function syncToCms() {
-    setError("");
-    setSync({ s: "syncing" });
-    try {
-      const out = await post<{ published: { url: string | null } }>(auth, "/api/cms", { action: "push", docId: doc.id });
-      setSync({ s: "done", url: out.published.url });
-      track("article_synced", { from: "full_view" });
-    } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
-      setSync({ s: "idle" });
-      if (/connect a publishing site/i.test(message)) setConnecting(true);
-      else setError(message);
-    }
-  }
   const name = (title || "article").replace(/\W+/g, "-").replace(/^-|-$/g, "").toLowerCase() || "article";
   function download(file: string, body: string, type: string) {
     const a = document.createElement("a");
@@ -309,17 +294,6 @@ function ArticleView({ sb, auth, site, brandId, doc, canEdit, onBack, extra }: {
         <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" aria-haspopup="menu" disabled={!editor} onClick={(e) => setExportAt(e.currentTarget.getBoundingClientRect())}>
           Export
         </button>
-        {canEdit ? (
-          sync.s === "done" && sync.url ? (
-            <a href={sync.url} target="_blank" rel="noopener noreferrer" className="aw-btn aw-btn--secondary aw-btn--sm">
-              Synced ↗
-            </a>
-          ) : (
-            <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={state.s === "saving" || sync.s === "syncing"} onClick={() => void syncToCms()}>
-              {sync.s === "syncing" ? "Syncing..." : sync.s === "done" ? "Synced" : "Sync to CMS"}
-            </button>
-          )
-        ) : null}
         {canEdit ? (
           <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" disabled={!editor} onClick={() => setPublishing(true)}>
             Publish
@@ -365,7 +339,21 @@ function ArticleView({ sb, auth, site, brandId, doc, canEdit, onBack, extra }: {
         </Pop>
       ) : null}
       {publishing ? <PublishPanel sb={sb} auth={auth} docId={doc.id} brandId={brandId} title={title} html={html} onClose={() => setPublishing(false)} /> : null}
-      {connecting ? <ConnectWizard auth={auth} brandId={brandId} onClose={() => setConnecting(false)} onConnected={() => {}} /> : null}
+    </div>
+  );
+}
+
+/** An editor while it opens: the head at once, bars where the article goes. */
+function Opening({ onBack }: { onBack: () => void }) {
+  return (
+    <div className="flex flex-col gap-5" aria-busy="true">
+      <div className="flex items-center gap-3">
+        <button type="button" className="aw-text-link inline-flex shrink-0 items-center gap-1 text-[13px]" onClick={onBack}>
+          <ArrowLeft size={14} />
+          Library
+        </button>
+      </div>
+      <SkelBlock lines={8} />
     </div>
   );
 }
