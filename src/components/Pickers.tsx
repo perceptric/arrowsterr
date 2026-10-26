@@ -3,7 +3,7 @@
 // Arrowsterr's own pickers, used in place of the browser's: pop-ups, option lists, dropdowns and dates.
 // They look the same on every computer and fit the app.
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 export type Option = {
@@ -18,6 +18,31 @@ const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart
 
 // Open pop-ups, newest last. Escape closes only the newest, so a list opened from a menu closes first.
 const open: object[] = [];
+// Every mounted Pop's close function. Opening a menu closes the rest, so two never stack.
+const closers = new Set<() => void>();
+export function closeAllPops() {
+  for (const close of [...closers]) close();
+}
+
+/**
+ * Anchor a Pop to the button that opened it. A menu that uses this is portalled and fixed, so a
+ * scrolling or clipped parent can never hide it and no later part of the page can paint over it.
+ */
+export function useAnchoredPop() {
+  const [anchor, setAnchor] = useState<DOMRect | null>(null);
+  const close = useCallback(() => setAnchor(null), []);
+  const toggle = useCallback(
+    (el: HTMLElement) => {
+      if (anchor) setAnchor(null);
+      else {
+        closeAllPops();
+        setAnchor(el.getBoundingClientRect());
+      }
+    },
+    [anchor],
+  );
+  return { anchor, toggle, close };
+}
 
 /** A pop-up under a cell, a field or a column name, kept on screen. Closes on a click outside or Escape. */
 export function Pop({ anchor, onClose, children, width = 260, label }: { anchor: DOMRect; onClose: () => void; children: React.ReactNode; width?: number; label: string }) {
@@ -35,6 +60,7 @@ export function Pop({ anchor, onClose, children, width = 260, label }: { anchor:
   useEffect(() => {
     const me = {};
     open.push(me);
+    closers.add(onClose);
     // A click in another pop-up (one opened from this one) keeps this one open.
     const down = (e: MouseEvent) => {
       const t = e.target as Element;
@@ -51,6 +77,7 @@ export function Pop({ anchor, onClose, children, width = 260, label }: { anchor:
     return () => {
       clearTimeout(t);
       open.splice(open.indexOf(me), 1);
+      closers.delete(onClose);
       document.removeEventListener("mousedown", down);
       document.removeEventListener("keydown", key, true);
     };

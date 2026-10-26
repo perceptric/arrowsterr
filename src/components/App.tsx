@@ -1,7 +1,7 @@
 "use client";
 
 import { identify, inWorkspace, resetAnalytics } from "@/lib/analytics";
-import { Dropdown } from "./Pickers";
+import { Dropdown, Pop, useAnchoredPop } from "./Pickers";
 import { withoutResearch } from "@/lib/researchUrl";
 import { recordUndo } from "@/lib/undo";
 import { UndoKeys } from "./UndoKeys";
@@ -522,6 +522,13 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
     setActiveId(brand.id);
     // Stay on onboarding for its finish screen. Leaving it opens the brand's first page.
     setAdding(true);
+    // Fill Brand Guidelines and Voice now, before the first check uses the day's AI answers.
+    // A failure is fine: the writer runs the same setup again the first time it needs it.
+    await fetch("/api/brand-setup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${await token()}` },
+      body: JSON.stringify({ workspaceId: ws.id, brandId: brand.id }),
+    }).catch(() => {});
     // The first check runs right away. After that the daily job keeps it fresh.
     void runBrand(brand);
     // Make the brand's site now. The Content Plan waits until someone clicks Build.
@@ -996,26 +1003,6 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
 
 // ─────────────────────────────── sidebar ───────────────────────────────
 
-/** A menu that closes on a click outside it or on Escape. */
-function useMenu() {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
-    if (!open) return;
-    const away = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    const esc = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
-    document.addEventListener("mousedown", away);
-    document.addEventListener("keydown", esc);
-    return () => {
-      document.removeEventListener("mousedown", away);
-      document.removeEventListener("keydown", esc);
-    };
-  }, [open]);
-  return { open, setOpen, ref };
-}
-
 const ROLE_LABEL = { owner: "Owner", admin: "Admin", editor: "Editor", viewer: "Viewer" } as const;
 
 /** Line icons for the page menu, drawn on a 24 × 24 grid. */
@@ -1148,7 +1135,7 @@ function Sidebar({
   hidden: boolean;
   onHide: () => void;
 }) {
-  const { open, setOpen, ref } = useMenu();
+  const wsMenu = useAnchoredPop();
   const [closedGroups, setClosedGroups] = useState<Set<string>>(new Set());
   // On a phone the pages fold into a menu button, so the page comes first.
   const [menu, setMenu] = useState(false);
@@ -1184,8 +1171,17 @@ function Sidebar({
       </nav>
     ) : null}
     <aside className={`aw-sidebar flex shrink-0 flex-col gap-0.5 px-2 py-3 print:hidden md:sticky md:top-0 md:h-screen md:w-56 md:overflow-y-auto ${hidden ? "md:hidden" : ""}`}>
-      <div className="relative flex items-center justify-between gap-1" ref={ref}>
-        <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className="aw-ws-switch flex-1">
+      <div className="relative flex items-center justify-between gap-1">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            wsMenu.toggle(e.currentTarget);
+          }}
+          onMouseDown={(e) => e.stopPropagation()}
+          aria-expanded={Boolean(wsMenu.anchor)}
+          className="aw-ws-switch flex-1"
+        >
           <WorkspaceAvatar ws={ws} brandLogo={brandLogo} />
           <span className="min-w-0 truncate">{ws.name}</span>
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true" className="shrink-0 text-faint">
@@ -1200,49 +1196,51 @@ function Sidebar({
             {menu ? <path d="M6 6l12 12M18 6 6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
           </svg>
         </button>
-        {open ? (
-          <div className="absolute top-9 left-0 z-30 w-60 overflow-hidden rounded-aw-lg border border-rule bg-white p-1 shadow-aw-lg">
-            <div className="truncate px-2 py-1.5 text-[12px] text-muted" title={email}>
-              {email}
-            </div>
-            {workspaces.map((w) => (
+        {wsMenu.anchor ? (
+          <Pop anchor={wsMenu.anchor} onClose={wsMenu.close} width={240} label="Workspaces">
+            <div className="px-1">
+              <div className="truncate px-2 py-1.5 text-[12px] text-muted" title={email}>
+                {email}
+              </div>
+              {workspaces.map((w) => (
+                <button
+                  key={w.id}
+                  type="button"
+                  onClick={() => {
+                    onWorkspace(w.id);
+                    wsMenu.close();
+                  }}
+                  className={`flex h-8 w-full items-center justify-between gap-2 rounded-aw px-2 text-left text-[13px] hover:bg-surface-2 ${w.id === ws.id ? "font-medium text-ink" : "text-body"}`}
+                >
+                  <span className="truncate">{w.name}</span>
+                  <span className="text-[12px] text-faint">{ROLE_LABEL[w.role]}</span>
+                </button>
+              ))}
+              <div className="my-1 border-t border-rule-faint" />
               <button
-                key={w.id}
+                type="button"
+                onClick={async () => {
+                  const name = prompt("Name your new workspace");
+                  wsMenu.close();
+                  if (name?.trim()) await onNewWorkspace(name.trim());
+                }}
+                className="flex h-8 w-full items-center rounded-aw px-2 text-left text-[13px] text-body hover:bg-surface-2"
+              >
+                + New workspace
+              </button>
+              <button
                 type="button"
                 onClick={() => {
-                  onWorkspace(w.id);
-                  setOpen(false);
+                  clearStash();
+                  resetAnalytics();
+                  sb.auth.signOut();
                 }}
-                className={`flex h-8 w-full items-center justify-between gap-2 rounded-aw px-2 text-left text-[13px] hover:bg-surface-2 ${w.id === ws.id ? "font-medium text-ink" : "text-body"}`}
+                className="flex h-8 w-full items-center rounded-aw px-2 text-left text-[13px] text-body hover:bg-surface-2"
               >
-                <span className="truncate">{w.name}</span>
-                <span className="text-[12px] text-faint">{ROLE_LABEL[w.role]}</span>
+                Sign out
               </button>
-            ))}
-            <div className="my-1 border-t border-rule-faint" />
-            <button
-              type="button"
-              onClick={async () => {
-                const name = prompt("Name your new workspace");
-                if (name?.trim()) await onNewWorkspace(name.trim());
-                setOpen(false);
-              }}
-              className="flex h-8 w-full items-center rounded-aw px-2 text-left text-[13px] text-body hover:bg-surface-2"
-            >
-              + New workspace
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                clearStash();
-                resetAnalytics();
-                sb.auth.signOut();
-              }}
-              className="flex h-8 w-full items-center rounded-aw px-2 text-left text-[13px] text-body hover:bg-surface-2"
-            >
-              Sign out
-            </button>
-          </div>
+            </div>
+          </Pop>
         ) : null}
       </div>
 
@@ -1376,65 +1374,76 @@ function TopBar(p: {
   /** Share on Prompts and Competitors, next to Download PDF. */
   share?: React.ReactNode;
 }) {
-  const { open, setOpen, ref } = useMenu();
+  const brandMenu = useAnchoredPop();
   const pill = "aw-ctl";
   return (
     <div className="aw-page-head sticky top-0 z-20 bg-paper print:hidden">
       <PageTitle {...p.title} />
       <span className="mx-1 hidden h-4 w-px bg-rule sm:block" aria-hidden="true" />
-      <div className="relative" ref={ref}>
-        <button type="button" className={pill} onClick={() => setOpen(!open)} aria-expanded={open}>
+      <div className="relative">
+        <button
+          type="button"
+          className={pill}
+          onClick={(e) => {
+            e.stopPropagation();
+            brandMenu.toggle(e.currentTarget);
+          }}
+          onMouseDown={(e) => e.stopPropagation()}
+          aria-expanded={Boolean(brandMenu.anchor)}
+        >
           {p.active ? <BrandLogo src={p.active.logo} name={p.active.name} size={16} /> : null}
           <span className="max-w-40 truncate">{p.active?.name ?? "Pick a brand"}</span>
           <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" className="text-faint">
             <path d="m6 9 6 6 6-6" />
           </svg>
         </button>
-        {open ? (
-          <div className="absolute z-30 mt-1 w-64 overflow-hidden rounded-aw-lg border border-rule bg-white p-1 shadow-aw-lg">
-            {p.brands.map((b) => (
-              <div key={b.id} className="group flex items-center rounded-aw hover:bg-surface-2">
+        {brandMenu.anchor ? (
+          <Pop anchor={brandMenu.anchor} onClose={brandMenu.close} width={256} label="Brands">
+            <div className="px-1">
+              {p.brands.map((b) => (
+                <div key={b.id} className="group flex items-center rounded-aw hover:bg-surface-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      p.onSwitch(b.id);
+                      brandMenu.close();
+                    }}
+                    className={`flex h-8 min-w-0 flex-1 items-center gap-2 rounded-aw px-2 text-left text-[13px] ${b.id === p.active?.id ? "font-medium text-ink" : "text-body"}`}
+                  >
+                    <BrandLogo src={b.logo} name={b.name} size={18} />
+                    <span className="truncate">{b.name}</span>
+                    <span className="ml-auto truncate text-[12px] text-muted">{b.domain}</span>
+                  </button>
+                  {p.canEdit ? (
+                    <button
+                      type="button"
+                      aria-label={`Remove ${b.name}`}
+                      title={`Remove ${b.name}`}
+                      onClick={() => {
+                        brandMenu.close();
+                        p.onRemove(b);
+                      }}
+                      className="mr-1.5 rounded-none px-1.5 text-[15px] leading-none text-muted hover:text-neg"
+                    >
+                      ×
+                    </button>
+                  ) : null}
+                </div>
+              ))}
+              {p.canEdit ? (
                 <button
                   type="button"
                   onClick={() => {
-                    p.onSwitch(b.id);
-                    setOpen(false);
+                    brandMenu.close();
+                    p.onAdd();
                   }}
-                  className={`flex h-8 min-w-0 flex-1 items-center gap-2 rounded-aw px-2 text-left text-[13px] ${b.id === p.active?.id ? "font-medium text-ink" : "text-body"}`}
+                  className="mt-1 flex h-8 w-full items-center rounded-aw border-t border-rule-faint px-2 text-left text-[13px] text-body hover:bg-surface-2"
                 >
-                  <BrandLogo src={b.logo} name={b.name} size={18} />
-                  <span className="truncate">{b.name}</span>
-                  <span className="ml-auto truncate text-[12px] text-muted">{b.domain}</span>
+                  + Add a brand
                 </button>
-                {p.canEdit ? (
-                  <button
-                    type="button"
-                    aria-label={`Remove ${b.name}`}
-                    title={`Remove ${b.name}`}
-                    onClick={() => {
-                      setOpen(false);
-                      p.onRemove(b);
-                    }}
-                    className="mr-1.5 rounded-none px-1.5 text-[15px] leading-none text-muted hover:text-neg"
-                  >
-                    ×
-                  </button>
-                ) : null}
-              </div>
-            ))}
-            {p.canEdit ? (
-              <button
-                type="button"
-                onClick={() => {
-                  setOpen(false);
-                  p.onAdd();
-                }}
-                className="mt-1 flex h-8 w-full items-center rounded-aw border-t border-rule-faint px-2 text-left text-[13px] text-body hover:bg-surface-2"
-              >
-                + Add a brand
-              </button>
-            ) : null}
-          </div>
+              ) : null}
+            </div>
+          </Pop>
         ) : null}
       </div>
       {!p.visibility ? null : (

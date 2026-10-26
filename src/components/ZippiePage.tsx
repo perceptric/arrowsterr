@@ -6,6 +6,7 @@ import type { RunAuth } from "@/lib/runner";
 import { CMS, type CmsKind } from "@/lib/cmsTypes";
 import { ConnectWizard } from "./ConnectWizard";
 import { Markdown } from "./Markdown";
+import { closeAllPops, Pop } from "./Pickers";
 import { Zippie } from "./Zippie";
 
 // Zippie: a chat that does things. Chats on the right, grouped into projects. Knowledge teaches him
@@ -578,6 +579,11 @@ function Composer(p: { busy: boolean; canEdit: boolean; skills: Skill[]; onSend:
   const [text, setText] = useState("");
   const [skill, setSkill] = usePendingSkill();
   const [menu, setMenu] = useState<"" | "main" | "skills">("");
+  const [menuAt, setMenuAt] = useState<DOMRect | null>(null);
+  const closeMenu = useCallback(() => {
+    setMenu("");
+    setMenuAt(null);
+  }, []);
   const box = useRef<HTMLTextAreaElement>(null);
   const files = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -624,11 +630,26 @@ function Composer(p: { busy: boolean; canEdit: boolean; skills: Skill[]; onSend:
       />
       <div className="flex items-center justify-between px-2 pb-2">
         <div className="relative">
-          <button type="button" className="zp-icon-btn" aria-label="Add files or use a skill" title="Add files or use a skill" onClick={() => setMenu(menu ? "" : "main")}>
+          <button
+            type="button"
+            className="zp-icon-btn"
+            aria-label="Add files or use a skill"
+            title="Add files or use a skill"
+            onClick={(e) => {
+              if (menu) closeMenu();
+              else {
+                closeAllPops();
+                setMenuAt(e.currentTarget.getBoundingClientRect());
+                setMenu("main");
+              }
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
             <Icon d={I.plus} size={18} />
           </button>
-          {menu ? (
-            <div className="zp-menu" onMouseLeave={() => setMenu("")}>
+          {menu && menuAt ? (
+            <Pop anchor={menuAt} onClose={closeMenu} width={280} label="Add files or use a skill">
+              <div className="zp-menu zp-menu--pop" onMouseLeave={closeMenu}>
               {menu === "main" ? (
                 <>
                   <button type="button" disabled={!p.canEdit} onClick={() => files.current?.click()} title={p.canEdit ? "" : "Editors and admins can add knowledge"}>
@@ -648,7 +669,7 @@ function Composer(p: { busy: boolean; canEdit: boolean; skills: Skill[]; onSend:
                     type="button"
                     onClick={() => {
                       setSkill(s);
-                      setMenu("");
+                      closeMenu();
                     }}
                   >
                     <Spark size={12} className="text-brand" />
@@ -659,7 +680,8 @@ function Composer(p: { busy: boolean; canEdit: boolean; skills: Skill[]; onSend:
                   </button>
                 ))
               )}
-            </div>
+              </div>
+            </Pop>
           ) : null}
           <input
             ref={files}
@@ -670,7 +692,7 @@ function Composer(p: { busy: boolean; canEdit: boolean; skills: Skill[]; onSend:
             onChange={(e) => {
               const list = [...(e.target.files ?? [])];
               e.target.value = "";
-              setMenu("");
+              closeMenu();
               if (list.length) p.onKnowledgeFiles(list);
             }}
           />
@@ -1054,6 +1076,11 @@ function ChatsPanel(p: {
   onThread: (t: Thread, action: "rename" | "delete" | "move", extra?: Record<string, unknown>) => void;
 }) {
   const [menu, setMenu] = useState<string | null>(null);
+  const [menuAt, setMenuAt] = useState<DOMRect | null>(null);
+  const closeMenu = useCallback(() => {
+    setMenu(null);
+    setMenuAt(null);
+  }, []);
   const [q, setQ] = useState("");
   const loose = p.threads.filter((t) => !t.project_id && (!q || t.title.toLowerCase().includes(q.toLowerCase())));
   const [now] = useState(() => Date.now());
@@ -1077,15 +1104,29 @@ function ChatsPanel(p: {
         {t.title}
       </button>
       <div className="relative">
-        <button type="button" className="zp-row__more" aria-label="Chat options" onClick={() => setMenu(menu === t.id ? null : t.id)}>
+        <button
+          type="button"
+          className="zp-row__more"
+          aria-label="Chat options"
+          onClick={(e) => {
+            if (menu === t.id) closeMenu();
+            else {
+              closeAllPops();
+              setMenuAt(e.currentTarget.getBoundingClientRect());
+              setMenu(t.id);
+            }
+          }}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
           <Icon d={I.dots} size={15} />
         </button>
-        {menu === t.id ? (
-          <div className="zp-menu zp-menu--right" onMouseLeave={() => setMenu(null)}>
+        {menu === t.id && menuAt ? (
+          <Pop anchor={menuAt} onClose={closeMenu} width={240} label="Chat options">
+            <div className="zp-menu zp-menu--pop" onMouseLeave={closeMenu}>
             <button
               type="button"
               onClick={() => {
-                setMenu(null);
+                closeMenu();
                 const title = prompt("Rename chat", t.title);
                 if (title?.trim()) p.onThread(t, "rename", { title });
               }}
@@ -1099,7 +1140,7 @@ function ChatsPanel(p: {
                 type="button"
                 disabled={t.project_id === pr.id}
                 onClick={() => {
-                  setMenu(null);
+                  closeMenu();
                   p.onThread(t, "move", { projectId: pr.id });
                 }}
               >
@@ -1110,7 +1151,7 @@ function ChatsPanel(p: {
               <button
                 type="button"
                 onClick={() => {
-                  setMenu(null);
+                  closeMenu();
                   p.onThread(t, "move", { projectId: null });
                 }}
               >
@@ -1121,13 +1162,14 @@ function ChatsPanel(p: {
               type="button"
               className="text-[#B3093C]!"
               onClick={() => {
-                setMenu(null);
+                closeMenu();
                 if (confirm("Delete this chat?")) p.onThread(t, "delete");
               }}
             >
               <Icon d={I.x} /> Delete
             </button>
-          </div>
+            </div>
+          </Pop>
         ) : null}
       </div>
     </div>

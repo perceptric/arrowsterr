@@ -2,7 +2,7 @@
 
 import { Fragment, useEffect, useRef, useState } from "react";
 import { quietly, recordUndo } from "@/lib/undo";
-import { DateField, DatePop, Dropdown, Pop, SelectPop, type Option } from "./Pickers";
+import { DateField, DatePop, Dropdown, Pop, SelectPop, useAnchoredPop, type Option } from "./Pickers";
 import { sortRows, useSort, type Sort } from "./ui";
 
 // A spreadsheet that works like Google Sheets.
@@ -469,7 +469,7 @@ export function Sheet<T>({
   const [page, setPage] = useState(0);
   const [filters, setFilters] = useState<Record<string, Filter>>({});
   const [layout, setLayoutState] = useState<Layout>(() => readLayout(id));
-  const [menu, setMenu] = useState(false);
+  const menu = useAnchoredPop();
   const [colMenu, setColMenu] = useState<{ id: string; rect: DOMRect } | null>(null);
   const [editing, setEditing] = useState<{
     cell: string;
@@ -478,7 +478,8 @@ export function Sheet<T>({
   } | null>(null); // "rowKey|colId"
   const [cur, setCur] = useState<Pos | null>(null);
   const [anchor, setAnchor] = useState<Pos | null>(null);
-  const [keysOpen, setKeysOpen] = useState(false);
+  const keysMenu = useAnchoredPop();
+  const keysBtn = useRef<HTMLButtonElement | null>(null);
   const [flash, setFlash] = useState("");
   const drag = useRef<{ from: Pos; moved: boolean } | null>(null);
   // The latest rows and selection, for undo and redo steps that run later.
@@ -488,7 +489,6 @@ export function Sheet<T>({
   });
   const pasted = useRef(false);
   const wrapRef = useRef<HTMLDivElement | null>(null);
-  const menuRef = useRef<HTMLDivElement | null>(null);
   const active = Object.entries(filters).filter(([, f]) => filterOn(f));
 
   const setLayout = (next: Layout) => {
@@ -500,19 +500,6 @@ export function Sheet<T>({
       // Storage blocked. The layout lasts until the page reloads.
     }
   };
-
-  useEffect(() => {
-    if (!menu) return;
-    const close = (e: MouseEvent | KeyboardEvent) => {
-      if (e instanceof KeyboardEvent ? e.key === "Escape" : !menuRef.current?.contains(e.target as Node)) setMenu(false);
-    };
-    document.addEventListener("mousedown", close);
-    document.addEventListener("keydown", close);
-    return () => {
-      document.removeEventListener("mousedown", close);
-      document.removeEventListener("keydown", close);
-    };
-  }, [menu]);
 
   // Saved order first, then any new columns in their natural spot.
   const known = layout.order.filter((cid) => allCols.some((c) => c.id === cid));
@@ -878,7 +865,11 @@ export function Sheet<T>({
       }, 120);
       return;
     }
-    if (mod && k === "/") return (e.preventDefault(), setKeysOpen((x) => !x));
+    if (mod && k === "/") {
+      e.preventDefault();
+      if (keysBtn.current) keysMenu.toggle(keysBtn.current);
+      return;
+    }
     // Typing starts editing the cell, like a spreadsheet.
     if (!mod && !e.altKey && k.length === 1 && gridCols[at.c]?.edit && gridCols[at.c].id !== PICK) {
       e.preventDefault();
@@ -964,11 +955,23 @@ export function Sheet<T>({
         {tools ? (
         <span className="ml-auto flex items-center gap-2">
           <div className="relative">
-            <button type="button" className={`aw-chip aw-chip--btn ${keysOpen ? "is-on" : ""}`} onClick={() => setKeysOpen(!keysOpen)} aria-expanded={keysOpen} title="Keyboard shortcuts (Ctrl /)">
+            <button
+              ref={keysBtn}
+              type="button"
+              className={`aw-chip aw-chip--btn ${keysMenu.anchor ? "is-on" : ""}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                keysMenu.toggle(e.currentTarget);
+              }}
+              onMouseDown={(e) => e.stopPropagation()}
+              aria-expanded={Boolean(keysMenu.anchor)}
+              title="Keyboard shortcuts (Ctrl /)"
+            >
               ⌨ Shortcuts
             </button>
-            {keysOpen ? (
-              <div className="absolute right-0 z-30 mt-1 w-72 rounded-aw border border-rule bg-white p-3 text-[12px] text-ink shadow-aw" onMouseLeave={() => setKeysOpen(false)}>
+            {keysMenu.anchor ? (
+              <Pop anchor={keysMenu.anchor} onClose={keysMenu.close} width={288} label="Keyboard shortcuts">
+                <div className="p-3 text-[12px] text-ink" onMouseLeave={keysMenu.close}>
                 <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5">
                   {[
                     ["Click", "Edit the cell"],
@@ -996,7 +999,8 @@ export function Sheet<T>({
                   ))}
                 </dl>
                 <p className="mt-2 text-muted">On a Mac, use Cmd in place of Ctrl.</p>
-              </div>
+                </div>
+              </Pop>
             ) : null}
           </div>
           {onAddColumn ? (
@@ -1004,13 +1008,23 @@ export function Sheet<T>({
               + Column
             </button>
           ) : null}
-          <div className="relative" ref={menuRef}>
-            <button type="button" className={`aw-chip aw-chip--btn ${menu ? "is-on" : ""}`} onClick={() => setMenu(!menu)} aria-expanded={menu}>
+          <div className="relative">
+            <button
+              type="button"
+              className={`aw-chip aw-chip--btn ${menu.anchor ? "is-on" : ""}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                menu.toggle(e.currentTarget);
+              }}
+              onMouseDown={(e) => e.stopPropagation()}
+              aria-expanded={Boolean(menu.anchor)}
+            >
               Columns
               {layout.hidden.length ? ` · ${layout.hidden.length} hidden` : ""}
             </button>
-            {menu ? (
-              <div className="absolute right-0 z-30 mt-1 flex max-h-96 w-64 flex-col overflow-y-auto rounded-aw border border-rule bg-white py-1 shadow-aw">
+            {menu.anchor ? (
+              <Pop anchor={menu.anchor} onClose={menu.close} width={256} label="Columns">
+                <div className="flex max-h-96 flex-col overflow-y-auto py-1">
                 {ordered.map((c, i) => (
                   <div key={c.id} className="flex items-center gap-2 px-3 py-1.5 text-[13px] text-ink hover:bg-surface-2">
                     <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2">
@@ -1039,7 +1053,8 @@ export function Sheet<T>({
                 <button type="button" className="aw-text-link px-3 py-2 text-left text-[12px]" onClick={() => setLayout(EMPTY)}>
                   Reset layout
                 </button>
-              </div>
+                </div>
+              </Pop>
             ) : null}
           </div>
         </span>

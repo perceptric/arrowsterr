@@ -16,6 +16,7 @@ import { useStash } from "@/lib/stash";
 import { briefGuides, briefToDoc, type Guide } from "@/lib/writer";
 import type { BrandGuideline } from "@/lib/writerTypes";
 import { Thinking } from "../ui";
+import { Pop, useAnchoredPop } from "../Pickers";
 import { GuideRail, railSections, type RailSection } from "./CommentRail";
 import { Embed, exportClean, Note } from "./writerNodes";
 import { PublishPanel } from "./PublishPanel";
@@ -249,29 +250,32 @@ function FromCalendar({ sb, auth, site, canEdit, onBlank, onOpen }: { sb: Supaba
 
 /** Pick a draft from a menu, so the editor gets the full width. */
 function DraftMenu({ docs, openId, canEdit, onOpen, onRemove, onClose }: { docs: DocMeta[]; openId: string | null; canEdit: boolean; onOpen: (id: string) => void; onRemove: (id: string) => void; onClose: () => void }) {
-  const [show, setShow] = useState(false);
-  const ref = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
-    if (!show) return;
-    const away = (e: MouseEvent) => ref.current && !ref.current.contains(e.target as globalThis.Node) && setShow(false);
-    document.addEventListener("mousedown", away);
-    return () => document.removeEventListener("mousedown", away);
-  }, [show]);
+  const menu = useAnchoredPop();
   const cur = docs.find((d) => d.id === openId);
   return (
-    <div className="relative" ref={ref}>
+    <div className="relative">
       <span className="flex items-center gap-1">
         {cur ? (
           <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={onClose} aria-label="All drafts">
             ←
           </button>
         ) : null}
-        <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm max-w-96" onClick={() => setShow(!show)} aria-expanded={show}>
+        <button
+          type="button"
+          className="aw-btn aw-btn--secondary aw-btn--sm max-w-96"
+          onClick={(e) => {
+            e.stopPropagation();
+            menu.toggle(e.currentTarget);
+          }}
+          onMouseDown={(e) => e.stopPropagation()}
+          aria-expanded={Boolean(menu.anchor)}
+        >
           <span className="truncate">{cur ? cur.title || "Untitled" : `All drafts · ${docs.length}`}</span> ▾
         </button>
       </span>
-      {show ? (
-        <ul className="absolute z-30 mt-2 max-h-[60vh] w-80 overflow-auto rounded-aw border border-rule bg-white py-1 shadow-aw-lg">
+      {menu.anchor ? (
+        <Pop anchor={menu.anchor} onClose={menu.close} width={320} label="Drafts">
+          <ul className="max-h-[60vh] overflow-auto py-1">
           {docs.map((d) => (
             <li key={d.id} className={`group flex items-start gap-2 px-3 py-2 ${d.id === openId ? "bg-brand-pale" : "hover:bg-surface-2"}`}>
               <button
@@ -279,7 +283,7 @@ function DraftMenu({ docs, openId, canEdit, onOpen, onRemove, onClose }: { docs:
                 className="min-w-0 flex-1 rounded-none text-left"
                 onClick={() => {
                   onOpen(d.id);
-                  setShow(false);
+                  menu.close();
                 }}
               >
                 <span className="block truncate text-[14px] text-ink">{d.title || "Untitled"}</span>
@@ -295,7 +299,8 @@ function DraftMenu({ docs, openId, canEdit, onOpen, onRemove, onClose }: { docs:
             </li>
           ))}
           {!docs.length ? <li className="aw-small px-3 py-3">No drafts yet</li> : null}
-        </ul>
+          </ul>
+        </Pop>
       ) : null}
     </div>
   );

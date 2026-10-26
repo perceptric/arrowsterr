@@ -450,6 +450,8 @@ html, body { background: #F8F8FF; }
 .aw .zp-send:disabled { background: #C9D2E3; cursor: default; }
 .aw .zp-menu { position: absolute; bottom: calc(100% + 6px); left: 0; z-index: 40; display: flex; min-width: 260px; max-width: 320px; max-height: 360px; flex-direction: column; overflow-y: auto; border-radius: 14px; background: #fff; padding: 6px; box-shadow: 0 0 0 1px #E3E7EF, 0 16px 40px -12px rgba(11, 27, 63, 0.3); }
 .aw .zp-menu--right { top: calc(100% + 4px); right: 0; bottom: auto; left: auto; min-width: 210px; }
+/* In a Pop the portal supplies the box, so a Zippie menu keeps only its rows. */
+.aw .zp-menu--pop { position: static; top: auto; right: auto; bottom: auto; left: auto; z-index: auto; min-width: 0; max-width: none; border-radius: 0; background: transparent; padding: 0; box-shadow: none; }
 .aw .zp-menu button { display: flex; align-items: center; gap: 10px; border-radius: 9px; padding: 8px 10px; text-align: left; font-size: 13.5px; color: var(--aw-ink); }
 .aw .zp-menu button:hover:not(:disabled) { background: #F2F4F8; }
 .aw .zp-menu button:disabled { opacity: 0.45; cursor: default; }
