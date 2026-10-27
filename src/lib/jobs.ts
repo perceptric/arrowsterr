@@ -1,4 +1,5 @@
 import "server-only";
+import { readyCheck } from "./readyCheck";
 import { adminClient } from "./serverAuth";
 
 // The job queue (supabase/016_queue.sql). Routes add jobs; workers claim and run them.
@@ -15,14 +16,12 @@ const db = () => {
 };
 
 /** True when the queue tables exist, so routes can fall back to running work inline before the migration. */
-let ready: boolean | null = null;
-export async function queueReady() {
-  if (ready !== null) return ready;
+export const queueReady = readyCheck(async () => {
   const c = adminClient();
-  if (!c) return (ready = false);
+  if (!c) return false;
   const { error } = await c.from("jobs").select("id").limit(1);
-  return (ready = !error);
-}
+  return !error;
+});
 
 export async function enqueue(kind: JobKind, payload: Record<string, unknown>, opts: { workspaceId?: string | null; key?: string; runAt?: Date; maxAttempts?: number } = {}) {
   const { data, error } = await db().rpc("enqueue_job", {

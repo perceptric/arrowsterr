@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { inspectSite } from "@/lib/platform";
-import { requireRole } from "@/lib/serverAuth";
+import { adminClient, requireRole } from "@/lib/serverAuth";
 import { active, createWebsite, stats, trackerOrigin, umamiReady } from "@/lib/umami";
 
 type SiteRow = {
@@ -45,7 +45,10 @@ export async function POST(request: Request) {
       const websiteId = site.umami_website_id ?? (await createWebsite(site.name, site.domain));
       const { platform } = await inspectSite(site.domain);
       const update = { umami_website_id: websiteId, site_platform: platform, install_token: site.install_token ?? randomBytes(12).toString("hex") };
-      const res = await auth.sb.from("brands").update(update).eq("id", site.id);
+      // Only the server sets tracking ids (supabase/058_server_owns_tracking_ids.sql). requireRole checked the caller is an editor.
+      const db = adminClient();
+      if (!db) throw new Error("Add SUPABASE_SECRET_KEY to the server's settings.");
+      const res = await db.from("brands").update(update).eq("id", site.id).eq("workspace_id", body.workspaceId);
       if (res.error) throw new Error(res.error.message);
       site = { ...site, ...update };
     }
