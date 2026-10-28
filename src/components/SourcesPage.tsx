@@ -1,7 +1,7 @@
 "use client";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { Fragment, useEffect, useState } from "react";
+import { createContext, Fragment, useContext, useEffect, useState } from "react";
 import { latestAnswersFor, type Answer } from "@/lib/db";
 import { useStash } from "@/lib/stash";
 import {
@@ -30,6 +30,7 @@ import { StopButton, stopped } from "./research/shared";
 import { ENGINE_LOGOS, EngineName } from "./Engines";
 import { Markdown } from "./Markdown";
 import { cleanAnswer } from "@/lib/answerText";
+import { isGenericTitle, siteName } from "@/lib/linkTitles";
 import { Card, Empty, favicon, pct, Seg, SidePanel, sortRows, SortTh, Tip, TIPS, useSort } from "./ui";
 
 export const TYPE_COLORS: Record<SourceType, string> = {
@@ -74,6 +75,41 @@ const pageTitle = (title: string | null, url: string) => {
     return url;
   }
 };
+/** Real page titles, read on the server for links whose engine label says nothing. "" when a page couldn't be read. */
+const TitlesCtx = createContext<Record<string, string>>({});
+
+/** What a cited link is called on screen: its own title, or the page's real title when the engines only said "Official website". */
+const shownTitle = (title: string | null, url: string, fetched: Record<string, string>) =>
+  isGenericTitle(title, url) ? fetched[url] || siteName(url) : pageTitle(title, url);
+
+/** Asks the server for real titles of the links on screen that need one. Draws nothing. */
+function TitleLoader({ urls, reader, onTitles }: { urls: string[]; reader: RunAuth; onTitles: (t: Record<string, string>) => void }) {
+  const key = urls.join("\n");
+  useEffect(() => {
+    if (!key) return;
+    let live = true;
+    (async () => {
+      const list = key.split("\n");
+      for (let i = 0; i < list.length && live; i += 30) {
+        const res = await fetch("/api/link-titles", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${await reader.token()}` },
+          body: JSON.stringify({ workspaceId: reader.workspaceId, urls: list.slice(i, i + 30) }),
+        }).catch(() => null);
+        const data = res?.ok ? await res.json().catch(() => null) : null;
+        if (live && data?.titles) onTitles(data.titles);
+        if (!data?.titles) break;
+      }
+    })();
+    return () => {
+      live = false;
+    };
+    // onTitles only merges into state; the request depends on the list of links.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, reader]);
+  return null;
+}
+
 const pathOnly = (u: string) => {
   try {
     return (new URL(u, "https://x.invalid").pathname.replace(/\/+$/, "") || "/").toLowerCase();
@@ -109,6 +145,7 @@ export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseCli
   // Visits from AI to each of your pages, from Google Analytics or the tracking script. Shared with the Traffic page.
   const [traffic, setTraffic] = useStash<Record<number, AiPages>>(`traffic:${brand.id}:data`, {});
   const aiPages = traffic[days] ?? null;
+  const [fetched, setFetched] = useStash<Record<string, string>>("link-titles", {});
   useEffect(() => {
     if (aiPages) return;
     let live = true;
@@ -298,7 +335,7 @@ export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseCli
                 </tr>
               </thead>
               <tbody>
-                {sortRows(links.slice(0, 300), linkSort, { title: (u) => pageTitle(u.title, u.url), used: (u) => u.used, chats: (u) => u.chats, prompts: (u) => u.prompts.length })
+                {sortRows(links.slice(0, 300), linkSort, { title: (u) => shownTitle(u.title, u.url, fetched), used: (u) => u.used, chats: (u) => u.chats, prompts: (u) => u.prompts.length })
                   .slice(0, max)
                   .map((u, i) => (
                   <LinkRow key={u.url} u={u} n={i + 1} note={notes.get(pageKey(u.url))} ai={aiPages && group === "owned" ? aiVisitsOf(u.url) : undefined} onOpen={() => setDeep(u)} />
@@ -307,7 +344,15 @@ export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseCli
             </table>
           );
 
+  const needTitles = links
+    .slice(0, 120)
+    .filter((u) => isGenericTitle(u.title, u.url) && !(u.url in fetched))
+    .map((u) => u.url)
+    .slice(0, 60);
+
   return (
+    <TitlesCtx.Provider value={fetched}>
+    <TitleLoader urls={needTitles} reader={reader} onTitles={(t) => setFetched((x) => ({ ...x, ...t }))} />
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="aw-h2">Sources</h1>
@@ -482,18 +527,20 @@ export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseCli
         </div>
       </Card>
     </div>
+    </TitlesCtx.Provider>
   );
 }
 
 /** One cited link: title, address, share of answers and prompts. */
 function LinkRow({ u, n, note, indent = false, ai, onOpen }: { u: UrlRow; n?: number; note?: Insights["pages"][number]; indent?: boolean; ai?: number | null; onOpen: () => void }) {
+  const fetched = useContext(TitlesCtx);
   return (
     <tr className={`cursor-pointer hover:bg-brand-pale ${indent ? "bg-paper" : ""}`} onClick={onOpen}>
       <td className="aw-num text-muted">{n ?? ""}</td>
       <td>
         <span className={`flex min-w-0 flex-col gap-0.5 ${indent ? "pl-8" : ""}`}>
           <span className="max-w-xl truncate text-[14px] font-medium text-ink" title={u.url}>
-            {pageTitle(u.title, u.url)}
+            {shownTitle(u.title, u.url, fetched)}
           </span>
           <span className="flex min-w-0 items-center gap-1.5 text-[12px] text-muted">
             {!indent ? <BrandLogo src={favicon(u.domain)} name={u.domain} size={12} /> : null}
@@ -547,6 +594,7 @@ function LinkPanel({
   onClose: () => void;
 }) {
   const key = pageKey(u.url);
+  const fetched = useContext(TitlesCtx);
   const cites: Cite[] = runs.flatMap((r) =>
     r.chats.filter((c) => filter(c) && isAnswered(c) && c.sources.some((x) => pageKey(x.url) === key)).map((c) => ({ at: r.at, engine: c.engine, prompt: c.prompt })),
   );
@@ -591,7 +639,7 @@ function LinkPanel({
     });
 
   return (
-    <SidePanel title={pageTitle(u.title, u.url)} kicker={`Link · ${u.domain} · last ${days} days`} onClose={onClose}>
+    <SidePanel title={shownTitle(u.title, u.url, fetched)} kicker={`Link · ${u.domain} · last ${days} days`} onClose={onClose}>
       <div className="flex flex-wrap items-center gap-3">
         <a href={u.url} target="_blank" rel="noopener noreferrer nofollow" className="max-w-full truncate text-[14px]">
           {u.url.replace(/^https?:\/\//, "")} ↗

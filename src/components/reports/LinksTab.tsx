@@ -83,7 +83,7 @@ export function LinksTab({ sb, auth, brands, canEdit, secure }: { sb: SupabaseCl
     <>
       {error ? <p className="aw-error">{error}</p> : null}
       {!links.length ? (
-        <ToolIntro eyebrow="Links" title="Links you share land here" lead="Click Share on Prompts or Competitors. Each link shows here with its views, and you can add a password, set an expiry date or revoke it." />
+        <ToolIntro title="Links you share land here" lead="Click Share on Prompts or Competitors. Each link shows here with its views, and you can add a password, set an expiry date or revoke it." />
       ) : (
         <section className="aw-frame overflow-x-auto">
           <table className="aw-table aw-table--compact">

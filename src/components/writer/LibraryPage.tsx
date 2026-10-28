@@ -89,7 +89,7 @@ export function LibraryPage({ view, auth, canEdit }: { view: View; auth: RunAuth
         <ContentGrid sb={sb} auth={auth} site={site} brandId={brand.id} canEdit={canEdit} onOpen={setOpen} />
       ) : (
         <ToolIntro
-          title="Library"
+          title="Write articles that rank and get cited"
           lead={`Import keywords from the Editorial Calendar. For each one, Arrowsterr researches Google and the AI answers and writes the brief. Your writers fill it in, section by section, in ${brand.name}'s voice.`}
           features={[
             { title: "Brief", text: "Headings, meta, sources, FAQs and internal links, from the top pages and the AI answers." },
