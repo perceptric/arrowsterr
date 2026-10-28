@@ -148,3 +148,29 @@
 :root .aw .aw-ws-switch { font-size: 14px !important; font-weight: 600 !important; letter-spacing: 0; }
 :root .aw .aw-page-title { font-size: 14px !important; font-weight: 500 !important; letter-spacing: 0 !important; color: var(--text-primary) !important; }
 :root .aw .aw-page-title__group { color: var(--text-secondary) !important; font-weight: 500 !important; }
+
+/* ─────────────── 9. One button shape ───────────────
+   Every button in the app is a pill: actions, icon buttons, pickers, tool
+   buttons, switches and the small buttons inside the editor and Zippie.
+   Fields (inputs, dropdowns) stay at 8px; menus and rows stay square-ish. */
+:root .aw {
+  --btn-radius: 999px;
+}
+:root .aw :is(
+  .aw-btn, a.aw-btn, .tw-btn,
+  .aw-iconbtn, .aw-icon-btn, .aw-rail__btn, .aw-nav-toggle, .aw-tool, .aw-ctl, .aw-viewbtn, .aw-try, .aw-undo button,
+  .aw-sheet__openbtn, .aw-sheet__filter, .aw-bank__filter,
+  .aw-agent__go, .aw-agent__ask, .aw-agent__send, .aw-bubble__ask, .aw-bubble__btn, .aw-stop,
+  .aw-guide__go, .aw-guide__more, .aw-guide__ask,
+  .aw-chip--btn, .aw-zippie-fab,
+  .zp-icon-btn, .zp-send, .zp-new, .zp-action, .zp-row__more, .zp-skill-chip button,
+  .aw-seg, .aw-seg button, .aw-pick, .aw-pick button, .aw-pos__scale button
+) {
+  border-radius: var(--btn-radius) !important;
+  corner-shape: round;
+}
+:root .aw .aw-wbar .aw-iconbtn, :root .aw .aw-guide:not(.is-active) :is(.aw-guide__go, .aw-guide__more) { border-radius: var(--btn-radius) !important; }
+/* The two-way toolset pick on the plan cards works like the switch above. */
+:root .aw .aw-pick { gap: 2px; padding: 2px; border: 0; background: var(--seg-track); }
+:root .aw .aw-pick button { padding: 5px 10px; border-left: 0; white-space: nowrap; font-size: 13px; font-weight: 500; color: var(--text-secondary); }
+:root .aw .aw-pick button.is-on { background: var(--bg-primary); color: var(--text-primary); box-shadow: var(--card-lift); }
