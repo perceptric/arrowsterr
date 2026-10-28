@@ -12,6 +12,7 @@ import { BrandLogo } from "./BrandLogo";
 import { Gauge } from "./Donut";
 import { ENGINE_LOGOS, EngineName } from "./Engines";
 import { Markdown } from "./Markdown";
+import { cleanAnswer } from "@/lib/answerText";
 import { TrendChart } from "./TrendChart";
 import { BrandName, Delta, Empty, favicon, OTHER_COLORS, pct, Seg, Tip, TIPS, YOU_COLOR } from "./ui";
 
@@ -765,7 +766,7 @@ function Detail({
               {texts === null ? (
                 <span className="aw-small">Loading...</span>
               ) : full ? (
-                <Markdown text={full.text} />
+                <Markdown text={cleanAnswer(full.text, full.engine)} />
               ) : (
                 <span className="aw-small">No full answer saved yet.</span>
               )}

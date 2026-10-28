@@ -6,6 +6,7 @@ import type { PromptDetailSnap, PromptsSnapshot } from "@/lib/reportTypes";
 import { BrandLogo } from "../BrandLogo";
 import { ENGINE_LOGOS, EngineName } from "../Engines";
 import { Markdown } from "../Markdown";
+import { cleanAnswer } from "@/lib/answerText";
 
 const pct = (n: number | null | undefined) => (n === null || n === undefined ? "–" : `${Math.round(n)}%`);
 const SHORT: Record<string, string> = { "AI Overview": "AIO" };
@@ -202,7 +203,7 @@ function PromptDive({ brand, prompt, topic, detail, onClose }: { brand: string; 
             </span>
             {cur.at ? <span className="aw-small">{new Date(cur.at).toLocaleString()}</span> : null}
           </div>
-          <div className="px-5 py-4">{cur.text ? <Markdown text={cur.text} /> : <span className="aw-small">No full answer saved.</span>}</div>
+          <div className="px-5 py-4">{cur.text ? <Markdown text={cleanAnswer(cur.text, cur.engine)} /> : <span className="aw-small">No full answer saved.</span>}</div>
         </section>
       </div>
     </div>
