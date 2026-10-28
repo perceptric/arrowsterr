@@ -5,6 +5,7 @@
 @import "./brand-v5.css";
 @import "./twenty-ui.css";
 @import "./brew-ui.css";
+@import "./strong-ui.css";
 
 /* Point the brand font tokens at the fonts loaded by next/font in layout.tsx. */
 .aw {

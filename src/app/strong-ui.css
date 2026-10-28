@@ -1,0 +1,176 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   ARROWSTERR PRODUCT UI · v10, the strong look
+   Loaded after brew-ui.css, so it wins. Same class names; the values are
+   Notra's: Inter at 14px, #171717 ink, #62626A grey, weight 600 headings,
+   a 30px page title, and white cards set in a light grey shell. Signal
+   Blue stays the one colour that is ours. Plan: docs/ui-strong.md.
+   Source values: demo.usenotra.com stylesheet, read 28 October 2026.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ─────────────── 1. Tokens ─────────────── */
+:root, [data-theme="light"] {
+  --bg-primary: #FFFFFF; --bg-secondary: #FAFAFA; --bg-tertiary: #F5F5F5; --bg-quaternary: #EBEBEB;
+  --text-primary: #171717; --text-strong: #0A0A0A; --text-secondary: #62626A; --text-tertiary: #8A8A93; --text-light: #A1A1AA;
+  --text-sidebar: #0A0A0A;
+  --border-strong: #D4D4D4; --border-medium: #E5E5E5; --border-light: #EFEFEE;
+  --green-11: oklch(46% .109 155); --red-11: oklch(48% .18 25); --orange-11: oklch(46% .113 55);
+  --shell: #F3F3F2; --shell-border: #E7E7E5; --card-border: #E5E5E5; --row-border: #EFEFEE;
+  --card-lift: 0 1px 2px #17171C0F, 0 2px 8px -2px #17171C0F;
+  --seg-track: #F5F5F5;
+}
+[data-theme="dark"] {
+  --bg-primary: #1F1F1F; --bg-secondary: #161616; --bg-tertiary: #292929; --bg-quaternary: #333333;
+  --text-primary: #FAFAFA; --text-strong: #FFFFFF; --text-secondary: oklch(72% .006 270); --text-tertiary: #8A8A93; --text-light: #6B6B6B;
+  --text-sidebar: #FAFAFA;
+  --border-strong: #3D3D3D; --border-medium: #2C2C2C; --border-light: #292929;
+  --green-11: oklch(76% .125 155); --red-11: oklch(76% .16 25); --orange-11: oklch(76% .125 55);
+  --shell: #161616; --shell-border: #232323; --card-border: #2C2C2C; --row-border: #292929;
+  --card-lift: inset 0 1px 0 #FFFFFF0A, 0 1px 2px #00000066;
+  --seg-track: #292929;
+}
+:root {
+  --font-sans: var(--font-inter), "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--font-sans);
+  --radius-sm: 6px; --radius-md: 8px; --radius-lg: 14px;
+}
+:root .aw {
+  --aw-font: var(--font-sans);
+  --aw-display: var(--font-sans);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-primary);
+}
+
+/* ─────────────── 2. Type ─────────────── */
+/* The page title: every screen opens with its own h1.aw-h2 */
+:root .aw h1.aw-h2 { font-size: 24px !important; line-height: 32px !important; font-weight: 600 !important; letter-spacing: -0.025em !important; }
+@media (min-width: 640px) {
+  :root .aw h1.aw-h2 { font-size: 30px !important; line-height: 36px !important; }
+}
+:root .aw .aw-hero, :root .aw .aw-display, :root .aw .aw-intro__title, :root .aw .aw-onb__title {
+  font-family: var(--font-sans) !important; font-size: 30px !important; line-height: 36px !important; font-weight: 600 !important; letter-spacing: -0.025em !important;
+}
+:root .aw .aw-h1, :root .aw .aw-h2, :root .aw .tw-modal__title, :root .aw .tw-side-panel__title h2 {
+  font-family: var(--font-sans) !important; font-size: 18px !important; line-height: 28px !important; font-weight: 600 !important; letter-spacing: -0.015em !important;
+}
+:root .aw .aw-h3 { font-size: 14px !important; line-height: 20px !important; font-weight: 600 !important; letter-spacing: 0 !important; }
+:root .aw .aw-h4 { font-size: 14px !important; line-height: 20px !important; font-weight: 500 !important; letter-spacing: 0 !important; }
+:root .aw .aw-text, :root .aw .md, :root .aw .aw-lede, :root .aw .aw-lg { font-size: 14px !important; line-height: 20px !important; font-weight: 400 !important; letter-spacing: 0 !important; }
+:root .aw .aw-intro__lead { font-size: 15px !important; line-height: 22px !important; letter-spacing: 0 !important; }
+:root .aw .aw-small, :root .aw .aw-sm { font-size: 13px !important; line-height: 18px !important; }
+:root .aw .aw-label, :root .aw label > .aw-label, :root .aw .tw-field__label { font-size: 13px !important; line-height: 18px !important; font-weight: 500 !important; color: var(--text-primary) !important; letter-spacing: 0 !important; }
+:root .aw .aw-micro, :root .aw .aw-nav-section { font-size: 12px !important; line-height: 16px !important; font-weight: 500 !important; }
+:root .aw .aw-stat__lab { font-family: var(--font-sans) !important; font-size: 14px !important; line-height: 20px !important; font-weight: 500 !important; color: var(--text-secondary) !important; text-transform: none !important; letter-spacing: 0 !important; margin-bottom: 6px !important; }
+:root .aw .aw-stat__num, :root .aw .aw-kpi__num {
+  font-family: var(--font-sans) !important; font-size: 30px !important; line-height: 36px !important; font-weight: 600 !important; letter-spacing: -0.025em !important; color: var(--text-primary) !important; font-variant-numeric: tabular-nums;
+}
+
+/* ─────────────── 3. Buttons and inputs ─────────────── */
+:root .aw .aw-btn, :root .aw a.aw-btn, :root .aw a.aw-btn:link, :root .aw a.aw-btn:visited { height: 32px !important; min-height: 32px !important; padding: 0 var(--space-3) !important; letter-spacing: 0 !important; }
+:root .aw .aw-btn--sm { height: 28px !important; min-height: 28px !important; }
+:root .aw .aw-btn--lg { height: 36px !important; min-height: 36px !important; padding: 0 var(--space-4) !important; }
+:root .aw .aw-ctl { height: 32px !important; font-size: 14px !important; font-weight: 500 !important; }
+:root .aw .aw-input:not(.aw-input--hero):not(.aw-input--lg), :root .aw .aw-select, :root .aw .aw-dropdown, :root .aw .aw-dropdown--field { min-height: 32px; height: auto; border-radius: var(--radius-md) !important; letter-spacing: 0; }
+:root .aw input:is([type="text"], [type="email"], [type="url"], [type="search"], [type="password"], [type="number"], [type="tel"], [type="date"], [type="time"], :not([type])):not(.aw-sheet__input):not(.aw-docs__title):not(.tw-bare):not(.aw-input--hero):not(.aw-input--lg) { min-height: 32px; border-radius: var(--radius-md) !important; letter-spacing: 0; }
+:root .aw .aw-textarea, :root .aw textarea:not(.aw-sheet__input):not(.tw-bare) { border-radius: var(--radius-md) !important; line-height: 20px !important; }
+
+/* ─────────────── 4. Tags ─────────────── */
+:root .aw .aw-chip, :root .aw .aw-status, :root .aw .aw-sbadge, :root .aw .aw-badge, :root .aw .aw-tag, :root .aw .aw-pill, :root .aw .aw-pri, :root .aw .aw-engine { letter-spacing: 0 !important; }
+:root .aw .aw-stat__delta { font-family: var(--font-sans) !important; font-size: 12px !important; font-weight: 500 !important; letter-spacing: 0 !important; }
+
+/* ─────────────── 5. Shell and cards ─────────────── */
+/* Frames and table wraps: a white card set in a grey shell. The shell is a 3px ring plus its hairline. */
+:root .aw .aw-frame, :root .aw .aw-table-wrap, :root .aw .aw-kpi, :root .aw .aw-card-stat {
+  background: var(--bg-primary) !important; border: 1px solid var(--card-border) !important; border-radius: var(--radius-lg) !important;
+  box-shadow: 0 0 0 3px var(--shell), 0 0 0 4px var(--shell-border), var(--card-lift) !important;
+}
+:root .aw .aw-frame__head {
+  min-height: 40px; padding: var(--space-2) var(--space-3) !important; background: var(--shell) !important;
+  border-bottom: 1px solid var(--card-border) !important; border-radius: calc(var(--radius-lg) - 1px) calc(var(--radius-lg) - 1px) 0 0;
+  font-size: 14px !important; font-weight: 600 !important; letter-spacing: 0 !important; color: var(--text-primary) !important;
+}
+/* Stat rows: separate white cards in one grey shell. */
+:root .aw .aw-stats {
+  gap: 2px; padding: 2px; background: var(--shell) !important; border: 1px solid var(--shell-border) !important;
+  border-radius: calc(var(--radius-lg) + 2px) !important; box-shadow: none !important;
+}
+:root .aw .aw-stats .aw-stat {
+  background: var(--bg-primary); border: 1px solid var(--card-border) !important; border-radius: var(--radius-lg); box-shadow: var(--card-lift);
+  padding: var(--space-4) var(--space-5) !important;
+}
+:root .aw .aw-stats--tight .aw-stat { padding: var(--space-3) var(--space-4) !important; }
+:root .aw .aw-card, :root .aw .aw-tile, :root .aw .aw-intro__card { border-color: var(--card-border) !important; border-radius: var(--radius-lg) !important; }
+
+/* ─────────────── 6. Tables ─────────────── */
+/* 14px cells with 10px above and below, a 12px grey header, row lines only. The sheet keeps its grid. */
+:root .aw .aw-table, :root .aw table:not(.aw-sheet table) { font-size: 14px; }
+:root .aw table:not(.aw-sheet table) th {
+  height: 32px !important; padding: 0 var(--space-2) !important; font-size: 12px !important; font-weight: 500 !important; color: var(--text-secondary) !important;
+  border-bottom: 1px solid var(--row-border) !important; border-right: 0 !important;
+}
+:root .aw table:not(.aw-sheet table) td {
+  height: 40px; padding: 10px var(--space-2) !important; font-size: 14px !important; line-height: 20px; color: var(--text-primary);
+  border-bottom: 1px solid var(--row-border) !important; border-right: 0 !important;
+}
+:root .aw table:not(.aw-sheet table) tbody tr:last-child > td { border-bottom: 0 !important; }
+:root .aw table:not(.aw-sheet table) tbody tr:hover > td { background: color-mix(in oklab, var(--bg-tertiary) 50%, var(--bg-primary)) !important; }
+:root .aw :is(.aw-table--compact, .aw-table--dense, .aw-table--tight) td { height: 36px; padding: 8px var(--space-2) !important; }
+:root .aw :is(.aw-table--compact, .aw-table--dense, .aw-table--tight) th { font-size: 12px !important; }
+
+/* ─────────────── 7. Switches and page tabs ─────────────── */
+:root .aw .aw-seg {
+  gap: 2px !important; padding: 2px !important; background: var(--seg-track) !important; border-radius: var(--radius-md) !important; box-shadow: none !important;
+}
+:root .aw .aw-seg > button, :root .aw .aw-seg button {
+  height: 28px !important; min-height: 28px !important; padding: 0 var(--space-2_5, 10px) !important; border-radius: var(--radius-sm) !important;
+  font-size: 14px !important; font-weight: 500 !important; letter-spacing: 0 !important; color: var(--text-secondary) !important;
+}
+:root .aw .aw-seg > button.is-on, :root .aw .aw-seg > button[aria-selected="true"], :root .aw .aw-seg button.is-on {
+  background: var(--bg-primary) !important; color: var(--text-primary) !important; box-shadow: var(--card-lift) !important;
+}
+:root .aw .aw-seg > button.is-on::after, :root .aw .aw-seg > button[aria-selected="true"]::after { display: none !important; }
+:root .aw .aw-tabs > button { font-size: 14px !important; font-weight: 500 !important; letter-spacing: 0 !important; }
+:root .aw .aw-tabs > button[aria-selected="true"]::after { height: 2px !important; }
+
+/* ─────────────── 8. App shell ─────────────── */
+:root .aw .aw-sidebar, :root .aw .aw-rail { background: var(--bg-secondary) !important; }
+:root .aw .aw-nav-link, :root .aw .aw-mod, :root .aw .aw-mod--sm, :root .aw .aw-mod__item {
+  height: 32px !important; min-height: 32px !important; border-radius: var(--radius-md) !important;
+  font-size: 14px !important; font-weight: 500 !important; letter-spacing: 0 !important; color: var(--text-sidebar) !important;
+}
+:root .aw .aw-nav-link:hover, :root .aw .aw-mod:hover, :root .aw .aw-mod__item:hover { background: var(--bg-tertiary) !important; color: var(--text-sidebar) !important; }
+:root .aw .aw-nav-link.is-on, :root .aw .aw-nav-link[aria-current="page"], :root .aw .aw-mod.is-on, :root .aw .aw-mod--sm.is-on, :root .aw .aw-mod__item.is-on {
+  background: var(--bg-tertiary) !important; color: var(--text-sidebar) !important; font-weight: 500 !important;
+}
+:root .aw .aw-nav-link .aw-nav__icon, :root .aw .aw-nav__icon { color: var(--text-sidebar) !important; }
+:root .aw .aw-nav-section { color: var(--text-tertiary) !important; }
+:root .aw .aw-ws-switch { font-size: 14px !important; font-weight: 600 !important; letter-spacing: 0; }
+:root .aw .aw-page-title { font-size: 14px !important; font-weight: 500 !important; letter-spacing: 0 !important; color: var(--text-primary) !important; }
+:root .aw .aw-page-title__group { color: var(--text-secondary) !important; font-weight: 500 !important; }
+
+/* ─────────────── 9. One button shape ───────────────
+   Every button in the app is a pill: actions, icon buttons, pickers, tool
+   buttons, switches and the small buttons inside the editor and Zippie.
+   Fields (inputs, dropdowns) stay at 8px; menus and rows stay square-ish. */
+:root .aw {
+  --btn-radius: 999px;
+}
+:root .aw :is(
+  .aw-btn, a.aw-btn, .tw-btn,
+  .aw-iconbtn, .aw-icon-btn, .aw-rail__btn, .aw-nav-toggle, .aw-tool, .aw-ctl, .aw-viewbtn, .aw-try, .aw-undo button,
+  .aw-sheet__openbtn, .aw-sheet__filter, .aw-bank__filter,
+  .aw-agent__go, .aw-agent__ask, .aw-agent__send, .aw-bubble__ask, .aw-bubble__btn, .aw-stop,
+  .aw-guide__go, .aw-guide__more, .aw-guide__ask,
+  .aw-chip--btn, .aw-zippie-fab,
+  .zp-icon-btn, .zp-send, .zp-new, .zp-action, .zp-row__more, .zp-skill-chip button,
+  .aw-seg, .aw-seg button, .aw-pick, .aw-pick button, .aw-pos__scale button
+) {
+  border-radius: var(--btn-radius) !important;
+  corner-shape: round;
+}
+:root .aw .aw-wbar .aw-iconbtn, :root .aw .aw-guide:not(.is-active) :is(.aw-guide__go, .aw-guide__more) { border-radius: var(--btn-radius) !important; }
+/* The two-way toolset pick on the plan cards works like the switch above. */
+:root .aw .aw-pick { gap: 2px; padding: 2px; border: 0; background: var(--seg-track); }
+:root .aw .aw-pick button { padding: 5px 10px; border-left: 0; white-space: nowrap; font-size: 13px; font-weight: 500; color: var(--text-secondary); }
+:root .aw .aw-pick button.is-on { background: var(--bg-primary); color: var(--text-primary); box-shadow: var(--card-lift); }

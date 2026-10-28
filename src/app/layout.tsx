@@ -9,11 +9,10 @@ const plex = IBM_Plex_Mono({
   weight: ["400", "500", "600", "700"],
 });
 
-// The product UI, in the style of Twenty: Inter at 13px.
+// The product UI: Inter at 14px, the variable font so every weight is there.
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
 });
 
 // Code, API names and variables, as in Twenty.
