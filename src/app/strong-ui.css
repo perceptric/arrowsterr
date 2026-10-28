@@ -230,3 +230,24 @@
 }
 :root .aw .aw-cite:hover { background: var(--bg-quaternary); color: var(--text-primary) !important; }
 :root .aw .aw-cite__more { color: var(--text-tertiary); }
+
+/* ─────────────── 13. One font, no mono ───────────────
+   Numbers, dates, prices, tags, labels and slugs are Inter with even-width
+   digits, like a SaaS app. Mono is kept only for real code: code, pre, kbd. */
+:root {
+  --font-code: var(--font-geist-mono), "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-mono: var(--font-sans);
+}
+:root .aw { --aw-mono: var(--font-sans); --aw-tr-mono: 0; }
+:root .aw :is(.font-mono, .aw-mono, .aw-num, .aw-kpi__num, .aw-stat__num, .aw-rank, .aw-intro__n, .aw-tag, .aw-eyebrow, .aw-eyebrow__t, .aw-chart-label, .aw-sheet td, .aw-sheet th, .aw-table td, .aw-table th) {
+  font-family: var(--font-sans) !important;
+}
+:root .aw :is(.font-mono, .aw-mono, .aw-num, .aw-kpi__num, .aw-stat__num, .aw-rank, .aw-sheet td, .aw-table td) { font-variant-numeric: tabular-nums; }
+:root .aw :is(code, pre, kbd, .aw-md-code, .aw-md-inline, code.font-mono, pre.font-mono) { font-family: var(--font-code) !important; }
+/* Labels read as words: no capitals and no wide spacing. */
+:root .aw :is(.aw-label, .aw-eyebrow, .aw-eyebrow__t, .aw-live, .aw-chip, .aw-badge, .aw-status, .aw-pri, .aw-engine, .aw-stat__lab, .aw-score__lab,
+  .aw-table th, .aw-sheet thead th, .aw-field-label, .aw-chart-label, .aw-embed__tag, .aw-onb__kicker, .aw-onb__group, .aw-tag, .tracking-\[0\.08em\]) {
+  text-transform: none !important; letter-spacing: 0 !important;
+}
+:root .aw .aw-eyebrow { font-size: 13px !important; font-weight: 500 !important; line-height: 18px !important; }
+:root .aw .aw-tag { font-size: 12px !important; font-weight: 500 !important; }

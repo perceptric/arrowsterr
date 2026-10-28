@@ -4,7 +4,7 @@ import { Dropdown } from "../Pickers";
 import { useState } from "react";
 import type { CalendarItem } from "@/lib/db";
 import { Pop } from "../Sheet";
-import { byStage, STAGE_COLORS, statusLabel } from "./shared";
+import { byStage, STAGE_COLORS, STAGE_LABEL, statusLabel } from "./shared";
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -230,7 +230,7 @@ function SideMenu({ anchor, themes, value, onApply, onClose }: { anchor: DOMRect
     <Pop anchor={anchor} onClose={onClose} label="Filter topics" width={290}>
       <div className="flex flex-col pt-2">
         <div className="flex flex-col gap-1 px-3 pb-2">
-          <span className="aw-label">Stage</span>
+          <span className="aw-label">Impact</span>
           {ALL_STAGES.map((s) => (
             <label key={s} className="aw-pop__check-row">
               <input type="checkbox" checked={d.stage.includes(s)} onChange={() => flip(s)} />
@@ -239,8 +239,8 @@ function SideMenu({ anchor, themes, value, onApply, onClose }: { anchor: DOMRect
                   <span className="text-muted">(Blanks)</span>
                 ) : (
                   <>
-                    <i className="inline-block h-2.5 w-[3px]" style={{ background: STAGE_COLORS[s] }} />
-                    {s.toUpperCase()}
+                    <i className="inline-block h-2 w-2 rounded-full" style={{ background: STAGE_COLORS[s] }} aria-hidden="true" />
+                    {STAGE_LABEL[s]}
                   </>
                 )}
               </span>
