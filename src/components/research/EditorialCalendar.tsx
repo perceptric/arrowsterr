@@ -281,11 +281,11 @@ export function EditorialCalendar({
     writeCol,
     {
       id: "stage",
-      label: "Stage",
+      label: "Impact",
       type: "list",
       value: (i) => (i.stage ? STAGE_LABEL[i.stage] : ""),
-      options: ["BOFU", "MOFU", "TOFU"],
-      width: 90,
+      options: STAGES.map((x) => STAGE_LABEL[x.id]),
+      width: 180,
       cell: (i) => <StageTag stage={i.stage} />,
       edit: ed<Edit<CalendarItem>>({
         kind: "select",

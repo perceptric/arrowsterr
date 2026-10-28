@@ -8,7 +8,8 @@ import type { Stage } from "@/lib/research";
 import type { RunAuth } from "@/lib/runner";
 
 export const STAGE_COLORS: Record<Stage, string> = { bofu: "#0943B0", mofu: "#F5B70A", tofu: "#28A745" };
-export const STAGE_LABEL: Record<Stage, string> = { bofu: "BOFU", mofu: "MOFU", tofu: "TOFU" };
+/** What a piece does for the business. Stored as bofu, mofu and tofu; shown as its impact. */
+export const STAGE_LABEL: Record<Stage, string> = { bofu: "Pipeline generation", mofu: "Solution awareness", tofu: "Brand awareness" };
 
 const STAGE_RANK: Record<string, number> = { bofu: 0, mofu: 1, tofu: 2 };
 /** Content Plan order: BOFU, then MOFU, then TOFU. Within a stage, by date (ideas last), then by volume. */
@@ -78,12 +79,12 @@ export const PLAN_VIEWS: { id: PlanView; label: string; icon: React.ReactNode }[
   { id: "calendar", label: "Calendar", icon: <CalendarViewIcon /> },
 ];
 
-/** The funnel stage as a word with a colored mark, so color is never the only signal. */
+/** The impact as a colored dot and its name, so color is never the only signal. */
 export function StageTag({ stage }: { stage: Stage | null }) {
   if (!stage) return <span className="text-muted">–</span>;
   return (
-    <span className="inline-flex items-center gap-1.5 border border-rule bg-white px-1.5 py-0.5 font-mono text-[11px] text-ink">
-      <i className="inline-block h-2 w-2" style={{ background: STAGE_COLORS[stage] }} aria-hidden="true" />
+    <span className="inline-flex items-center gap-2 whitespace-nowrap text-ink">
+      <i className="inline-block h-2 w-2 shrink-0 rounded-full" style={{ background: STAGE_COLORS[stage] }} aria-hidden="true" />
       {STAGE_LABEL[stage]}
     </span>
   );

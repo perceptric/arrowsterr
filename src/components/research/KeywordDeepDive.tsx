@@ -228,8 +228,8 @@ function Details({ item, site, members, canEdit, onPatch }: { item: CalendarItem
         />,
       )}
       {field(
-        "Funnel stage",
-        <Dropdown label="Funnel stage" value={item.stage ?? ""} disabled={!canEdit} onChange={(v) => onPatch({ stage: (v || null) as CalendarItem["stage"] })} className={box} options={[...STAGES.map((x) => ({ id: x.id as string, label: STAGE_LABEL[x.id] })), { id: "", label: "None" }]} />,
+        "Impact",
+        <Dropdown label="Impact" value={item.stage ?? ""} disabled={!canEdit} onChange={(v) => onPatch({ stage: (v || null) as CalendarItem["stage"] })} className={box} options={[...STAGES.map((x) => ({ id: x.id as string, label: STAGE_LABEL[x.id] })), { id: "", label: "None" }]} />,
       )}
       {field(
         "Content status",

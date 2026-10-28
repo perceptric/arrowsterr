@@ -6,7 +6,7 @@ import { nextMonday, type Stage } from "@/lib/research";
 import { Sheet, type Col } from "../Sheet";
 import { AiIcon, SidePanel } from "../ui";
 import { CalendarGrid } from "./CalendarGrid";
-import { byStage, Difficulty, fmtCpc, PLAN_VIEWS, statusLabel, StageTag, Tick, ViewSwitch, type PlanView } from "./shared";
+import { byStage, Difficulty, fmtCpc, PLAN_VIEWS, STAGE_LABEL, statusLabel, StageTag, Tick, ViewSwitch, type PlanView } from "./shared";
 
 type Row = CalendarItem & { cpc: number | null };
 
@@ -65,7 +65,7 @@ const SAMPLE: Row[] = (
 
 const COLS: Col<Row>[] = [
   { id: "keyword", label: "Keyword", type: "text", value: (r) => r.keyword, width: 260 },
-  { id: "stage", label: "Stage", type: "list", value: (r) => (r.stage ? r.stage.toUpperCase() : ""), width: 80, cell: (r) => <StageTag stage={r.stage} /> },
+  { id: "stage", label: "Impact", type: "list", value: (r) => (r.stage ? STAGE_LABEL[r.stage] : ""), width: 180, cell: (r) => <StageTag stage={r.stage} /> },
   { id: "status", label: "Status", type: "list", value: (r) => statusLabel(r), width: 110 },
   { id: "due", label: "Planned", type: "date", value: (r) => r.due_date, width: 110, cell: (r) => (r.due_date ? new Date(`${r.due_date}T00:00:00`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }) : <span className="text-muted">Idea</span>) },
   { id: "volume", label: "Volume", type: "number", value: (r) => r.volume, width: 80 },
