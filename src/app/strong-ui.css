@@ -118,20 +118,26 @@
 :root .aw :is(.aw-table--compact, .aw-table--dense, .aw-table--tight) td { height: 36px; padding: 8px var(--space-2) !important; }
 :root .aw :is(.aw-table--compact, .aw-table--dense, .aw-table--tight) th { font-size: 12px !important; }
 
-/* ─────────────── 7. Switches and page tabs ─────────────── */
-:root .aw .aw-seg {
-  gap: 2px !important; padding: 2px !important; background: var(--seg-track) !important; border-radius: var(--radius-md) !important; box-shadow: none !important;
+/* ─────────────── 7. Switches and page tabs ───────────────
+   Notra's tab bar: a white track with a hairline, the picked tab a white chip
+   with its own hairline and a soft lift. Page tabs and switches look the same. */
+:root .aw :is(.aw-seg, .aw-tabs, .aw-pick) {
+  display: inline-flex !important; align-items: center; gap: 2px !important; flex-wrap: nowrap;
+  height: 36px; padding: 3px !important; background: var(--bg-primary) !important;
+  border: 1px solid var(--card-border) !important; border-radius: 10px !important; box-shadow: none !important;
 }
-:root .aw .aw-seg > button, :root .aw .aw-seg button {
-  height: 28px !important; min-height: 28px !important; padding: 0 var(--space-2_5, 10px) !important; border-radius: var(--radius-sm) !important;
+:root .aw :is(.aw-seg, .aw-tabs, .aw-pick) > button, :root .aw .aw-seg button {
+  position: relative; height: 28px !important; min-height: 28px !important; padding: 0 var(--space-3) !important; margin: 0 !important;
+  border: 0 !important; border-radius: 7px !important; background: transparent !important; box-shadow: none !important; white-space: nowrap;
   font-size: 14px !important; font-weight: 500 !important; letter-spacing: 0 !important; color: var(--text-secondary) !important;
 }
-:root .aw .aw-seg > button.is-on, :root .aw .aw-seg > button[aria-selected="true"], :root .aw .aw-seg button.is-on {
-  background: var(--bg-primary) !important; color: var(--text-primary) !important; box-shadow: var(--card-lift) !important;
+:root .aw :is(.aw-seg, .aw-tabs, .aw-pick) > button:hover { color: var(--text-primary) !important; }
+:root .aw :is(.aw-seg, .aw-tabs, .aw-pick) > :is(button.is-on, button[aria-selected="true"], button[aria-checked="true"]), :root .aw .aw-seg button.is-on {
+  background: var(--bg-primary) !important; color: var(--text-primary) !important;
+  box-shadow: 0 0 0 1px var(--card-border), 0 1px 2px #1717170F !important;
 }
-:root .aw .aw-seg > button.is-on::after, :root .aw .aw-seg > button[aria-selected="true"]::after { display: none !important; }
-:root .aw .aw-tabs > button { font-size: 14px !important; font-weight: 500 !important; letter-spacing: 0 !important; }
-:root .aw .aw-tabs > button[aria-selected="true"]::after { height: 2px !important; }
+:root .aw :is(.aw-seg, .aw-tabs, .aw-pick) > button::after { display: none !important; }
+:root .aw .aw-pick { display: grid !important; grid-template-columns: 1fr 1fr; width: 100%; }
 
 /* ─────────────── 8. App shell ─────────────── */
 :root .aw .aw-sidebar, :root .aw .aw-rail { background: var(--bg-secondary) !important; }
@@ -149,12 +155,26 @@
 :root .aw .aw-page-title { font-size: 14px !important; font-weight: 500 !important; letter-spacing: 0 !important; color: var(--text-primary) !important; }
 :root .aw .aw-page-title__group { color: var(--text-secondary) !important; font-weight: 500 !important; }
 
-/* ─────────────── 9. One button shape ───────────────
-   Every button in the app is a pill: actions, icon buttons, pickers, tool
-   buttons, switches and the small buttons inside the editor and Zippie.
-   Fields (inputs, dropdowns) stay at 8px; menus and rows stay square-ish. */
+/* ─────────────── 9. Buttons, one shape ───────────────
+   Notra's buttons: 32px, 14px weight 500, a squircle corner, a top-to-bottom
+   fill and a hairline ring. Primary is Signal Blue, everything else is the
+   light fill. Every button-like class shares the corner; fields keep 8px. */
 :root .aw {
-  --btn-radius: 999px;
+  --btn-radius: 10px;
+  --btn-primary: linear-gradient(180deg, #2760CF 0%, #002996 100%);
+  --btn-primary-hover: linear-gradient(180deg, #2760CF 0%, #001E7A 100%);
+  --btn-primary-ring: 0 1px 2px #28282814, 0 0 0 1px #1E1E1E40;
+  --btn-light: linear-gradient(180deg, #FFFFFF 0%, #F0F0F0 100%);
+  --btn-light-hover: linear-gradient(180deg, #FFFFFF 0%, #DBDBDB 100%);
+  --btn-light-ring: 0 0 0 1px #ECECEC, 0 1px 2px #28282814;
+}
+[data-theme="dark"] .aw {
+  --btn-light: linear-gradient(180deg, #2A2A2A 0%, #222222 100%);
+  --btn-light-hover: linear-gradient(180deg, #333333 0%, #2A2A2A 100%);
+  --btn-light-ring: 0 0 0 1px #FFFFFF14, 0 1px 2px #00000066;
+}
+@supports not (corner-shape: squircle) {
+  :root .aw { --btn-radius: 8px; }
 }
 :root .aw :is(
   .aw-btn, a.aw-btn, .tw-btn,
@@ -163,14 +183,40 @@
   .aw-agent__go, .aw-agent__ask, .aw-agent__send, .aw-bubble__ask, .aw-bubble__btn, .aw-stop,
   .aw-guide__go, .aw-guide__more, .aw-guide__ask,
   .aw-chip--btn, .aw-zippie-fab,
-  .zp-icon-btn, .zp-send, .zp-new, .zp-action, .zp-row__more, .zp-skill-chip button,
-  .aw-seg, .aw-seg button, .aw-pick, .aw-pick button, .aw-pos__scale button
+  .zp-icon-btn, .zp-send, .zp-new, .zp-action, .zp-row__more, .zp-skill-chip button, .aw-pos__scale button
 ) {
   border-radius: var(--btn-radius) !important;
-  corner-shape: round;
+  corner-shape: squircle;
 }
 :root .aw .aw-wbar .aw-iconbtn, :root .aw .aw-guide:not(.is-active) :is(.aw-guide__go, .aw-guide__more) { border-radius: var(--btn-radius) !important; }
-/* The two-way toolset pick on the plan cards works like the switch above. */
-:root .aw .aw-pick { gap: 2px; padding: 2px; border: 0; background: var(--seg-track); }
-:root .aw .aw-pick button { padding: 5px 10px; border-left: 0; white-space: nowrap; font-size: 13px; font-weight: 500; color: var(--text-secondary); }
-:root .aw .aw-pick button.is-on { background: var(--bg-primary); color: var(--text-primary); box-shadow: var(--card-lift); }
+
+/* Fills */
+:root .aw :is(.aw-btn--primary, .aw-btn--accent, .aw-btn--brand), :root .aw a:is(.aw-btn--primary, .aw-btn--accent):is(:link, :visited) {
+  background: var(--btn-primary) !important; color: #FFFFFF !important; border: 0 !important; box-shadow: var(--btn-primary-ring) !important; filter: none;
+}
+:root .aw :is(.aw-btn--primary, .aw-btn--accent, .aw-btn--brand):hover { background: var(--btn-primary-hover) !important; box-shadow: var(--btn-primary-ring) !important; filter: none; }
+:root .aw :is(.aw-btn--secondary, .aw-ctl), :root .aw a.aw-btn--secondary:is(:link, :visited) {
+  background: var(--btn-light) !important; color: var(--text-primary) !important; border: 0 !important; box-shadow: var(--btn-light-ring) !important;
+}
+:root .aw :is(.aw-btn--secondary, .aw-ctl):hover { background: var(--btn-light-hover) !important; box-shadow: var(--btn-light-ring) !important; }
+:root .aw :is(.aw-btn--secondary, .aw-ctl, .aw-btn--primary):active { transform: scale(.98); }
+:root .aw .aw-ctl { padding: 0 var(--space-3) !important; gap: var(--space-1_5, 6px); }
+:root .aw :is(.aw-btn--ghost, .aw-btn--tertiary, .aw-btn--text) { background: transparent !important; box-shadow: none !important; color: var(--text-secondary) !important; }
+:root .aw :is(.aw-btn--ghost, .aw-btn--tertiary, .aw-btn--text):hover { background: var(--bg-tertiary) !important; color: var(--text-primary) !important; }
+:root .aw .aw-btn:disabled, :root .aw .aw-btn[aria-disabled="true"] { opacity: .5; }
+
+/* ─────────────── 10. Tags ───────────────
+   Small square-ish tags with a 10% tint, like Notra's deltas and "You" mark. */
+:root .aw :is(.aw-chip:not(.aw-chip--btn), .aw-status, .aw-sbadge, .aw-badge, .aw-tag, .aw-pill, .aw-pri, .aw-engine) {
+  height: 22px !important; padding: 0 7px !important; border-radius: 6px !important; corner-shape: squircle; font-size: 13px !important; font-weight: 500 !important;
+}
+:root .aw .aw-status--ranked, :root .aw .aw-sbadge--success { background: color-mix(in oklab, oklch(55% .109 155) 10%, transparent) !important; color: var(--green-11) !important; }
+:root .aw .aw-status--missed, :root .aw .aw-sbadge--danger { background: color-mix(in oklab, oklch(59% .192 27) 10%, transparent) !important; color: var(--red-11) !important; }
+:root .aw .aw-status--warn, :root .aw .aw-sbadge--warning { background: color-mix(in oklab, oklch(57% .113 55) 10%, transparent) !important; color: var(--orange-11) !important; }
+:root .aw .aw-stat__delta { display: inline-flex; align-items: center; gap: 4px; margin-left: 0; white-space: nowrap; height: 22px; padding: 0 7px; border-radius: 6px; background: color-mix(in oklab, oklch(55% .109 155) 10%, transparent); color: var(--green-11) !important; font-size: 13px !important; }
+
+/* ─────────────── 11. Panels ─────────────── */
+:root .aw .aw-page-body { border-radius: 12px !important; }
+:root .aw .aw-side-panel, :root .aw .tw-side-panel { border-radius: 16px !important; }
+:root .aw .aw-stat__delta--down { background: color-mix(in oklab, oklch(59% .192 27) 10%, transparent); color: var(--red-11) !important; }
+:root .aw .aw-stat__delta--flat { background: var(--bg-tertiary); color: var(--text-secondary) !important; }
