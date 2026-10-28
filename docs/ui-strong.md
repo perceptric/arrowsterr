@@ -1,122 +1,125 @@
 # Strong UI plan
 
-Why Notra's app reads strong and ours reads light, and the exact changes that fix it.
-Source: Notra's live stylesheet (`demo.usenotra.com/assets/globals-*.css`, read 28 October 2026) and our `src/app/twenty-ui.css` and `src/app/brew-ui.css`.
+Match Notra's in-app look exactly. Every value below comes from Notra's live stylesheet (`demo.usenotra.com/assets/globals-*.css`, read 28 October 2026), compared with our `src/app/twenty-ui.css` and `src/app/brew-ui.css`.
 
-## What Notra does
+## Notra's real values
 
 | Part | Notra | Arrowsterr now |
 |---|---|---|
-| Body font | Inter Variable, 16px base | Geist, 14px base (13px in tables) |
+| Font | Inter Variable | Geist |
+| UI text | 14px (`text-sm`), weight 400 | 14px Geist, 13px in tables |
 | Main text | `#171717` | `#262626` |
-| Gray text | `#62626A` | `#6B6B6B`, and `#8A8986` for the lighter level |
-| Headings | Inter, weight 600 to 700, tight tracking | System font at weight 500 |
-| Page title | Big title on the page (about 30 to 36px, bold) with a gray line under it | 14px breadcrumb in the top bar, no title on the page |
-| Big numbers | About 40px, bold | 28px, weight 500 |
-| Sidebar | Near-black text (`oklch(14.5% 0 0)`), about 15px | `#525252` at 14px |
-| Page | Gray shell (`#F3F3F2`, border `#E7E7E5`) holding white cards with a soft lift shadow | White cards on `#FCFCFC`, hairline only |
-| Table rows | White card, row line `#EFEFEE`, no column lines | Column and row hairlines, 32px rows, 13px text |
-| Tabs | Bordered switch, the picked one is a white raised chip | Text tabs with a 1px underline |
-| Smoothing | `antialiased` | `antialiased` (same) |
+| Gray text | `#62626A` | `#6B6B6B`, and `#8A8986` |
+| Headings | weight 600 (`font-semibold`), tracking -0.025em | system font, weight 500 |
+| Page title | 24px, 30px on wide screens, weight 600 | 14px label in the top bar |
+| Big numbers | 30px (`text-3xl`), weight 600 | 28px system font, weight 500 |
+| Sidebar text | 14px, weight 500, `oklch(14.5% 0 0)` (near black) | 14px, `#525252` |
+| Sidebar fill | `oklch(98.5% 0 0)`, picked item `oklch(97% 0 0)` | `#FCFCFC` |
+| Borders | `#E5E5E5` | `#E7E7E7` |
+| Shell | `#F3F3F2`, border `#E7E7E5`, 2px padding | none |
+| Cards in the shell | white, border `#E5E5E5`, 14px radius, shadow `0 1px 2px #17171C0F, 0 2px 8px -2px #17171C0F` | white, hairline, no shadow |
+| Table cells | 14px, 10px top and bottom, 8px sides | 13px, 32px rows |
+| Table header | 12px (`text-xs`), weight 500, gray | 13px, weight 500, gray |
+| Row line | `#EFEFEE`, no column lines | row and column lines |
+| Tabs | 32px track (`h-8`), picked tab weight 500 | 40px text tabs with an underline |
+| Radius | 8px base, 14px table cards | 12px |
+| Smoothing | `antialiased` | `antialiased` |
 
 ## Why ours feels weak
 
-1. **Text is small.** 13 to 14px Geist next to their 16px Inter. Geist is also narrow, so each word holds less ink.
-2. **Weights are low.** Every heading and number is 500. Notra uses 600 and 700. The system font at 500 looks thin on Mac.
-3. **Grays are pale.** Our second and third grays (`#6B6B6B`, `#8A8986`) sit next to white with little contrast. The sidebar is gray too, so half the screen is gray text.
-4. **No page title.** The page name lives in a 14px top bar. Notra opens every screen with one big bold word. That word sets the weight of the whole page.
-5. **Flat white.** White cards on a near-white page with hairlines. Notra puts white cards inside a gray shell, so the cards pop and the text on them looks darker.
-6. **Inter loads without bold.** `layout.tsx` loads Inter at 400, 500 and 600 only.
+1. **Geist is narrow.** At the same 14px, Inter is wider and taller, so each word carries more ink. This is the biggest single cause.
+2. **Pale ink.** `#262626` and `#6B6B6B` against their `#171717` and `#62626A`. The sidebar is gray in ours and near black in theirs.
+3. **Weight 500 headings in the system font.** They use Inter at 600. Nothing is heavier than 600 in their app.
+4. **No page title.** They open with a 30px title at weight 600.
+5. **Flat white.** They set white cards in a light gray shell with a soft shadow.
+
+What stays the same: 14px is still the base size, and nothing goes to 700.
 
 ## The plan
 
-Everything below lands in one new file, `src/app/strong-ui.css`, loaded last in `globals.css`, plus one small component. Class names stay the same.
+One new file, `src/app/strong-ui.css`, loaded last in `globals.css`, plus one small component. Class names stay the same.
 
-### Phase 1. Fonts and ink (biggest win, one afternoon)
+### Phase 1. Font and ink
 
-- `layout.tsx`: load Inter as the variable font (drop the `weight` list) so 400 to 700 all work.
+- `layout.tsx`: load Inter as the variable font (drop the `weight` list).
 - Tokens on `:root, [data-theme="light"]`:
   - `--font-sans: var(--font-inter), "Inter", ui-sans-serif, system-ui, sans-serif`
   - `--font-display: var(--font-sans)`
   - `--text-primary: #171717`
-  - `--text-strong: #0A0A0A`
   - `--text-secondary: #62626A`
-  - `--text-tertiary: #7C7C84`
-  - `--text-light: #A1A1AA`
-  - `--text-sidebar: #171717`
-- `:root .aw { font-size: 15px; line-height: 22px; font-feature-settings: "cv11", "ss01"; }`
-- Dark mode: `--text-primary: #FAFAFA`, `--text-secondary: #A1A1AA`, `--text-sidebar: #FAFAFA`.
+  - `--text-tertiary: #8A8A93`
+  - `--text-sidebar: #0A0A0A`
+  - `--border-medium: #E5E5E5`
+  - `--border-light: #EFEFEE`
+  - `--bg-secondary: #FAFAFA`
+- `:root .aw { font-size: 14px; line-height: 20px; }`
+- Dark: `--text-primary: #FAFAFA`, `--text-secondary: oklch(72% .006 270)`, `--bg-primary: oklch(17% .006 270)`, `--border-medium: oklch(27.5% .006 270)`.
 
-### Phase 2. Type scale and weights
+### Phase 2. Type scale
 
 | Class | Size / line | Weight | Tracking |
 |---|---|---|---|
-| `.aw-display`, `.aw-hero`, `.aw-intro__title` | 32 / 38 | 700 | -0.025em |
-| New `.aw-title` (page title) | 30 / 36 | 700 | -0.025em |
-| New `.aw-sub` (line under the title) | 17 / 26 | 400, `--text-secondary` | 0 |
-| `.aw-h1`, `.aw-h2`, `.tw-modal__title` | 20 / 28 | 600 | -0.02em |
-| `.aw-h3` | 17 / 24 | 600 | -0.01em |
-| `.aw-h4`, `.aw-frame__head` | 15 / 22 | 600 | -0.01em |
-| `.aw-text`, `.md`, `.aw-lede` | 15 / 22 | 400 | 0 |
-| `.aw-small`, `.aw-label` | 14 / 20 | 500 | 0 |
+| New `.aw-title` (page title) | 24 / 32, 30 / 36 at 640px wide and up | 600 | -0.025em |
+| New `.aw-sub` (line under the title) | 15 / 22, `--text-secondary` | 400 | 0 |
+| `.aw-display`, `.aw-hero`, `.aw-intro__title` | 30 / 36 | 600 | -0.025em |
+| `.aw-h1`, `.aw-h2`, `.tw-modal__title` | 18 / 28 | 600 | -0.015em |
+| `.aw-h3`, `.aw-frame__head` | 14 / 20 | 600 | 0 |
+| `.aw-h4` | 14 / 20 | 500 | 0 |
+| `.aw-text`, `.md`, `.aw-lede` | 14 / 20 | 400 | 0 |
+| `.aw-small`, `.aw-label` | 13 / 18 | 500 | 0 |
 | `.aw-micro`, `.aw-nav-section` | 12 / 16 | 500 | 0 |
-| `.aw-stat__num` | 40 / 44 | 700, tabular numbers | -0.03em |
-| `.aw-stat__lab` | 14 / 20 | 500, `--text-secondary` | 0 |
+| `.aw-stat__num` | 30 / 36, tabular numbers | 600 | -0.025em |
+| `.aw-stat__lab` | 14 / 20, `--text-secondary` | 500 | 0 |
 
-### Phase 3. Page head
+### Phase 3. Page title
 
-- New `PageTitle` in `src/components/ui.tsx`: an `h1.aw-title` and an optional `p.aw-sub`.
-- Put it at the top of every tool screen (Visibility, Prompts, Competitors, Sources, Traffic, Visitors, Content, Research, Reports, Settings).
-- The top bar keeps the breadcrumb at 14px, weight 500, `--text-secondary`.
-- The `.aw-sub` line is one plain sentence and only on screens where the page name alone isn't clear.
+- New `PageTitle` in `src/components/ui.tsx`: `h1.aw-title` and an optional `p.aw-sub`.
+- Put it at the top of every tool screen.
+- The top bar breadcrumb stays at 14px, weight 500, `--text-secondary`.
 
 ### Phase 4. Shell and cards
 
-- Page background `--bg-primary: #FFFFFF`, sidebar `--bg-secondary: #FAFAFA`.
-- New tokens: `--shell: #F3F3F2`, `--shell-border: #E7E7E5`, `--card-lift: 0 1px 2px rgba(23,23,28,.06), 0 2px 8px -2px rgba(23,23,28,.06)`.
-- `.aw-frame`, `.aw-table-wrap`, `.aw-stats`: gray shell, 1px `--shell-border`, 12px radius, 4px padding.
-- The white card inside (`.aw-frame__body`, `.aw-table`, `.aw-stat`): white, 1px `#E5E5E5`, 10px radius, `--card-lift`.
-- `.aw-frame__head` sits on the gray shell, 15px weight 600.
+- New tokens: `--shell: #F3F3F2`, `--shell-border: #E7E7E5`, `--card-lift: 0 1px 2px #17171C0F, 0 2px 8px -2px #17171C0F`.
+- `.aw-frame`, `.aw-table-wrap`, `.aw-stats`: `--shell` fill, 1px `--shell-border`, 16px radius, 2px padding.
+- The white card inside: 1px `#E5E5E5`, 14px radius, `--card-lift`.
+- `.aw-frame__head` sits on the shell, 14px weight 600, 8px 12px padding.
 
 ### Phase 5. Sidebar
 
-- `.aw-nav-link`, `.aw-mod`: 36px tall, 15px, weight 500, `--text-sidebar`, icons 18px at full ink.
-- Picked link: `background: #EFEFEF`, weight 600.
-- `.aw-nav-section`: 12px, weight 500, `--text-tertiary`.
-- Workspace switch: 15px weight 600.
+- `.aw-nav-link`, `.aw-mod`: 32px tall, 14px, weight 500, `--text-sidebar`, 8px radius.
+- Picked link: `background: oklch(97% 0 0)`, same weight.
+- Icons 16px at full ink.
 
-### Phase 6. Tabs and switches
+### Phase 6. Tabs
 
-- `.aw-seg`: gray track `#F3F3F2`, 1px `--shell-border`, 10px radius, 3px padding.
-- `.aw-seg button`: 32px, 14px weight 500, `--text-secondary`.
-- Picked: white, `--card-lift`, `--text-primary`, weight 600.
-- `.aw-tabs` (page tabs) keep the underline, at 15px weight 500, picked weight 600 with a 2px line.
+- `.aw-seg`: `#F5F5F5` track, 32px tall, 8px radius, 2px padding.
+- Buttons 14px weight 500, `--text-secondary`. Picked: white, `--card-lift`, `--text-primary`.
+- `.aw-tabs` (page tabs) keep the underline at 14px weight 500.
 
 ### Phase 7. Tables
 
-- 15px cells, 44px rows, `--text-primary`. First column weight 500.
-- Header: 13px weight 500, `--text-secondary`, white.
-- Row line `#EFEFEE`. Drop the column lines (`border-right: 0`).
-- Numbers: `font-variant-numeric: tabular-nums`, weight 500.
-- `.aw-sheet` (the spreadsheet) keeps its grid.
+- Cells 14px, 10px top and bottom, 8px sides, `--text-primary`.
+- Header 12px, weight 500, `--text-secondary`, 32px tall.
+- Row line `#EFEFEE`. No column lines.
+- Row hover: `color-mix(in oklab, #F5F5F5 50%, #FFF)`.
+- `.aw-sheet` keeps its grid.
 
-### Phase 8. Tags, deltas and buttons
+### Phase 8. Tags and buttons
 
-- Tags (`.aw-chip`, `.aw-status`): 24px, 13px weight 500, tinted fill with dark text (green `#ECF8F0` with `#1D7A43`, red `#FFF1F0` with `#B4232C`).
-- New `.aw-delta`: an up or down arrow plus the number, green or red tint, 13px weight 600.
-- Buttons: 36px, 14px weight 600. Primary stays Signal Blue `#0943B0` with the two-stop fill.
+- Tags: 22px, 12px weight 500, tinted fill (`color-mix` of the state color at 10%) with dark text.
+- Deltas: green `oklch(46% .109 155)` on 10% green, red `oklch(48% .18 25)` on 10% red.
+- Buttons: 32px default, 36px large, 14px weight 500. Primary stays Signal Blue `#0943B0`.
 
 ### Phase 9. Check every screen
 
 - Screenshot each tool screen at 1440 and 390 wide, light and dark, before and after.
-- Look for text that wraps, tables that now scroll sideways, and buttons that overflow at 15px.
-- Tighten any wide table back to 14px with `.aw-table--dense`.
+- Look for text that wraps or tables that now scroll sideways.
 
 ## Order and size
 
 | Phase | Work | Time |
 |---|---|---|
-| 1 | Fonts and ink | 0.5 day |
+| 1 | Font and ink | 0.5 day |
 | 2 | Type scale | 0.5 day |
 | 3 | Page title on every screen | 1 day |
 | 4 | Shell and cards | 1 day |
@@ -124,9 +127,7 @@ Everything below lands in one new file, `src/app/strong-ui.css`, loaded last in 
 | 6 | Tabs | 0.25 day |
 | 7 | Tables | 0.5 day |
 | 8 | Tags and buttons | 0.25 day |
-| 9 | Screen check and fixes | 1 day |
-
-Phases 1 and 2 alone close most of the gap.
+| 9 | Screen check | 1 day |
 
 ## Running cost
 
@@ -136,5 +137,3 @@ CSS, one component and a font file already served by `next/font`. No new servers
 |---|---|
 | Beta (50 teams) | $0 |
 | Growth (500 teams) | $0 |
-
-The Inter variable font adds about 50 KB on first load, cached after that.
