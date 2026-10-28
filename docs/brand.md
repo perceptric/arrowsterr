@@ -1,5 +1,13 @@
 # Arrowsterr brand (v5)
 
+> **v6, 28 October 2026: the Brew look.** Type, neutrals, corners and buttons now follow brew.new. Signal Blue `#0943B0` stays the brand colour. Where v6 and the rules below disagree, v6 wins.
+>
+> - **Fonts.** Big headings use the system face (SF Pro on a Mac), weight 500, ink `#302F2C`. Website text is Inter 16/26 at -0.01em in `#5C5B57`. The app runs on Geist at 14/20 in `#262626`, with secondary text in `#6B6B6B`. Eyebrows are Geist Mono 14px, weight 500, uppercase, 0.08em, in Signal Blue. Funnel Display is retired.
+> - **Sizes.** Hero 40/44 on phones and 56/60 from 768px. Section heads 28/34 and 36/44. Sub-heads 20/28 and 24/32. Lead 16/26 and 18/28. Buttons 14/20 weight 500.
+> - **Shape.** Pill buttons with a two-stop Signal Blue fill and a 1.5px raised edge. White cards with 16px corners and a soft shadow on warm paper `#FAFAF7` on the website; 12px cards with hairline `#E7E7E7` borders in the app. No Notch.
+> - **Files.** The app's values live in `src/app/brew-ui.css`, loaded last. The website's live in the v6 section at the end of `public/brand/arrowsterr-brand.css`.
+> - **Cost.** $0 at Beta (50 teams) and $0 at Growth (500 teams). The fonts are free and the stylesheets are static files.
+
 The full brand system. The live version with component previews is the Arrowsterr Brand design system: https://claude.ai/artifact/UPHjbokXkgMsfgTZuJ5KbN. The stylesheet for the website, embeds, emails and decks is `public/brand/arrowsterr-brand.css` (served at `https://app.arrowsterr.com/brand/arrowsterr-brand.css`). The app's own rules live in `src/app/brand.css`, `brand-v2.css` and `twenty.css`.
 
 Arrowsterr is **the Navigator**: a sharp, upbeat guide who shows you where AI sends your buyers and points at your next move. Every screen points somewhere. Numbers come before claims. One spark of gold marks the win.
