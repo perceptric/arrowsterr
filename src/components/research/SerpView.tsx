@@ -4,19 +4,14 @@ import { useState } from "react";
 import type { Serp } from "@/lib/briefTypes";
 import { BrandLogo } from "../BrandLogo";
 import { Markdown } from "../Markdown";
+import { cleanAnswer } from "@/lib/answerText";
 import { favicon } from "../ui";
 import { SerpTags } from "./shared";
 
-const SUP = "⁰¹²³⁴⁵⁶⁷⁸⁹";
-
 /** Google's AI Overview comes back as raw markdown with [[1]](url) citations. Tidy it so it reads like the real thing. */
 function tidy(text: string) {
-  return text
-    .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
-    .replace(/<[^>]+>/g, "")
-    .replace(/\[\[(\d+)\]\]\((https?:\/\/[^)\s]+)\)/g, (_, n: string, u: string) => `[${[...n].map((d) => SUP[+d]).join("")}](${u})`)
+  return cleanAnswer(text.replace(/<[^>]+>/g, ""), "AI Overview")
     .replace(/\[\[(\d+)\]\]/g, "")
-    .replace(/\n{3,}/g, "\n\n")
     .trim();
 }
 

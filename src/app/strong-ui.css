@@ -220,3 +220,13 @@
 :root .aw .aw-side-panel, :root .aw .tw-side-panel { border-radius: 16px !important; }
 :root .aw .aw-stat__delta--down { background: color-mix(in oklab, oklch(59% .192 27) 10%, transparent); color: var(--red-11) !important; }
 :root .aw .aw-stat__delta--flat { background: var(--bg-tertiary); color: var(--text-secondary) !important; }
+
+/* ─────────────── 12. Cited sites in AI answers ───────────────
+   A run of cited sites shows as one small tag, "eve.legal +2", like the engines do. */
+:root .aw .aw-cite {
+  display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 6px; margin-left: 2px; vertical-align: 1px;
+  border-radius: 6px; corner-shape: squircle; background: var(--bg-tertiary); color: var(--text-secondary) !important;
+  font-size: 12px; font-weight: 500; line-height: 1; text-decoration: none !important; white-space: nowrap;
+}
+:root .aw .aw-cite:hover { background: var(--bg-quaternary); color: var(--text-primary) !important; }
+:root .aw .aw-cite__more { color: var(--text-tertiary); }

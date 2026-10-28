@@ -2,24 +2,27 @@ import "server-only";
 import type { Chat } from "./chats";
 import { NO_AI_OVERVIEW, type DfsAnswer } from "./dataforseo";
 import { askEngine, type Engine } from "./engines";
+import { cleanAnswer } from "./answerText";
 import { extractBrands } from "./extract";
 import { quoteOf } from "./quote";
 
 /** Pull the brands out of an answer we already have. Never throws. */
 export async function readAnswer(engine: string, prompt: string, answer: DfsAnswer, brand: string, domain: string): Promise<Chat> {
-  const chat: Chat = { engine, prompt, text: answer.text, sources: answer.sources, brands: [], error: null };
+  // Sources were read from the raw text already; save and read the clean text.
+  const text = answer.text === NO_AI_OVERVIEW ? answer.text : cleanAnswer(answer.text, engine);
+  const chat: Chat = { engine, prompt, text, sources: answer.sources, brands: [], error: null };
   if (answer.shown !== undefined) chat.shown = answer.shown;
   if (answer.organic) chat.organic = answer.organic;
   if (answer.queries) chat.queries = answer.queries;
   // Google showed no AI answer, so there is nothing to read.
   if (answer.text === NO_AI_OVERVIEW) return { ...chat, sources: [] };
   try {
-    chat.brands = await extractBrands(brand, domain, answer.text);
+    chat.brands = await extractBrands(brand, domain, text);
     // Keep one sentence, since saved chats drop the full text.
     const you = chat.brands.find((b) => b.name.toLowerCase() === brand.toLowerCase());
     const target = you ?? [...chat.brands].sort((a, b) => a.position - b.position)[0];
-    const text = target ? quoteOf(answer.text, target.name) : null;
-    chat.quote = target && text ? { brand: target.name, text } : null;
+    const quote = target ? quoteOf(text, target.name) : null;
+    chat.quote = target && quote ? { brand: target.name, text: quote } : null;
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     console.error("Brand extraction failed:", message);

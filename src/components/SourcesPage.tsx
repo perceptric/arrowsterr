@@ -29,6 +29,7 @@ import { BrandLogo } from "./BrandLogo";
 import { StopButton, stopped } from "./research/shared";
 import { ENGINE_LOGOS, EngineName } from "./Engines";
 import { Markdown } from "./Markdown";
+import { cleanAnswer } from "@/lib/answerText";
 import { Card, Empty, favicon, pct, Seg, SidePanel, sortRows, SortTh, Tip, TIPS, useSort } from "./ui";
 
 export const TYPE_COLORS: Record<SourceType, string> = {
@@ -672,7 +673,7 @@ function LinkPanel({
                               <span className="aw-small">Full answer · {day(a.at)}</span>
                             </div>
                             <div className="max-h-[480px] overflow-y-auto px-5 py-4">
-                              {texts === null ? <span className="aw-small">Loading...</span> : a.text ? <Markdown text={a.text} /> : <span className="aw-small">No full answer saved for this check.</span>}
+                              {texts === null ? <span className="aw-small">Loading...</span> : a.text ? <Markdown text={cleanAnswer(a.text, a.engine)} /> : <span className="aw-small">No full answer saved for this check.</span>}
                             </div>
                           </div>
                         ))}
