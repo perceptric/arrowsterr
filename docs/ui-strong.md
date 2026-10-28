@@ -37,7 +37,7 @@ What stays the same: 14px is still the base size, and nothing goes to 700.
 
 ## The plan
 
-One new file, `src/app/strong-ui.css`, loaded last in `globals.css`, plus one small component. Class names stay the same.
+Shipped as `src/app/strong-ui.css`, loaded last in `globals.css`, plus the Inter variable font in `layout.tsx`. Class names stay the same.
 
 ### Phase 1. Font and ink
 
@@ -73,9 +73,9 @@ One new file, `src/app/strong-ui.css`, loaded last in `globals.css`, plus one sm
 
 ### Phase 3. Page title
 
-- New `PageTitle` in `src/components/ui.tsx`: `h1.aw-title` and an optional `p.aw-sub`.
-- Put it at the top of every tool screen.
-- The top bar breadcrumb stays at 14px, weight 500, `--text-secondary`.
+- Every tool screen already opens with its own `h1.aw-h2`. `strong-ui.css` sets `h1.aw-h2` to the page title size, so no component change is needed.
+- Section headings (`h2.aw-h2`) stay at 18px.
+- The top bar breadcrumb stays at 14px, weight 500.
 
 ### Phase 4. Shell and cards
 
