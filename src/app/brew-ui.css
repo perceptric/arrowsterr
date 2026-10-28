@@ -1,0 +1,203 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   ARROWSTERR PRODUCT UI · v9, the Brew look
+   Loaded after twenty-ui.css, so it wins. It keeps Twenty's token names
+   and every class name, and swaps the values for the ones brew.new uses:
+   Geist for the UI at 14px, the system face for big headings, #262626
+   text on white, #6B6B6B secondary text, #E7E7E7 hairlines, 12px cards,
+   pill buttons with a two-stop fill and a raised edge. The one colour that
+   is ours is Signal Blue, #0943B0, where Brew uses its orange.
+   Source values: brew.new stylesheets, read 28 October 2026.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ─────────────── 1. Tokens ─────────────── */
+:root, [data-theme="light"] {
+  --accent-3: #EEF3FF; --accent-5: rgba(9, 67, 176, 0.15); --accent-9: #0943B0; --accent-10: #07368E; --accent-11: #0943B0;
+  --accent-deep: #062C75;
+  --bg-primary: #FFFFFF; --bg-secondary: #FCFCFC; --bg-tertiary: #F4F4F4; --bg-quaternary: #EDEDED;
+  --bg-inverted: #262626; --bg-danger: #FFF1F0;
+  --text-primary: #262626; --text-secondary: #6B6B6B; --text-tertiary: #8A8986; --text-light: #B5B5B5;
+  --text-extra-light: #D4D4D4; --text-danger: #B4232C;
+  --text-strong: #171717; --text-sidebar: #525252;
+  --border-strong: #D4D4D4; --border-medium: #E7E7E7; --border-light: #EEEDE9; --border-blue: #B9CBF2; --border-danger: #FFCDCE;
+  --status-success: #2BAA5E; --status-error: #E5484D; --status-warning: #B86E00; --status-info: #0943B0;
+  --green-3: #ECF8F0; --green-9: #2BAA5E; --green-11: #1D7A43;
+  --orange-3: #FFF6E5; --orange-9: #F5A70A; --orange-11: #9A5B00;
+  --red-3: #FFF1F0; --red-9: #E5484D; --red-11: #B4232C;
+  --blue-3: #EEF3FF; --blue-9: #0943B0; --blue-11: #0943B0;
+  --gray-3: #F4F4F4; --gray-9: #8A8986; --gray-11: #525252;
+
+  --button-gradient: linear-gradient(180deg, var(--accent-9) 50%, var(--accent-deep) 99.5%);
+  --button-edge: rgba(30, 30, 30, 0.15);
+  --button-shadow: 0 1px 2px rgba(40, 40, 40, 0.08);
+  --button-raised: var(--button-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  --button-ring: #E6E5E1;
+  --focus-ring: 0 0 0 4px rgba(9, 67, 176, 0.15);
+  --card-shadow: 0 8px 24px rgba(30, 30, 30, 0.06);
+  --shadow-light: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.06), 0 12px 32px -12px rgba(0, 0, 0, 0.22);
+  --shadow-strong: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.08), 0 24px 48px -16px rgba(0, 0, 0, 0.32);
+}
+[data-theme="dark"] {
+  --accent-3: #1D2740; --accent-5: rgba(47, 99, 214, 0.25); --accent-9: #2F63D6; --accent-10: #3A6BDB; --accent-11: #8FB0FF;
+  --accent-deep: #1F4BB0;
+  --bg-primary: #1A1A1A; --bg-secondary: #141414; --bg-tertiary: #2E2E2E; --bg-quaternary: #333333;
+  --bg-inverted: #E3E3E3; --bg-danger: #3B1219;
+  --text-primary: #E3E3E3; --text-secondary: #A6A6A6; --text-tertiary: #888681; --text-light: #6B6B6B;
+  --text-extra-light: #4C4C4C; --text-strong: #EDEDED; --text-sidebar: #B3B3B3;
+  --border-strong: #3D3D3D; --border-medium: #2C2C2C; --border-light: #262626; --border-blue: #3A4F97;
+  --green-3: #132D21; --green-11: #4CC47F; --orange-3: #331E0B; --orange-11: #F5B547;
+  --red-3: #3B1219; --red-11: #FF8A88; --blue-3: #1D2740; --blue-11: #8FB0FF;
+  --gray-3: #262626; --gray-11: #CCCCCC;
+  --button-edge: rgba(0, 0, 0, 0.35);
+  --button-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --button-ring: #3D3D3D;
+  --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+:root {
+  --font-sans: var(--font-geist), "Geist", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: var(--font-geist-mono), "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-display: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-body: var(--font-inter), "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --radius-xl: 24px;
+  --row-height: 36px;
+  --corner-shape: round; /* Brew uses plain round corners, so the squircle from twenty-ui.css is off */
+  --ease-smooth-out: cubic-bezier(.22, 1, .36, 1);
+  --duration-quick: 150ms;
+}
+:root .aw {
+  --aw-w-light: 400;
+  --aw-mono: var(--font-mono);
+  --aw-display: var(--font-display);
+  --aw-ink: var(--text-primary);
+  --aw-r-sm: var(--radius-sm);
+  --aw-r-md: var(--radius-md);
+  --aw-r-lg: var(--radius-lg);
+  --aw-shadow-md: var(--shadow-strong);
+  --aw-shadow-lg: var(--shadow-strong);
+  --aw-ring: var(--focus-ring);
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-primary);
+}
+
+/* ─────────────── 2. Type ─────────────── */
+:root .aw .aw-hero, :root .aw .aw-display, :root .aw .aw-intro__title, :root .aw .aw-onb__title {
+  font-family: var(--font-display) !important; font-size: 28px !important; line-height: 34px !important; font-weight: 500 !important; letter-spacing: -0.02em !important; color: var(--text-primary) !important;
+}
+@media (min-width: 768px) {
+  :root .aw .aw-hero, :root .aw .aw-intro__title, :root .aw .aw-onb__title { font-size: 36px !important; line-height: 44px !important; }
+}
+:root .aw .aw-h1, :root .aw .aw-h2 { font-family: var(--font-display) !important; font-size: 20px !important; line-height: 28px !important; font-weight: 500 !important; letter-spacing: -0.015em !important; color: var(--text-primary) !important; }
+:root .aw .aw-h3 { font-family: var(--font-sans) !important; font-size: 16px !important; line-height: 24px !important; font-weight: 500 !important; letter-spacing: -0.01em !important; color: var(--text-primary) !important; }
+:root .aw .aw-h4 { font-family: var(--font-sans) !important; font-size: 14px !important; line-height: 20px !important; font-weight: 500 !important; letter-spacing: -0.01em !important; color: var(--text-primary) !important; }
+:root .aw .aw-lede, :root .aw .aw-lg { font-size: 14px !important; font-weight: 400 !important; line-height: 22px !important; color: var(--text-secondary) !important; }
+:root .aw .aw-intro__lead { font-size: 16px !important; font-weight: 400 !important; line-height: 26px !important; letter-spacing: -0.01em !important; color: var(--text-secondary) !important; }
+:root .aw .aw-text { font-size: 14px !important; line-height: 20px; color: var(--text-primary); }
+:root .aw .aw-small, :root .aw .aw-sm { font-size: 13px !important; line-height: 18px; color: var(--text-secondary) !important; }
+:root .aw .aw-micro, :root .aw .aw-onb__kicker, :root .aw .aw-intro__n { font-size: 12px !important; line-height: 16px !important; font-weight: 500 !important; color: var(--text-secondary) !important; }
+/* Eyebrows: Geist Mono, uppercase, wide, in Signal Blue */
+:root .aw .aw-eyebrow {
+  font-family: var(--font-mono) !important; font-size: 12px !important; line-height: 1 !important; font-weight: 500 !important;
+  letter-spacing: 0.08em !important; text-transform: uppercase !important; color: var(--accent-11) !important;
+}
+:root .aw .aw-label, :root .aw label > .aw-label, :root .aw .tw-field__label { font-size: 13px !important; line-height: 18px !important; font-weight: 500 !important; color: var(--text-sidebar) !important; }
+:root .aw .tw-field__hint, :root .aw .tw-field__error { font-size: 12px; line-height: 16px; }
+:root .aw .aw-num, :root .aw .aw-stat__num, :root .aw .aw-kpi__num, :root .aw .aw-rank { font-family: var(--font-sans) !important; font-variant-numeric: tabular-nums; }
+:root .aw code { font-size: 13px; border-radius: 6px; }
+:root .aw .md { font-size: 14px; line-height: 22px; color: var(--text-primary); }
+
+/* ─────────────── 3. Buttons: pills with a raised edge ─────────────── */
+:root .aw .aw-btn, :root .aw a.aw-btn, :root .aw a.aw-btn:link, :root .aw a.aw-btn:visited {
+  height: 36px !important; min-height: 36px !important; padding: 0 var(--space-4) !important; gap: var(--space-1) !important;
+  font-size: 14px !important; line-height: 20px !important; font-weight: 500 !important; letter-spacing: -0.01em !important;
+  border-radius: 999px !important;
+  transition: filter var(--duration-quick) var(--ease-smooth-out), background var(--duration-quick) var(--ease-smooth-out), box-shadow var(--duration-quick) var(--ease-smooth-out) !important;
+}
+:root .aw .aw-btn--primary, :root .aw .aw-btn--accent, :root .aw .aw-btn--brand, :root .aw a.aw-btn--primary:link, :root .aw a.aw-btn--primary:visited, :root .aw a.aw-btn--accent:link, :root .aw a.aw-btn--accent:visited {
+  background: var(--button-gradient) !important; background-origin: border-box !important; color: #FFFFFF !important;
+  border: 1.5px solid var(--button-edge) !important; box-shadow: var(--button-raised) !important;
+}
+:root .aw .aw-btn--primary:hover, :root .aw .aw-btn--accent:hover, :root .aw .aw-btn--brand:hover {
+  background: var(--button-gradient) !important; border-color: var(--button-edge) !important; color: #FFFFFF !important;
+  box-shadow: var(--button-raised) !important; filter: brightness(1.05);
+}
+:root .aw .aw-btn--secondary, :root .aw a.aw-btn--secondary:link, :root .aw a.aw-btn--secondary:visited, :root .aw .aw-ctl {
+  background: var(--bg-primary) !important; color: var(--text-primary) !important;
+  border: 0 !important; box-shadow: 0 0 0 1px var(--button-ring), var(--button-shadow) !important;
+}
+:root .aw .aw-btn--secondary:hover, :root .aw .aw-ctl:hover { background: var(--bg-tertiary) !important; color: var(--text-primary) !important; box-shadow: 0 0 0 1px var(--button-ring), var(--button-shadow) !important; }
+:root .aw .aw-btn--ghost, :root .aw .aw-btn--tertiary, :root .aw .aw-btn--text { color: var(--text-secondary) !important; }
+:root .aw .aw-btn--danger, :root .aw .aw-btn.bg-neg\!, :root .aw .aw-btn--primary.bg-neg\! {
+  background: linear-gradient(180deg, #E5484D 50%, #CC172A 99.5%) !important; color: #FFFFFF !important;
+  border: 1.5px solid var(--button-edge) !important; box-shadow: var(--button-raised) !important;
+}
+:root .aw .aw-btn--danger:hover, :root .aw .aw-btn.bg-neg\!:hover { background: linear-gradient(180deg, #E5484D 50%, #CC172A 99.5%) !important; color: #FFFFFF !important; filter: brightness(1.05); }
+:root .aw .aw-btn--sm { height: 28px !important; min-height: 28px !important; padding: 0 var(--space-3) !important; font-size: 13px !important; }
+:root .aw .aw-btn--lg { height: 40px !important; min-height: 40px !important; padding: 0 var(--space-5) !important; font-size: 14px !important; }
+:root .aw .aw-btn:disabled, :root .aw .aw-btn[aria-disabled="true"] { box-shadow: none !important; filter: none !important; }
+:root .aw .aw-btn:focus-visible { outline: 2px solid var(--accent-9) !important; outline-offset: 2px !important; }
+:root .aw .aw-iconbtn, :root .aw .aw-rail__btn { border-radius: 999px !important; }
+:root .aw .aw-icon-btn, :root .aw .aw-nav-toggle, :root .aw .aw-tool { border-radius: 8px !important; }
+:root .aw .aw-tool { font-size: 13px !important; }
+
+/* ─────────────── 4. Inputs ─────────────── */
+:root .aw .aw-input, :root .aw .aw-textarea, :root .aw .aw-select, :root .aw .aw-dropdown--field, :root .aw .aw-pop__field, :root .aw .aw-pop__search,
+:root .aw input:is([type="text"], [type="email"], [type="url"], [type="search"], [type="password"], [type="number"], [type="tel"], [type="date"], [type="time"], :not([type])):not(.aw-sheet__input):not(.aw-docs__title):not(.tw-bare),
+:root .aw textarea:not(.aw-sheet__input):not(.tw-bare), :root .aw select {
+  min-height: 36px; padding: 0 var(--space-3); font-size: 14px !important; letter-spacing: -0.01em;
+  background: var(--bg-primary) !important; border: 1px solid var(--border-medium) !important; border-radius: 10px !important;
+}
+:root .aw .aw-textarea, :root .aw textarea:not(.aw-sheet__input):not(.tw-bare) { padding: var(--space-3) !important; line-height: 22px !important; border-radius: 12px !important; }
+:root .aw .aw-input:focus, :root .aw .aw-textarea:focus, :root .aw .aw-select:focus, :root .aw .aw-pop__field:focus, :root .aw .aw-pop__search:focus,
+:root .aw input:is([type="text"], [type="email"], [type="url"], [type="search"], [type="password"], [type="number"], [type="tel"], [type="date"], :not([type])):not(.aw-sheet__input):not(.aw-docs__title):not(.tw-bare):focus,
+:root .aw textarea:not(.aw-sheet__input):not(.tw-bare):focus, :root .aw select:focus {
+  border-color: var(--accent-9) !important; box-shadow: var(--focus-ring) !important;
+}
+:root .aw .aw-input--hero, :root .aw .aw-input--lg { min-height: 52px; padding: 0 var(--space-5) !important; font-size: 16px !important; border-radius: 999px !important; }
+:root .aw .aw-dropdown, :root .aw .aw-dropdown--field, :root .aw .aw-dropdown--sm { height: 36px; border-radius: 10px !important; font-size: 14px !important; }
+:root .aw .aw-dropdown--sm { height: 28px; font-size: 13px !important; }
+:root .aw .aw-sheet__input { font-size: 14px !important; }
+
+/* ─────────────── 5. Tags ─────────────── */
+:root .aw .aw-chip, :root .aw .aw-status, :root .aw .aw-sbadge, :root .aw .aw-badge, :root .aw .aw-tag, :root .aw .aw-pill, :root .aw .aw-pri, :root .aw .aw-engine {
+  height: 22px !important; padding: 0 var(--space-2) !important; font-size: 12px !important; font-weight: 500 !important; line-height: 14px !important;
+}
+
+/* ─────────────── 6. Surfaces ─────────────── */
+:root .aw .aw-frame, :root .aw .aw-card, :root .aw .aw-stats, :root .aw .aw-table-wrap, :root .aw .aw-kpi, :root .aw .aw-card-stat, :root .aw .aw-intro__card, :root .aw .aw-tile {
+  border-color: var(--border-medium) !important; border-radius: var(--radius-md) !important;
+}
+:root .aw .aw-frame__head { font-size: 14px; font-weight: 500; letter-spacing: -0.01em; }
+:root .aw .aw-stat__lab { font-size: 13px !important; color: var(--text-secondary) !important; }
+:root .aw .aw-stat__num { font-family: var(--font-display) !important; font-size: 28px !important; line-height: 34px !important; font-weight: 500 !important; letter-spacing: -0.02em !important; }
+:root .aw .aw-callout, :root .aw .aw-error { font-size: 14px !important; line-height: 20px; border-radius: 10px !important; }
+
+/* ─────────────── 7. Tables ─────────────── */
+:root .aw .aw-table, :root .aw .aw-sheet table { font-size: 14px; }
+:root .aw .aw-table--compact th, :root .aw .aw-table--dense th, :root .aw .aw-table--tight th { font-size: 13px !important; }
+:root .aw .aw-sheet td.aw-sheet__n, :root .aw .aw-sheet th.aw-sheet__n { font-size: 13px !important; }
+
+/* ─────────────── 8. Tabs and switches ─────────────── */
+:root .aw .aw-tabs > button, :root .aw .aw-seg > button, :root .aw .aw-seg button { font-size: 14px !important; letter-spacing: -0.01em; }
+:root .aw .aw-viewbtn { height: 28px; border-radius: 999px; font-size: 14px; }
+:root .aw .aw-undo button { font-size: 13px; }
+
+/* ─────────────── 9. Menus, modals and the side panel ─────────────── */
+:root .aw .tw-modal__title, :root .aw .tw-side-panel__title h2 { font-family: var(--font-display); font-size: 20px; line-height: 28px; font-weight: 500; letter-spacing: -0.015em; }
+:root .aw .tw-modal__body { font-size: 14px; line-height: 22px; }
+
+/* ─────────────── 10. App shell ─────────────── */
+:root .aw .aw-nav-section { font-size: 12px !important; color: var(--text-tertiary) !important; }
+:root .aw .aw-nav-link, :root .aw .aw-mod, :root .aw .aw-mod--sm, :root .aw .aw-mod__item {
+  height: 32px !important; min-height: 32px !important; border-radius: 8px !important; font-size: 14px !important; color: var(--text-sidebar) !important; letter-spacing: -0.01em;
+}
+:root .aw .aw-nav-link:hover, :root .aw .aw-mod:hover, :root .aw .aw-mod__item:hover { color: var(--text-primary) !important; }
+:root .aw .aw-ws-switch { border-radius: 8px; font-size: 14px; }
+:root .aw .aw-page-title { font-size: 14px !important; letter-spacing: -0.01em; }
+:root .aw .aw-page-body { border-radius: var(--radius-md) !important; }
+:root .aw .aw-live { font-size: 13px !important; }
+
+/* ─────────────── 11. Tool intros ─────────────── */
+:root .aw .aw-intro__t { font-size: 14px !important; font-weight: 500; letter-spacing: -0.01em; }
+:root .aw .aw-intro__x { font-size: 14px !important; line-height: 22px; color: var(--text-secondary) !important; }
+:root .aw .aw-try { font-size: 13px !important; }
+:root .aw .aw-chart-label { font-size: 12px; }

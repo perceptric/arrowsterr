@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Funnel+Display:wght@300..800&family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap');
 
 /* ═══════════════════════════════════════════════════════════════════════
    ARROWSTERR BRAND SYSTEM — CSS
@@ -762,3 +762,173 @@
 @media (prefers-reduced-motion: reduce) {
   .aw *, .aw *::before, .aw *::after { transition: none !important; }
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   v6 · THE BREW LOOK
+   Loaded last, so it wins over everything above. Type, neutrals, corners
+   and buttons follow brew.new (read 28 October 2026). Signal Blue
+   #0943B0 stays the one brand colour, where Brew uses its orange.
+   Headings: the system face (SF Pro on a Mac), weight 500, ink #302F2C.
+   Text: Inter, 16/26, tracking -0.01em, body #5C5B57.
+   Labels: Geist Mono, uppercase, wide.
+   Ground: warm paper #FAFAF7 with white cards.
+   ═══════════════════════════════════════════════════════════════════════ */
+.aw {
+  --font-display: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-ui: "Geist", "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --signal-deep: #062C75;
+  --signal-gradient: linear-gradient(180deg, var(--signal) 50%, var(--signal-deep) 99.5%);
+  --paper: #FAFAF7;
+  --ink-strong: #302F2C;
+  --ink-fg: #171717;
+  --ink: #5C5B57;
+  --ink-2: #56554F;
+  --ink-3: #6B6A67;
+  --ink-muted: #82807C;
+  --ink-4: #8A8986;
+  --bg: #FFFFFF;
+  --bg-2: #F7F7F5;
+  --bg-3: #F5F4F0;
+  --bg-4: #EEEDE9;
+  --line: #E6E5E1;
+  --line-faint: #EEEDE9;
+  --line-strong: #DEDEDE;
+  --ring: #ECECEC;
+  --night: #131211;
+  --on-night-2: rgba(255, 255, 255, 0.7);
+  --pos: #1F8A4A;
+  --pos-tint: #ECF8F0;
+  --neg: #B4232C;
+  --neg-tint: #FFF1F0;
+  --button-edge: rgba(30, 30, 30, 0.15);
+  --button-shadow: 0 1px 2px rgba(40, 40, 40, 0.08);
+  --card-shadow: 0 8px 24px rgba(30, 30, 30, 0.06);
+  --focus-ring: 0 0 0 4px rgba(9, 67, 176, 0.15);
+  --radius-sm: 6px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --ease: cubic-bezier(.22, 1, .36, 1);
+
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 26px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.aw[data-theme="dark"], [data-theme="dark"] .aw {
+  --signal-deep: #1F4BB0;
+  --paper: #252525;
+  --ink-strong: #EFEEEC;
+  --ink-fg: #EDEDED;
+  --ink: #B6B4AF;
+  --ink-2: #D3D2CF;
+  --ink-3: #979591;
+  --ink-muted: #979591;
+  --ink-4: #888681;
+  --bg: #2B2927;
+  --bg-2: #201F1D;
+  --bg-3: #23211F;
+  --bg-4: #363330;
+  --line: #3E3B38;
+  --line-faint: #363330;
+  --line-strong: #333333;
+  --ring: #3D3D3D;
+  --pos: #4CC47F;
+  --neg: #FF8A88;
+  --button-edge: rgba(0, 0, 0, 0.35);
+  --button-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+.aw.aw-page, .aw .aw-page { background: var(--paper); }
+
+/* Headings */
+.aw .aw-hero, .aw .aw-display, .aw .aw-h1, .aw .aw-h2, .aw .aw-h3 { font-family: var(--font-display); font-weight: 500; color: var(--ink-strong); }
+.aw .aw-hero    { font-size: 40px; line-height: 44px; letter-spacing: -0.025em; }
+.aw .aw-display { font-size: 28px; line-height: 34px; letter-spacing: -0.02em; }
+.aw .aw-h1      { font-size: 28px; line-height: 34px; letter-spacing: -0.02em; }
+.aw .aw-h2      { font-size: 28px; line-height: 34px; letter-spacing: -0.02em; }
+.aw .aw-h3      { font-size: 20px; line-height: 28px; letter-spacing: -0.015em; }
+.aw .aw-h4      { font-family: var(--font-sans); font-size: 16px; line-height: 24px; font-weight: 500; letter-spacing: -0.01em; color: var(--ink-fg); }
+@media (min-width: 768px) {
+  .aw .aw-hero    { font-size: 56px; line-height: 60px; }
+  .aw .aw-display { font-size: 36px; line-height: 44px; }
+  .aw .aw-h1      { font-size: 36px; line-height: 44px; }
+  .aw .aw-h2      { font-size: 36px; line-height: 44px; }
+  .aw .aw-h3      { font-size: 24px; line-height: 32px; }
+}
+
+/* Text */
+.aw .aw-lead    { font-size: 16px; line-height: 26px; letter-spacing: -0.01em; color: var(--ink-2); max-width: 42rem; }
+@media (min-width: 768px) { .aw .aw-lead { font-size: 18px; line-height: 28px; } }
+.aw .aw-body    { font-size: 16px; line-height: 26px; letter-spacing: -0.01em; color: var(--ink); }
+.aw .aw-ui      { font-family: var(--font-ui); font-size: 14px; line-height: 20px; letter-spacing: -0.01em; color: var(--ink-fg); }
+.aw .aw-small   { font-size: 14px; line-height: 22px; color: var(--ink); }
+.aw .aw-caption { font-size: 13px; line-height: 18px; letter-spacing: 0; color: var(--ink-3); }
+.aw .aw-label   { font-size: 14px; line-height: 20px; font-weight: 500; letter-spacing: -0.01em; color: var(--ink-fg); }
+.aw .aw-prose   { font-size: 16px; line-height: 26px; letter-spacing: -0.01em; color: var(--ink); }
+.aw .aw-prose h2 { font-family: var(--font-display); font-size: 28px; line-height: 34px; letter-spacing: -0.02em; font-weight: 500; color: var(--ink-strong); }
+.aw .aw-prose h3 { font-family: var(--font-display); font-size: 20px; line-height: 28px; letter-spacing: -0.015em; font-weight: 500; color: var(--ink-strong); }
+.aw .aw-prose strong { color: var(--ink-fg); font-weight: 500; }
+.aw .aw-link { font-weight: 500; text-underline-offset: 4px; }
+
+/* Eyebrow: Geist Mono, uppercase, wide, in Signal Blue */
+.aw .aw-eyebrow { font-family: var(--font-mono); font-size: 14px; line-height: 1; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--signal-text); }
+.aw .aw-eyebrow::before { display: none; }
+
+/* Buttons: pills, a two-stop fill and a raised edge */
+.aw .aw-btn {
+  height: 40px; padding: 0 20px; gap: 4px;
+  font-family: var(--font-sans); font-size: 14px; line-height: 20px; font-weight: 500; letter-spacing: -0.01em;
+  border-radius: 70px; clip-path: none;
+  transition: filter .15s var(--ease), background-color .15s var(--ease), box-shadow .15s var(--ease);
+}
+.aw .aw-btn--primary, .aw .aw-btn--on-night {
+  background: var(--signal-gradient); background-origin: border-box; color: #FFFFFF;
+  border: 1.5px solid var(--button-edge); box-shadow: var(--button-shadow); clip-path: none;
+}
+.aw .aw-btn--primary:hover, .aw .aw-btn--on-night:hover { background: var(--signal-gradient); filter: brightness(1.05); }
+.aw .aw-btn--primary:focus-visible, .aw .aw-btn--on-night:focus-visible { box-shadow: var(--button-shadow); outline: 2px solid var(--signal); outline-offset: 2px; }
+.aw .aw-btn--secondary { background: var(--bg); color: var(--ink-strong); border: 0; box-shadow: 0 0 0 1px var(--ring), var(--button-shadow); }
+.aw .aw-btn--secondary:hover { background: var(--bg-2); }
+.aw .aw-btn--ghost { color: var(--ink); }
+.aw .aw-btn--ghost:hover { background: transparent; color: var(--ink-strong); }
+.aw .aw-btn--ghost-night { background: #FFFFFF; color: #1E1E1E; border: 1px solid rgba(247, 247, 245, 0.28); }
+.aw .aw-btn--ghost-night:hover { background: rgba(255, 255, 255, 0.9); }
+.aw .aw-btn--sm { height: 36px; padding: 0 16px; font-size: 14px; }
+.aw .aw-btn--lg { height: 52px; padding: 0 24px; font-size: 16px; }
+
+/* Tags and chips */
+.aw .aw-tag { height: 22px; padding: 0 8px; font-size: 11px; line-height: 14px; font-weight: 500; letter-spacing: 0; border-radius: 6px; }
+.aw .aw-chip { border-radius: 999px; font-size: 14px; letter-spacing: -0.01em; }
+.aw .aw-num { font-family: var(--font-sans); font-variant-numeric: tabular-nums; color: var(--ink-fg); }
+
+/* Surfaces: white cards on warm paper, soft lift, round corners */
+.aw .aw-card { border-color: var(--line); border-radius: 16px; box-shadow: var(--card-shadow); }
+.aw .aw-frame, .aw .aw-frame--notch { border-color: var(--line); border-radius: 24px; clip-path: none; }
+.aw .aw-frame--notch::after { display: none; }
+.aw .aw-window { border-color: var(--line); border-radius: 16px; box-shadow: var(--card-shadow); }
+.aw .aw-window__bar { font-family: var(--font-ui); font-size: 13px; color: var(--ink-3); background: var(--bg); border-color: var(--line-faint); }
+.aw .aw-dotgrid { background-color: var(--bg-3); background-image: none; }
+.aw .aw-panel-night { background: var(--night); color: rgba(255, 255, 255, 0.7); border-radius: 24px; box-shadow: none; }
+.aw .aw-panel-night .aw-hero, .aw .aw-panel-night .aw-display, .aw .aw-panel-night .aw-h1, .aw .aw-panel-night .aw-h2, .aw .aw-panel-night .aw-h3 { color: #FFFFFF; }
+.aw .aw-panel-night--climb::after { display: none; }
+
+/* Stats */
+.aw .aw-stat__value { font-family: var(--font-display); font-weight: 500; letter-spacing: -0.02em; color: var(--ink-strong); }
+
+/* FAQ */
+.aw .aw-faq summary { font-family: var(--font-sans); font-size: 16px; line-height: 24px; font-weight: 500; letter-spacing: -0.01em; color: var(--ink-fg); padding: 20px 0; }
+.aw .aw-faq details > div { font-size: 16px; line-height: 26px; letter-spacing: -0.01em; color: var(--ink); max-width: 36rem; }
+
+/* Inputs */
+.aw .aw-input, .aw .aw-textarea, .aw .aw-select {
+  font-family: var(--font-sans); font-size: 16px; letter-spacing: -0.01em; color: var(--ink-strong);
+  background: var(--bg); border: 1px solid var(--line); border-radius: 12px;
+}
+.aw .aw-input::placeholder, .aw .aw-textarea::placeholder { color: var(--ink-4); }
+.aw .aw-input:focus, .aw .aw-textarea:focus, .aw .aw-select:focus-visible { outline: none; border-color: var(--signal); box-shadow: var(--focus-ring); }
+.aw .aw-input--lg { height: 52px; padding: 0 20px; font-size: 16px; border-radius: 70px; }
