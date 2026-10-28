@@ -135,7 +135,7 @@ export function SchedulesTab({
       ) : null}
       {!list.length ? (
         <div className="flex flex-col gap-4">
-          <ToolIntro eyebrow="Schedules" title="Send reports on a schedule" lead="Pick a brand, its pages and who gets them. Each week or month, one email goes out with a PDF for each page." />
+          <ToolIntro title="Send reports on a schedule" lead="Pick a brand, its pages and who gets them. Each week or month, one email goes out with a PDF for each page." />
           {max > 0 ? (
             addButton
           ) : (

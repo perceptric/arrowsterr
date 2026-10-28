@@ -298,7 +298,6 @@ export function BrandKitSettings({ sb, auth, canEdit, website: siteGuess, brands
   if (!own)
     return (
       <ToolIntro
-        eyebrow="Brand Kit"
         title="Your brand, learned from your website"
         lead="Zippie reads your site and saves your logo, colors, fonts and voice. Your reports use it."
         action={
@@ -394,7 +393,6 @@ export function BrandKitPanel({ sb, auth, canEdit, brand, brandCount }: { sb: Su
   if (!row)
     return (
       <ToolIntro
-        eyebrow="Brand Kit"
         title={`${brand.name}'s brand, learned from its website`}
         lead="Zippie reads the site and saves the logo, colors, fonts and voice."
         action={

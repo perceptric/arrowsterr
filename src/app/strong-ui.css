@@ -251,3 +251,24 @@
 }
 :root .aw .aw-eyebrow { font-size: 13px !important; font-weight: 500 !important; line-height: 18px !important; }
 :root .aw .aw-tag { font-size: 12px !important; font-weight: 500 !important; }
+
+/* ─────────────── 14. Tool intros ───────────────
+   Each feature is a small piece of the product: a white card in a grey shell, its name and one line under it.
+   No numbers, no dotted grid. Cards without a picture put their words in the white card. */
+:root .aw .aw-intro__grid { gap: 16px; }
+:root .aw .aw-intro__card {
+  overflow: visible; padding: 3px; background: var(--shell) !important; border: 1px solid var(--shell-border) !important;
+  border-radius: 18px !important; box-shadow: none !important;
+}
+:root .aw .aw-intro__vis {
+  height: auto !important; min-height: 156px; padding: 20px 22px !important;
+  background: var(--bg-primary) !important; background-image: none !important;
+  border: 1px solid var(--card-border) !important; border-radius: 14px; box-shadow: var(--card-lift);
+}
+:root .aw .aw-intro__copy { gap: 4px; padding: 12px 14px 14px; }
+:root .aw .aw-intro__card:not(:has(.aw-intro__vis)) .aw-intro__copy {
+  min-height: 120px; padding: 18px 20px; background: var(--bg-primary); border: 1px solid var(--card-border); border-radius: 14px; box-shadow: var(--card-lift);
+}
+:root .aw .aw-intro__t { font-size: 14px !important; line-height: 20px !important; font-weight: 600 !important; color: var(--text-primary) !important; letter-spacing: 0 !important; }
+:root .aw .aw-intro__x { font-size: 13px !important; line-height: 20px !important; color: var(--text-secondary) !important; }
+:root .aw .aw-intro__n { display: none !important; }

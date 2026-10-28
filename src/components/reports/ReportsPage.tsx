@@ -115,7 +115,6 @@ function Downloads({ sb, auth, brands, canEdit }: { sb: SupabaseClient; auth: Ru
       {error ? <p className="aw-error">{error}</p> : null}
       {!files.length ? (
         <ToolIntro
-          eyebrow="Reports"
           title="Every PDF you download lands here"
           lead="Click Download PDF on any page. Pick the Arrowsterr design or your Brand Kit's, and the file is kept here to download again."
         />
