@@ -188,6 +188,9 @@ html, body { background: var(--bg-primary) !important; }
 }
 :root .aw .aw-chip.aw-chip--btn { height: 28px !important; padding: 0 10px !important; background: var(--bg-primary) !important; border: 1px solid var(--frame) !important; color: var(--text-primary) !important; }
 :root .aw .aw-chip.aw-chip--btn:hover { background: var(--bg-tertiary) !important; }
+/* A quiet toggle inside a row (Show trend): grey text, no frame, a light fill on hover. */
+:root .aw .aw-chip.aw-chip--btn.aw-chip--quiet { height: 24px !important; padding: 0 6px !important; background: transparent !important; border-color: transparent !important; color: var(--text-tertiary) !important; font-weight: 400 !important; }
+:root .aw .aw-chip.aw-chip--btn.aw-chip--quiet:hover, :root .aw .aw-chip.aw-chip--btn.aw-chip--quiet.is-on { background: var(--bg-tertiary) !important; color: var(--text-primary) !important; }
 :root .aw .aw-cite { background: var(--bg-tertiary) !important; border: 1px solid var(--border-strong) !important; font-size: 11px !important; }
 
 /* ─────────────── 8. Cards, stats, tables: flat, a black frame outside, grey hairlines inside ─────────────── */

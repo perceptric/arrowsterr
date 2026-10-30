@@ -380,7 +380,7 @@ function Results({
                       </button>
                     )}
                     {edit && editing !== `t:${t.name}` ? <RowTools label={`topic ${t.name}`} onEdit={() => setEditing(`t:${t.name}`)} onRemove={() => edit.removeTopic(t.name)} /> : null}
-                    <button type="button" className={`aw-chip aw-chip--btn ${showChart ? "is-on" : ""}`} onClick={() => setCharts((s) => flip(s, t.name))} aria-pressed={showChart}>
+                    <button type="button" className={`aw-chip aw-chip--btn aw-chip--quiet ${showChart ? "is-on" : ""}`} onClick={() => setCharts((s) => flip(s, t.name))} aria-pressed={showChart}>
                       {showChart ? "Hide trend" : "Show trend"}
                     </button>
                   </span>
