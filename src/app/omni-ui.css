@@ -1,0 +1,257 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   ARROWSTERR PRODUCT UI · v11, the framed look
+   Loaded after strong-ui.css, so it wins. Same class names; the values are
+   the Perceptric house style first built for Omniscient (its docs/brand.md):
+   black and white, square and framed. Inter at 13px on a 4px grid, black
+   (#0A0A0A) on white with plain greys. Outer frames (cards, menus, dialogs,
+   buttons, filters) are a 1px black line; rows inside keep grey hairlines.
+   No shadows, no gradients, no round corners. Black is the one action
+   colour. Signal Blue stays ours as the signal: your brand, about 5% of a
+   screen. Other hues only mean status, an engine or a brand.
+   Plan: docs/ui-framed.md.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ─────────────── 1. Tokens ─────────────── */
+:root, [data-theme="light"] {
+  --bg-primary: #FFFFFF; --bg-secondary: #FFFFFF; --bg-tertiary: #F5F5F5; --bg-quaternary: #EBEBEB;
+  --text-primary: #0A0A0A; --text-strong: #0A0A0A; --text-secondary: #737373; --text-tertiary: #A3A3A3; --text-light: #C4C4C4;
+  --text-sidebar: #737373;
+  --border-strong: #D4D4D4; --border-medium: #E5E5E5; --border-light: #F0F0F0;
+  --frame: #0A0A0A; --ink-2: #262626;
+  --accent-3: #F5F5F5; --accent-5: #D4D4D4; --accent-9: #0A0A0A; --accent-10: #262626; --accent-11: #0A0A0A;
+  --signal: #2760CF; --signal-ink: #0943B0; --signal-soft: #EDF2FC;
+  --green-3: #E8F5EF; --green-11: #0A7A52; --red-3: #FBEDEA; --red-11: #C2412D; --orange-3: #FBF3E6; --orange-11: #B7791F;
+  --shell: #FFFFFF; --shell-border: #0A0A0A; --card-border: #0A0A0A; --row-border: #F0F0F0;
+  --card-lift: none; --shadow-strong: none; --seg-track: #FFFFFF;
+}
+[data-theme="dark"] {
+  --bg-primary: #121212; --bg-secondary: #121212; --bg-tertiary: #1F1F1F; --bg-quaternary: #292929;
+  --text-primary: #FAFAFA; --text-strong: #FFFFFF; --text-secondary: #A3A3A3; --text-tertiary: #737373; --text-light: #525252;
+  --text-sidebar: #A3A3A3;
+  --border-strong: #3D3D3D; --border-medium: #2C2C2C; --border-light: #232323;
+  --frame: #FAFAFA; --ink-2: #E5E5E5;
+  --accent-3: #1F1F1F; --accent-5: #3D3D3D; --accent-9: #FAFAFA; --accent-10: #E5E5E5; --accent-11: #FAFAFA;
+  --signal: #6E95E6; --signal-ink: #9DB6F0; --signal-soft: #17223A;
+  --green-3: #10261D; --green-11: #5CC99A; --red-3: #2E1612; --red-11: #F08A75; --orange-3: #2B2112; --orange-11: #E5B062;
+  --shell: #121212; --shell-border: #FAFAFA; --card-border: #FAFAFA; --row-border: #232323;
+  --card-lift: none; --shadow-strong: none; --seg-track: #121212;
+}
+:root {
+  --radius-xs: 0; --radius-sm: 0; --radius-md: 0; --radius-lg: 0; --radius-xl: 0; --radius-2xl: 0; --radius-3xl: 0; --radius-xxl: 0; --radius-pill: 0;
+  --radius: 0;
+  --ease-out: cubic-bezier(.2, .8, .2, 1); --ease-spring: cubic-bezier(.3, 1.5, .6, 1);
+  --t-fast: 120ms; --t-normal: 200ms; --t-slow: 320ms;
+}
+:root .aw {
+  --aw-brand: var(--accent-9); --aw-brand-lift: var(--accent-11); --aw-brand-deep: var(--accent-10);
+  --aw-brand-bg: var(--accent-3); --aw-brand-pale: var(--accent-3); --aw-brand-mist: var(--accent-5);
+  --aw-tick: var(--accent-9); --aw-sky: var(--signal);
+  --aw-rule: var(--border-medium); --aw-rule-faint: var(--border-light);
+  --aw-paper: var(--bg-primary); --aw-surface: var(--bg-primary); --aw-surface-2: var(--bg-tertiary);
+  --aw-ink: var(--text-primary); --aw-body: var(--text-primary); --aw-muted: var(--text-secondary); --aw-faint: var(--text-tertiary);
+  --aw-pos: var(--green-11); --aw-pos-bg: var(--green-3); --aw-neg: var(--red-11); --aw-neg-bg: var(--red-3); --aw-warn: var(--orange-11); --aw-warn-bg: var(--orange-3);
+  --aw-r-xs: 0; --aw-r-sm: 0; --aw-r-md: 0; --aw-r-lg: 0; --aw-r-pill: 0;
+  --aw-shadow-xs: none; --aw-shadow-sm: none; --aw-shadow-md: none; --aw-shadow-lg: none; --aw-shadow-control: none;
+  --btn-radius: 0;
+  --btn-primary: var(--accent-9); --btn-primary-hover: var(--accent-10); --btn-primary-ring: none;
+  --btn-light: var(--bg-primary); --btn-light-hover: var(--bg-tertiary); --btn-light-ring: none;
+  --focus-ring: 0 0 0 1px var(--frame);
+  font-size: 13px;
+  line-height: 20px;
+}
+html, body { background: var(--bg-primary) !important; }
+:root .aw ::selection { background: var(--accent-9); color: var(--bg-primary); }
+
+/* ─────────────── 2. Shape: square, flat ───────────────
+   Every corner is square. rounded-full stays for faces and radio buttons only. */
+:root .aw *:not(.rounded-full):not([type="radio"]):not(.aw-face),
+:root .aw *::before, :root .aw *::after {
+  border-radius: 0 !important;
+  corner-shape: initial !important;
+}
+:root .aw *:not(input):not(textarea):not(.aw-keep-shadow) { box-shadow: none !important; }
+:root .aw [class*="bg-gradient"], :root .aw [class*="bg-linear"] { background-image: none !important; }
+:root .aw :focus-visible { outline: 1px solid var(--frame) !important; outline-offset: 1px !important; }
+:root .aw input[type="checkbox"], :root .aw input[type="radio"], :root .aw progress { accent-color: var(--accent-9); }
+
+/* ─────────────── 3. Type ───────────────
+   Inter at 13px. Headings 500 with tight tracking; big type balances its lines. Big numbers are light. */
+:root .aw :is(h1, h2, h3) { font-feature-settings: "ss07" 1, "ss08" 1, "liga" 0; }
+:root .aw :is(.aw-hero, .aw-display, .aw-intro__title, .aw-onb__title) { font-weight: 500 !important; letter-spacing: -0.035em !important; text-wrap: balance; }
+:root .aw :is(.aw-h1, .aw-h2, .tw-modal__title, .tw-side-panel__title h2) { font-size: 18px !important; line-height: 24px !important; font-weight: 500 !important; letter-spacing: -0.025em !important; }
+:root .aw .aw-h3 { font-size: 13px !important; line-height: 20px !important; font-weight: 600 !important; }
+:root .aw .aw-h4 { font-size: 13px !important; line-height: 20px !important; font-weight: 600 !important; }
+/* The page title: every screen opens with its own h1.aw-h2. After the heading rules, so it wins. */
+:root .aw h1.aw-h2 { font-size: 26px !important; line-height: 32px !important; font-weight: 500 !important; letter-spacing: -0.035em !important; text-wrap: balance; }
+@media (min-width: 640px) {
+  :root .aw h1.aw-h2 { font-size: 30px !important; line-height: 36px !important; }
+}
+:root .aw :is(.aw-text, .aw-lede, .aw-lg) { font-size: 13px !important; line-height: 20px !important; }
+:root .aw .md { font-size: 13px !important; line-height: 22px !important; }
+:root .aw :is(.aw-small, .aw-sm) { font-size: 12px !important; line-height: 16px !important; }
+:root .aw :is(.aw-label, label > .aw-label, .tw-field__label) { font-size: 12px !important; line-height: 16px !important; font-weight: 500 !important; }
+:root .aw .aw-stat__lab { font-size: 12px !important; line-height: 16px !important; color: var(--text-secondary) !important; margin-bottom: 8px !important; }
+:root .aw :is(.aw-stat__num, .aw-kpi__num) { font-size: 28px !important; line-height: 32px !important; font-weight: 400 !important; letter-spacing: -0.035em !important; }
+:root .aw a:not([class*="aw-btn"]):not(.aw-nav-link):not(.plain):not(.nav-link) { text-decoration-color: currentColor; }
+:root .aw .aw-text-link, :root .aw a.aw-text-link:is(:link, :visited) { color: var(--text-primary) !important; text-decoration: underline !important; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+
+/* Section labels: mono, in brackets. */
+:root .aw .aw-nav-section { font-family: var(--font-code) !important; font-size: 11px !important; font-weight: 500 !important; color: var(--text-tertiary) !important; }
+:root .aw .aw-nav-section > :first-child::before, :root .aw .aw-nav-section:not(:has(> *))::before { content: "[ "; }
+:root .aw .aw-nav-section > :first-child::after, :root .aw .aw-nav-section:not(:has(> *))::after { content: " ]"; }
+
+/* ─────────────── 4. App shell ───────────────
+   White edge to edge. A black rule splits the sidebar from the page; the
+   current page in the sidebar is solid black. */
+:root .aw .aw-sidebar, :root .aw .aw-rail { background: var(--bg-primary) !important; border: 0 !important; border-bottom: 1px solid var(--frame) !important; }
+@media (min-width: 768px) {
+  :root .aw .aw-sidebar, :root .aw .aw-rail { border-bottom: 0 !important; border-right: 1px solid var(--frame) !important; }
+  :root .aw .aw-sidebar > div:first-child { min-height: 49px; margin: -12px -8px 8px !important; padding: 0 8px; border-bottom: 1px solid var(--frame); }
+}
+:root .aw :is(.aw-nav-link, .aw-mod, .aw-mod--sm, .aw-mod__item) {
+  height: 30px !important; min-height: 30px !important; font-size: 13px !important; font-weight: 500 !important; color: var(--text-secondary) !important;
+  transition: background var(--t-fast) var(--ease-out), color var(--t-fast) var(--ease-out);
+}
+:root .aw :is(.aw-nav-link, .aw-mod, .aw-mod__item):hover { background: var(--bg-tertiary) !important; color: var(--text-primary) !important; }
+:root .aw :is(.aw-nav-link.is-on, .aw-nav-link[aria-current="page"], .aw-mod.is-on, .aw-mod--sm.is-on, .aw-mod__item.is-on),
+:root .aw :is(.aw-nav-link.is-on, .aw-nav-link[aria-current="page"]):hover {
+  background: var(--accent-9) !important; color: var(--bg-primary) !important;
+}
+:root .aw .aw-nav-link .aw-nav__icon, :root .aw .aw-nav__icon { color: currentColor !important; }
+:root .aw .aw-ws-switch { font-size: 13px !important; font-weight: 600 !important; }
+:root .aw .aw-ws-switch:hover, :root .aw .aw-taskbar:hover { background: var(--bg-tertiary) !important; }
+:root .aw .aw-page-head { border-bottom: 1px solid var(--border-medium); }
+:root .aw .aw-page-title { font-size: 13px !important; font-weight: 500 !important; color: var(--text-primary) !important; }
+:root .aw .aw-page-title__group { color: var(--text-tertiary) !important; font-weight: 400 !important; }
+:root .aw .aw-page-title__sep { color: var(--text-light) !important; }
+:root .aw .aw-page-body, :root .aw .aw-page-body:is(*) { background: var(--bg-primary) !important; border: 0 !important; }
+@media (min-width: 768px) {
+  :root .aw .aw-page-body { border: 0 !important; margin: 0 !important; }
+}
+
+/* ─────────────── 5. Buttons: square, 32px, a black frame ─────────────── */
+:root .aw .aw-btn, :root .aw .tw-btn {
+  font-size: 12px !important; font-weight: 500 !important; letter-spacing: 0 !important; border: 1px solid transparent !important;
+  transition: transform var(--t-normal) var(--ease-spring), background var(--t-fast) var(--ease-out), opacity var(--t-fast) var(--ease-out) !important;
+}
+:root .aw :is(.aw-btn, .tw-btn, .aw-iconbtn, .aw-icon-btn, .aw-ctl):active { transform: scale(.96); }
+:root .aw :is(.aw-btn--primary, .aw-btn--accent, .aw-btn--brand), :root .aw a:is(.aw-btn--primary, .aw-btn--accent, .aw-btn--brand):is(:link, :visited) {
+  background: var(--accent-9) !important; border: 1px solid var(--accent-9) !important; color: var(--bg-primary) !important; filter: none !important;
+}
+:root .aw :is(.aw-btn--primary, .aw-btn--accent, .aw-btn--brand):hover { background: var(--accent-10) !important; border-color: var(--accent-10) !important; }
+:root .aw :is(.aw-btn--secondary, .aw-ctl, .aw-chip--btn, .aw-try, .aw-viewbtn), :root .aw a.aw-btn--secondary:is(:link, :visited) {
+  background: var(--bg-primary) !important; border: 1px solid var(--frame) !important; color: var(--text-primary) !important;
+}
+:root .aw :is(.aw-btn--secondary, .aw-ctl, .aw-chip--btn, .aw-try, .aw-viewbtn):hover { background: var(--bg-tertiary) !important; }
+:root .aw .aw-ctl { font-size: 12px !important; }
+:root .aw :is(.aw-btn--ghost, .aw-btn--tertiary, .aw-btn--text) { background: transparent !important; border-color: transparent !important; color: var(--text-secondary) !important; }
+:root .aw :is(.aw-btn--ghost, .aw-btn--tertiary, .aw-btn--text):hover { background: var(--bg-tertiary) !important; color: var(--text-primary) !important; }
+:root .aw :is(.aw-btn--danger, .tw-btn--danger) { background: var(--red-11) !important; border-color: var(--red-11) !important; color: #FFFFFF !important; }
+:root .aw .aw-btn:is(:disabled, [aria-disabled="true"]), :root .aw .aw-btn:is(:disabled, [aria-disabled="true"]):hover {
+  opacity: 1 !important; background: var(--bg-tertiary) !important; border-color: var(--border-medium) !important; color: var(--text-tertiary) !important; transform: none;
+}
+:root .aw :is(.aw-iconbtn, .aw-icon-btn, .zp-icon-btn) { color: var(--text-secondary) !important; }
+:root .aw :is(.aw-iconbtn, .aw-icon-btn, .zp-icon-btn):hover { background: var(--bg-tertiary) !important; color: var(--text-primary) !important; }
+
+/* ─────────────── 6. Fields ───────────────
+   White, a grey border that turns black on hover; black with a 1px black ring on focus. */
+:root .aw :is(.aw-input, .aw-textarea, .aw-select, .aw-dropdown, .aw-dropdown--field, .aw-pop__field),
+:root .aw input:is([type="text"], [type="email"], [type="url"], [type="search"], [type="password"], [type="number"], [type="tel"], [type="date"], [type="time"], :not([type])):not(.aw-sheet__input):not(.aw-docs__title):not(.tw-bare),
+:root .aw textarea:not(.aw-sheet__input):not(.tw-bare) {
+  background-color: var(--bg-primary) !important; border: 1px solid var(--border-strong) !important; box-shadow: none !important; font-size: 13px;
+  transition: border-color var(--t-fast) var(--ease-out);
+}
+:root .aw :is(.aw-input, .aw-textarea, .aw-select, .aw-dropdown, .aw-dropdown--field, .aw-pop__field, input, textarea):hover:not(:disabled) { border-color: var(--frame) !important; }
+:root .aw :is(.aw-input, .aw-textarea, .aw-select, .aw-dropdown, .aw-dropdown--field, .aw-pop__field, input, textarea):focus,
+:root .aw :is(.aw-input, .aw-textarea, .aw-select, input, textarea):focus-visible {
+  border-color: var(--frame) !important; outline: 1px solid var(--frame) !important; outline-offset: 0 !important; box-shadow: none !important;
+}
+:root .aw ::placeholder { color: var(--text-tertiary) !important; }
+
+/* ─────────────── 7. Tags: a square with a step 3 fill, step 11 text and a 1px frame in its colour ─────────────── */
+:root .aw :is(.aw-chip, .aw-status, .aw-sbadge, .aw-badge, .aw-tag, .aw-pill, .aw-pri, .aw-engine, .tw-tag, .aw-stat__delta) {
+  height: 20px !important; padding: 0 6px !important; font-size: 12px !important; font-weight: 500 !important;
+  background: var(--bg-tertiary) !important; border: 1px solid var(--border-strong) !important; color: var(--text-secondary) !important;
+}
+:root .aw :is(.aw-status--ranked, .aw-sbadge--success, .tw-tag--green, .aw-stat__delta:not(.aw-stat__delta--down):not(.aw-stat__delta--flat)) {
+  background: var(--green-3) !important; border-color: color-mix(in oklab, var(--green-11) 35%, var(--bg-primary)) !important; color: var(--green-11) !important;
+}
+:root .aw :is(.aw-status--missed, .aw-sbadge--danger, .tw-tag--red, .aw-stat__delta--down) {
+  background: var(--red-3) !important; border-color: color-mix(in oklab, var(--red-11) 35%, var(--bg-primary)) !important; color: var(--red-11) !important;
+}
+:root .aw :is(.aw-status--warn, .aw-sbadge--warning, .tw-tag--orange) {
+  background: var(--orange-3) !important; border-color: color-mix(in oklab, var(--orange-11) 35%, var(--bg-primary)) !important; color: var(--orange-11) !important;
+}
+/* "You" marks your brand: the one place Signal Blue shows. */
+:root .aw :is(.aw-badge, .aw-chip--brand, .aw-pill.is-on) {
+  background: var(--signal-soft) !important; border-color: color-mix(in oklab, var(--signal) 35%, var(--bg-primary)) !important; color: var(--signal-ink) !important;
+}
+:root .aw .aw-chip.aw-chip--btn { height: 28px !important; padding: 0 10px !important; background: var(--bg-primary) !important; border: 1px solid var(--frame) !important; color: var(--text-primary) !important; }
+:root .aw .aw-chip.aw-chip--btn:hover { background: var(--bg-tertiary) !important; }
+:root .aw .aw-cite { background: var(--bg-tertiary) !important; border: 1px solid var(--border-strong) !important; font-size: 11px !important; }
+
+/* ─────────────── 8. Cards, stats, tables: flat, a black frame outside, grey hairlines inside ─────────────── */
+:root .aw :is(.aw-frame, .aw-table-wrap, .aw-kpi, .aw-card-stat, .aw-card, .aw-tile, .aw-module, .aw-run) {
+  background: var(--bg-primary) !important; border: 1px solid var(--frame) !important;
+}
+:root .aw .aw-frame .aw-table-wrap, :root .aw .aw-frame .aw-frame { border-color: var(--border-medium) !important; }
+:root .aw .aw-frame__body--flush .aw-table-wrap, :root .aw .aw-frame > .aw-table-wrap { border: 0 !important; }
+:root .aw .aw-frame__head {
+  min-height: 44px; background: var(--bg-primary) !important; border-bottom: 1px solid var(--border-medium) !important;
+  font-size: 13px !important; font-weight: 600 !important; color: var(--text-primary) !important;
+}
+:root .aw .aw-stats { gap: 1px !important; padding: 0 !important; background: var(--border-medium) !important; border: 1px solid var(--frame) !important; }
+:root .aw .aw-stats .aw-stat { background: var(--bg-primary) !important; border: 0 !important; }
+:root .aw .aw-callout { background: var(--bg-tertiary) !important; border: 1px solid var(--border-strong) !important; color: var(--text-primary) !important; }
+:root .aw .aw-callout--warn { background: var(--orange-3) !important; border-color: color-mix(in oklab, var(--orange-11) 35%, var(--bg-primary)) !important; }
+:root .aw :is(.aw-callout--error, .aw-callout--danger) { background: var(--red-3) !important; border-color: color-mix(in oklab, var(--red-11) 35%, var(--bg-primary)) !important; }
+:root .aw .aw-error { color: var(--red-11) !important; }
+:root .aw table:not(.aw-sheet table) { font-size: 13px; }
+:root .aw table:not(.aw-sheet table) th { font-size: 12px !important; color: var(--text-tertiary) !important; border-bottom: 1px solid var(--border-medium) !important; }
+:root .aw table:not(.aw-sheet table) td { font-size: 13px !important; border-bottom: 1px solid var(--border-light) !important; }
+:root .aw table:not(.aw-sheet table) tbody tr:hover > td { background: var(--bg-tertiary) !important; }
+
+/* Meters and progress bars: square, black on light grey. */
+:root .aw :is(.aw-meter, .aw-bar, .aw-progress) { background: var(--bg-quaternary) !important; }
+
+/* ─────────────── 9. Switches: a black-framed row of square cells, the current one solid black ─────────────── */
+:root .aw :is(.aw-seg, .aw-tabs, .aw-pick) {
+  gap: 0 !important; height: 32px !important; padding: 0 !important; background: var(--bg-primary) !important; border: 1px solid var(--frame) !important;
+}
+:root .aw :is(.aw-seg, .aw-tabs, .aw-pick) > button, :root .aw .aw-seg button {
+  height: 30px !important; min-height: 30px !important; padding: 0 12px !important; font-size: 12px !important; font-weight: 500 !important;
+  color: var(--text-secondary) !important; background: transparent !important;
+  transition: background var(--t-fast) var(--ease-out), color var(--t-fast) var(--ease-out);
+}
+:root .aw :is(.aw-seg, .aw-tabs, .aw-pick) > button + button { border-left: 1px solid var(--border-medium) !important; }
+:root .aw :is(.aw-seg, .aw-tabs, .aw-pick) > button:hover { color: var(--text-primary) !important; background: var(--bg-tertiary) !important; }
+:root .aw :is(.aw-seg, .aw-tabs, .aw-pick) > :is(button.is-on, button[aria-selected="true"], button[aria-checked="true"]),
+:root .aw .aw-seg button.is-on {
+  background: var(--accent-9) !important; color: var(--bg-primary) !important;
+}
+:root .aw .aw-pick > button { min-width: 0; padding: 0 6px !important; overflow: hidden; text-overflow: ellipsis; }
+:root .aw .aw-tabs--lg { height: 36px !important; }
+:root .aw .aw-tabs--lg > button { height: 34px !important; min-height: 34px !important; font-size: 13px !important; }
+
+/* ─────────────── 10. Floating layer: flat, a black frame ─────────────── */
+:root .aw :is(.aw-pop, .aw-menu, .aw-popover, .tw-modal, .tw-side-panel, .aw-side-panel, .aw-dialog, .aw-toast, .aw-undo) {
+  background: var(--bg-primary) !important; border: 1px solid var(--frame) !important;
+}
+:root .aw :is(.aw-pop__item, .aw-pop__opt):hover { background: var(--bg-tertiary) !important; }
+:root .aw :is(.aw-tip, .aw-tooltip, [role="tooltip"]) { background: var(--accent-9) !important; color: var(--bg-primary) !important; border: 0 !important; }
+:root .aw :is(.tw-overlay, .tw-side-overlay) { background: color-mix(in oklab, #0A0A0A 25%, transparent) !important; backdrop-filter: none !important; }
+@media (min-width: 768px) {
+  :root .aw .tw-side-panel { margin: 0 !important; height: 100% !important; border-width: 0 0 0 1px !important; }
+}
+
+/* ─────────────── 11. Tool intros ───────────────
+   The first screen of a tool: plain white cards in a black frame. */
+:root .aw .aw-intro__card { padding: 0 !important; background: var(--bg-primary) !important; border: 1px solid var(--frame) !important; }
+:root .aw .aw-intro__vis { min-height: 156px; background: var(--bg-primary) !important; border: 0 !important; border-bottom: 1px solid var(--border-medium) !important; }
+:root .aw .aw-intro__card:not(:has(.aw-intro__vis)) .aw-intro__copy { background: var(--bg-primary) !important; border: 0 !important; }
+:root .aw .aw-think__icon { border-color: var(--frame) !important; background: var(--bg-primary) !important; }
+
+/* ─────────────── 12. Motion ─────────────── */
+@media (prefers-reduced-motion: reduce) {
+  :root .aw *, :root .aw *::before, :root .aw *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
