@@ -1,5 +1,7 @@
 # Arrowsterr brand (v5)
 
+> **v7, 30 October 2026: the framed look.** The app now follows the Omniscient house style: black and white, square and framed, Inter at 13px, a 1px black frame on cards, buttons, filters and menus, and no shadows, gradients or round corners. Black is the action color. Signal Blue marks your own brand ("You" and your chart series). Values live in `src/app/omni-ui.css`, loaded last. Plan and cost: `docs/ui-framed.md`. Where v7 and the rules below disagree, v7 wins.
+
 > **v6, 28 October 2026: the Brew look.** Type, neutrals, corners and buttons now follow brew.new. Signal Blue `#0943B0` stays the brand colour. Where v6 and the rules below disagree, v6 wins.
 >
 > - **Fonts.** Big headings use the system face (SF Pro on a Mac), weight 500, ink `#302F2C`. Website text is Inter 16/26 at -0.01em in `#5C5B57`. The app runs on Geist at 14/20 in `#262626`, with secondary text in `#6B6B6B`. Eyebrows are Geist Mono 14px, weight 500, uppercase, 0.08em, in Signal Blue. Funnel Display is retired.

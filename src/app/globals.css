@@ -6,6 +6,7 @@
 @import "./twenty-ui.css";
 @import "./brew-ui.css";
 @import "./strong-ui.css";
+@import "./omni-ui.css";
 
 /* Point the brand font tokens at the fonts loaded by next/font in layout.tsx. */
 .aw {
@@ -70,13 +71,13 @@
   --font-sans: var(--aw-font);
   --font-mono: var(--aw-mono);
 
-  /* Twenty: 4px controls, 8px panels, flat cards, one strong shadow for menus. */
-  --radius-aw-sm: 4px;
-  --radius-aw: 4px;
-  --radius-aw-lg: 8px;
+  /* Square and flat (omni-ui.css): no corners, no shadows. */
+  --radius-aw-sm: 0;
+  --radius-aw: 0;
+  --radius-aw-lg: 0;
   --shadow-aw-sm: 0 0 #0000;
   --shadow-aw: 0 0 #0000;
-  --shadow-aw-lg: 2px 4px 16px rgba(0, 0, 0, .16), 0 2px 4px rgba(0, 0, 0, .08);
+  --shadow-aw-lg: 0 0 #0000;
 }
 
 html,
