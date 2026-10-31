@@ -95,8 +95,8 @@ html, body { background: var(--bg-primary) !important; }
 :root .aw a:not([class*="aw-btn"]):not(.aw-nav-link):not(.plain):not(.nav-link) { text-decoration-color: currentColor; }
 :root .aw .aw-text-link, :root .aw a.aw-text-link:is(:link, :visited) { color: var(--text-primary) !important; text-decoration: underline !important; text-underline-offset: 3px; text-decoration-thickness: 1px; }
 
-/* Section labels: mono, in brackets. */
-:root .aw .aw-nav-section { font-family: var(--font-code) !important; font-size: 11px !important; font-weight: 500 !important; color: var(--text-tertiary) !important; }
+/* Section labels: Inter, in brackets. */
+:root .aw .aw-nav-section { font-family: var(--font-sans) !important; font-size: 12px !important; font-weight: 500 !important; color: var(--text-tertiary) !important; }
 :root .aw .aw-nav-section > :first-child::before, :root .aw .aw-nav-section:not(:has(> *))::before { content: "[ "; }
 :root .aw .aw-nav-section > :first-child::after, :root .aw .aw-nav-section:not(:has(> *))::after { content: " ]"; }
 
