@@ -237,7 +237,7 @@ export function DomainResearch({ sb, auth, site, canEdit, start, onStarted }: { 
                   {report.scope && report.scope !== "domain" ? <span className="aw-tag ml-2 align-middle">{SCOPES.find((x) => x.id === report.scope)?.label}</span> : null}
                 </h2>
                 <span className="text-[13px] text-muted">
-                  {flag(report.country)} {report.country} · {report.cached ? "Free, saved results" : `Cost $${report.cost.toFixed(3)}`}
+                  {flag(report.country)} {report.country}
                 </span>
               </div>
             </div>
@@ -410,7 +410,7 @@ export function DomainResearch({ sb, auth, site, canEdit, start, onStarted }: { 
             Shows the top {report.keywords.length} keywords by search volume. Visits are estimates from Google rankings and search volume.{" "}
             {!report.more && report.keywords.length >= 100 && canEdit ? (
               <button type="button" className="aw-text-link" onClick={loadMore}>
-                Load up to 500 (about 4 cents)
+                Load up to 500
               </button>
             ) : null}
           </p>

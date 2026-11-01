@@ -496,7 +496,7 @@ export function KeywordOverview({ sb, auth, site, canEdit }: { sb: SupabaseClien
             <div className="flex flex-col gap-1">
               <h2 className="aw-h3">{report.keyword}</h2>
               <span className="text-[13px] text-muted">
-                {flag(report.country)} {report.country} · {live ? "Loading..." : report.cached ? "Free, saved results" : `Cost $${report.cost.toFixed(3)}`}
+                {flag(report.country)} {report.country}{live ? " · Loading..." : ""}
               </span>
             </div>
             {canEdit && o ? (
@@ -719,7 +719,6 @@ export function KeywordOverview({ sb, auth, site, canEdit }: { sb: SupabaseClien
           faqs={[
             { q: "How is Keyword Difficulty calculated?", a: "It looks at the pages in Google's top 10 for the keyword: how strong those sites are and how many links point to them. The stronger they are, the higher the score." },
             { q: "What is a good keyword to target?", a: "One with steady search volume, a difficulty you can realistically beat (under 30 for newer sites), and intent that matches what you sell." },
-            { q: "Does every search cost money?", a: "Results are saved and shared for 30 days. If anyone looked up the same keyword recently, it loads free." },
             { q: "Can I check keywords for another country?", a: "Yes. Pick the country next to the search box before you click Analyze." },
           ]}
         />
