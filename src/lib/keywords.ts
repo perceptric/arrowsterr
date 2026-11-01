@@ -1,7 +1,7 @@
 import "server-only";
 import { call } from "./dataforseo";
 import { DAY, readCache, writeCache } from "./cache";
-import type { DomainBulkRow, Keyword } from "./research";
+import type { DomainBulkRow, DomainMonth, Keyword } from "./research";
 
 // Keyword numbers from DataForSEO Labs, and Google's top 10 results for grouping keywords into pages.
 
@@ -221,6 +221,23 @@ export async function domainOverview(domain: string, m: Market, spend: Spend) {
     newKw: n("is_new"),
     lostKw: n("is_lost"),
   };
+}
+
+/** A domain's Google visits, keywords and positions for each of the last 12 months, oldest first. */
+export async function domainHistory(domain: string, m: Market, spend: Spend): Promise<DomainMonth[]> {
+  const tasks = await call("dataforseo_labs/google/historical_rank_overview/live", [{ target: domain, location_code: m.location, language_code: m.language }]);
+  spend.add(tasks);
+  const t = tasks[0];
+  if (t?.status_code !== 20000) throw new Error(`DataForSEO: ${t?.status_message ?? "no result"}`);
+  type Month = { year?: number; month?: number; metrics?: { organic?: Organic } };
+  return ((t.result?.[0]?.items ?? []) as Month[])
+    .filter((x) => x.year && x.month)
+    .map((x) => {
+      const o = sizeOf(x.metrics?.organic);
+      return { month: `${x.year}-${String(x.month).padStart(2, "0")}`, traffic: o?.traffic ?? 0, keywords: o?.keywords ?? 0, top3: o?.top3 ?? 0, top10: o?.top10 ?? 0, top20: o?.top20 ?? 0, top100: o?.top100 ?? 0 };
+    })
+    .sort((a, b) => a.month.localeCompare(b.month))
+    .slice(-12);
 }
 
 /** Every page of a domain that ranks on Google, with its estimated visits and how many keywords it ranks for. */

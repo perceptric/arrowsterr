@@ -87,24 +87,111 @@ export type AgentResult = {
 /** A page on the site, from its sitemap. */
 export type SitePage = { url: string; article: boolean };
 
-/** Google location and language for each market we offer. */
+/**
+ * Every country Google's keyword data covers, as DataForSEO Labs location codes (2000 + the ISO number)
+ * and the main search language. The 14 most used come first; Global searches the United States.
+ */
+export const COUNTRIES: { name: string; iso: string; location: number; language: string }[] = [
+  { name: "United States", iso: "US", location: 2840, language: "en" },
+  { name: "United Kingdom", iso: "GB", location: 2826, language: "en" },
+  { name: "Canada", iso: "CA", location: 2124, language: "en" },
+  { name: "Australia", iso: "AU", location: 2036, language: "en" },
+  { name: "Germany", iso: "DE", location: 2276, language: "de" },
+  { name: "France", iso: "FR", location: 2250, language: "fr" },
+  { name: "Spain", iso: "ES", location: 2724, language: "es" },
+  { name: "Netherlands", iso: "NL", location: 2528, language: "nl" },
+  { name: "India", iso: "IN", location: 2356, language: "en" },
+  { name: "Singapore", iso: "SG", location: 2702, language: "en" },
+  { name: "Vietnam", iso: "VN", location: 2704, language: "vi" },
+  { name: "Japan", iso: "JP", location: 2392, language: "ja" },
+  { name: "Brazil", iso: "BR", location: 2076, language: "pt" },
+  { name: "Mexico", iso: "MX", location: 2484, language: "es" },
+  { name: "Algeria", iso: "DZ", location: 2012, language: "ar" },
+  { name: "Angola", iso: "AO", location: 2024, language: "pt" },
+  { name: "Argentina", iso: "AR", location: 2032, language: "es" },
+  { name: "Armenia", iso: "AM", location: 2051, language: "hy" },
+  { name: "Austria", iso: "AT", location: 2040, language: "de" },
+  { name: "Azerbaijan", iso: "AZ", location: 2031, language: "az" },
+  { name: "Bahrain", iso: "BH", location: 2048, language: "ar" },
+  { name: "Bangladesh", iso: "BD", location: 2050, language: "bn" },
+  { name: "Belgium", iso: "BE", location: 2056, language: "nl" },
+  { name: "Bolivia", iso: "BO", location: 2068, language: "es" },
+  { name: "Bosnia and Herzegovina", iso: "BA", location: 2070, language: "bs" },
+  { name: "Bulgaria", iso: "BG", location: 2100, language: "bg" },
+  { name: "Burkina Faso", iso: "BF", location: 2854, language: "fr" },
+  { name: "Cambodia", iso: "KH", location: 2116, language: "km" },
+  { name: "Cameroon", iso: "CM", location: 2120, language: "fr" },
+  { name: "Chile", iso: "CL", location: 2152, language: "es" },
+  { name: "Colombia", iso: "CO", location: 2170, language: "es" },
+  { name: "Costa Rica", iso: "CR", location: 2188, language: "es" },
+  { name: "Croatia", iso: "HR", location: 2191, language: "hr" },
+  { name: "Cyprus", iso: "CY", location: 2196, language: "el" },
+  { name: "Czechia", iso: "CZ", location: 2203, language: "cs" },
+  { name: "Côte d'Ivoire", iso: "CI", location: 2384, language: "fr" },
+  { name: "Denmark", iso: "DK", location: 2208, language: "da" },
+  { name: "Ecuador", iso: "EC", location: 2218, language: "es" },
+  { name: "Egypt", iso: "EG", location: 2818, language: "ar" },
+  { name: "El Salvador", iso: "SV", location: 2222, language: "es" },
+  { name: "Estonia", iso: "EE", location: 2233, language: "et" },
+  { name: "Finland", iso: "FI", location: 2246, language: "fi" },
+  { name: "Ghana", iso: "GH", location: 2288, language: "en" },
+  { name: "Greece", iso: "GR", location: 2300, language: "el" },
+  { name: "Guatemala", iso: "GT", location: 2320, language: "es" },
+  { name: "Hong Kong", iso: "HK", location: 2344, language: "zh-TW" },
+  { name: "Hungary", iso: "HU", location: 2348, language: "hu" },
+  { name: "Indonesia", iso: "ID", location: 2360, language: "id" },
+  { name: "Ireland", iso: "IE", location: 2372, language: "en" },
+  { name: "Israel", iso: "IL", location: 2376, language: "he" },
+  { name: "Italy", iso: "IT", location: 2380, language: "it" },
+  { name: "Jordan", iso: "JO", location: 2400, language: "ar" },
+  { name: "Kazakhstan", iso: "KZ", location: 2398, language: "ru" },
+  { name: "Kenya", iso: "KE", location: 2404, language: "en" },
+  { name: "Latvia", iso: "LV", location: 2428, language: "lv" },
+  { name: "Lithuania", iso: "LT", location: 2440, language: "lt" },
+  { name: "Malaysia", iso: "MY", location: 2458, language: "ms" },
+  { name: "Malta", iso: "MT", location: 2470, language: "en" },
+  { name: "Moldova", iso: "MD", location: 2498, language: "ro" },
+  { name: "Monaco", iso: "MC", location: 2492, language: "fr" },
+  { name: "Morocco", iso: "MA", location: 2504, language: "ar" },
+  { name: "Myanmar", iso: "MM", location: 2104, language: "en" },
+  { name: "New Zealand", iso: "NZ", location: 2554, language: "en" },
+  { name: "Nicaragua", iso: "NI", location: 2558, language: "es" },
+  { name: "Nigeria", iso: "NG", location: 2566, language: "en" },
+  { name: "North Macedonia", iso: "MK", location: 2807, language: "mk" },
+  { name: "Norway", iso: "NO", location: 2578, language: "nb" },
+  { name: "Pakistan", iso: "PK", location: 2586, language: "en" },
+  { name: "Panama", iso: "PA", location: 2591, language: "es" },
+  { name: "Paraguay", iso: "PY", location: 2600, language: "es" },
+  { name: "Peru", iso: "PE", location: 2604, language: "es" },
+  { name: "Philippines", iso: "PH", location: 2608, language: "en" },
+  { name: "Poland", iso: "PL", location: 2616, language: "pl" },
+  { name: "Portugal", iso: "PT", location: 2620, language: "pt" },
+  { name: "Romania", iso: "RO", location: 2642, language: "ro" },
+  { name: "Saudi Arabia", iso: "SA", location: 2682, language: "ar" },
+  { name: "Senegal", iso: "SN", location: 2686, language: "fr" },
+  { name: "Serbia", iso: "RS", location: 2688, language: "sr" },
+  { name: "Slovakia", iso: "SK", location: 2703, language: "sk" },
+  { name: "Slovenia", iso: "SI", location: 2705, language: "sl" },
+  { name: "South Africa", iso: "ZA", location: 2710, language: "en" },
+  { name: "South Korea", iso: "KR", location: 2410, language: "ko" },
+  { name: "Sri Lanka", iso: "LK", location: 2144, language: "en" },
+  { name: "Sweden", iso: "SE", location: 2752, language: "sv" },
+  { name: "Switzerland", iso: "CH", location: 2756, language: "de" },
+  { name: "Taiwan", iso: "TW", location: 2158, language: "zh-TW" },
+  { name: "Thailand", iso: "TH", location: 2764, language: "th" },
+  { name: "Tunisia", iso: "TN", location: 2788, language: "ar" },
+  { name: "Turkey", iso: "TR", location: 2792, language: "tr" },
+  { name: "Ukraine", iso: "UA", location: 2804, language: "uk" },
+  { name: "United Arab Emirates", iso: "AE", location: 2784, language: "ar" },
+  { name: "Uruguay", iso: "UY", location: 2858, language: "es" },
+  { name: "Venezuela", iso: "VE", location: 2862, language: "es" },
+];
 export const MARKETS: Record<string, { location: number; language: string }> = {
-  "United States": { location: 2840, language: "en" },
-  "United Kingdom": { location: 2826, language: "en" },
-  Canada: { location: 2124, language: "en" },
-  Australia: { location: 2036, language: "en" },
-  Germany: { location: 2276, language: "de" },
-  France: { location: 2250, language: "fr" },
-  Spain: { location: 2724, language: "es" },
-  Netherlands: { location: 2528, language: "nl" },
-  India: { location: 2356, language: "en" },
-  Singapore: { location: 2702, language: "en" },
-  Vietnam: { location: 2704, language: "vi" },
-  Japan: { location: 2392, language: "ja" },
-  Brazil: { location: 2076, language: "pt" },
-  Mexico: { location: 2484, language: "es" },
+  ...Object.fromEntries(COUNTRIES.map((c) => [c.name, { location: c.location, language: c.language }])),
   Global: { location: 2840, language: "en" },
 };
+/** Two-letter code for each country, for flags. */
+export const ISO: Record<string, string> = Object.fromEntries(COUNTRIES.map((c) => [c.name, c.iso]));
 export const marketOf = (country?: string) => MARKETS[country ?? ""] ?? MARKETS["United States"];
 
 /** Funnel stage from Google's search intent, for keywords added by hand. */
@@ -339,6 +426,9 @@ export type DomainBulkRow = {
   paidTraffic: number | null;
 };
 
+/** One month of a domain on Google: visits, keywords and how many rank in the top 3, 10, 20 and 100. */
+export type DomainMonth = { month: string; traffic: number; keywords: number; top3: number; top10: number; top20: number; top100: number };
+
 export type DomainReport = {
   domain: string;
   scope?: "domain" | "subdomain" | "subfolder" | "url";
@@ -348,6 +438,8 @@ export type DomainReport = {
   more?: boolean;
   pages: { url: string; keywords: number; traffic: number; top: string }[];
   competitors: { domain: string; shared: number; keywords: number; traffic: number }[];
+  /** The last 12 months on Google, oldest first. Whole domains only. */
+  history?: DomainMonth[];
   cost: number;
   cached: boolean;
 };

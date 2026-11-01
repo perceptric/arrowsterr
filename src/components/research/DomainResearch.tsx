@@ -4,12 +4,13 @@ import { Dropdown } from "../Pickers";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useEffect, useRef, useState } from "react";
 import { addCalendarItems, type Site } from "@/lib/db";
-import { MARKETS, stageFromIntent, type DomainReport, type Keyword } from "@/lib/research";
+import { MARKETS, stageFromIntent, type DomainMonth, type DomainReport, type Keyword } from "@/lib/research";
 import type { RunAuth } from "@/lib/runner";
 import { countryOf, dbOf, setUrl, urlParams } from "@/lib/researchUrl";
 import { scopeOf } from "@/lib/scope";
 import { peek, useStash } from "@/lib/stash";
 import { BrandLogo } from "../BrandLogo";
+import { TrendChart } from "../TrendChart";
 import { Sheet } from "../Sheet";
 import { SampleLine, SampleRows, SampleStats, ToolIntro } from "../ToolIntro";
 import { CalendarIcon, Card, favicon, Seg, Thinking } from "../ui";
@@ -268,6 +269,8 @@ export function DomainResearch({ sb, auth, site, canEdit, start, onStarted }: { 
             <div className="aw-callout">Google has little data for {report.domain} in {report.country}. Try another country, or a bigger site.</div>
           )}
 
+          {o && report.history && report.history.length > 1 ? <History months={report.history} overview={o} /> : null}
+
           <Card
             title={
               <Seg
@@ -425,7 +428,7 @@ export function DomainResearch({ sb, auth, site, canEdit, start, onStarted }: { 
             { title: "Top keywords", text: "Every keyword the site ranks for, with its position, volume and the visits it brings.", visual: <SampleRows rows={[["seo agency", 900, "#2"], ["geo services", 640, "#4"], ["ai seo", 420, "#7"]]} /> },
             { title: "Best pages", text: "The pages that pull the most traffic, and the keyword that drives each one.", visual: <SampleRows rows={[["/services/seo", 1200, "1.2K"], ["/blog/geo-guide", 700, "700"], ["/pricing", 300, "300"]]} /> },
             { title: "Competitors", text: "The sites Google sees as your real rivals, based on the keywords you share. Some are names you never thought of as competitors.", visual: <SampleRows rows={[["rival.com", 120], ["agency.io", 90], ["seofirm.co", 60]]} /> },
-            { title: "Wins and losses", text: "Keywords the site gained and lost this month, so you can spot momentum fast.", visual: <SampleLine /> },
+            { title: "Traffic over time", text: "Visits and keywords for each of the last 12 months, and where every keyword ranks now.", visual: <SampleLine /> },
             { title: "Your next moves", text: "A competitor's best keywords become new pages for you. Keywords your own pages almost win become updates that pay off fast." },
           ]}
           steps={["Type a domain, like competitor.com.", "Pick a country and click Analyze.", "Review keywords, pages and competitors, then click a competitor to compare."]}
@@ -435,6 +438,48 @@ export function DomainResearch({ sb, auth, site, canEdit, start, onStarted }: { 
           ]}
         />
       ) : null}
+    </div>
+  );
+}
+
+const MONTH = new Intl.DateTimeFormat("en-US", { month: "short", year: "2-digit", timeZone: "UTC" });
+
+/** Visits or keywords over the last 12 months, next to where the keywords rank now. */
+function History({ months, overview }: { months: DomainMonth[]; overview: NonNullable<DomainReport["overview"]> }) {
+  const [metric, setMetric] = useState<"traffic" | "keywords">("traffic");
+  const name = metric === "traffic" ? "Visits" : "Keywords";
+  const points = months.map((m) => ({ label: MONTH.format(new Date(`${m.month}-01T00:00:00Z`)), at: m.month, values: { [name]: m[metric] } }));
+  const o = overview;
+  const bands = [
+    { lab: "1–3", n: o.top3 },
+    { lab: "4–10", n: o.top10 - o.top3 },
+    { lab: "11–20", n: o.top20 - o.top10 },
+    { lab: "21–100", n: o.top100 - o.top20 },
+  ];
+  const max = Math.max(...bands.map((b) => b.n), 1);
+  return (
+    <div className="grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+      <Card
+        title="Organic traffic"
+        action={<Seg label="Chart" value={metric} onChange={setMetric} options={[{ id: "traffic", label: "Visits" }, { id: "keywords", label: "Keywords" }]} />}
+      >
+        <div className="p-4">
+          <TrendChart points={points} lines={[{ name, color: "#0943B0", isYou: true }]} metric="count" mode="line" />
+        </div>
+      </Card>
+      <Card title="Keyword positions">
+        <ul className="flex flex-col gap-4 p-5">
+          {bands.map((b) => (
+            <li key={b.lab} className="flex items-center gap-3 text-[13px]">
+              <span className="w-14 shrink-0 text-muted">{b.lab}</span>
+              <span className="aw-meter h-2 flex-1">
+                <span className="block h-full" style={{ width: `${(b.n / max) * 100}%`, background: "#0943B0" }} />
+              </span>
+              <span className="w-14 shrink-0 text-right tabular-nums text-ink">{short(b.n)}</span>
+            </li>
+          ))}
+        </ul>
+      </Card>
     </div>
   );
 }

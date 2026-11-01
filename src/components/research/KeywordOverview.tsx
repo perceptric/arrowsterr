@@ -4,7 +4,7 @@ import { Dropdown } from "../Pickers";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useContext, useEffect, useRef, useState } from "react";
 import { addCalendarItems, type Site } from "@/lib/db";
-import { filterWords, isMatchType, kdWord, MARKETS, MATCH_TYPES, stageFromIntent, wordGroups, wordList, type KeywordReport, type KwList, type KwSummary, type MatchType } from "@/lib/research";
+import { filterWords, isMatchType, ISO, kdWord, MARKETS, MATCH_TYPES, stageFromIntent, wordGroups, wordList, type KeywordReport, type KwList, type KwSummary, type MatchType } from "@/lib/research";
 import type { RunAuth } from "@/lib/runner";
 import { countryOf, dbOf, domainHref, keywordHref, plainClick, setUrl, urlParams } from "@/lib/researchUrl";
 import { peek, putStash, useStash } from "@/lib/stash";
@@ -15,10 +15,7 @@ import { CalendarIcon, Card, favicon, Seg, Thinking } from "../ui";
 import { BulkKeywords } from "./Bulk";
 import { BAR_BUTTON, BAR_FIELD, BAR_INPUT, AnalyzeSeo, downloadCsv, fmtCpc, post, postLines, Sparkline } from "./shared";
 
-export const ISO: Record<string, string> = {
-  "United States": "US", "United Kingdom": "GB", Canada: "CA", Australia: "AU", Germany: "DE", France: "FR", Spain: "ES", Netherlands: "NL",
-  India: "IN", Singapore: "SG", Vietnam: "VN", Japan: "JP", Brazil: "BR", Mexico: "MX",
-};
+export { ISO };
 export const flag = (country: string) => {
   const c = ISO[country];
   return c ? String.fromCodePoint(...[...c].map((ch) => 127397 + ch.charCodeAt(0))) : "🌐";

@@ -167,6 +167,8 @@ html, body { background: var(--bg-primary) !important; }
   border-color: var(--frame) !important; outline: 1px solid var(--frame) !important; outline-offset: 0 !important; box-shadow: none !important;
 }
 :root .aw ::placeholder { color: var(--text-tertiary) !important; }
+/* Pickers inside a search bar (Look at, Country) sit bare, with no border of their own. */
+:root .aw .aw-dropdown.aw-dropdown--bare, :root .aw .aw-dropdown.aw-dropdown--bare:hover:not(:disabled) { border-color: transparent !important; }
 
 /* ─────────────── 7. Tags: a square with a step 3 fill, step 11 text and a 1px frame in its colour ─────────────── */
 :root .aw :is(.aw-chip, .aw-status, .aw-sbadge, .aw-badge, .aw-tag, .aw-pill, .aw-pri, .aw-engine, .tw-tag, .aw-stat__delta) {

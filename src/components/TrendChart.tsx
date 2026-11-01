@@ -10,7 +10,9 @@ const H = 260;
 const PAD = { l: 40, r: 16, t: 14, b: 28 };
 
 type ChartMetric = Metric | "count" | "rank";
-const fmt = (m: ChartMetric, v: number | null) => (v === null ? "–" : m === "visibility" ? `${Math.round(v)}%` : m === "rank" ? `#${Math.round(v)}` : m === "position" ? `#${v.toFixed(1)}` : `${Math.round(v)}`);
+const compact = new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 });
+const fmt = (m: ChartMetric, v: number | null) =>
+  v === null ? "–" : m === "visibility" ? `${Math.round(v)}%` : m === "rank" ? `#${Math.round(v)}` : m === "position" ? `#${v.toFixed(1)}` : v >= 10000 ? compact.format(v) : `${Math.round(v)}`;
 /** A round top for count charts: 5, 10, 20, 50, 100 ... */
 const niceMax = (v: number) => {
   const p = 10 ** Math.floor(Math.log10(Math.max(v, 5)));
