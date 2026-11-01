@@ -120,3 +120,20 @@ test("reports: wins, drops and content rows", async () => {
   assert.equal(rows.length, 1);
   assert.deepEqual([rows[0].cited, rows[0].visits, rows[0].aiVisits, rows[0].landed, rows[0].hot], [25, 120, 4, 1, 1]);
 });
+
+test("every country has one Google location, a language and a flag code", async () => {
+  const { COUNTRIES, MARKETS, ISO } = await import("../src/lib/research.ts");
+  assert.ok(COUNTRIES.length >= 90);
+  assert.equal(new Set(COUNTRIES.map((c) => c.name)).size, COUNTRIES.length);
+  assert.equal(new Set(COUNTRIES.map((c) => c.location)).size, COUNTRIES.length);
+  for (const c of COUNTRIES) {
+    assert.match(c.iso, /^[A-Z]{2}$/, c.name);
+    assert.ok(c.location > 2000 && c.location < 3000, c.name);
+    assert.match(c.language, /^[a-z]{2}(-[A-Z]{2})?$/, c.name);
+    assert.equal(ISO[c.name], c.iso);
+  }
+  assert.deepEqual(MARKETS["United States"], { location: 2840, language: "en" });
+  assert.deepEqual(MARKETS["United Kingdom"], { location: 2826, language: "en" });
+  assert.deepEqual(MARKETS.Vietnam, { location: 2704, language: "vi" });
+  assert.deepEqual(MARKETS.Global, MARKETS["United States"]);
+});
