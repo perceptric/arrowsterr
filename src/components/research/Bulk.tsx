@@ -296,8 +296,7 @@ export function BulkKeywords({ sb, auth, site, canEdit, onResearch }: { sb: Supa
             ]}
           />
           <div className="aw-frame">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-rule-faint px-5 py-3">
-              <span className="text-[13px] text-muted">{result.cost ? `Cost $${result.cost.toFixed(3)}` : "Free, saved results"}</span>
+            <div className="flex flex-wrap items-center justify-end gap-3 border-b border-rule-faint px-5 py-3">
               <span className="flex flex-wrap items-center gap-2">
                 <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => navigator.clipboard?.writeText(rows.map((r) => r.keyword).join("\n")).then(() => setNotice("Keywords copied."))}>
                   Copy keywords
@@ -463,8 +462,7 @@ export function BulkDomains({ sb, auth, site, canEdit, onOpen }: { sb: SupabaseC
             ]}
           />
           <div className="aw-frame">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-rule-faint px-5 py-3">
-              <span className="text-[13px] text-muted">{result.cost ? `Cost $${result.cost.toFixed(3)}` : "Free, saved results"}</span>
+            <div className="flex flex-wrap items-center justify-end gap-3 border-b border-rule-faint px-5 py-3">
               <button
                 type="button"
                 className="aw-btn aw-btn--secondary aw-btn--sm"
