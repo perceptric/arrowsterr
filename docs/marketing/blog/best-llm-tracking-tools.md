@@ -14,7 +14,7 @@ A single manual check can't measure that rate. Ask ChatGPT today and you get one
 
 ## LLM brand mention metrics to track
 
-A mention is any AI answer that names your brand. A raw count of mentions tells you little. You need 4 numbers to know where you stand.
+A mention is any AI answer that names your brand. To know where you stand, track these 4 numbers.
 
 ### Brand mention rate
 
@@ -30,11 +30,11 @@ An AI can name you and still warn buyers away. Sentiment scores how the answer t
 
 ### Citations and sources
 
-Many AI answers link to sources. Citations show which pages the AI read before it answered. Some are yours. Many are review sites, listicles, forums and news posts. These are the pages that shape the answer, so they tell you where to work.
+Many AI answers link to sources. Citations show which pages the AI read before it answered. Some are yours. Many are review sites, listicles, forums and news posts. These pages shape the answer, so they show you which sites to work on.
 
 ### Why LLM answers change between runs
 
-LLMs rarely give the same answer twice. The words of the prompt matter. So does the user's location, and whether the AI searched the web. A single check proves little.
+LLMs rarely give the same answer twice. The words of the prompt matter. So does the user's location, and whether the AI searched the web.
 
 Good tracking fixes this with volume. It runs each prompt on a schedule, often daily, and averages the results. Over 2 to 4 weeks the noise settles and a trend appears. So when you compare tools, check how often they run and how many prompts you get for the price.
 
@@ -42,21 +42,21 @@ Good tracking fixes this with volume. It runs each prompt on a schedule, often d
 
 We looked at 4 things for each tool.
 
-- AIs covered. ChatGPT matters most for most brands. Google AI Overviews, AI Mode, Gemini, Perplexity and Claude each reach their own buyers. We counted which AIs come in the base price.
+- AIs covered. For most brands, ChatGPT comes first. Google AI Overviews, AI Mode, Gemini, Perplexity and Claude each reach their own buyers. We counted which AIs come in the base price.
 - What it measures. Mention rate is the minimum. We gave credit for position, sentiment, citations and competitor views.
 - Pricing. We looked at each tool's entry price and how many prompts each plan includes.
-- What happens after the data. Some tools stop at a chart. Others help you fix the gaps with content and site checks.
+- What happens after the data. Some tools only show a chart. Others also help you fix the gaps with content and site checks.
 
 ## LLM tracking tools compared
 
 | Tool | Starts at | AIs tracked | Best for |
 |---|---|---|---|
 | Arrowsterr | Free; paid from $39/mo | 6: ChatGPT, Gemini, AI Overviews, AI Mode, Claude, Perplexity | Tracking plus the content work that follows |
-| Peec AI | $95/mo | 3 you pick; more on add-ons or Enterprise | Clean daily tracking for marketing teams |
+| Peec AI | $95/mo | 3 you pick; more as paid extras or on Enterprise | Clean daily tracking for marketing teams |
 | Profound | Free trial; Enterprise custom | Up to 9 on Enterprise | Large brands with an enterprise budget |
-| Otterly.ai | $29/mo | 4 base; Gemini, AI Mode and Claude as add-ons | A low-cost start with a small prompt set |
+| Otterly.ai | $29/mo | 4 base; Gemini, AI Mode and Claude as paid extras | A low cost start with a small prompt set |
 | AthenaHQ | Free tier; $295/mo | Many models on a credit system | Teams that want action items with their data |
-| Rankscale | About $20/mo | Several, priced per credit | Flexible, credit-based tracking |
+| Rankscale | About $20/mo | Several, priced per credit | Flexible tracking paid with credits |
 | Ahrefs Brand Radar | $199/mo per AI index, plus Ahrefs | Per index you buy; all indexes $699/mo | Ahrefs users who want mentions across a large prompt set |
 | Semrush AI Visibility Toolkit | $99/mo per domain | 4 | Semrush users adding a first look at AI |
 
@@ -67,7 +67,7 @@ A note before the list: we make Arrowsterr, and it comes first. Every price here
 ### 1. Arrowsterr
 ⭐⭐⭐⭐⭐
 
-[Arrowsterr](https://arrowsterr.com/) is an LLM tracking tool built for teams that want to track brand mentions and act on them without a second tool. It tracks how 6 AIs talk about your brand, then helps you change the answer. The same account holds keyword research, a content plan and a writer that publishes to your site.
+[Arrowsterr](https://arrowsterr.com/) is an LLM tracking tool built for teams that want to track brand mentions and act on them in one place. It shows how 6 AIs talk about your brand, then helps you change the answer. The same account holds keyword research and a content plan, plus a writer that publishes to your site.
 
 [image: Arrowsterr dashboard]
 
@@ -82,7 +82,7 @@ A note before the list: we make Arrowsterr, and it comes first. Every price here
 **Pros**
 
 - Full picture: Mention rate, position, sentiment and citations all come in one view.
-- Wide AI coverage: 6 AIs on standard plans, with no add-on fees for Claude or Perplexity.
+- Wide AI coverage: 6 AIs on standard plans, with no extra fees for Claude or Perplexity.
 - Gap and fix in one place: You see where you are missing and write the page that fixes it in the same tool.
 - Clear competitor view: The battle card shows where your top rival beats you, AI by AI.
 - Free to start: A free forever plan and a 7 day trial with no card.
@@ -104,7 +104,7 @@ Arrowsterr has a free forever plan and a free trial of both toolsets for 7 days,
 ### 2. Peec AI
 ⭐⭐⭐⭐⭐
 
-[Peec AI](https://peec.ai/) is a focused AI visibility tracker built for marketing teams that want a dedicated tracker with daily data. It runs your prompts daily and shows visibility, position, sentiment and sources for you and your rivals.
+[Peec AI](https://peec.ai/) is a focused AI visibility tracker built for marketing teams that want daily data from a tool that only tracks. It runs your prompts daily and shows visibility, position, sentiment and sources for you and your rivals.
 
 [image: Peec AI dashboard]
 
@@ -112,7 +112,7 @@ Arrowsterr has a free forever plan and a free trial of both toolsets for 7 days,
 
 - Daily tracking: Runs your prompts every day on every plan.
 - Source analytics: Shows which pages the AIs cite.
-- Brand perception: Views of how AI describes your brand.
+- Brand perception: Shows how AI describes your brand.
 - Gap analysis: Recommended actions listed on its pricing page.
 - Exports: API, MCP and CSV exports for teams that build their own reports.
 
@@ -176,7 +176,7 @@ You can try Profound free for 7 days. Paid use goes through Enterprise.
 ### 4. Otterly.ai
 ⭐⭐⭐⭐⭐
 
-[Otterly.ai](https://otterly.ai/) has one of the lowest entry prices for tracking brand mentions. It is built for small teams that want to test LLM tracking for under $50 a month, and it also runs a GEO audit of your site and builds simple reports.
+[Otterly.ai](https://otterly.ai/) has one of the lowest entry prices for tracking brand mentions. It is built for small teams that want to test LLM tracking for under $50 a month. It also runs a GEO audit of your site and builds simple reports.
 
 [image: Otterly.ai dashboard]
 
@@ -195,7 +195,7 @@ You can try Profound free for 7 days. Paid use goes through Enterprise.
 
 **Cons**
 
-- Paid add-ons: Gemini and AI Mode cost $9 to $149 a month extra, by plan.
+- Paid extras: Gemini and AI Mode cost $9 to $149 a month extra, by plan.
 - Claude costs extra: Claude adds $29 to $439 a month, by plan.
 - Small entry plan: 15 prompts on Lite is a small sample for a brand.
 
@@ -244,7 +244,7 @@ AthenaHQ has a free tier and charges by credits.
 ### 6. Rankscale
 ⭐⭐⭐⭐⭐
 
-[Rankscale](https://rankscale.ai/) is a credit-based tracker built for teams that like to fine tune what they track and how often. Each prompt costs about 0.25 credits per engine, so you can shape the plan around your budget.
+[Rankscale](https://rankscale.ai/) is a tracker paid with credits, built for teams that like to fine tune what they track and how often. Each prompt costs about 0.25 credits per engine, so you can shape the plan around your budget.
 
 [image: Rankscale dashboard]
 
@@ -278,7 +278,7 @@ Rankscale charges by credits.
 ### 7. Ahrefs Brand Radar
 ⭐⭐⭐⭐⭐
 
-[Ahrefs Brand Radar](https://ahrefs.com/brand-radar) is an extra you buy on top of an Ahrefs plan. It works from a large database of prompts that Ahrefs runs itself, so you see how often your brand comes up across many prompts at once. It is built for teams already paying for Ahrefs.
+[Ahrefs Brand Radar](https://ahrefs.com/brand-radar) is an extra you buy on top of an Ahrefs plan, built for teams already paying for Ahrefs. It works from a large database of prompts that Ahrefs runs itself, so you see how often your brand comes up across many prompts at once.
 
 [image: Ahrefs Brand Radar dashboard]
 
@@ -303,7 +303,7 @@ Rankscale charges by credits.
 
 **Price and plans**
 
-Brand Radar is an add-on to an Ahrefs plan.
+Brand Radar is sold on top of an Ahrefs plan.
 
 - One AI index: $199 per month.
 - All indexes: $699 per month, Grok included.
@@ -312,7 +312,7 @@ Brand Radar is an add-on to an Ahrefs plan.
 ### 8. Semrush AI Visibility Toolkit
 ⭐⭐⭐⭐
 
-[Semrush AI Visibility Toolkit](https://www.semrush.com/) is the AI add-on to the Semrush suite. It shows how AI talks about your brand and lets you track a small set of prompts. It is built for Semrush customers who want a first look at AI mentions.
+[Semrush AI Visibility Toolkit](https://www.semrush.com/) is an AI toolkit you add to the Semrush suite. It shows how AI talks about your brand and lets you track a small set of prompts. It is built for Semrush customers who want a first look at AI mentions.
 
 [image: Semrush AI Visibility Toolkit dashboard]
 
@@ -331,7 +331,7 @@ Brand Radar is an add-on to an Ahrefs plan.
 **Cons**
 
 - Small sample: 25 prompts is a small set.
-- Paid add-ons: More prompts, domains and users each cost extra.
+- Paid extras: More prompts, domains and users each cost extra.
 - Separate bill: Semrush SEO plans are paid on their own.
 - No free trial: You pay before you can test it.
 
@@ -384,7 +384,8 @@ Write down 30 to 50 prompts. Start with the ones closest to a purchase. "Best [c
 
 ### Day 2: Group prompts into topics
 
-Put each prompt in a topic, like "pricing", "alternatives" or "for agencies". Topics show where you win and where you vanish. A 40% mention rate overall can hide a 5% rate on the topic that matters most.
+Put each prompt in a topic, like "pricing", "alternatives" or "for agencies". Topics show where AI names you and where it leaves you out.
+ A 40% mention rate overall can hide a 5% rate on the topic that matters most.
 
 ### Day 3: Add competitors
 

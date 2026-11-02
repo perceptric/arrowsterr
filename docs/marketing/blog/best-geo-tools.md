@@ -38,7 +38,7 @@ For each tool we noted which of the 4 jobs it handles and how many AIs come in t
 |---|---|---|---|
 | Arrowsterr | Free; paid from $39/mo | 6 | All 4 GEO jobs in one place |
 | Peec AI | $95/mo | 3 you pick | Daily tracking with action ideas |
-| Otterly.ai | $29/mo | 4 base, more as add-ons | Low-cost tracking plus a site audit |
+| Otterly.ai | $29/mo | 4 base, more as paid extras | Low cost tracking plus a site audit |
 | Profound | Free trial; Enterprise custom | Up to 9 | Enterprise GEO programs |
 | Scrunch | $250/mo yearly | 4 to 9 by plan | Page audits and how AI bots read your site |
 | AthenaHQ | Free tier; $295/mo | Many, by credit | Action items from tracking data |
@@ -47,7 +47,7 @@ For each tool we noted which of the 4 jobs it handles and how many AIs come in t
 | SE Ranking | $129/mo | 5 | SEO suite with AI tracking included |
 | Free tools | $0 | Varies | Quick site checks |
 
-## All-in-one GEO platform
+## All in one GEO platform
 
 This group has one entry, and it's ours. We make Arrowsterr, so read this section with that in mind, and use the free plan or trial to check our claims.
 
@@ -71,7 +71,7 @@ This group has one entry, and it's ours. We make Arrowsterr, so read this sectio
 - All 4 GEO jobs in one place: Tracking, site checks, content and outreach targets live in one account, so you don't need to mix 2 or 3 tools.
 - 6 AIs on standard plans: ChatGPT, Gemini, AI Overviews, AI Mode, Claude and Perplexity come in the price.
 - From data to a published page: A gap in the tracking turns into a planned page, a draft and a post on your site.
-- Clear outreach targets: The Sources page lists the outside sites AI already trusts, which is the fastest path into an answer.
+- Clear outreach targets: The Sources page lists the outside sites AI already cites, which is often the fastest way into an answer.
 - Free plan and trial: A free forever plan and a 7 day trial with no card let you check our claims first.
 
 **Cons**
@@ -101,7 +101,7 @@ Arrowsterr has a free forever plan and a free trial for 7 days, with no card. Pa
 
 - Daily tracking: Runs your prompts every day on the AI models you pick.
 - Source analytics: Shows which pages the AIs cite in their answers.
-- Recommended actions: Gap analysis and suggested next steps guide what to do after the data.
+- Recommended actions: Gap analysis and suggested next steps show what to do after the data.
 - Local GEO and AI Shopping: Views for local results and shopping answers.
 
 **Pros**
@@ -129,7 +129,7 @@ Peec AI prices plans by the number of prompts.
 ### Otterly.ai
 ⭐⭐⭐⭐⭐
 
-[Otterly.ai](https://otterly.ai/) is a low-cost tracker for small teams starting GEO on a budget. It covers ChatGPT, Google AI Overviews, Perplexity and Copilot in the base price, and it also runs a GEO audit of your site.
+[Otterly.ai](https://otterly.ai/) is a low cost tracker for small teams starting GEO on a budget. It covers ChatGPT, Google AI Overviews, Perplexity and Copilot in the base price, and it also runs a GEO audit of your site.
 
 [image: Otterly.ai dashboard]
 
@@ -137,7 +137,7 @@ Peec AI prices plans by the number of prompts.
 
 - AI tracking: Covers ChatGPT, Google AI Overviews, Perplexity and Copilot in the base price.
 - GEO audit: Checks your site for issues next to the tracking.
-- Add-on models: Gemini, AI Mode and Claude can be added for an extra fee.
+- Extra models: Gemini, AI Mode and Claude can be added for an extra fee.
 
 **Pros**
 
@@ -147,7 +147,7 @@ Peec AI prices plans by the number of prompts.
 
 **Cons**
 
-- Paid add-ons: Gemini, AI Mode and Claude cost extra.
+- Paid extras: Gemini, AI Mode and Claude cost extra.
 - No content work: There is no content planning or writing.
 - Small entry plan: Lite includes 15 prompts.
 
@@ -234,7 +234,7 @@ You can try Scrunch free for 7 days.
 
 **Key features**
 
-- Credit-based tracking: Tracks many models, paid for with credits.
+- Credit tracking: Tracks many models, paid for with credits.
 - Action items: Turns tracking data into a list of fixes.
 - Content suggestions: Suggests pages to write from the gaps it finds.
 
@@ -270,7 +270,7 @@ AthenaHQ has a free tier and charges by credits.
 
 - AI tracking: Tracks 25 prompts across 4 AIs.
 - Prompt Research: Finds prompts next to Semrush's SEO data.
-- Add-on prompts: Extra prompts can be bought in packs of 50.
+- Extra prompts: More prompts can be bought in packs of 50.
 
 **Pros**
 
@@ -307,7 +307,7 @@ The toolkit is priced per domain, shown as billed yearly.
 
 **Pros**
 
-- Market-wide view: Share of voice across many prompts at once.
+- Market view: Share of voice across many prompts at once.
 - Backlink data next door: Sits next to Ahrefs' backlink data, which helps with job 4.
 - Trusted suite: Ahrefs has a 4.5/5 rating on G2.
 
@@ -318,7 +318,7 @@ The toolkit is priced per domain, shown as billed yearly.
 
 **Price and plans**
 
-Brand Radar is an add-on to an Ahrefs plan.
+Brand Radar is sold on top of an Ahrefs plan.
 
 - One AI index: $199 per month.
 - All indexes: $699 per month.
@@ -406,7 +406,8 @@ Pull your mention rate and average position for each AI. Compare them with last 
 
 ### Week 2: Run a technical GEO audit
 
-Run a crawler check after any site change. Look at the pages AI cites for your weak topics. Are they yours? If yes, make sure they carry schema and answer the question in the first paragraph.
+Run a crawler check after any site change. Then look at the pages AI cites for your weak topics. If they are yours, make sure they carry schema and answer the question in the first paragraph.
+
 
 ### Week 3: Publish GEO content
 
