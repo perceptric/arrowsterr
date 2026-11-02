@@ -131,7 +131,7 @@ Arrowsterr has a free forever plan and a free trial of both toolsets for 7 days,
 
 **Price and plans**
 
-You can try Peec AI free for 7 days. Yearly billing takes about 15% off.
+You can try Peec AI free for 7 days.
 
 - Starter: $95 per month, 50 prompts.
 - Pro: $245 per month, 150 prompts.

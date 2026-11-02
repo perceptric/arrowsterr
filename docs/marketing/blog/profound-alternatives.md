@@ -136,7 +136,7 @@ You can try both toolsets free for 7 days, with no card. There is also a free fo
 
 **Price and plans**
 
-You can try Peec AI free for 7 days. Yearly billing takes about 15% off. Monthly pricing is as follows.
+You can try Peec AI free for 7 days. Monthly pricing is as follows.
 
 - Starter: $95 per month for 50 prompts.
 - Pro: $245 per month for 150 prompts.
@@ -276,7 +276,7 @@ You can try Scrunch free for 7 days. Pricing is as follows.
 
 **Price and plans**
 
-Rankscale prices by credits. Yearly billing takes about 15% off. Monthly pricing is as follows.
+Rankscale prices by credits. Monthly pricing is as follows.
 
 - Essentials: about $20 per month.
 - Pro: $99 per month for 1,200 credits.
