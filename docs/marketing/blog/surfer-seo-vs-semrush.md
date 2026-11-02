@@ -4,7 +4,7 @@ slug: /blog/surfer-seo-vs-semrush/
 target_keyword: "surfer seo vs semrush"
 meta_description: "Surfer SEO vs Semrush in 2026: content editor, keyword research, backlinks, rank tracking, AI visibility tracking and prices, checked on each vendor's site."
 updated: 2026-11-02
-status: draft
+status: published
 sources:
   - https://surfer.ai/pricing/
   - https://docs.surferseo.com/en/articles/12944181-how-does-the-surfer-trial-work

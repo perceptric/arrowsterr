@@ -4,7 +4,7 @@ slug: /blog/semrush-vs-serpstat/
 target_keyword: "semrush vs serpstat"
 meta_description: "Semrush vs Serpstat in 2026: how their keyword and backlink data, site audits, AI tracking, seats and prices compare, and which fits your team."
 updated: 2026-11-02
-status: draft
+status: published
 sources:
   - https://www.semrush.com/prices/
   - https://www.semrush.com/pricing/

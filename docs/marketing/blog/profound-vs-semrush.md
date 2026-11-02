@@ -4,7 +4,7 @@ slug: /blog/profound-vs-semrush/
 target_keyword: "profound vs semrush"
 meta_description: "Profound vs Semrush in 2026: AI engines tracked, prompt data, cited sources, AI crawler logs, SEO data and pricing, with Semrush's AI Visibility Toolkit."
 updated: 2026-11-02
-status: draft
+status: published
 sources:
   - https://www.tryprofound.com/pricing
   - https://www.tryprofound.com/

@@ -4,7 +4,7 @@ slug: /blog/brightedge-vs-semrush/
 target_keyword: "brightedge vs semrush"
 meta_description: "BrightEdge vs Semrush in 2026: how their keyword data, site audits, AI search tracking and pricing compare, and which fits your SEO team."
 updated: 2026-11-02
-status: draft
+status: published
 sources:
   - https://www.brightedge.com/
   - https://www.brightedge.com/products

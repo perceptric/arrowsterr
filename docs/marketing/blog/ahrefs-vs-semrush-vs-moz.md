@@ -4,7 +4,7 @@ slug: /blog/ahrefs-vs-semrush-vs-moz/
 target_keyword: "ahrefs vs semrush vs moz"
 meta_description: "Ahrefs vs Semrush vs Moz in 2026: keyword data, backlinks, rank tracking, site audits, AI search tracking and list prices, checked on each vendor's own pages."
 updated: 2026-11-02
-status: draft
+status: published
 sources:
   - https://ahrefs.com/pricing
   - https://ahrefs.com/brand-radar

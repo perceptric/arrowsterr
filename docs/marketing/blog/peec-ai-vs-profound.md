@@ -4,7 +4,7 @@ slug: /blog/peec-ai-vs-profound/
 target_keyword: "peec ai vs profound"
 meta_description: "Peec AI vs Profound: compare AI models tracked, prompts, sources, crawler data, agents and pricing. Checked on both vendors' own pages in November 2026."
 updated: 2026-11-02
-status: draft
+status: published
 sources:
   - https://peec.ai/pricing
   - https://peec.ai/

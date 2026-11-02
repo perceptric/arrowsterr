@@ -4,7 +4,7 @@ slug: /blog/semrush-vs-similarweb/
 target_keyword: "semrush vs similarweb"
 meta_description: "Semrush vs Similarweb in 2026: how their SEO tools, traffic estimates, AI search tracking and prices compare, and which one fits your team."
 updated: 2026-11-02
-status: draft
+status: published
 sources:
   - https://www.semrush.com/prices/
   - https://www.semrush.com/pricing/

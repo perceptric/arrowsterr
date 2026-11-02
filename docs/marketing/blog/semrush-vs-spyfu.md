@@ -4,7 +4,7 @@ slug: /blog/semrush-vs-spyfu/
 target_keyword: "semrush vs spyfu"
 meta_description: "Semrush vs SpyFu in 2026: plans, keyword and backlink data, PPC competitor research, rank tracking and AI search tracking, checked on vendor pages."
 updated: 2026-11-02
-status: draft
+status: published
 sources:
   - https://www.semrush.com/prices/
   - https://www.semrush.com/pricing/advertising/

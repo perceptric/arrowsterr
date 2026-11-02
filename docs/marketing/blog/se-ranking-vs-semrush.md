@@ -4,7 +4,7 @@ slug: /blog/se-ranking-vs-semrush/
 target_keyword: "se ranking vs semrush"
 meta_description: "SE Ranking vs Semrush in 2026: plan prices, tracked keywords, keyword and backlink data, site audits and AI search tracking, checked on both vendors' pages."
 updated: 2026-11-02
-status: draft
+status: published
 sources:
   - https://seranking.com/subscription.html
   - https://seranking.com/our-data.html

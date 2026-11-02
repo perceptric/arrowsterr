@@ -4,7 +4,7 @@ slug: /blog/conductor-vs-profound/
 target_keyword: "conductor vs profound"
 meta_description: "Conductor vs Profound in 2026: AI engines tracked, how answers are collected, prompt volume, SEO, site monitoring, content agents and plans."
 updated: 2026-11-02
-status: draft
+status: published
 sources:
   - https://www.conductor.com/pricing/
   - https://www.conductor.com/

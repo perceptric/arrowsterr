@@ -4,7 +4,7 @@ slug: /blog/seo-powersuite-vs-semrush/
 target_keyword: "seo powersuite vs semrush"
 meta_description: "SEO PowerSuite vs Semrush: compare rank tracking, site audits, backlinks, AI search tracking and list prices, checked on both vendors' own pages."
 updated: 2026-11-02
-status: draft
+status: published
 sources:
   - https://www.link-assistant.com/pricing.html
   - https://www.link-assistant.com/

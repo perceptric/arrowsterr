@@ -4,7 +4,7 @@ slug: /blog/airops-vs-profound/
 target_keyword: "airops vs profound"
 meta_description: "AirOps vs Profound: compare AI search tracking, AI engines, content workflows, crawler data and plans. Checked on both vendors' own pages in November 2026."
 updated: 2026-11-02
-status: draft
+status: published
 sources:
   - https://www.airops.com/pricing
   - https://www.airops.com/

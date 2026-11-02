@@ -4,7 +4,7 @@ slug: /blog/search-atlas-vs-semrush/
 target_keyword: "search atlas vs semrush"
 meta_description: "Search Atlas vs Semrush: compare OTTO SEO, keyword and backlink data, site audits, AI search tracking and list prices, checked on both vendors' own pages."
 updated: 2026-11-02
-status: draft
+status: published
 sources:
   - https://searchatlas.com/pricing/
   - https://searchatlas.com/features/

@@ -4,7 +4,7 @@ slug: /blog/mangools-vs-semrush/
 target_keyword: "mangools vs semrush"
 meta_description: "Mangools vs Semrush: compare keyword research, backlinks, rank tracking, site audits, AI search tracking and list prices, checked on both vendors' own pages."
 updated: 2026-11-02
-status: draft
+status: published
 sources:
   - https://mangools.com/plans-and-pricing
   - https://mangools.com/faq

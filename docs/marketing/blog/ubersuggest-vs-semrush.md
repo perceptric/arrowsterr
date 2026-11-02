@@ -4,7 +4,7 @@ slug: /blog/ubersuggest-vs-semrush/
 target_keyword: "ubersuggest vs semrush"
 meta_description: "Ubersuggest vs Semrush in 2026: plan prices, free plans, keyword and backlink data, rank tracking, site audits and AI search tracking, checked on vendor pages."
 updated: 2026-11-02
-status: draft
+status: published
 sources:
   - https://ubersuggest.com/en/pricing
   - https://ubersuggest.com/en

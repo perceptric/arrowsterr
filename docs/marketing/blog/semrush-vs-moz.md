@@ -4,7 +4,7 @@ slug: /blog/semrush-vs-moz/
 target_keyword: "semrush vs moz"
 meta_description: "Semrush vs Moz in 2026: keyword data, backlinks, rank tracking, site audits, AI visibility tracking and list prices, checked on each vendor's own pages."
 updated: 2026-11-02
-status: draft
+status: published
 sources:
   - https://www.semrush.com/prices/
   - https://www.semrush.com/kb/1493-ai-visibility-toolkit
