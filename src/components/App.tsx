@@ -869,6 +869,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
                   website={brands?.[0]?.domain ?? workDomain(email)}
                   brands={(brands ?? []).map((b) => ({ id: b.id, name: b.name, domain: b.domain }))}
                   clientKits={plan?.limits.reports === "whitelabel"}
+                  name={ws.name}
                 />
               ) : page === "retention" ? (
                 <RetentionSettings plan={plan} />
@@ -927,7 +928,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
           ) : page === "library" ? (
             <LibraryPage key={view.brand.id} view={view} auth={auth} canEdit={canEdit} />
           ) : page === "brand" ? (
-            <BrandPage key={view.brand.id} sb={sb} auth={auth} brand={{ id: view.brand.id, name: view.brand.name, domain: view.brand.domain }} brandCount={brands?.length ?? 1} canEdit={canEdit} />
+            <BrandPage key={view.brand.id} sb={sb} auth={auth} brand={{ id: view.brand.id, name: view.brand.name, domain: view.brand.domain }} workspace={{ name: ws.name, website: workDomain(email) || view.brand.domain }} canEdit={canEdit} />
           ) : RESEARCH.includes(page) ? (
             <ResearchPage key={view.brand.id} sb={sb} auth={auth} view={view} canEdit={canEdit} tool={page as Tool} onTool={(t) => go(t)} seoStart={seoStart}
               refresh={{ paid: Boolean(plan && plan.plan !== "free" && plan.plan !== "trial"), onUpgrade: () => go("billing") }}

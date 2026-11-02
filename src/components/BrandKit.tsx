@@ -4,10 +4,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useEffect, useRef, useState } from "react";
 import { preinit } from "react-dom";
-import { cleanKit, contrast, DEFAULT_KIT, kitToTheme, readKitStream, type BrandKit, type KitColors, type KitPart, type KitRow } from "@/lib/brandKit";
-import { kitRowForBrand } from "@/lib/brandGuidelines";
+import { cleanKit, contrast, DEFAULT_KIT, kitCss, kitToTheme, readKitStream, type BrandKit, type KitColors, type KitPart, type KitRow } from "@/lib/brandKit";
 import { FONTS, fontStack, fontsUrl, type Font } from "@/lib/reportTheme";
 import type { RunAuth } from "@/lib/runner";
+import { Copy } from "./InstallGuide";
 import { Dropdown } from "./Pickers";
 import { ToolIntro } from "./ToolIntro";
 import { Zippie } from "./Zippie";
@@ -271,14 +271,83 @@ function useKits(sb: SupabaseClient, workspaceId: string) {
   return { rows, reload: load };
 }
 
-export function BrandKitSettings({ sb, auth, canEdit, website: siteGuess, brands, clientKits }: { sb: SupabaseClient; auth: RunAuth; canEdit: boolean; website: string; brands: BrandLite[]; clientKits: boolean }) {
+/** Learn a kit from a website: one field and one button. */
+function LearnForm({ website, canEdit, label, onLearn }: { website: string; canEdit: boolean; label: string; onLearn: (site: string) => void }) {
+  const [site, setSite] = useState(website);
+  return (
+    <form
+      className="flex flex-wrap gap-2"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (site.trim()) onLearn(site.trim());
+      }}
+    >
+      <input value={site} onChange={(e) => setSite(e.target.value)} placeholder="acme.com" aria-label="Website" className="aw-input w-64!" disabled={!canEdit} />
+      <button type="submit" className="aw-btn aw-btn--accent" disabled={!canEdit || !site.trim()}>
+        {label}
+      </button>
+    </form>
+  );
+}
+
+/** Mark a kit as looked at and right, after it was learned. */
+const confirm = (sb: SupabaseClient, workspaceId: string, key: string) => sb.from("brand_kits").update({ confirmed_at: new Date().toISOString() }).eq("workspace_id", workspaceId).eq("key", key);
+
+/**
+ * The Workspace Brand Kit: the workspace's own look, used on its reports. Every workspace has one
+ * (supabase/058_workspace_kits.sql); if the starter kit is missing, an editor's visit makes it.
+ * Until it is learned or saved, a bar on top offers to learn it from a website.
+ */
+export function WorkspaceKitPanel({ sb, auth, canEdit, website, name }: { sb: SupabaseClient; auth: RunAuth; canEdit: boolean; website: string; name: string }) {
   const { rows, reload } = useKits(sb, auth.workspaceId);
-  const [learning, setLearning] = useState<{ website: string; brandId: string | null } | null>(null);
-  const [site, setSite] = useState(siteGuess);
+  const [learning, setLearning] = useState<string | null>(null);
+  const making = useRef(false);
+  const own = rows?.find((r) => r.key === "workspace");
+  useEffect(() => {
+    if (!rows || own || !canEdit || making.current) return;
+    making.current = true;
+    void sb
+      .from("brand_kits")
+      .upsert({ workspace_id: auth.workspaceId, key: "workspace", kit: cleanKit({ name }) }, { onConflict: "workspace_id,key", ignoreDuplicates: true })
+      .then(() => reload());
+  }, [rows, own, canEdit, sb, auth.workspaceId, name, reload]);
+
   if (rows === undefined) return <p className="aw-small">Loading…</p>;
   if (rows === null) return <p className="aw-callout max-w-xl text-[15px]!">{NOT_RUN}</p>;
-  const own = rows.find((r) => r.key === "workspace");
+  if (learning)
+    return (
+      <KitLearn
+        key={learning}
+        auth={auth}
+        website={learning}
+        brandId={null}
+        onDone={async () => {
+          await confirm(sb, auth.workspaceId, "workspace");
+          setLearning(null);
+          void reload();
+        }}
+        onSkip={() => setLearning(null)}
+      />
+    );
+  if (!own) return canEdit ? <p className="aw-small">Loading…</p> : <p className="aw-callout max-w-xl text-[15px]!">No Workspace Brand Kit yet.</p>;
+  const starter = !own.learned_at && !own.confirmed_at;
+  return (
+    <div className="flex flex-col gap-6">
+      {starter && canEdit ? (
+        <div className="aw-frame flex flex-wrap items-center justify-between gap-3 p-4">
+          <span className="font-medium text-ink">Learn {name}&apos;s brand from its website</span>
+          <LearnForm website={own.website || website} canEdit={canEdit} label="Learn" onLearn={setLearning} />
+        </div>
+      ) : null}
+      <KitEditor key={`ws-${own.learned_at ?? ""}`} sb={sb} workspaceId={auth.workspaceId} row={own} canEdit={canEdit} onLearn={() => setLearning(own.website || website)} />
+    </div>
+  );
+}
 
+/** Settings → Brand Kit: the Workspace Brand Kit, then each client brand's kit on white label plans. */
+export function BrandKitSettings({ sb, auth, canEdit, website, brands, clientKits, name }: { sb: SupabaseClient; auth: RunAuth; canEdit: boolean; website: string; brands: BrandLite[]; clientKits: boolean; name: string }) {
+  const { rows, reload } = useKits(sb, auth.workspaceId);
+  const [learning, setLearning] = useState<{ website: string; brandId: string } | null>(null);
   if (learning)
     return (
       <KitLearn
@@ -287,40 +356,17 @@ export function BrandKitSettings({ sb, auth, canEdit, website: siteGuess, brands
         website={learning.website}
         brandId={learning.brandId}
         onDone={async () => {
-          await sb.from("brand_kits").update({ confirmed_at: new Date().toISOString() }).eq("workspace_id", auth.workspaceId).eq("key", learning.brandId ?? "workspace");
+          await confirm(sb, auth.workspaceId, learning.brandId);
           setLearning(null);
           void reload();
         }}
         onSkip={() => setLearning(null)}
       />
     );
-
-  if (!own)
-    return (
-      <ToolIntro
-        title="Your brand, learned from your website"
-        lead="Zippie reads your site and saves your logo, colors, fonts and voice. Your reports use it."
-        action={
-          <form
-            className="flex flex-wrap gap-2"
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (site.trim()) setLearning({ website: site.trim(), brandId: null });
-            }}
-          >
-            <input value={site} onChange={(e) => setSite(e.target.value)} placeholder="acme.com" aria-label="Website" className="aw-input w-64!" disabled={!canEdit} />
-            <button type="submit" className="aw-btn aw-btn--accent" disabled={!canEdit || !site.trim()}>
-              Learn my brand
-            </button>
-          </form>
-        }
-      />
-    );
-
   return (
     <div className="flex flex-col gap-10">
-      <KitEditor key={own.learned_at ?? "own"} sb={sb} workspaceId={auth.workspaceId} row={own} canEdit={canEdit} onLearn={() => setLearning({ website: own.website || siteGuess, brandId: null })} />
-      {clientKits && brands.length ? (
+      <WorkspaceKitPanel sb={sb} auth={auth} canEdit={canEdit} website={website} name={name} />
+      {clientKits && brands.length && rows ? (
         <section className="flex flex-col gap-3">
           <h3 className="aw-h4 mb-0!">Client brands</h3>
           <div className="aw-frame overflow-x-auto">
@@ -362,27 +408,27 @@ export function BrandKitSettings({ sb, auth, canEdit, website: siteGuess, brands
 }
 
 /**
- * Brand › Brand Kit: the kit of the brand on screen. Its own kit, or the workspace's when that one is this brand's
- * (kitRowForBrand). Learning a new kit saves it as the brand's own, or as the workspace's for a one-brand workspace.
+ * Brand › Brand Kit: the brand's own kit. Without one, learn it from the brand's site, or start from a copy of the
+ * Workspace Brand Kit. The writer still falls back to the workspace kit for a one-brand workspace (kitRowForBrand).
  */
-export function BrandKitPanel({ sb, auth, canEdit, brand, brandCount }: { sb: SupabaseClient; auth: RunAuth; canEdit: boolean; brand: BrandLite; brandCount: number }) {
+export function BrandKitPanel({ sb, auth, canEdit, brand }: { sb: SupabaseClient; auth: RunAuth; canEdit: boolean; brand: BrandLite }) {
   const { rows, reload } = useKits(sb, auth.workspaceId);
   const [learning, setLearning] = useState<string | null>(null);
-  const [site, setSite] = useState(brand.domain);
+  const [error, setError] = useState("");
   if (rows === undefined) return <p className="aw-small">Loading…</p>;
   if (rows === null) return <p className="aw-callout max-w-xl text-[15px]!">{NOT_RUN}</p>;
-  const row = kitRowForBrand(rows, brand, brandCount);
-  const target = row ? (row.key === "workspace" ? null : brand.id) : brandCount <= 1 ? null : brand.id;
+  const row = rows.find((r) => r.key === brand.id);
+  const ws = rows.find((r) => r.key === "workspace" && (r.learned_at || r.confirmed_at));
 
   if (learning)
     return (
       <KitLearn
-        key={`${learning}|${target}`}
+        key={learning}
         auth={auth}
         website={learning}
-        brandId={target}
+        brandId={brand.id}
         onDone={async () => {
-          await sb.from("brand_kits").update({ confirmed_at: new Date().toISOString() }).eq("workspace_id", auth.workspaceId).eq("key", target ?? "workspace");
+          await confirm(sb, auth.workspaceId, brand.id);
           setLearning(null);
           void reload();
         }}
@@ -394,20 +440,28 @@ export function BrandKitPanel({ sb, auth, canEdit, brand, brandCount }: { sb: Su
     return (
       <ToolIntro
         title={`${brand.name}'s brand, learned from its website`}
-        lead="Zippie reads the site and saves the logo, colors, fonts and voice."
+        lead="Zippie reads every stylesheet on the site and saves the logo, colors, fonts, type scale, buttons and voice."
         action={
-          <form
-            className="flex flex-wrap gap-2"
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (site.trim()) setLearning(site.trim());
-            }}
-          >
-            <input value={site} onChange={(e) => setSite(e.target.value)} placeholder="acme.com" aria-label="Website" className="aw-input w-64!" disabled={!canEdit} />
-            <button type="submit" className="aw-btn aw-btn--accent" disabled={!canEdit || !site.trim()}>
-              Learn the brand
-            </button>
-          </form>
+          <div className="flex flex-col gap-3">
+            {error ? <p className="aw-error">{error}</p> : null}
+            <LearnForm website={brand.domain} canEdit={canEdit} label="Learn the brand" onLearn={setLearning} />
+            {ws && canEdit ? (
+              <button
+                type="button"
+                className="aw-text-link self-start"
+                onClick={async () => {
+                  const now = new Date().toISOString();
+                  const { error: e } = await sb
+                    .from("brand_kits")
+                    .upsert({ workspace_id: auth.workspaceId, key: brand.id, brand_id: brand.id, website: ws.website, kit: ws.kit, learned_at: ws.learned_at, confirmed_at: now, updated_at: now }, { onConflict: "workspace_id,key" });
+                  if (e) setError(e.message);
+                  else void reload();
+                }}
+              >
+                Start from the Workspace Brand Kit
+              </button>
+            ) : null}
+          </div>
         }
       />
     );
@@ -415,17 +469,106 @@ export function BrandKitPanel({ sb, auth, canEdit, brand, brandCount }: { sb: Su
   return <KitEditor key={`${row.key}-${row.learned_at ?? ""}`} sb={sb} workspaceId={auth.workspaceId} row={row} canEdit={canEdit} onLearn={() => setLearning(row.website || brand.domain)} />;
 }
 
-/** Every field of a kit, with a live cover next to it. Saves on the button. */
+const TYPE_ROWS: { id: keyof BrandKit["type"]; label: string }[] = [
+  { id: "h1", label: "Heading 1" },
+  { id: "h2", label: "Heading 2" },
+  { id: "h3", label: "Heading 3" },
+  { id: "body", label: "Body" },
+];
+const hexOk = (v: string) => /^#[0-9a-f]{6}$/i.test(v);
+
+/** A color as a swatch picker and its hex, in one framed tile. */
+function ColorField({ label, value, disabled, onChange }: { label: string; value: string; disabled: boolean; onChange: (v: string) => void }) {
+  return (
+    <label className="aw-kit__color">
+      <input type="color" value={hexOk(value) ? value : "#000000"} disabled={disabled} onChange={(e) => onChange(e.target.value)} aria-label={label} />
+      <span>
+        <small>{label}</small>
+        <input className="aw-num tw-bare" value={value} maxLength={7} disabled={disabled} onChange={(e) => onChange(e.target.value.trim())} aria-label={`${label} hex`} />
+      </span>
+    </label>
+  );
+}
+
+/** A small number field with its unit. */
+function NumField({ label, value, min, max, step = 1, disabled, onChange }: { label: string; value: number; min: number; max: number; step?: number; disabled: boolean; onChange: (v: number) => void }) {
+  return (
+    <input type="number" className="aw-input aw-num w-full" aria-label={label} title={label} value={value} min={min} max={max} step={step} disabled={disabled} onChange={(e) => onChange(Number(e.target.value))} />
+  );
+}
+
+/** A section of the editor: a mono label in brackets, then its fields. */
+function Part({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <fieldset className="aw-kit__part">
+      <legend className="aw-kit__legend">[ {title} ]</legend>
+      {children}
+    </fieldset>
+  );
+}
+
+/** Google Fonts for the site's own font names, when Google has them. Others fall back to the closest report font. */
+function siteFontsUrl(kit: BrandKit) {
+  const names = [...new Set([kit.siteFonts.heading, kit.siteFonts.body])].filter((n) => n && !FONTS.includes(n as Font));
+  if (!names.length) return null;
+  return `https://fonts.googleapis.com/css2?${names.map((n) => `family=${encodeURIComponent(n).replace(/%20/g, "+")}:wght@300;400;500;600;700;800`).join("&")}&display=swap`;
+}
+
+/** A small page in the kit's look: headings, text, a link, both buttons and a card. Shows every style at once. */
+export function KitSpecimen({ kit }: { kit: BrandKit }) {
+  const t = kitToTheme(kit);
+  preinit(fontsUrl(t), { as: "style", precedence: "default" });
+  const site = siteFontsUrl(kit);
+  if (site) preinit(site, { as: "style", precedence: "default" });
+  const stack = (site: string, near: Font) => (site && site !== near ? `'${site.replace(/'/g, "")}', ${fontStack(near)}` : fontStack(near));
+  const head = stack(kit.siteFonts.heading, kit.fonts.heading);
+  const body = stack(kit.siteFonts.body, kit.fonts.body);
+  const type = (x: BrandKit["type"]["h1"], scale: number) =>
+    ({ fontSize: Math.max(11, Math.round(x.size * scale)), fontWeight: x.weight, lineHeight: x.lineHeight, letterSpacing: `${x.tracking}em`, textTransform: x.upper ? "uppercase" : undefined }) as React.CSSProperties;
+  const btn = (b: BrandKit["buttons"]["primary"]) =>
+    ({ background: b.bg, color: b.text, border: `1px solid ${b.border}`, borderRadius: b.radius, fontWeight: b.weight, padding: `${Math.round(b.padY * 0.7)}px ${Math.round(b.padX * 0.7)}px`, textTransform: b.upper ? "uppercase" : undefined, fontFamily: body }) as React.CSSProperties;
+  const c = kit.colors;
+  return (
+    <div className="aw-kit__spec" style={{ background: c.paper, color: c.text, fontFamily: body }} aria-hidden="true">
+      <div className="aw-kit__spec-top" style={{ borderColor: c.line }}>
+        {kit.logo ? <img src={kit.logo} alt="" className={kit.logoOnDark ? "is-on-dark" : ""} style={kit.logoOnDark ? { background: t.heroBg } : undefined} /> : <b style={{ fontFamily: head, color: c.ink }}>{kit.name || "Brand"}</b>}
+        <span style={{ ...btn(kit.buttons.primary), fontSize: 11, padding: "5px 10px" }}>Get started</span>
+      </div>
+      <div className="aw-kit__spec-body">
+        <p style={{ ...type(kit.type.h1, 0.5), fontFamily: head, color: c.ink }}>{kit.name || "Your brand"}, said your way</p>
+        <p style={{ ...type(kit.type.h2, 0.55), fontFamily: head, color: c.ink }}>A clear second heading</p>
+        <p style={{ ...type(kit.type.body, 0.85), color: c.text }}>
+          Body text in your font and color, with <span style={{ color: kit.link.color, textDecoration: kit.link.underline ? "underline" : "none" }}>a link</span> and a{" "}
+          <span style={{ color: c.muted }}>small note</span>.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <span style={btn(kit.buttons.primary)}>Book a demo</span>
+          <span style={btn(kit.buttons.secondary)}>Learn more</span>
+        </div>
+        <div className="aw-kit__spec-card" style={{ background: c.surface, border: `1px solid ${c.line}`, borderRadius: kit.radius, boxShadow: kit.shadow === "none" ? undefined : kit.shadow }}>
+          <p style={{ ...type(kit.type.h3, 0.7), fontFamily: head, color: c.ink }}>A card</p>
+          <p style={{ fontSize: 12, color: c.muted }}>Cards, corners and shadow</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Every field of a kit, grouped, with a live page and report next to it. Saves on the button. */
 function KitEditor({ sb, workspaceId, row, canEdit, onLearn }: { sb: SupabaseClient; workspaceId: string; row: KitRow; canEdit: boolean; onLearn: () => void }) {
   const [kit, setKit] = useState<BrandKit>(row.kit);
   const [saved, setSaved] = useState<BrandKit>(row.kit);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const changed = JSON.stringify(kit) !== JSON.stringify(saved);
+  const off = !canEdit;
   const set = (patch: Partial<BrandKit>) => setKit((k) => ({ ...k, ...patch }));
   const setColor = (id: keyof KitColors, v: string) => set({ colors: { ...kit.colors, [id]: v } });
+  const setType = (id: keyof BrandKit["type"], patch: Partial<BrandKit["type"]["h1"]>) => set({ type: { ...kit.type, [id]: { ...kit.type[id], ...patch } } });
+  const setButton = (id: keyof BrandKit["buttons"], patch: Partial<BrandKit["buttons"]["primary"]>) => set({ buttons: { ...kit.buttons, [id]: { ...kit.buttons[id], ...patch } } });
   // Text that will not read on the cards. Saving swaps it for a color that does.
-  const weak = (["ink", "text", "muted"] as const).filter((k) => /^#[0-9a-f]{6}$/i.test(kit.colors[k]) && /^#[0-9a-f]{6}$/i.test(kit.colors.surface) && contrast(kit.colors[k], kit.colors.surface) < 4.5);
+  const weak = (["ink", "text", "muted"] as const).filter((k) => hexOk(kit.colors[k]) && hexOk(kit.colors.surface) && contrast(kit.colors[k], kit.colors.surface) < 4.5);
+  const live = cleanKit(kit, row.kit);
 
   async function save() {
     setBusy(true);
@@ -442,74 +585,191 @@ function KitEditor({ sb, workspaceId, row, canEdit, onLearn }: { sb: SupabaseCli
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+    <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_360px]">
       <form
-        className="flex flex-col gap-6"
+        className="flex min-w-0 flex-col gap-8"
         onSubmit={(e) => {
           e.preventDefault();
           if (changed) void save();
         }}
       >
         {error ? <p className="aw-error">{error}</p> : null}
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="flex flex-col gap-1.5">
-            <span className="aw-label">Name</span>
-            <input className="aw-input" value={kit.name} maxLength={60} disabled={!canEdit} onChange={(e) => set({ name: e.target.value })} />
-          </label>
-          <label className="flex flex-col gap-1.5">
-            <span className="aw-label">Logo address</span>
-            <input className="aw-input" value={kit.logo.startsWith("data:") ? "Logo from your site" : kit.logo} disabled={!canEdit || kit.logo.startsWith("data:")} placeholder="https://" onChange={(e) => set({ logo: e.target.value.trim() })} />
-          </label>
-        </div>
-        <label className="flex items-center gap-2 text-[14px] text-ink">
-          <input type="checkbox" className="h-4 w-4 accent-[#0943B0]" checked={kit.logoOnDark} disabled={!canEdit} onChange={(e) => set({ logoOnDark: e.target.checked })} />
-          The logo is light and needs a dark background
-        </label>
 
-        <fieldset className="flex flex-col gap-2">
-          <legend className="aw-label">Colors</legend>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <Part title="Identity">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="flex flex-col gap-1.5">
+              <span className="aw-label">Name</span>
+              <input className="aw-input" value={kit.name} maxLength={60} disabled={off} onChange={(e) => set({ name: e.target.value })} />
+            </label>
+            <label className="flex flex-col gap-1.5">
+              <span className="aw-label">Logo address</span>
+              <input className="aw-input" value={kit.logo.startsWith("data:") ? "Logo from the site" : kit.logo} disabled={off || kit.logo.startsWith("data:")} placeholder="https://" onChange={(e) => set({ logo: e.target.value.trim() })} />
+            </label>
+          </div>
+          <label className="flex items-center gap-2 text-[14px] text-ink">
+            <input type="checkbox" className="h-4 w-4" checked={kit.logoOnDark} disabled={off} onChange={(e) => set({ logoOnDark: e.target.checked })} />
+            Light logo on a dark background
+          </label>
+        </Part>
+
+        <Part title="Colors">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {COLOR_FIELDS.map((f) => (
-              <label key={f.id} className="aw-kit__color">
-                <input type="color" value={/^#[0-9a-f]{6}$/i.test(kit.colors[f.id]) ? kit.colors[f.id] : "#000000"} disabled={!canEdit} onChange={(e) => setColor(f.id, e.target.value)} aria-label={f.label} />
-                <span>
-                  <small>{f.label}</small>
-                  <input className="aw-num" value={kit.colors[f.id]} maxLength={7} disabled={!canEdit} onChange={(e) => setColor(f.id, e.target.value.trim())} aria-label={`${f.label} hex`} />
-                </span>
-              </label>
+              <ColorField key={f.id} label={f.label} value={kit.colors[f.id]} disabled={off} onChange={(v) => setColor(f.id, v)} />
             ))}
           </div>
           {weak.length ? <p className="aw-small text-warn!">{weak.map((k) => COLOR_FIELDS.find((f) => f.id === k)?.label).join(" and ")} hard to read on cards. Saving picks a darker color.</p> : null}
-        </fieldset>
+        </Part>
 
-        <div className="grid gap-4 sm:grid-cols-3">
-          <div className="flex flex-col gap-1.5">
-            <span className="aw-label">Heading font</span>
-            <Dropdown label="Heading font" value={kit.fonts.heading} disabled={!canEdit} onChange={(v) => set({ fonts: { ...kit.fonts, heading: v } })} options={FONTS.map((f) => ({ id: f, label: f }))} />
+        <Part title="Typography">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="flex flex-col gap-1.5">
+              <span className="aw-label">Heading font on the site</span>
+              <input className="aw-input" value={kit.siteFonts.heading} maxLength={60} disabled={off} onChange={(e) => set({ siteFonts: { ...kit.siteFonts, heading: e.target.value } })} />
+            </label>
+            <label className="flex flex-col gap-1.5">
+              <span className="aw-label">Text font on the site</span>
+              <input className="aw-input" value={kit.siteFonts.body} maxLength={60} disabled={off} onChange={(e) => set({ siteFonts: { ...kit.siteFonts, body: e.target.value } })} />
+            </label>
+            <div className="flex flex-col gap-1.5">
+              <span className="aw-label">Heading font in reports</span>
+              <Dropdown label="Heading font in reports" value={kit.fonts.heading} disabled={off} onChange={(v) => set({ fonts: { ...kit.fonts, heading: v } })} options={FONTS.map((f) => ({ id: f, label: f }))} />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <span className="aw-label">Text font in reports</span>
+              <Dropdown label="Text font in reports" value={kit.fonts.body} disabled={off} onChange={(v) => set({ fonts: { ...kit.fonts, body: v } })} options={FONTS.map((f) => ({ id: f, label: f }))} />
+            </div>
           </div>
-          <div className="flex flex-col gap-1.5">
-            <span className="aw-label">Text font</span>
-            <Dropdown label="Text font" value={kit.fonts.body} disabled={!canEdit} onChange={(v) => set({ fonts: { ...kit.fonts, body: v } })} options={FONTS.map((f) => ({ id: f, label: f }))} />
+          <div className="aw-frame overflow-x-auto">
+            <table className="aw-table aw-table--compact aw-kit__scale">
+              <thead>
+                <tr>
+                  <th>Style</th>
+                  <th>Size (px)</th>
+                  <th>Weight</th>
+                  <th>Line height</th>
+                  <th>Tracking (em)</th>
+                  <th>Caps</th>
+                </tr>
+              </thead>
+              <tbody>
+                {TYPE_ROWS.map((r) => {
+                  const x = kit.type[r.id];
+                  return (
+                    <tr key={r.id}>
+                      <td className="font-medium text-ink">{r.label}</td>
+                      <td>
+                        <NumField label={`${r.label} size`} value={x.size} min={10} max={120} disabled={off} onChange={(v) => setType(r.id, { size: v })} />
+                      </td>
+                      <td>
+                        <NumField label={`${r.label} weight`} value={x.weight} min={100} max={900} step={100} disabled={off} onChange={(v) => setType(r.id, { weight: v })} />
+                      </td>
+                      <td>
+                        <NumField label={`${r.label} line height`} value={x.lineHeight} min={0.9} max={2.2} step={0.05} disabled={off} onChange={(v) => setType(r.id, { lineHeight: v })} />
+                      </td>
+                      <td>
+                        <NumField label={`${r.label} tracking`} value={x.tracking} min={-0.1} max={0.3} step={0.005} disabled={off} onChange={(v) => setType(r.id, { tracking: v })} />
+                      </td>
+                      <td>
+                        <input type="checkbox" className="h-4 w-4" aria-label={`${r.label} in capitals`} checked={x.upper} disabled={off} onChange={(e) => setType(r.id, { upper: e.target.checked })} />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
-          <label className="flex flex-col gap-1.5">
-            <span className="aw-label">Corners (px)</span>
-            <input type="number" min={0} max={28} className="aw-input aw-num" value={kit.radius} disabled={!canEdit} onChange={(e) => set({ radius: Number(e.target.value) })} />
-          </label>
-        </div>
+        </Part>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="flex flex-col gap-1.5">
-            <span className="aw-label">Footer line</span>
-            <input className="aw-input" value={kit.footer} maxLength={140} disabled={!canEdit} placeholder="hello@acme.com · acme.com" onChange={(e) => set({ footer: e.target.value })} />
-          </label>
-          <label className="flex flex-col gap-1.5">
-            <span className="aw-label">Tone of voice</span>
-            <input className="aw-input" value={kit.voice.tone.join(", ")} disabled={!canEdit} placeholder="Clear, warm, expert" onChange={(e) => set({ voice: { ...kit.voice, tone: e.target.value.split(",").map((t) => t.trim()).slice(0, 3) } })} />
-          </label>
-        </div>
+        <Part title="Buttons and links">
+          <div className="flex flex-col gap-6">
+            {(["primary", "secondary"] as const).map((id) => {
+              const b = kit.buttons[id];
+              const name = id === "primary" ? "Main button" : "Second button";
+              return (
+                <div key={id} className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="aw-label">{name}</span>
+                    <span className="aw-kit__spec aw-kit__btn-sample" aria-hidden="true">
+                      <span style={{ background: b.bg, color: b.text, border: `1px solid ${b.border}`, borderRadius: b.radius, fontWeight: b.weight, padding: `${Math.round(b.padY * 0.6)}px ${Math.round(b.padX * 0.7)}px`, textTransform: b.upper ? "uppercase" : undefined }}>
+                        {id === "primary" ? "Book a demo" : "Learn more"}
+                      </span>
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <ColorField label="Fill" value={b.bg} disabled={off} onChange={(v) => setButton(id, { bg: v })} />
+                    <ColorField label="Label" value={b.text} disabled={off} onChange={(v) => setButton(id, { text: v })} />
+                    <ColorField label="Border" value={b.border} disabled={off} onChange={(v) => setButton(id, { border: v })} />
+                  </div>
+                  <div className="grid grid-cols-4 items-end gap-2">
+                    <label className="flex flex-col gap-1">
+                      <small className="text-muted">Corners</small>
+                      <NumField label={`${name} corners`} value={b.radius} min={0} max={999} disabled={off} onChange={(v) => setButton(id, { radius: v })} />
+                    </label>
+                    <label className="flex flex-col gap-1">
+                      <small className="text-muted">Weight</small>
+                      <NumField label={`${name} weight`} value={b.weight} min={100} max={900} step={100} disabled={off} onChange={(v) => setButton(id, { weight: v })} />
+                    </label>
+                    <label className="flex flex-col gap-1">
+                      <small className="text-muted">Padding</small>
+                      <NumField label={`${name} side padding`} value={b.padX} min={8} max={48} disabled={off} onChange={(v) => setButton(id, { padX: v })} />
+                    </label>
+                    <label className="flex h-9 items-center gap-2 text-[13px] text-ink">
+                      <input type="checkbox" className="h-4 w-4" checked={b.upper} disabled={off} onChange={(e) => setButton(id, { upper: e.target.checked })} />
+                      Caps
+                    </label>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="grid items-end gap-2 sm:grid-cols-4">
+            <ColorField label="Links" value={kit.link.color} disabled={off} onChange={(v) => set({ link: { ...kit.link, color: v } })} />
+            <label className="flex h-9 items-center gap-2 text-[13px] text-ink">
+              <input type="checkbox" className="h-4 w-4" checked={kit.link.underline} disabled={off} onChange={(e) => set({ link: { ...kit.link, underline: e.target.checked } })} />
+              Underlined
+            </label>
+          </div>
+        </Part>
+
+        <Part title="Shape">
+          <div className="grid gap-4 sm:grid-cols-[160px_minmax(0,1fr)]">
+            <label className="flex flex-col gap-1.5">
+              <span className="aw-label">Corners (px)</span>
+              <input type="number" min={0} max={28} className="aw-input aw-num" value={kit.radius} disabled={off} onChange={(e) => set({ radius: Number(e.target.value) })} />
+            </label>
+            <label className="flex flex-col gap-1.5">
+              <span className="aw-label">Card shadow</span>
+              <input className="aw-input aw-num" value={kit.shadow} maxLength={160} disabled={off} placeholder="none" onChange={(e) => set({ shadow: e.target.value })} />
+            </label>
+          </div>
+        </Part>
+
+        <Part title="Voice">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="flex flex-col gap-1.5">
+              <span className="aw-label">Tone of voice</span>
+              <input className="aw-input" value={kit.voice.tone.join(", ")} disabled={off} placeholder="Clear, warm, expert" onChange={(e) => set({ voice: { ...kit.voice, tone: e.target.value.split(",").map((t) => t.trim()).slice(0, 3) } })} />
+            </label>
+            <label className="flex flex-col gap-1.5">
+              <span className="aw-label">Footer line</span>
+              <input className="aw-input" value={kit.footer} maxLength={140} disabled={off} placeholder="hello@acme.com, acme.com" onChange={(e) => set({ footer: e.target.value })} />
+            </label>
+          </div>
+        </Part>
+
+        <Part title="Stylesheet">
+          <div className="aw-frame flex flex-col">
+            <div className="flex items-center justify-between gap-3 border-b border-rule-faint px-4 py-2">
+              <span className="aw-small">brand.css</span>
+              <Copy text={kitCss(live)} label="Copy CSS" />
+            </div>
+            <pre className="aw-kit__css">{kitCss(live)}</pre>
+          </div>
+        </Part>
 
         {canEdit ? (
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="aw-kit__save">
             <button type="submit" className="aw-btn aw-btn--primary" disabled={busy || !changed}>
               Save
             </button>
@@ -524,8 +784,9 @@ function KitEditor({ sb, workspaceId, row, canEdit, onLearn }: { sb: SupabaseCli
           </div>
         ) : null}
       </form>
-      <div className="flex flex-col gap-2 lg:sticky lg:top-6 lg:self-start">
-        <KitCover kit={cleanKit(kit, row.kit)} />
+      <div className="flex flex-col gap-4 xl:sticky xl:top-6 xl:self-start">
+        <KitSpecimen kit={live} />
+        <KitCover kit={live} />
       </div>
     </div>
   );

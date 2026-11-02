@@ -23,7 +23,7 @@ export async function ensureBrandSetup(db: SupabaseClient, brandId: string | nul
   const domain = b.domain.replace(/^https?:\/\//, "").replace(/\/.*$/, "");
   const [voice, kits, count, guide] = await Promise.all([
     db.from("brand_voices").select("voice").eq("brand_id", b.id).maybeSingle(),
-    db.from("brand_kits").select("key, website, kit").eq("workspace_id", b.workspace_id).in("key", [b.id, "workspace"]),
+    db.from("brand_kits").select("key, website, kit, learned_at, confirmed_at").eq("workspace_id", b.workspace_id).in("key", [b.id, "workspace"]),
     db.from("brands").select("id", { count: "exact", head: true }).eq("workspace_id", b.workspace_id),
     db.from("brand_guidelines").select("body, links").eq("brand_id", b.id).maybeSingle(),
   ]);
@@ -31,7 +31,7 @@ export async function ensureBrandSetup(db: SupabaseClient, brandId: string | nul
   const made: string[] = [];
   const now = new Date().toISOString();
 
-  if (!kits.error && !kitForBrand((kits.data ?? []) as { key: string; website: string | null; kit: unknown }[], { id: b.id, domain }, count.count ?? 1)) {
+  if (!kits.error && !kitForBrand((kits.data ?? []) as { key: string; website: string | null; kit: unknown; learned_at: string | null; confirmed_at: string | null }[], { id: b.id, domain }, count.count ?? 1)) {
     const kit = await learnKit(domain, () => {})
       .then((r) => r.kit)
       .catch(() => cleanKit({ name: b.name }));
