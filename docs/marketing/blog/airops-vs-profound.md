@@ -155,7 +155,7 @@ We make Arrowsterr, so read this with that in mind. Arrowsterr is an AI visibili
 
 Arrowsterr checks ChatGPT, Gemini, Google AI Overviews and AI Mode daily, and Claude and Perplexity weekly. It adds keyword research with volume, difficulty, intent, questions and the Google top 10 with AI Overview sources. You also get competitor keyword gaps, a cited Sources report, a Topic Bank and a Content Plan. On Pro and up, the Agentic Writer drafts pages and publishes them.
 
-Arrowsterr does not replace everything here. It tracks fewer engines than Profound Enterprise, with no DeepSeek, Copilot or Exa. It has no AI shopping data and no crawler log analytics. It has no workflow builder like AirOps Grids. It also has no backlink index and no site crawler or audit of its own. It fits teams that want tracking, keyword research and writing in one tool at a listed price.
+Arrowsterr does not replace everything here. It tracks fewer engines than Profound Enterprise, with no DeepSeek, Copilot or Exa. It has no AI shopping data and no crawler log analytics. It has no workflow builder like AirOps Grids. It also has no backlink index of its own. Its site audit crawls up to 200 pages and flags AI crawler blocks and page issues. Zippie, its AI agent, can then fix them through your CMS. It fits teams that want tracking, keyword research and writing in one tool at a listed price.
 
 ## AirOps vs Profound FAQ
 

@@ -139,7 +139,7 @@ Serpstat's pricing page shows these prices next to an annual discount. It does n
 
 We make Arrowsterr, so read this with that in mind. Arrowsterr is an AI visibility and SEO research tool. It tracks your brand on 6 AIs: ChatGPT, Gemini, Google AI Overviews and AI Mode daily, with Claude and Perplexity weekly. It also does keyword research with volume, difficulty and intent, plus the Google top 10 with AI Overview sources. Its Content Plan and Agentic Writer turn that research into published posts.
 
-Arrowsterr does not replace Semrush or Serpstat for technical SEO. It has no backlink index and no site crawler or audit of its own. It works next to an SEO suite for daily AI tracking and content planning. It has a Free forever plan, and paid plans start at $39 a month.
+Arrowsterr does not replace Semrush or Serpstat for link work. It has no backlink index of its own. Its site audit crawls up to 200 pages and flags AI crawler blocks and page issues. Zippie, its AI agent, can then fix them through your CMS. It works next to an SEO suite for daily AI tracking and content planning. It has a Free forever plan, and paid plans start at $39 a month.
 
 ## Semrush vs Serpstat FAQ
 

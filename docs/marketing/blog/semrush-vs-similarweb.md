@@ -156,7 +156,7 @@ Some larger teams use both: Semrush for SEO work and Similarweb for market resea
 
 We make Arrowsterr, so read this with that in mind. Arrowsterr is an AI visibility and SEO research tool. It tracks your brand on 6 AIs: ChatGPT, Gemini, Google AI Overviews and AI Mode daily, with Claude and Perplexity weekly. It also does keyword research with volume, difficulty, intent and the Google top 10, including AI Overview sources. Its Content Plan and Agentic Writer turn that research into published posts.
 
-Arrowsterr does not replace either tool's traffic estimates. It has no backlink index and no site crawler or audit of its own. If you need those, keep Semrush or Similarweb for them. Arrowsterr has a Free forever plan, and paid plans start at $39 a month.
+Arrowsterr does not replace either tool's traffic estimates. It has no backlink index of its own, so keep Semrush for link data. Its site audit crawls up to 200 pages and flags AI crawler blocks and page issues. Zippie, its AI agent, can then fix them through your CMS. Arrowsterr has a Free forever plan, and paid plans start at $39 a month.
 
 ## Semrush vs Similarweb FAQ
 

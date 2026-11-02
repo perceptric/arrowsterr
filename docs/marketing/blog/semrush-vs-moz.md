@@ -166,7 +166,7 @@ Moz Pro includes AI content briefs: 2 a month on Standard, 10 on Medium and 50 o
 
 We make Arrowsterr, so weigh this section with that in mind. Arrowsterr is an AI visibility and SEO research platform. It tracks your brand on ChatGPT, Gemini, Google AI Overviews and AI Mode daily, and on Claude and Perplexity weekly. It also does keyword research with volume, difficulty, intent, questions and the Google top 10 with AI Overview sources. You get competitor keyword gaps, a Sources report of the sites AIs cite, a Topic Bank, a Content Plan and an Agentic Writer that drafts and publishes.
 
-Arrowsterr has no backlink index and no site crawler or audit of its own. If you need link data or technical audits, keep Semrush or Moz for that. Arrowsterr can stand in for a separate AI tracking tool and covers keyword and content work for many small teams. There's a Free forever plan, Starter is $39 a month, and Pro is $179 a month with both toolsets. Every account starts with a 7-day trial of both toolsets, no card needed.
+Arrowsterr has no backlink index of its own. Its site audit crawls up to 200 pages and flags AI crawler blocks and page issues. Zippie, its AI agent, can then fix them through your CMS. If you need link data or audits of large sites, keep Semrush or Moz for that. Arrowsterr can stand in for a separate AI tracking tool and covers keyword and content work for many small teams. There's a Free forever plan, Starter is $39 a month, and Pro is $179 a month with both toolsets. Every account starts with a 7-day trial of both toolsets, no card needed.
 
 ## Semrush vs Moz FAQ
 

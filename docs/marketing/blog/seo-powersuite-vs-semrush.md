@@ -158,7 +158,7 @@ SEO PowerSuite also sells 2-year and 3-year terms. You can cancel anytime, but i
 
 We make Arrowsterr, so weigh this section with that in mind. Arrowsterr is an AI visibility and SEO research platform. It tracks your brand on ChatGPT, Gemini, Google AI Overviews and AI Mode daily, and on Claude and Perplexity weekly. It also does keyword research with volume, difficulty, intent, questions and the Google top 10 with AI Overview sources. You get competitor keyword gaps, a Sources report of the sites AIs cite, a Topic Bank, a Content Plan and an Agentic Writer that drafts and publishes.
 
-Arrowsterr has no backlink index and no site crawler or audit of its own. Keep SEO PowerSuite or Semrush for links and audits. Arrowsterr fills the gap SEO PowerSuite leaves on AI answers, and it can stand in for a separate AI tracking add-on. There's a Free forever plan, Starter is $39 a month and Pro is $179 a month with both toolsets. Every account starts with a 7-day trial of both toolsets, no card needed.
+Arrowsterr has no backlink index of its own. Its site audit crawls up to 200 pages and flags AI crawler blocks and page issues. Zippie, its AI agent, can then fix them through your CMS. Keep SEO PowerSuite or Semrush for links and audits of large sites. Arrowsterr fills the gap SEO PowerSuite leaves on AI answers, and it can stand in for a separate AI tracking add-on. There's a Free forever plan, Starter is $39 a month and Pro is $179 a month with both toolsets. Every account starts with a 7-day trial of both toolsets, no card needed.
 
 ## SEO PowerSuite vs Semrush FAQ
 

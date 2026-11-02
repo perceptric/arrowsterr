@@ -137,7 +137,7 @@ Semrush also sells a custom Enterprise plan for large companies. If you are in t
 
 We make Arrowsterr, so keep that in mind. Arrowsterr is an AI visibility and SEO research tool. It tracks your brand on 6 AIs: ChatGPT, Gemini, Google AI Overviews and AI Mode daily, with Claude and Perplexity weekly. It also does keyword research with volume, difficulty and intent, plus the Google top 10 with AI Overview sources. Its Content Plan and Agentic Writer turn that research into published posts.
 
-Arrowsterr does not replace BrightEdge or Semrush for technical SEO. It has no backlink index and no site crawler or audit of its own. It fits teams that want AI tracking and content planning with public prices. It has a Free forever plan, and paid plans start at $39 a month.
+Arrowsterr does not replace BrightEdge or Semrush for technical SEO on large sites. It has no backlink index of its own. Its site audit crawls up to 200 pages and flags AI crawler blocks and page issues. Zippie, its AI agent, can then fix them through your CMS. It fits teams that want AI tracking and content planning with public prices. It has a Free forever plan, and paid plans start at $39 a month.
 
 ## BrightEdge vs Semrush FAQ
 

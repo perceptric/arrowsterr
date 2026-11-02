@@ -162,7 +162,7 @@ We make Arrowsterr, so read this with that in mind. Arrowsterr is an AI visibili
 
 Arrowsterr tracks 6 AIs on every paid AI Visibility plan, Claude and Perplexity included. ChatGPT, Gemini, Google AI Overviews and AI Mode run daily. Claude and Perplexity run weekly, so Peec AI and Profound check those more often on the plans that include them. Arrowsterr adds keyword research, competitor keyword gaps, a cited Sources report, a Topic Bank and a Content Plan. On Pro and up, the Agentic Writer drafts pages and publishes them.
 
-Arrowsterr does not replace everything here. It does not track Copilot, Naver, DeepSeek or Exa. It has no AI shopping data and no crawler log analytics. It also has no backlink index and no site crawler or audit of its own. It fits teams that want AI tracking, keyword research and writing in one tool at a listed price.
+Arrowsterr does not replace everything here. It does not track Copilot, Naver, DeepSeek or Exa. It has no AI shopping data and no crawler log analytics. It also has no backlink index of its own. Its site audit crawls up to 200 pages and flags AI crawler blocks and page issues. Zippie, its AI agent, can then fix them through your CMS. It fits teams that want AI tracking, keyword research and writing in one tool at a listed price.
 
 ## Peec AI vs Profound FAQ
 
