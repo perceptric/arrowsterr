@@ -63,13 +63,14 @@ html, body { background: var(--bg-primary) !important; }
 :root .aw ::selection { background: var(--accent-9); color: var(--bg-primary); }
 
 /* ─────────────── 2. Shape: square, flat ───────────────
-   Every corner is square. rounded-full stays for faces and radio buttons only. */
-:root .aw *:not(.rounded-full):not([type="radio"]):not(.aw-face),
-:root .aw *::before, :root .aw *::after {
+   Every corner is square. rounded-full stays for faces and radio buttons only.
+   Brand Kit previews (.aw-kit__spec, .aw-kit__cover) show the customer's own corners and shadows, so they are left out. */
+:root .aw *:not(.rounded-full):not([type="radio"]):not(.aw-face):not(.aw-kit__spec *):not(.aw-kit__cover *),
+:root .aw *:not(.aw-kit__spec *):not(.aw-kit__cover *)::before, :root .aw *:not(.aw-kit__spec *):not(.aw-kit__cover *)::after {
   border-radius: 0 !important;
   corner-shape: initial !important;
 }
-:root .aw *:not(input):not(textarea):not(.aw-keep-shadow) { box-shadow: none !important; }
+:root .aw *:not(input):not(textarea):not(.aw-keep-shadow):not(.aw-kit__spec *) { box-shadow: none !important; }
 :root .aw [class*="bg-gradient"], :root .aw [class*="bg-linear"] { background-image: none !important; }
 :root .aw :focus-visible { outline: 1px solid var(--frame) !important; outline-offset: 1px !important; }
 :root .aw input[type="checkbox"], :root .aw input[type="radio"], :root .aw progress { accent-color: var(--accent-9); }
@@ -260,3 +261,28 @@ html, body { background: var(--bg-primary) !important; }
 @media (prefers-reduced-motion: reduce) {
   :root .aw *, :root .aw *::before, :root .aw *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+/* ─────────────── 13. Brand Kit editor ───────────────
+   Sections under a mono label in brackets; color tiles framed like fields; a live page and the stylesheet. */
+:root .aw .aw-kit__part { display: flex; flex-direction: column; gap: 12px; min-width: 0; margin: 0; padding: 0; border: 0; }
+:root .aw .aw-kit__legend { margin-bottom: 4px; padding: 0; font-size: 12px; color: var(--text-secondary); }
+:root .aw .aw-kit__color { gap: 10px; padding: 6px 10px 6px 6px; border: 1px solid var(--border-strong); border-radius: 0; box-shadow: none !important; background: var(--bg-primary); }
+:root .aw .aw-kit__color:hover { border-color: var(--frame); }
+:root .aw .aw-kit__color input[type="color"] { width: 28px; height: 28px; border-radius: 0; cursor: pointer; }
+:root .aw .aw-kit__color input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+:root .aw .aw-kit__color input[type="color"]::-webkit-color-swatch { border: 1px solid var(--border-strong); border-radius: 0; }
+:root .aw .aw-kit__color span input.tw-bare { height: auto; border: 0 !important; outline: 0 !important; padding: 0; background: none !important; font-size: 13px; color: var(--text-primary); }
+:root .aw .aw-kit__scale td, :root .aw .aw-kit__scale th { white-space: nowrap; }
+:root .aw .aw-kit__scale td .aw-input { min-width: 72px; height: 32px; }
+:root .aw .aw-kit__css { max-height: 280px; margin: 0; overflow: auto; padding: 12px 16px; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12px; line-height: 1.6; color: var(--text-primary); white-space: pre; }
+:root .aw .aw-kit__save { position: sticky; bottom: 0; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--border-strong); background: var(--bg-primary); }
+:root .aw .aw-kit__spec { overflow: hidden; border: 1px solid var(--frame); }
+:root .aw .aw-kit__spec p { margin: 0; }
+:root .aw .aw-kit__spec-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-bottom: 1px solid; }
+:root .aw .aw-kit__spec-top img { max-width: 120px; max-height: 26px; object-fit: contain; }
+:root .aw .aw-kit__spec-top img.is-on-dark { padding: 4px 8px; }
+:root .aw .aw-kit__spec-body { display: flex; flex-direction: column; gap: 12px; padding: 20px 16px; }
+:root .aw .aw-kit__spec-body span { display: inline-block; font-size: 13px; line-height: 1.2; }
+:root .aw .aw-kit__spec-card { display: flex; flex-direction: column; gap: 4px; padding: 14px; }
+:root .aw .aw-kit__cover { max-width: none; border: 1px solid var(--frame); }
+:root .aw .aw-kit__btn-sample { display: inline-flex; padding: 0; border: 0; font-size: 12px; line-height: 1.2; }

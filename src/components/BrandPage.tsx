@@ -4,20 +4,21 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { useState } from "react";
 import type { RunAuth } from "@/lib/runner";
 import { BrandGuidelines } from "./BrandGuidelines";
-import { BrandKitPanel } from "./BrandKit";
+import { BrandKitPanel, WorkspaceKitPanel } from "./BrandKit";
 import { BrandVoiceSettings } from "./BrandVoice";
 
-type Section = "voice" | "kit" | "guidelines";
+type Section = "voice" | "kit" | "workspace" | "guidelines";
 const SECTIONS: { id: Section; label: string }[] = [
   { id: "voice", label: "Tone of voice" },
   { id: "kit", label: "Brand Kit" },
+  { id: "workspace", label: "Workspace Brand Kit" },
   { id: "guidelines", label: "Guidelines" },
 ];
 const SECTION_KEY = "arrowsterr.brandSection"; // each person's last section, kept in this browser
 const readSection = (): Section => {
   try {
     const v = localStorage.getItem(SECTION_KEY);
-    return v === "kit" || v === "guidelines" ? v : "voice";
+    return v === "kit" || v === "workspace" || v === "guidelines" ? v : "voice";
   } catch {
     return "voice";
   }
@@ -25,10 +26,10 @@ const readSection = (): Section => {
 
 /**
  * Brand (docs/content-v2.md): everything the Agentic Writer writes from, for the brand on screen. Tone of voice,
- * the Brand Kit and written guidelines, one section at a time beside a sub-nav. The writer reads all three
+ * the brand's Brand Kit, the Workspace Brand Kit and written guidelines, one section at a time beside a sub-nav. The writer reads all three
  * through loadBrandContext in src/lib/brandContext.ts.
  */
-export function BrandPage({ sb, auth, brand, brandCount, canEdit }: { sb: SupabaseClient; auth: RunAuth; brand: { id: string; name: string; domain: string }; brandCount: number; canEdit: boolean }) {
+export function BrandPage({ sb, auth, brand, workspace, canEdit }: { sb: SupabaseClient; auth: RunAuth; brand: { id: string; name: string; domain: string }; workspace: { name: string; website: string }; canEdit: boolean }) {
   const [section, setSectionState] = useState<Section>(readSection);
   const setSection = (s: Section) => {
     setSectionState(s);
@@ -53,7 +54,9 @@ export function BrandPage({ sb, auth, brand, brandCount, canEdit }: { sb: Supaba
         {section === "voice" ? (
           <BrandVoiceSettings key={brand.id} auth={auth} brand={brand} canEdit={canEdit} />
         ) : section === "kit" ? (
-          <BrandKitPanel key={brand.id} sb={sb} auth={auth} canEdit={canEdit} brand={brand} brandCount={brandCount} />
+          <BrandKitPanel key={brand.id} sb={sb} auth={auth} canEdit={canEdit} brand={brand} />
+        ) : section === "workspace" ? (
+          <WorkspaceKitPanel key={auth.workspaceId} sb={sb} auth={auth} canEdit={canEdit} website={workspace.website} name={workspace.name} />
         ) : (
           <BrandGuidelines key={brand.id} sb={sb} workspaceId={auth.workspaceId} brand={brand} canEdit={canEdit} />
         )}
