@@ -2,6 +2,7 @@ import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import { jsonrepair } from "jsonrepair";
 import { charge, claudeCost } from "./meter";
+import { isGrammarError, schemaPrompt } from "./jsonReply";
 import type { Source } from "./sources";
 
 export function claudeModel() {
@@ -62,9 +63,22 @@ export async function askClaude(
 
 /** Ask Claude for JSON in a fixed shape. No web search: structured replies cannot carry search citations. */
 export async function askJson<T>(prompt: string, schema: Record<string, unknown>, opts: { maxTokens?: number; model?: string; effort?: "low" | "medium" | "high"; prefix?: string; system?: string } = {}): Promise<T> {
-  const { text } = await askClaude(prompt, { ...opts, schema });
+  if (!tooBig.has(schema)) {
+    try {
+      const { text } = await askClaude(prompt, { ...opts, schema });
+      return parseJson(text) as T;
+    } catch (e) {
+      if (!isGrammarError(e)) throw e;
+      // The API can't compile this schema. Ask for the same JSON in the prompt, and skip the schema from now on.
+      tooBig.add(schema);
+    }
+  }
+  const { text } = await askClaude(schemaPrompt(prompt, schema), opts);
   return parseJson(text) as T;
 }
+
+/** Schemas the API refused as too large to compile, in this process. */
+const tooBig = new WeakSet<object>();
 
 /** Pull the first JSON object out of a reply. */
 export function parseJson(text: string): Record<string, unknown> {
