@@ -65,7 +65,7 @@ Semrush also sells add-on toolkits for traffic and market data, local SEO, conte
 
 Semrush has the bigger data set. It lists 28.8 billion keywords, 808 million domains and 43 trillion backlinks. Its own backlink crawler reads about 10 billion pages a day.
 
-Search Atlas lists 5.2 billion+ keywords with volume, difficulty, CPC and historical volume. Keyword Magic expands a seed keyword into related terms tagged by intent. Site Explorer shows any domain's organic and paid keywords, traffic, backlinks and competitors. It also shows Domain Rating, Domain Authority, Trust Flow and Citation Flow next to its own Domain Power score. Backlink Analyzer covers referring domains, anchors, new and lost links and spam signals. The pages we checked don't list the size of its backlink index (check).
+Search Atlas lists 5.2 billion+ keywords with volume, difficulty, CPC and historical volume. Keyword Magic expands a seed keyword into related terms tagged by intent. Site Explorer shows any domain's organic and paid keywords, traffic, backlinks and competitors. It also shows Domain Rating, Domain Authority, Trust Flow and Citation Flow next to its own Domain Power score. Backlink Analyzer covers referring domains, anchors, new and lost links and spam signals. The pages we checked don't list the size of its backlink index.
 
 **Stronger:** Semrush. Its keyword database is several times larger, and it publishes the size of its link index. For most competitor research, more data means fewer gaps.
 
@@ -79,7 +79,7 @@ Search Atlas finds the same kinds of issues, then OTTO SEO can push the fix live
 |---|---|---|
 | Finds issues | Yes, Site Auditor | Yes, Site Audit |
 | Applies fixes | Yes, OTTO SEO | No |
-| Pages crawled | 50,000 (Starter), 100,000 (Growth), 10 million (Pro), unlimited (Agency) | Not listed on the prices page (check) |
+| Pages crawled | 50,000 (Starter), 100,000 (Growth), 10 million (Pro), unlimited (Agency) | Not listed on the prices page |
 
 **Stronger:** Search Atlas, if you want fixes made for you and you are fine with changes going live through a pixel or CMS link. Semrush if your team wants full control over every change.
 
@@ -87,7 +87,7 @@ Search Atlas finds the same kinds of issues, then OTTO SEO can push the fix live
 
 Semrush tracks rankings daily on every paid plan. The SEO and Starter plans track 500 keywords, Pro+ tracks 1,500 and Advanced 5,000+. Pro+ adds tracking for several locations and devices.
 
-Search Atlas tracks 2,000 keywords on Starter, 3,500 on Growth and 6,000 on Pro. The Agency plan lists 50,000 tracked keywords in its limits and unlimited keyword tracking in its features (check). Rank checks draw from your Universal Credits pool. The pricing page doesn't state how often rankings update (check).
+Search Atlas tracks 2,000 keywords on Starter, 3,500 on Growth and 6,000 on Pro. The Agency plan lists 50,000 tracked keywords in its limits and unlimited keyword tracking in its features, so confirm the limit with sales. Rank checks draw from your Universal Credits pool. The pricing page doesn't state how often rankings update.
 
 **Stronger:** Search Atlas for the number of keywords per dollar. Semrush for a clear daily update on every plan.
 
@@ -100,7 +100,7 @@ Both track how AI answers mention your brand. The plans split the AIs in differe
 | Entry | Starter ($99): 1 project, 1 AI, 500 AI credits | SEO ($139): AI visibility reports and sentiment, no prompt tracking quota |
 | Mid | Growth ($199): ChatGPT, Gemini, Google AI Mode, 2 projects | Starter ($199): 50 prompts daily, ChatGPT, Google, Gemini, Perplexity |
 | Upper | Pro ($399): adds Copilot, Perplexity and Claude, 4 projects | Pro+ ($299): 100 prompts daily |
-| Top | Agency (from $999): unlimited projects | Advanced (custom): unlimited prompts on the prices page, 200 on the help page (check) |
+| Top | Agency (from $999): unlimited projects | Advanced (custom): prompt limits differ across Semrush's pages, so confirm with sales |
 
 Search Atlas's LLM Visibility shows mentions, sentiment, share of voice and where you appear in each answer. Semrush shows brand performance and lets you research competitors and prompts. Semrush also sells its AI Visibility Toolkit alone for $99 a month, with 25 prompts and 1 domain and no free trial.
 
@@ -121,9 +121,9 @@ Semrush includes content optimization on Pro+. Article writing, local listings, 
 - **Starter:** $99/mo. 1 project, 1 seat, 50,000 Universal Credits, 2,000 tracked keywords, 50,000 audit pages, AI visibility for 1 project on 1 AI, 3 Google Business Profiles.
 - **Growth:** $199/mo. 2 projects, 3 seats, 120,000 credits, 3,500 tracked keywords, 100,000 audit pages, AI visibility on ChatGPT, Gemini and Google AI Mode, Meta and Google Ad Studio.
 - **Pro:** $399/mo. 4 projects, 5 seats, 400,000 credits, 6,000 tracked keywords, 10 million audit pages, 6 AIs, white-label dashboards and reports.
-- **Agency:** From $999/mo. 10 projects, 10 seats, 1,000,000+ credits, 50,000 tracked keywords, unlimited audit pages, client portals, priority support.
+- **Agency:** From $999/mo. 10 projects, 10 seats, 1,000,000+ credits, a tracked keyword limit to confirm with sales, unlimited audit pages, client portals, priority support.
 
-Every plan includes OTTO SEO, Atlas Agent, content tools and publishing to any CMS. A 7-day trial comes with a free onboarding call. Search Atlas mentions annual plans but doesn't list annual prices (check).
+Every plan includes OTTO SEO, Atlas Agent, content tools and publishing to any CMS. A 7-day trial comes with a free onboarding call. Search Atlas mentions annual plans but doesn't list annual prices.
 
 **Semrush** (monthly, with the billed-yearly price in brackets):
 

@@ -26,7 +26,7 @@ The quick answer: pick Semrush if you want the biggest keyword and backlink data
 ## Semrush vs Serpstat: main points
 
 - **Semrush has much bigger published data.** It lists 28.8 billion keywords and over 43 trillion backlinks. Serpstat lists 8.62 billion keywords and 529 billion backlinks.
-- **Serpstat starts lower.** Its Individual plan is listed at $50 a month (check billing). Semrush's SEO plan is $139 a month.
+- **Serpstat starts lower.** Its pricing page lists the Individual plan at $50 a month. Semrush's SEO plan is $139 a month.
 - **Serpstat includes more seats.** Team includes 3 users and Agency 30. Semrush charges from $45 a month for each extra user.
 - **Both track AI answers.** Semrush tracks 50 prompts daily from its Starter plan. Serpstat includes 1,500 AI Visibility checks a month from its Team plan.
 - **Semrush has a free plan.** Serpstat has a 7-day trial and no free plan.
@@ -35,7 +35,7 @@ The quick answer: pick Semrush if you want the biggest keyword and backlink data
 
 | | Semrush | Serpstat |
 |---|---|---|
-| Starts at | $139/mo (SEO plan) | $50/mo (Individual, check billing) |
+| Starts at | $139/mo (SEO plan) | $50/mo (Individual, billing period not stated) |
 | Free plan | Yes, 10 reports a day | No |
 | Free trial | 7 days on most plans | 7 days on Individual and Team |
 | Main strength | Data size and tool depth | Price, seats and API access |
@@ -81,7 +81,7 @@ Semrush's Site Audit crawls your site and lists technical issues. Its Starter pl
 
 ## Semrush vs Serpstat AI visibility tracking
 
-Semrush's AI tracking comes with its Starter plan and up. Starter tracks 50 prompts daily, Pro+ tracks 100, and Advanced raises the limit further. Semrush names ChatGPT and Gemini, plus Google AI Overviews and AI Mode. Its pricing page also shows Perplexity (check). You can also buy the AI Visibility Toolkit alone for $99 a month, with 25 prompts and one user.
+Semrush's AI tracking comes with its Starter plan and up. Starter tracks 50 prompts daily, Pro+ tracks 100, and Advanced raises the limit further. Semrush names ChatGPT and Gemini, plus Google AI Overviews and AI Mode. You can also buy the AI Visibility Toolkit alone for $99 a month, with 25 prompts and one user.
 
 Serpstat's AI Visibility comes with Team, Team x2 and Agency. Each includes 1,500 AI Visibility checks a month. It tracks your brand across ChatGPT, Grok, Gemini and other AI models. Extra checks cost $20 per 1,000, with a $40 minimum top-up. Team and up also add an AI Overview Brand Opportunities report.
 
@@ -111,7 +111,7 @@ Prices below are list prices from each vendor's own pages.
 
 **Serpstat**
 
-Serpstat's pricing page shows these prices next to an annual discount. It does not say clearly whether they are the monthly or the yearly-billed rate (check).
+Serpstat's pricing page shows these prices next to an annual discount. It does not say clearly whether they are the monthly or the yearly-billed rate.
 
 - Individual: $50/mo. 1 user, 5 projects, 100 searches a day, 10,000 position checks a month, 30,000 audit pages. No AI tools or API.
 - Team: $100/mo. 3 users, unlimited projects, 500 searches a day, 50,000 position checks, 150,000 audit pages, AI tools, 1,500 AI Visibility checks, API access.

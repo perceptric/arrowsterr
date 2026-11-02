@@ -83,7 +83,7 @@ Profound's free trial runs on 3 of these engines. The full list needs the Enterp
 
 Both tools track a set of prompts each day and show where you appear. The difference is scale and price.
 
-Semrush sets clear limits. The AI Visibility Toolkit tracks 25 prompts. Semrush One Starter tracks 50 a day and Pro+ tracks 100. Advanced lists unlimited prompts on the pricing page, while the knowledge base lists 200 (check). You can add 50 prompts to the toolkit for $60 a month.
+Semrush sets clear limits. The AI Visibility Toolkit tracks 25 prompts. Semrush One Starter tracks 50 a day and Pro+ tracks 100. Semrush's pages list different prompt limits for Advanced, so confirm with sales. You can add 50 prompts to the toolkit for $60 a month.
 
 Profound tailors the prompt plan to each Enterprise contract. The trial gives you 50 prompts run daily for 7 days.
 
@@ -118,7 +118,7 @@ Plain list prices from each vendor's site in November 2026.
 
 - Trial: free for 7 days. 50 prompts run daily on ChatGPT, Gemini and Google AI Overviews, unlimited seats, Agent Analytics, 5 Prompt Volumes searches and a limited set of AI Marketer credits.
 - Enterprise: custom. Up to 9 AI engines, a tailored prompt plan, unlimited seats, ChatGPT Shopping, full Prompt Volumes with API access, SSO and SAML, SOC 2, and support up to a dedicated specialist.
-- Agency Growth: a self-serve plan with 400 credits a month per client workspace. Its price is not on the pricing page. A Profound blog post lists $399 a month per client workspace (check).
+- Agency Growth: a self-serve plan with 400 credits a month per client workspace. Its price is not on the pricing page.
 
 Credits pay for AI Marketer messages, Agent and Workflow runs, Sheets rows and Prompt Research Reports. Browsing Answer Engine Insights, Prompt Volumes and Agent Analytics data uses no credits.
 

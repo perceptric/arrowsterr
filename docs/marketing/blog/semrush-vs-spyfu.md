@@ -2,7 +2,7 @@
 title: "Semrush vs SpyFu: Pricing and Features Compared (2026)"
 slug: /blog/semrush-vs-spyfu/
 target_keyword: "semrush vs spyfu"
-meta_description: "Semrush vs SpyFu in 2026: plan prices, keyword and backlink data, PPC competitor research, rank tracking and AI search tracking, checked on vendor pages."
+meta_description: "Semrush vs SpyFu in 2026: plans, keyword and backlink data, PPC competitor research, rank tracking and AI search tracking, checked on vendor pages."
 updated: 2026-11-02
 status: draft
 sources:
@@ -24,11 +24,11 @@ sources:
 
 Semrush and SpyFu both help you see what your competitors rank for and what they pay for in Google Ads. Semrush is a large suite with separate toolkits for SEO, ads, AI search and more. SpyFu is a smaller tool built around competitor research, with long keyword and ad history.
 
-Here is the quick answer. Pick Semrush if you want one suite for SEO, site audits, daily rank tracking and AI search tracking, and you have the budget. Pick SpyFu if your main job is studying rivals' keywords and Google Ads at a low monthly price.
+Here is the quick answer. Pick Semrush if you want one suite for SEO, site audits, daily rank tracking and AI search tracking, and you have the budget. Pick SpyFu if your main job is studying rivals' keywords and Google Ads, with unlimited searches.
 
 ## Semrush vs SpyFu: main points
 
-- **Price:** SpyFu's plans start well below Semrush's. Semrush's SEO plan is $139 a month. SpyFu's Basic plan is commonly listed at $39 a month (check).
+- **Price:** Semrush's SEO plan is $139 a month. SpyFu lists current prices on its pricing page.
 - **Data:** Semrush lists more than 26 billion keywords and more than 43 trillion backlinks. SpyFu lists 13.1 billion keywords and 18+ years of history, in 38 countries.
 - **PPC research:** SpyFu includes competitor ad and paid keyword data on its plans, with ad history. Semrush puts Advertising Research in a separate Advertising Toolkit that starts at $99 a month billed yearly.
 - **Searches:** SpyFu says every paid plan has unlimited searches. Semrush sets report limits by plan.
@@ -39,13 +39,13 @@ Here is the quick answer. Pick Semrush if you want one suite for SEO, site audit
 
 | | Semrush | SpyFu |
 |---|---|---|
-| Starts at | $139/mo (SEO), $99/mo (AI Visibility Toolkit) | Basic, about $39/mo (check) |
+| Starts at | $139/mo (SEO), $99/mo (AI Visibility Toolkit) | See pricing page |
 | Free plan or trial | Free account (10 reports a day), 7-day trial | 30-day money-back guarantee |
 | Main strength | Widest SEO toolkit and largest data | Competitor keyword and Google Ads research |
 | Keyword database | More than 26 billion | 13.1 billion |
 | Backlink index | More than 43 trillion backlinks | Backlink research included (index size not listed) |
 | History | Historical data on Pro+ and up | 18+ years, on Pro + AI and Team plans |
-| Rank tracking | Daily, 500 keywords on SEO | Weekly (limits check) |
+| Rank tracking | Daily, 500 keywords on SEO | Weekly |
 | PPC research | Advertising Toolkit, from $99/mo billed yearly | Included |
 | AI search tracking | AI Visibility Toolkit or Semrush One | AI Tracker on Pro + AI |
 | Best for | Teams that run SEO across many tools | PPC managers and small teams studying rivals |
@@ -81,7 +81,7 @@ Semrush's ads data lives in the Advertising Toolkit. Base is $99 a month billed 
 | Display, video and social ads | Advertising Pro | Not listed |
 | Downloads | Unlimited Google Ads exports | No download limits on PPC keywords |
 
-SpyFu is stronger for Google Ads research at a low price. Semrush is stronger if you also need display, social or Shopping ads data.
+SpyFu is stronger for Google Ads research, since PPC data comes with its plans. Semrush is stronger if you also need display, social or Shopping ads data.
 
 ## Semrush vs SpyFu backlinks and site audit
 
@@ -93,21 +93,21 @@ Both tools now have a site audit. Semrush includes Site Audit in its SEO Toolkit
 
 Semrush tracks keywords daily. The SEO plan includes 500 tracked keywords across 5 websites. Semrush One Pro+ raises that to 1,500 and adds tracking by location and device.
 
-SpyFu tracks keyword rankings weekly inside a project. Third-party pages list 5,000 weekly tracked keywords on Basic and 15,000 on Pro + AI (check).
+SpyFu tracks keyword rankings weekly inside a project.
 
-Semrush is stronger if you need daily movement. SpyFu gives you more keywords if a weekly check is enough.
+Semrush is stronger if you need daily movement. SpyFu works if a weekly check is enough.
 
 ## Semrush vs SpyFu AI visibility tracking
 
 Semrush's AI Visibility Toolkit is $99 a month. It includes 1 project, 1 Brand Performance domain and 25 tracked prompts. Extra prompts cost $60 a month for each 50, and each extra user needs a $99 license. The toolkit has no free trial. Semrush One raises the limits to 50 prompts on Starter and 100 on Pro+. Semrush's AI reports cover Google AI Overviews, AI Mode, ChatGPT, Gemini and Perplexity, with coverage that varies by report.
 
-SpyFu's AI Tracker counts how often your brand is named in Google AI Overviews and in ChatGPT, Perplexity and Gemini answers. SpyFu says this comes with Pro + AI, along with RivalFlow AI for content ideas. SpyFu does not publish prompt limits or refresh rates for it (check). SpyFu GPT also lets you use SpyFu data inside ChatGPT.
+SpyFu's AI Tracker counts how often your brand is named in Google AI Overviews and in ChatGPT, Perplexity and Gemini answers. SpyFu says this comes with Pro + AI, along with RivalFlow AI for content ideas. SpyFu does not publish prompt limits or refresh rates for it. SpyFu GPT also lets you use SpyFu data inside ChatGPT.
 
 Semrush is stronger for AI tracking today. Its limits are published, and it has more AI reports. Neither tool lists Claude among the AIs it tracks.
 
 ## Semrush vs SpyFu pricing
 
-Semrush prices come from its pricing pages in November 2026. SpyFu's pricing page did not load for us, so its prices below come from third-party listings and are marked (check).
+Semrush prices come from its pricing pages in November 2026. SpyFu's pricing page did not load for us, so we list its plans without prices. SpyFu lists current prices on its pricing page.
 
 **Semrush**
 
@@ -122,9 +122,9 @@ Semrush prices come from its pricing pages in November 2026. SpyFu's pricing pag
 
 **SpyFu**
 
-- **Basic:** $39 per month, or $29 per month billed yearly (check). Unlimited searches, current data only, no history.
-- **Pro + AI:** $119 per month, or $89 per month billed yearly (check). Unlimited searches, historical data, RivalFlow AI and AI brand monitoring.
-- **Team/Agency:** $249 per month (check). Everything in Pro + AI with more seats.
+- **Basic:** Unlimited searches, current data only, no history.
+- **Pro + AI:** Unlimited searches, historical data, RivalFlow AI and AI brand monitoring.
+- **Team/Agency:** Everything in Pro + AI with more seats.
 - **Guarantee:** Ask for a refund within your first 30 days.
 
 ## Which should you choose: Semrush or SpyFu?
@@ -141,7 +141,7 @@ Semrush prices come from its pricing pages in November 2026. SpyFu's pricing pag
 - Google Ads research is your main job.
 - You want years of competitor ad and ranking history.
 - You run many lookups a day and want unlimited searches.
-- You need a low monthly price to start.
+- You want a 30-day money-back guarantee.
 
 ## Where Arrowsterr fits
 
@@ -153,7 +153,7 @@ Arrowsterr has no backlink index or Google Ads data of its own. Its site audit c
 
 ### Is SpyFu cheaper than Semrush?
 
-Yes, at the entry level. SpyFu's Basic plan is commonly listed at $39 a month (check). Semrush's SEO plan is $139 a month, and its free account allows 10 reports a day.
+SpyFu lists its current prices on its pricing page. Semrush's SEO plan is $139 a month, and its free account allows 10 reports a day. Compare the plan you need on both sites before you buy.
 
 ### Is SpyFu better than Semrush for PPC?
 
@@ -165,7 +165,7 @@ SpyFu offers a 30-day money-back guarantee. You contact SpyFu within your first 
 
 ### Does SpyFu track AI search?
 
-Yes. SpyFu's AI Tracker counts brand mentions in Google AI Overviews, ChatGPT, Perplexity and Gemini. SpyFu ties it to the Pro + AI plan and does not publish prompt limits (check).
+Yes. SpyFu's AI Tracker counts brand mentions in Google AI Overviews, ChatGPT, Perplexity and Gemini. SpyFu ties it to the Pro + AI plan and does not publish prompt limits.
 
 ### Can SpyFu replace Semrush?
 
@@ -173,6 +173,6 @@ For competitor and Google Ads research, it can. For backlinks, daily rank tracki
 
 ## Summary: Semrush vs SpyFu
 
-Semrush is the wider suite. It has more keyword and backlink data and daily rank tracking. It also costs more. SpyFu is narrower and cheaper, with unlimited searches and years of competitor ad history.
+Semrush is the wider suite. It has more keyword and backlink data and daily rank tracking. SpyFu is narrower, with unlimited searches and years of competitor ad history.
 
 If your work is mostly SEO, start with Semrush's free account. If your work is mostly Google Ads and rival research, try SpyFu with its 30-day money-back guarantee.

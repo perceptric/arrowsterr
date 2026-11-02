@@ -8,7 +8,6 @@ status: draft
 sources:
   - https://ubersuggest.com/en/pricing
   - https://ubersuggest.com/en
-  - https://neilpatel.com/blog/ubersuggest-on-a-budget/
   - https://www.semrush.com/prices/
   - https://www.semrush.com/kb/1493-ai-visibility-toolkit
   - https://www.semrush.com/kb/1608-semrush-one
@@ -74,13 +73,13 @@ If link building is part of your plan, Semrush gives you far more to work with. 
 
 Semrush tracks keywords daily. Its SEO plan includes 500 tracked keywords across 5 websites. Semrush One Pro+ raises that to 1,500 keywords and adds tracking by location and device.
 
-Ubersuggest's pricing page lists 125, 150 or 300 tracked keywords per project, updated weekly. Its home page describes daily tracking (check). Plans include 1, 7 or 15 projects. Ubersuggest adds mobile rank tracking and pixel rank tracking.
+Ubersuggest's pricing page lists 125, 150 or 300 tracked keywords per project, updated weekly. Its home page describes daily tracking, so confirm the update speed with Ubersuggest. Plans include 1, 7 or 15 projects. Ubersuggest adds mobile rank tracking and pixel rank tracking.
 
 | Plan | Tracked keywords | Price per month |
 |---|---|---|
-| Ubersuggest Individual | 125 per project | $29 |
-| Ubersuggest Business | 150 per project | $49 |
-| Ubersuggest Enterprise | 300 per project | $99 |
+| Ubersuggest entry plan | 125 per project | $29 |
+| Ubersuggest middle plan | 150 per project | See pricing page |
+| Ubersuggest top plan | 300 per project | $99 |
 | Semrush SEO | 500 | $139 |
 | Semrush One Pro+ | 1,500 | $299 |
 
@@ -96,11 +95,11 @@ Semrush is stronger for larger sites and for AI crawler checks. Ubersuggest's au
 
 ## Ubersuggest vs Semrush AI visibility tracking
 
-Ubersuggest includes AI Search Visibility on its paid plans. It tracks ChatGPT and Gemini, and Google AI Overview on some plans (check). Reports show your visibility score and share of voice, plus sentiment. The limits are small and grow with the plan:
+Ubersuggest includes AI Search Visibility on its paid plans. It tracks ChatGPT and Gemini. Reports show your visibility score and share of voice, plus sentiment. The limits are small and grow with the plan:
 
-- Individual: 10 prompts per brand, updated monthly.
-- Business: 15 prompts per brand, updated every two weeks.
-- Enterprise: 20 prompts per brand, updated weekly.
+- Entry plan: 10 prompts per brand, updated monthly.
+- Middle plan: 15 prompts per brand, updated every two weeks.
+- Top plan: 20 prompts per brand, updated weekly.
 
 Extra AI prompts are a $5 a month add-on.
 
@@ -110,15 +109,15 @@ Semrush is stronger for AI tracking. It covers more AIs and more prompts, and it
 
 ## Ubersuggest vs Semrush pricing
 
-Semrush prices come from its pricing pages in November 2026. Ubersuggest's pricing page lists plans from $29 to $99 a month. Plan names and prices per plan come from Neil Patel's blog, updated July 2026.
+Semrush prices come from its pricing pages in November 2026. Ubersuggest's pricing page lists 3 plans from $29 to $99 a month, with the limits below.
 
 **Ubersuggest**
 
-- **Free:** A free account for light research. Ubersuggest does not list the daily limit on its pages (check).
-- **Individual:** $29 per month. 150 reports a day, 1 project, 125 tracked keywords, 10 AI prompts per brand and 1,000 audit pages a week.
-- **Business:** $49 per month. 300 reports a day, 7 projects, 150 tracked keywords per project, 15 AI prompts per brand and 5,000 audit pages a week.
-- **Enterprise:** $99 per month. 900 reports a day, 15 projects, 300 tracked keywords per project, 20 AI prompts per brand and 10,000 audit pages a week.
-- **Lifetime:** One-time payment. Neil Patel's blog lists $290, $490 and $990 (check). Lifetime purchases are final and cannot be refunded.
+- **Free:** A free account for light research. Ubersuggest does not list the daily limit on its pages.
+- **Entry plan:** $29 per month. 150 reports a day, 1 project, 125 tracked keywords, 10 AI prompts per brand and 1,000 audit pages a week.
+- **Middle plan:** price shown on the pricing page. 300 reports a day, 7 projects, 150 tracked keywords per project, 15 AI prompts per brand and 5,000 audit pages a week.
+- **Top plan:** $99 per month. 900 reports a day, 15 projects, 300 tracked keywords per project, 20 AI prompts per brand and 10,000 audit pages a week.
+- **Lifetime:** One-time payment. Lifetime purchases are final and cannot be refunded.
 - **Add-ons:** $5 a month each for extra projects, users, daily searches, tracked keywords or AI prompts.
 - **Trial:** 7 days, once, for monthly plans.
 

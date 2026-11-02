@@ -100,13 +100,13 @@ Mangools has no crawler for technical SEO. It offers a free SEO Content Optimize
 
 This is the one area where Mangools gives more on its entry plan.
 
-Every Mangools plan includes AI Search Watcher PRO with 500 monitored prompts and unlimited monitors. It runs each prompt twice to smooth out changes in AI answers. It covers ChatGPT, Google AI Overviews, Google AI Mode, Gemini, Claude, Grok, Mistral and Llama. It shows your average position and citations next to your competitors. The pricing page doesn't say how often prompts are checked (check).
+Every Mangools plan includes AI Search Watcher PRO with 500 monitored prompts and unlimited monitors. It runs each prompt twice to smooth out changes in AI answers. It covers ChatGPT, Google AI Overviews, Google AI Mode, Gemini, Claude, Grok, Mistral and Llama. It shows your average position and citations next to your competitors. The pricing page doesn't say how often prompts are checked.
 
 Semrush's SEO plan includes AI visibility reports for any domain and AI sentiment, with no prompt tracking quota. Prompt tracking starts on Starter:
 
 - **Starter ($199/mo):** 50 prompts daily. The help page lists Google Search, ChatGPT, Perplexity and Gemini.
 - **Pro+ ($299/mo):** 100 prompts daily.
-- **Advanced:** Unlimited prompts on the prices page, 200 on the help page (check).
+- **Advanced:** Semrush's pages list different prompt limits, so confirm with sales.
 - **AI Visibility Toolkit:** $99 a month on its own, with 25 prompts and 1 domain and no free trial.
 
 Semrush adds prompt research, which shows topics and prompts people ask AI. It also has an AI-ready Site Audit.

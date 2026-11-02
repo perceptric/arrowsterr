@@ -25,14 +25,14 @@ Here is the quick answer. Pick Peec AI if you want daily tracking on 3 models at
 - **Claude and Perplexity.** Peec AI lists Claude on Enterprise only, with Perplexity as an add-on. Profound includes both on Enterprise.
 - **Content.** Profound's AI Marketer drafts pages, posts and fixes for you to approve. Peec AI focuses on data, gap analysis and agent actions.
 - **Data access.** Peec AI includes MCP and CSV exports on every plan and the API from Pro. Profound's exports and API are Enterprise only.
-- **Trial.** Profound has a free 7-day trial with fixed prompts. Peec AI offers a free trial from its site (length: check).
+- **Trial.** Profound has a free 7-day trial with fixed prompts. Peec AI offers a free trial from its site but doesn't list its length.
 
 ## Peec AI vs Profound at a glance
 
 | | Peec AI | Profound |
 |---|---|---|
 | Starts at | $95/mo (Starter) | Custom (Enterprise) |
-| Free plan or trial | Free trial (length: check) | Free 7-day trial, 50 prompts daily |
+| Free plan or trial | Free trial (length not listed) | Free 7-day trial, 50 prompts daily |
 | Main strength | Clear daily tracking at a listed price | Broad AI search data on one contract |
 | AI search tracking | 3 models on self-serve, up to 13 on Enterprise | 3 on trial, up to 9 on Enterprise |
 | Check frequency | Daily (daily or weekly on Enterprise) | Daily |
@@ -63,7 +63,7 @@ This is the biggest difference for most buyers.
 Peec AI's Starter, Pro and Advanced plans let you choose 3 models. Two lists on the pricing page show what you can pick:
 
 - **Self-serve models:** ChatGPT, AI Mode, AI Overviews, Microsoft Copilot, Gemini and Naver AI.
-- **Add-ons:** the add-on list also shows Perplexity. You can add extra models from your dashboard. The price depends on your plan (check).
+- **Add-ons:** the add-on list also shows Perplexity. You can add extra models from your dashboard. The pricing page doesn't list their price.
 - **Enterprise only:** Perplexity, Claude Sonnet 4 (API), GPT 5 Search (API), Grok (API), DeepSeek (API), Qwen (API), Mistral (API) and Meta Spark (API). Enterprise tracks up to 13 models.
 
 Profound's trial runs on ChatGPT, Gemini and Google AI Overviews. Enterprise covers up to 9 engines: ChatGPT, Perplexity, Google AI Mode, Gemini, Microsoft Copilot, DeepSeek, Claude, Google AI Overviews and Exa Search.
@@ -131,14 +131,13 @@ These are the list prices on each vendor's pricing page.
 - **Pro:** $245/mo. 150 prompts, 3 models, daily tracking, 3 countries, 2 projects, API, monthly objections, chat and email support, 750 agent credits.
 - **Advanced:** $495/mo. 350 prompts, 3 models, daily tracking, 3 countries, 5 projects, custom attributes, weekly objections, Looker Studio connector, 1,000 agent credits.
 - **Enterprise:** custom, billed yearly. Unlimited prompts and projects, up to 13 models, daily or weekly tracking, SSO, dedicated support and custom onboarding.
-- **Extra models:** a paid add-on on self-serve plans (price: check).
-- **Agencies:** Peec AI has separate agency pricing (check).
+- **Extra models:** a paid add-on on self-serve plans, price not listed.
 
 **Profound**
 
 - **Trial:** free for 7 days. 50 prompts run daily on ChatGPT, Gemini and Google AI Overviews, in 1 language and 1 region. You can't change the prompts. Limited credits, no exports, no API.
 - **Enterprise:** custom. Up to 9 engines, custom prompts, regions and languages, all-time history, CSV and JSON exports, API, SSO/SAML, SOC 2 and custom support.
-- **Agency Growth:** the FAQ mentions a self-serve agency plan with 400 credits a month for each client workspace. The pricing page shows no price for it (check).
+- **Agency Growth:** the FAQ mentions a self-serve agency plan with 400 credits a month for each client workspace. The pricing page shows no price for it.
 
 ## Which should you choose: Peec AI or Profound?
 

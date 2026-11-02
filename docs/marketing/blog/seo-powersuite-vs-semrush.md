@@ -79,7 +79,7 @@ Rank tracking is where SEO PowerSuite stands out. Paid plans track unlimited key
 | Competitors per project | 5 (Professional), 40 (Enterprise, Max) | Not listed on the prices page |
 | History | 1 year listed on Professional | Historical SEO data on Pro+ and up |
 
-Rank Tracker runs checks from the app on your computer through scheduled tasks. Plan on a machine that is on when the schedule runs (check). Semrush runs every check in the cloud, so data shows up each day with nothing to keep open.
+Rank Tracker runs checks from the app on your computer through scheduled tasks. Semrush runs every check in the cloud, so data shows up each day.
 
 **Stronger:** SEO PowerSuite for volume and price. Semrush for daily data with no upkeep.
 
@@ -87,7 +87,7 @@ Rank Tracker runs checks from the app on your computer through scheduled tasks. 
 
 WebSite Auditor crawls entire sites on every paid plan. The free version stops at 500 URLs. It checks technical and on-page issues, and its content editor gives as-you-type SEO tips and a TF-IDF view of top-ranking pages. It also builds sitemaps and robots.txt files.
 
-Semrush includes Site Audit on every paid plan. Starter and up add an AI-ready Site Audit that checks how well AI crawlers can read your site. The prices page doesn't list a page limit per plan (check).
+Semrush includes Site Audit on every paid plan. Starter and up add an AI-ready Site Audit that checks how well AI crawlers can read your site. The prices page doesn't list a page limit per plan.
 
 **Stronger:** SEO PowerSuite for large crawls on a budget, since crawl size has no cap on paid plans. Semrush if you want audits that run in the cloud and AI crawler checks.
 
@@ -109,7 +109,7 @@ SEO PowerSuite tracks Google AI Overviews on every plan, the free version includ
 
 Semrush has two routes for AI tracking:
 
-- **Semrush One plans:** Starter tracks 50 prompts daily, and Pro+ tracks 100. Its help page says they cover Google Search, ChatGPT, Perplexity and Gemini. Advanced lists unlimited prompts on the prices page and 200 on the help page (check).
+- **Semrush One plans:** Starter tracks 50 prompts daily, and Pro+ tracks 100. Its help page says they cover Google Search, ChatGPT, Perplexity and Gemini. Semrush's pages list different prompt limits for Advanced, so confirm with sales.
 - **AI Visibility Toolkit:** $99 a month on its own for 25 prompts and 1 domain. It has no free trial.
 
 The SEO plan includes AI visibility reports for any domain and AI sentiment, with no prompt tracking quota.

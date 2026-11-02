@@ -39,9 +39,9 @@ The quick answer: pick Semrush if your main job is SEO, such as keyword research
 
 | | Semrush | Similarweb |
 |---|---|---|
-| Starts at | $139/mo (SEO plan) | $99 (AEO Intelligence, check billing period) |
+| Starts at | $139/mo (SEO plan) | $99 (AEO Intelligence, billing period not stated) |
 | Free plan | Yes, 10 reports a day | Free sample data on similarweb.com |
-| Free trial | 7 days on most plans | Yes, length not stated (check) |
+| Free trial | 7 days on most plans | Yes, length not stated |
 | Main strength | SEO research and site health | Traffic and market intelligence |
 | AI search tracking | 50 prompts daily on Starter ($199/mo) | 150 tracked prompts on every AI search plan |
 | AIs named | ChatGPT, Gemini, Google AI Overviews and AI Mode | ChatGPT, Gemini, Perplexity and Google AI Mode |
@@ -91,7 +91,7 @@ Similarweb lists over 6 billion keywords and 100 million websites. Its Strategic
 
 Both tools now track how AI assistants answer questions about your market.
 
-Semrush's AI tracking comes with the Starter plan and up. Starter tracks 50 prompts daily, Pro+ tracks 100, and Advanced raises the limit further. Semrush names ChatGPT and Gemini, plus Google AI Overviews and AI Mode. Its pricing page also shows Perplexity (check). You can also buy the AI Visibility Toolkit alone for $99 a month. It includes 25 prompts and has no free trial, and each user needs their own subscription.
+Semrush's AI tracking comes with the Starter plan and up. Starter tracks 50 prompts daily, Pro+ tracks 100, and Advanced raises the limit further. Semrush names ChatGPT and Gemini, plus Google AI Overviews and AI Mode. You can also buy the AI Visibility Toolkit alone for $99 a month. It includes 25 prompts and has no free trial, and each user needs their own subscription.
 
 Similarweb's AI Brand Visibility tracker covers ChatGPT, Google AI Mode, Gemini and Perplexity. Its AI traffic tools also measure visits from Claude, Grok and Microsoft Copilot. Every AI search plan includes 150 tracked prompts, along with sentiment and citation analysis. Its AI Traffic report shows how many visits AI chats send to a site.
 
@@ -125,14 +125,14 @@ Prices below are list prices from each vendor's own pages.
 
 **Similarweb (AI search plans)**
 
-Similarweb's page shows these prices without saying if they are monthly or billed yearly (check). Each plan includes 1 user and 150 tracked prompts.
+Similarweb's page shows these prices without saying if they are monthly or billed yearly. Each plan includes 1 user and 150 tracked prompts.
 
 - AEO Intelligence: $99. AI brand visibility, sentiment, citations, AI traffic, 3 months of history.
 - AEO & SEO & Competitive Intel: $333. Adds keyword research, rank tracking, site audit and backlinks, traffic and engagement, demographics, 6 months of history.
 - AEO & SEO & Ads & Competitive Intel: $542. Adds ads intelligence and ad spend.
 - Businesses & Enterprises: custom package through sales.
 
-Similarweb also sells self-service packages for individuals and small teams on its main pricing page. We could not read their prices on the page (check).
+Similarweb also sells self-service packages for individuals and small teams on its main pricing page. See the pricing page for their current prices.
 
 ## Which should you choose: Semrush or Similarweb?
 

@@ -131,7 +131,7 @@ New accounts get a 7-day trial of Pro. Surfer's help center says the trial turns
 - SEO: $139/mo ($117.33). 5 websites, 500 keywords tracked daily, Position Tracking, Site Audit, AI visibility reports for any domain.
 - Semrush One Starter: $199/mo ($165.17). SEO plus 50 prompts daily, 1 domain for brand performance, AI-ready Site Audit, MCP access.
 - Semrush One Pro+: $299/mo ($248.17). 15 websites, 1,500 keywords, 100 prompts daily, historical data, content optimization.
-- Semrush One Advanced: custom. 40+ websites, 5,000+ keywords, API access, and unlimited prompts on the pricing page.
+- Semrush One Advanced: custom. 40+ websites, 5,000+ keywords, API access and a custom prompt limit.
 - AI Visibility Toolkit: $99/mo per domain billed yearly. 25 prompts, 1 Brand Performance domain. Semrush's knowledge base says it has no free trial.
 - Content Toolkit: $60/mo billed yearly.
 - Extra users: from $45/mo.

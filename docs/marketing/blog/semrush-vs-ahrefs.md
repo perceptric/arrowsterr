@@ -90,7 +90,7 @@ Ahrefs Lite tracks more keywords than Semrush's SEO plan, but it updates them we
 
 For site audits, Ahrefs gives clear crawl limits. Lite allows up to 25,000 pages per project and Advanced up to 250,000. Ahrefs Free includes Site Audit for verified sites with 5,000 crawl credits a month per project. Always-on audits cost extra through Project Boost, from $20 a month per project.
 
-Semrush includes Site Audit on its SEO plan and an AI-ready Site Audit on Semrush One. The prices page doesn't list a page limit per plan (check).
+Semrush includes Site Audit on its SEO plan and an AI-ready Site Audit on Semrush One. The prices page doesn't list a page limit per plan.
 
 **Stronger:** Semrush for rank tracking, because daily data catches drops sooner. Ahrefs for audit limits you can read up front.
 
@@ -101,7 +101,7 @@ Both vendors now track how AI answers mention brands. They sell it in different 
 **Semrush** has two routes:
 
 - **AI Visibility Toolkit:** $99 a month on its own. It includes 25 prompts, 1 domain for brand performance and 1 user. Its help page lists ChatGPT and Google AI Mode for prompt tracking. It has no free trial. Extra prompts cost $60 a month per 50, and extra domains and users cost $99 a month each.
-- **Semrush One:** Starter tracks 50 prompts daily, and Pro+ tracks 100. Advanced lists unlimited prompts.
+- **Semrush One:** Starter tracks 50 prompts daily, and Pro+ tracks 100. Advanced has a custom prompt limit.
 
 **Ahrefs** also has two routes:
 
@@ -116,7 +116,7 @@ Ahrefs' index works best for brands that already have search demand. Ahrefs says
 
 Ahrefs sells Traffic Analytics as a $99 a month add-on. It shows estimated traffic for any domain with a channel breakdown that includes AI traffic. Its Content Kit is listed from $99 a month and marked as coming soon. Ahrefs Free includes AI Content Helper with 1 free doc a month.
 
-Semrush sells traffic and market data in a separate Traffic & Market toolkit (price: check). Semrush says that data comes from a panel of over 200 million anonymized users. Its content tools generate articles from a brief and optimize existing pages. Content optimization is listed on Semrush One Pro+.
+Semrush sells traffic and market data in a separate Traffic & Market toolkit. Semrush says that data comes from a panel of over 200 million anonymized users. Its content tools generate articles from a brief and optimize existing pages. Content optimization is listed on Semrush One Pro+.
 
 **Stronger:** Semrush for content and market research in one vendor. Ahrefs if you only need traffic estimates as an add-on.
 
@@ -128,7 +128,7 @@ Semrush sells traffic and market data in a separate Traffic & Market toolkit (pr
 - **SEO:** $139/mo ($117.33/mo billed yearly). 5 websites, 500 keywords tracked daily, basic keyword research, competitor analysis, Position Tracking, Site Audit.
 - **Semrush One Starter:** $199/mo ($165.17/mo billed yearly). 5 websites, 500 keywords daily, 50 AI prompts daily, 1 domain for AI brand performance, 300 AI visibility reports a day, MCP access.
 - **Semrush One Pro+:** $299/mo ($248.17/mo billed yearly). 15 websites, 1,500 keywords daily, 100 prompts daily, historical SEO data, content optimization, multi-location tracking.
-- **Semrush One Advanced:** Custom price. 40+ websites, 5,000+ keywords, unlimited prompts, SEO share of voice, API data.
+- **Semrush One Advanced:** Custom price. 40+ websites, 5,000+ keywords, a custom prompt limit, SEO share of voice and API data.
 - **AI Visibility Toolkit:** $99/mo. 25 prompts, 1 domain, 1 user.
 - **Add-ons:** Extra users from $45/mo. Enterprise is custom.
 

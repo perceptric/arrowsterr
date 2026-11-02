@@ -34,15 +34,15 @@ Here is the quick answer. Pick AirOps if your team ships a lot of content and wa
 | | AirOps | Profound |
 |---|---|---|
 | Starts at | No price on the pricing page | Custom price (Enterprise) |
-| Free plan or trial | "Start for free" on Solo and Pro (what is free: check) | Free 7-day trial, 50 prompts daily |
+| Free plan or trial | "Start for free" on Solo and Pro (terms not listed) | Free 7-day trial, 50 prompts daily |
 | Main strength | Content workflows at scale | AI search data and analytics |
 | AI search tracking | Solo: ChatGPT only. Pro: 10+ answer engines | Trial: 3 engines. Enterprise: up to 9 |
 | Check frequency | 1 answer per prompt per engine daily | Daily |
 | Content tools | Tasks, Brand Kits, Knowledge Bases, Grids, workflows, human review | AI Marketer and Agents that draft work for approval |
-| AI crawler analytics | Listed as "Agent Analytics" (plan: check) | Agent Analytics on trial and Enterprise |
+| AI crawler analytics | Listed as "Agent Analytics" (plan not stated) | Agent Analytics on trial and Enterprise |
 | Seats | Solo: 1 user. Pro and Enterprise: unlimited | Unlimited |
-| API | "AirOps MCP + API" listed (plan: check) | Enterprise only |
-| SSO | Listed (plan: check) | Enterprise (SSO/SAML), SOC 2 |
+| API | "AirOps MCP + API" listed (plan not stated) | Enterprise only |
+| SSO | Listed (plan not stated) | Enterprise (SSO/SAML), SOC 2 |
 | Best for | Content teams and SEO teams that publish often | Large brands with a big AI search budget |
 
 ## What is AirOps?
@@ -70,7 +70,7 @@ AirOps covers a wide set of engines on Pro. Its docs list ChatGPT, Gemini, Perpl
 | Engines on the top plan | 10+ on Pro (9 named in the docs) | Up to 9 on Enterprise |
 | DeepSeek and Exa Search | Not listed | Yes |
 | Grok and Muse Spark | Yes | Not listed |
-| Prompt volume data | Listed on the pricing page (plan: check) | Prompt Volumes (5 searches on trial) |
+| Prompt volume data | Listed on the pricing page (plan not stated) | Prompt Volumes (5 searches on trial) |
 | AI shopping data | Not listed | ChatGPT Shopping on Enterprise |
 | Competitor limit | 10 | Not stated |
 
@@ -98,7 +98,7 @@ Pick AirOps if you want to design your own content system and run it at volume. 
 
 Profound is clearer here. Its Agent Analytics shows how AI bots view, cite and refer to your pages. It is on both the trial and Enterprise, with unlimited domains. It connects to Akamai, AWS, Cloudflare, Fastly, Google Analytics, Google Cloud Platform, Netlify, Vercel and WordPress.
 
-AirOps lists "Agent Analytics" in its pricing table. The page does not make clear which plans include it (check). If AI crawler data matters to you, ask AirOps to show it on your plan before you buy.
+AirOps lists "Agent Analytics" in its pricing table. The page does not make clear which plans include it. If AI crawler data matters to you, ask AirOps to show it on your plan before you buy.
 
 ## AirOps vs Profound offsite and paid AI search
 
@@ -114,7 +114,7 @@ AirOps Solo and Pro come with community and live chat support. Enterprise adds a
 
 Profound's trial comes with no support. Enterprise support is set per contract: email, a dedicated Slack channel, or a dedicated specialist with a 24-hour SLA. Profound lists SSO/SAML and SOC 2 on Enterprise.
 
-For a security review, Profound gives you more on its pricing page. AirOps lists SSO in its table without saying which plan (check).
+For a security review, Profound gives you more on its pricing page. AirOps lists SSO in its table without saying which plan.
 
 ## AirOps vs Profound pricing
 
@@ -125,13 +125,13 @@ Neither vendor shows a dollar price on its pricing page. Here is what each plan 
 - **Solo:** price not shown. One user, ChatGPT insights only, 35,000 tasks, 1 Brand Kit, 3 Knowledge Bases, basic CMS and SEO integrations, community and live chat support. Extra tasks cost $0.025 each.
 - **Pro:** price not shown. Insights across 10+ answer engines, 100,000 tasks, 1 Brand Kit, 5 Knowledge Bases, CMS, SEO, AEO, social and project integrations, unlimited seats.
 - **Enterprise:** custom. Custom prompt, page and task limits, custom agent builds, unlimited Brand Kits and Knowledge Bases, a dedicated account manager and 1:1 onboarding.
-- **Free trial:** the FAQ describes a 14-day free trial with no payment details until the end. It names a "Scale" plan that is not in the plan list (check).
+- **Free trial:** the FAQ describes a 14-day free trial with no payment details until the end. It names a "Scale" plan that is not in the plan list, so confirm the trial terms with AirOps.
 
 **Profound**
 
 - **Trial:** free for 7 days. 50 prompts run daily on ChatGPT, Gemini and Google AI Overviews, in 1 language and 1 region. You can't change the prompts. Limited credits, no exports, no API.
 - **Enterprise:** custom. Up to 9 engines, custom prompts, regions and languages, all-time history, CSV and JSON exports, API, SSO/SAML, SOC 2 and custom support.
-- **Agency Growth:** the FAQ mentions a self-serve agency plan with 400 credits a month for each client workspace. The pricing page shows no price for it (check).
+- **Agency Growth:** the FAQ mentions a self-serve agency plan with 400 credits a month for each client workspace. The pricing page shows no price for it.
 
 ## Which should you choose: AirOps or Profound?
 

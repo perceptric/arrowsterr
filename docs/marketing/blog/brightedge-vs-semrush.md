@@ -45,7 +45,7 @@ The quick answer: pick BrightEdge if you run SEO for a large brand with many sit
 | AI search tracking | AI Catalyst | 50 prompts daily from Starter ($199/mo) |
 | AIs named | ChatGPT, Perplexity, Gemini, AI Overviews, AI Mode | ChatGPT, Gemini, AI Overviews, AI Mode |
 | Keyword data | Data Cube X, size not published | 28.8 billion keywords, 142 country databases |
-| Backlink index | Not listed on product pages (check) | Over 43 trillion backlinks |
+| Backlink index | Not listed on product pages | Over 43 trillion backlinks |
 | Site audit | ContentIQ | Site Audit |
 | On-site automation | Autopilot | No direct match |
 | Best for | Large brands and enterprise SEO teams | Agencies, in-house teams and freelancers |
@@ -70,7 +70,7 @@ Semrush lists 28.8 billion keywords across 142 country databases. Its keyword to
 
 Semrush's backlink index holds over 43 trillion links and updates daily. Backlink analysis, gaps and audits are part of its SEO plans.
 
-BrightEdge's product pages we checked do not list a backlink index or backlink tool (check). Ask about link data in your demo if you need it.
+BrightEdge's product pages we checked do not list a backlink index or backlink tool. Ask about link data in your demo if you need it.
 
 **Stronger: Semrush.** Link data is a core part of its SEO plans, and it publishes the size of its index.
 
@@ -86,7 +86,7 @@ Semrush's Site Audit crawls your site and lists technical issues. Its Starter pl
 
 BrightEdge AI Catalyst tracks how often your brand is mentioned and cited in AI answers. It names ChatGPT, Perplexity, Google AI Overviews, Google AI Mode and Gemini. It rates each answer as positive, neutral or negative, and compares you with competitors by engine. It also builds buyer prompts mapped to the buyer journey and flags when a competitor takes over an answer.
 
-Semrush's AI tracking comes with its Starter plan and up. Starter tracks 50 prompts daily, Pro+ tracks 100, and Advanced raises the limit further. Semrush names ChatGPT and Gemini, plus Google AI Overviews and AI Mode. Its pricing page also shows Perplexity (check). You can buy the AI Visibility Toolkit alone for $99 a month, with 25 prompts. It has no free trial, and each user needs their own subscription.
+Semrush's AI tracking comes with its Starter plan and up. Starter tracks 50 prompts daily, Pro+ tracks 100, and Advanced raises the limit further. Semrush names ChatGPT and Gemini, plus Google AI Overviews and AI Mode. You can buy the AI Visibility Toolkit alone for $99 a month, with 25 prompts. It has no free trial, and each user needs their own subscription.
 
 **Stronger: close.** BrightEdge lists more engines and adds prompt building for each buyer stage. Semrush shows you the prompt limits and price up front, so you know what you get before you buy.
 

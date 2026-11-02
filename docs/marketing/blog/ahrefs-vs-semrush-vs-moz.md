@@ -30,10 +30,10 @@ Pick Ahrefs if backlink research is your main job. Pick Semrush if you want dail
 ## Ahrefs vs Semrush vs Moz: main points
 
 - **Entry prices:** Ahrefs Starter is $29 a month and Lite is $129. Moz Starter is $49 and Standard is $99. Semrush's SEO plan is $139.
-- **Rank tracking speed:** Semrush updates rankings daily. Ahrefs lists weekly updates on all plans. Moz campaigns update weekly (check).
+- **Rank tracking speed:** Semrush updates rankings daily. Ahrefs lists weekly updates on all plans. Moz doesn't list how often its campaigns update.
 - **AI tracking:** Moz includes 150 to 600 AI prompts in every Moz Pro plan, checked weekly. Semrush bundles 50 or 100 daily prompts in Semrush One. Ahrefs includes 5 to 20 daily prompts on core plans and sells Brand Radar from $199 a month.
 - **Data size:** Ahrefs and Semrush each list about 29 billion keywords. Moz lists a 1.25 billion+ keyword index. All three list tens of trillions of backlinks.
-- **Trials and free plans:** Semrush has a 7-day trial and a free account. Ahrefs has no trial, but Ahrefs Free covers your own verified sites. Moz shows a free trial on its Medium plan (length: check) and a free community account.
+- **Trials and free plans:** Semrush has a 7-day trial and a free account. Ahrefs has no trial, but Ahrefs Free covers your own verified sites. Moz shows a free trial on its Medium plan and a free community account. Moz doesn't list the trial length.
 
 ## Ahrefs vs Semrush vs Moz at a glance
 
@@ -41,9 +41,9 @@ Pick Ahrefs if backlink research is your main job. Pick Semrush if you want dail
 |---|---|---|---|
 | Starts at | $29/mo (Starter), $129/mo (Lite) | $139/mo (SEO plan) | $49/mo (Starter), $99/mo (Standard) |
 | Free plan | Ahrefs Free, for verified sites | 10 reports a day | Free community account, limited tools |
-| Free trial | None | 7 days | Shown on Medium (length: check) |
+| Free trial | None | 7 days | Shown on Medium (length not listed) |
 | Main strength | Backlink index | Daily data and toolkit breadth | Low price, DA metrics |
-| Rank tracking updates | Weekly | Daily | Weekly (check) |
+| Rank tracking updates | Weekly | Daily | Not listed |
 | AI search tracking | 5 to 20 daily prompts; Brand Radar from $199/mo | Semrush One from $199/mo, or $99/mo toolkit | 150 to 600 prompts, weekly, in every plan |
 | Keyword database | 29 billion filtered | 28.8 billion | 1.25 billion+ |
 | Users included | 1 on every plan | Extra users from $45/mo | 1 to 3 by plan |
@@ -89,13 +89,13 @@ All three run link indexes, and each counts links its own way. Their totals don'
 
 | | Ahrefs | Semrush | Moz Pro |
 |---|---|---|---|
-| Update frequency | Weekly | Daily | Weekly (check) |
+| Update frequency | Weekly | Daily | Not listed |
 | Entry plan keywords | 50 (Starter), 750 (Lite) | 500 (SEO plan) | 300 (Standard) |
 | Mid plan keywords | 2,000 (Standard) | 1,500 (Pro+) | 1,500 (Medium) |
 | Top listed plan | 5,000 (Advanced) | 5,000+ (Advanced) | 3,000 (Large) |
-| Site audit limits | 100,000 to 1.5M crawl credits a month | Not listed per plan (check) | 100,000 to 1.25M pages a week |
+| Site audit limits | 100,000 to 1.5M crawl credits a month | Not listed per plan | 100,000 to 1.25M pages a week |
 
-Semrush is the only one of the three with daily rank updates on every plan. That matters when you need to spot a drop fast. Ahrefs tracks the most keywords on its Lite and Standard plans, but it updates them weekly.
+Semrush lists daily rank updates on every plan. That matters when you need to spot a drop fast. Ahrefs tracks the most keywords on its Lite and Standard plans, but it updates them weekly.
 
 For audits, Ahrefs and Moz both list crawl limits. Ahrefs Lite allows up to 25,000 pages per project, and Ahrefs Free audits verified sites with 5,000 crawl credits a month per project. Moz Standard crawls 100,000 pages a week. Semrush includes Site Audit on every paid plan and an AI-ready Site Audit on Semrush One.
 
@@ -139,13 +139,13 @@ Each vendor sells AI tracking in its own way.
 - **SEO:** $139/mo ($117.33/mo billed yearly). 5 websites, 500 keywords tracked daily, Position Tracking, Site Audit.
 - **Semrush One Starter:** $199/mo ($165.17/mo billed yearly). 5 websites, 500 keywords daily, 50 AI prompts daily.
 - **Semrush One Pro+:** $299/mo ($248.17/mo billed yearly). 15 websites, 1,500 keywords daily, 100 prompts daily, historical data.
-- **Semrush One Advanced:** Custom price. 40+ websites, 5,000+ keywords, unlimited prompts.
+- **Semrush One Advanced:** Custom price. 40+ websites, 5,000+ keywords and a custom prompt limit.
 - **AI Visibility Toolkit:** $99/mo. 25 prompts, 1 domain, 1 user.
 - **Add-ons:** Extra users from $45/mo.
 
 **Moz Pro** (monthly, with billed-yearly price in brackets):
 
-- **Starter:** $49/mo. For one website. Full limits aren't on the pricing page (check).
+- **Starter:** $49/mo. For one website. Full limits aren't on the pricing page.
 - **Standard:** $99/mo ($79/mo billed yearly). 1 user, 3 campaigns, 300 tracked keywords, 150 keyword queries a month, 150 AI prompts.
 - **Medium:** $179/mo ($143/mo billed yearly). 2 users, 10 campaigns, 1,500 tracked keywords, 5,000 keyword queries a month, 300 AI prompts.
 - **Large:** $299/mo ($239/mo billed yearly). 3 users, 25 campaigns, 3,000 tracked keywords, 15,000 keyword queries a month, 600 AI prompts.
@@ -197,7 +197,7 @@ Yes. All three track ChatGPT. Ahrefs Brand Radar also covers Perplexity, Gemini,
 
 ### Which updates rankings daily?
 
-Semrush updates tracked keywords daily on its paid plans. Ahrefs lists weekly updates on every plan. Moz campaigns update weekly (check).
+Semrush updates tracked keywords daily on its paid plans. Ahrefs lists weekly updates on every plan. Moz doesn't list how often its campaigns update rankings.
 
 ## Summary: Ahrefs vs Semrush vs Moz
 

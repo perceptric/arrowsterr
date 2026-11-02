@@ -139,7 +139,7 @@ Neither vendor lists a dollar price for its main plans. Here is what each pricin
 
 - Trial: free for 7 days. 50 prompts run daily on ChatGPT, Gemini and Google AI Overviews, unlimited seats, Agent Analytics, 5 Prompt Volumes searches and a limited set of AI Marketer credits.
 - Enterprise: custom. Up to 9 AI engines, a tailored prompt plan, unlimited seats, ChatGPT Shopping, full Prompt Volumes with API access, SSO and SAML, SOC 2, and support up to a dedicated specialist.
-- Agency Growth: self-serve, with 400 credits a month per client workspace. The price is not on the pricing page. A Profound blog post from November 2025 lists $399 a month per client workspace (check).
+- Agency Growth: self-serve, with 400 credits a month per client workspace. The price is not on the pricing page.
 
 ## Which should you choose: Conductor or Profound?
 

@@ -28,10 +28,10 @@ Pick Semrush if you want daily rankings and the largest keyword and link data. P
 
 - **Entry price:** Moz Starter is $49 a month and Moz Pro Standard is $99. Semrush's SEO plan is $139 a month.
 - **AI tracking on base plans:** Every Moz Pro plan includes AI prompt tracking, from 150 prompts checked weekly. On Semrush, AI prompt tracking comes with Semrush One (from $199 a month) or the $99 AI Visibility Toolkit.
-- **Tracking speed:** Semrush checks rankings and AI prompts daily. Moz checks AI prompts weekly, and its campaigns update rankings weekly (check).
+- **Tracking speed:** Semrush checks rankings and AI prompts daily. Moz checks AI prompts weekly. It doesn't list how often its campaigns update rankings.
 - **Data size:** Semrush lists 28.8 billion keywords and 43 trillion backlinks. Moz lists a 1.25 billion+ keyword index and over 40 trillion links.
 - **Authority metrics:** Moz created Domain Authority and adds Page Authority, Brand Authority and Spam Score. Semrush uses its own Authority Score.
-- **Trials:** Semrush offers a 7-day free trial on its paid plans. Moz shows a free trial on its Medium plan (length: check).
+- **Trials:** Semrush offers a 7-day free trial on its paid plans. Moz shows a free trial on its Medium plan but doesn't list its length.
 
 ## Semrush vs Moz at a glance
 
@@ -39,11 +39,11 @@ Pick Semrush if you want daily rankings and the largest keyword and link data. P
 |---|---|---|
 | Starts at | $139/mo (SEO plan) | $49/mo (Starter), $99/mo (Standard) |
 | Free plan | Yes, 10 reports a day | Free Moz Community account with limited tools |
-| Free trial | 7 days | Shown on Medium (length: check) |
+| Free trial | 7 days | Shown on Medium (length not listed) |
 | Main strength | Large data and daily tracking | Simple suite, DA metrics, AI tracking in every plan |
 | AI search tracking | Semrush One from $199/mo, or AI Visibility Toolkit $99/mo | Included: 150 to 600 prompts, weekly |
 | AIs tracked | ChatGPT and Google AI Mode for prompt tracking | ChatGPT, Gemini, Google AI Mode |
-| Rank tracking updates | Daily | Weekly (check) |
+| Rank tracking updates | Daily | Not listed |
 | Keyword database | 28.8 billion | 1.25 billion+ |
 | Users included | Extra users from $45/mo | 1 to 3 by plan, extra seats $49/mo |
 | Best for | Teams that want depth and daily data | Small teams and beginners on a budget |
@@ -80,16 +80,16 @@ Moz limits backlink queries by plan: 5,000 a month on Standard, 20,000 on Medium
 
 | | Semrush | Moz Pro |
 |---|---|---|
-| Update frequency | Daily | Weekly (check) |
+| Update frequency | Daily | Not listed |
 | Entry plan keywords | 500 (SEO plan) | 300 (Standard) |
 | Mid plan keywords | 1,500 (Pro+) | 1,500 (Medium) |
 | Top listed plan | 5,000+ (Advanced) | 3,000 (Large) |
 | Sites or campaigns | 5 to 40+ websites | 3 to 25 campaigns |
 | Site crawl | Site Audit on all paid plans | 100,000 to 1.25M pages a week |
 
-Semrush checks rankings every day, so you see a drop sooner. Moz campaigns track your site plus three competitors, across up to four search engines per keyword.
+Semrush checks rankings every day, so you can spot a drop fast. Moz campaigns track your site plus three competitors, across up to four search engines per keyword.
 
-For site audits, Moz gives clear crawl limits. Standard crawls 100,000 pages a week, Medium 500,000 and Large 1.25 million. Semrush includes Site Audit on its SEO plan and an AI-ready Site Audit on Semrush One. Its prices page doesn't list a page limit per plan (check).
+For site audits, Moz gives clear crawl limits. Standard crawls 100,000 pages a week, Medium 500,000 and Large 1.25 million. Semrush includes Site Audit on its SEO plan and an AI-ready Site Audit on Semrush One. Its prices page doesn't list a page limit per plan.
 
 **Stronger:** Semrush for rank tracking, because of daily updates. Moz for crawl limits you can read up front.
 
@@ -110,7 +110,7 @@ Moz also sells AI Explorer on its own, starting at $45 a month.
 **Semrush** has two routes:
 
 - **AI Visibility Toolkit:** $99 a month. It includes 25 prompts, 1 domain and 1 user, with prompt tracking on ChatGPT and Google AI Mode. It has no free trial.
-- **Semrush One:** Starter tracks 50 prompts daily and Pro+ tracks 100. Advanced lists unlimited prompts.
+- **Semrush One:** Starter tracks 50 prompts daily and Pro+ tracks 100. Advanced has a custom prompt limit.
 
 Semrush tracks fewer prompts, but it checks them every day. Moz tracks more prompts, but it checks them once a week. Semrush's features page also names Perplexity, Gemini, Claude and AI Overviews in its AI visibility reports.
 
@@ -132,13 +132,13 @@ Moz Pro includes AI content briefs: 2 a month on Standard, 10 on Medium and 50 o
 - **SEO:** $139/mo ($117.33/mo billed yearly). 5 websites, 500 keywords tracked daily, basic keyword research, competitor analysis, Position Tracking, Site Audit.
 - **Semrush One Starter:** $199/mo ($165.17/mo billed yearly). 5 websites, 500 keywords daily, 50 AI prompts daily, 300 AI visibility reports a day, MCP access.
 - **Semrush One Pro+:** $299/mo ($248.17/mo billed yearly). 15 websites, 1,500 keywords daily, 100 prompts daily, historical SEO data, content optimization.
-- **Semrush One Advanced:** Custom price. 40+ websites, 5,000+ keywords, unlimited prompts, API data.
+- **Semrush One Advanced:** Custom price. 40+ websites, 5,000+ keywords, a custom prompt limit and API data.
 - **AI Visibility Toolkit:** $99/mo. 25 prompts, 1 domain, 1 user.
 - **Add-ons:** Extra users from $45/mo.
 
 **Moz Pro** (monthly, with billed-yearly price in brackets):
 
-- **Starter:** $49/mo. For one website. Moz doesn't list its full limits on the pricing page (check).
+- **Starter:** $49/mo. For one website. Moz doesn't list its full limits on the pricing page.
 - **Standard:** $99/mo ($79/mo billed yearly). 1 user, 3 campaigns, 300 tracked keywords, 100,000 pages crawled a week, 150 keyword queries and 5,000 backlink queries a month, 150 AI prompts, 2 AI content briefs.
 - **Medium:** $179/mo ($143/mo billed yearly). 2 users, 10 campaigns, 1,500 tracked keywords, 500,000 pages a week, 5,000 keyword queries and 20,000 backlink queries a month, 300 AI prompts, 10 briefs.
 - **Large:** $299/mo ($239/mo billed yearly). 3 users, 25 campaigns, 3,000 tracked keywords, 1.25M pages a week, 15,000 keyword queries and 70,000 backlink queries a month, 600 AI prompts, 50 briefs.
