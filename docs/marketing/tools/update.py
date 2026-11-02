@@ -2,7 +2,7 @@ import sys,os,json,base64,urllib.request,re,time,html
 sys.path.insert(0,os.path.dirname(os.path.abspath(__file__))); import md2wp
 S=os.path.dirname(os.path.abspath(__file__)); U=os.environ['WP_URL']; A='Basic '+base64.b64encode(f"{os.environ['WP_USER']}:{os.environ['WP_APP_PASSWORD']}".encode()).decode()
 BLOG='/home/user/arrowsterr/docs/marketing/blog'
-BAD=[r'with that in mind',r'does not replace',r'doesn.t replace',r'has no backlink',r'can.t replace',r'\(check\)',r'—',r'\bquietly\b',r'Arrowsterr has no',r'Arrowsterr does not',r'It is also not a']
+BAD=[r'with that in mind',r'does not replace',r'doesn.t replace',r'can.t replace',r'\(check\)',r'—',r'\bquietly\b',r'Arrowsterr has no',r'Arrowsterr does not',r'It is also not a',r'\u2013',r'according to',r'pricing page (shows|lists)',r'we checked',r'we could not',r'\bnot listed\b',r'TechCrunch reported']
 def check(slug):
     t=open(f'{BLOG}/{slug}.md').read(); p=[]
     for b in BAD:
@@ -38,8 +38,12 @@ if __name__=='__main__':
         for x in p: print('   !',x)
         if push and not p:
             pid=log[slug]['id']
+            before=req(f'/wp-json/wp/v2/posts/{pid}?context=edit&_fields=status,date_gmt')
             r=req(f'/wp-json/wp/v2/posts/{pid}',{'content':content,'title':fm['title'],'excerpt':fm['meta_description']},'POST')
             ok=r['content']['raw']==content
+            same=r['status']==before['status'] and r['date_gmt']==before['date_gmt']
+            if r['status']=='future':
+                print(f'   pushed id={pid} saved={"OK" if ok else "MISMATCH"} status=future go-live {r["date_gmt"]} UTC kept={"OK" if same else "CHANGED"}'); continue
             time.sleep(1)
             pg=urllib.request.urlopen(urllib.request.Request(r['link']+f'?v={int(time.time())}',headers={'User-Agent':'Mozilla/5.0'}),timeout=60).read().decode()
             print(f'   pushed id={pid} saved={"OK" if ok else "MISMATCH"} live: video={pg.count("arrowsterr-launch.mp4")>0} banners={pg.count("aw-banner")} shots={pg.count("aw-shot__frame")} facts={pg.count("aw-facts")}')

@@ -28,30 +28,30 @@ sources:
 
 # Profound vs Semrush: AI Visibility Tracking Compared in 2026
 
-Profound and Semrush both show how AI answers talk about your brand. Profound is an AI visibility platform built for large brands, with up to 9 AI engines and AI crawler logs. Semrush is an SEO suite that added AI tracking through its AI Visibility Toolkit and the Semrush One bundle.
+Profound tracks up to 9 AI engines and reads AI crawler logs from your server. It is an AI visibility platform built for large brands. Semrush is an SEO suite that added AI tracking through its AI Visibility Toolkit and the Semrush One bundle.
 
-The quick answer: pick Profound if you are an enterprise brand with a team that owns AI search and a budget for a custom contract. Pick Semrush if you already use it for SEO and want AI visibility next to your keyword and site data at a public list price.
+Are you an enterprise brand with a team that owns AI search and a budget for a custom contract? Then Profound is the pick. If you already use Semrush for SEO and want AI visibility next to your keyword and site data at a public list price, stay with Semrush.
 
 ## Profound vs Semrush: main points
 
-- **Profound covers more AI engines.** Its Enterprise plan tracks up to 9, including Claude and Copilot. Semrush names ChatGPT, Google AI, Gemini and Perplexity.
-- **Semrush shows its prices.** The AI Visibility Toolkit is $99 a month per domain billed yearly, and Semrush One starts at $199 a month. Profound's Enterprise plan is custom.
-- **Profound goes deeper on AI data.** It adds Prompt Volumes, AI crawler logs from your server, ChatGPT Shopping and 30+ languages.
-- **Semrush adds the SEO side.** Keyword research, backlinks, Site Audit and daily rank tracking come with its SEO plans.
-- **Both have a trial path.** Profound has a free 7-day trial with 50 prompts. Semrush One has a 7-day trial, and the standalone toolkit has none.
+- Profound's Enterprise plan tracks up to 9 AI engines, Claude and Copilot among them. Semrush tracks ChatGPT, Google AI, Gemini and Perplexity.
+- Semrush prices are public. The AI Visibility Toolkit is $99 a month per domain billed yearly, and Semrush One starts at $199 a month. Profound's Enterprise plan is custom.
+- Profound goes deeper on AI data. It adds Prompt Volumes, AI crawler logs from your server, ChatGPT Shopping and 30+ languages.
+- Semrush adds the SEO side. Keyword research, backlinks, Site Audit and daily rank tracking come with its SEO plans.
+- Profound has a free 7 day trial with 50 prompts. Semrush One has a 7 day trial too, and the standalone toolkit has none.
 
 ## Profound vs Semrush at a glance
 
 | Feature | Profound | Semrush |
 |---|---|---|
 | Starts at | Custom (Enterprise) | $99/mo per domain billed yearly (AI Visibility Toolkit) |
-| Free plan or trial | Free 7-day trial, 50 prompts daily | Free plan, 7-day trial of Semrush One |
+| Free plan or trial | Free 7 day trial, 50 prompts daily | Free plan, 7 day trial of Semrush One |
 | Main strength | Deep AI visibility data for large brands | SEO suite with AI tracking added |
 | AI engines | 3 on the trial, up to 9 on Enterprise | ChatGPT, Google AI, Gemini, Perplexity |
 | Prompts | 50 on the trial, tailored on Enterprise | 25 (toolkit), 50 or 100 (Semrush One), more on Advanced |
 | Prompt demand data | Prompt Volumes | Prompt Research |
 | AI crawler data | Agent Analytics from server logs | AI Search Site Audit |
-| SEO data | None listed | Keyword research, backlinks, Site Audit, rank tracking |
+| SEO data | None | Keyword research, backlinks, Site Audit, rank tracking |
 | Seats | Unlimited | Extra users from $45/mo |
 | Best for | Enterprise brands with a GEO team | SEO teams already on Semrush |
 
@@ -67,20 +67,20 @@ The quick answer: pick Profound if you are an enterprise brand with a team that 
 | Founders | James Cadwallader (CEO) and Dylan Babbs (CTO) |
 | Headquarters | New York City |
 | Starts at | Custom (Enterprise) |
-| Free plan or trial | Free 7-day trial, 50 prompts daily |
+| Free plan or trial | Free 7 day trial, 50 prompts daily |
 | Best for | Enterprise brands with a GEO team |
 
 ### What Profound does today
 
-[Profound](https://www.tryprofound.com/) is an AI visibility platform. Answer Engine Insights tracks how AI engines describe your brand and category, with visibility, share of voice, sentiment and citations. Profound says it captures answers directly from the browser.
+[Profound](https://www.tryprofound.com/) is an AI visibility platform. Answer Engine Insights tracks how AI engines describe your brand and category, with visibility, share of voice, sentiment and citations. Profound captures those answers directly from the browser.
 
-It also sells Prompt Volumes for AI demand data and Agent Analytics for AI crawler visits. AI Marketer and Agents help your team draft content from the data, and those runs use credits. Profound says more than 700 enterprise brands and large agencies use it, including over 10% of the Fortune 500. Target and Walmart are among its named customers.
+It also sells Prompt Volumes for AI demand data and Agent Analytics for AI crawler visits. AI Marketer and Agents help your team draft content from the data, and those runs use credits. More than 700 enterprise brands and large agencies use Profound, including over 10% of the Fortune 500. Target and Walmart are two of its named customers.
 
 ### Profound's history
 
 James Cadwallader and Dylan Babbs founded Profound in New York City in August 2024. That same month they announced a $3.5 million seed round backed by Khosla Ventures. At launch, the core product was Answer Engine Insights.
 
-Growth came fast. Kleiner Perkins led a $20 million Series A in June 2025. Sequoia Capital led a $35 million Series B two months later, in August 2025. In February 2026, Lightspeed Venture Partners led a $96 million Series C at a $1 billion valuation. Fortune reported that the round took total funding to $155 million.
+Growth came fast. Kleiner Perkins led a $20 million Series A in June 2025. Sequoia Capital led a $35 million Series B two months later, in August 2025. In February 2026, Lightspeed Venture Partners led a $96 million Series C at a $1 billion valuation. That round took total funding to $155 million.
 
 The product grew with the money. Today it covers AI demand and AI bot visits as well as answers. Its newest launch, Profound Agents, writes and shares marketing copy in a brand's voice. Profound now has offices in San Francisco, Boston, London and Buenos Aires as well as New York.
 
@@ -94,14 +94,14 @@ The product grew with the money. Today it covers AI demand and AI bot visits as 
 | Founders | Oleg Shchegolev and Dmitri Melnikov |
 | Headquarters | Boston, Massachusetts |
 | Starts at | $99/mo per domain billed yearly (AI Visibility Toolkit) |
-| Free plan or trial | Free plan, plus a 7-day trial of Semrush One |
+| Free plan or trial | Free plan, plus a 7 day trial of Semrush One |
 | Best for | SEO teams already on Semrush |
 
 ### What Semrush does today
 
 [Semrush](https://www.semrush.com/) is a large SEO and marketing suite. Its AI Visibility Toolkit adds AI visibility reports for any domain, prompt tracking, Brand Performance and Prompt Research.
 
-You can buy the toolkit on its own or get it bundled with the SEO Toolkit as Semrush One. Semrush One Starter, Pro+ and Advanced each raise the prompt and keyword limits. Semrush says more than 28 million people use it.
+You can buy the toolkit on its own or get it bundled with the SEO Toolkit as Semrush One. Semrush One Starter, Pro+ and Advanced each raise the prompt and keyword limits. Semrush has more than 28 million users.
 
 ### Semrush's history
 
@@ -109,11 +109,11 @@ Oleg Shchegolev and Dmitri Melnikov founded Semrush in 2008. It grew from a keyw
 
 Semrush grew by buying other companies too. It added Backlinko in 2022. In 2024 it bought Brand24 and Exploding Topics. That same year it bought Third Door Media, the publisher of Search Engine Land.
 
-AI search came next. Semrush launched its AI Toolkit in March 2025. In October 2025 it launched Semrush One, which bundles SEO and AI visibility in one plan. In November 2025, Adobe agreed to buy Semrush for about $1.9 billion. The deal closed on April 28, 2026, and Semrush now sits inside Adobe's customer experience business.
+Its AI push started in March 2025 with the AI Toolkit. Semrush One followed in October 2025 and put SEO and AI visibility in one plan. A month later, Adobe agreed to buy Semrush for about $1.9 billion. The deal closed on April 28, 2026. Semrush now sits inside Adobe's customer experience business.
 
 ## Profound vs Semrush AI engines tracked
 
-Profound is stronger here. Its pricing page lists 9 engines on Enterprise.
+Profound tracks 9 engines on Enterprise. Semrush tracks 4, so Profound has the wider reach.
 
 | Feature | Profound Enterprise | Semrush |
 |---|---|---|
@@ -122,27 +122,27 @@ Profound is stronger here. Its pricing page lists 9 engines on Enterprise.
 | Google AI Mode | Yes | Google AI (see note) |
 | Gemini | Yes | Yes |
 | Perplexity | Yes | Yes |
-| Claude | Yes | Not listed |
-| Microsoft Copilot | Yes | Not listed |
-| DeepSeek and Exa Search | Yes | Not listed |
+| Claude | Yes | No |
+| Microsoft Copilot | Yes | No |
+| DeepSeek and Exa Search | Yes | No |
 
-Semrush's pricing page names "ChatGPT, Google AI, Gemini, and Perplexity." Its knowledge base says Prompt Tracking covers ChatGPT and Google AI Mode, so coverage varies by report. Ask Semrush which AIs each report uses if one engine matters to you.
+Semrush covers ChatGPT, Google AI, Gemini and Perplexity. Its Prompt Tracking report covers ChatGPT and Google AI Mode, so coverage varies by report. If one engine matters to you, ask Semrush which AIs each report uses.
 
 Profound's free trial runs on 3 of these engines. The full list needs the Enterprise plan. Profound also supports 30+ languages and 150+ regions. If you want Claude and Perplexity at a public price, see how the [Arrowsterr AI Visibility](https://arrowsterr.com/platform/ai-visibility/) tracker covers them.
 
 ## Profound vs Semrush prompt tracking and prompt research
 
-Both tools track a set of prompts each day and show where you appear. The difference is scale and price.
+Semrush starts you at 25 prompts. Profound's trial runs 50 a day, and each Enterprise contract sets its own number.
 
 | Feature | Profound | Semrush |
 |---|---|---|
-| Prompts on the entry option | 50 daily on the 7-day trial | 25 on the AI Visibility Toolkit |
+| Prompts on the entry option | 50 daily on the 7 day trial | 25 on the AI Visibility Toolkit |
 | Bundle prompts | Tailored on each Enterprise contract | 50 daily (Starter), 100 daily (Pro+) |
 | Extra prompts | Part of the contract | 50 more for $60/mo on the toolkit |
 | Demand data | Prompt Volumes, from real user conversations | Prompt Research, with topic volume and intent |
 | Demand data limits | 5 searches on the trial, full history and API on Enterprise | Included with the toolkit |
 
-Semrush sets clear limits. Its pages list different prompt limits for Advanced, so confirm with sales. Profound tailors the prompt plan to each Enterprise contract, with daily refresh.
+Semrush sets fixed limits on each plan, and Advanced has a custom prompt limit. Profound tailors the prompt plan to each Enterprise contract, with daily refresh.
 
 Profound's Prompt Volumes analyzes real user conversations to show what people ask AI. Semrush's Prompt Research works like keyword research for AI prompts. Semrush's version comes with the toolkit at a list price. Profound's goes deeper on Enterprise. For more options, read our guide to [Semrush AI Toolkit alternatives](https://arrowsterr.com/blog/semrush-ai-toolkit-alternative/).
 
@@ -150,83 +150,83 @@ Profound's Prompt Volumes analyzes real user conversations to show what people a
 
 ## Profound vs Semrush cited sources and sentiment
 
-Profound is stronger for brand teams that need detail.
+For brand teams that need detail, Profound goes further. FactCheck is the biggest gap: it flags where AI spreads wrong facts about your brand, and Semrush has no match for it.
 
 | Feature | Profound | Semrush |
 |---|---|---|
 | Cited sources | Answer Engine Insights shows which sites shape AI answers | AI-Cited Media shows which outlets AI cites most |
 | Sentiment and themes | Tracks themes in how AI describes you | Brand Performance shows share of voice and sentiment |
-| Wrong facts | FactCheck flags where AI spreads wrong facts about your brand | Not listed |
+| Wrong facts | FactCheck flags where AI spreads wrong facts about your brand | No |
 | Advice | AI Marketer finds work worth doing | AI recommendations in Brand Performance |
 | Brands covered | Set by contract | 1 domain on the base toolkit, $99/mo per extra domain |
 
-Answer Engine Insights goes deeper on how AI talks about you. FactCheck is a strong tool for brand and legal teams.
+Answer Engine Insights goes deeper on how AI talks about you. Brand and legal teams get the most from FactCheck.
 
 Semrush covers the basics well. AI-Cited Media helps PR teams plan pitches, since it shows the outlets that AI leans on.
 
 ## Profound vs Semrush AI crawler data
 
-These tools answer different questions.
+Profound reads your server logs. Semrush crawls your site. You get two different answers about AI bots.
 
 | Feature | Profound Agent Analytics | Semrush AI Search Site Audit |
 |---|---|---|
 | How it works | Reads your server logs | Crawls your site |
 | What it shows | When and how often AI bots visit your pages | Technical issues that could block AI bots |
-| Fake bots | Filtered out | Not listed |
-| Human visits from AI search | Counted | Not listed |
+| Fake bots | Filtered out | No |
+| Human visits from AI search | Counted | No |
 | Connections | Cloudflare, Vercel, AWS, Akamai, Fastly, Netlify, WordPress, Shopify | Part of the toolkit and Semrush One |
 | On which plans | Trial and Enterprise | AI Visibility Toolkit and Semrush One |
 
-Profound tells you what the bots actually did. Semrush tells you what might stop them, with a list of fixes. To check one page for AI bot blocks in seconds, use the free [AI crawler checker](https://arrowsterr.com/free-tools/ai-crawler-checker/).
+Profound shows what the bots did on your pages. Semrush shows what might stop them and gives you a list of fixes. To check one page for AI bot blocks in seconds, use the free [AI crawler checker](https://arrowsterr.com/free-tools/ai-crawler-checker/).
 
 ## Profound vs Semrush SEO data
 
-Semrush wins this clearly. Profound's pricing page lists no SEO tools such as keyword research or backlink data.
+Profound has no SEO tools such as keyword research or backlink data. Semrush takes this round easily.
 
 | Feature | Profound | Semrush |
 |---|---|---|
-| Keyword research | Not listed | Yes, on the SEO plan |
+| Keyword research | No | Yes, on the SEO plan |
 | Competitor analysis | AI share of voice | Yes, on the SEO plan |
-| Rank tracking | Not listed | Position Tracking for 500 keywords daily |
-| Site Audit | Not listed | Yes |
-| Historical data and content optimization | Not listed | Semrush One Pro+ |
+| Rank tracking | No | Position Tracking for 500 keywords daily |
+| Site Audit | No | Yes |
+| Historical data and content optimization | No | Semrush One Pro+ |
 
 If your AI work and your SEO work sit with the same team, Semrush keeps both in one place. Profound fits teams where AI search has its own owner.
 
 ## Profound vs Semrush pricing
 
-Plain list prices from each vendor's site in November 2026.
+Prices as of November 2026.
 
 | Plan | Profound | Semrush |
 |---|---|---|
-| Free way in | Trial: free for 7 days. 50 prompts run daily on ChatGPT, Gemini and Google AI Overviews, unlimited seats, Agent Analytics, 5 Prompt Volumes searches and a limited set of AI Marketer credits | Free plan, and a 7-day trial of Semrush One |
-| AI-only plan | No public price | AI Visibility Toolkit: $99/mo per domain billed yearly. 25 prompts tracked daily, 1 Brand Performance domain, 300 AI analysis reports a day, prompt research and a site audit for AI readiness. Extra prompts are $60/mo for 50. No free trial, per the knowledge base |
-| SEO plan | Not listed | SEO: $139/mo ($117.33 billed yearly). 5 websites, 500 keywords tracked daily, Site Audit and AI visibility reports for any domain |
-| SEO and AI bundle | Not listed | Semrush One Starter: $199/mo ($165.17 billed yearly). 50 prompts daily, 500 keywords, 5 websites, MCP access. Pro+: $299/mo ($248.17 billed yearly). 100 prompts daily, 1,500 keywords, 15 websites |
-| Custom | Enterprise: custom. Up to 9 AI engines, a tailored prompt plan, unlimited seats, ChatGPT Shopping, full Prompt Volumes with API access, SSO and SAML, SOC 2, and support up to a dedicated specialist | Semrush One Advanced: custom, with API access. Enterprise: custom, with SSO and large-scale prompt tracking |
-| Agencies | Agency Growth: self-serve, with 400 credits a month per client workspace. Its price is not on the pricing page | No separate agency plan listed |
+| Free way in | Trial: free for 7 days. 50 prompts run daily on ChatGPT, Gemini and Google AI Overviews, unlimited seats, Agent Analytics, 5 Prompt Volumes searches and a limited set of AI Marketer credits | Free plan, and a 7 day trial of Semrush One |
+| AI only plan | Not public | AI Visibility Toolkit: $99/mo per domain billed yearly. 25 prompts tracked daily, 1 Brand Performance domain, 300 AI analysis reports a day, prompt research and a site audit for AI readiness. Extra prompts are $60/mo for 50. No free trial |
+| SEO plan | None | SEO: $139/mo ($117.33 billed yearly). 5 websites, 500 keywords tracked daily, Site Audit and AI visibility reports for any domain |
+| SEO and AI bundle | None | Semrush One Starter: $199/mo ($165.17 billed yearly). 50 prompts daily, 500 keywords, 5 websites, MCP access. Pro+: $299/mo ($248.17 billed yearly). 100 prompts daily, 1,500 keywords, 15 websites |
+| Custom | Enterprise: custom. Up to 9 AI engines, a tailored prompt plan, unlimited seats, ChatGPT Shopping, full Prompt Volumes with API access, SSO and SAML, SOC 2, and support up to a dedicated specialist | Semrush One Advanced: custom, with API access. Enterprise: custom, with SSO and prompt tracking at large scale |
+| Agencies | Agency Growth: self serve, with 400 credits a month per client workspace. Price not public | No separate agency plan |
 | Seats | Unlimited | Extra users from $45/mo |
 
 Profound's credits pay for AI Marketer messages, Agent and Workflow runs, Sheets rows and Prompt Research Reports. Browsing Answer Engine Insights, Prompt Volumes and Agent Analytics data uses no credits.
 
-Semrush's knowledge base says each teammate needs their own toolkit license to use AI reports and Prompt Tracking.
+On Semrush, each teammate needs their own toolkit license to use AI reports and Prompt Tracking.
 
 ## Arrowsterr: a Profound and Semrush alternative for AI search
 
 Arrowsterr is an AI visibility and SEO research platform. It tracks how AI answers name your brand and turns what it finds into pages you can publish.
 
-It fits teams that want Profound-style AI tracking at a public price, with keyword research built in like Semrush. Plans start at $39 a month, and there is a free plan. For a closer look, read [Arrowsterr vs Profound](https://arrowsterr.com/compare/arrowsterr-vs-profound/) or our list of [Profound alternatives](https://arrowsterr.com/blog/profound-alternatives/).
+It fits teams that want AI tracking like Profound's at a public price, with keyword research built in like Semrush. Plans start at $39 a month, and there is a free plan. For a closer look, read [Arrowsterr vs Profound](https://arrowsterr.com/compare/arrowsterr-vs-profound/) or our list of [Profound alternatives](https://arrowsterr.com/blog/profound-alternatives/).
 
 <!-- shot: arrowsterr -->
 
 ### Arrowsterr features
 
-- **AI Visibility:** [AI Visibility](https://arrowsterr.com/platform/ai-visibility/) tracks ChatGPT, Gemini, Google AI Overviews and AI Mode daily, and Claude and Perplexity weekly.
-- **Organic Search:** [Organic Search](https://arrowsterr.com/platform/organic-search/) gives you keyword research with volume, difficulty, intent, questions and the Google top 10 with AI Overview sources. It also finds competitor keyword gaps.
-- **Sources report:** See which sites AI answers cite, so you know where to get mentioned.
-- **Agentic content:** The Topic Bank and Content Plan pick what to write, then the [Agentic Writer](https://arrowsterr.com/platform/agentic-content/) drafts and publishes (Pro and up).
-- **Site audit:** It crawls up to 200 pages and flags AI crawler blocks and page issues. Zippie, its AI agent, fixes them through your CMS.
-- **MCP and API:** Connect your data to AI assistants with the [MCP server](https://arrowsterr.com/mcp/), or build on the [API](https://arrowsterr.com/api/).
+- [AI Visibility](https://arrowsterr.com/platform/ai-visibility/) tracks ChatGPT, Gemini, Google AI Overviews and AI Mode daily, and Claude and Perplexity weekly.
+- [Organic Search](https://arrowsterr.com/platform/organic-search/) gives you keyword research with volume, difficulty, intent, questions and the Google top 10 with AI Overview sources. It also finds competitor keyword gaps.
+- The Sources report shows which sites AI answers cite, so you know where to get mentioned.
+- The Topic Bank and Content Plan pick what to write, then the [Agentic Writer](https://arrowsterr.com/platform/agentic-content/) drafts and publishes (Pro and up).
+- The site audit crawls up to 200 pages and flags AI crawler blocks and page issues. Zippie, its AI agent, fixes them through your CMS.
+- Connect your data to AI assistants with the [MCP server](https://arrowsterr.com/mcp/), or build on the [API](https://arrowsterr.com/api/).
 
 <!-- video -->
 
@@ -246,12 +246,12 @@ Try both toolsets free for 7 days, with no card. See [Arrowsterr pricing](https:
 
 | Feature | Arrowsterr | Profound | Semrush |
 |---|---|---|---|
-| AIs on the entry plan | 6 on Starter | 3 on the trial | 4 named |
-| Claude tracking | Yes, weekly, from Starter | Enterprise only | Not listed |
+| AIs on the entry plan | 6 on Starter | 3 on the trial | 4 |
+| Claude tracking | Yes, weekly, from Starter | Enterprise only | No |
 | Perplexity tracking | Yes, weekly, from Starter | Enterprise only | Yes |
 | Entry price | $39/mo (Starter) | Custom (Enterprise) | $99/mo per domain billed yearly |
-| Free plan | Free forever | 7-day trial | Free plan, no AI toolkit trial |
-| Keyword research | Yes, with AI Overview sources | Not listed | Yes |
+| Free plan | Free forever | 7 day trial | Free plan, no AI toolkit trial |
+| Keyword research | Yes, with AI Overview sources | No | Yes |
 | Content plan and writer | Topic Bank, Content Plan and Agentic Writer | AI Marketer and Agents, on credits | Content Toolkit, sold apart |
 | AI crawler checks | Site audit flags AI crawler blocks, Zippie fixes them | Agent Analytics from server logs | AI Search Site Audit |
 
@@ -275,11 +275,11 @@ Pick Semrush if:
 
 ### Is Profound better than Semrush for AI visibility?
 
-For depth, yes. Profound tracks up to 9 AI engines on Enterprise and adds Prompt Volumes and server-side crawler data. Semrush covers fewer engines but ties AI data to its SEO tools at a public price.
+For depth, yes. Profound tracks up to 9 AI engines on Enterprise and adds Prompt Volumes and crawler data from your servers. Semrush covers fewer engines but ties AI data to its SEO tools at a public price.
 
 ### How much does Profound cost?
 
-Profound's pricing page shows a free 7-day trial and a custom Enterprise plan. It does not list a dollar price. The Agency Growth plan includes 400 credits a month per client workspace, and its price is not on the pricing page.
+Profound sets Enterprise prices on a sales call, and you can start with a free 7 day trial. Its Agency Growth plan includes 400 credits a month per client workspace, and that price is not public either.
 
 ### How much is the Semrush AI Visibility Toolkit?
 
@@ -287,7 +287,7 @@ It is $99 a month per domain billed yearly, with 25 prompts. Semrush One, which 
 
 ### Does Semrush track Claude or Copilot?
 
-Semrush's pricing page names ChatGPT, Google AI, Gemini and Perplexity. Claude and Copilot are not listed. Profound tracks both on its Enterprise plan.
+No. Semrush tracks ChatGPT, Google AI, Gemini and Perplexity. Profound tracks Claude and Copilot on its Enterprise plan.
 
 ### Can you use Profound and Semrush together?
 
@@ -295,6 +295,4 @@ Yes. Some teams use Semrush for SEO research and rank tracking, and Profound for
 
 ## Summary: Profound vs Semrush
 
-Profound is the deeper AI visibility tool. It tracks more engines and reads AI crawler logs from your servers, on a custom Enterprise contract. Semrush is the practical pick for SEO teams that want AI tracking added to the suite they already use, with list prices from $99 a month.
-
-Start with Profound's free trial if AI search has its own team and budget at your company. Start with Semrush One's trial if you want SEO and AI visibility in one plan.
+If AI search has its own team and budget at your company, start with Profound's free trial. It runs 50 prompts a day on 3 engines for 7 days, so have your prompt list ready on day 1. If you want SEO and AI visibility in one plan, start with Semrush One's trial, since the standalone toolkit has none.

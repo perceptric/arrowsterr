@@ -32,29 +32,29 @@ sources:
 
 # Conductor vs Profound: Enterprise AI Visibility Platforms Compared in 2026
 
-Conductor and Profound both sell AI visibility to large brands. Conductor is an enterprise SEO platform that added AI search tracking. It keeps rank tracking and site monitoring in the same product. Profound was built for AI search from the start. It goes deep on AI answers and AI crawler logs.
+Conductor is an enterprise SEO platform that added AI search tracking. Rank tracking and site monitoring stay in the same product. Profound was built for AI search from day one, and it goes deep on AI answers and AI crawler logs.
 
-The quick answer: pick Conductor if one team runs SEO and AI search together and wants rankings and AI answers in one platform. Pick Profound if AI search has its own team and you want the widest AI data, including prompt volume and shopping results.
+One team running SEO and AI search together will get more from Conductor, with rankings and AI answers in one platform. If AI search has its own team, Profound gives you the widest AI data, including prompt volume and shopping results.
 
 ## Conductor vs Profound: main points
 
-- **Conductor covers SEO and AI search.** Its plans include tracked keywords, 24/7 site monitoring and a Writing Assistant, plus AI Search Credits on Growth and Enterprise.
-- **Profound focuses on AI search.** Its plans list no Google rank tracking or site crawler. They center on AI answers and AI crawler data.
-- **They collect answers in different ways.** Conductor says it uses the official APIs of each AI engine. Profound says it captures answers directly from the browser.
-- **Profound sells AI demand data.** Its Prompt Volumes tool shows what people ask AI. Conductor's docs say it offers no AI search volume metric.
-- **Neither lists a dollar price.** Conductor sells its three plans by quote. Profound sells a custom Enterprise plan and a self-serve Agency Growth plan.
+- Conductor covers SEO and AI search. Its plans include tracked keywords, 24/7 site monitoring and a Writing Assistant, plus AI Search Credits on Growth and Enterprise.
+- Profound sticks to AI search. It has no Google rank tracking or site crawler, and its plans center on AI answers and AI crawler data.
+- Conductor collects answers through each AI engine's official API. Profound captures them directly from the browser.
+- Profound sells AI demand data through Prompt Volumes, which shows what people ask AI. Conductor has no AI search volume metric.
+- Neither has a public dollar price. Conductor sells its three plans by quote. Profound sells a custom Enterprise plan and a self serve Agency Growth plan.
 
 ## Conductor vs Profound at a glance
 
 | Feature | Conductor | Profound |
 |---|---|---|
 | Starts at | Quote (Essentials) | Custom (Enterprise) |
-| Free plan or trial | 3-week Conductor Intelligence trial, no card | 7-day trial, 50 prompts daily |
+| Free plan or trial | 3 week Conductor Intelligence trial, no card | 7 day trial, 50 prompts daily |
 | Main strength | SEO and AI search in one enterprise platform | Deep AI visibility data |
-| AI engines | 9 options in the docs, incl. ChatGPT, Gemini, Claude, Copilot, Grok, AI Overviews and AI Mode | 3 on the trial, up to 9 on Enterprise |
+| AI engines | 9 options, incl. ChatGPT, Gemini, Claude, Copilot, Grok, AI Overviews and AI Mode | 3 on the trial, up to 9 on Enterprise |
 | How answers are collected | Official AI engine APIs | Captured from the browser |
 | AI search volume | Not offered | Prompt Volumes |
-| Google rank tracking | 500 to 60,000+ keywords, by plan | Not listed |
+| Google rank tracking | 500 to 60,000+ keywords, by plan | No |
 | Site monitoring | 24/7 monitoring, 100,000+ pages | Agent Analytics for AI bot visits |
 | Content tools | Conductor Creator, Writing Assistant, agents | AI Marketer, Agents, Context Manager |
 | Best for | Enterprise SEO teams adding AI search | Enterprise brands with a dedicated AI search team |
@@ -71,14 +71,14 @@ The quick answer: pick Conductor if one team runs SEO and AI search together and
 | Founders | Seth Besmertnik and Jeremy HurDuboys |
 | Headquarters | New York City |
 | Starts at | Quote (Essentials) |
-| Free plan or trial | 3-week Conductor Intelligence trial, no card |
+| Free plan or trial | 3 week Conductor Intelligence trial, no card |
 | Best for | Enterprise SEO teams adding AI search |
 
 ### What Conductor does today
 
 [Conductor](https://www.conductor.com/) is an enterprise SEO and AEO platform. Conductor Intelligence tracks rankings and AI visibility and links them to traffic and conversions. Conductor Creator helps you write and optimize content. Conductor Monitoring watches your site 24/7 for technical issues.
 
-Conductor also offers AgentStack, with a Content Agent, a Technical Agent, an MCP server and apps that work inside ChatGPT, Claude and Copilot.
+On top of that sits AgentStack, with a Content Agent, a Technical Agent, an MCP server and apps that work inside ChatGPT, Claude and Copilot.
 
 ### Conductor's history
 
@@ -86,7 +86,7 @@ Seth Besmertnik and Jeremy HurDuboys founded Conductor in New York City in 2006.
 
 In March 2018, WeWork bought Conductor. The deal did not last. In December 2019, WeWork sold the company back to its founder, and Conductor became independent again.
 
-Next came a push into site health. In November 2021, Conductor raised $150 million from Bregal Sagemount. In February 2022 it used that money to buy ContentKing, a real-time site auditing and monitoring tool. ContentKing's tech joined the Conductor platform.
+Next came a push into site health. In November 2021, Conductor raised $150 million from Bregal Sagemount. In February 2022 it used that money to buy ContentKing, a tool for real time site auditing and monitoring. ContentKing's tech joined the Conductor platform.
 
 AI search reshaped the product. In June 2025, Conductor launched Conductor AI as the next generation of its platform, built to get brands named in AI answers. It launched Enterprise AgentStack in April 2026. In September 2026, Chief Product Officer Wei Zheng became CEO. Besmertnik moved to the board.
 
@@ -100,28 +100,28 @@ AI search reshaped the product. In June 2025, Conductor launched Conductor AI as
 | Founders | James Cadwallader (CEO) and Dylan Babbs (CTO) |
 | Headquarters | New York City |
 | Starts at | Custom (Enterprise) |
-| Free plan or trial | 7-day trial, 50 prompts daily |
+| Free plan or trial | 7 day trial, 50 prompts daily |
 | Best for | Enterprise brands with a dedicated AI search team |
 
 ### What Profound does today
 
 [Profound](https://www.tryprofound.com/) is an AI visibility platform. Answer Engine Insights tracks how AI engines describe your brand and category, with visibility, share of voice, sentiment and citations. Prompt Volumes shows AI demand, and Agent Analytics reads AI crawler visits from your server logs.
 
-Profound's AI Marketer and Agents turn that data into briefs and drafts. These runs use credits. Profound says more than 700 enterprise brands and large agencies use it, including over 10% of the Fortune 500.
+Profound's AI Marketer and Agents turn that data into briefs and drafts. These runs use credits. Over 700 enterprise brands and large agencies use Profound, among them more than 10% of the Fortune 500.
 
 ### Profound's history
 
-James Cadwallader and Dylan Babbs founded Profound in New York City in August 2024. That same month they announced a $3.5 million seed round backed by Khosla Ventures. At launch, the core product was Answer Engine Insights.
+James Cadwallader and Dylan Babbs started Profound in New York City in August 2024. The same month brought a $3.5 million seed round backed by Khosla Ventures. Answer Engine Insights was the core product at launch.
 
-Growth came fast. Kleiner Perkins led a $20 million Series A in June 2025. Sequoia Capital led a $35 million Series B in August 2025. In February 2026, Lightspeed Venture Partners led a $96 million Series C at a $1 billion valuation. Fortune reported that the round took total funding to $155 million.
+The rounds got bigger fast. Kleiner Perkins led a $20 million Series A in June 2025, and Sequoia Capital led a $35 million Series B in August 2025. In February 2026, Lightspeed Venture Partners led a $96 million Series C at a $1 billion valuation. Total funding reached $155 million with that round.
 
-The product grew with the money. Today it covers AI demand and AI bot visits as well as answers. Its newest launch, Profound Agents, writes and shares marketing copy in a brand's voice. Target and Walmart are among its named customers.
+Today Profound covers AI demand and AI bot visits as well as answers. Its newest launch, Profound Agents, writes and shares marketing copy in a brand's voice. Target and Walmart are among its named customers.
 
 ## Conductor vs Profound AI engines and data collection
 
-Both track the major engines. They differ in how they get the answers.
+The engine lists nearly match. The way each tool gets its answers does not.
 
-| Feature | Conductor (docs) | Profound (Enterprise) |
+| Feature | Conductor | Profound (Enterprise) |
 |---|---|---|
 | ChatGPT | Yes, Auto and Search | Yes |
 | Google AI Overviews and AI Mode | Yes | Yes |
@@ -129,69 +129,65 @@ Both track the major engines. They differ in how they get the answers.
 | Perplexity | Yes | Yes |
 | Claude | Yes (Sonnet) | Yes |
 | Microsoft Copilot | Yes | Yes |
-| Grok | Yes | Listed on the features page |
-| DeepSeek and Exa Search | Not listed | Yes |
+| Grok | Yes | Yes |
+| DeepSeek and Exa Search | No | Yes |
 
-Conductor's AI Search FAQ says, "We use official APIs provided by the AI search engines we support." Each prompt is sent as a fresh request with no history. Profound's Answer Engine Insights page says, "We capture directly from the browser."
+Conductor sends each prompt through the official API of the AI engine it supports, as a fresh request with no history. Profound captures its answers directly from the browser.
 
-Which method fits you is a real question to ask both vendors. Browser capture aims to match what a user sees on screen. API calls follow a fixed method you can repeat. Ask each one for sample answers on your own prompts before you sign.
+Browser capture aims to match what a user sees on screen. API calls follow a fixed method you can repeat. Before you sign, get sample answers from each vendor on your own prompts.
 
-Conductor charges AI Search Credits per prompt, and the rate depends on the engine. Its docs show Google's AI results use the fewest credits, and Gemini and ChatGPT Search use the most. You can track daily or on a slower schedule, and daily tracking uses more credits. Profound tailors the prompt plan to each Enterprise contract, with daily refresh. For trackers with a public price, see our list of the [best LLM tracking tools](https://arrowsterr.com/blog/best-llm-tracking-tools/).
+Every prompt costs Conductor AI Search Credits, and the rate depends on the engine. Google's AI results use the fewest credits. Gemini and ChatGPT Search use the most. You can track daily or on a slower schedule, and daily tracking uses more credits. Profound tailors the prompt plan to each Enterprise contract, with daily refresh. For trackers with a public price, see our list of the [best LLM tracking tools](https://arrowsterr.com/blog/best-llm-tracking-tools/).
 
 ## Conductor vs Profound prompt volume and AI demand
 
-Profound is stronger here.
+Conductor has no AI search volume metric, because it sees no reliable source for one. Profound sells that data as Prompt Volumes, which puts it ahead here.
 
 | Feature | Conductor | Profound |
 |---|---|---|
 | AI search volume | Not offered | Prompt Volumes, from real user conversations |
 | Where prompts come from | Synthetic prompts that mimic your buyer personas | Your tailored prompt plan |
-| Search demand | Topic and keyword research based on search data | Not listed |
-| History and API | Not listed | Full history and API access on Enterprise |
-| On the trial | Not listed | 5 searches |
+| Search demand | Topic and keyword research based on search data | No |
+| History and API | No | Full history and API access on Enterprise |
+| On the trial | No | 5 searches |
 
-Profound's Prompt Volumes tool analyzes real user conversations to show what people ask AI about your category.
-
-Conductor takes a different view. Its AI Search FAQ says it does not provide an AI search volume metric, because it sees no reliable source for one. If you plan content around what people ask AI, Profound gives you more to work with. If you plan around Google search demand, Conductor's keyword data fits that job.
+Prompt Volumes analyzes real user conversations to show what people ask AI about your category. If you plan content around what people ask AI, Profound gives you more to work with. If you plan around Google search demand, Conductor's keyword data fits that job.
 
 <!-- banner: visibility -->
 
 ## Conductor vs Profound SEO and rank tracking
 
-Conductor wins this clearly. Profound's pricing page lists no Google rank tracking or keyword research.
+Profound has no Google rank tracking or keyword research, so Conductor wins this one outright.
 
 | Feature | Conductor | Profound |
 |---|---|---|
-| Tracked keywords | 500 (Essentials), 5,000 (Growth), 60,000+ (Enterprise) | Not listed |
-| Tracked competitors | 5, 25 or 75+, by plan | Not listed |
-| Pages analyzed | 1,000, 25,000 or 125,000+, by plan | Not listed |
+| Tracked keywords | 500 (Essentials), 5,000 (Growth), 60,000+ (Enterprise) | No |
+| Tracked competitors | 5, 25 or 75+, by plan | No |
+| Pages analyzed | 1,000, 25,000 or 125,000+, by plan | No |
 | AI and classic search side by side | Yes, market share in both | AI search only |
 | Traffic and conversions | AI referral traffic with GA4 and Adobe data | Human visits from AI search (Agent Analytics) |
 
-Conductor Intelligence lets you compare your market share in AI and classic search side by side. It also shows AI referral traffic next to engagement and conversions. For a team that reports SEO and AI search in one deck, you can skip a second tool.
+Conductor Intelligence lets you compare your market share in AI and classic search side by side. It also shows AI referral traffic next to engagement and conversions. If you report SEO and AI search in one deck, you can skip a second tool.
 
 If you want keyword research next to AI tracking at a public price, [Arrowsterr Organic Search](https://arrowsterr.com/platform/organic-search/) shows the Google top 10 with its AI Overview sources.
 
 ## Conductor vs Profound site monitoring and AI crawlers
 
-Both look at your site, but from different angles.
+For full technical SEO health, Conductor is the stronger pick. If your main question is which AI bots read which pages, go with Profound.
 
 | Feature | Conductor Monitoring | Profound Agent Analytics |
 |---|---|---|
 | What it watches | SEO and AEO issues, 24/7 | AI bot visits from your server logs |
-| Alerts | Sends the right person an alert, ranked by business impact | Not listed |
-| History | Up to 60 months | Not listed |
-| Scale | 100,000 pages (Essentials), 500,000 (Growth) | Not listed |
+| Alerts | Sends the right person an alert, ranked by business impact | No |
+| History | Up to 60 months | Not public |
+| Scale | 100,000 pages (Essentials), 500,000 (Growth) | Not public |
 | AI bots | Monitor AI bot activity to see what gets crawled | Filters out fake bots and counts human visits from AI search |
 | Connections | Part of the platform | Cloudflare, Vercel, AWS, Akamai, Fastly, Netlify, WordPress, Shopify and more |
 
-Conductor is the stronger pick for full technical SEO health. Profound is the stronger pick if your main question is which AI bots read which pages. Agent Analytics is part of Profound's free trial too.
-
-To check one page for AI bot blocks right now, try the free [AI crawler checker](https://arrowsterr.com/free-tools/ai-crawler-checker/).
+Agent Analytics is part of Profound's free trial, so you can test it before any sales call. To check one page for AI bot blocks right now, try the free [AI crawler checker](https://arrowsterr.com/free-tools/ai-crawler-checker/).
 
 ## Conductor vs Profound content tools and agents
 
-Both now sell AI agents that do content work.
+Neither tool leads on content. Conductor builds writing on its SEO data and Content Score, while Profound works from its AI answer data. Pick the one whose data you trust to guide the brief.
 
 | Feature | Conductor | Profound |
 |---|---|---|
@@ -203,17 +199,15 @@ Both now sell AI agents that do content work.
 
 Profound's AI Marketer finds work worth doing and drafts it for your approval. Context Manager feeds its Agents your brand facts. Each AI Marketer message and agent run uses credits.
 
-Neither tool is clearly ahead on content. Conductor ties writing to its SEO data and content score. Profound ties writing to its AI answer data. Pick the one whose data you trust to guide the brief.
-
 ## Conductor vs Profound pricing
 
-Neither vendor lists a dollar price for its main plans. Here is what each pricing page says in November 2026.
+Neither vendor puts a dollar price on its main plans. Here is what each plan includes as of November 2026.
 
 | Plan | Conductor | Profound |
 |---|---|---|
-| Trial | 3-week Conductor Intelligence trial with no credit card | Free for 7 days. 50 prompts run daily on ChatGPT, Gemini and Google AI Overviews, unlimited seats, Agent Analytics, 5 Prompt Volumes searches and a limited set of AI Marketer credits |
-| Entry | Essentials: price on request, with a "Try for Free" button. 500 tracked keywords, 1,000 pages analyzed, 5 tracked competitors, 100,000 pages monitored, 3 websites, 60 Writing Assistant drafts a year. No AI Search Credits are listed on this plan | No entry plan listed |
-| Middle | Growth: price on request. 2,500 AI Search Credits a year, 5,000 tracked keywords, 25,000 pages analyzed, 25 competitors, 500,000 pages monitored, 5 websites, 180 drafts a year | Agency Growth: self-serve, with 400 credits a month per client workspace. The price is not on the pricing page |
+| Trial | 3 week Conductor Intelligence trial with no credit card | Free for 7 days. 50 prompts run daily on ChatGPT, Gemini and Google AI Overviews, unlimited seats, Agent Analytics, 5 Prompt Volumes searches and a limited set of AI Marketer credits |
+| Entry | Essentials: price on request, free to try. 500 tracked keywords, 1,000 pages analyzed, 5 tracked competitors, 100,000 pages monitored, 3 websites, 60 Writing Assistant drafts a year. No AI Search Credits on this plan | No entry plan |
+| Middle | Growth: price on request. 2,500 AI Search Credits a year, 5,000 tracked keywords, 25,000 pages analyzed, 25 competitors, 500,000 pages monitored, 5 websites, 180 drafts a year | Agency Growth: self serve, with 400 credits a month per client workspace. Price not public |
 | Top | Enterprise: custom. 2,500+ AI Search Credits a year, 60,000+ tracked keywords, 125,000+ pages analyzed, 75+ competitors, monitoring for sites of any size, 10+ websites, 600 drafts a year | Enterprise: custom. Up to 9 AI engines, a tailored prompt plan, unlimited seats, ChatGPT Shopping, full Prompt Volumes with API access, SSO and SAML, SOC 2, and support up to a dedicated specialist |
 
 Both sell by contract, so plan for a sales call with each one.
@@ -222,18 +216,18 @@ Both sell by contract, so plan for a sales call with each one.
 
 Arrowsterr is an AI visibility and SEO research platform. It tracks how AI answers name your brand, then helps you plan and publish the pages that win those answers.
 
-It fits teams that want enterprise-grade AI tracking with keyword research built in, at a price you can see today. Plans start at $39 a month, and there is a free plan. Compare it in detail in [Arrowsterr vs Profound](https://arrowsterr.com/compare/arrowsterr-vs-profound/) or read our list of [Profound alternatives](https://arrowsterr.com/blog/profound-alternatives/).
+It fits teams that want enterprise grade AI tracking with keyword research built in, at a price you can see today. Plans start at $39 a month, and there is a free plan. Compare it in detail in [Arrowsterr vs Profound](https://arrowsterr.com/compare/arrowsterr-vs-profound/) or read our list of [Profound alternatives](https://arrowsterr.com/blog/profound-alternatives/).
 
 <!-- shot: arrowsterr -->
 
 ### Arrowsterr features
 
-- **AI Visibility:** [AI Visibility](https://arrowsterr.com/platform/ai-visibility/) tracks ChatGPT, Gemini, Google AI Overviews and AI Mode daily, and Claude and Perplexity weekly.
-- **Organic Search:** [Organic Search](https://arrowsterr.com/platform/organic-search/) gives you keyword research with volume, difficulty, intent, questions and the Google top 10 with AI Overview sources. It also finds competitor keyword gaps.
-- **Sources report:** See which sites AI answers cite, so you know where to get mentioned.
-- **Agentic content:** The Topic Bank and Content Plan pick what to write, then the [Agentic Writer](https://arrowsterr.com/platform/agentic-content/) drafts and publishes (Pro and up).
-- **Site audit:** It crawls up to 200 pages and flags AI crawler blocks and page issues. Zippie, its AI agent, fixes them through your CMS.
-- **MCP and API:** Connect your data to AI assistants with the [MCP server](https://arrowsterr.com/mcp/), or build on the [API](https://arrowsterr.com/api/).
+- [AI Visibility](https://arrowsterr.com/platform/ai-visibility/) tracks ChatGPT, Gemini, Google AI Overviews and AI Mode daily, and Claude and Perplexity weekly.
+- [Organic Search](https://arrowsterr.com/platform/organic-search/) gives you keyword research with volume, difficulty, intent, questions and the Google top 10 with AI Overview sources. It also finds competitor keyword gaps.
+- The Sources report shows which sites AI answers cite, so you know where to get mentioned.
+- The Topic Bank and Content Plan pick what to write, then the [Agentic Writer](https://arrowsterr.com/platform/agentic-content/) drafts and publishes (Pro and up).
+- The site audit crawls up to 200 pages and flags AI crawler blocks and page issues. Zippie, its AI agent, fixes them through your CMS.
+- Connect your data to AI assistants with the [MCP server](https://arrowsterr.com/mcp/), or build on the [API](https://arrowsterr.com/api/).
 
 <!-- video -->
 
@@ -253,10 +247,10 @@ Try both toolsets free for 7 days, with no card. See [Arrowsterr pricing](https:
 
 | Feature | Arrowsterr | Conductor | Profound |
 |---|---|---|---|
-| AIs on the entry plan | 6 on Starter | No AI Search Credits listed on Essentials | 3 on the trial |
+| AIs on the entry plan | 6 on Starter | No AI Search Credits on Essentials | 3 on the trial |
 | Claude and Perplexity tracking | Weekly, from Starter | On plans with AI Search Credits | Enterprise only |
 | Entry price | $39/mo (Starter), public | Quote | Custom |
-| Free plan | Free forever | 3-week trial | 7-day trial |
+| Free plan | Free forever | 3 week trial | 7 day trial |
 | Content plan and writer | Topic Bank, Content Plan and Agentic Writer | Writing Assistant, capped by plan | AI Marketer and Agents, on credits |
 | AI crawler checks | Site audit flags AI crawler blocks, Zippie fixes them | AI bot activity in Monitoring | Agent Analytics from server logs |
 
@@ -280,26 +274,24 @@ Pick Profound if:
 
 ### Is Conductor or Profound better for AI visibility?
 
-Profound goes deeper on AI data, with Prompt Volumes and server-side crawler logs. Conductor covers a similar set of AI engines and adds SEO rankings and site monitoring. The better pick depends on whether AI search and SEO sit with one team or two.
+Profound goes deeper on AI data, with Prompt Volumes and crawler logs from your servers. Conductor covers a similar set of AI engines and adds SEO rankings and site monitoring. The better pick depends on whether AI search and SEO sit with one team or two.
 
 ### How much does Conductor cost?
 
-Conductor does not publish dollar prices. Its pricing page lists Essentials, Growth and Enterprise with their limits, and you get a quote from sales. You can try Conductor Intelligence free for 3 weeks with no card.
+Conductor sets its prices by quote. Essentials, Growth and Enterprise each come with fixed limits, and sales gives you the price. You can try Conductor Intelligence free for 3 weeks with no card.
 
 ### How much does Profound cost?
 
-Profound's pricing page shows a free 7-day trial and a custom Enterprise plan with no dollar price. Its self-serve Agency Growth plan includes 400 credits a month per client workspace.
+Profound sets Enterprise prices on a sales call, and you can start with a free 7 day trial. Its self serve Agency Growth plan includes 400 credits a month per client workspace.
 
 ### Does Conductor track ChatGPT and Google AI Overviews?
 
-Yes. Conductor's docs list ChatGPT, Google AI Overviews and Google AI Mode, along with Gemini, Claude, Copilot, Grok and Perplexity. Each engine uses a different number of AI Search Credits per prompt.
+Yes. Conductor tracks ChatGPT, Google AI Overviews and Google AI Mode, along with Gemini, Claude, Copilot, Grok and Perplexity. Each engine costs a different number of AI Search Credits for each prompt.
 
 ### Does Profound do SEO rank tracking?
 
-Profound's pricing page lists no Google rank tracking or keyword research. It focuses on AI answers and AI crawler data. Teams that need Google rankings often pair it with an SEO suite.
+No. Profound has no Google rank tracking or keyword research, and it focuses on AI answers and AI crawler data. Teams that need Google rankings often pair it with an SEO suite.
 
 ## Summary: Conductor vs Profound
 
-Conductor is the better fit for enterprise SEO teams that now own AI search too. You get rankings, site health, content tools and AI answers in one platform, with AI Search Credits on the Growth and Enterprise plans. Profound is the better fit for brands that treat AI search as its own channel and want the deepest AI data, including prompt volume and AI crawler logs.
-
-Both sell by contract, so run the trials side by side. Track the same prompts in each and compare the answers they capture.
+Conductor's trial runs 3 weeks and Profound's runs 7 days, so start Conductor first and run Profound in the last week. Track the same prompts in each and compare the answers they capture.

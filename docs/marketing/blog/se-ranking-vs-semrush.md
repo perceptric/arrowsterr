@@ -26,25 +26,25 @@ sources:
 
 # SE Ranking vs Semrush: Pricing and Features Compared in 2026
 
-SE Ranking and Semrush are both full SEO suites. Each one covers keyword research, rank tracking, site audits and backlink checks, and both now track how AI answers mention your brand. The real gaps are data size and what each plan includes for the price.
+SE Ranking's entry plan tracks 2,000 keywords a day for $129 a month. Semrush's entry plan tracks 500 for $139. Each suite covers keyword research, rank tracking, site audits and backlink checks, and each now tracks how AI answers mention your brand.
 
-Here is the quick answer. Pick SE Ranking if you want lots of tracked keywords and AI prompt tracking on one plan that starts at $129 a month. Pick Semrush if you need the largest keyword and backlink data, or ads and market research in the same login.
+Go with SE Ranking if you want lots of tracked keywords and AI prompt tracking on one plan. Go with Semrush if you need the largest keyword and backlink data, or ads and market research in the same login.
 
 ## SE Ranking vs Semrush: main points
 
-- **Entry plans:** SE Ranking Core is $129 a month for 2,000 keywords tracked daily and 25 AI prompts tracked daily. Semrush's SEO plan is $139 a month for 500 tracked keywords.
-- **Data size:** Semrush lists more than 26 billion keywords and more than 43 trillion backlinks. SE Ranking lists 5.4 billion keywords and 2.7 trillion backlinks.
-- **AI tracking:** SE Ranking includes AI prompt tracking on Core and Growth. Semrush sells it as the AI Visibility Toolkit at $99 a month, or inside Semrush One from $199 a month.
-- **Trying it out:** SE Ranking has a 14-day trial with no credit card. Semrush has a free account with 10 reports a day and a 7-day trial.
-- **Seats:** SE Ranking Core includes 1 manager seat, with extra seats from $16. Semrush lists extra users from $45 a month.
-- **Claude:** Neither tool lists Claude among the AIs it tracks.
+- SE Ranking Core is $129 a month for 2,000 keywords tracked daily and 25 AI prompts tracked daily. Semrush's SEO plan is $139 a month for 500 tracked keywords.
+- Semrush has more than 26 billion keywords and more than 43 trillion backlinks. SE Ranking has 5.4 billion keywords and 2.7 trillion backlinks.
+- AI prompt tracking comes with SE Ranking Core and Growth. Semrush sells it as the AI Visibility Toolkit at $99 a month, or inside Semrush One from $199 a month.
+- SE Ranking has a 14 day trial with no credit card. Semrush has a free account with 10 reports a day and a 7 day trial.
+- SE Ranking Core includes 1 manager seat, with extra seats from $16. Extra Semrush users start at $45 a month.
+- Neither tool tracks Claude.
 
 ## SE Ranking vs Semrush at a glance
 
 | Feature | SE Ranking | Semrush |
 |---|---|---|
 | Starts at | $129/mo (Core) | $139/mo (SEO), or $99/mo for the AI Visibility Toolkit alone |
-| Free plan or trial | 14-day trial, no credit card | Free account (10 reports a day), 7-day trial |
+| Free plan or trial | 14 day trial, no credit card | Free account (10 reports a day), 7 day trial |
 | Main strength | Many tracked keywords for the price | Largest data and widest set of toolkits |
 | Keyword database | 5.4 billion, 188 locations | More than 26 billion |
 | Backlink index | 2.7 trillion backlinks | More than 43 trillion backlinks |
@@ -66,10 +66,10 @@ Here is the quick answer. Pick SE Ranking if you want lots of tracked keywords a
 | Founded | 2013 |
 | Headquarters | Legal addresses in London and Wilmington, Delaware, with hubs in Kyiv, Wroclaw and Warsaw |
 | Starts at | $129/mo (Core) |
-| Free plan or trial | 14-day trial, no credit card |
+| Free plan or trial | 14 day trial, no credit card |
 | Best for | Small teams and agencies that track many keywords |
 
-[SE Ranking](https://seranking.com/) is an SEO suite built around daily rank tracking. It also covers keyword research, competitor research, backlinks, site audits and content. Every current plan includes an AI Results Tracker. The company also sells SE Visible, a separate AI visibility tool that starts at $71 a month. SE Ranking says more than a million businesses, agencies and SEO pros have used it, and its team of 150+ people works remotely.
+[SE Ranking](https://seranking.com/) is an SEO suite built around daily rank tracking. It also covers keyword research, competitor research, backlinks, site audits and content. Every current plan includes an AI Results Tracker. The company also sells SE Visible, a separate AI visibility tool that starts at $71 a month. More than a million businesses, agencies and SEO pros have used SE Ranking, and its team of 150+ people works remotely.
 
 ### SE Ranking history
 
@@ -81,7 +81,7 @@ From 2020 on, the focus moved to data. SE Ranking added 30+ keyword databases in
 
 ### SE Ranking and AI search
 
-In 2024 SE Ranking said more than 1,000,000 SEO pros had used the platform. In 2025 it bought Planable and added an AI Search add-on. It also launched SE Visible as its own product, and it opened an MCP server for AI assistants. Today the AI Results Tracker sits inside the main plans, and SE Visible serves teams that want AI tracking on its own.
+By 2024 more than 1,000,000 SEO pros had used the platform. In 2025 SE Ranking bought Planable and added an AI Search addon. It also launched SE Visible as its own product, and it opened an MCP server for AI assistants. Today the AI Results Tracker sits inside the main plans, and SE Visible serves teams that want AI tracking on its own.
 
 ## What is Semrush?
 
@@ -94,14 +94,14 @@ In 2024 SE Ranking said more than 1,000,000 SEO pros had used the platform. In 2
 | Founders | Oleg Shchegolev and Dmitri Melnikov |
 | Headquarters | Boston, Massachusetts |
 | Starts at | $139/mo (SEO), or $99/mo for the AI Visibility Toolkit |
-| Free plan or trial | Free account (10 reports a day), 7-day trial |
+| Free plan or trial | Free account (10 reports a day), 7 day trial |
 | Best for | Teams that need deep research data and ads tools |
 
-[Semrush](https://www.semrush.com/) is one of the largest SEO suites. It is split into toolkits, such as SEO, AI Visibility, Advertising and Local. You can buy them one at a time. Semrush One bundles the SEO Toolkit and the AI Visibility Toolkit on one plan. Adobe says Semrush has more than 28 million users, from startups to Fortune 500 companies.
+[Semrush](https://www.semrush.com/) is one of the largest SEO suites. It is split into toolkits, such as SEO, AI Visibility, Advertising and Local. You can buy them one at a time. Semrush One bundles the SEO Toolkit and the AI Visibility Toolkit on one plan. Semrush has more than 28 million users, from startups to Fortune 500 companies.
 
 ### Semrush history
 
-Semrush has its roots in SEOquake, a browser add-on for SEO data. Oleg Shchegolev and Dmitri Melnikov first released the product as Seodigger, then as a Firefox extension. The company took the SeoQuake name in 2007. The two founders started Semrush in 2008. Its head office is in Boston.
+Semrush has its roots in SEOquake, a browser addon for SEO data. Oleg Shchegolev and Dmitri Melnikov first released the product as Seodigger, then as a Firefox extension. The company took the SeoQuake name in 2007. The two founders started Semrush in 2008. Its head office is in Boston.
 
 In April 2018 Semrush raised $40 million, with Greycroft among the lead investors. It went public on the New York Stock Exchange on March 25, 2021, under the ticker SEMR. It then bought other marketing brands. Backlinko joined in 2022, and Brand24 and Exploding Topics followed in 2024. In March 2025 Bill Wagner became CEO, and Shchegolev moved to CTO.
 
@@ -116,12 +116,12 @@ Semrush launched its AI Toolkit on March 4, 2025, to show how AI tools such as C
 | Keyword database | 5.4 billion | More than 26 billion |
 | Markets | 188 country databases, 591 million US keywords | Many countries |
 | Search volume and difficulty | Yes | Yes |
-| Related keyword lists | Yes | Yes, in Keyword Magic Tool |
-| Best for | Small and mid-size sites in one main market | Long-tail research and very large sites |
+| Related keyword ideas | Yes | Yes, in Keyword Magic Tool |
+| Best for | Small and midsize sites in one main market | Long tail research and very large sites |
 
-Both tools give you search volume and keyword difficulty, plus long lists of related keywords. The difference is how much data sits behind them.
+Semrush wins on keyword data. Its database holds more than 26 billion keywords to SE Ranking's 5.4 billion, and the gap shows most when you research long tail topics or very large sites. Each tool gives you volume and difficulty for every term.
 
-Semrush is stronger here. Its bigger database helps most when you research long-tail topics or very large sites. For a small or mid-size site in one main market, SE Ranking's data covers what most teams need. If you want a quick check before you pick, Arrowsterr's [free keyword research tool](https://arrowsterr.com/free-tools/keyword-research-tool/) shows volume and difficulty for any term.
+SE Ranking still covers what most small and midsize sites need in one main market. Its US database alone holds 591 million keywords. Want a quick check before you pick? Arrowsterr's [free keyword research tool](https://arrowsterr.com/free-tools/keyword-research-tool/) shows volume and difficulty for any term.
 
 ## SE Ranking vs Semrush rank tracking
 
@@ -131,25 +131,25 @@ Semrush is stronger here. Its bigger database helps most when you research long-
 | Next plan | Growth: 5,000 keywords, $279/mo | One Starter: 500 keywords, $199/mo |
 | Larger plan | Enterprise, custom | One Pro+: 1,500 keywords, $299/mo |
 | Update speed | Daily | Daily |
-| Local tracking | 3 locations on Core and Growth, more as an add-on | Multi-location tracking on Pro+ |
+| Local tracking | 3 locations on Core and Growth, more as an addon | Many locations on Pro+ |
 | Device tracking | Yes, by device and language | On Pro+ |
 
-Rank tracking is where SE Ranking stands out. Its entry plan tracks more keywords than Semrush's entry plan, and both update daily.
+Rank tracking is where SE Ranking stands out. Core tracks 2,000 keywords a day. On Semrush you stay at 500 keywords through One Starter, and you need One Pro+ at $299 a month to reach 1,500. Both update daily, so what you pay for is room.
 
-SE Ranking is stronger for rank tracking. If you track thousands of keywords for clients, its plans give you more room.
+If you track thousands of keywords for clients, SE Ranking's Growth plan holds 5,000 of them.
 
 ## SE Ranking vs Semrush backlink data
 
 | Feature | SE Ranking | Semrush |
 |---|---|---|
-| Backlinks in the index | 2.7 trillion (2.9 trillion on the checker page) | More than 43 trillion |
+| Backlinks in the index | At least 2.7 trillion | More than 43 trillion |
 | Domains | 420 million indexed domains | 390 million referring domains |
 | Freshness | 58% of backlinks updated within 90 days | Refreshes at least hourly |
 | Best for | Checking your own links and a few rivals | Link building at scale |
 
-Semrush is clearly stronger on backlinks. Its index is far larger, and Semrush says it refreshes at least hourly.
+Link builders should pick Semrush. Its index holds more than 43 trillion backlinks and refreshes at least hourly. SE Ranking's index holds at least 2.7 trillion, with 58% of links updated within 90 days.
 
-Both work for checking your own links and a few rivals. Pick Semrush if link building is a core part of your work and you need the widest view of who links where.
+For checking your own links and a few rivals, SE Ranking does the job. Semrush earns its place when link building is a core part of your work and you need the widest view of who links where.
 
 <!-- banner: research -->
 
@@ -158,15 +158,15 @@ Both work for checking your own links and a few rivals. Pick Semrush if link bui
 | Feature | SE Ranking | Semrush |
 |---|---|---|
 | Where it lives | Core and Growth | SEO Toolkit |
-| Pages on the entry plan | 250,000 a month (Core) | Not listed on the pricing page |
-| Pages on the next plan | 2 million a month (Growth) | Not listed on the pricing page |
-| AI crawler checks | Not listed on the plan page | AI-ready Site Audit on Semrush One Starter, 8 AI crawlers |
+| Pages on the entry plan | 250,000 a month (Core) | Not public |
+| Pages on the next plan | 2 million a month (Growth) | Not public |
+| AI crawler checks | Not public | AI-ready Site Audit on Semrush One Starter, 8 AI crawlers |
 
-Both suites crawl your site and flag technical issues. SE Ranking is easier to plan around because its page limits are on the pricing page.
+SE Ranking puts hard numbers on its audits: 250,000 pages a month on Core and 2 million on Growth. Semrush keeps its page limits private, so a big crawl is harder to plan.
 
-Semrush One Starter adds an AI-ready Site Audit. It checks whether your site blocks eight AI crawlers, including bots from ChatGPT, Perplexity and Claude. You can run the same kind of check for free with Arrowsterr's [AI crawler checker](https://arrowsterr.com/free-tools/ai-crawler-checker/).
+Semrush One Starter adds an AI-ready Site Audit. It checks whether your site blocks 8 AI crawlers, including bots from ChatGPT, Perplexity and Claude. You can run the same kind of check for free with Arrowsterr's [AI crawler checker](https://arrowsterr.com/free-tools/ai-crawler-checker/).
 
-This one is close. SE Ranking wins on clear limits, and Semrush wins on AI crawler checks.
+Pick SE Ranking if you need to know your crawl limit up front. Pick Semrush if AI crawler access is the question you need answered.
 
 ## SE Ranking vs Semrush AI visibility tracking
 
@@ -179,15 +179,15 @@ This one is close. SE Ranking wins on clear limits, and Semrush wins on AI crawl
 | Extra users | Seats from $16 | $99 license per extra toolkit user |
 | Trial | 14 days, no card | None for the toolkit, 7 days for Semrush One |
 
-SE Ranking's AI Results Tracker comes with every current plan. Both main plans track 25 prompts daily on 5 AIs.
+SE Ranking's AI Results Tracker comes with every current plan. Core and Growth each track 25 prompts daily on 5 AIs, with no addon to buy.
 
-Semrush's AI Visibility Toolkit is $99 a month on its own. It includes 1 project, 1 Brand Performance domain and 25 tracked prompts. Coverage changes by report. Semrush's help page lists Prompt Tracking on AI Overviews, AI Mode and ChatGPT.
+Semrush's AI Visibility Toolkit is $99 a month on its own. It includes 1 project, 1 Brand Performance domain and 25 tracked prompts. Coverage changes by report: Prompt Tracking runs on AI Overviews, AI Mode and ChatGPT.
 
-SE Ranking is stronger if you want AI tracking inside your SEO plan with no add-on. Semrush is stronger if you want to study AI answers for any domain, since its AI Analysis reports cover more than your own brand. For a wider view of this market, see our list of the [best AI visibility tools](https://arrowsterr.com/blog/best-ai-visibility-tools/).
+The better pick depends on whose brand you study. SE Ranking fits if you want AI tracking inside your SEO plan. Semrush fits if you want to study AI answers for any domain, since its AI Analysis reports cover more than your own brand. For a wider view of this market, see our list of the [best AI visibility tools](https://arrowsterr.com/blog/best-ai-visibility-tools/).
 
 ## SE Ranking vs Semrush pricing
 
-These are list prices from each vendor's pricing page in November 2026.
+Prices below are as of November 2026.
 
 | Plan level | SE Ranking | Semrush |
 |---|---|---|
@@ -201,7 +201,7 @@ These are list prices from each vendor's pricing page in November 2026.
 | Extras | Seats from $16, Agency Pack $69/mo on yearly billing | Extra users from $45/mo |
 | Trial | 14 days, no card (750 tracked keywords, 20 AI prompts a day) | 7 days for Semrush One, none for the AI Visibility Toolkit |
 
-SE Ranking gives you more tracked keywords and AI prompts on its entry plan. Semrush's plans scale up to more websites and deeper data.
+The SE Ranking trial is a real test run. You get 14 days with 750 tracked keywords and 20 AI prompts a day, and you never enter a card.
 
 ## Arrowsterr: an SE Ranking and Semrush alternative for AI search
 
@@ -213,12 +213,12 @@ It suits SE Ranking and Semrush users who want AI search at the center of their 
 
 ### Arrowsterr features
 
-- **AI Visibility:** Tracks your brand on ChatGPT, Gemini, Google AI Overviews and AI Mode daily, and on Claude and Perplexity weekly. [See AI Visibility](https://arrowsterr.com/platform/ai-visibility/).
-- **Organic Search:** Keyword research with volume, difficulty, intent, questions and the Google top 10 with AI Overview sources. It also finds competitor keyword gaps. [See Organic Search](https://arrowsterr.com/platform/organic-search/).
-- **Sources report:** Shows which sites AI answers cite, so you know where to get mentioned.
-- **Topic Bank and Content Plan:** Turn research into a plan. Then the Agentic Writer drafts and publishes posts on Pro and up. [See Agentic Content](https://arrowsterr.com/platform/agentic-content/).
-- **Site audit:** Crawls up to 200 pages and flags AI crawler blocks and page issues. Zippie, its AI agent, fixes them through your CMS.
-- **MCP and API:** Use Arrowsterr data in AI assistants and your own apps with the [MCP server](https://arrowsterr.com/mcp/) and the [API](https://arrowsterr.com/api/).
+- AI Visibility tracks your brand on ChatGPT, Gemini, Google AI Overviews and AI Mode daily, and on Claude and Perplexity weekly. [See AI Visibility](https://arrowsterr.com/platform/ai-visibility/).
+- Organic Search gives you keyword research with volume, difficulty, intent, questions and the Google top 10 with AI Overview sources. It also finds competitor keyword gaps. [See Organic Search](https://arrowsterr.com/platform/organic-search/).
+- The Sources report shows which sites AI answers cite, so you know where to get mentioned.
+- Topic Bank and Content Plan turn research into a plan. Then the Agentic Writer drafts and publishes posts on Pro and up. [See Agentic Content](https://arrowsterr.com/platform/agentic-content/).
+- The site audit crawls up to 200 pages and flags AI crawler blocks and page issues. Zippie, its AI agent, fixes them through your CMS.
+- The [MCP server](https://arrowsterr.com/mcp/) and the [API](https://arrowsterr.com/api/) put Arrowsterr data in AI assistants and your own apps.
 
 <!-- video -->
 
@@ -239,13 +239,13 @@ Try both toolsets free for 7 days, with no card needed. [See Arrowsterr pricing]
 | Feature | Arrowsterr | SE Ranking | Semrush |
 |---|---|---|---|
 | AIs tracked | 6: ChatGPT, Gemini, AI Overviews, AI Mode, Claude, Perplexity | 5 | 5, varies by report |
-| Claude tracking | Yes, weekly | Not listed | Not listed |
+| Claude tracking | Yes, weekly | No | No |
 | Perplexity tracking | Yes, weekly | Yes | Yes |
 | AI prompts on the entry plan | 50 daily (Starter) | 25 daily (Core) | 25 (AI Visibility Toolkit) |
 | Entry price | $39/mo | $129/mo | $139/mo (SEO), $99/mo (AI Visibility Toolkit) |
-| Free plan | Free forever | 14-day trial | Free account, 10 reports a day |
+| Free plan | Free forever | 14 day trial | Free account, 10 reports a day |
 | Content plan and writer | Topic Bank, Content Plan and Agentic Writer | AI Writer and content articles | Content optimization on Pro+ |
-| AI crawler checks | In every site audit, plus a free AI crawler checker | Not listed on the plan page | AI-ready Site Audit on One Starter |
+| AI crawler checks | In every site audit, plus a free AI crawler checker | Not public | AI-ready Site Audit on One Starter |
 
 ## Which should you choose: SE Ranking or Semrush?
 
@@ -269,11 +269,11 @@ Agencies that track AI answers for many clients can also look at [Arrowsterr for
 
 ### Is SE Ranking cheaper than Semrush?
 
-SE Ranking's entry plan is $129 a month, and Semrush's SEO plan is $139 a month. SE Ranking Core also includes 2,000 tracked keywords and AI prompt tracking. Semrush's SEO plan includes 500 tracked keywords, and AI tracking comes with Semrush One or the AI Visibility Toolkit.
+At the entry level, yes. SE Ranking Core is $129 a month, and Semrush's SEO plan is $139 a month. Core also includes 2,000 tracked keywords and AI prompt tracking. Semrush's SEO plan includes 500 tracked keywords, and AI tracking comes with Semrush One or the AI Visibility Toolkit.
 
 ### Does SE Ranking have as much data as Semrush?
 
-No. Semrush lists more than 26 billion keywords and more than 43 trillion backlinks. SE Ranking lists 5.4 billion keywords and 2.7 trillion backlinks. For most single-market sites, SE Ranking's data is enough.
+No. Semrush has more than 26 billion keywords and more than 43 trillion backlinks. SE Ranking has 5.4 billion keywords and 2.7 trillion backlinks. For most single market sites, SE Ranking's data is enough.
 
 ### Do SE Ranking and Semrush track ChatGPT?
 
@@ -281,7 +281,7 @@ Yes, both do. SE Ranking tracks ChatGPT along with Google AI Overviews, AI Mode,
 
 ### Does SE Ranking have a free plan?
 
-SE Ranking has no free plan. It offers a 14-day trial with no credit card. Semrush has a free account with 10 reports a day.
+No. SE Ranking has a 14 day trial with no credit card. Semrush has a free account with 10 reports a day.
 
 ### Which is better for agencies, SE Ranking or Semrush?
 
@@ -293,6 +293,6 @@ Adobe owns Semrush. Adobe agreed to buy it in November 2025, and the deal closed
 
 ## Summary: SE Ranking vs Semrush
 
-SE Ranking gives you more tracked keywords and built-in AI prompt tracking at a lower entry price. Semrush gives you the largest keyword and backlink data, plus separate toolkits for ads and AI research.
+Count the keywords you track today. Past 500, Semrush moves you up to One Pro+ at $299 a month. SE Ranking Core holds 2,000 for $129, and you can test it for 14 days without a card.
 
-If daily rankings drive your work, start with SE Ranking's free trial. If research depth drives your work, start with Semrush's free account or its 7-day trial.
+If research depth matters more than keyword count, open a free Semrush account. Its 7 day trial covers Semrush One, so you can test the AI tracking too.
