@@ -23,3 +23,11 @@ For each of the 15 slugs:
 5. Open the live URL and check the page renders and the removed numbers are gone.
 
 Slugs: best-ai-visibility-tools, best-chatgpt-rank-tracker, best-geo-tools, best-llm-tracking-tools, best-aeo-tools, best-ai-seo-tools, best-content-planning-tools-for-seo, best-seo-tools-for-startups, best-social-listening-tools-for-small-business, best-ai-search-tools-for-saas, best-ai-visibility-tools-for-agencies, otterly-ai-alternatives, peec-ai-alternatives, profound-alternatives, semrush-ai-toolkit-alternative.
+
+## New posts: schedule, never batch
+
+New posts go to WordPress as scheduled posts (`status: future`), spread at random over 14 days, at most 2 a day and at least 3 hours apart, between 8am and 6pm ET. Run `python3 docs/marketing/tools/publish.py <slug> ...`; it reads the posts already scheduled and fills around them. Use `--now` only when the user asks for a post to go live right away. The versus batch schedule is in `docs/marketing/tools/schedule-versus.json`.
+
+## New posts: schedule, never batch
+
+New posts go to WordPress as scheduled posts (`status: future`), spread at random over 14 days, at most 2 a day and at least 3 hours apart, between 8am and 6pm ET. Run `python3 docs/marketing/tools/publish.py <slug> ...`; it reads the posts already scheduled and fills around them. Use `--now` only when the user asks for a post to go live right away. The versus batch schedule is in `docs/marketing/tools/schedule-versus.json`.

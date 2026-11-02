@@ -1,4 +1,6 @@
 import sys,os,json,base64,urllib.request,re,time,html
+from datetime import timezone
+import schedule as sched
 sys.path.insert(0,os.path.dirname(__file__)); import md2wp
 S=os.path.dirname(__file__); U=os.environ['WP_URL']; AUTH=base64.b64encode(f"{os.environ['WP_USER']}:{os.environ['WP_APP_PASSWORD']}".encode()).decode()
 BLOG='/home/user/arrowsterr/docs/marketing/blog'
@@ -9,8 +11,11 @@ def req(path,data=None,method='GET',headers=None,raw=False):
     if not raw and data is not None: h['Content-Type']='application/json'
     r=urllib.request.Request(U+path,data=body,method=method,headers=h)
     with urllib.request.urlopen(r,timeout=120) as f: return json.loads(f.read())
-log=json.load(open(f'{S}/published-versus.json')) if os.path.exists(f'{S}/published.json') else {}
-for slug in sys.argv[1:]:
+log=json.load(open(f'{S}/published-versus.json')) if os.path.exists(f'{S}/published-versus.json') else {}
+NOW='--now' in sys.argv  # only when the user asks for a post to go live right away
+slugs=[a for a in sys.argv[1:] if not a.startswith('--')]
+WHEN={} if NOW else dict(sched.plan(slugs,busy=sched.taken()))
+for slug in slugs:
     fm,content=md2wp.convert(f'{BLOG}/{slug}.md')
     assert '(check)' not in content, slug
     title=fm['title']
@@ -19,9 +24,10 @@ for slug in sys.argv[1:]:
     png=open(f'{S}/vsimg/{slug}-featured.png','rb').read()
     m=req('/wp-json/wp/v2/media',png,'POST',{'Content-Type':'image/png','Content-Disposition':f'attachment; filename="{slug}-featured.png"'},raw=True)
     req(f'/wp-json/wp/v2/media/{m["id"]}',{'alt_text':title,'title':title},'POST')
-    p=req('/wp-json/wp/v2/posts',{'title':title,'slug':slug,'content':content,'excerpt':fm['meta_description'],'status':'publish',
+    p=req('/wp-json/wp/v2/posts',{'title':title,'slug':slug,'content':content,'excerpt':fm['meta_description'],**({'status':'publish'} if NOW else {'status':'future','date_gmt':WHEN[slug].astimezone(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S')}),
         'categories':[6 if slug in AI else 7],'featured_media':m['id'],'comment_status':'open','author':1},'POST')
-    log[slug]={'id':p['id'],'media':m['id'],'link':p['link']}; json.dump(log,open(f'{S}/published-versus.json','w'),indent=1)
+    log[slug]={'id':p['id'],'media':m['id'],'link':p['link'],'status':p['status'],'scheduled':None if NOW else WHEN[slug].isoformat()}; json.dump(log,open(f'{S}/published-versus.json','w'),indent=1)
+    if not NOW: print(f"{slug}: id={p['id']} scheduled {WHEN[slug].strftime('%a %b %d %I:%M %p ET')} status={p['status']}"); continue
     time.sleep(1)
     r=urllib.request.urlopen(urllib.request.Request(p['link']+'?v=1',headers={'User-Agent':'Mozilla/5.0'}),timeout=60); page=r.read().decode()
     t=html.unescape(re.search(r'<title>(.*?)</title>',page,re.S).group(1))
