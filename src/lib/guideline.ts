@@ -1,6 +1,9 @@
 import "server-only";
 import * as cheerio from "cheerio";
+import { cssEvidence, evidenceText } from "./brandCss";
+import { pageNodes } from "./brandPage";
 import { askClaude, parseJson } from "./claude";
+import { safeFetch } from "./safeFetch";
 import type { BrandGuideline } from "./writerTypes";
 
 // Builds a brand guideline from a website: reads the full homepage HTML and its stylesheets,
@@ -8,14 +11,47 @@ import type { BrandGuideline } from "./writerTypes";
 
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36";
 
+/** A public page or file as text, or "" when it can't be read. Private addresses are refused. */
 async function get(url: string, max = 3_000_000) {
-  try {
-    const res = await fetch(url, { headers: { "User-Agent": UA, Accept: "text/html,text/css,*/*" }, redirect: "follow", signal: AbortSignal.timeout(15_000) });
-    if (!res.ok) return "";
-    return (await res.text()).slice(0, max);
-  } catch {
-    return "";
-  }
+  const r = await safeFetch(url, { ua: UA, maxBytes: max, accept: "text/html,text/css,*/*" });
+  return r.ok ? r.body : "";
+}
+
+/**
+ * Every stylesheet the page uses: linked files (and those preloaded as styles), the files they @import one level
+ * down, <style> blocks and inline styles. Up to 30 files and about 6 MB in all.
+ */
+async function allCss($: cheerio.CheerioAPI, base: string) {
+  const abs = (h: string, from = base) => {
+    try {
+      return new URL(h, from).toString();
+    } catch {
+      return null;
+    }
+  };
+  const linked = $('link[rel~="stylesheet"], link[rel="preload"][as="style"]')
+    .map((_, l) => $(l).attr("href"))
+    .get()
+    .map((h) => abs(h))
+    .filter((u): u is string => Boolean(u));
+  const fontLinks = linked.filter((l) => /fonts\.googleapis|typekit|fonts\.bunny|use\.fontawesome/.test(l));
+  const files = [...new Set(linked.filter((l) => !fontLinks.includes(l)))].slice(0, 30);
+  let budget = 6_000_000;
+  const read = async (u: string) => {
+    if (budget <= 0) return "";
+    const t = await get(u, Math.min(1_500_000, budget));
+    budget -= t.length;
+    return t;
+  };
+  const sheets = await Promise.all(files.map(read));
+  // One level of @import inside the files, and inside <style> blocks.
+  const inline = $("style").map((_, s) => $(s).text()).get().join("\n");
+  const imports = [...new Set([...sheets.map((t, i) => [t, files[i]] as const), [inline, base] as const].flatMap(([t, from]) => [...t.matchAll(/@import\s+(?:url\()?\s*["']?([^"')\s;]+)["']?\s*\)?[^;]*;/g)].map((m) => abs(m[1], from)).filter((u): u is string => Boolean(u))))]
+    .filter((u) => !files.includes(u) && !/fonts\.googleapis|typekit|fonts\.bunny/.test(u))
+    .slice(0, 10);
+  const more = await Promise.all(imports.map(read));
+  const css = [inline, ...sheets, ...more, $("[style]").map((_, e) => `.inline{${$(e).attr("style")}}`).get().join("\n")].join("\n");
+  return { css, fontLinks, files: files.length + imports.length };
 }
 
 /** Count how often each value appears, most used first. */
@@ -36,17 +72,8 @@ export async function readBrand(domain: string) {
   if (!html) throw new Error(`Could not load ${base}. Check the site is online and does not block bots.`);
   const $ = cheerio.load(html);
 
-  // Stylesheets: inline styles plus the first few linked files.
-  const links = $('link[rel="stylesheet"]')
-    .map((_, l) => $(l).attr("href"))
-    .get()
-    .filter(Boolean)
-    .slice(0, 5)
-    .map((h) => new URL(h!, base).toString());
-  const fonts = links.filter((l) => /fonts\.googleapis|typekit|fonts\.bunny/.test(l));
-  const sheets = await Promise.all(links.filter((l) => !fonts.includes(l)).map((l) => get(l, 600_000)));
-  const css = [$("style").map((_, s) => $(s).text()).get().join("\n"), ...sheets, $("[style]").map((_, e) => $(e).attr("style")).get().join(";")].join("\n");
-
+  // Every stylesheet the page uses.
+  const { css, fontLinks: fonts, files } = await allCss($, base);
   const vars = [...new Set([...css.matchAll(/(--[\w-]+)\s*:\s*([^;}{]{1,80})/g)].map((m) => `${m[1]}: ${m[2].trim()}`))].slice(0, 120);
   const colors = top([...css.matchAll(/#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?\b/g)].map((m) => normHex(m[0])), 24);
   const rgb = top([...css.matchAll(/rgba?\([^)]{5,40}\)/g)].map((m) => m[0].replace(/\s+/g, "")), 10);
@@ -120,6 +147,8 @@ export async function readBrand(domain: string) {
     families,
     radii,
     googleFonts,
+    css: cssEvidence(css, { base, html, nodes: pageNodes($) }),
+    files,
   };
 }
 
@@ -141,6 +170,7 @@ Measured from the site's CSS:
 - Font families: ${b.families.map(([f, n]) => `${f} (${n})`).join(" | ") || "none"}
 - Web fonts loaded: ${b.googleFonts.join(", ") || "none"}
 - Corner radius values: ${b.radii.map(([r, n]) => `${r} (${n})`).join(", ") || "none"}
+${evidenceText(b.css)}
 
 Rules:
 - Base every point on the evidence above. Name real colors and fonts from the CSS, not guesses.

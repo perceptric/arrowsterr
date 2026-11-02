@@ -89,6 +89,9 @@ export function moduleStyle(kit: BrandKit | null, guidelines: { body: string } |
       ? `Colors: primary ${c.primary} (buttons, links, the active state, key numbers), secondary ${c.secondary} (accents), ink ${c.ink} (headings), text ${c.text} (body), muted ${c.muted} (labels and notes), paper ${c.paper} (background), surface ${c.surface} (cards), line ${c.line} (borders). Use only these, and tints of them with color-mix().`
       : "",
     kit ? `Fonts: ${kit.fonts.heading} for headings and ${kit.fonts.body} for text, already loaded as --aw-font-heading and --aw-font-body. Corners: ${Math.min(12, kit.radius)}px (--aw-radius) on cards, buttons and inputs.` : "",
+    kit?.buttons
+      ? `Buttons: main ${kit.buttons.primary.bg} with ${kit.buttons.primary.text} labels${kit.buttons.primary.radius >= 999 ? ", pill-shaped" : ""}${kit.buttons.primary.upper ? ", uppercase" : ""}, weight ${kit.buttons.primary.weight}; second ${kit.buttons.secondary.bg} with ${kit.buttons.secondary.text} labels and a ${kit.buttons.secondary.border} border. Links ${kit.link.color}${kit.link.underline ? ", underlined" : ""}.${kit.shadow !== "none" ? ` Card shadow: ${kit.shadow}.` : ""}`
+      : "",
     kit?.voice?.tone?.length ? `Microcopy (labels, buttons, results) in the brand's tone: ${kit.voice.tone.join(", ")}.` : "",
     guidelines?.body ? `The brand's guidelines (follow what they say about look, buttons, charts and wording):\n${guidelines.body.slice(0, 2000)}` : "",
   ]

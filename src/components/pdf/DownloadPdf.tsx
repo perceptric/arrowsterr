@@ -43,12 +43,15 @@ export function DownloadPdf({
   useEffect(() => {
     if (!open || kit !== undefined) return;
     sb.from("brand_kits")
-      .select("kit")
+      .select("kit, learned_at, confirmed_at")
       .eq("workspace_id", auth.workspaceId)
       .eq("key", "workspace")
       .maybeSingle()
-      .then(({ data }) => {
-        setKit(data ? cleanKit((data as { kit: unknown }).kit) : null);
+      .then(({ data: row }) => {
+        // A starter kit nobody has learned or saved yet counts as no kit.
+        const r = row as { kit: unknown; learned_at: string | null; confirmed_at: string | null } | null;
+        const data = r && (r.learned_at || r.confirmed_at) ? r : null;
+        setKit(data ? cleanKit(data.kit) : null);
         // White label teams with a kit mostly send their own look, so it starts picked.
         if (data && whiteLabel) setDesign("brand");
       });

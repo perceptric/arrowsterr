@@ -1219,13 +1219,14 @@ October 2026 update. This replaces the free grid builder of phase 2 with a modul
 
 ### 31.1 Brand Kit
 
-- **What it holds** (`BrandKit` in `src/lib/brandKit.ts`): name, logo, whether the logo needs a dark ground, eight colors (main, second, headings, text, small notes, page, cards, borders), heading and text fonts from the report font list, corner radius, a footer line, and a tone of voice (up to 3 words and a sample line).
+- **What it holds** (`BrandKit` in `src/lib/brandKit.ts`): name, logo, whether the logo needs a dark ground, eight colors (main, second, headings, text, small notes, page, cards, borders), heading and text fonts from the report font list plus the site's own font names, a type scale (h1, h2, h3, body: size, weight, line height, tracking, capitals), a main and a second button (fill, label, border, corners, weight, padding, capitals), the link color and underline, a card shadow, corner radius, a footer line, and a tone of voice (up to 3 words and a sample line). `kitCss` turns it into a stylesheet people can copy.
 - **Where it lives:** `brand_kits` (`supabase/045_brand_kits.sql`). One kit for the workspace (key `workspace`) and one per client brand (key = brand id). A style saved in `report_styles` becomes the workspace kit when the file runs.
-- **How it is learned:** `POST /api/brand-kit` reads the homepage (`readBrand`), sends the measured colors and fonts at once, then asks Claude for the kit (`learnKit` in `src/lib/brandKitServer.ts`). The reply streams one JSON line per part. It costs 10 tasks, the same as a brand guideline.
+- **Every workspace has a Workspace Brand Kit** (`supabase/058_workspace_kits.sql`): a starter kit named after the workspace, made for every workspace and by a trigger for each new one. A starter kit (no `learned_at`, no `confirmed_at`) is ignored by reports and the writer until someone learns or saves it. Brand shows the brand's own kit and the Workspace Brand Kit side by side in its sub-nav.
+- **How it is learned:** `POST /api/brand-kit` reads the homepage (`readBrand`) and every stylesheet it uses: linked and preloaded files, one level of `@import`, `<style>` blocks and inline styles (up to 30 files, about 6 MB). `src/lib/brandCss.ts` parses every rule (inside `@media`, `@supports` and `@layer` too), resolves CSS variables, reads `@font-face`, and works out how the page's real body, headings, text, link, buttons, field and card are styled: their classes and inline styles are matched against the rules with a small cascade (`src/lib/brandPage.ts` finds the elements), so builder-made and hashed classes (Framer, Webflow, CSS modules) still count. The measured colors and fonts are sent at once, then Opus 5.5 builds the kit from all of it (`learnKit` in `src/lib/brandKitServer.ts`). The reply streams one JSON line per part. It costs 10 tasks, the same as a brand guideline.
 - **Checks** (`cleanKit`, tested in `tests/brandKit.test.ts`):
   - Every text color must reach 4.5:1 on both cards and page. If one fails, a readable color takes its place.
   - A logo must be an https address or an inline image. If the agent's pick doesn't match a real option, the kit has no logo, and the name is set in the heading font instead.
-  - Broken fields fall back to Arrowsterr's look.
+  - Broken fields fall back to Arrowsterr's look. Sizes, weights and padding are kept in range, a button label must reach 3:1 on its fill, a link 3:1 on cards, and a shadow may hold only lengths and colors (tested in `tests/brandCss.test.ts`).
 - **Every plan gets a Brand Kit.**
   - Starter and Pro: reports use the team's own kit and keep "Made with Arrowsterr".
   - Agency and Enterprise: the footer goes, and each client brand can have its own kit.
@@ -1292,11 +1293,11 @@ Added on top of section 29.
 
 | Item | Beta (50 teams) | Growth (500 teams) |
 |---|---|---|
-| Claude tokens to learn kits: about 6K in and 1.5K out each on Sonnet 5.5 ($2 / $10 per million, check), ≈ $0.03. About 150 a month at Beta and 2,000 at Growth, with agency client kits and re-learns | $5 | $60 |
+| Claude tokens to learn kits: about 12K in and 2K out each on Opus 5.5 ($4 / $20 per million, check), ≈ $0.09. About 150 a month at Beta and 2,000 at Growth, with agency client kits and re-learns | $14 | $180 |
 | Chat edits to modules and restyles (paid for by tasks) | $5 | $50 |
-| Reading sites: one fetch of the homepage and up to 5 stylesheets on the app server | $0 | $0 |
+| Reading sites: the homepage and up to 30 stylesheets on the app server, under a second of parsing each | $0 | $0 |
 | Kit storage in Supabase (a few KB a kit; logos are links or small inline SVGs) | $0 (check) | $0 (check) |
-| **Monthly total added** | **≈ $10** | **≈ $110** |
+| **Monthly total added** | **≈ $19** | **≈ $230** |
 
 ---
 

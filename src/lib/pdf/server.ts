@@ -26,8 +26,10 @@ export async function makeSnapshot(db: SupabaseClient, workspaceId: string, bran
   const brand = b as Brand;
   const ent = await entitlement(workspaceId);
   const whiteLabel = reportLimits(ent.plan).whiteLabel;
-  const kitRow = wanted === "brand" && whiteLabel ? await db.from("brand_kits").select("kit").eq("workspace_id", workspaceId).eq("key", "workspace").maybeSingle() : { data: null };
-  const kit = kitRow.data ? cleanKit((kitRow.data as { kit: unknown }).kit) : null;
+  const kitRow = wanted === "brand" && whiteLabel ? await db.from("brand_kits").select("kit, learned_at, confirmed_at").eq("workspace_id", workspaceId).eq("key", "workspace").maybeSingle() : { data: null };
+  // A starter kit nobody has learned or saved yet counts as no kit.
+  const kr = kitRow.data as { kit: unknown; learned_at: string | null; confirmed_at: string | null } | null;
+  const kit = kr && (kr.learned_at || kr.confirmed_at) ? cleanKit(kr.kit) : null;
   const tokens = tokensFor(wanted, kit, whiteLabel);
   const pdfBrand = { name: brand.name, domain: brand.domain, logo: brand.logo || null };
   const at = new Date(now).toISOString();

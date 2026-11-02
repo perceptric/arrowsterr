@@ -75,14 +75,15 @@ const host = (s: string | null | undefined) =>
  * The Brand Kit row a brand writes and designs with: its own kit, or else the workspace's kit when that kit was learned
  * from this brand's website or the workspace has only this brand. An agency's own kit never dresses a client brand.
  */
-export function kitRowForBrand<R extends { key: string; website: string | null }>(rows: R[], brand: { id: string; domain: string }, brandCount: number): R | null {
+export function kitRowForBrand<R extends { key: string; website: string | null; learned_at?: string | null; confirmed_at?: string | null }>(rows: R[], brand: { id: string; domain: string }, brandCount: number): R | null {
   const own = rows.find((r) => r.key === brand.id);
   if (own) return own;
-  const ws = rows.find((r) => r.key === "workspace");
+  // A starter Workspace Brand Kit nobody has learned or saved yet stays out of the writer's way.
+  const ws = rows.find((r) => r.key === "workspace" && !(r.learned_at === null && r.confirmed_at === null));
   if (ws && (brandCount <= 1 || (host(ws.website) && host(ws.website) === host(brand.domain)))) return ws;
   return null;
 }
-export function kitForBrand(rows: { key: string; website: string | null; kit: unknown }[], brand: { id: string; domain: string }, brandCount: number): BrandKit | null {
+export function kitForBrand(rows: { key: string; website: string | null; kit: unknown; learned_at?: string | null; confirmed_at?: string | null }[], brand: { id: string; domain: string }, brandCount: number): BrandKit | null {
   const row = kitRowForBrand(rows, brand, brandCount);
   return row ? cleanKit(row.kit) : null;
 }
