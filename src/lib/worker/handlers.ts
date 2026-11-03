@@ -91,9 +91,10 @@ export async function schedule(db: SupabaseClient, job: Job) {
   }
   // Perception (docs/perception.md): read each finished run's answers once, and ask the direct questions once a week
   // per brand, on the brand's own day. Before 059_perception.sql these queries fail, and nothing is queued.
-  const recent = new Date(Date.now() - 2 * 864e5).toISOString();
+  // The last 30 days are read once, newest first, so the page fills right away instead of waiting for new checks.
+  const recent = new Date(Date.now() - 30 * 864e5).toISOString();
   const settled = new Date(Date.now() - 60 * 60_000).toISOString(); // a browser run saves its answers when it ends, within the hour
-  const { data: unread } = await db.from("runs").select("id, workspace_id, source, status, at").lt("perception_read", PERCEPTION_VERSION).gte("at", recent).limit(40);
+  const { data: unread } = await db.from("runs").select("id, workspace_id, source, status, at").lt("perception_read", PERCEPTION_VERSION).gte("at", recent).order("at", { ascending: false }).limit(40);
   const readable = (unread ?? []).filter((r) => (r.source === "daily" ? r.status !== "running" : r.at < settled));
   if (readable.length) await enqueueMany(readable.map((r) => ({ kind: "perception" as const, workspace_id: r.workspace_id, key: `perception:${PERCEPTION_VERSION}:${r.id}`, payload: { runId: r.id } })));
   const askable = (brands ?? []).filter((b) => b.daily && b.prompts?.length && checkDue(seed(b.id), 7) && slotOf(b.id) <= minute);

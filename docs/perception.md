@@ -46,7 +46,7 @@ A wrong word costs more than a missing one, so every rule leans toward leaving a
 
 ## Setup
 
-Run `supabase/059_perception.sql`, then `supabase/060_perception_category.sql`, in Supabase → SQL Editor. Until 060 runs, reads are saved without a category and the Seen as tag stays hidden. Before it runs, the schedule queues nothing and the page asks for it. Runs from the last 2 days are read on the next worker ticks. Older history isn't read.
+Run `supabase/059_perception.sql`, then `supabase/060_perception_category.sql`, in Supabase → SQL Editor. Until 060 runs, reads are saved without a category and the Seen as tag stays hidden. Before it runs, the schedule queues nothing and the page asks for it. The last 30 days of runs are read once, newest first, up to 40 runs every 10-minute tick. A one-time cost of about $0.0003 per answer, so roughly $2 for a team with 6,500 answers a month.
 
 ## Running cost
 
