@@ -16,25 +16,27 @@ function Cite({ run }: { run: string }) {
   );
 }
 
-/** Bold, italic, links and cited sites inside one line. */
+/** Bold, italic, links and cited sites inside one line. A backslash before punctuation ("\\[Category\\]", "\\$3.7M")
+ * shows the character itself, never the backslash. */
 function inline(text: string, key: string): ReactNode[] {
   const out: ReactNode[] = [];
-  const re = /((?:\s*\[(?:www\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)+\]\(https?:\/\/[^)\s]+\))+)|\*\*([^*]+)\*\*|\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)|\*([^*]+)\*|`([^`]+)`/gi;
+  const re = /\\([\\`*_{}[\]()#+\-.!|$<>~"'])|((?:\s*\[(?:www\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)+\]\(https?:\/\/[^)\s]+\))+)|\*\*((?:\\\*|[^*])+)\*\*|\[((?:\\\]|[^\]])+)\]\((https?:\/\/[^)\s]+)\)|\*([^*]+)\*|`([^`]+)`/gi;
   let last = 0;
   let i = 0;
   for (const m of text.matchAll(re)) {
     if (m.index! > last) out.push(text.slice(last, m.index));
     const k = `${key}-${i++}`;
-    if (m[1]) out.push(" ", <Cite key={k} run={m[1]} />);
-    else if (m[2]) out.push(<strong key={k}>{inline(m[2], k)}</strong>);
-    else if (m[3])
+    if (m[1]) out.push(m[1]);
+    else if (m[2]) out.push(" ", <Cite key={k} run={m[2]} />);
+    else if (m[3]) out.push(<strong key={k} className="font-semibold text-ink">{inline(m[3], k)}</strong>);
+    else if (m[4])
       out.push(
-        <a key={k} href={m[4]} target="_blank" rel="noopener noreferrer nofollow">
-          {m[3]}
+        <a key={k} href={m[5]} target="_blank" rel="noopener noreferrer nofollow">
+          {inline(m[4], k)}
         </a>,
       );
-    else if (m[6]) out.push(<code key={k} className="aw-md-inline">{m[6]}</code>);
-    else out.push(<em key={k}>{m[5]}</em>);
+    else if (m[7]) out.push(<code key={k} className="aw-md-inline">{m[7]}</code>);
+    else out.push(<em key={k}>{inline(m[6], k)}</em>);
     last = m.index! + m[0].length;
   }
   if (last < text.length) out.push(text.slice(last));
@@ -44,8 +46,8 @@ function inline(text: string, key: string): ReactNode[] {
 const cells = (line: string) =>
   line
     .trim()
-    .replace(/^\||\|$/g, "")
-    .split("|")
+    .replace(/^\||(?<!\\)\|$/g, "")
+    .split(/(?<!\\)\|/)
     .map((c) => c.trim());
 
 export function Markdown({ text }: { text: string }) {
@@ -80,11 +82,13 @@ export function Markdown({ text }: { text: string }) {
       i++;
       continue;
     }
-    const h = line.match(/^(#{1,6})\s+(.*)/);
+    // Headings, and a line that is all bold ("**1. Discovered Labs**"), which answers use as a small heading.
+    const h = line.match(/^(#{1,6})\s+(.*)/) ?? line.match(/^\s*()\*\*([^*]+)\*\*:?\s*$/);
     if (h) {
+      const level = h[1].length || 4;
       blocks.push(
-        <p key={k} className={`font-medium text-ink ${h[1].length <= 2 ? "text-[16px]" : "text-[15px]"}`}>
-          {inline(h[2], k)}
+        <p key={k} role="heading" aria-level={Math.min(level + 1, 6)} className={`font-semibold tracking-[-0.01em] text-ink first:mt-0 ${level <= 2 ? "mt-4 text-[16px] leading-6" : level === 3 ? "mt-3 text-[15px] leading-6" : "mt-1 text-[14px]"}`}>
+          {inline(h[2].replace(/\*\*/g, ""), k)}
         </p>,
       );
       i++;
@@ -127,7 +131,7 @@ export function Markdown({ text }: { text: string }) {
       while (i < lines.length && /^\s*(?:[-*•]|\d+[.)])\s+/.test(lines[i])) items.push(lines[i++].replace(/^\s*(?:[-*•]|\d+[.)])\s+/, ""));
       const List = ordered ? "ol" : "ul";
       blocks.push(
-        <List key={k} className={`flex flex-col gap-1 pl-5 ${ordered ? "list-decimal" : "list-disc"}`}>
+        <List key={k} className={`flex flex-col gap-1.5 pl-5 marker:text-muted ${ordered ? "list-decimal" : "list-disc"}`}>
           {items.map((it, j) => (
             <li key={j}>{inline(it, `${k}i${j}`)}</li>
           ))}

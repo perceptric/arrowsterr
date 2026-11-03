@@ -25,8 +25,37 @@ export type PerceptionRead = {
 export const MIN_ANSWERS = 3; // fewer answers than this shows a dash
 export const WORD_COUNT = { good: 7, bad: 3 };
 
-/** Raise when the rules change, so recent runs are read again. */
-export const PERCEPTION_VERSION = 1;
+/**
+ * Raise when the rules change, so recent runs are read again. 2: version 1 saved nothing (its upsert named a partial
+ * index, which Postgres can't match), so every run is read again under new job keys.
+ */
+export const PERCEPTION_VERSION = 2;
+
+// ─────────────── saving reads ───────────────
+
+type SaveError = { message: string; code?: string } | null;
+const duplicate = (e: SaveError) => Boolean(e && (e.code === "23505" || /duplicate key/i.test(e.message)));
+
+/**
+ * Saves reads with plain inserts. A retried batch can hold rows saved the first time; the buyer index refuses those,
+ * so the batch is saved row by row and the repeats are skipped. Before 060_perception_category.sql the category
+ * column is missing, so rows are saved without it rather than stall.
+ */
+export async function insertReads(insert: (rows: Record<string, unknown>[]) => PromiseLike<{ error: SaveError }>, rows: Record<string, unknown>[]): Promise<void> {
+  if (!rows.length) return;
+  const put = async (list: Record<string, unknown>[]) => {
+    let { error } = await insert(list);
+    if (error && /category/.test(error.message)) ({ error } = await insert(list.map((r) => Object.fromEntries(Object.entries(r).filter(([k]) => k !== "category")))));
+    return error;
+  };
+  const error = await put(rows);
+  if (!error) return;
+  if (!duplicate(error)) throw new Error(error.message);
+  for (const r of rows) {
+    const e = await put([r]);
+    if (e && !duplicate(e)) throw new Error(e.message);
+  }
+}
 
 // ─────────────── brands in text ───────────────
 

@@ -4,9 +4,9 @@ import { askJson } from "./claude";
 import type { Chat } from "./chats";
 import { askPlain, availableEngines, type Engine } from "./engines";
 import { entitlement } from "./entitlements";
-import { finish, rateOk, retry, type Job } from "./jobs";
+import { enqueue, finish, rateOk, retry, type Job } from "./jobs";
 import { brandTerms } from "./parse";
-import { brandMatch, checkWords, cleanCategories, cleanCategory, cleanWordList, NOT_KNOWN, PERCEPTION_VERSION, type BrandMatch, type PerceptionSetup, type PerceptionWord, type WordHit } from "./perception";
+import { brandMatch, checkWords, cleanCategories, cleanCategory, cleanWordList, insertReads, NOT_KNOWN, PERCEPTION_VERSION, type BrandMatch, type PerceptionSetup, type PerceptionWord, type WordHit } from "./perception";
 
 // Perception (docs/perception.md): the word list, reading words from answers, and the weekly direct questions.
 
@@ -79,13 +79,8 @@ export async function setupFor(db: SupabaseClient, brandId: string): Promise<Per
   return setup;
 }
 
-/** Saves reads. Before 060_perception_category.sql the category column is missing, so save without it rather than stall. */
-async function saveReads(db: SupabaseClient, rows: Record<string, unknown>[], upsert: boolean) {
-  const write = (list: Record<string, unknown>[]) => (upsert ? db.from("perception_reads").upsert(list, { onConflict: "run_id,engine,prompt,named", ignoreDuplicates: true }) : db.from("perception_reads").insert(list));
-  let { error } = await write(rows);
-  if (error && /category/.test(error.message)) ({ error } = await write(rows.map((r) => Object.fromEntries(Object.entries(r).filter(([k]) => k !== "category")))));
-  if (error) throw new Error(error.message);
-}
+/** Saves reads (insertReads). Plain inserts: the buyer key is a partial index, which an upsert can't name. */
+const saveReads = (db: SupabaseClient, rows: Record<string, unknown>[]) => insertReads((list) => db.from("perception_reads").insert(list), rows);
 
 const topNames = (pairs: [string, number][], n: number) => {
   const sum = new Map<string, number>();
@@ -188,7 +183,7 @@ export async function perceptionRun(db: SupabaseClient, job: Job) {
   const rows: Record<string, unknown>[] = [];
   const save = async () => {
     if (!rows.length) return;
-    await saveReads(db, rows.splice(0), true);
+    await saveReads(db, rows.splice(0));
   };
   for (const [i, a] of list.entries()) {
     const named = matches.filter((m) => m.re.test(a.text)).map((m) => m.name);
@@ -205,6 +200,8 @@ export async function perceptionRun(db: SupabaseClient, job: Job) {
   // More answers left: come back for the next batch without using up an attempt.
   if (list.length === BATCH) return retry(job.id, "next batch", 1, { payload: { ...p, offset: offset + BATCH }, count: false });
   await db.from("runs").update({ perception_read: PERCEPTION_VERSION }).eq("id", run.id);
+  // A brand's first direct questions go out now, once, so its own words show before its weekly day. Free plans skip it.
+  await enqueue("perception_probe", { brandId: run.brand_id }, { workspaceId: run.workspace_id, key: `perception_probe:${run.brand_id}:first` }).catch(() => null);
   await finish(job.id);
 }
 
@@ -258,7 +255,7 @@ export async function perceptionProbe(db: SupabaseClient, job: Job) {
       rows.push({ workspace_id: brand.workspace_id, brand_id: brand.id, source: "direct", kind: q.kind, at, engine, prompt, named: target.name, words: read?.words ?? [], category: read?.category ?? null, unknown, answer: text.slice(0, 20000) });
     }
   }
-  if (rows.length) await saveReads(db, rows, false);
+  if (rows.length) await saveReads(db, rows);
   if (step + 1 < targets.length) return retry(job.id, "next brand", 1, { payload: { ...p, targets, step: step + 1 }, count: false });
   await finish(job.id);
 }
