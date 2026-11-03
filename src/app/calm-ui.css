@@ -1,0 +1,279 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   ARROWSTERR PRODUCT UI · v12, the calm look
+   Loaded after omni-ui.css. omni-ui.css still flattens every older layer (no
+   corners, no shadows); this file puts back calm corners and ring shadows,
+   part by part. The values follow Claritia's calm style (its docs/brand.md,
+   version 4, after zite.com): a light gray shell, a white page panel on a
+   ring shadow, a white header bar over a #fafafa work area, pill buttons, 6px
+   tags, 8px inputs, 12px cards, Inter for every word. Signal Blue #0943B0
+   takes the place of Claritia green as the one signal (about 5% of a view).
+   Class names are unchanged, so every screen and every word stays the same.
+
+   :is(.aw, #calm) lifts these rules over omni-ui.css's resets (an id inside
+   :is() counts as an id). No element has the id "calm".
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ─────────────── 1. Tokens ─────────────── */
+:root, [data-theme="light"] {
+  --bg-primary: #FFFFFF; --bg-secondary: #FAFAFA; --bg-tertiary: #F5F5F5; --bg-quaternary: #EDEDED;
+  --text-primary: #171717; --text-strong: #0F0F0F; --text-secondary: #737373; --text-tertiary: #A3A3A3; --text-light: #C4C4C4;
+  --text-sidebar: #333333;
+  --border-strong: #D4D4D4; --border-medium: #EBEBEB; --border-light: #F0F0F0;
+  --frame: #EBEBEB; --ink-2: #333333;
+  --accent-3: #F5F5F5; --accent-5: #D4D4D4; --accent-9: #333333; --accent-10: #1F1F1F; --accent-11: #0F0F0F;
+  --signal: #0943B0; --signal-ink: #0943B0; --signal-soft: #E8EEFA; --signal-rgb: 9 67 176;
+  --green-3: #E3F4EC; --green-11: #086444; --red-3: #FDECEA; --red-11: #B42318; --orange-3: #FDF0DC; --orange-11: #8A4B00;
+  --violet-3: #EFEAFD; --violet-11: #5B3CC4;
+  --shell: #F5F5F5; --shell-border: transparent; --card-border: transparent; --row-border: #EBEBEB;
+  --paper-deep: #F5F5F5; --on-primary: #FFFFFF;
+  --ring: 0 0 0;
+}
+[data-theme="dark"] {
+  --bg-primary: #1F1F1D; --bg-secondary: #1A1A18; --bg-tertiary: #262624; --bg-quaternary: #2C2C29;
+  --text-primary: #E8E8E3; --text-strong: #F5F5F0; --text-secondary: #9A9A95; --text-tertiary: #6B6B67; --text-light: #4A4A47;
+  --text-sidebar: #D9D9D4;
+  --border-strong: #3D3D39; --border-medium: #2C2C29; --border-light: #262624;
+  --frame: #2C2C29; --ink-2: #D9D9D4;
+  --accent-3: #262624; --accent-5: #3D3D39; --accent-9: #F5F5F0; --accent-10: #E8E8E3; --accent-11: #F5F5F0;
+  --signal: #6E95E6; --signal-ink: #9DB6F0; --signal-soft: #17223A; --signal-rgb: 110 149 230;
+  --green-3: #12301F; --green-11: #5FC79A; --red-3: #331614; --red-11: #FF8A80; --orange-3: #2E2210; --orange-11: #F0B35C;
+  --violet-3: #241C3D; --violet-11: #B8A6F5;
+  --shell: #161614; --shell-border: transparent; --card-border: transparent; --row-border: #2C2C29;
+  --paper-deep: #161614; --on-primary: #171717;
+  --ring: 0 0 0;
+}
+:root {
+  /* Corners: pills for buttons and chips, 6px tags, 8px inputs and tabs, 12px cards, 16px dialogs. */
+  --radius-xs: 4px; --radius-sm: 6px; --radius-md: 8px; --radius-lg: 10px; --radius-xl: 12px; --radius-2xl: 16px; --radius-3xl: 20px; --radius-xxl: 16px; --radius-pill: 9999px;
+  --radius: 8px;
+  /* Ring shadows in place of borders. */
+  --shadow-rest: 0 4px 4px -12px rgb(var(--ring) / .02), 0 12px 12px -6px rgb(var(--ring) / .02), 0 6px 6px -3px rgb(var(--ring) / .02), 0 3px 3px -1.5px rgb(var(--ring) / .02), 0 1px 1px -.5px rgb(var(--ring) / .04), 0 0 0 1px rgb(var(--ring) / .06);
+  --shadow-hover: 0 24px 24px -12px rgb(var(--ring) / .04), 0 12px 12px -6px rgb(var(--ring) / .02), 0 6px 6px -3px rgb(var(--ring) / .04), 0 3px 3px -1.5px rgb(var(--ring) / .08), 0 1px 1px -.5px rgb(var(--ring) / .08), 0 0 0 1px rgb(var(--ring) / .08);
+  --shadow-chip: 0 1px 2px rgb(var(--ring) / .08), 0 0 0 1px rgb(var(--ring) / .06);
+  --shadow-outline: 0 0 0 1px rgb(var(--ring) / .1), 0 1px 3px rgb(var(--ring) / .16);
+  --shadow-primary: 0 0 0 1px rgb(var(--ring) / .8), 0 1px 3px rgb(var(--ring) / .4), 1px 4px 8px rgb(var(--ring) / .12);
+  --shadow-input: 0 0 0 1px rgb(var(--ring) / .1), 0 1px 3px rgb(var(--ring) / .16);
+  --shadow-input-hover: 0 0 0 1px rgb(var(--ring) / .18), 0 1px 3px rgb(var(--ring) / .16);
+  --shadow-focus: 0 0 0 1px var(--signal), 0 1px 3px rgb(var(--ring) / .16), 0 0 0 3px rgb(var(--signal-rgb) / .18);
+  --shadow-menu: 0 12px 32px -6px rgb(var(--ring) / .12), 0 0 0 1px rgb(111 107 107 / .1), 0 1px 3px rgb(63 70 75 / .1);
+  --shadow-modal: 0 0 0 1px rgb(var(--ring) / .04), 0 1px 1px -.5px rgb(var(--ring) / .04), 0 6px 6px -3px rgb(var(--ring) / .04), 0 12px 12px -6px rgb(var(--ring) / .03), 0 24px 24px -12px rgb(var(--ring) / .02), 0 32px 64px -16px rgb(var(--ring) / .18);
+  --shadow-strong: var(--shadow-menu); --card-lift: var(--shadow-rest);
+  --ease-out: cubic-bezier(.22, 1, .36, 1); --ease-calm: cubic-bezier(.4, 0, .2, 1);
+  --t-fast: 150ms; --t-normal: 280ms; --t-slow: 380ms;
+}
+[data-theme="dark"] {
+  --shadow-rest: 0 0 0 1px rgb(255 255 255 / .06), 0 1px 2px rgb(0 0 0 / .4);
+  --shadow-hover: 0 0 0 1px rgb(255 255 255 / .1), 0 8px 24px -8px rgb(0 0 0 / .6);
+  --shadow-chip: 0 0 0 1px rgb(255 255 255 / .08), 0 1px 2px rgb(0 0 0 / .4);
+  --shadow-outline: 0 0 0 1px rgb(255 255 255 / .1), 0 1px 3px rgb(0 0 0 / .5);
+  --shadow-primary: 0 0 0 1px rgb(255 255 255 / .2), 0 1px 3px rgb(0 0 0 / .5);
+  --shadow-input: 0 0 0 1px rgb(255 255 255 / .1), 0 1px 3px rgb(0 0 0 / .5);
+  --shadow-input-hover: 0 0 0 1px rgb(255 255 255 / .18), 0 1px 3px rgb(0 0 0 / .5);
+  --shadow-menu: 0 0 0 1px rgb(255 255 255 / .08), 0 16px 40px -8px rgb(0 0 0 / .7);
+  --shadow-modal: 0 0 0 1px rgb(255 255 255 / .08), 0 32px 64px -16px rgb(0 0 0 / .8);
+}
+:root :is(.aw, #calm) {
+  --aw-paper: var(--bg-primary); --aw-surface: var(--bg-primary); --aw-surface-2: var(--bg-tertiary);
+  --aw-r-xs: 4px; --aw-r-sm: 6px; --aw-r-md: 8px; --aw-r-lg: 12px; --aw-r-pill: 9999px;
+  --aw-shadow-xs: var(--shadow-chip); --aw-shadow-sm: var(--shadow-rest); --aw-shadow-md: var(--shadow-menu); --aw-shadow-lg: var(--shadow-modal); --aw-shadow-control: var(--shadow-outline);
+  --btn-radius: 9999px;
+  --focus-ring: var(--shadow-focus);
+  /* Inter for every word, headings included. */
+  --aw-display: var(--aw-font);
+  font-size: 13.5px;
+  line-height: 20px;
+  letter-spacing: -0.006em;
+}
+html, body { background: var(--paper-deep) !important; }
+:root :is(.aw, #calm) { background: var(--paper-deep) !important; }
+:root :is(.aw, #calm) ::selection { background: var(--signal-soft); color: var(--text-strong); }
+:root :is(.aw, #calm) :focus-visible { outline: 2px solid rgb(var(--signal-rgb) / .55) !important; outline-offset: 2px !important; }
+:root :is(.aw, #calm) input[type="checkbox"], :root :is(.aw, #calm) input[type="radio"], :root :is(.aw, #calm) progress { accent-color: var(--signal); }
+
+/* Tailwind's corner classes get their calm values back (omni-ui.css squares everything). */
+:root :is(.aw, #calm) .rounded-sm { border-radius: 6px !important; }
+:root :is(.aw, #calm) :is(.rounded, .rounded-md) { border-radius: 8px !important; }
+:root :is(.aw, #calm) .rounded-lg { border-radius: 10px !important; }
+:root :is(.aw, #calm) .rounded-xl { border-radius: 12px !important; }
+:root :is(.aw, #calm) .rounded-2xl { border-radius: 16px !important; }
+:root :is(.aw, #calm) .rounded-full { border-radius: 9999px !important; }
+:root :is(.aw, #calm) .rounded-\[6px\] { border-radius: 6px !important; }
+
+/* ─────────────── 2. Type ─────────────── */
+:root :is(.aw, #calm) :is(.aw-hero, .aw-display, .aw-h2, .aw-intro__title, .aw-onb__title) { font-family: var(--aw-font) !important; }
+:root :is(.aw, #calm) :is(.aw-h1, .aw-h2, .tw-modal__title, .tw-side-panel__title h2) { letter-spacing: -0.01em !important; }
+:root :is(.aw, #calm) h1.aw-h2 { letter-spacing: -0.035em !important; }
+:root :is(.aw, #calm) :is(.aw-stat__num, .aw-kpi__num) { font-size: 22px !important; line-height: 28px !important; font-weight: 500 !important; letter-spacing: -0.02em !important; }
+:root :is(.aw, #calm) .aw-nav-section { font-size: 12px !important; font-weight: 500 !important; color: var(--text-tertiary) !important; }
+/* Section labels lose their brackets: plain words in the calm style. */
+:root :is(.aw, #calm) .aw-nav-section > :first-child::before, :root :is(.aw, #calm) .aw-nav-section:not(:has(> *))::before,
+:root :is(.aw, #calm) .aw-nav-section > :first-child::after, :root :is(.aw, #calm) .aw-nav-section:not(:has(> *))::after { content: none !important; }
+
+/* ─────────────── 3. App shell ───────────────
+   A light gray shell holds the side rail and the page panel. The panel sits 8px from the edges on 12px corners and a
+   ring shadow; its header bar is white and the work area under it is #fafafa, so cards read as white on light gray. */
+:root :is(.aw, #calm) :is(.aw-sidebar, .aw-rail) { background: transparent !important; border: 0 !important; }
+:root :is(.aw, #calm) :is(.aw-sidebar > div:first-child) { border-bottom: 0 !important; }
+:root :is(.aw, #calm) :is(.aw-nav-link, .aw-mod, .aw-mod--sm, .aw-mod__item) {
+  height: 32px !important; min-height: 32px !important; border-radius: 8px !important; font-weight: 450 !important; color: var(--text-sidebar) !important;
+  transition: background-color var(--t-fast) var(--ease-calm), color var(--t-fast) var(--ease-calm), box-shadow var(--t-fast) var(--ease-calm) !important;
+}
+:root :is(.aw, #calm) :is(.aw-nav-link, .aw-mod, .aw-mod__item):hover { background: rgb(0 0 0 / .04) !important; color: var(--text-strong) !important; }
+:root :is(.aw, #calm) :is(.aw-nav-link.is-on, .aw-nav-link[aria-current="page"], .aw-mod.is-on, .aw-mod--sm.is-on, .aw-mod__item.is-on),
+:root :is(.aw, #calm) :is(.aw-nav-link.is-on, .aw-nav-link[aria-current="page"]):hover {
+  background: var(--bg-primary) !important; color: var(--text-strong) !important; font-weight: 500 !important; box-shadow: var(--shadow-chip) !important;
+}
+:root :is(.aw, #calm) :is(.aw-nav-link, .aw-mod, .aw-mod__item) .aw-nav__icon { color: var(--text-secondary) !important; }
+:root :is(.aw, #calm) :is(.aw-nav-link.is-on, .aw-nav-link[aria-current="page"], .aw-mod.is-on, .aw-mod__item.is-on) .aw-nav__icon { color: var(--signal) !important; }
+:root :is(.aw, #calm) .aw-rail__btn { border-radius: 8px !important; }
+:root :is(.aw, #calm) .aw-rail__btn.is-on { background: var(--bg-primary) !important; box-shadow: var(--shadow-chip) !important; color: var(--signal) !important; }
+:root :is(.aw, #calm) :is(.aw-ws-switch, .aw-taskbar) { border-radius: 8px !important; }
+:root :is(.aw, #calm) :is(.aw-ws-switch, .aw-taskbar):hover { background: rgb(0 0 0 / .04) !important; }
+
+/* The page panel: the column that holds the header bar and the page body. */
+@media (min-width: 768px) {
+  :root :is(.aw, #calm) div:has(> .aw-page-body) {
+    margin: 8px 8px 8px 0 !important; padding: 0 !important; min-height: calc(100vh - 16px);
+    background: var(--bg-secondary) !important; border-radius: 12px !important; box-shadow: var(--shadow-rest) !important; overflow: clip;
+  }
+}
+:root :is(.aw, #calm) .aw-page-head { background: var(--bg-primary) !important; border-bottom: 1px solid var(--border-medium) !important; padding-left: 16px !important; padding-right: 16px !important; }
+:root :is(.aw, #calm) .aw-page-title { font-size: 15px !important; font-weight: 500 !important; letter-spacing: -0.01em !important; color: var(--text-strong) !important; }
+:root :is(.aw, #calm) .aw-page-title__group { color: var(--text-secondary) !important; }
+:root :is(.aw, #calm) .aw-page-body, :root :is(.aw, #calm) .aw-page-body:is(*) { background: var(--bg-secondary) !important; }
+
+/* ─────────────── 4. Buttons: pills on ring shadows ─────────────── */
+:root :is(.aw, #calm) :is(.aw-btn, .tw-btn) {
+  border-radius: 9999px !important; border-color: transparent !important; font-size: 13px !important; font-weight: 500 !important;
+  transition: transform var(--t-fast) var(--ease-calm), background-color var(--t-fast) var(--ease-calm), box-shadow var(--t-fast) var(--ease-calm) !important;
+}
+:root :is(.aw, #calm) :is(.aw-btn, .tw-btn, .aw-iconbtn, .aw-icon-btn, .aw-ctl):active { transform: translateY(1px); }
+:root :is(.aw, #calm) :is(.aw-btn--primary, .aw-btn--accent, .aw-btn--brand, .aw-btn--dark), :root :is(.aw, #calm) a:is(.aw-btn--primary, .aw-btn--accent, .aw-btn--brand):is(:link, :visited) {
+  background: var(--accent-9) !important; color: var(--on-primary) !important; border-color: transparent !important; box-shadow: var(--shadow-primary) !important;
+}
+:root :is(.aw, #calm) :is(.aw-btn--primary, .aw-btn--accent, .aw-btn--brand, .aw-btn--dark):hover { background: var(--accent-10) !important; border-color: transparent !important; }
+:root :is(.aw, #calm) :is(.aw-btn--secondary, .aw-ctl, .aw-try, .aw-viewbtn), :root :is(.aw, #calm) a.aw-btn--secondary:is(:link, :visited) {
+  background: var(--bg-primary) !important; border-color: transparent !important; color: var(--ink-2) !important; box-shadow: var(--shadow-outline) !important; border-radius: 9999px !important;
+}
+:root :is(.aw, #calm) :is(.aw-btn--secondary, .aw-ctl, .aw-try, .aw-viewbtn):hover { background: var(--bg-secondary) !important; box-shadow: var(--shadow-input-hover) !important; }
+:root :is(.aw, #calm) :is(.aw-btn--ghost, .aw-btn--tertiary, .aw-btn--text) { background: transparent !important; box-shadow: none !important; color: var(--ink-2) !important; }
+:root :is(.aw, #calm) :is(.aw-btn--ghost, .aw-btn--tertiary, .aw-btn--text):hover { background: rgb(0 0 0 / .04) !important; color: var(--text-strong) !important; }
+:root :is(.aw, #calm) :is(.aw-btn--danger, .tw-btn--danger) { background: var(--bg-primary) !important; color: var(--red-11) !important; border-color: transparent !important; box-shadow: var(--shadow-outline) !important; }
+:root :is(.aw, #calm) :is(.aw-btn--danger, .tw-btn--danger):hover { background: var(--red-3) !important; }
+:root :is(.aw, #calm) .aw-btn:is(:disabled, [aria-disabled="true"]), :root :is(.aw, #calm) .aw-btn:is(:disabled, [aria-disabled="true"]):hover {
+  opacity: .5 !important; background: var(--bg-primary) !important; color: var(--text-tertiary) !important; box-shadow: var(--shadow-chip) !important; transform: none;
+}
+:root :is(.aw, #calm) :is(.aw-iconbtn, .aw-icon-btn, .zp-icon-btn) { border-radius: 9999px !important; color: var(--text-secondary) !important; }
+:root :is(.aw, #calm) :is(.aw-iconbtn, .aw-icon-btn, .zp-icon-btn):hover { background: rgb(0 0 0 / .05) !important; color: var(--text-strong) !important; }
+:root :is(.aw, #calm) :is(.aw-btn, .aw-ctl, .tw-btn):focus-visible { outline: none !important; box-shadow: var(--shadow-focus) !important; }
+
+/* ─────────────── 5. Fields: 8px corners on an input ring ─────────────── */
+:root :is(.aw, #calm) :is(.aw-input, .aw-textarea, .aw-select, .aw-dropdown, .aw-dropdown--field, .aw-pop__field),
+:root :is(.aw, #calm) input:is([type="text"], [type="email"], [type="url"], [type="search"], [type="password"], [type="number"], [type="tel"], [type="date"], [type="time"], :not([type])):not(.aw-sheet__input):not(.aw-docs__title):not(.tw-bare),
+:root :is(.aw, #calm) textarea:not(.aw-sheet__input):not(.tw-bare) {
+  background-color: var(--bg-primary) !important; border: 1px solid transparent !important; border-radius: 8px !important; box-shadow: var(--shadow-input) !important;
+  transition: box-shadow var(--t-fast) var(--ease-calm) !important;
+}
+:root :is(.aw, #calm) :is(.aw-input, .aw-textarea, .aw-select, .aw-dropdown, .aw-dropdown--field, .aw-pop__field, input, textarea):hover:not(:disabled) { border-color: transparent !important; box-shadow: var(--shadow-input-hover) !important; }
+:root :is(.aw, #calm) :is(.aw-input, .aw-textarea, .aw-select, .aw-dropdown, .aw-dropdown--field, .aw-pop__field, input, textarea):focus,
+:root :is(.aw, #calm) :is(.aw-input, .aw-textarea, .aw-select, input, textarea):focus-visible {
+  border-color: transparent !important; outline: none !important; box-shadow: var(--shadow-focus) !important;
+}
+:root :is(.aw, #calm) :is(input[type="checkbox"], input[type="radio"]) { box-shadow: none !important; }
+:root :is(.aw, #calm) input[type="checkbox"] { border-radius: 4px !important; }
+:root :is(.aw, #calm) input[type="radio"] { border-radius: 9999px !important; }
+:root :is(.aw, #calm) .aw-dropdown.aw-dropdown--bare, :root :is(.aw, #calm) .aw-dropdown.aw-dropdown--bare:hover:not(:disabled) { box-shadow: none !important; }
+
+/* ─────────────── 6. Tags: 6px, a soft fill and deep text, no frame ─────────────── */
+:root :is(.aw, #calm) :is(.aw-chip, .aw-status, .aw-sbadge, .aw-badge, .aw-tag, .aw-pill, .aw-pri, .aw-engine, .tw-tag, .aw-stat__delta) {
+  border-radius: 6px !important; border-color: transparent !important; background: var(--bg-quaternary) !important; color: var(--ink-2) !important; font-weight: 500 !important;
+}
+:root :is(.aw, #calm) :is(.aw-status--ranked, .aw-sbadge--success, .tw-tag--green, .aw-stat__delta:not(.aw-stat__delta--down):not(.aw-stat__delta--flat)) { background: var(--green-3) !important; color: var(--green-11) !important; }
+:root :is(.aw, #calm) :is(.aw-status--missed, .aw-sbadge--danger, .tw-tag--red, .aw-stat__delta--down) { background: var(--red-3) !important; color: var(--red-11) !important; }
+:root :is(.aw, #calm) :is(.aw-status--warn, .aw-sbadge--warning, .tw-tag--orange) { background: var(--orange-3) !important; color: var(--orange-11) !important; }
+/* "You" marks your brand: Signal Blue. */
+:root :is(.aw, #calm) :is(.aw-badge, .aw-chip--brand, .aw-pill.is-on) { background: var(--signal-soft) !important; color: var(--signal-ink) !important; }
+/* Chips you can press are small pills on a chip ring. */
+:root :is(.aw, #calm) .aw-chip.aw-chip--btn { border-radius: 9999px !important; background: var(--bg-primary) !important; color: var(--ink-2) !important; box-shadow: var(--shadow-chip) !important; }
+:root :is(.aw, #calm) .aw-chip.aw-chip--btn:hover { background: var(--bg-secondary) !important; }
+:root :is(.aw, #calm) .aw-chip.aw-chip--btn:is([aria-pressed="true"], .is-on) { background: var(--signal-soft) !important; color: var(--signal-ink) !important; box-shadow: 0 0 0 1px rgb(var(--signal-rgb) / .18) !important; }
+:root :is(.aw, #calm) .aw-chip.aw-chip--btn.aw-chip--quiet { background: transparent !important; box-shadow: none !important; color: var(--text-secondary) !important; }
+:root :is(.aw, #calm) .aw-chip.aw-chip--btn.aw-chip--quiet:hover, :root :is(.aw, #calm) .aw-chip.aw-chip--btn.aw-chip--quiet.is-on { background: rgb(0 0 0 / .04) !important; color: var(--text-strong) !important; }
+:root :is(.aw, #calm) .aw-cite { border-radius: 6px !important; border-color: transparent !important; background: var(--bg-quaternary) !important; }
+
+/* ─────────────── 7. Cards, stats, tables: white on 12px corners and a ring shadow, hairlines inside ─────────────── */
+:root :is(.aw, #calm) :is(.aw-frame, .aw-table-wrap, .aw-kpi, .aw-card-stat, .aw-card, .aw-tile, .aw-module, .aw-run) {
+  background: var(--bg-primary) !important; border-color: transparent !important; border-radius: 12px !important; box-shadow: var(--shadow-rest) !important; overflow: clip;
+}
+:root :is(.aw, #calm) :is(.aw-card, .aw-tile, .aw-module, .aw-run):is(button, a):hover { box-shadow: var(--shadow-hover) !important; }
+/* A card inside a card is a quiet well. */
+:root :is(.aw, #calm) :is(.aw-frame, .aw-card, .aw-module) :is(.aw-frame, .aw-table-wrap, .aw-card, .aw-tile) { box-shadow: 0 0 0 1px var(--border-medium) !important; border-radius: 10px !important; }
+:root :is(.aw, #calm) .aw-frame__body--flush .aw-table-wrap, :root :is(.aw, #calm) .aw-frame > .aw-table-wrap { box-shadow: none !important; border-radius: 0 !important; }
+:root :is(.aw, #calm) .aw-frame__head { background: var(--bg-primary) !important; border-bottom: 1px solid var(--border-medium) !important; font-size: 15px !important; font-weight: 500 !important; letter-spacing: -0.01em; color: var(--text-strong) !important; }
+:root :is(.aw, #calm) .aw-frame__head :is(.aw-h4, h2, h3) { font-size: 15px !important; font-weight: 500 !important; letter-spacing: -0.01em !important; }
+:root :is(.aw, #calm) .aw-stats { border-radius: 12px !important; border-color: transparent !important; box-shadow: var(--shadow-rest) !important; overflow: clip; }
+:root :is(.aw, #calm) .aw-callout { border-radius: 10px !important; border-color: transparent !important; background: var(--bg-tertiary) !important; box-shadow: 0 0 0 1px var(--border-medium) !important; }
+:root :is(.aw, #calm) .aw-callout--warn { background: var(--orange-3) !important; box-shadow: none !important; }
+:root :is(.aw, #calm) :is(.aw-callout--error, .aw-callout--danger) { background: var(--red-3) !important; box-shadow: none !important; }
+:root :is(.aw, #calm) table:not(.aw-sheet table) th { font-size: 13px !important; font-weight: 500 !important; color: var(--text-strong) !important; border-bottom: 1px solid var(--border-medium) !important; }
+:root :is(.aw, #calm) table:not(.aw-sheet table) td { border-bottom: 1px solid var(--border-medium) !important; color: var(--text-primary); }
+:root :is(.aw, #calm) table:not(.aw-sheet table) tbody tr:hover > td { background: var(--bg-secondary) !important; }
+:root :is(.aw, #calm) :is(.aw-meter, .aw-bar, .aw-progress) { border-radius: 9999px !important; background: var(--bg-quaternary) !important; overflow: hidden; }
+:root :is(.aw, #calm) :is(.aw-meter, .aw-bar, .aw-progress) > * { border-radius: 9999px !important; }
+
+/* ─────────────── 8. Switches ───────────────
+   A view switch (Seg, picks) is a gray pill track with a white thumb. Tab rows (aw-tabs) are small chips; the open one
+   is Signal Blue on its soft fill. */
+:root :is(.aw, #calm) :is(.aw-seg, .aw-pick) {
+  gap: 2px !important; padding: 2px !important; border: 0 !important; border-radius: 9999px !important; background: var(--bg-quaternary) !important; box-shadow: none !important;
+}
+:root :is(.aw, #calm) :is(.aw-seg, .aw-pick) > button, :root :is(.aw, #calm) .aw-seg button {
+  height: 28px !important; min-height: 28px !important; border-radius: 9999px !important; border: 0 !important; color: var(--text-secondary) !important; background: transparent !important; font-weight: 500 !important;
+}
+:root :is(.aw, #calm) :is(.aw-seg, .aw-pick) > button:hover { color: var(--text-strong) !important; }
+:root :is(.aw, #calm) :is(.aw-seg, .aw-pick) > :is(button.is-on, button[aria-selected="true"], button[aria-checked="true"], button[aria-pressed="true"]),
+:root :is(.aw, #calm) .aw-seg button.is-on {
+  background: var(--bg-primary) !important; color: var(--text-strong) !important; box-shadow: var(--shadow-chip) !important;
+}
+:root :is(.aw, #calm) .aw-tabs { gap: 6px !important; padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; height: auto !important; }
+:root :is(.aw, #calm) .aw-tabs > button {
+  height: 28px !important; min-height: 28px !important; padding: 0 10px !important; border: 0 !important; border-radius: 8px !important; font-size: 13px !important; font-weight: 500 !important;
+  color: var(--ink-2) !important; background: var(--bg-primary) !important; box-shadow: var(--shadow-chip) !important;
+}
+:root :is(.aw, #calm) .aw-tabs > button + button { border-left: 0 !important; }
+:root :is(.aw, #calm) .aw-tabs > button:hover { background: var(--bg-secondary) !important; }
+:root :is(.aw, #calm) .aw-tabs > :is(button.is-on, button[aria-selected="true"], button[aria-checked="true"]) {
+  background: var(--signal-soft) !important; color: var(--signal-ink) !important; box-shadow: 0 0 0 1px rgb(var(--signal-rgb) / .18) !important;
+}
+:root :is(.aw, #calm) .aw-tabs--lg > button { height: 32px !important; min-height: 32px !important; }
+
+/* ─────────────── 9. Floating layer ─────────────── */
+:root :is(.aw, #calm) :is(.aw-pop, .aw-menu, .aw-popover, .aw-toast, .aw-undo) { background: var(--bg-primary) !important; border-color: transparent !important; border-radius: 12px !important; box-shadow: var(--shadow-menu) !important; }
+:root :is(.aw, #calm) :is(.aw-pop__item, .aw-pop__opt) { border-radius: 8px !important; }
+:root :is(.aw, #calm) :is(.aw-pop__item, .aw-pop__opt):hover { background: var(--bg-tertiary) !important; }
+:root :is(.aw, #calm) :is(.tw-modal, .aw-dialog) { background: var(--bg-primary) !important; border-color: transparent !important; border-radius: 16px !important; box-shadow: var(--shadow-modal) !important; }
+:root :is(.aw, #calm) :is(.tw-side-panel, .aw-side-panel) { background: var(--bg-primary) !important; border-color: transparent !important; box-shadow: var(--shadow-modal) !important; }
+@media (min-width: 768px) {
+  :root :is(.aw, #calm) .tw-side-panel { margin: 8px !important; height: calc(100% - 16px) !important; border-radius: 16px !important; }
+}
+:root :is(.aw, #calm) :is(.aw-tip, .aw-tooltip, [role="tooltip"]) { background: var(--accent-9) !important; color: var(--on-primary) !important; border-radius: 6px !important; }
+:root :is(.aw, #calm) :is(.tw-overlay, .tw-side-overlay) { background: rgb(0 0 0 / .18) !important; }
+
+/* ─────────────── 10. Tool intros ─────────────── */
+:root :is(.aw, #calm) .aw-intro__title { letter-spacing: -0.035em !important; }
+:root :is(.aw, #calm) .aw-intro__card { background: var(--bg-primary) !important; border-color: transparent !important; border-radius: 12px !important; box-shadow: var(--shadow-rest) !important; overflow: clip; }
+:root :is(.aw, #calm) .aw-intro__vis { background: var(--bg-secondary) !important; border-bottom: 1px solid var(--border-medium) !important; }
+:root :is(.aw, #calm) .aw-think__icon { border-color: transparent !important; border-radius: 12px !important; background: var(--signal-soft) !important; box-shadow: var(--shadow-chip) !important; }
+:root :is(.aw, #calm) .aw-think__icon svg { fill: var(--signal) !important; }
+:root :is(.aw, #calm) .aw-think__bar::after { background: var(--signal) !important; }
+
+/* ─────────────── 11. Brand Kit editor ─────────────── */
+:root :is(.aw, #calm) .aw-kit__color { border-color: transparent !important; border-radius: 8px !important; box-shadow: var(--shadow-input) !important; }
+:root :is(.aw, #calm) .aw-kit__color:hover { box-shadow: var(--shadow-input-hover) !important; }
+:root :is(.aw, #calm) .aw-kit__color input[type="color"], :root :is(.aw, #calm) .aw-kit__color input[type="color"]::-webkit-color-swatch { border-radius: 6px !important; }
+:root :is(.aw, #calm) .aw-kit__save { border-top: 1px solid var(--border-medium) !important; background: var(--bg-secondary) !important; }
+
+/* ─────────────── 12. Motion ─────────────── */
+@media (prefers-reduced-motion: reduce) {
+  :root :is(.aw, #calm) *, :root :is(.aw, #calm) *::before, :root :is(.aw, #calm) *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}

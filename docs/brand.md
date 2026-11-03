@@ -1,5 +1,7 @@
 # Arrowsterr brand (v5)
 
+> **v8, 3 November 2026: the calm look.** The app follows Claritia's calm style (its `docs/brand.md`, version 4, after zite.com): a light gray shell, a white page panel on a ring shadow, a white header bar over a #fafafa work area, pill buttons, 6px tags, 8px inputs, 12px cards and Inter for every word. Signal Blue #0943B0 is the one signal: the open menu item, the open tab, your brand and focus. Values live in `src/app/calm-ui.css`, loaded after `omni-ui.css`, which still flattens the older layers. Class names and copy are unchanged. Cost: $0 at Beta (50 teams) and $0 at Growth (500 teams), since it is a static stylesheet. Where v8 and the rules below disagree, v8 wins.
+
 > **v7, 30 October 2026: the framed look.** The app now follows the Omniscient house style: black and white, square and framed, Inter at 13px, a 1px black frame on cards, buttons, filters and menus, and no shadows, gradients or round corners. Black is the action color. Signal Blue marks your own brand ("You" and your chart series). Values live in `src/app/omni-ui.css`, loaded last. Plan and cost: `docs/ui-framed.md`. Where v7 and the rules below disagree, v7 wins.
 
 > **v6, 28 October 2026: the Brew look.** Type, neutrals, corners and buttons now follow brew.new. Signal Blue `#0943B0` stays the brand colour. Where v6 and the rules below disagree, v6 wins.
