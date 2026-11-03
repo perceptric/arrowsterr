@@ -30,7 +30,7 @@ import { StopButton, stopped } from "./research/shared";
 import { ENGINE_LOGOS, EngineName } from "./Engines";
 import { Markdown } from "./Markdown";
 import { cleanAnswer } from "@/lib/answerText";
-import { isGenericTitle, siteName } from "@/lib/linkTitles";
+import { homeOf, hostOf, isGenericTitle, nameFromTitle, siteName } from "@/lib/linkTitles";
 import { Card, Empty, favicon, pct, Seg, SidePanel, sortRows, SortTh, Tip, TIPS, useSort } from "./ui";
 
 export const TYPE_COLORS: Record<SourceType, string> = {
@@ -77,10 +77,19 @@ const pageTitle = (title: string | null, url: string) => {
 };
 /** Real page titles, read on the server for links whose engine label says nothing. "" when a page couldn't be read. */
 const TitlesCtx = createContext<Record<string, string>>({});
+/** Brand names by domain, from the AI answers ("revenuezen.com" is RevenueZen). */
+const NamesCtx = createContext<Record<string, string>>({});
 
-/** What a cited link is called on screen: its own title, or the page's real title when the engines only said "Official website". */
-const shownTitle = (title: string | null, url: string, fetched: Record<string, string>) =>
-  isGenericTitle(title, url) ? fetched[url] || siteName(url) : pageTitle(title, url);
+/**
+ * What a cited link is called on screen: its own title, or the page's real title when the engines only said
+ * "Official website". A page that can't be read shows the brand the answers tie to its domain, and only then the domain.
+ */
+const shownTitle = (title: string | null, url: string, fetched: Record<string, string>, names: Record<string, string> = {}) =>
+  isGenericTitle(title, url) ? fetched[url] || names[hostOf(url)] || siteName(url) : pageTitle(title, url);
+
+/** A site's own name: the brand the answers tie to it, or the name in its home page title. "" when neither is known. */
+const siteLabel = (domain: string, fetched: Record<string, string>, names: Record<string, string>) =>
+  names[domain.replace(/^www\./, "")] || nameFromTitle(fetched[homeOf(domain)]);
 
 /** Asks the server for real titles of the links on screen that need one. Draws nothing. */
 function TitleLoader({ urls, reader, onTitles }: { urls: string[]; reader: RunAuth; onTitles: (t: Record<string, string>) => void }) {
@@ -176,6 +185,12 @@ export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseCli
   const chats = answered(current, filter);
   if (!chats.length) return <Empty>No results in the last {days} days yet. They show up after the first check finishes, then update every day.</Empty>;
   const stats = brandStats(chats, { name: brand.name, domain: brand.domain });
+  // The most named brand for each domain, so a site shows its name instead of its address.
+  const names: Record<string, string> = {};
+  for (const st of stats) {
+    const d = (st.domain ?? "").replace(/^www\./, "").toLowerCase();
+    if (d && !names[d]) names[d] = st.name;
+  }
   const comp = competitorDomains(stats);
   const domains = domainRows(chats, brand.domain, comp);
   const urls = urlRows(chats, brand.domain, comp);
@@ -278,7 +293,14 @@ export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseCli
                         <td>
                           <span className="flex items-center gap-2.5">
                             <BrandLogo src={favicon(g.domain)} name={g.domain} size={20} />
-                            <span className="font-medium text-ink">{g.domain}</span>
+                            {siteLabel(g.domain, fetched, names) ? (
+                              <span className="flex min-w-0 flex-col">
+                                <span className="truncate font-medium text-ink">{siteLabel(g.domain, fetched, names)}</span>
+                                <span className="truncate text-[12px] text-muted">{g.domain}</span>
+                              </span>
+                            ) : (
+                              <span className="font-medium text-ink">{g.domain}</span>
+                            )}
                             {g.type === "Competitor" ? <TypeTag type="Competitor" /> : null}
                           </span>
                         </td>
@@ -335,7 +357,7 @@ export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseCli
                 </tr>
               </thead>
               <tbody>
-                {sortRows(links.slice(0, 300), linkSort, { title: (u) => shownTitle(u.title, u.url, fetched), used: (u) => u.used, chats: (u) => u.chats, prompts: (u) => u.prompts.length })
+                {sortRows(links.slice(0, 300), linkSort, { title: (u) => shownTitle(u.title, u.url, fetched, names), used: (u) => u.used, chats: (u) => u.chats, prompts: (u) => u.prompts.length })
                   .slice(0, max)
                   .map((u, i) => (
                   <LinkRow key={u.url} u={u} n={i + 1} note={notes.get(pageKey(u.url))} ai={aiPages && group === "owned" ? aiVisitsOf(u.url) : undefined} onOpen={() => setDeep(u)} />
@@ -344,14 +366,18 @@ export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseCli
             </table>
           );
 
-  const needTitles = links
-    .slice(0, 120)
-    .filter((u) => isGenericTitle(u.title, u.url) && !(u.url in fetched))
-    .map((u) => u.url)
+  // Links whose label says nothing, then the home pages of sites the answers don't name, so each shows a real name.
+  // A title that came back empty is asked once more on the next visit (the server keeps misses for a day only).
+  const needTitles = [
+    ...links.filter((u) => isGenericTitle(u.title, u.url)).slice(0, 120).map((u) => u.url),
+    ...sites.filter((g) => !names[g.domain.replace(/^www\./, "")]).slice(0, 40).map((g) => homeOf(g.domain)),
+  ]
+    .filter((u, i, all) => !fetched[u] && all.indexOf(u) === i)
     .slice(0, 60);
 
   return (
     <TitlesCtx.Provider value={fetched}>
+    <NamesCtx.Provider value={names}>
     <TitleLoader urls={needTitles} reader={reader} onTitles={(t) => setFetched((x) => ({ ...x, ...t }))} />
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -527,6 +553,7 @@ export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseCli
         </div>
       </Card>
     </div>
+    </NamesCtx.Provider>
     </TitlesCtx.Provider>
   );
 }
@@ -534,13 +561,14 @@ export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseCli
 /** One cited link: title, address, share of answers and prompts. */
 function LinkRow({ u, n, note, indent = false, ai, onOpen }: { u: UrlRow; n?: number; note?: Insights["pages"][number]; indent?: boolean; ai?: number | null; onOpen: () => void }) {
   const fetched = useContext(TitlesCtx);
+  const names = useContext(NamesCtx);
   return (
     <tr className={`cursor-pointer hover:bg-brand-pale ${indent ? "bg-paper" : ""}`} onClick={onOpen}>
       <td className="aw-num text-muted">{n ?? ""}</td>
       <td>
         <span className={`flex min-w-0 flex-col gap-0.5 ${indent ? "pl-8" : ""}`}>
           <span className="max-w-xl truncate text-[14px] font-medium text-ink" title={u.url}>
-            {shownTitle(u.title, u.url, fetched)}
+            {shownTitle(u.title, u.url, fetched, names)}
           </span>
           <span className="flex min-w-0 items-center gap-1.5 text-[12px] text-muted">
             {!indent ? <BrandLogo src={favicon(u.domain)} name={u.domain} size={12} /> : null}
@@ -595,6 +623,7 @@ function LinkPanel({
 }) {
   const key = pageKey(u.url);
   const fetched = useContext(TitlesCtx);
+  const names = useContext(NamesCtx);
   const cites: Cite[] = runs.flatMap((r) =>
     r.chats.filter((c) => filter(c) && isAnswered(c) && c.sources.some((x) => pageKey(x.url) === key)).map((c) => ({ at: r.at, engine: c.engine, prompt: c.prompt })),
   );
@@ -639,7 +668,7 @@ function LinkPanel({
     });
 
   return (
-    <SidePanel title={shownTitle(u.title, u.url, fetched)} kicker={`Link · ${u.domain} · last ${days} days`} onClose={onClose}>
+    <SidePanel title={shownTitle(u.title, u.url, fetched, names)} kicker={`Link · ${u.domain} · last ${days} days`} onClose={onClose}>
       <div className="flex flex-wrap items-center gap-3">
         <a href={u.url} target="_blank" rel="noopener noreferrer nofollow" className="max-w-full truncate text-[14px]">
           {u.url.replace(/^https?:\/\//, "")} ↗

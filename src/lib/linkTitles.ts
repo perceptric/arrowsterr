@@ -69,3 +69,13 @@ export function tidyTitle(raw: string, url: string, site = ""): string {
 
 /** The site name to show while a title loads, or when a page can't be read: "supio.com". */
 export const siteName = (url: string) => hostOf(url) || url;
+
+/** A site's home page address, for asking its title: "supio.com" gives "https://supio.com/". */
+export const homeOf = (domain: string) => `https://${domain.replace(/^www\./i, "")}/`;
+
+/** The site's own name from a tidied home page title: "Eve: Legal AI Software" gives "Eve". "" when there is no clear name. */
+export function nameFromTitle(title: string | null | undefined): string {
+  const t = (title ?? "").trim();
+  const at = t.indexOf(": ");
+  return at > 0 && at <= 40 ? t.slice(0, at) : "";
+}

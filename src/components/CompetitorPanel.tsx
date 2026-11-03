@@ -7,6 +7,7 @@ import { MARKETS, type DomainReport } from "@/lib/research";
 import type { RunAuth } from "@/lib/runner";
 import type { View } from "@/lib/view";
 import { BrandLogo } from "./BrandLogo";
+import { siteNameOf, useSiteNames } from "./useSiteNames";
 import { EngineName } from "./Engines";
 import { flag, short } from "./research/KeywordOverview";
 import { post } from "./research/shared";
@@ -121,6 +122,7 @@ export function CompetitorPanel({
   });
   const wins = winsOf(chats, s.name, you.name, topics);
   const cited = sourcesOf(chats, s.name);
+  const siteNames = useSiteNames(cited.sites.slice(0, 10).map((x) => x.site), chats, auth);
   const domain = s.domain?.toLowerCase().replace(/^www\./, "") ?? null;
   const country = brand.profile?.country && MARKETS[brand.profile.country] ? brand.profile.country : "United States";
 
@@ -353,7 +355,14 @@ export function CompetitorPanel({
                   <td className="max-w-0">
                     <span className="flex min-w-0 items-center gap-2">
                       <BrandLogo src={favicon(x.site)} name={x.site} size={16} />
-                      <span className="truncate text-ink">{x.site}</span>
+                      {siteNameOf(x.site, siteNames) !== x.site ? (
+                        <span className="flex min-w-0 flex-col">
+                          <span className="truncate text-ink">{siteNameOf(x.site, siteNames)}</span>
+                          <span className="truncate text-[12px] text-muted">{x.site}</span>
+                        </span>
+                      ) : (
+                        <span className="truncate text-ink">{x.site}</span>
+                      )}
                       {domain && ownsDomain(x.site, domain) ? <span className="aw-tag shrink-0">Their site</span> : null}
                       {ownsDomain(x.site, brand.domain?.toLowerCase().replace(/^www\./, "")) ? <span className="aw-badge shrink-0">You</span> : null}
                     </span>

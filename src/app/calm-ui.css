@@ -134,8 +134,10 @@ html, body { background: var(--paper-deep) !important; }
 @media (min-width: 768px) {
   :root :is(.aw, #calm) div:has(> .aw-page-body) {
     margin: 8px 8px 8px 0 !important; padding: 0 !important; min-height: calc(100vh - 16px);
-    background: var(--bg-secondary) !important; border-radius: 12px !important; box-shadow: var(--shadow-rest) !important; overflow: clip;
+    background: var(--bg-secondary) !important; border-radius: 12px !important; box-shadow: var(--shadow-rest) !important;
   }
+  /* No clipping on the panel: menus and tips that open near its edge must stay whole. The header bar rounds itself. */
+  :root :is(.aw, #calm) div:has(> .aw-page-body) > .aw-page-head { border-radius: 12px 12px 0 0 !important; }
 }
 :root :is(.aw, #calm) .aw-page-head { background: var(--bg-primary) !important; border-bottom: 1px solid var(--border-medium) !important; padding-left: 16px !important; padding-right: 16px !important; }
 :root :is(.aw, #calm) .aw-page-title { font-size: 15px !important; font-weight: 500 !important; letter-spacing: -0.01em !important; color: var(--text-strong) !important; }
@@ -203,15 +205,18 @@ html, body { background: var(--paper-deep) !important; }
 
 /* ─────────────── 7. Cards, stats, tables: white on 12px corners and a ring shadow, hairlines inside ─────────────── */
 :root :is(.aw, #calm) :is(.aw-frame, .aw-table-wrap, .aw-kpi, .aw-card-stat, .aw-card, .aw-tile, .aw-module, .aw-run) {
-  background: var(--bg-primary) !important; border-color: transparent !important; border-radius: 12px !important; box-shadow: var(--shadow-rest) !important; overflow: clip;
+  background: var(--bg-primary) !important; border-color: transparent !important; border-radius: 12px !important; box-shadow: var(--shadow-rest) !important;
 }
 :root :is(.aw, #calm) :is(.aw-card, .aw-tile, .aw-module, .aw-run):is(button, a):hover { box-shadow: var(--shadow-hover) !important; }
 /* A card inside a card is a quiet well. */
 :root :is(.aw, #calm) :is(.aw-frame, .aw-card, .aw-module) :is(.aw-frame, .aw-table-wrap, .aw-card, .aw-tile) { box-shadow: 0 0 0 1px var(--border-medium) !important; border-radius: 10px !important; }
 :root :is(.aw, #calm) .aw-frame__body--flush .aw-table-wrap, :root :is(.aw, #calm) .aw-frame > .aw-table-wrap { box-shadow: none !important; border-radius: 0 !important; }
-:root :is(.aw, #calm) .aw-frame__head { background: var(--bg-primary) !important; border-bottom: 1px solid var(--border-medium) !important; font-size: 15px !important; font-weight: 500 !important; letter-spacing: -0.01em; color: var(--text-strong) !important; }
+:root :is(.aw, #calm) .aw-frame__head { border-radius: 12px 12px 0 0 !important; background: var(--bg-primary) !important; border-bottom: 1px solid var(--border-medium) !important; font-size: 15px !important; font-weight: 500 !important; letter-spacing: -0.01em; color: var(--text-strong) !important; }
 :root :is(.aw, #calm) .aw-frame__head :is(.aw-h4, h2, h3) { font-size: 15px !important; font-weight: 500 !important; letter-spacing: -0.01em !important; }
-:root :is(.aw, #calm) .aw-stats { border-radius: 12px !important; border-color: transparent !important; box-shadow: var(--shadow-rest) !important; overflow: clip; }
+:root :is(.aw, #calm) .aw-stats { border-radius: 12px !important; border-color: transparent !important; box-shadow: var(--shadow-rest) !important; }
+/* The stats row has no clipping either (their tips open over the edge), so the end cells round themselves. */
+:root :is(.aw, #calm) .aw-stats > :first-child { border-top-left-radius: 12px !important; border-bottom-left-radius: 12px !important; }
+:root :is(.aw, #calm) .aw-stats > :last-child { border-top-right-radius: 12px !important; border-bottom-right-radius: 12px !important; }
 :root :is(.aw, #calm) .aw-callout { border-radius: 10px !important; border-color: transparent !important; background: var(--bg-tertiary) !important; box-shadow: 0 0 0 1px var(--border-medium) !important; }
 :root :is(.aw, #calm) .aw-callout--warn { background: var(--orange-3) !important; box-shadow: none !important; }
 :root :is(.aw, #calm) :is(.aw-callout--error, .aw-callout--danger) { background: var(--red-3) !important; box-shadow: none !important; }
@@ -247,7 +252,48 @@ html, body { background: var(--paper-deep) !important; }
 }
 :root :is(.aw, #calm) .aw-tabs--lg > button { height: 32px !important; min-height: 32px !important; }
 
-/* ─────────────── 9. Floating layer ─────────────── */
+/* ─────────────── 9. Onboarding ───────────────
+   More room between parts, the hero and done cards on 16px corners, round step dots and numbers, a soft cost line, and
+   bare inputs in the prompt table that show their ring on hover and focus. */
+:root :is(.aw, #calm) .aw-onb { background: var(--paper-deep) !important; }
+:root :is(.aw, #calm) .aw-onb > header { background: rgb(255 255 255 / .9) !important; border-bottom: 1px solid var(--border-medium) !important; }
+:root :is(.aw, #calm) .aw-onb > .mx-auto { gap: 24px !important; padding-top: 40px !important; padding-bottom: 56px !important; }
+:root :is(.aw, #calm) .aw-onb .aw-onb__title { margin: 6px 0 4px !important; font-size: 34px !important; line-height: 40px !important; font-weight: 500 !important; letter-spacing: -0.035em !important; color: var(--text-strong) !important; }
+:root :is(.aw, #calm) .aw-onb .aw-onb__title + p { line-height: 24px !important; color: var(--text-secondary) !important; }
+:root :is(.aw, #calm) .aw-onb__kicker { gap: 8px !important; font-size: 13px !important; font-weight: 500 !important; letter-spacing: 0 !important; text-transform: none !important; color: var(--text-secondary) !important; }
+:root :is(.aw, #calm) .aw-onb__kicker b { border-radius: 6px !important; border: 0 !important; padding: 1px 7px !important; background: var(--signal-soft) !important; color: var(--signal-ink) !important; font-family: var(--aw-font) !important; }
+:root :is(.aw, #calm) :is(.aw-onb__hero, .aw-onb__done) { border-radius: 16px !important; box-shadow: var(--shadow-rest) !important; overflow: hidden; }
+:root :is(.aw, #calm) .aw-onb__hero h1 { font-size: 34px !important; line-height: 40px !important; letter-spacing: -0.035em !important; }
+:root :is(.aw, #calm) .aw-onb__hero > div { gap: 20px !important; }
+:root :is(.aw, #calm) .aw-onb__path { background: var(--bg-secondary) !important; border-top: 1px solid var(--border-medium) !important; }
+:root :is(.aw, #calm) .aw-onb__path li { padding: 16px 20px !important; color: var(--text-secondary) !important; }
+:root :is(.aw, #calm) .aw-onb__path li + li { border-left: 1px solid var(--border-medium) !important; }
+:root :is(.aw, #calm) .aw-onb__path b { border: 0 !important; border-radius: 9999px !important; background: var(--bg-primary) !important; box-shadow: var(--shadow-chip) !important; color: var(--text-strong) !important; }
+:root :is(.aw, #calm) .aw-steps__dot { border-radius: 9999px !important; border: 0 !important; background: var(--bg-primary) !important; box-shadow: var(--shadow-chip) !important; color: var(--text-secondary) !important; }
+:root :is(.aw, #calm) .aw-steps__item.is-on .aw-steps__dot { background: var(--signal-strong, var(--signal)) !important; color: #fff !important; box-shadow: 0 0 0 3px rgb(var(--signal-rgb) / .16) !important; }
+:root :is(.aw, #calm) .aw-steps__item.is-done .aw-steps__dot { background: var(--signal-soft) !important; color: var(--signal-ink) !important; box-shadow: none !important; }
+:root :is(.aw, #calm) .aw-steps__item + .aw-steps__item::before { background: var(--border-strong) !important; }
+:root :is(.aw, #calm) :is(.aw-steps__item.is-done + .aw-steps__item, .aw-steps__item.is-on)::before { background: var(--signal) !important; }
+:root :is(.aw, #calm) .aw-cost { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 14px 18px !important; border: 0 !important; border-radius: 12px !important; background: var(--bg-primary) !important; box-shadow: var(--shadow-rest) !important; color: var(--text-secondary); }
+:root :is(.aw, #calm) .aw-cost b { font-weight: 500 !important; color: var(--text-strong) !important; }
+:root :is(.aw, #calm) .aw-cost b.text-brand { color: var(--signal-ink) !important; }
+:root :is(.aw, #calm) .aw-onb .aw-frame td { padding-top: 10px !important; padding-bottom: 10px !important; }
+:root :is(.aw, #calm) .aw-onb__cell, :root :is(.aw, #calm) .aw-onb .aw-frame td :is(input, textarea):not([type="checkbox"]) {
+  border: 0 !important; background: transparent !important; box-shadow: none !important; border-radius: 8px !important;
+}
+:root :is(.aw, #calm) .aw-onb__cell:hover, :root :is(.aw, #calm) .aw-onb .aw-frame td :is(input, textarea):not([type="checkbox"]):hover { background: var(--bg-primary) !important; box-shadow: var(--shadow-input) !important; }
+:root :is(.aw, #calm) .aw-onb__cell:focus, :root :is(.aw, #calm) .aw-onb .aw-frame td :is(input, textarea):not([type="checkbox"]):focus { background: var(--bg-primary) !important; box-shadow: var(--shadow-focus) !important; }
+:root :is(.aw, #calm) .aw-onb__foot { margin-top: 8px !important; padding: 16px 20px !important; border-top: 1px solid var(--border-medium) !important; background: rgb(250 250 250 / .9) !important; border-radius: 12px 12px 0 0 !important; }
+:root :is(.aw, #calm) .aw-onb__done { padding: 40px 32px !important; gap: 14px !important; }
+:root :is(.aw, #calm) .aw-onb__seal { border-radius: 16px !important; background: var(--bg-primary) !important; box-shadow: var(--shadow-chip) !important; border: 0 !important; }
+:root :is(.aw, #calm) .aw-checks { gap: 14px !important; margin: 16px auto 20px !important; }
+:root :is(.aw, #calm) .aw-checks__bar { height: 6px !important; border-radius: 9999px !important; background: var(--bg-quaternary) !important; }
+:root :is(.aw, #calm) .aw-checks__fill { border-radius: 9999px !important; background: var(--signal) !important; }
+:root :is(.aw, #calm) .aw-checks li.is-done .aw-checks__fill { background: var(--green-11) !important; }
+:root :is(.aw, #calm) .aw-onb__id, :root :is(.aw, #calm) .aw-onb__verdict { border-radius: 12px !important; }
+:root :is(.aw, #calm) .aw-onb__mono { border-radius: 12px !important; }
+
+/* ─────────────── 10. Floating layer ─────────────── */
 :root :is(.aw, #calm) :is(.aw-pop, .aw-menu, .aw-popover, .aw-toast, .aw-undo) { background: var(--bg-primary) !important; border-color: transparent !important; border-radius: 12px !important; box-shadow: var(--shadow-menu) !important; }
 :root :is(.aw, #calm) :is(.aw-pop__item, .aw-pop__opt) { border-radius: 8px !important; }
 :root :is(.aw, #calm) :is(.aw-pop__item, .aw-pop__opt):hover { background: var(--bg-tertiary) !important; }
@@ -259,21 +305,44 @@ html, body { background: var(--paper-deep) !important; }
 :root :is(.aw, #calm) :is(.aw-tip, .aw-tooltip, [role="tooltip"]) { background: var(--accent-9) !important; color: var(--on-primary) !important; border-radius: 6px !important; }
 :root :is(.aw, #calm) :is(.tw-overlay, .tw-side-overlay) { background: rgb(0 0 0 / .18) !important; }
 
-/* ─────────────── 10. Tool intros ─────────────── */
+/* ─────────────── 11. Tool intros ─────────────── */
 :root :is(.aw, #calm) .aw-intro__title { letter-spacing: -0.035em !important; }
-:root :is(.aw, #calm) .aw-intro__card { background: var(--bg-primary) !important; border-color: transparent !important; border-radius: 12px !important; box-shadow: var(--shadow-rest) !important; overflow: clip; }
+:root :is(.aw, #calm) .aw-intro__card { background: var(--bg-primary) !important; border-color: transparent !important; border-radius: 12px !important; box-shadow: var(--shadow-rest) !important; overflow: hidden; }
 :root :is(.aw, #calm) .aw-intro__vis { background: var(--bg-secondary) !important; border-bottom: 1px solid var(--border-medium) !important; }
 :root :is(.aw, #calm) .aw-think__icon { border-color: transparent !important; border-radius: 12px !important; background: var(--signal-soft) !important; box-shadow: var(--shadow-chip) !important; }
 :root :is(.aw, #calm) .aw-think__icon svg { fill: var(--signal) !important; }
 :root :is(.aw, #calm) .aw-think__bar::after { background: var(--signal) !important; }
 
-/* ─────────────── 11. Brand Kit editor ─────────────── */
+/* ─────────────── 12. Brand Kit editor ─────────────── */
 :root :is(.aw, #calm) .aw-kit__color { border-color: transparent !important; border-radius: 8px !important; box-shadow: var(--shadow-input) !important; }
 :root :is(.aw, #calm) .aw-kit__color:hover { box-shadow: var(--shadow-input-hover) !important; }
 :root :is(.aw, #calm) .aw-kit__color input[type="color"], :root :is(.aw, #calm) .aw-kit__color input[type="color"]::-webkit-color-swatch { border-radius: 6px !important; }
 :root :is(.aw, #calm) .aw-kit__save { border-top: 1px solid var(--border-medium) !important; background: var(--bg-secondary) !important; }
 
-/* ─────────────── 12. Motion ─────────────── */
+/* ─────────────── 13. Motion ─────────────── */
 @media (prefers-reduced-motion: reduce) {
   :root :is(.aw, #calm) *, :root :is(.aw, #calm) *::before, :root :is(.aw, #calm) *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+/* ─────────────── 14. Empty screens (src/components/Drawing.tsx) ───────────────
+   The screen rises in, the tile settles onto its plate, the sign draws itself, then the tile floats. */
+:root :is(.aw, #calm) .aw-empty { animation: aw-empty-rise 420ms var(--ease-out) both; }
+:root :is(.aw, #calm) .aw-empty__title, :root :is(.aw, #calm) .aw-empty > p, :root :is(.aw, #calm) .aw-empty > div { animation: aw-empty-rise 420ms var(--ease-out) both; }
+:root :is(.aw, #calm) .aw-empty__title { animation-delay: 120ms; }
+:root :is(.aw, #calm) .aw-empty > p { animation-delay: 180ms; }
+:root :is(.aw, #calm) .aw-empty > div { animation-delay: 240ms; }
+:root :is(.aw, #calm) .aw-drawing__tile { transform-box: fill-box; transform-origin: center; animation: aw-tile-settle 560ms var(--ease-out) both, aw-tile-float 4.8s ease-in-out 900ms infinite; }
+:root :is(.aw, #calm) .aw-drawing__shadow { transform-box: fill-box; transform-origin: center; animation: aw-shadow-float 4.8s ease-in-out 900ms infinite; }
+:root :is(.aw, #calm) .aw-drawing__sign * { stroke-dasharray: 1; stroke-dashoffset: 1; animation: aw-sign-draw 900ms var(--ease-calm) 420ms forwards; }
+:root :is(.aw, #calm) .aw-drawing__sign * + * { animation-delay: 560ms; }
+:root :is(.aw, #calm) .aw-drawing__sign * + * + * { animation-delay: 700ms; }
+@keyframes aw-empty-rise { from { opacity: 0; transform: translateY(6px); } }
+@keyframes aw-tile-settle { from { opacity: 0; transform: translateY(-10px); } }
+@keyframes aw-tile-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes aw-shadow-float { 0%, 100% { transform: scale(1); opacity: .06; } 50% { transform: scale(.92); opacity: .04; } }
+@keyframes aw-sign-draw { to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  :root :is(.aw, #calm) :is(.aw-empty, .aw-empty *, .aw-drawing__tile, .aw-drawing__shadow) { animation: none !important; }
+  :root :is(.aw, #calm) .aw-drawing__sign * { animation: none !important; stroke-dashoffset: 0; }
+}
+:root :is(.aw, #calm) .aw-onb__hero .aw-label { display: block; margin-bottom: 8px !important; }
