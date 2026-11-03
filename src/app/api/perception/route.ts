@@ -1,8 +1,8 @@
 import { meteredRoute } from "@/lib/meter";
-import { wordsFor } from "@/lib/perceptionServer";
+import { setupFor } from "@/lib/perceptionServer";
 import { adminClient, requireRole } from "@/lib/serverAuth";
 
-// Perception (docs/perception.md): makes a brand's word list the first time the page opens. Haiku picks it once;
+// Perception (docs/perception.md): makes a brand's word and category lists the first time the page opens. Haiku picks it once;
 // after that it's kept until an editor changes it. Reading the numbers needs no route: the page asks Supabase.
 async function handle(request: Request) {
   const body = await request.json().catch(() => ({}));
@@ -16,9 +16,9 @@ async function handle(request: Request) {
   const db = adminClient();
   if (!db) return Response.json({ error: "Add SUPABASE_SECRET_KEY to the server's settings." }, { status: 500 });
   try {
-    const words = await wordsFor(db, brandId);
-    if (!words) return Response.json({ error: "Couldn't pick words for this brand. Try again." }, { status: 502 });
-    return Response.json({ words });
+    const setup = await setupFor(db, brandId);
+    if (!setup) return Response.json({ error: "Couldn't pick words for this brand. Try again." }, { status: 502 });
+    return Response.json({ setup });
   } catch (e) {
     return Response.json({ error: e instanceof Error ? e.message : String(e) }, { status: 500 });
   }

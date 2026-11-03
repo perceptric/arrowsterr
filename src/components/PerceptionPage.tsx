@@ -7,15 +7,18 @@ import { answered, brandStats } from "@/lib/metrics";
 import {
   enough,
   headlineGap,
+  isBase,
   MIN_ANSWERS,
   radarOrder,
   scoresFromSummary,
+  seenAs,
   topBad,
   unknownInSummary,
   verdict,
   type PerceptionSetup,
   type PerceptionWord,
   type Scores,
+  type SeenAs,
   type SummaryRow,
   type WordHit,
 } from "@/lib/perception";
@@ -35,27 +38,31 @@ const pct = (v: number | null | undefined) => (v === null || v === undefined ? "
 
 export function PerceptionPage({ view, sb, auth, canEdit }: { view: View; sb: SupabaseClient; auth: RunAuth; canEdit: boolean }) {
   const brand = view.brand;
-  const [words, setWords] = useState<PerceptionWord[] | null | undefined>(undefined);
+  const [setup, setSetup] = useState<PerceptionSetup | null | undefined>(undefined);
+  const words = setup === undefined ? undefined : (setup?.words ?? null);
   const [data, setData] = useState<{ rows: SummaryRow[]; since: string; days: number } | null>(null);
   const [error, setError] = useState("");
   const [src, setSrc] = useState<Source>("buyer");
   const [engine, setEngine] = useState("All");
   const [rivals, setRivals] = useState<string[] | null>(null);
   const [open, setOpen] = useState<string | null>(null);
+  const [seenOpen, setSeenOpen] = useState(false);
 
-  // The word list: saved on the brand, or made once by Haiku when an editor first opens the page.
+  // The word and category lists: saved on the brand, or made once by Haiku when an editor first opens the page.
   useEffect(() => {
     let live = true;
     (async () => {
       const { data, error: err } = await sb.from("brands").select("perception").eq("id", brand.id).maybeSingle();
       if (err) return live && setError(/perception/.test(err.message) ? "Run supabase/059_perception.sql in Supabase." : err.message);
-      const saved = (data?.perception as PerceptionSetup | null)?.words;
-      if (saved?.length || !canEdit) return live && setWords(saved?.length ? saved : null);
+      const saved = (data?.perception as PerceptionSetup | null) ?? null;
+      const usable = saved?.words?.length ? saved : null;
+      if ((usable && usable.categories?.length) || !canEdit) return live && setSetup(usable);
       const res = await fetch("/api/perception", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${await auth.token()}` }, body: JSON.stringify({ workspaceId: auth.workspaceId, brandId: brand.id }) });
       const body = await res.json().catch(() => ({}));
       if (!live) return;
-      if (!res.ok) setError(body.error ?? `Couldn't pick words (${res.status}).`);
-      setWords(body.words ?? null);
+      // Missing categories only hide the "Seen as" tag, so a saved word list still shows.
+      if (!res.ok && !usable) setError(body.error ?? `Couldn't pick words (${res.status}).`);
+      setSetup((body.setup as PerceptionSetup | undefined) ?? usable);
     })();
     return () => void (live = false);
   }, [sb, auth, brand.id, canEdit]);
@@ -82,11 +89,11 @@ export function PerceptionPage({ view, sb, auth, canEdit }: { view: View; sb: Su
 
   if (error) return <div className="aw-callout aw-callout--warn max-w-xl">{error}</div>;
   if (words === undefined || data === null || data.days !== view.days) return <Thinking text={words === undefined && canEdit ? "Picking the words for this brand" : "Loading"} />;
-  if (!words) return <Intro brand={brand.name} />;
+  if (!words || !setup) return <Intro brand={brand.name} />;
   const { rows, since } = data;
 
-  const names = [...new Set(rows.filter((r) => r.source === "buyer" && r.word === null && r.named !== brand.name).map((r) => r.named))];
-  const reach = (n: string) => rows.filter((r) => r.named === n && r.word === null && r.source === "buyer").reduce((s, r) => s + r.n, 0);
+  const names = [...new Set(rows.filter((r) => r.source === "buyer" && isBase(r) && r.named !== brand.name).map((r) => r.named))];
+  const reach = (n: string) => rows.filter((r) => r.named === n && isBase(r) && r.source === "buyer").reduce((s, r) => s + r.n, 0);
   const rivalList = names.sort((a, b) => reach(b) - reach(a)).slice(0, 8);
   const shown = (rivals ?? rivalList.slice(0, 2)).filter((n) => rivalList.includes(n));
   if (!rows.some((r) => r.named === brand.name) && !rivalList.length) return <Intro brand={brand.name} />;
@@ -95,6 +102,9 @@ export function PerceptionPage({ view, sb, auth, canEdit }: { view: View; sb: Su
   const you = scoreOf(brand.name);
   const rv = shown.map((n) => ({ brand: n, scores: scoreOf(n) }));
   const unknown = unknownInSummary(rows, brand.name);
+  // Seen as: buyer answers, or the direct "describe" question. Never the objections question.
+  const seenKeep = (r: SummaryRow) => inView(r) && (r.source === "buyer" || r.kind === "describe");
+  const seen = seenAs(rows, brand.name, seenKeep);
   const [first, second] = verdict(brand.name, you, rv, words, unknown);
   const gap = headlineGap(you, rv, words);
   const concern = topBad(you, words);
@@ -108,8 +118,16 @@ export function PerceptionPage({ view, sb, auth, canEdit }: { view: View; sb: Su
         <div className="flex flex-wrap items-center gap-3">
           <BrandLogo src={logoOf(brand.name)} name={brand.name} size={32} />
           <h2 className="aw-h4 text-[18px]">{brand.name}</h2>
-          {brand.category ? <span className="aw-tag">{brand.category}</span> : null}
-          {unknown ? <span className="aw-tag text-neg">Not known when asked</span> : null}
+          {seen.n >= (src === "buyer" ? MIN_ANSWERS : 1) ? (
+            <button type="button" onClick={() => setSeenOpen(true)} className="aw-tag cursor-pointer gap-1.5 hover:border-ink" title="What AI says it is">
+              Seen as {seen.shares[0].category}
+              <span className="aw-num text-muted">{pct(seen.shares[0].share)}</span>
+            </button>
+          ) : null}
+          {seen.n >= (src === "buyer" ? MIN_ANSWERS : 1) && setup.expected ? (
+            <span className={`aw-tag ${seen.shares[0].category === setup.expected ? "tw-tag--green" : "tw-tag--red"}`}>{seen.shares[0].category === setup.expected ? "In category" : "Off category"}</span>
+          ) : null}
+          {unknown ? <span className="aw-tag tw-tag--red">Not known when asked</span> : null}
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="aw-micro mr-1">vs</span>
@@ -162,6 +180,17 @@ export function PerceptionPage({ view, sb, auth, canEdit }: { view: View; sb: Su
         </div>
       </div>
 
+      {seenOpen ? (
+        <SeenPanel
+          brands={[brand.name, ...shown]}
+          categories={setup.categories ?? []}
+          expected={setup.expected ?? null}
+          seenOf={(n) => seenAs(rows, n, seenKeep)}
+          min={src === "buyer" ? MIN_ANSWERS : 1}
+          logoOf={logoOf}
+          onClose={() => setSeenOpen(false)}
+        />
+      ) : null}
       {open ? (
         <WordPanel
           sb={sb}
@@ -184,6 +213,37 @@ export function PerceptionPage({ view, sb, auth, canEdit }: { view: View; sb: Su
 
 /** Direct questions run once a week per engine, so a single answer is enough to show there. */
 const perEngine = (s: Scores, word: string, src: Source) => (s.n >= (src === "buyer" ? MIN_ANSWERS : 1) ? s.share[word] || null : null);
+
+/** What AI says each brand is: every category on the list, with a bar per brand. */
+function SeenPanel({ brands, categories, expected, seenOf, min, logoOf, onClose }: { brands: string[]; categories: string[]; expected: string | null; seenOf: (n: string) => SeenAs; min: number; logoOf: (n: string) => string; onClose: () => void }) {
+  const seen = new Map(brands.map((b) => [b, seenOf(b)] as const));
+  const share = (b: string, c: string) => { const s = seen.get(b)!; return s.n >= min ? (s.shares.find((x) => x.category === c)?.share ?? 0) : null; };
+  // Categories nobody is put in stay hidden, so the panel shows only what AI actually says.
+  const shown = categories.filter((c) => brands.some((b) => (share(b, c) ?? 0) > 0)).sort((a, b) => (share(brands[0], b) ?? 0) - (share(brands[0], a) ?? 0));
+  return (
+    <SidePanel title="Seen as" onClose={onClose}>
+      {shown.length ? (
+        <div className="flex flex-col gap-5">
+          {shown.map((c) => (
+            <div key={c} className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <h3 className="aw-h4">{c}</h3>
+                {c === expected ? <span className="aw-tag tw-tag--green">Expected</span> : null}
+              </div>
+              {brands.map((b, i) => { const v = share(b, c); return (
+                <div key={b} className="grid grid-cols-[20px_minmax(0,1fr)_44px] items-center gap-2.5" title={b}>
+                  <BrandLogo src={logoOf(b)} name={b} size={20} />
+                  <span className="h-2 bg-surface-2"><span className="block h-full" style={{ width: `${(v ?? 0) * 100}%`, background: i === 0 ? YOU_COLOR : RIVAL_LINES[i - 1] }} /></span>
+                  <span className={`aw-num text-right text-[13px] ${v === null ? "text-faint" : "text-ink"}`}>{pct(v)}</span>
+                </div>
+              ); })}
+            </div>
+          ))}
+        </div>
+      ) : <p className="text-muted">No answer says what these brands are yet.</p>}
+    </SidePanel>
+  );
+}
 
 function Intro({ brand }: { brand: string }) {
   return (
@@ -357,7 +417,7 @@ function WordPanel(p: {
   const title = (
     <span className="flex items-center gap-2">
       {word.word}
-      <span className={`aw-tag ${word.good ? "text-pos" : "text-neg"}`}>{word.good ? "Good" : "Bad"}</span>
+      <span className={`aw-tag ${word.good ? "tw-tag--green" : "tw-tag--red"}`}>{word.good ? "Good" : "Bad"}</span>
     </span>
   );
   return (

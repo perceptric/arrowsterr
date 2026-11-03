@@ -9,7 +9,7 @@ import { research, Spend } from "../keywords";
 import { broaderSeed } from "../kwReport";
 import { answered, brandStats, competitorDomains, domainRows, promptDetail, promptRows, rankOf, splitPeriods, topicGrid, topicRows, trend, typeShares, urlRows, type BrandStat, type Filter } from "../metrics";
 import { MAX_TOPICS } from "../onboarding";
-import { enough, headlineGap, scoresFromSummary, unknownInSummary, verdict, type PerceptionRead, type PerceptionSetup, type SummaryRow } from "../perception";
+import { enough, headlineGap, isBase, scoresFromSummary, seenAs, unknownInSummary, verdict, type PerceptionRead, type PerceptionSetup, type SummaryRow } from "../perception";
 import { TASK_COST } from "../plans";
 import { marketOf, type Keyword } from "../research";
 import { ToolError, textResult, type Schema, type ToolResult } from "./protocol";
@@ -279,7 +279,7 @@ export const TOOLS: Tool[] = [
       const you = scoresFromSummary(rows, brand.name, words, keep);
       if (!you.n && !rows.length) throw noData(brand, days);
       const reach = new Map<string, number>();
-      for (const r of rows) if (keep(r) && r.word === null && r.named !== brand.name) reach.set(r.named, (reach.get(r.named) ?? 0) + r.n);
+      for (const r of rows) if (keep(r) && isBase(r) && r.named !== brand.name) reach.set(r.named, (reach.get(r.named) ?? 0) + r.n);
       const take = Math.min(8, Math.max(0, Math.round(Number(args.rivals) || 3)));
       const rivals = [...reach.entries()].sort((x, y) => y[1] - x[1]).slice(0, take).map(([name]) => ({ brand: name, scores: scoresFromSummary(rows, name, words, keep) }));
       const { data: recent } = await ctx.db.from("perception_reads").select("engine, words, source").eq("brand_id", brand.id).eq("named", brand.name).eq("source", source).gte("at", since).order("at", { ascending: false }).limit(300);
@@ -295,6 +295,10 @@ export const TOOLS: Tool[] = [
         answers: you.n,
         verdict: [first, second].filter(Boolean).join(" "),
         notKnownWhenAsked: unknownInSummary(rows, brand.name),
+        seenAs: (() => {
+          const seen = seenAs(rows, brand.name, (r) => keep(r) && (r.source === "buyer" || r.kind === "describe"));
+          return seen.n ? { answers: seen.n, top: seen.shares[0].category, expected: (b?.perception as PerceptionSetup | null)?.expected ?? null, shares: seen.shares.slice(0, 5).map((x) => ({ category: x.category, share: round(x.share * 100, 0) })) } : null;
+        })(),
         biggestGap: gap ? { word: gap.word, leader: gap.brand, leaderShare: round(gap.them * 100, 0), yourShare: round(gap.you * 100, 0) } : null,
         words: words.map((w) => ({
           word: w.word,

@@ -9,6 +9,7 @@ Each brand gets 10 words, 7 good and 3 bad, like *Affordable, Simple, Integrated
 - **Radar.** Good words sit around the top and bad words across the bottom, on a light red zone. A shape that leans up reads as good. Your brand is Signal Blue. Up to 2 rivals show as black and gray outlines.
 - **Logos, not names.** Rival toggles, the engine filter, legends, cards and quotes all use logos, with the name as the tooltip.
 - **One sentence.** The verdict: what AI says about you, then the one thing to watch ("AI sees HubSpot as Affordable and Simple. GoHighLevel wins on Integrated.").
+- **Seen as.** A tag beside the brand: the category AI puts it in most ("Seen as CRM 98%"), with In category or Off category against the brand's expected category. Click it to see every category with a bar per brand.
 - **Three cards.** Biggest gap (the good word where a rival leads you most), Your concern (your top bad word, by engine), Their weak spot (a rival's top bad word).
 - **Buyer answers / Asked directly.** Buyer answers come from the tracked prompts. Asked directly comes from the weekly questions about the brand.
 - **Click a word** to see each brand's score, the split by engine, the quotes, and the full answer with the quote marked.
@@ -17,14 +18,16 @@ Each brand gets 10 words, 7 good and 3 bad, like *Affordable, Simple, Integrated
 ## How it works
 
 1. **The word list.** The first time an editor opens the page, Haiku picks 10 words for the brand's market from its name, category, topics and the brands AI names next to it (`wordsFor` in `src/lib/perceptionServer.ts`, through `/api/perception`). It's saved on `brands.perception` and stays fixed, so scores compare across weeks and brands.
+   The same call writes 6 to 10 categories at one level of detail (a kind of product, never a feature, audience or opinion) and picks the one the brand should be in. They're saved on `brands.perception` as `categories` and `expected`. Brands set up before categories existed get their list on the next read.
 2. **Read each run once.** The schedule queues a `perception` job for every finished run (`supabase/059_perception.sql` adds `runs.perception_read`). The job reads the run's saved answers 12 at a time. It judges the tracked brand and the 5 brands the run names most.
 3. **Haiku picks, code proves.** Haiku picks up to 5 words per brand per answer, each with a quote copied from the answer. `checkWords` in `src/lib/perception.ts` keeps a word only when:
    - it's on the list,
    - its quote is really in the answer,
    - the quote sits in a sentence about that brand (`splitAnswer` decides who each sentence is about, from names and headings),
    - and it isn't a bad word pulled from a comparison on a prompt about leaving the brand ("HubSpot alternatives").
+   The same Haiku read also picks one category per brand from the list. The JSON schema only allows names on the list (or "" when the answer doesn't say), and `cleanCategory` checks it again. So "office crm", "flexible crm" and "sales pipeline tool" can never become new labels: they all have to land on "CRM" or be left out.
 4. **Direct questions, weekly.** On paid plans, a `perception_probe` job runs once a week per brand, on the brand's own day. It asks ChatGPT, Gemini, Perplexity, Claude and AI Mode "Describe {brand} in a few words" and "Why might someone decide not to choose {brand}?" about the brand and its 3 top rivals. Answers that say the model doesn't know the brand are marked, and the page shows "Not known when asked".
-5. **Count.** `perception_summary` (SQL) sums answers and word hits per brand, engine and prompt. The page turns that into shares with `scoresFromSummary`. Fewer than 3 answers shows a dash.
+5. **Count.** `perception_summary` (SQL) sums answers, word hits and categories per brand, engine and prompt. Seen as counts buyer answers and the direct "describe" question, never the objections question. The page turns that into shares with `scoresFromSummary`. Fewer than 3 answers shows a dash.
 
 A wrong word costs more than a missing one, so every rule leans toward leaving a word out. `tests/perception.test.ts` covers the answer layouts that broke earlier versions: bold numbered headings, "Label: **Brand**" headings, bold subtitles, comparison headings, glued citations, and alternatives prompts.
 
@@ -43,7 +46,7 @@ A wrong word costs more than a missing one, so every rule leans toward leaving a
 
 ## Setup
 
-Run `supabase/059_perception.sql` in Supabase → SQL Editor. Before it runs, the schedule queues nothing and the page asks for it. Runs from the last 2 days are read on the next worker ticks. Older history isn't read.
+Run `supabase/059_perception.sql`, then `supabase/060_perception_category.sql`, in Supabase → SQL Editor. Until 060 runs, reads are saved without a category and the Seen as tag stays hidden. Before it runs, the schedule queues nothing and the page asks for it. Runs from the last 2 days are read on the next worker ticks. Older history isn't read.
 
 ## Running cost
 
@@ -53,14 +56,15 @@ Assumes a team checks 50 prompts on the 6 engines (Claude and Perplexity weekly)
 |---|---|---|
 | Haiku reading buyer answers, ~$0.0003 each | ~$105 | ~$1,050 |
 | Weekly direct questions, paid plans (~80% of teams): about 260 engine answers per team at ~$0.01 each (check), plus Haiku reading them | ~$110 | ~$1,080 |
-| Word lists, once per brand | under $1 | under $5 |
+| Word and category lists, once per brand | under $1 | under $5 |
+| Seen as: about 20 more output tokens per read, in the same call | under $1 | about $3 |
 | Supabase storage for `perception_reads`, about 6.5 MB per team a month (check) | ~$1 | ~$10 |
-| **Added per month** | **~$215** | **~$2,145** |
+| **Added per month** | **~$215** | **~$2,150** |
 
 The direct questions are the line to watch. Asking rivals monthly instead of weekly cuts that line by about two thirds.
 
 ## Next
 
-- A "Seen as" category tag beside the brand, from a fixed category list per workspace, so labels never scatter.
+- Editing the word and category lists on the page.
 - A "Fix" button on a weak or bad word that adds a brief to the Editorial Calendar.
 - An alert when a bad word jumps, and a radar slide in reports.

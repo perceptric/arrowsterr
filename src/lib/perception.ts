@@ -5,7 +5,8 @@
 
 export type PerceptionWord = { word: string; good: boolean; definition: string };
 /** The brand's word list, picked once by Haiku and editable. */
-export type PerceptionSetup = { words: PerceptionWord[]; madeAt: string };
+/** categories: the kinds of product AI can say a brand is, fixed so labels never scatter. expected: the one this brand should be. */
+export type PerceptionSetup = { words: PerceptionWord[]; madeAt: string; categories?: string[]; expected?: string };
 export type WordHit = { word: string; quote: string };
 /** One answer's words for one brand. A row with no words still counts: the answer named the brand and said none. */
 export type PerceptionRead = {
@@ -17,6 +18,7 @@ export type PerceptionRead = {
   words: WordHit[];
   at: string;
   kind?: "describe" | "objections" | null; // direct answers only
+  category?: string | null; // what kind of product the answer says the brand is, from the brand's category list
   unknown?: boolean; // a direct answer that says the model doesn't know the brand
 };
 
@@ -207,6 +209,27 @@ export function cleanWordList(raw: unknown): PerceptionWord[] | null {
   return good.length === WORD_COUNT.good && bad.length === WORD_COUNT.bad ? [...good, ...bad] : null;
 }
 
+/** A category list from Haiku, cleaned: 4 to 10 short names, no repeats, and the expected one on the list. */
+export function cleanCategories(raw: unknown): { categories: string[]; expected: string } | null {
+  const r = raw as { categories?: unknown; expected?: unknown } | null;
+  const seen = new Set<string>();
+  const categories: string[] = [];
+  for (const c of Array.isArray(r?.categories) ? r.categories : []) {
+    const name = String(c ?? "").replace(/\s+/g, " ").trim();
+    if (!name || name.length > 40 || name.split(" ").length > 4 || seen.has(name.toLowerCase())) continue;
+    seen.add(name.toLowerCase());
+    categories.push(name[0].toUpperCase() + name.slice(1));
+  }
+  const expected = categories.find((c) => c.toLowerCase() === String(r?.expected ?? "").trim().toLowerCase());
+  return categories.length >= 4 && expected ? { categories: categories.slice(0, 10), expected } : null;
+}
+
+/** The category Haiku picked, if it's exactly one on the list. Anything else counts as not said. */
+export function cleanCategory(raw: unknown, list: string[]): string | null {
+  const want = String(raw ?? "").trim().toLowerCase();
+  return list.find((c) => c.toLowerCase() === want) ?? null;
+}
+
 // ─────────────── scores ───────────────
 
 export type Scores = { n: number; share: Record<string, number> };
@@ -219,19 +242,22 @@ export function scoresOf(reads: PerceptionRead[], brand: string, words: Percepti
 }
 
 /** A row of perception_summary (059_perception.sql): answers per group when word is null, else answers with that word. */
-export type SummaryRow = { source: "buyer" | "direct"; kind: string | null; named: string; engine: string; prompt: string; word: string | null; n: number; unknown: number };
+/** category rows (word null, category set) count answers that put the brand in that category. */
+export type SummaryRow = { source: "buyer" | "direct"; kind: string | null; named: string; engine: string; prompt: string; word: string | null; category?: string | null; n: number; unknown: number };
+/** A row that counts answers, not words or categories. */
+export const isBase = (r: SummaryRow) => r.word === null && !r.category;
 
 /** The same scores from summary rows. keep picks the groups in view (source, engine, prompt). */
 export function scoresFromSummary(rows: SummaryRow[], brand: string, words: PerceptionWord[], keep: (r: SummaryRow) => boolean = () => true): Scores {
   const mine = rows.filter((r) => r.named === brand && keep(r));
-  const n = mine.filter((r) => r.word === null).reduce((s, r) => s + r.n, 0);
+  const n = mine.filter(isBase).reduce((s, r) => s + r.n, 0);
   const share = Object.fromEntries(words.map((w) => [w.word, n ? mine.filter((r) => r.word === w.word).reduce((s, r) => s + r.n, 0) / n : 0]));
   return { n, share };
 }
 
 /** True when at least half the direct "describe" answers say the model doesn't know the brand. */
 export function unknownInSummary(rows: SummaryRow[], brand: string): boolean {
-  const d = rows.filter((r) => r.source === "direct" && r.kind === "describe" && r.named === brand && r.word === null);
+  const d = rows.filter((r) => r.source === "direct" && r.kind === "describe" && r.named === brand && isBase(r));
   const n = d.reduce((s, r) => s + r.n, 0);
   return n > 0 && d.reduce((s, r) => s + r.unknown, 0) / n >= 0.5;
 }
@@ -302,4 +328,14 @@ export const NOT_KNOWN = /\b(i\s+(?:don't|do not)\s+(?:know|have (?:reliable|any
 export function unknownTo(reads: PerceptionRead[], brand: string): boolean {
   const direct = reads.filter((r) => r.source === "direct" && r.named === brand && r.kind === "describe");
   return direct.length > 0 && direct.filter((r) => r.unknown).length / direct.length >= 0.5;
+}
+
+export type SeenAs = { n: number; shares: { category: string; share: number }[] };
+
+/** What kind of product AI says the brand is: each category's share of the answers that say one, biggest first. */
+export function seenAs(rows: SummaryRow[], brand: string, keep: (r: SummaryRow) => boolean = () => true): SeenAs {
+  const counts = new Map<string, number>();
+  for (const r of rows) if (r.named === brand && r.category && keep(r)) counts.set(r.category, (counts.get(r.category) ?? 0) + r.n);
+  const n = [...counts.values()].reduce((a, b) => a + b, 0);
+  return { n, shares: [...counts.entries()].map(([category, k]) => ({ category, share: k / n })).sort((a, b) => b.share - a.share) };
 }

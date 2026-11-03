@@ -6,7 +6,7 @@ import { askPlain, availableEngines, type Engine } from "./engines";
 import { entitlement } from "./entitlements";
 import { finish, rateOk, retry, type Job } from "./jobs";
 import { brandTerms } from "./parse";
-import { brandMatch, checkWords, cleanWordList, NOT_KNOWN, PERCEPTION_VERSION, type BrandMatch, type PerceptionSetup, type PerceptionWord, type WordHit } from "./perception";
+import { brandMatch, checkWords, cleanCategories, cleanCategory, cleanWordList, NOT_KNOWN, PERCEPTION_VERSION, type BrandMatch, type PerceptionSetup, type PerceptionWord, type WordHit } from "./perception";
 
 // Perception (docs/perception.md): the word list, reading words from answers, and the weekly direct questions.
 
@@ -32,24 +32,59 @@ const LIST_SCHEMA = {
   additionalProperties: false,
 };
 
-/** The brand's word list. Made once with Haiku when it's missing, then kept until someone edits it. */
-export async function wordsFor(db: SupabaseClient, brandId: string): Promise<PerceptionWord[] | null> {
+const CATEGORY_PROMPT = (b: { name: string; domain: string; category: string; topics: string[]; rivals: string[] }) => `List the categories Arrowsterr will use to say what kind of product a brand is, in one market. Every answer about any brand here gets one of these, so the list must stay small and steady.
+
+THE MARKET
+${b.name} (${b.domain})${b.category ? `: ${b.category}` : ""}.
+Topics: ${b.topics.join("; ") || "(none yet)"}.
+Brands AI names next to it: ${b.rivals.join(", ") || "(none yet)"}.
+
+Write 6 to 10 categories a buyer in this market would recognize, all at the same level of detail: a kind of product or service, 1 to 4 words. Never a feature ("Sales pipeline"), an audience ("CRM for agencies") or an opinion ("Powerful CRM"). Good: "CRM", "Field service software", "All-in-one business suite", "Marketing automation", "POS system".
+Then give expected: the one category from your list that ${b.name} should be seen as.`;
+
+const CATEGORY_SCHEMA = {
+  type: "object",
+  properties: { categories: { type: "array", items: { type: "string" } }, expected: { type: "string" } },
+  required: ["categories", "expected"],
+  additionalProperties: false,
+};
+
+type Market = { name: string; domain: string; category: string; topics: string[]; rivals: string[] };
+
+/**
+ * The brand's word list and category list. Made once with Haiku when missing, then kept until someone edits them,
+ * so scores and labels compare across weeks. Brands set up before categories existed get their list added.
+ */
+export async function setupFor(db: SupabaseClient, brandId: string): Promise<PerceptionSetup | null> {
   const { data: b } = await db.from("brands").select("name, domain, category, topics, perception").eq("id", brandId).maybeSingle();
   if (!b) return null;
-  const saved = (b.perception as PerceptionSetup | null)?.words;
-  if (saved?.length) return saved;
+  const saved = (b.perception as PerceptionSetup | null) ?? null;
+  if (saved?.words?.length && saved.categories?.length && saved.expected) return saved;
   const { data: metrics } = await db.from("daily_metrics").select("named, mentions").eq("brand_id", brandId).eq("is_you", false).neq("named", "").gte("day", new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10)).limit(5000);
-  const rivals = topNames(((metrics ?? []) as { named: string; mentions: number }[]).map((m) => [m.named, m.mentions]), 8);
-  const topics = ((b.topics ?? []) as { name?: string }[]).map((t) => t.name ?? "").filter(Boolean);
-  for (let i = 0; i < 2; i++) {
-    const words = cleanWordList(await askJson(LIST_PROMPT({ name: b.name, domain: b.domain, category: b.category ?? "", topics, rivals }), LIST_SCHEMA, { model: haiku(), maxTokens: 1500, effort: "low" }).catch(() => null));
-    if (words) {
-      const setup: PerceptionSetup = { words, madeAt: new Date().toISOString() };
-      await db.from("brands").update({ perception: setup }).eq("id", brandId);
-      return words;
-    }
-  }
-  return null;
+  const market: Market = {
+    name: b.name,
+    domain: b.domain,
+    category: b.category ?? "",
+    topics: ((b.topics ?? []) as { name?: string }[]).map((t) => t.name ?? "").filter(Boolean),
+    rivals: topNames(((metrics ?? []) as { named: string; mentions: number }[]).map((m) => [m.named, m.mentions]), 8),
+  };
+  let words = saved?.words?.length ? saved.words : null;
+  for (let i = 0; !words && i < 2; i++) words = cleanWordList(await askJson(LIST_PROMPT(market), LIST_SCHEMA, { model: haiku(), maxTokens: 1500, effort: "low" }).catch(() => null));
+  if (!words) return null;
+  let cats = saved?.categories?.length && saved.expected ? { categories: saved.categories, expected: saved.expected } : null;
+  for (let i = 0; !cats && i < 2; i++) cats = cleanCategories(await askJson(CATEGORY_PROMPT(market), CATEGORY_SCHEMA, { model: haiku(), maxTokens: 600, effort: "low" }).catch(() => null));
+  // Words without categories still work: the page just has no "Seen as" tag until a later try succeeds.
+  const setup: PerceptionSetup = { words, madeAt: saved?.madeAt ?? new Date().toISOString(), ...(cats ?? {}) };
+  await db.from("brands").update({ perception: setup }).eq("id", brandId);
+  return setup;
+}
+
+/** Saves reads. Before 060_perception_category.sql the category column is missing, so save without it rather than stall. */
+async function saveReads(db: SupabaseClient, rows: Record<string, unknown>[], upsert: boolean) {
+  const write = (list: Record<string, unknown>[]) => (upsert ? db.from("perception_reads").upsert(list, { onConflict: "run_id,engine,prompt,named", ignoreDuplicates: true }) : db.from("perception_reads").insert(list));
+  let { error } = await write(rows);
+  if (error && /category/.test(error.message)) ({ error } = await write(rows.map((r) => Object.fromEntries(Object.entries(r).filter(([k]) => k !== "category")))));
+  if (error) throw new Error(error.message);
 }
 
 const topNames = (pairs: [string, number][], n: number) => {
@@ -60,11 +95,11 @@ const topNames = (pairs: [string, number][], n: number) => {
 
 // ─────────────── reading words from one answer ───────────────
 
-const READ_PROMPT = (words: PerceptionWord[], prompt: string, text: string, brands: string[]) => `You read one AI answer and judge how it portrays each brand listed under BRANDS TO JUDGE.
+const READ_PROMPT = (words: PerceptionWord[], categories: string[], prompt: string, text: string, brands: string[]) => `You read one AI answer and judge how it portrays each brand listed under BRANDS TO JUDGE.
 
 WORDS (use only these, spelled exactly):
 ${words.map((w) => `- ${w.word} (${w.good ? "good" : "bad"}): ${w.definition}`).join("\n")}
-
+${categories.length ? `\nCATEGORIES (use only these, spelled exactly):\n${categories.map((c) => `- ${c}`).join("\n")}\n` : ""}
 QUESTION ASKED: ${prompt}
 
 ANSWER:
@@ -83,35 +118,44 @@ Rules:
 - A hedge still counts: "can get pricey" supports the bad word for cost.
 - When unsure, leave the word out. A missing word is better than a wrong one.
 - If the answer says it doesn't know the brand, give it no words.
-Include every brand, with "words": [] when none fit.`;
+${categories.length ? `- category: the one category the answer says that brand is, from CATEGORIES. Use "" when the answer doesn't say what kind of product it is, or says it doesn't know the brand. Pick by what the answer calls it, never by what you know.\n` : ""}Include every brand, with "words": [] when none fit.`;
 
-const READ_SCHEMA = {
+// The category is held to the brand's list by the schema itself, and checked again in code.
+const readSchema = (categories: string[]) => ({
   type: "object",
   properties: {
     brands: {
       type: "array",
       items: {
         type: "object",
-        properties: { name: { type: "string" }, words: { type: "array", items: { type: "object", properties: { word: { type: "string" }, quote: { type: "string" } }, required: ["word", "quote"], additionalProperties: false } } },
-        required: ["name", "words"],
+        properties: {
+          name: { type: "string" },
+          words: { type: "array", items: { type: "object", properties: { word: { type: "string" }, quote: { type: "string" } }, required: ["word", "quote"], additionalProperties: false } },
+          ...(categories.length ? { category: { type: "string", enum: [...categories, ""] } } : {}),
+        },
+        required: ["name", "words", ...(categories.length ? ["category"] : [])],
         additionalProperties: false,
       },
     },
   },
   required: ["brands"],
   additionalProperties: false,
-};
+});
 
-/** Haiku picks words with quotes, then code keeps only the ones it can prove (checkWords). */
-async function readWords(words: PerceptionWord[], a: { text: string; prompt: string; source: "buyer" | "direct" }, matches: BrandMatch[], judge: string[]): Promise<Map<string, WordHit[]>> {
-  const reply = await askJson<{ brands?: { name?: string; words?: unknown }[] }>(READ_PROMPT(words, a.prompt, a.text, judge), READ_SCHEMA, { model: haiku(), maxTokens: 2500, effort: "low" });
-  const out = new Map<string, WordHit[]>(judge.map((n) => [n, []]));
+type Read = { words: WordHit[]; category: string | null };
+
+/** Haiku picks words with quotes and one category, then code keeps only what it can prove (checkWords, cleanCategory). */
+async function readWords(setup: PerceptionSetup, a: { text: string; prompt: string; source: "buyer" | "direct" }, matches: BrandMatch[], judge: string[]): Promise<Map<string, Read>> {
+  const { words } = setup;
+  const categories = setup.categories ?? [];
+  const reply = await askJson<{ brands?: { name?: string; words?: unknown; category?: unknown }[] }>(READ_PROMPT(words, categories, a.prompt, a.text, judge), readSchema(categories), { model: haiku(), maxTokens: 2500, effort: "low" });
+  const out = new Map<string, Read>(judge.map((n) => [n, { words: [], category: null }]));
   for (const b of reply.brands ?? []) {
     const name = judge.find((n) => n.toLowerCase() === String(b?.name ?? "").trim().toLowerCase());
     if (!name) continue;
     const { kept, dropped } = checkWords({ ...a, brand: name, brands: matches, words }, b.words);
     if (dropped.length) console.info(`Perception dropped ${dropped.length} word(s) for ${name}:`, dropped.map((d) => `${d.word}: ${d.why}`).join("; "));
-    out.set(name, kept);
+    out.set(name, { words: kept, category: cleanCategory(b.category, categories) });
   }
   return out;
 }
@@ -126,8 +170,8 @@ export async function perceptionRun(db: SupabaseClient, job: Job) {
   const { data: run } = await db.from("runs").select("id, workspace_id, brand_id, at, chats").eq("id", p.runId).maybeSingle();
   if (!run) return finish(job.id);
   const { data: brand } = await db.from("brands").select("name, domain").eq("id", run.brand_id).maybeSingle();
-  const words = brand ? await wordsFor(db, run.brand_id) : null;
-  if (!brand || !words) {
+  const setup = brand ? await setupFor(db, run.brand_id) : null;
+  if (!brand || !setup) {
     await db.from("runs").update({ perception_read: PERCEPTION_VERSION }).eq("id", run.id);
     return finish(job.id);
   }
@@ -144,8 +188,7 @@ export async function perceptionRun(db: SupabaseClient, job: Job) {
   const rows: Record<string, unknown>[] = [];
   const save = async () => {
     if (!rows.length) return;
-    const { error } = await db.from("perception_reads").upsert(rows.splice(0), { onConflict: "run_id,engine,prompt,named", ignoreDuplicates: true });
-    if (error) throw new Error(error.message);
+    await saveReads(db, rows.splice(0), true);
   };
   for (const [i, a] of list.entries()) {
     const named = matches.filter((m) => m.re.test(a.text)).map((m) => m.name);
@@ -155,8 +198,8 @@ export async function perceptionRun(db: SupabaseClient, job: Job) {
       await save();
       return retry(job.id, "rate limit", 15, { payload: { ...p, offset: offset + i }, count: false });
     }
-    const found = await readWords(words, { text: a.text, prompt: a.prompt, source: "buyer" }, matches, named);
-    for (const [name, hits] of found) rows.push({ workspace_id: run.workspace_id, brand_id: run.brand_id, run_id: run.id, source: "buyer", at: run.at, engine: a.engine, prompt: a.prompt, named: name, words: hits });
+    const found = await readWords(setup, { text: a.text, prompt: a.prompt, source: "buyer" }, matches, named);
+    for (const [name, r] of found) rows.push({ workspace_id: run.workspace_id, brand_id: run.brand_id, run_id: run.id, source: "buyer", at: run.at, engine: a.engine, prompt: a.prompt, named: name, words: r.words, category: r.category });
   }
   await save();
   // More answers left: come back for the next batch without using up an attempt.
@@ -183,8 +226,8 @@ export async function perceptionProbe(db: SupabaseClient, job: Job) {
   if (!brand) return finish(job.id);
   const e = await entitlement(brand.workspace_id);
   if (e.readOnly || e.plan === "free") return finish(job.id);
-  const words = await wordsFor(db, brand.id);
-  if (!words) return finish(job.id);
+  const setup = await setupFor(db, brand.id);
+  if (!setup) return finish(job.id);
   let targets = p.targets;
   if (!targets) {
     const { data: metrics } = await db.from("daily_metrics").select("named, mentions").eq("brand_id", brand.id).eq("is_you", false).neq("named", "").gte("day", new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10)).limit(5000);
@@ -211,14 +254,11 @@ export async function perceptionProbe(db: SupabaseClient, job: Job) {
       }
       if (!text.trim()) continue;
       const unknown = NOT_KNOWN.test(text);
-      const hits = unknown ? [] : ((await readWords(words, { text, prompt, source: "direct" }, [match], [target.name]).catch(() => null))?.get(target.name) ?? []);
-      rows.push({ workspace_id: brand.workspace_id, brand_id: brand.id, source: "direct", kind: q.kind, at, engine, prompt, named: target.name, words: hits, unknown, answer: text.slice(0, 20000) });
+      const read = unknown ? null : ((await readWords(setup, { text, prompt, source: "direct" }, [match], [target.name]).catch(() => null))?.get(target.name) ?? null);
+      rows.push({ workspace_id: brand.workspace_id, brand_id: brand.id, source: "direct", kind: q.kind, at, engine, prompt, named: target.name, words: read?.words ?? [], category: read?.category ?? null, unknown, answer: text.slice(0, 20000) });
     }
   }
-  if (rows.length) {
-    const { error } = await db.from("perception_reads").insert(rows);
-    if (error) throw new Error(error.message);
-  }
+  if (rows.length) await saveReads(db, rows, false);
   if (step + 1 < targets.length) return retry(job.id, "next brand", 1, { payload: { ...p, targets, step: step + 1 }, count: false });
   await finish(job.id);
 }
