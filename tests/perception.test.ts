@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { biggestGap, brandMatch, cleanCategories, cleanCategory, headlineGap, seenAs, checkWords, cleanWordList, radarOrder, scoresFromSummary, scoresOf, splitAnswer, unknownInSummary, unknownTo, verdict, type PerceptionRead, type PerceptionWord, type SummaryRow } from "../src/lib/perception.ts";
+import { biggestGap, brandMatch, cleanCategories, cleanCategory, headlineGap, insertReads, seenAs, checkWords, cleanWordList, radarOrder, scoresFromSummary, scoresOf, splitAnswer, unknownInSummary, unknownTo, verdict, type PerceptionRead, type PerceptionWord, type SummaryRow } from "../src/lib/perception.ts";
 
 const B = [brandMatch("HubSpot", ["hubspot.com"]), brandMatch("Jobber"), brandMatch("Zoho CRM"), brandMatch("Zoho One"), brandMatch("Pipedrive")];
 const owners = (text: string, find: RegExp) => splitAnswer(text, B).find((s) => find.test(s.text))?.brands.map((b) => b.name) ?? [];
@@ -194,4 +194,57 @@ test("seen as is each category's share of the answers that say one", () => {
   assert.deepEqual(s.shares[0], { category: "Field service software", share: 0.75 });
   // Category rows never count as answers in the word scores.
   assert.equal(scoresFromSummary(rows, "Jobber", WORDS, (r) => r.source === "buyer").n, 4);
+});
+
+// A fake perception_reads table that acts like Postgres: a unique key on (run_id, engine, prompt, named) for buyer rows,
+// an optional missing category column, and every write is one statement (all rows or none).
+function fakeTable(opts: { noCategory?: boolean; fail?: string } = {}) {
+  const rows: Record<string, unknown>[] = [];
+  const key = (r: Record<string, unknown>) => [r.run_id, r.engine, r.prompt, r.named].join("|");
+  const calls: number[] = [];
+  const insert = async (list: Record<string, unknown>[]) => {
+    calls.push(list.length);
+    if (opts.fail) return { error: { message: opts.fail, code: "42501" } };
+    if (opts.noCategory && list.some((r) => "category" in r)) return { error: { message: 'column "category" of relation "perception_reads" does not exist', code: "42703" } };
+    const seen = new Set(rows.filter((r) => r.source === "buyer").map(key));
+    for (const r of list) {
+      if (r.source !== "buyer") continue;
+      if (seen.has(key(r))) return { error: { message: 'duplicate key value violates unique constraint "perception_reads_buyer_key"', code: "23505" } };
+      seen.add(key(r));
+    }
+    rows.push(...list);
+    return { error: null };
+  };
+  return { rows, insert, calls };
+}
+const buyerRow = (prompt: string, named: string) => ({ run_id: "r1", source: "buyer", engine: "ChatGPT", prompt, named, words: [], category: null });
+
+test("reads save with plain inserts in one statement", async () => {
+  const t = fakeTable();
+  await insertReads(t.insert, [buyerRow("best crm", "HubSpot"), buyerRow("best crm", "Jobber")]);
+  assert.equal(t.rows.length, 2);
+  assert.deepEqual(t.calls, [2]);
+});
+
+test("a retried batch saves only the rows it missed", async () => {
+  const t = fakeTable();
+  await insertReads(t.insert, [buyerRow("best crm", "HubSpot")]);
+  // The job died after saving the first row; the retry sends the whole batch again.
+  await insertReads(t.insert, [buyerRow("best crm", "HubSpot"), buyerRow("best crm", "Jobber"), buyerRow("crm for plumbers", "Jobber")]);
+  assert.deepEqual(t.rows.map((r) => `${r.prompt}|${r.named}`).sort(), ["best crm|HubSpot", "best crm|Jobber", "crm for plumbers|Jobber"]);
+});
+
+test("direct rows never collide, and a missing category column saves without it", async () => {
+  const t = fakeTable({ noCategory: true });
+  const direct = { run_id: null, source: "direct", engine: "Gemini", prompt: "Describe Jobber", named: "Jobber", words: [], category: "CRM" };
+  await insertReads(t.insert, [direct, direct, buyerRow("best crm", "Jobber")]);
+  assert.equal(t.rows.length, 3);
+  assert.ok(t.rows.every((r) => !("category" in r)));
+});
+
+test("any other save error stops the job so it retries", async () => {
+  const t = fakeTable({ fail: "permission denied for table perception_reads" });
+  await assert.rejects(() => insertReads(t.insert, [buyerRow("best crm", "Jobber")]), /permission denied/);
+  await insertReads(t.insert, []);
+  assert.deepEqual(t.calls, [1]);
 });

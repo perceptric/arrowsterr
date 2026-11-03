@@ -121,3 +121,11 @@ test("helpers", () => {
   assert.equal(siteLabel("https://www.supio.com/a"), "supio.com");
   assert.equal(cleanAnswer("", "ChatGPT"), "");
 });
+
+test("ChatGPT buttons with no link are dropped, bracketed placeholders inside text stay", () => {
+  const raw = "Primary target market\n\nGlobal\n\n[Find the best-fit agency]\n\n- \"\\[Category\\] software\"\n- Rank for [category] terms";
+  const out = cleanAnswer(raw, "ChatGPT");
+  assert.ok(!out.includes("Find the best-fit agency"));
+  assert.ok(out.includes("\\[Category\\] software"));
+  assert.ok(out.includes("Rank for [category] terms"));
+});

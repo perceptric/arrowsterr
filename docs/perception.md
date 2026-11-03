@@ -48,6 +48,10 @@ A wrong word costs more than a missing one, so every rule leans toward leaving a
 
 Run `supabase/059_perception.sql`, then `supabase/060_perception_category.sql`, in Supabase → SQL Editor. Until 060 runs, reads are saved without a category and the Seen as tag stays hidden. Before it runs, the schedule queues nothing and the page asks for it. The last 30 days of runs are read once, newest first, up to 40 runs every 10-minute tick. A one-time cost of about $0.0003 per answer, so roughly $2 for a team with 6,500 answers a month.
 
+Reads are saved with plain inserts (`insertReads` in `src/lib/perception.ts`). The buyer key is a partial index, and an upsert can't name one, so version 1 saved nothing; version 2 reads every run again under new job keys. A retried batch skips rows it already saved.
+
+A brand's first direct questions go out once, right after its first run is read, so its own words show before its weekly day. That is one extra round per brand, about 40 engine answers plus their Haiku reads, roughly $0.45 (check): about $35 once at Beta (50 teams, 1.5 brands each) and about $340 once at Growth (500 teams). It adds nothing per month.
+
 ## Running cost
 
 Assumes a team checks 50 prompts on the 6 engines (Claude and Perplexity weekly), about 6,500 answers a month, and tracks 1.5 brands. Haiku 5.5 is $0.10 per million input tokens and $0.50 per million output (the prices in `src/lib/meter.ts`, check). Each read is about 2,000 tokens in and 250 out.

@@ -39,7 +39,7 @@ const HIGHLIGHTS = /ai overview|ai mode|gemini/i;
 /**
  * The cleaned answer, still markdown:
  * - pictures (`![alt](url)`) are dropped, since only their alt text would show
- * - "[Visit EvenUp](url)" button lines are dropped
+ * - "[Visit EvenUp](url)" button lines, and link-less buttons like "[Find the best-fit agency]", are dropped
  * - escaped punctuation (`1\.`, `Best for\:`) is unescaped
  * - Google's [[1]](url) and empty [](url) citations become site citations
  * - a run of cited sites is kept once per site, with tracking tags removed
@@ -54,6 +54,8 @@ export function cleanAnswer(text: string, engine = ""): string {
   s = s.replace(/^[ \t]*!\[[^\]]*\]\([^)]*\)[ \t]*$/gm, "").replace(/!\[[^\]]*\]\([^)]*\)/g, "");
   // Button-style links on their own line: "[Visit EvenUp](https://...)".
   s = s.replace(/^[ \t]*\[(?:Visit|Go to|Open|Learn more|Read more|See more|Try)\b[^\]]*\]\([^)]*\)[ \t]*$/gim, "");
+  // ChatGPT's buttons with no link, alone on a line: "[Find the best-fit agency]".
+  s = s.replace(/^[ \t]*\[[^\]\n]{2,60}\][ \t]*$/gm, "");
   // Escaped punctuation. "\|", "\*", "\_" and brackets stay escaped, since unescaping them could make a table cell, bold text or a link.
   s = s.replace(/\\([:.!\-()#>~+=])/g, "$1");
   // Google's numbered citations, and citations whose number was stripped.
