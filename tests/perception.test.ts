@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { biggestGap, brandMatch, headlineGap, checkWords, cleanWordList, radarOrder, scoresFromSummary, scoresOf, splitAnswer, unknownInSummary, unknownTo, verdict, type PerceptionRead, type PerceptionWord, type SummaryRow } from "../src/lib/perception.ts";
+import { biggestGap, brandMatch, cleanCategories, cleanCategory, headlineGap, seenAs, checkWords, cleanWordList, radarOrder, scoresFromSummary, scoresOf, splitAnswer, unknownInSummary, unknownTo, verdict, type PerceptionRead, type PerceptionWord, type SummaryRow } from "../src/lib/perception.ts";
 
 const B = [brandMatch("HubSpot", ["hubspot.com"]), brandMatch("Jobber"), brandMatch("Zoho CRM"), brandMatch("Zoho One"), brandMatch("Pipedrive")];
 const owners = (text: string, find: RegExp) => splitAnswer(text, B).find((s) => find.test(s.text))?.brands.map((b) => b.name) ?? [];
@@ -164,4 +164,34 @@ test("the verdict never says a rival wins on a word you're praised for", () => {
   assert.deepEqual(verdict("A", you, [{ brand: "B", scores: rival }], WORDS, false), ["AI sees A as Affordable and Simple.", "B wins on Fast."]);
   assert.equal(biggestGap(you, [{ brand: "B", scores: rival }], WORDS)?.word, "Simple");
   assert.equal(headlineGap(you, [{ brand: "B", scores: rival }], WORDS)?.word, "Fast");
+});
+
+test("the category list is 4 to 10 short kinds of product, with the expected one on it", () => {
+  const ok = cleanCategories({ categories: ["CRM", "crm", "Field service software", "All-in-one business suite", "POS system", "Marketing automation"], expected: "all-in-one business suite" });
+  assert.deepEqual(ok, { categories: ["CRM", "Field service software", "All-in-one business suite", "POS system", "Marketing automation"], expected: "All-in-one business suite" });
+  assert.equal(cleanCategories({ categories: ["CRM", "POS system", "Invoicing software", "Booking software"], expected: "Accounting software" }), null);
+  assert.equal(cleanCategories({ categories: ["CRM", "POS system"], expected: "CRM" }), null);
+  // A long phrase is an opinion or a feature list, never a category.
+  assert.equal(cleanCategories({ categories: ["CRM", "POS system", "Invoicing software", "Booking software", "Powerful CRM for growing sales teams"], expected: "CRM" })?.categories.length, 4);
+});
+
+test("a category off the list counts as not said", () => {
+  const list = ["CRM", "Field service software"];
+  assert.equal(cleanCategory("crm", list), "CRM");
+  assert.equal(cleanCategory("Office CRM", list), null);
+  assert.equal(cleanCategory("", list), null);
+});
+
+test("seen as is each category's share of the answers that say one", () => {
+  const rows: SummaryRow[] = [
+    { source: "buyer", kind: null, named: "Jobber", engine: "ChatGPT", prompt: "a", word: null, n: 4, unknown: 0 },
+    { source: "buyer", kind: null, named: "Jobber", engine: "ChatGPT", prompt: "a", word: null, category: "Field service software", n: 3, unknown: 0 },
+    { source: "buyer", kind: null, named: "Jobber", engine: "Gemini", prompt: "b", word: null, category: "CRM", n: 1, unknown: 0 },
+    { source: "direct", kind: "objections", named: "Jobber", engine: "Claude", prompt: "o", word: null, category: "CRM", n: 2, unknown: 0 },
+  ];
+  const s = seenAs(rows, "Jobber", (r) => r.source === "buyer" || r.kind === "describe");
+  assert.equal(s.n, 4);
+  assert.deepEqual(s.shares[0], { category: "Field service software", share: 0.75 });
+  // Category rows never count as answers in the word scores.
+  assert.equal(scoresFromSummary(rows, "Jobber", WORDS, (r) => r.source === "buyer").n, 4);
 });
