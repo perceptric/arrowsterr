@@ -928,7 +928,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
               onPlans={() => go("billing")}
             />
           ) : page === "library" ? (
-            <LibraryPage key={view.brand.id} view={view} auth={auth} canEdit={canEdit} />
+            <LibraryPage key={view.brand.id} view={view} auth={auth} canEdit={canEdit} onCalendar={() => go("calendar")} />
           ) : page === "brand" ? (
             <BrandPage key={view.brand.id} sb={sb} auth={auth} brand={{ id: view.brand.id, name: view.brand.name, domain: view.brand.domain }} workspace={{ name: ws.name, website: workDomain(email) || view.brand.domain }} canEdit={canEdit} />
           ) : RESEARCH.includes(page) ? (

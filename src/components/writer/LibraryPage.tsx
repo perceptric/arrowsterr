@@ -21,7 +21,7 @@ import { PublishPanel } from "../research/PublishPanel";
 import { post } from "../research/shared";
 import { brandTables } from "../research/Writer";
 import { exportClean } from "../research/writerNodes";
-import { ToolIntro } from "../ToolIntro";
+import { EmptyScreen } from "../Drawing";
 import { Seg, Thinking } from "../ui";
 import { BriefEditor } from "./BriefEditor";
 import { ContentGrid } from "./ContentGrid";
@@ -33,7 +33,7 @@ import { DraftProgress, libraryKey, RegenerateDialog, StateTag, useBrandSite, us
 
 const making = (t: Topic) => t.brief?.status === "generating" || t.draft?.status === "generating";
 
-export function LibraryPage({ view, auth, canEdit }: { view: View; auth: RunAuth; canEdit: boolean }) {
+export function LibraryPage({ view, auth, canEdit, onCalendar }: { view: View; auth: RunAuth; canEdit: boolean; onCalendar?: () => void }) {
   const [sb] = useState(() => currentSupabase());
   const brand = view.brand;
   const { site, error: siteError } = useBrandSite(sb, brand, canEdit);
@@ -88,15 +88,19 @@ export function LibraryPage({ view, auth, canEdit }: { view: View; auth: RunAuth
       {list.length ? (
         <ContentGrid sb={sb} auth={auth} site={site} brandId={brand.id} canEdit={canEdit} onOpen={setOpen} />
       ) : (
-        <ToolIntro
+        <EmptyScreen
+          drawing="library"
           title="Write articles that rank and get cited"
-          lead={`Import keywords from the Editorial Calendar. For each one, Arrowsterr researches Google and the AI answers and writes the brief. Your writers fill it in, section by section, in ${brand.name}'s voice.`}
-          features={[
-            { title: "Brief", text: "Headings, meta, sources, FAQs and internal links, from the top pages and the AI answers." },
-            { title: "Write", text: "Open any section beside the grid with the brief's notes for it, or the whole article in full view." },
-            { title: "Publish", text: "Send the article to WordPress or your CMS, with its meta title, description and slug." },
-          ]}
-        />
+          action={
+            onCalendar ? (
+              <button type="button" className="aw-btn aw-btn--primary" onClick={onCalendar}>
+                Open the Editorial Calendar
+              </button>
+            ) : undefined
+          }
+        >
+          Import keywords from the Editorial Calendar. Arrowsterr writes each brief in {brand.name}&apos;s voice.
+        </EmptyScreen>
       )}
     </div>
   );

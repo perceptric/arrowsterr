@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { isGenericTitle, siteName, tidyTitle } from "../src/lib/linkTitles.ts";
+import { homeOf, isGenericTitle, nameFromTitle, siteName, tidyTitle } from "../src/lib/linkTitles.ts";
 
 test("engine labels that say nothing are spotted", () => {
   for (const [t, u] of [
@@ -50,4 +50,11 @@ test("other pages lose a trailing site name, and Home goes", () => {
 test("the site name shown while a title loads", () => {
   assert.equal(siteName("https://www.Supio.com/x"), "supio.com");
   assert.equal(siteName("not a url"), "not a url");
+});
+
+test("a site's own name comes from its tidied home page title", () => {
+  assert.equal(nameFromTitle("RevenueZen: GEO Focused B2B SEO Agency for Pipeline Growth"), "RevenueZen");
+  assert.equal(nameFromTitle("Best B2B SEO Agencies in the USA (2026)"), "");
+  assert.equal(nameFromTitle(""), "");
+  assert.equal(homeOf("www.revenuezen.com"), "https://revenuezen.com/");
 });
