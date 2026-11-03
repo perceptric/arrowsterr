@@ -9,7 +9,9 @@ export type HouseRule = { id: string; label: string; prompt: string };
 export const HOUSE_RULES: HouseRule[] = [
   { id: "paragraphs", label: "Short paragraphs", prompt: "Paragraphs are 1 to 3 sentences and about 60 words at most. No chunks of text." },
   { id: "lists", label: "Lists often", prompt: "Use a bulleted or numbered list at least every 150 to 250 words: steps, options, checklists, do and don't. List items are plain sentences with no bold lead-in label." },
-  { id: "sentences", label: "Calm, complete sentences", prompt: "Most sentences are 12 to 25 words. Never use short sentences for drama or rhythm; join them into the sentence before or after." },
+  { id: "sentences", label: "Calm, complete sentences", prompt: "Most sentences are 12 to 25 words, one idea each. Split any sentence over 30 words. Never use short sentences for drama or rhythm; join them into the sentence before or after." },
+  { id: "tight", label: "Say it once, in few words", prompt: 'Say each point once, in the fewest words that keep it clear. Every sentence adds a new fact, step, example or reason. Cut lead-ins and signposts ("Let\'s take a look at", "It\'s important to note that"), recaps of what you just said, hedges that carry no real doubt and wordy phrases ("in order to" becomes "to", "due to the fact that" becomes "because").' },
+  { id: "front", label: "Main point first", prompt: "Open each section with its main point or answer, then give the details. Use active voice and name who does what." },
   { id: "reader", label: "Talk to the reader", prompt: 'Talk to one reader as "you", with contractions. Write as "we" for the brand. Ask the reader a real question now and then where it helps them decide, never to open a section.' },
   { id: "opener", label: "Introduce every example", prompt: 'When you introduce a tool, company or page, the first sentence says what it is: "{Name} is a {kind of} company (or software) that {what it does}."' },
   { id: "adverbs", label: "A feeling adverb now and then", prompt: 'Use a feeling adverb now and then ("Thankfully,", "Luckily,", "Honestly,", "Surprisingly,"), about one every 300 to 400 words, never the same one twice. Never "quietly".' },
@@ -113,6 +115,79 @@ Interestingly, one of its biggest formats is the "best apps" roundup, where writ
 export const sampleText = (sample: string) =>
   sample.trim() ? `Voice sample. Write the way this sounds: the warmth, the "we" and "you", the sentence length, the lists. Never reuse its facts, names or numbers.\n"""\n${sample.trim().slice(0, 6000)}\n"""` : "";
 
+/** Wordy phrases and their short forms (from skills/cut-to-length and skills/plain-language). The lint flags them. */
+export const WORDY: [string, string][] = [
+  ["in order to", "to"],
+  ["due to the fact that", "because"],
+  ["owing to the fact that", "because"],
+  ["in view of the fact that", "since"],
+  ["in spite of the fact that", "although"],
+  ["for the purpose of", "to"],
+  ["with the aim of", "to"],
+  ["in an effort to", "to"],
+  ["at this point in time", "now"],
+  ["at the present moment", "now"],
+  ["prior to", "before"],
+  ["subsequent to", "after"],
+  ["in the event that", "if"],
+  ["a majority of", "most"],
+  ["in excess of", "more than"],
+  ["with regard to", "about"],
+  ["with respect to", "about"],
+  ["in relation to", "about"],
+  ["has the ability to", "can"],
+  ["have the ability to", "can"],
+  ["on a daily basis", "daily"],
+  ["on a weekly basis", "weekly"],
+  ["on a monthly basis", "monthly"],
+  ["on a regular basis", "regularly"],
+  ["take into consideration", "consider"],
+  ["give consideration to", "consider"],
+  ["make a decision", "decide"],
+  ["each and every", "each"],
+  ["end result", "result"],
+  ["utilize", "use"],
+  ["utilise", "use"],
+  ["facilitate", "help"],
+  ["commence", "start"],
+  ["it is important to note that", "cut it"],
+  ["it's important to note that", "cut it"],
+  ["it should be noted that", "cut it"],
+  ["please note that", "cut it"],
+  ["the fact of the matter is", "cut it"],
+  ["what this means is that", "cut it"],
+];
+const SIGNPOST = /^(let'?s (dive|take a (closer |quick )?look|explore|break (it|this|that) down|get started|look at|walk through)|without further ado|as (we )?(mentioned|discussed|noted|covered|saw) (above|earlier|before)|in (summary|short|a nutshell)|to (sum up|summari[sz]e|recap|wrap up)|now that (you|we) (know|understand|have covered)|before we (dive|get|begin|start)|with that (said|in mind))\b/i;
+const OPENER_SIGNPOST = /^(so,? )?(in this (article|guide|post|piece|section)|this (article|guide|post|section) (will|covers|explains|walks|looks))\b/i;
+
+// ─────────────── readability ───────────────
+/** Syllables in one word, by vowel groups: rough, but steady enough to compare paragraphs. */
+export function syllables(word: string): number {
+  const w = word.toLowerCase().replace(/[^a-z]/g, "");
+  if (!w) return 0;
+  if (w.length <= 3) return 1;
+  const groups = w.replace(/(?:[^laeiouy]es|[^td]ed|[^laeiouy]e)$/, "").replace(/^y/, "").match(/[aeiouy]{1,2}/g);
+  return Math.max(1, groups?.length ?? 1);
+}
+
+/** Flesch Reading Ease (higher is easier, 60 and up is plain English) and Flesch-Kincaid grade for a stretch of text. */
+export function readability(text: string): { words: number; sentences: number; ease: number; grade: number } {
+  const t = plain(text);
+  const list = split(t).filter((x) => /[a-z]/i.test(x));
+  const ws = t.split(/\s+/).map((w) => w.replace(/^[^a-z0-9]+|[^a-z0-9]+$/gi, "")).filter((w) => /[a-z]/i.test(w));
+  if (!ws.length || !list.length) return { words: ws.length, sentences: list.length, ease: 100, grade: 0 };
+  const perSentence = ws.length / list.length;
+  const perWord = ws.reduce((n, w) => n + syllables(w), 0) / ws.length;
+  const round = (n: number) => Math.round(n * 10) / 10;
+  return { words: ws.length, sentences: list.length, ease: round(206.835 - 1.015 * perSentence - 84.6 * perWord), grade: round(0.39 * perSentence + 11.8 * perWord - 15.59) };
+}
+
+/**
+ * A paragraph above this Flesch-Kincaid grade is flagged. The house rule asks for 9th grade words; the margin leaves
+ * room for product names and terms. The default sample's hardest paragraph is grade 12, padded AI prose is 18 and up.
+ */
+export const MAX_GRADE = 14;
+
 // ─────────────── the lint ───────────────
 export type Line = { id: string; text: string };
 export type LintBlock = { type: string; text: string; items: string[]; rows: string[][] };
@@ -124,9 +199,11 @@ const split = (t: string) => t.split(SENT).map((s) => s.trim()).filter(Boolean);
 const plain = (t: string) => t.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").replace(/\*\*?([^*]+)\*\*?/g, "$1");
 const words = (t: string) => plain(t).split(/\s+/).filter(Boolean).length;
 const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+/** A wordy phrase as a pattern; a single verb also matches its forms ("utilize", "utilized", "utilizing"). */
+const wordyRe = (w: string) => new RegExp(`(^|[^a-z])${/\s/.test(w) ? esc(w) : `${esc(w.replace(/e$/, ""))}(e|es|ed|ing)?`}([^a-z]|$)`, "i");
 
-/** Problems in one sentence or list item that code can see. */
-export function lintText(text: string, opts: { inList?: boolean } = {}): { rule: string; why: string }[] {
+/** Problems in one sentence or list item that code can see. intro: the article's intro, where "In this guide" is fine. */
+export function lintText(text: string, opts: { inList?: boolean; intro?: boolean } = {}): { rule: string; why: string }[] {
   const t = plain(text);
   const out: { rule: string; why: string }[] = [];
   if (/[—–]/.test(t) || /\w \- \w/.test(t)) out.push({ rule: "dashes", why: "a dash" });
@@ -137,14 +214,17 @@ export function lintText(text: string, opts: { inList?: boolean } = {}): { rule:
   if (JUDGED.test(t)) out.push({ rule: "kind", why: "a judgment" });
   if (REVEAL.test(t.trim())) out.push({ rule: "plain", why: "a setup or reveal" });
   if (!opts.inList && !/:$/.test(t.trim()) && words(t) <= 6) out.push({ rule: "sentences", why: "a short sentence" });
+  if (words(t) > 30) out.push({ rule: "sentences", why: `a long sentence (${words(t)} words)` });
+  for (const [w, short] of WORDY) if (wordyRe(w).test(low)) out.push({ rule: "tight", why: short === "cut it" ? `"${w}" (cut it)` : `"${w}" (say "${short}")` });
+  if (SIGNPOST.test(t.trim()) || (!opts.intro && OPENER_SIGNPOST.test(t.trim()))) out.push({ rule: "tight", why: "a signpost" });
   if (/^\*\*[^*]+\*\*:?\s/.test(text.trim()) && opts.inList) out.push({ rule: "lists", why: "a bold lead-in" });
   return out;
 }
 
 /**
  * The style lint over a whole draft: every sentence and list item (ids as claimLines in writerDraft.ts gives them),
- * long paragraphs, long runs without a list, a feeling adverb used twice, a section that opens with a question,
- * and examples that don't open with "{Name} is a ...".
+ * long paragraphs, hard-to-read paragraphs, long runs without a list, a feeling adverb used twice, a section that
+ * opens with a question, and examples that don't open with "{Name} is a ...".
  */
 export function lintDraft(sections: LintSection[], examples: { name: string }[] = []): Finding[] {
   const out: Finding[] = [];
@@ -156,7 +236,7 @@ export function lintDraft(sections: LintSection[], examples: { name: string }[] 
       if (b.type === "p" || b.type === "quote") {
         const list = split(b.text);
         list.forEach((t, k) => {
-          for (const f of lintText(t)) add(`${si}.${bi}.${k}`, f);
+          for (const f of lintText(t, { intro: s.key === "intro" })) add(`${si}.${bi}.${k}`, f);
           const first = plain(t).match(/^([A-Za-z]+),/)?.[1]?.toLowerCase();
           if (first && FEELING.includes(first)) {
             if (seenAdverb.has(first)) add(`${si}.${bi}.${k}`, { rule: "adverbs", why: `"${first}" used twice` });
@@ -164,6 +244,8 @@ export function lintDraft(sections: LintSection[], examples: { name: string }[] 
           }
         });
         if (list.length > 3 || words(b.text) > 75) add(`${si}.${bi}.0`, { rule: "paragraphs", why: "a long paragraph" });
+        const read = readability(b.text);
+        if (read.words >= 25 && read.grade > MAX_GRADE) add(`${si}.${bi}.0`, { rule: "words", why: `hard to read (grade ${read.grade}): shorter words and sentences` });
         if (bi === 0 && s.key !== "faq" && /\?$/.test(list[0] ?? "")) add(`${si}.${bi}.0`, { rule: "reader", why: "a section that opens with a question" });
         since += words(b.text);
       } else if (b.type === "ul" || b.type === "ol") {

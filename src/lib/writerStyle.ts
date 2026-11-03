@@ -6,7 +6,7 @@
 //      or adds a number or a link is thrown away and the section stays as it was.
 //   4. Proofread: a title's count must match the article ("11 Best" and 11 items).
 // Pure: the paid calls come in from writerDraft.ts, so tests run it offline.
-import { fixTitleCount, lintDraft, rulesText, sampleText, sectionOf, type Finding } from "./houseRules.ts";
+import { fixTitleCount, HOUSE_RULES, lintDraft, rulesText, sampleText, sectionOf, type Finding } from "./houseRules.ts";
 import { SKILL_TEXT } from "./skillText.ts";
 import type { Block, Section, StyleNote, Styled } from "./writerDraft.ts";
 
@@ -22,7 +22,7 @@ export const REVIEW_SCHEMA = {
  * The editing methods every style call starts with, as a system prompt. It's the same for every article, so Claude
  * caches it across all of them.
  */
-export const STYLE_SYSTEM = `You are a senior editor. You edit articles with the methods below so they read like a careful person wrote them. Use the methods as checklists of patterns to find and fix. Ignore anything in them about tools, files, scripts, modes, scores or output formats: you only ever reply in the JSON shape the request asks for.
+export const STYLE_SYSTEM = `You are a senior editor. You edit articles with the methods below so they read like a careful person wrote them, in as few words as the reader needs. Use the methods as checklists of patterns to find and fix. Ignore anything in them about tools, files, scripts, modes, scores, ledgers or output formats: you only ever reply in the JSON shape the request asks for. Where a method and the house rules differ, the house rules win.
 
 ${rulesText()}
 
@@ -36,7 +36,19 @@ ${SKILL_TEXT.antiAi}
 ${SKILL_TEXT.enforcer}
 
 === Method 4: Proofread ===
-${SKILL_TEXT.proofread}`;
+${SKILL_TEXT.proofread}
+
+=== Method 5: Cut to length, the cut tiers and the wordy phrases ===
+${SKILL_TEXT.cut}
+
+=== Method 6: Plain language ===
+${SKILL_TEXT.plain}
+
+=== Method 7: Orwell's rules ===
+${SKILL_TEXT.orwell}
+
+=== Method 8: GOV.UK style ===
+${SKILL_TEXT.govuk}`;
 
 /** The claim-boundary method, added to the claim check. */
 export const CLAIM_METHOD = `Use this method to sort claims:\n${SKILL_TEXT.claims}\n\nIgnore anything in it about files, scripts or ledgers: reply only in the JSON shape asked.`;
@@ -45,7 +57,7 @@ export const CLAIM_METHOD = `Use this method to sort claims:\n${SKILL_TEXT.claim
 export type IdLine = { id: string; text: string };
 
 export function reviewPrompt(lines: IdLine[], lint: Finding[], opts: { sample: string; examples: { name: string; opener: string }[] }): string {
-  return `Review this draft against the house rules and the four methods in your instructions. The writer's voice is the sample below: the warmth, the "we" and "you" and the occasional feeling adverb are wanted, so never flag them.
+  return `Review this draft against the house rules and the eight methods in your instructions. The writer's voice is the sample below: the warmth, the "we" and "you" and the occasional feeling adverb are wanted, so never flag them.
 
 ${sampleText(opts.sample)}
 
@@ -56,11 +68,11 @@ ${lint.map((f) => `${f.id}: ${f.why}`).join("\n") || "nothing"}
 The draft (id: text, links as <url>):
 ${lines.map((l) => `${l.id}: ${l.text}`).join("\n")}
 
-List every line that breaks a rule or shows a pattern from the methods: AI vocabulary, setups and reveals, staged short sentences, slogan lines, lists of three for rhythm, "not X, Y" contrasts, judgment of companies or readers, filler, hedging, stated takeaways, a recap ending, a slip (typo, wrong count, a doubled word). For each: id, rule (the house rule id: ${["paragraphs", "lists", "sentences", "reader", "opener", "adverbs", "kind", "plain", "dashes", "ending", "words", "facts"].join(", ")}) and why in a few words. An empty list when the draft is clean.`;
+List every line that breaks a rule or shows a pattern from the methods: AI vocabulary, setups and reveals, staged short sentences, slogan lines, lists of three for rhythm, "not X, Y" contrasts, judgment of companies or readers, filler, hedging, stated takeaways, a recap ending, a slip (typo, wrong count, a doubled word). Flag wordiness too: a point the draft already made, a lead-in or signpost, a phrase with a shorter form, a sentence that adds no new fact, step, example or reason, a second example of the same point, passive voice that hides who acts, long words where short ones work, and a section whose main point comes late. For each: id, rule (the house rule id: ${HOUSE_RULES.map((r) => r.id).join(", ")}) and why in a few words. An empty list when the draft is clean.`;
 }
 
 export function fixPrompt(section: Section, findings: Finding[], opts: { sample: string; opener?: string }): string {
-  return `Rewrite this one section so it follows the house rules and fixes every finding below. Keep its meaning, every fact, every number and every link exactly, keep its h3s in order, and keep the length within about 15%. Turn three or more parallel things into a list, split long paragraphs, join short sentences into full ones, and make the first sentence of an example say what it is.${opts.opener ? ` This section's first sentence starts: "${opts.opener}"` : ""}
+  return `Rewrite this one section so it follows the house rules and fixes every finding below. Keep its meaning, every fact, every number and every link exactly, and keep its h3s in order. Make it the same length or shorter: cut repeated points, lead-ins, signposts and filler, use the short form of wordy phrases, and put the main point first. Turn three or more parallel things into a list, split long paragraphs and sentences over 30 words, join short sentences into full ones, and make the first sentence of an example say what it is.${opts.opener ? ` This section's first sentence starts: "${opts.opener}"` : ""}
 
 ${sampleText(opts.sample)}
 

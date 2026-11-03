@@ -220,7 +220,7 @@ ${isBofu(c.stage) ? `${listicleRules(b.keyword, new Date().getFullYear())}\n` : 
 - searchIntent: what the searcher wants and the format that serves it, in 1 or 2 sentences.
 - reader: who reads this, what they know, and what they want to do next.
 - angle: the point of view that makes this article better than the top pages, in 1 or 2 sentences.
-- wordTarget: a number, close to what the top pages need to cover the topic, plus what they miss.
+- wordTarget: the fewest words that fully serve the search intent. Start from the typical length of the top pages, go shorter when the outline covers the topic in fewer words, and never pad to match the longest page.
 - outline: 5 to 9 H2s in order, each with 2 to 5 key points, H3s where useful, and the numbers of the sources [1..${sourceCount}] that back it. Every H2 cites at least one source when one fits. The intro is not an H2.
 - entities: the people, products, terms and concepts the article must name.
 - gaps: what the top pages miss or get wrong, that this article will cover.
@@ -323,7 +323,7 @@ export function cleanBrief(x: unknown, research: Omit<BriefResearch, "topPages" 
     searchIntent: str(o.searchIntent, 600),
     reader: str(o.reader, 600),
     angle: str(o.angle, 600),
-    wordTarget: Number.isFinite(target) ? Math.min(6000, Math.max(600, target)) : 1800,
+    wordTarget: Number.isFinite(target) ? Math.min(4000, Math.max(600, target)) : 1500,
     outline,
     entities: strs(o.entities, 80, 40),
     gaps: strs(o.gaps, 300, 10),

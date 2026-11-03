@@ -54,7 +54,9 @@ The Brand Voice is a short summary (tone words, sentence length, use and avoid).
 
 - Short paragraphs, 1 to 3 sentences, about 60 words at most.
 - A list at least every 150 to 250 words: steps, options, checklists, do and don't. List items are plain sentences with no bold lead-in.
-- Most sentences 12 to 25 words. No short sentences for drama; join them.
+- Most sentences 12 to 25 words, and none over 30. No short sentences for drama; join them.
+- Say each point once, in few words. No lead-ins, signposts, recaps or wordy phrases ("in order to" becomes "to").
+- Open each section with its main point, in active voice.
 - Talk to the reader ("you"). Write as "we".
 - Every featured example opens with "{Name} is a {kind of} {company or software} that {what it does}."
 - A feeling adverb now and then ("Thankfully,", "Luckily,"), about one every 300 to 400 words, never the same twice. Never "quietly".
@@ -79,6 +81,8 @@ The outline is the writer's full set of instructions, so the draft never has to 
 **Example pages are read too.** Each example's URL goes into the article research (049) next to Google's top 10 and the AI-cited pages, read by Playwright on the worker. The example's facts then come from its own page, and the claim check covers them.
 
 The outline prompt (`briefPrompt`) gets the house rules, the examples rules and the image kinds, and `cleanBrief` checks every example URL is a real web address and every chart number points to a source.
+
+**Length is a ceiling.** `wordTarget` is the fewest words that serve the search intent, starting from the typical top page and never padded to match the longest one. `cleanBrief` caps it at 4,000 (1,500 when the outline gives none). Each section is asked for "at most about" its share and told to stop when its points are made, and the FAQ answers in 1 to 3 sentences.
 
 ## 5. Branded images
 
@@ -109,9 +113,9 @@ The `write_article` steps become:
 | Step | What happens | Model |
 |---|---|---|
 | 1. Sections | One call each, as today, with the voice sample, the house rules and the examples in the cached prefix | Sonnet 5.5 |
-| 2. Style lint | Code checks every sentence against the house rules: dashes, banned words, "not X, Y" patterns, short sentences, paragraph length, words since the last list, "quietly", repeated adverbs, missing "{Name} is a..." openers | none |
-| 3. Style review | One call reads the whole draft against the rules (the method of the humanizer, anti-ai-writing strict review and writing-enforcer skills, written as our own rules) and returns the ids of lines that break them, with the reason | Sonnet 5.5 |
-| 4. Style fix | One call rewrites only the flagged lines from steps 2 and 3, keeping facts and links. Step 2 runs again; a line that still fails keeps its fixed text and is listed in the draft's review notes | Sonnet 5.5 |
+| 2. Style lint | Code checks every sentence against the house rules: dashes, banned words, "not X, Y" patterns, short sentences, sentences over 30 words, wordy phrases (`WORDY`), signposts, paragraph length, paragraphs above grade 14 (Flesch-Kincaid, `readability`), words since the last list, "quietly", repeated adverbs, missing "{Name} is a..." openers | none |
+| 3. Style review | One call reads the whole draft against the rules (the method of the humanizer, anti-ai-writing strict review, writing-enforcer, cut-to-length, plain-language, Orwell's rules and GOV.UK style skills) and returns the ids of lines that break them, with the reason. It flags wordiness as well as AI patterns | Sonnet 5.5 |
+| 4. Style fix | One call rewrites only the sections with flagged lines from steps 2 and 3, keeping facts and links, at the same length or shorter. Step 2 runs again; a line that still fails keeps its fixed text and is listed in the draft's review notes | Sonnet 5.5 |
 | 5. Claim check | As today: unsupported claims are cut, links checked | Sonnet 5.5 |
 | 6. Proofread | Code: a title's number matches the count of items ("11 Best" and 11 H2s), dates match their weekdays, no leftover markers, no repeated paragraphs | none |
 | 7. Images | Screenshots, then the image specs (one call) and renders, then each image goes in where the outline put it | Sonnet 5.5 for specs |
@@ -120,7 +124,7 @@ The `write_article` steps become:
 
 Each step saves its output before the next, as today, so a killed job starts where it stopped and pays once. The Library's draft view shows a **Review notes** panel: lines the style fix could not clear, facts in `checks`, and screenshots that need a person.
 
-The writing skills we used on the blogs live in `skills/` (MIT licensed, each with its LICENSE): humanizer, anti-ai-writing, writing-enforcer with its AI pattern catalog, and proofread go into the style review and fixes as one system prompt (`STYLE_SYSTEM` in `writerStyle.ts`), cached once and shared by every article; claim-boundary-checker goes into the claim check. `node scripts/skills.mjs` rebuilds `src/lib/skillText.ts` from them.
+The writing skills we used on the blogs live in `skills/` (MIT licensed, each with its LICENSE): humanizer, anti-ai-writing, writing-enforcer with its AI pattern catalog, proofread, and for shorter, easier reading cut-to-length (its cut tiers and wordy phrase list), plain-language, Orwell's rules and GOV.UK style. They go into the style review and fixes as one system prompt (`STYLE_SYSTEM` in `writerStyle.ts`), cached once and shared by every article. Where a skill and the house rules differ, the house rules win. Claim-boundary-checker goes into the claim check. `node scripts/skills.mjs` rebuilds `src/lib/skillText.ts` from them.
 
 A fix that adds, drops or changes a number or a link is thrown away, and that section keeps its first text. Each fixed section is saved as it lands, so a killed job picks up at the next section and never pays for the review twice.
 
@@ -144,7 +148,8 @@ Reliability first: each test proves a flaky case.
 
 - `writeState` gives the right button for every mix of outline, draft and post states, including a failed draft over a ready outline.
 - Two quick clicks on Write draft make one draft and one charge.
-- The style lint catches each rule on a sample line and passes the clean version (dashes, "not X, Y", short lines, missing openers, lists too far apart).
+- The style lint catches each rule on a sample line and passes the clean version (dashes, "not X, Y", short lines, long lines, wordy phrases, signposts, missing openers, lists too far apart).
+- The house sample's paragraphs pass the readability check and padded prose fails it, so the check never flags the voice we want. "In this guide" passes in the intro and is flagged elsewhere.
 - The style fix never changes a number, a link or a source.
 - A screenshot that times out, a page that blocks the bot and a blank page each leave a note, and the draft still finishes.
 - A job killed during images restarts with no duplicate files.
@@ -154,29 +159,29 @@ Reliability first: each test proves a flaky case.
 
 ## 10. Running cost
 
-Claude Sonnet 5.5 at $2 input and $10 output per million tokens (from `docs/content-v2.md`, check). The brand, research and outline stay a cached prefix, and the writing skills (about 22K tokens) are a second cached block shared by every article, read at a tenth of the price.
+Claude Sonnet 5.5 at $2 input and $10 output per million tokens (from `docs/content-v2.md`, check). The brand, research and outline stay a cached prefix, and the writing skills (about 31K tokens, 3.5K of them the four readability skills) are a second cached block shared by every article, read at a tenth of the price.
 
 | Line | Per article | Cost |
 |---|---|---|
 | Today's full article (brief, sections, modules) | from `docs/content-grid.md` | ~$0.53 |
 | Bigger outline (examples, images, checks) | +2K in, +4K out | ~$0.05 |
 | Style review | 10K in plus the cached blocks, 2K out | ~$0.04 |
-| Style fixes | about 6 sections, 2K in and 1.2K out each | ~$0.10 |
-| Writing skills, cached | read on about 7 calls, written now and then | ~$0.05 |
+| Style fixes | about 8 sections (the wordiness and readability checks flag more), 2K in and 1.2K out each | ~$0.13 |
+| Writing skills, cached | read on about 7 calls, written now and then | ~$0.06 |
 | Image specs | 8K in, 3K out | ~$0.05 |
 | Example pages read, screenshots and renders | plain fetches on the web service, Chromium on the worker | ~$0 |
 | Lint and proofread | code | $0 |
-| **One article** | | **~$0.82** |
+| **One article** | | **~$0.86** |
 
 Setting up a brand costs about $0.04 once (the kit and guidelines calls), so about $4 for 100 brands. Images add about 2 MB of storage per article (12 images at about 150 KB) and leave Supabase once, when Publish copies them to WordPress.
 
 | Line | Beta (50 teams, 500 articles) | Growth (500 teams, 5,000 articles) |
 |---|---|---|
-| Claude for articles | ~$410 | ~$4,100 |
+| Claude for articles | ~$430 | ~$4,300 |
 | DataForSEO and AI engine calls (today) | ~$30 (check) | ~$300 (check) |
 | Brand setup (new brands that month) | ~$2 | ~$20 |
 | Image storage (1 GB a month at Beta, 10 GB at Growth, inside Supabase Pro's 100 GB at first) | ~$0 (check) | ~$0 for the first 9 months, then ~$0.02 a GB (check) |
 | Fly worker: a second 2 GB machine at Growth for screenshots and renders | $0 | ~$12 (check) |
-| **Monthly total** | **~$442** | **~$4,432** |
+| **Monthly total** | **~$462** | **~$4,632** |
 
-That adds about $147 at Beta and about $1,482 at Growth over today's article cost.
+That adds about $167 at Beta and about $1,682 at Growth over today's article cost. The readability skills and checks are $20 and $200 of that. Shorter drafts also write fewer output tokens, which this table doesn't count.

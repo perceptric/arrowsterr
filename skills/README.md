@@ -8,6 +8,10 @@ The editing methods Agentic Writing uses for its style review and fixes, and for
 | `anti-ai-writing` | Style review and fixes (strict review) | Tato Polanco |
 | `writing-enforcer` (with its AI pattern catalog) | Style review and fixes | Contributors |
 | `proofread` | Style review | Sergey Skripko |
+| `cut-to-length` (its cut tiers and wordy phrase list) | Style review and fixes: shorter text | Sergey Skripko |
+| `plain-language` | Style review and fixes: easier reading | Surendran B |
+| `orwells-rules` | Style review and fixes: short words, active voice | Surendran B |
+| `gov-uk-style` | Style review and fixes: main point first, easy to scan | Surendran B |
 | `claim-boundary-checker` | Claim check | Contributors |
 
 After changing a file here, run `node scripts/skills.mjs` to rebuild `src/lib/skillText.ts`.

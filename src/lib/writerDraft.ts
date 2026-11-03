@@ -113,7 +113,7 @@ export function briefText(b: WriterBrief, notes: string): string {
     `Search intent: ${b.searchIntent}`,
     `Reader: ${b.reader}`,
     `Angle: ${b.angle}`,
-    `Length: about ${b.wordTarget} words in all.`,
+    `Length: at most about ${b.wordTarget} words in all. Use fewer when every point is covered.`,
     `Outline:\n${b.outline.map((p) => `## ${p.h2} [sources ${p.sources.join(", ") || "none"}]\n${p.points.map((x) => `- ${x}`).join("\n")}${p.h3.map((h) => `\n### ${h.title}\n${h.points.map((x) => `- ${x}`).join("\n")}`).join("")}`).join("\n")}`,
     b.entities.length ? `Name these: ${b.entities.join(", ")}` : "",
     b.gaps.length ? `What the top pages miss, which this article covers:\n${b.gaps.map((g) => `- ${g}`).join("\n")}` : "",
@@ -158,10 +158,10 @@ export function sectionPrompt(plan: SectionPlan[], i: number, b: WriterBrief, so
   const example = s.kind === "h2" ? exampleFor(b, s.h2) : null;
   const what =
     s.kind === "intro"
-      ? `Write the intro: 2 or 3 short paragraphs, about ${Math.min(180, Math.round(words / 2))} words. Hook the reader with the problem, say what they'll get, and use the keyword naturally. No heading.`
+      ? `Write the intro: 2 or 3 short paragraphs, at most about ${Math.min(150, Math.round(words / 2))} words. Name the reader's problem, say what they'll get, and use the keyword naturally. No heading.`
       : s.kind === "faq"
-        ? `Write the FAQ section "${s.h2}": each question as an h3 block, followed by a 2 to 4 sentence answer as a p block.\nQuestions:\n${s.h3.map((h) => `- ${h.title} (${h.points[0] ?? ""})`).join("\n")}`
-        : `Write the section "${s.h2}", about ${words} words. Don't repeat the H2 itself.\nKey points:\n${s.points.map((p) => `- ${p}`).join("\n")}${s.h3.length ? `\nH3s (as h3 blocks, in order): ${s.h3.map((h) => `${h.title} (${h.points.join("; ")})`).join(" | ")}` : ""}`;
+        ? `Write the FAQ section "${s.h2}": each question as an h3 block, followed by a 1 to 3 sentence answer as a p block that answers in its first sentence.\nQuestions:\n${s.h3.map((h) => `- ${h.title} (${h.points[0] ?? ""})`).join("\n")}`
+        : `Write the section "${s.h2}", at most about ${words} words; use fewer when the points are made. Don't repeat the H2 itself.\nKey points:\n${s.points.map((p) => `- ${p}`).join("\n")}${s.h3.length ? `\nH3s (as h3 blocks, in order): ${s.h3.map((h) => `${h.title} (${h.points.join("; ")})`).join(" | ")}` : ""}`;
   return `${what}
 
 The article's sections, for flow: ${plan.map((p) => (p.kind === "intro" ? "Intro" : p.h2)).join(" → ")}
@@ -171,6 +171,7 @@ ${cite}
 ${example ? `This section features ${example.name} (${example.url}). Its first sentence is: "${example.opener}" Then walk the reader through it using its facts and its own page (source ${example.sources.join(", ") || "above"}), and link to it once.\n` : ""}${links.length ? `Put these internal links in naturally: ${links.map((l) => `[${l.anchor}](${l.url})`).join(", ")}\n` : ""}${s.cta ? `End the section with the call to action: ${b.cta.text}\n` : ""}${note ? `The editor asked for this change: ${note}\n` : ""}
 Rules:
 - Write in the Brand Voice and the voice sample above, and follow every house rule. Plain words, no filler, no "in today's fast-paced world", no "delve".
+- Be brief. Open with the main point, say each point once and stop when the key points are made. Don't restate the heading, the section before or what comes next.
 - Blocks: p (a paragraph), h3, ul or ol (items), quote, table (rows; the first row is the header). Fill only the field the block uses; leave the others empty.
 - Inline formatting: **bold** for a few key terms, and links as [anchor](url).
 - Cite a source for every fact, number or claim as a link on a few words of the sentence: [anchor](source url). Use only the source URLs above.

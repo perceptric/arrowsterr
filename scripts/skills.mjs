@@ -8,6 +8,11 @@ const SKILLS = {
   enforcer: ["writing-enforcer/SKILL.md", "writing-enforcer/ai-pattern-taxonomy.md"],
   claims: ["claim-boundary-checker/SKILL.md", "claim-boundary-checker/classification.md"],
   proofread: ["proofread/SKILL.md"],
+  // Shorter, easier to read. cut-to-length's own SKILL.md is a ledger procedure, so only its tiers and phrase list go in.
+  cut: ["cut-to-length/references/cut-tiers.md", "cut-to-length/references/wordy-phrases.md"],
+  plain: ["plain-language/SKILL.md"],
+  orwell: ["orwells-rules/SKILL.md"],
+  govuk: ["gov-uk-style/SKILL.md"],
 };
 const read = (f) => readFileSync(new URL(`../skills/${f}`, import.meta.url), "utf8").replace(/^---\n[\s\S]*?\n---\n/, "").trim();
 const body = Object.entries(SKILLS)

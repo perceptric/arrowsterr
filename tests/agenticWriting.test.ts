@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { defaultVoice, fallbackGuidelines, guidelinesBody } from "../src/lib/brandSetup.ts";
-import { DEFAULT_SAMPLE, fixTitleCount, HOUSE_RULES, lintDraft, lintText, rulesText } from "../src/lib/houseRules.ts";
+import { DEFAULT_SAMPLE, fixTitleCount, HOUSE_RULES, lintDraft, lintText, MAX_GRADE, readability, rulesText } from "../src/lib/houseRules.ts";
 import { SKILL_TEXT } from "../src/lib/skillText.ts";
 import { cleanBrief, readExamples, webUrl, withExampleShots, type BriefRow, type ResearchPack, type WriterBrief, type WriterContext } from "../src/lib/writerBrief.ts";
 import { buildDoc, exampleFor, runDraft, sourcesFor, type DraftDeps, type DraftRow, type DraftStore, type Section } from "../src/lib/writerDraft.ts";
-import { keepsFacts, mergeFindings, STYLE_SYSTEM } from "../src/lib/writerStyle.ts";
+import { fixPrompt, keepsFacts, mergeFindings, reviewPrompt, STYLE_SYSTEM } from "../src/lib/writerStyle.ts";
 import type { ImagesOut } from "../src/lib/writerImageTypes.ts";
 
 const p = (text: string) => ({ type: "p" as const, text, items: [], rows: [] });
@@ -49,6 +49,33 @@ test("the lint looks at whole sections: long paragraphs, missing lists, repeated
   assert.ok(found.some((f) => f.id.startsWith("3.") && f.rule === "lists"), "more than 300 words without a list");
 });
 
+test("the lint catches wordy phrases, signposts and long sentences, and leaves plain lines alone", () => {
+  const why = (t: string, intro = false) => lintText(t, { intro }).filter((f) => f.rule === "tight" || f.rule === "sentences").map((f) => f.why);
+  assert.deepEqual(why("In order to grow, your team should utilize one shared plan for every post."), ['"in order to" (say "to")', '"utilize" (say "use")']);
+  assert.deepEqual(why("Most teams utilized a shared plan due to the fact that it saved them time."), ['"due to the fact that" (say "because")', '"utilize" (say "use")'], "verb forms count");
+  assert.deepEqual(why("It's important to note that the free plan covers two users at most."), ['"it\'s important to note that" (cut it)']);
+  assert.deepEqual(why("Let's take a look at the options your team can pick from this year."), ["a signpost"]);
+  assert.deepEqual(why("To sum up, the free plan is enough for a team of two people."), ["a signpost"]);
+  assert.deepEqual(why("In this section, we compare the three plans side by side for you."), ["a signpost"], "a signpost inside the article");
+  assert.deepEqual(why("In this guide, we're sharing business blog examples from real companies.", true), [], "the intro may say what the reader gets");
+  const long = "When you pick a CRM for a small team you should look at the price per seat, the number of pipelines, the reports you get and the apps it connects to before you sign.";
+  assert.deepEqual(why(long), ["a long sentence (34 words)"]);
+  // Words that only look like the phrases pass, and so does a clean line.
+  assert.deepEqual(why("Our priority today is the commencement speech for the new team members."), []);
+  assert.deepEqual(why("Pick a CRM your team will use every day, then add your open deals."), []);
+});
+
+test("readability: the house sample reads as plain English, and padded prose is flagged", () => {
+  for (const para of DEFAULT_SAMPLE.split(/\n\n+/).filter((x) => !/^[#-]/.test(x) && x.split(/\s+/).length >= 25)) assert.ok(readability(para).grade <= MAX_GRADE, para.slice(0, 50));
+  const padded =
+    "Content marketing has become an essential strategy for businesses looking to build meaningful relationships with their audiences and drive sustainable growth. By consistently delivering valuable, relevant information, organizations can establish authority and nurture prospects throughout the buyer's journey.";
+  assert.ok(readability(padded).grade > MAX_GRADE);
+  assert.ok(readability("Pick a CRM your team will use every day. Start with the free plan and add your deals.").ease > 60);
+  const found = lintDraft([{ key: "h2-0", h2: "Why content works", blocks: [p(padded), p(DEFAULT_SAMPLE.split("\n\n")[0])] }]);
+  assert.ok(found.some((f) => f.id === "0.0.0" && f.rule === "words" && /hard to read/.test(f.why)), "the padded paragraph");
+  assert.ok(!found.some((f) => f.id.startsWith("0.1.") && /hard to read/.test(f.why)), "the sample's paragraph passes");
+});
+
 test("the proofread fixes a title whose count doesn't match the article", () => {
   const h2s = ["How we picked", "1. HubSpot", "2. Ahrefs", "3. Zapier", "How to choose"];
   assert.equal(fixTitleCount("10 Best Business Blog Examples in 2026", h2s, 0), "3 Best Business Blog Examples in 2026");
@@ -76,12 +103,32 @@ test("review findings are kept only for lines that exist, once each", () => {
 });
 
 test("the writing skills and the house rules go into the style system prompt", () => {
-  for (const key of ["humanizer", "antiAi", "enforcer", "claims", "proofread"] as const) assert.ok(SKILL_TEXT[key].length > 200, key);
+  for (const key of ["humanizer", "antiAi", "enforcer", "claims", "proofread", "cut", "plain", "orwell", "govuk"] as const) assert.ok(SKILL_TEXT[key].length > 200, key);
   assert.match(STYLE_SYSTEM, /Method 1: Humanizer/);
   assert.match(STYLE_SYSTEM, /Method 2: Anti-AI writing/);
+  for (const m of ["Method 5: Cut to length", "Method 6: Plain language", "Method 7: Orwell's rules", "Method 8: GOV.UK style"]) assert.ok(STYLE_SYSTEM.includes(m), m);
+  assert.ok(STYLE_SYSTEM.includes("in order to"), "the wordy phrase list is in");
+  assert.ok(!STYLE_SYSTEM.includes("## Step 1. Count"), "cut-to-length's ledger steps stay out");
   assert.ok(STYLE_SYSTEM.includes(rulesText()));
   assert.equal(HOUSE_RULES.length, new Set(HOUSE_RULES.map((r) => r.id)).size);
   assert.ok(!/[—–]/.test(DEFAULT_SAMPLE), "the default sample has no dashes");
+});
+
+test("the review knows every house rule, and the fix asks for the same length or shorter", () => {
+  const review = reviewPrompt([{ id: "0.0.0", text: "In order to grow, plan." }], [], { sample: "", examples: [] });
+  for (const r of HOUSE_RULES) assert.ok(review.includes(r.id), r.id);
+  assert.match(review, /a point the draft already made/);
+  const fix = fixPrompt({ key: "h2-0", h2: "Pricing", blocks: [p("In order to save, pick the free plan.")] }, [{ id: "0.0.0", rule: "tight", why: '"in order to"' }], { sample: "" });
+  assert.match(fix, /same length or shorter/);
+  assert.doesNotMatch(fix, /within about 15%/);
+});
+
+test("the brief's word target is capped, with a shorter default", () => {
+  const raw = { titles: ["T"], h1: "T", outline: [{ h2: "Pricing", points: ["Plans"], h3: [], sources: [1] }] };
+  const meta = { model: "m", at: "", keyword: "crm" };
+  assert.equal(cleanBrief({ ...raw, wordTarget: 9000 }, research, [], meta).wordTarget, 4000);
+  assert.equal(cleanBrief({ ...raw, wordTarget: 1200 }, research, [], meta).wordTarget, 1200);
+  assert.equal(cleanBrief({ ...raw, wordTarget: "lots" }, research, [], meta).wordTarget, 1500);
 });
 
 // ─────────────── brand setup ───────────────
