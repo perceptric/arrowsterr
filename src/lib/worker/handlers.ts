@@ -20,6 +20,7 @@ import { runAudit } from "../audit";
 import { queueReportSends } from "../scheduleServer";
 import { applySet, preparePlay, undoSet } from "../plays";
 import { checkDue, promptAllowance } from "../plans";
+import { PERCEPTION_VERSION } from "../perception";
 import type { PlanBrief } from "../research";
 
 // What each kind of job does. A handler either finishes its job, or puts it back with retry().
@@ -88,6 +89,16 @@ export async function schedule(db: SupabaseClient, job: Job) {
       ),
     );
   }
+  // Perception (docs/perception.md): read each finished run's answers once, and ask the direct questions once a week
+  // per brand, on the brand's own day. Before 059_perception.sql these queries fail, and nothing is queued.
+  const recent = new Date(Date.now() - 2 * 864e5).toISOString();
+  const settled = new Date(Date.now() - 60 * 60_000).toISOString(); // a browser run saves its answers when it ends, within the hour
+  const { data: unread } = await db.from("runs").select("id, workspace_id, source, status, at").lt("perception_read", PERCEPTION_VERSION).gte("at", recent).limit(40);
+  const readable = (unread ?? []).filter((r) => (r.source === "daily" ? r.status !== "running" : r.at < settled));
+  if (readable.length) await enqueueMany(readable.map((r) => ({ kind: "perception" as const, workspace_id: r.workspace_id, key: `perception:${PERCEPTION_VERSION}:${r.id}`, payload: { runId: r.id } })));
+  const askable = (brands ?? []).filter((b) => b.daily && b.prompts?.length && checkDue(seed(b.id), 7) && slotOf(b.id) <= minute);
+  if (askable.length) await enqueueMany(askable.map((b) => ({ kind: "perception_probe" as const, workspace_id: b.workspace_id, key: `perception_probe:${b.id}:${today()}`, payload: { brandId: b.id } })));
+
   // Brands whose saved answers predate the current brand check get one cleanup. Before the migration this does nothing.
   const { data: unchecked } = await db.from("brands").select("id, workspace_id").lt("brands_checked", BRAND_CHECK_VERSION).limit(50);
   if (unchecked?.length) {

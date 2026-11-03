@@ -20,6 +20,7 @@ const MCP_TOOLS = [
   ["get_prompts", "Each prompt's results and the brands named most"],
   ["get_prompt_answers", "The full answer from each AI model for one prompt"],
   ["get_cited_sources", "The sites and pages AI links to"],
+  ["get_brand_perception", "The words AI uses for the brand, with quotes"],
   ["get_visibility_trend", "Visibility by day against competitors"],
   ["get_content_plan / get_topic_bank", "Planned pieces and saved keyword ideas"],
   ["keyword_research", "Google volume and difficulty (uses tasks)"],

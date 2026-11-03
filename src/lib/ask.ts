@@ -321,6 +321,7 @@ const LABELS: Record<string, string> = {
   get_prompt_answers: "Reading AI answers",
   get_competitors: "Comparing competitors",
   get_cited_sources: "Reading cited sources",
+  get_brand_perception: "Reading perception",
   get_content_plan: "Reading the Content Plan",
   get_topic_bank: "Reading the topic bank",
   add_to_content_plan: "Adding to the Content Plan",
