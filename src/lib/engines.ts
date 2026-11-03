@@ -126,6 +126,21 @@ function askApi(engine: Engine, prompt: string): Promise<Answer> {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+/** Ask one engine a plain question, the way a person types it, without the shared answer layout. Tries twice. */
+export async function askPlain(engine: Engine, prompt: string): Promise<Answer> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const a = viaDfs(engine) ? await askLive(engine, prompt) : await askApi(engine, prompt);
+      return { ...a, text: a.text.replace(/\[\d+\]/g, "") };
+    } catch (e) {
+      lastError = e;
+      await sleep(2000);
+    }
+  }
+  throw lastError;
+}
+
 /** Ask one engine one prompt with web search on, in the shared answer layout. Tries twice. */
 export async function askEngine(engine: Engine, userPrompt: string): Promise<Answer> {
   // DataForSEO reads the real apps and Google, so they get the plain prompt, the way a person types it.

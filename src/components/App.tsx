@@ -60,6 +60,7 @@ import { ShareButton } from "./ShareDialog";
 import { ExportsSettings, JobsSettings } from "./JobsSettings";
 import { BillingPage, choosePlan } from "./BillingPage";
 import { Onboarding, type Checking, type NewBrand, type Welcome } from "./Onboarding";
+import { PerceptionPage } from "./PerceptionPage";
 import { PromptsPage } from "./PromptsPage";
 import { ResearchPage, type Tool } from "./research/ResearchPage";
 import type { SeoStart } from "./research/DomainResearch";
@@ -73,9 +74,9 @@ import { BrandPage } from "./BrandPage";
 import { CONTENT_ALIASES, CONTENT_SLUGS, type ContentPage } from "@/lib/contentRoutes";
 
 export type { Brand } from "@/lib/db";
-type Page = "prompts" | "competitors" | "domains" | "urls" | "traffic" | "visitors" | "keywords" | "domain" | "gap" | ContentPage | "summary" | SettingsTab;
+type Page = "prompts" | "competitors" | "perception" | "domains" | "urls" | "traffic" | "visitors" | "keywords" | "domain" | "gap" | ContentPage | "summary" | SettingsTab;
 const RESEARCH: Page[] = ["keywords", "domain", "gap", "calendar"];
-const VISIBILITY: Page[] = ["prompts", "competitors", "domains", "urls"];
+const VISIBILITY: Page[] = ["prompts", "competitors", "perception", "domains", "urls"];
 /** Pages with their own PDF (docs/reports.md, section 32.3). */
 const PDF_OF: Partial<Record<Page, PdfPage>> = { prompts: "prompts", competitors: "competitors", domains: "sources", urls: "sources", keywords: "keywords", domain: "domain", gap: "gap" };
 /** Pages with Share, a frozen link anyone can open (docs/reports.md, section 32.7). */
@@ -85,6 +86,7 @@ const SHARE_OF: Partial<Record<Page, "prompts" | "competitors">> = { prompts: "p
 const SLUGS: Record<Page, string> = {
   prompts: "/prompts",
   competitors: "/competitors",
+  perception: "/perception",
   domains: "/sources",
   urls: "/sources/urls",
   traffic: "/traffic",
@@ -951,6 +953,8 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
                 go("prompts");
               }}
             />
+          ) : page === "perception" ? (
+            <PerceptionPage key={view.brand.id} view={view} sb={sb} auth={auth} canEdit={canEdit} />
           ) : page === "summary" ? (
             <ReportsPage
               key={ws.id}
@@ -1025,6 +1029,7 @@ const ICONS: Record<string, string> = {
   report: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
   gear: '<circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M4.2 6.2l2.1 2.1M17.7 15.7l2.1 2.1M2.5 12h3M18.5 12h3M4.2 17.8l2.1-2.1M17.7 8.3l2.1-2.1"/>',
   send: '<path d="M21 3L3 10.5l7 3 3 7L21 3z"/><path d="M10 13.5L21 3"/>',
+  perception: '<path d="M12 3l8.5 6.2-3.2 10H6.7L3.5 9.2z"/><path d="M12 8.5l4 2.9-1.5 4.6h-5L8 11.4z"/>',
   radar: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><path d="M12 12l6-6"/><circle cx="12" cy="12" r="1"/>',
   card: '<rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6.5 15h4"/>',
 };
@@ -1034,7 +1039,7 @@ function NavIcon({ name }: { name: string }) {
 
 /** The toolset a page belongs to. Starter opens one of them. */
 const trackOf = (page: Page): Track | null =>
-  ["prompts", "competitors", "domains", "urls"].includes(page) ? "visibility" : ["keywords", "domain", "gap", "calendar", "library"].includes(page) ? "seo" : null;
+  ["prompts", "competitors", "perception", "domains", "urls"].includes(page) ? "visibility" : ["keywords", "domain", "gap", "calendar", "library"].includes(page) ? "seo" : null;
 
 /** The big modules of the app. Each opens to its own pages. */
 const NAV: { group: string; icon: string; items: { id: Page; label: string; icon: string; also?: Page[] }[] }[] = [
@@ -1044,6 +1049,7 @@ const NAV: { group: string; icon: string; items: { id: Page; label: string; icon
     items: [
       { id: "prompts", label: "Prompts", icon: "prompts" },
       { id: "competitors", label: "Competitors", icon: "competitors" },
+      { id: "perception", label: "Perception", icon: "perception" },
       { id: "domains", label: "Sources", icon: "sources", also: ["urls"] },
     ],
   },

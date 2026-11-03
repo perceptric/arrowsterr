@@ -9,6 +9,7 @@ import { research, Spend } from "../keywords";
 import { broaderSeed } from "../kwReport";
 import { answered, brandStats, competitorDomains, domainRows, promptDetail, promptRows, rankOf, splitPeriods, topicGrid, topicRows, trend, typeShares, urlRows, type BrandStat, type Filter } from "../metrics";
 import { MAX_TOPICS } from "../onboarding";
+import { enough, headlineGap, scoresFromSummary, unknownInSummary, verdict, type PerceptionRead, type PerceptionSetup, type SummaryRow } from "../perception";
 import { TASK_COST } from "../plans";
 import { marketOf, type Keyword } from "../research";
 import { ToolError, textResult, type Schema, type ToolResult } from "./protocol";
@@ -243,6 +244,66 @@ export const TOOLS: Tool[] = [
         brands: shown.map((s) => ({ ...statRow(s), quadrant: quadrantOf(s, mid) })),
         mostFavorable: warmest ? { name: warmest.name, sentiment: round(warmest.sentiment, 0) } : null,
         topicLeaders: leaders.map((t) => ({ topic: t.topic, leader: t.leader, youVisibility: round(t.values[brand.name] ?? null) })),
+      });
+    },
+  },
+  {
+    name: "get_brand_perception",
+    title: "Words AI uses for the brand",
+    description:
+      "How AI describes the brand on its perception words (7 good, 3 bad, the same list for every brand in the market): the share of answers that support each word, for the brand and the brands AI names most next to it, with quotes as proof. source buyer reads the answers to tracked prompts; direct reads the weekly questions asked about the brand itself.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        brand: brandArg,
+        days: daysArg,
+        engine: engineArg,
+        source: { type: "string", enum: ["buyer", "direct"], description: "buyer (default): answers to tracked prompts. direct: the weekly questions about the brand." },
+        rivals: { type: "number", description: "How many other brands to compare. Default 3, max 8." },
+      },
+    },
+    annotations: { readOnlyHint: true, openWorldHint: false },
+    async run(ctx, args) {
+      const brand = await pickBrand(ctx, args.brand);
+      const { data: b } = await ctx.db.from("brands").select("perception").eq("id", brand.id).maybeSingle();
+      const words = (b?.perception as PerceptionSetup | null)?.words;
+      if (!words?.length) throw new ToolError(`${brand.name} has no perception words yet. Open the Perception page in Arrowsterr once to make them.`);
+      const days = daysOf(args.days);
+      const source = args.source === "direct" ? "direct" : "buyer";
+      const engine = str(args.engine, 40);
+      const since = new Date(Date.now() - days * 864e5).toISOString();
+      const { data, error } = await ctx.db.rpc("perception_summary", { p_brand: brand.id, p_since: since });
+      if (error) throw new Error(error.message);
+      const rows = (data ?? []) as SummaryRow[];
+      const keep = (r: SummaryRow) => r.source === source && (!engine || same(r.engine, engine));
+      const you = scoresFromSummary(rows, brand.name, words, keep);
+      if (!you.n && !rows.length) throw noData(brand, days);
+      const reach = new Map<string, number>();
+      for (const r of rows) if (keep(r) && r.word === null && r.named !== brand.name) reach.set(r.named, (reach.get(r.named) ?? 0) + r.n);
+      const take = Math.min(8, Math.max(0, Math.round(Number(args.rivals) || 3)));
+      const rivals = [...reach.entries()].sort((x, y) => y[1] - x[1]).slice(0, take).map(([name]) => ({ brand: name, scores: scoresFromSummary(rows, name, words, keep) }));
+      const { data: recent } = await ctx.db.from("perception_reads").select("engine, words, source").eq("brand_id", brand.id).eq("named", brand.name).eq("source", source).gte("at", since).order("at", { ascending: false }).limit(300);
+      const quotes = (word: string) => ((recent ?? []) as Pick<PerceptionRead, "engine" | "words">[]).filter((r) => !engine || same(r.engine, engine)).flatMap((r) => r.words.filter((w) => w.word === word).map((w) => ({ model: r.engine, quote: w.quote }))).slice(0, 3);
+      const share = (s: typeof you, w: string) => (enough(s) ? round(s.share[w] * 100, 0) : null);
+      const [first, second] = verdict(brand.name, you, rivals, words, unknownInSummary(rows, brand.name));
+      const gap = headlineGap(you, rivals, words);
+      return textResult({
+        brand: { name: brand.name, domain: brand.domain },
+        days,
+        source,
+        model: engine || "all",
+        answers: you.n,
+        verdict: [first, second].filter(Boolean).join(" "),
+        notKnownWhenAsked: unknownInSummary(rows, brand.name),
+        biggestGap: gap ? { word: gap.word, leader: gap.brand, leaderShare: round(gap.them * 100, 0), yourShare: round(gap.you * 100, 0) } : null,
+        words: words.map((w) => ({
+          word: w.word,
+          good: w.good,
+          share: share(you, w.word),
+          rivals: Object.fromEntries(rivals.map((r) => [r.brand, share(r.scores, w.word)])),
+          quotes: quotes(w.word),
+        })),
+        note: "share is the percent of answers naming the brand that support the word. null means fewer than 3 answers.",
       });
     },
   },
