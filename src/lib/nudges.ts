@@ -1,19 +1,26 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { emailHtml, emailReady, sendEmail } from "./email";
+import { flatPrompts, topicsOf, type Brand } from "./db";
+import { emailReady, sendBuilt } from "./email";
+import type { Email } from "./emailKit";
+import { tasksEmail, trialEmail, type Footer } from "./emails";
 import { entitlement } from "./entitlements";
-import { periodOf, TASK_PACKS } from "./plans";
+import { cycleEnd, periodOf, PLANS, SELF_SERVE, TASK_PACKS } from "./plans";
+import { weekOf, type Metric } from "./visibility";
 
 // Emails that help people before they hit a wall: tasks at 80% for the month, and a trial with 3 days left.
 // Each one goes out once per workspace and period (email_log). Runs from the worker or the cron, about hourly.
+// What each email says: src/lib/emails.ts.
 
-const app = () => (process.env.APP_URL?.trim().replace(/\/+$/, "") || "https://app.arrowsterr.com") + "/billing";
+const billing = () => (process.env.APP_URL?.trim().replace(/\/+$/, "") || "https://app.arrowsterr.com") + "/settings/billing";
 const DAY = 864e5;
 
 async function admins(db: SupabaseClient, ws: string) {
   const { data } = await db.from("workspace_members").select("email, role").eq("workspace_id", ws).in("role", ["owner", "admin"]);
   return [...new Set((data ?? []).map((m) => m.email as string | null).filter((e): e is string => Boolean(e)))];
 }
+
+const adminFooter = (): Footer => ({ text: "You get this because you're an admin of this workspace.", links: [{ label: "Billing", url: billing() }] });
 
 /** Send one email once. The log row goes in first, so two runs at once never send twice. */
 async function once(db: SupabaseClient, ws: string, kind: string, period: string, send: () => Promise<boolean>) {
@@ -26,6 +33,27 @@ async function once(db: SupabaseClient, ws: string, kind: string, period: string
   }
   await db.from("email_log").delete().eq("workspace_id", ws).eq("kind", kind).eq("period", period);
   return false;
+}
+
+async function toAdmins(db: SupabaseClient, ws: string, mail: Email) {
+  const to = await admins(db, ws);
+  return sendBuilt(to, mail);
+}
+
+/** What the trial found: the first brand's visibility this week, the prompts tracked and the briefs made. */
+async function trialStats(db: SupabaseClient, ws: string) {
+  const today = new Date().toISOString().slice(0, 10);
+  const since = new Date(Date.now() - 14 * DAY).toISOString().slice(0, 10);
+  const { data: brands } = await db.from("brands").select("id, prompts, topics").eq("workspace_id", ws).order("created_at");
+  const list = (brands ?? []) as Pick<Brand, "id" | "prompts" | "topics">[];
+  const prompts = list.reduce((n, b) => n + flatPrompts(topicsOf({ prompts: b.prompts ?? [], topics: b.topics ?? [] })).length, 0);
+  let visibility: number | null = null;
+  if (list[0]) {
+    const { data: rows } = await db.from("daily_metrics").select("day, engine, named, is_you, answers, mentions").eq("brand_id", list[0].id).gte("day", since).lt("day", today);
+    visibility = weekOf((rows ?? []) as Metric[], today)?.visibility ?? null;
+  }
+  const { count } = await db.from("calendar_items").select("id", { count: "exact", head: true }).eq("workspace_id", ws).eq("brief_status", "done");
+  return { visibility, prompts, briefs: count ?? 0 };
 }
 
 export async function sendNudges(db: SupabaseClient) {
@@ -44,20 +72,11 @@ export async function sendNudges(db: SupabaseClient) {
       const left = Date.parse(w.trial_ends_at) - now;
       if (left > 0 && left <= 3 * DAY) {
         const days = Math.max(1, Math.ceil(left / DAY));
-        const ok = await once(db, w.id, "trial3", String(w.trial_ends_at).slice(0, 10), async () =>
-          sendEmail(
-            await admins(db, w.id),
-            `Your Arrowsterr trial ends in ${days} day${days === 1 ? "" : "s"}`,
-            emailHtml(
-              `${days} day${days === 1 ? "" : "s"} left on your trial`,
-              [
-                `Your trial for ${w.name} ends soon. After that the workspace turns read-only. Nothing is deleted.`,
-                "Pick Starter for one toolset, AI Visibility or Organic Research, from $29 a month. Or get both on Pro.",
-              ],
-              { label: "Pick a plan", url: app() },
-            ),
-          ),
-        );
+        const ok = await once(db, w.id, "trial3", String(w.trial_ends_at).slice(0, 10), async () => {
+          const stats = await trialStats(db, w.id).catch(() => ({}));
+          const plans = SELF_SERVE.map((id) => PLANS[id]).map((p) => ({ name: p.name, tagline: p.tagline, price: p.price }));
+          return toAdmins(db, w.id, trialEmail({ workspace: w.name, days, ends: new Date(w.trial_ends_at), ...stats, plans, url: billing() }, adminFooter()));
+        });
         if (ok) sent++;
       }
     }
@@ -65,23 +84,17 @@ export async function sendNudges(db: SupabaseClient) {
     // Tasks at 80% or more of the month.
     const limit = e.limits.tasksPerMonth;
     if (limit > 0) {
-      const period = periodOf("tasks", new Date(), e.anchor);
+      const at = new Date();
+      const period = periodOf("tasks", at, e.anchor);
       const { data: row } = await db.from("usage_counters").select("used").eq("workspace_id", w.id).eq("metric", "tasks").eq("period", period).maybeSingle();
       const used = Number(row?.used ?? 0);
       if (used >= limit * 0.8) {
-        const pack = TASK_PACKS[0];
+        const resets = e.anchor ? cycleEnd(new Date(e.anchor), at) : new Date(Date.UTC(at.getUTCFullYear(), at.getUTCMonth() + 1, 1));
         const ok = await once(db, w.id, "tasks80", period, async () =>
-          sendEmail(
-            await admins(db, w.id),
-            `You've used ${Math.round((used / limit) * 100)}% of this month's tasks`,
-            emailHtml(
-              `${(limit - Math.min(used, limit)).toLocaleString("en-US")} tasks left this month`,
-              [
-                `${w.name} has used ${used.toLocaleString("en-US")} of its ${limit.toLocaleString("en-US")} tasks on ${e.limits.name}.`,
-                `Top up any time with a task pack, from ${pack.tasks.toLocaleString("en-US")} tasks for $${pack.price}. Pack tasks never expire.${e.credits ? ` You have ${e.credits.toLocaleString("en-US")} pack tasks already.` : ""}`,
-              ],
-              { label: "Buy tasks", url: app() },
-            ),
+          toAdmins(
+            db,
+            w.id,
+            tasksEmail({ workspace: w.name, used: Math.min(used, limit), limit, plan: e.limits.name, resets, packs: TASK_PACKS.map((p) => ({ tasks: p.tasks, price: p.price })), credits: e.credits, url: billing() }, adminFooter()),
           ),
         );
         if (ok) sent++;

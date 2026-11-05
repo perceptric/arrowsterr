@@ -1,0 +1,3 @@
+confirmation: Confirm your email for Arrowsterr
+magic_link: Sign in to Arrowsterr
+recovery: Reset your Arrowsterr password

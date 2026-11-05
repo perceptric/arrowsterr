@@ -104,6 +104,8 @@ async function email(db: SupabaseClient, s: Schedule, send: Send, files: FileRow
     }),
   );
   const first = files[0].snapshot;
+  const prompts = files.map((f) => f.snapshot.data).find((d) => d.page === "prompts");
+  const scores = prompts && "scores" in prompts ? prompts.scores : null;
   const replyTo = s.created_by ? ((await db.auth.admin.getUserById(s.created_by).catch(() => null))?.data.user?.email ?? null) : null;
   const mail = reportEmail({
     maker: first.tokens.maker,
@@ -115,6 +117,8 @@ async function email(db: SupabaseClient, s: Schedule, send: Send, files: FileRow
     period: first.period,
     files: files.map((f) => f.title),
     date: new Date(send.due_at),
+    sizes: attachments.map((a) => Math.floor((a.content.length * 3) / 4)),
+    scores,
   });
   await sendEmail(s.recipients, mail.subject, mail.html, undefined, {
     text: mail.text,

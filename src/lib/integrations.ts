@@ -118,8 +118,13 @@ export async function afterDaily(db: SupabaseClient, ws: string, brandId: string
   }
   if (!reasons.length) return;
   await dispatch(db, ws, "visibility.alert", { ...result, reasons });
+  // The email shows each AI's move and the first rival that passed the brand.
+  const byEngine = (list: Metric[], e: string) => shares(list.filter((r) => r.engine === e), new Set([e])).find((x) => x.you)?.visibility ?? 0;
+  const engines = [...both].sort().map((e) => ({ engine: e, now: byEngine(today, e), was: byEngine(before, e) }));
+  const passer = rivals.find((r) => r.visibility > you && (was.find((x) => x.name.toLowerCase() === r.name.toLowerCase())?.visibility ?? 0) <= youBefore);
+  const overtaken = passer ? { name: passer.name, visibility: passer.visibility, before: was.find((x) => x.name.toLowerCase() === passer.name.toLowerCase())?.visibility ?? 0 } : null;
   const { emailAlert } = await import("./notify");
-  await emailAlert(db, ws, brand, day, reasons).catch((err) => console.error("Alert email failed:", err instanceof Error ? err.message : err));
+  await emailAlert(db, ws, brand, day, { you, before: youBefore, overtaken, engines, prevDay: prevDay! }).catch((err) => console.error("Alert email failed:", err instanceof Error ? err.message : err));
   if (slack) {
     await slackSend(slack,`${brand.name}: AI visibility ${change! < 0 ? "dropped" : change! > 0 ? "changed" : "alert"}`, reasons).catch((err) =>
       console.error("Slack alert failed:", err instanceof Error ? err.message : err),

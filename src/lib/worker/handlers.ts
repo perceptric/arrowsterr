@@ -13,6 +13,9 @@ import { entitlement } from "../entitlements";
 import { enqueue, enqueueMany, finish, rateOk, retry, type Job } from "../jobs";
 import { afterDaily, dispatch } from "../integrations";
 import { emailJob } from "../notify";
+import { briefEmail, planEmail } from "../emails";
+import type { Brief } from "../briefTypes";
+import type { AgentResult } from "../research";
 import { articleResearchJob } from "../articleResearchServer";
 import { writerBriefJob, writerDraftJob } from "../writerServer";
 import { wpPublishJob } from "../wpSyncServer";
@@ -225,17 +228,30 @@ export async function brief(db: SupabaseClient, job: Job) {
   const { itemId, period, tasks, fromPack, userId } = job.payload as { itemId: string; period?: string; tasks?: number; fromPack?: number; userId?: string };
   await runBrief(db, itemId);
   // A brief that failed hands its tasks back.
-  const { data } = await db.from("calendar_items").select("brief_status, brief_error, keyword").eq("id", itemId).maybeSingle();
+  const { data } = await db.from("calendar_items").select("brief_status, brief_error, keyword, volume, difficulty, stage, brief").eq("id", itemId).maybeSingle();
   // Someone who pressed Stop already knows, so only real endings get an email.
   if (job.workspace_id && (data?.brief_status === "done" || (data?.brief_status === "failed" && data.brief_error !== "Stopped."))) {
     const ok = data.brief_status === "done";
-    await emailJob(db, job.workspace_id, userId, {
-      subject: ok ? `Your brief for "${data.keyword}" is ready` : `Your brief for "${data.keyword}" didn't finish`,
-      title: ok ? "Your content brief is ready" : "Your content brief didn't finish",
-      lines: ok ? [`The brief for "${data.keyword}" is done: search intent, what to cover, an outline and the terms to use.`] : [`The brief for "${data.keyword}" stopped: ${data.brief_error ?? "something went wrong"}`, "Its tasks went back to your plan. You can start it again from the Content Plan."],
-      button: ok ? "Open the brief" : "Open the Content Plan",
-      path: "/content-plan",
-    }).catch((e) => console.error("Brief email failed:", e instanceof Error ? e.message : e));
+    const doc = (data.brief as Brief | null)?.brief;
+    const url = `${process.env.APP_URL?.trim().replace(/\/+$/, "") || "https://app.arrowsterr.com"}/editorial-calendar?item=${itemId}`;
+    await emailJob(db, job.workspace_id, userId, (footer) =>
+      briefEmail(
+        {
+          ok,
+          keyword: data.keyword,
+          volume: data.volume,
+          difficulty: data.difficulty,
+          stage: data.stage,
+          outline: (doc?.outline ?? []).map((o) => o.h2).filter(Boolean),
+          terms: doc?.terms?.length ?? 0,
+          questions: doc?.questions?.length ?? 0,
+          error: data.brief_error,
+          tasks: ok || !period ? 0 : (tasks ?? 75), // the same count given back below
+          url,
+        },
+        footer,
+      ),
+    ).catch((e) => console.error("Brief email failed:", e instanceof Error ? e.message : e));
   }
   if (data?.brief_status === "done" && job.workspace_id) {
     await dispatch(db, job.workspace_id, "brief.ready", { keyword: data.keyword, item_id: itemId, url: `${process.env.APP_URL?.trim() || "https://app.arrowsterr.com"}/editorial-calendar` }).catch(() => {});
@@ -251,17 +267,19 @@ export async function brief(db: SupabaseClient, job: Job) {
 export async function plan(db: SupabaseClient, job: Job) {
   const { runId, site, period } = job.payload as { runId: string; site: { id: string; domain: string; name: string; profile: Profile; brief?: PlanBrief }; period?: string };
   await runAgent(db, runId, site);
-  const { data } = await db.from("keyword_runs").select("status, error, created_by").eq("id", runId).maybeSingle();
+  const { data } = await db.from("keyword_runs").select("status, error, created_by, result").eq("id", runId).maybeSingle();
   if (data?.status === "failed") await giveBack(db, job.workspace_id, "plans", period);
   if (job.workspace_id && (data?.status === "done" || (data?.status === "failed" && data.error !== "Stopped."))) {
     const ok = data.status === "done";
-    await emailJob(db, job.workspace_id, data.created_by, {
-      subject: ok ? `Your Content Plan for ${site.name} is ready` : `Your Content Plan for ${site.name} didn't finish`,
-      title: ok ? "Your Content Plan is ready" : "Your Content Plan didn't finish",
-      lines: ok ? [`Arrowsterr finished researching ${site.domain}. Your plan of pages to write and update is waiting, bottom of the funnel first.`] : [`The research for ${site.domain} stopped: ${data.error ?? "something went wrong"}`, "You can start it again from the Content Plan."],
-      button: "Open the Content Plan",
-      path: "/content-plan",
-    }).catch((e) => console.error("Plan email failed:", e instanceof Error ? e.message : e));
+    const result = (data.result ?? {}) as AgentResult;
+    const pages = [
+      ...(result.groups ?? []).map((g) => ({ keyword: g.primary, volume: g.volume, stage: g.stage })),
+      ...(result.updates ?? []).map((u) => ({ keyword: u.page.replace(/^https?:\/\/[^/]+/, "") || u.page, volume: u.volume ?? 0, stage: u.stage, update: true })),
+    ];
+    const url = `${process.env.APP_URL?.trim().replace(/\/+$/, "") || "https://app.arrowsterr.com"}/editorial-calendar`;
+    await emailJob(db, job.workspace_id, data.created_by, (footer) => planEmail({ ok, site: site.domain, pages, error: data.error, url }, footer)).catch((e) =>
+      console.error("Plan email failed:", e instanceof Error ? e.message : e),
+    );
   }
   await finish(job.id);
 }

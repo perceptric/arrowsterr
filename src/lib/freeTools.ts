@@ -1,7 +1,9 @@
 import "server-only";
 import { createHash } from "node:crypto";
 import { DAY, readCache, writeCache } from "./cache";
-import { esc, sendEmail } from "./email";
+import { sendBuilt } from "./email";
+import { appUrl } from "./emailKit";
+import { freeAlarmEmail } from "./emails";
 import { freeBlock, freeLimits, FREE_TOOLS, utcDayStart, type FreeTool } from "./freeLimits";
 import { adminClient } from "./serverAuth";
 
@@ -38,14 +40,22 @@ async function human(token: unknown, ip: string) {
   }
 }
 
-/** One email a day when the free tools pass their daily spend. */
-async function alarm(spent: number, limit: number) {
+/** One email a day when the free tools pass their daily spend, with the spend split by tool. */
+async function alarm(spent: number, limit: number, rows: { tool: string; cost: number | string }[]) {
   const day = utcDayStart().slice(0, 10);
   if ((await readCache(`free:alarm:${day}`, DAY)) !== undefined) return;
   await writeCache(`free:alarm:${day}`, true);
   const to = (process.env.FREE_ALERT_EMAIL ?? "").split(",").map((s) => s.trim()).filter(Boolean);
   console.error(`Free tools passed $${limit} today ($${spent.toFixed(2)}). Paid runs are paused until midnight UTC.`);
-  await sendEmail(to, "Free tools paused for today", `<p>The free tools on arrowsterr.com spent $${esc(spent.toFixed(2))} today, past the $${esc(String(limit))} limit (FREE_SPEND_DAY).</p><p>New paid runs are paused until midnight UTC. Saved results still work.</p>`).catch(() => {});
+  const by = new Map<string, { name: string; runs: number; cost: number }>();
+  for (const r of rows) {
+    const x = by.get(r.tool) ?? { name: r.tool, runs: 0, cost: 0 };
+    x.runs++;
+    x.cost += Number(r.cost);
+    by.set(r.tool, x);
+  }
+  const tools = [...by.values()].sort((a, b) => b.cost - a.cost).slice(0, 8);
+  await sendBuilt(to, freeAlarmEmail({ spent, limit, tools, url: appUrl() })).catch(() => {});
 }
 
 export type FreeRun<T> = { result: T; cost: number };
@@ -69,13 +79,14 @@ export async function freeRun<T>(request: Request, body: Record<string, unknown>
     db.from("free_runs").select("id", { count: "exact", head: true }).eq("ip_hash", ipHash).eq("tool", tool).gte("created_at", dayAgo),
     db.from("free_runs").select("id", { count: "exact", head: true }).eq("ip_hash", ipHash).gte("created_at", dayAgo),
     db.from("free_runs").select("id", { count: "exact", head: true }).eq("tool", tool).gte("created_at", dayStart),
-    db.from("free_runs").select("cost").gte("created_at", dayStart).gt("cost", 0).limit(20000),
+    db.from("free_runs").select("tool, cost").gte("created_at", dayStart).gt("cost", 0).limit(20000),
   ]);
-  const spentToday = ((spend.data ?? []) as { cost: number | string }[]).reduce((n, r) => n + Number(r.cost), 0);
+  const spendRows = (spend.data ?? []) as { tool: string; cost: number | string }[];
+  const spentToday = spendRows.reduce((n, r) => n + Number(r.cost), 0);
   const limits = freeLimits(tool, process.env);
   const block = freeBlock({ mineTool: mineTool.count ?? 0, mineAll: mineAll.count ?? 0, toolToday: toolToday.count ?? 0, spentToday }, limits);
   if (block) {
-    if (limits.paid && spentToday >= limits.spendDay) void alarm(spentToday, limits.spendDay);
+    if (limits.paid && spentToday >= limits.spendDay) void alarm(spentToday, limits.spendDay, spendRows);
     return reply(request, { error: block.error, limit: true, signup: block.kind === "visitor" }, 429);
   }
 

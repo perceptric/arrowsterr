@@ -9,7 +9,8 @@
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "node --test tests/*.test.ts",
-    "stripe:setup": "node scripts/stripe-setup.mjs"
+    "stripe:setup": "node scripts/stripe-setup.mjs",
+    "emails": "node scripts/email-previews.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",

@@ -30,6 +30,25 @@ export function AuthScreen({ sb, invited, googleClientId = null }: { sb: Supabas
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [sent, setSent] = useState("");
+  const [code, setCode] = useState("");
+
+  /** The code in the sign-in or confirm email, for a link opened on another device. */
+  async function verify(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError("");
+    try {
+      const token = code.trim();
+      let { error } = await sb.auth.verifyOtp({ email, token, type: "email" });
+      if (error && mode === "signup") ({ error } = await sb.auth.verifyOtp({ email, token, type: "signup" }));
+      if (error) throw error;
+    } catch (err) {
+      setError(/invalid|expired/i.test(message(err)) ? "That code is not right or has expired. Check the newest email." : message(err));
+      setCode("");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -76,6 +95,7 @@ export function AuthScreen({ sb, invited, googleClientId = null }: { sb: Supabas
     setMode(m);
     setError("");
     setSent("");
+    setCode("");
   }
 
   // The sign-in link is a way to sign in, so it keeps the Sign in tab selected.
@@ -166,6 +186,27 @@ export function AuthScreen({ sb, invited, googleClientId = null }: { sb: Supabas
           {busy ? "Please wait..." : mode === "signin" ? "Sign in" : mode === "signup" ? "Create account" : mode === "link" ? "Email me a sign-in link" : "Send reset link"}
         </button>
       </form>
+      {sent && (mode === "link" || mode === "signup") ? (
+        <form onSubmit={verify} className="flex flex-col gap-3">
+          <label className="aw-label" htmlFor="email-code">
+            Code from the email
+          </label>
+          <input
+            id="email-code"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            pattern="[0-9]{6,10}"
+            maxLength={10}
+            required
+            value={code}
+            onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+            className="aw-input aw-mono text-center text-[22px] tracking-[0.3em]"
+          />
+          <button type="submit" className="aw-btn aw-btn--secondary aw-btn--block" disabled={busy || code.length < 6}>
+            {busy ? "Checking..." : "Continue"}
+          </button>
+        </form>
+      ) : null}
       {mode === "signup" || mode === "link" ? (
         <p className="aw-small">
           {mode === "link" ? "New here? The link also creates your account. " : null}By creating an account you agree to the{" "}
