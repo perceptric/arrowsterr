@@ -51,7 +51,7 @@ import type { View } from "@/lib/view";
 import { runAll, type RunAuth } from "@/lib/runner";
 import { getSupabase, type SupaConfig } from "@/lib/supa";
 import { clearStash, peek, primeStash } from "@/lib/stash";
-import { AuthScreen, CodeCheck, NewPassword } from "./AuthScreen";
+import { AuthScreen, CodeCheck, InviteMismatch, NewPassword, type InviteInfo } from "./AuthScreen";
 import { WorkspaceAvatar } from "./WorkspaceAvatar";
 import { BrandLogo } from "./BrandLogo";
 import { CompetitorsPage } from "./CompetitorsPage";
@@ -150,10 +150,12 @@ function brandChange(a: Brand, b: Brand) {
 }
 
 /** Sign-in gate. Everything after sign-in lives in Shell. */
-export function App({ config, googleClientId = null }: { config: SupaConfig; googleClientId?: string | null }) {
+export function App({ config, googleClientId = null, turnstileSiteKey = null }: { config: SupaConfig; googleClientId?: string | null; turnstileSiteKey?: string | null }) {
   const sb = getSupabase(config);
   const [session, setSession] = useState<Session | null | undefined>(undefined);
   const [recovery, setRecovery] = useState(false);
+  // What a pending invite is for, so the sign-in screen can name the workspace and fill in the email.
+  const [invite, setInvite] = useState<{ token: string; info: InviteInfo | null; problem: string } | null>(null);
 
   useEffect(() => {
     // An invite link looks like /?invite=TOKEN. Keep the token until the person is signed in.
@@ -183,9 +185,43 @@ export function App({ config, googleClientId = null }: { config: SupaConfig; goo
       .catch(() => setGate({ user: uid, need: false }));
   }, [sb, uid]);
 
+  // Look up the invite while signed out. A dead link is dropped, with the reason shown on the sign-in screen.
+  const signedOut = session === null;
+  useEffect(() => {
+    const token = signedOut ? readLocal(INVITE_KEY) : null;
+    if (!token || invite?.token === token) return;
+    let live = true;
+    fetch("/api/invite", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token }) })
+      .then(async (r) => {
+        const d = (await r.json().catch(() => ({}))) as { workspace?: string; email?: string; error?: string };
+        if (!live) return;
+        if (r.ok && d.workspace && d.email) return setInvite({ token, info: { token, workspace: d.workspace, email: d.email }, problem: "" });
+        if (r.status === 404 || r.status === 410 || r.status === 400) writeLocal(INVITE_KEY, null);
+        setInvite({ token, info: null, problem: d.error ?? "" });
+      })
+      .catch(() => live && setInvite({ token, info: null, problem: "" }));
+    return () => {
+      live = false;
+    };
+  }, [signedOut, invite?.token]);
+
   if (session === undefined) return null;
   if (recovery && session) return <NewPassword sb={sb} onDone={() => setRecovery(false)} />;
-  if (!session) return <AuthScreen sb={sb} invited={Boolean(readLocal(INVITE_KEY))} googleClientId={googleClientId} />;
+  if (!session) {
+    // Wait for the invite lookup, so the screen opens on the right tab with the right email.
+    const pending = readLocal(INVITE_KEY);
+    if (pending && invite?.token !== pending) return null;
+    return (
+      <AuthScreen
+        key={invite?.token ?? "none"}
+        sb={sb}
+        invite={invite?.info ?? null}
+        problem={invite?.problem ?? ""}
+        googleClientId={googleClientId}
+        turnstileSiteKey={turnstileSiteKey}
+      />
+    );
+  }
   if (gate?.user !== session.user.id) return null;
   if (gate.need) return <CodeCheck sb={sb} onDone={() => setGate({ user: session.user.id, need: false })} />;
   return <Shell sb={sb} session={session} />;
@@ -296,6 +332,8 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
   const [seoStart, setSeoStart] = useState<SeoStart | null>(null); // a site or link from Sources to open in Domain Research
   const [askTopic, setAskTopic] = useState(0); // the command bar's Add prompts: opens the Prompts page's new topic box
   const [error, setError] = useState("");
+  // Signed in as someone other than the invite's email. Holds the email the invite was sent to.
+  const [inviteFor, setInviteFor] = useState<string | null>(null);
   const [plan, setPlan] = useState<PlanUsage | null>(null);
   // A Starter on the SEO toolset opens on Keyword Research, the first page it has.
   const landed = useRef(false);
@@ -336,15 +374,24 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
   // Load workspaces. Accept a pending invite first, and make a workspace for brand-new users.
   const loadWorkspaces = useCallback(async () => {
     try {
+      // The invite stays saved until it works, so a wrong account or a slow network doesn't lose it.
       const invite = readLocal(INVITE_KEY);
       if (invite) {
-        writeLocal(INVITE_KEY, null);
         try {
           const joined = await acceptInvite(sb, invite);
+          writeLocal(INVITE_KEY, null);
           setWsId(joined);
           setNotice("You joined the workspace.");
         } catch (e) {
-          setError(e instanceof Error ? e.message : String(e));
+          const msg = e instanceof Error ? e.message : String(e);
+          const other = /^This invite is for (.+?)\. Sign in with that email/.exec(msg);
+          if (other) {
+            // Ask before anything else happens, so a new account doesn't get an empty workspace by mistake.
+            setInviteFor(other[1]);
+            return;
+          }
+          if (/not valid|already used|expired/i.test(msg)) writeLocal(INVITE_KEY, null);
+          setError(msg);
         }
       }
       let list = await listWorkspaces(sb, userId);
@@ -586,6 +633,22 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
       return 0;
     }
   })();
+
+  if (inviteFor) {
+    return (
+      <InviteMismatch
+        invitedEmail={inviteFor}
+        email={email}
+        // Signing out keeps the invite, so the sign-in screen opens on it with the right email.
+        onSwitch={() => sb.auth.signOut({ scope: "local" })}
+        onSkip={() => {
+          writeLocal(INVITE_KEY, null);
+          setInviteFor(null);
+          loadWorkspaces();
+        }}
+      />
+    );
+  }
 
   if (!workspaces || !ws || brands === null) {
     return (

@@ -3,7 +3,7 @@
 import type { Factor, SupabaseClient, User } from "@supabase/supabase-js";
 import { useCallback, useEffect, useState } from "react";
 import { Dropdown } from "./Pickers";
-import { askConfirm } from "./Dialogs";
+import { askConfirm, askText, tell } from "./Dialogs";
 import { SaveState } from "./SaveState";
 import { ROLES } from "./Onboarding";
 import { avatarFromFile } from "./WorkspaceAvatar";
@@ -406,6 +406,8 @@ export function SecuritySettings({ sb, user }: { sb: SupabaseClient; user: User 
           </button>
         </div>
       </section>
+
+      <DeleteAccount sb={sb} email={user.email ?? ""} />
     </div>
   );
 }
@@ -477,5 +479,55 @@ export function NotificationSettings({ sb, wsId, wsName, userId, alertsOnPlan }:
       </div>
       <p className="aw-small">Alerts go out when visibility moves 5 points or more, unless an admin picked another size under Tools → Slack, API and MCP. Every email has an unsubscribe link.</p>
     </div>
+  );
+}
+
+type DeletePlanView = { plan: { blocked: { id: string; name: string; why: string }[] }; lines: string[] };
+
+/** Delete your own account: see what happens to each workspace, type your email, and it's gone (api/account). */
+function DeleteAccount({ sb, email }: { sb: SupabaseClient; email: string }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  async function call<T>(body: Record<string, unknown>): Promise<T> {
+    const token = (await sb.auth.getSession()).data.session?.access_token ?? "";
+    const res = await fetch("/api/account", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify(body) });
+    const data = await res.json().catch(() => ({ error: `The server returned ${res.status}.` }));
+    if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
+    return data as T;
+  }
+  async function start() {
+    setBusy(true);
+    setError("");
+    try {
+      const p = await call<DeletePlanView>({ action: "preview" });
+      if (p.plan.blocked.length) {
+        await tell({ title: "One step first", text: p.plan.blocked.map((b) => `${b.name}: ${b.why}`).join(" ") });
+        return;
+      }
+      const what = p.lines.length ? `${p.lines.join(" ")} ` : "";
+      const typed = await askText({ title: "Delete your account", label: `${what}This can't be undone. Type ${email} to confirm.`, action: "Delete account" });
+      if (typed === null) return;
+      if (typed.trim().toLowerCase() !== email.toLowerCase()) throw new Error("That email doesn't match your account.");
+      await call({ action: "delete", confirm: typed });
+      await sb.auth.signOut({ scope: "local" });
+    } catch (e) {
+      setError(message(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <section className="flex flex-col gap-4">
+      <div>
+        <h2 className="aw-h4">Delete account</h2>
+        <p className="aw-small mt-1">Delete your sign-in and every workspace only you are in.</p>
+      </div>
+      {error ? <p className="aw-error">{error}</p> : null}
+      <div>
+        <button type="button" className="aw-btn aw-btn--danger" disabled={busy} onClick={start}>
+          {busy ? "Checking..." : "Delete account"}
+        </button>
+      </div>
+    </section>
   );
 }

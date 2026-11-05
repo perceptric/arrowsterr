@@ -1,11 +1,15 @@
 "use client";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { GoogleButton } from "./GoogleButton";
 import { Logo } from "./Logo";
+import { Turnstile } from "./Turnstile";
 
 type Mode = "signin" | "signup" | "forgot" | "link";
+
+/** An open invite link: its token, the workspace's name and the email it was sent to. */
+export type InviteInfo = { token: string; workspace: string; email: string };
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
@@ -22,41 +26,86 @@ function Frame({ children }: { children: React.ReactNode }) {
   );
 }
 
+/** Supabase's answer when an email already has an account. */
+const taken = (msg: string) => /already (been )?registered|already exists/i.test(msg);
+
 /** Sign in, create an account, or reset a password. */
-export function AuthScreen({ sb, invited, googleClientId = null }: { sb: SupabaseClient; invited: boolean; googleClientId?: string | null }) {
-  const [mode, setMode] = useState<Mode>(invited ? "signup" : "signin");
-  const [email, setEmail] = useState("");
+export function AuthScreen({
+  sb,
+  invite = null,
+  problem = "",
+  googleClientId = null,
+  turnstileSiteKey = null,
+}: {
+  sb: SupabaseClient;
+  invite?: InviteInfo | null;
+  /** Why an invite link didn't work, shown until the person tries something. */
+  problem?: string;
+  googleClientId?: string | null;
+  turnstileSiteKey?: string | null;
+}) {
+  const [mode, setMode] = useState<Mode>(invite ? "signup" : "signin");
+  const [email, setEmail] = useState(invite?.email ?? "");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(problem);
   const [sent, setSent] = useState("");
+
+  // The bot check. Each token works once, so a new widget loads after every try.
+  const captcha = useRef("");
+  const [captchaRound, setCaptchaRound] = useState(0);
+  const [captchaReady, setCaptchaReady] = useState(false);
+  const onCaptcha = (t: string) => {
+    captcha.current = t;
+    setCaptchaReady(Boolean(t));
+  };
+  /** The token for one try, then a fresh widget. Undefined when the bot check is off. */
+  function takeCaptcha() {
+    if (!turnstileSiteKey) return undefined;
+    const t = captcha.current;
+    onCaptcha("");
+    setCaptchaRound((n) => n + 1);
+    return t;
+  }
+
+  // Email links come back with the invite, so it still works on another device or browser.
+  const back = (path = "/") => window.location.origin + path + (invite ? `?invite=${encodeURIComponent(invite.token)}` : "");
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (turnstileSiteKey && !captcha.current) return setError("Finish the bot check first.");
     setBusy(true);
     setError("");
     setSent("");
+    const captchaToken = takeCaptcha();
     try {
-      const redirect = window.location.origin;
       if (mode === "signin") {
-        const { error } = await sb.auth.signInWithPassword({ email, password });
+        const { error } = await sb.auth.signInWithPassword({ email, password, options: { captchaToken } });
         if (error) throw error;
       } else if (mode === "signup") {
-        const { data, error } = await sb.auth.signUp({ email, password, options: { emailRedirectTo: redirect } });
+        const { data, error } = await sb.auth.signUp({ email, password, options: { emailRedirectTo: back(), captchaToken } });
         if (error) throw error;
+        // With email confirmation on, Supabase hides a taken email: the new user comes back with no identities.
+        if (data.user && !data.session && data.user.identities?.length === 0) throw new Error("User already registered");
         if (!data.session) setSent(`We sent a link to ${email}. Click it to finish creating your account.`);
       } else if (mode === "link") {
-        // Signs in, or makes the account on a first visit. Comes back to this page, so invite links keep working.
-        const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: redirect + window.location.pathname } });
+        // Signs in, or makes the account on a first visit. Comes back to this page with the invite.
+        const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: back(window.location.pathname), captchaToken } });
         if (error) throw error;
         setSent(`We sent a sign-in link to ${email}. Click it to sign in.`);
       } else {
-        const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: redirect });
+        const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: back(), captchaToken });
         if (error) throw error;
         setSent(`If ${email} has an account, a reset link is on its way.`);
       }
     } catch (err) {
-      setError(message(err));
+      const msg = message(err);
+      if (mode === "signup" && taken(msg)) {
+        // An invite opens on Create account, but many invited people already have one.
+        setMode("signin");
+        setPassword("");
+        setError(invite ? `${email} already has an account. Sign in to join ${invite.workspace}.` : `${email} already has an account. Sign in instead.`);
+      } else setError(msg);
     } finally {
       setBusy(false);
     }
@@ -65,7 +114,7 @@ export function AuthScreen({ sb, invited, googleClientId = null }: { sb: Supabas
   async function google() {
     setBusy(true);
     setError("");
-    const { error } = await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.origin + window.location.pathname } });
+    const { error } = await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: back(window.location.pathname) } });
     if (error) {
       setError(error.message);
       setBusy(false);
@@ -105,13 +154,15 @@ export function AuthScreen({ sb, invited, googleClientId = null }: { sb: Supabas
           </div>
         </>
       )}
-      {invited ? (
-        <p className="aw-callout">You were invited to a workspace. Use the email address the invite was sent to.</p>
+      {invite ? (
+        <p className="aw-callout">
+          Join {invite.workspace}. Use {invite.email}.
+        </p>
       ) : null}
       {mode !== "forgot" ? (
         <>
           {googleClientId ? (
-            <GoogleButton sb={sb} clientId={googleClientId} onError={setError} />
+            <GoogleButton sb={sb} clientId={googleClientId} onError={setError} captcha={turnstileSiteKey ? () => takeCaptcha() ?? "" : undefined} />
           ) : (
             <button type="button" className="aw-btn aw-btn--secondary aw-btn--block gap-3" onClick={google} disabled={busy}>
               <svg aria-hidden="true" width="18" height="18" viewBox="0 0 48 48">
@@ -164,9 +215,10 @@ export function AuthScreen({ sb, invited, googleClientId = null }: { sb: Supabas
             {mode === "signup" ? <p className="aw-small mt-2">At least 8 characters.</p> : null}
           </div>
         ) : null}
+        {turnstileSiteKey ? <Turnstile key={captchaRound} siteKey={turnstileSiteKey} onToken={onCaptcha} onError={setError} /> : null}
         {error ? <p className="aw-error">{error}</p> : null}
         {sent ? <p className="aw-callout text-[15px]!">{sent}</p> : null}
-        <button type="submit" className="aw-btn aw-btn--primary aw-btn--block" disabled={busy}>
+        <button type="submit" className="aw-btn aw-btn--primary aw-btn--block" disabled={busy || Boolean(turnstileSiteKey && !captchaReady)}>
           {busy ? "Please wait..." : mode === "signin" ? "Sign in" : mode === "signup" ? "Create account" : mode === "link" ? "Email me a sign-in link" : "Send reset link"}
         </button>
       </form>
@@ -300,6 +352,41 @@ export function CodeCheck({ sb, onDone }: { sb: SupabaseClient; onDone: () => vo
           Sign out
         </button>
       </form>
+    </Frame>
+  );
+}
+
+/** Signed in with a different email than the invite was sent to. Nothing is thrown away until the person picks. */
+export function InviteMismatch({ invitedEmail, email, onSwitch, onSkip }: { invitedEmail: string; email: string; onSwitch: () => void; onSkip: () => void }) {
+  const [busy, setBusy] = useState(false);
+  return (
+    <Frame>
+      <h1 className="aw-h3 mb-0!">This invite is for another email</h1>
+      <p className="text-[15px] text-body">
+        The invite was sent to {invitedEmail}. You are signed in as {email}.
+      </p>
+      <button
+        type="button"
+        className="aw-btn aw-btn--primary aw-btn--block"
+        disabled={busy}
+        onClick={() => {
+          setBusy(true);
+          onSwitch();
+        }}
+      >
+        Sign in as {invitedEmail}
+      </button>
+      <button
+        type="button"
+        className="aw-text-link self-start"
+        disabled={busy}
+        onClick={() => {
+          setBusy(true);
+          onSkip();
+        }}
+      >
+        Continue as {email} without the invite
+      </button>
     </Frame>
   );
 }

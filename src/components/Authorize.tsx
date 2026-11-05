@@ -44,7 +44,7 @@ function Frame({ children }: { children: React.ReactNode }) {
 }
 
 /** Approve an AI app for one workspace. The app then reads results and plans through the MCP server. */
-export function Authorize({ config }: { config: SupaConfig }) {
+export function Authorize({ config, turnstileSiteKey = null }: { config: SupaConfig; turnstileSiteKey?: string | null }) {
   const sb = useMemo(() => getSupabase(config), [config]);
   const [ask] = useState(readAsk);
   const [session, setSession] = useState<Session | null | undefined>(undefined);
@@ -115,7 +115,7 @@ export function Authorize({ config }: { config: SupaConfig }) {
       </Frame>
     );
   if (session === undefined) return <Frame>{null}</Frame>;
-  if (!session) return <AuthScreen sb={sb} invited={false} />;
+  if (!session) return <AuthScreen sb={sb} turnstileSiteKey={turnstileSiteKey} />;
 
   return (
     <Frame>

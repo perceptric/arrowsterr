@@ -43,5 +43,7 @@ export default async function Home() {
   }
   // Google's own button shows arrowsterr.com on Google's screen. Use the client ID from Supabase's Google provider.
   const googleClientId = (process.env.GOOGLE_SIGNIN_CLIENT_ID ?? process.env.GOOGLE_CLIENT_ID ?? "").trim() || null;
-  return <ClientApp config={{ url, key }} googleClientId={googleClientId} />;
+  // The bot check on the sign-in screen (Cloudflare Turnstile). Turn on CAPTCHA in Supabase only after this is set.
+  const turnstileSiteKey = (process.env.TURNSTILE_SITE_KEY ?? "").trim() || null;
+  return <ClientApp config={{ url, key }} googleClientId={googleClientId} turnstileSiteKey={turnstileSiteKey} />;
 }

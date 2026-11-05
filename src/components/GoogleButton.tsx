@@ -38,8 +38,23 @@ async function sha256Hex(text: string) {
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-export function GoogleButton({ sb, clientId, onError }: { sb: SupabaseClient; clientId: string; onError: (message: string) => void }) {
+export function GoogleButton({
+  sb,
+  clientId,
+  onError,
+  captcha,
+}: {
+  sb: SupabaseClient;
+  clientId: string;
+  onError: (message: string) => void;
+  /** The bot check's token, read when Google answers. Null when the bot check is off. */
+  captcha?: () => string | null;
+}) {
   const box = useRef<HTMLDivElement>(null);
+  const readCaptcha = useRef(captcha);
+  useEffect(() => {
+    readCaptcha.current = captcha;
+  });
 
   useEffect(() => {
     let live = true;
@@ -53,7 +68,9 @@ export function GoogleButton({ sb, clientId, onError }: { sb: SupabaseClient; cl
           nonce: hashed,
           use_fedcm_for_button: true,
           callback: async ({ credential }) => {
-            const { error } = await sb.auth.signInWithIdToken({ provider: "google", token: credential, nonce });
+            const captchaToken = readCaptcha.current?.() ?? null;
+            if (captchaToken === "") return onError("Finish the bot check first, then continue with Google.");
+            const { error } = await sb.auth.signInWithIdToken({ provider: "google", token: credential, nonce, options: captchaToken ? { captchaToken } : undefined });
             if (error) onError(error.message);
           },
         });

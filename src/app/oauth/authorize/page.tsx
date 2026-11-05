@@ -9,5 +9,6 @@ export default async function AuthorizePage() {
   await connection();
   const url = (process.env.SUPABASE_URL ?? "").trim().replace(/\/+$/, "");
   const key = (process.env.SUPABASE_PUBLISHABLE_KEY ?? "").trim();
-  return <ClientAuthorize config={{ url, key }} />;
+  const turnstileSiteKey = (process.env.TURNSTILE_SITE_KEY ?? "").trim() || null;
+  return <ClientAuthorize config={{ url, key }} turnstileSiteKey={turnstileSiteKey} />;
 }

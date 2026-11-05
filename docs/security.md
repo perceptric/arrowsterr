@@ -47,6 +47,7 @@ keeps paid work behind the plan. Reviewed and hardened on 2026-10-25 (migrations
 | `UNSUBSCRIBE_SECRET` | unsubscribe links | the old key (old links still work) |
 | `WORKER_SECRET` | the Fly worker's token | `CRON_SECRET` |
 | `TURNSTILE_SECRET` | the bot check on free tools | none: production refuses without it |
+| `TURNSTILE_SITE_KEY` | the bot check on the sign-in screen | none: the screen shows no bot check |
 
 Setting `REPORT_LINK_SECRET` signs people out of password-protected share links once. Links shared after
 migration 058 can only be copied again while that key stays the same.
@@ -59,7 +60,26 @@ migration 058 can only be copied again while that key stays the same.
 - The visitor's IP is Fly's `Fly-Client-IP` header (`src/lib/clientIp.ts`), never the first `X-Forwarded-For`.
 - `/api/setup-check` needs `CRON_SECRET` or a workspace admin.
 
-## 5. Browser
+## 5. Accounts
+
+- **Bot check:** sign-up, password sign-in, sign-in links, password resets and Google's own button send a
+  Cloudflare Turnstile token, which Supabase checks once CAPTCHA is on. The order matters, or every sign-in breaks:
+  1. In Cloudflare, make a Turnstile widget for `app.arrowsterr.com` (the free tools' widget is for `arrowsterr.com`).
+  2. Set `TURNSTILE_SITE_KEY` on the app (`fly secrets set`) and deploy. The screen now shows the check.
+  3. In Supabase, Authentication, then Attack Protection: turn on CAPTCHA, pick Turnstile, paste the widget's secret.
+- **Email confirmation:** keep "Confirm email" on in Supabase (Authentication, then Sign In / Providers, Email).
+  Without it, anyone can sign up as someone else's email, join that company's workspace by domain, or take an
+  invite meant for them.
+- **Invites:** the link opens on Create account with the workspace's name and the right email filled in
+  (`/api/invite`, 30 lookups an hour per IP). A taken email moves to Sign in. Email links carry `?invite=`, so
+  confirming on another device still joins. The invite stays saved until it works. Signing in with a different
+  email asks first: switch accounts or go on without the invite.
+- **Deleting an account:** Settings, then Password and security (`/api/account`, `src/lib/accountDelete.ts`).
+  The person sees the plan and types their email. A workspace with only them is deleted with its files. A
+  workspace they own with others passes to its longest-standing admin. Other workspaces keep going without them.
+  It stops when a workspace that would be deleted still has a paid plan, or an owned workspace has no admin.
+
+## 6. Browser
 
 - Headers on every page: HSTS, nosniff, Referrer-Policy, X-Frame-Options DENY, Permissions-Policy, and a
   Content-Security-Policy with `frame-ancestors 'none'`, `object-src 'none'`, `base-uri` and `form-action`.
@@ -69,15 +89,15 @@ migration 058 can only be copied again while that key stays the same.
   its files.
 - The WordPress connect callback needs the state saved when the connect started.
 
-## 6. Keeping it that way
+## 7. Keeping it that way
 
 - CI runs `npm audit --omit=dev --audit-level=high`, and Dependabot opens updates weekly.
 - Run Supabase's security advisor after every migration.
 - Turn on leaked-password protection in Supabase (Authentication, then Policies).
 
-## 7. Running cost
+## 8. Running cost
 
-Nothing new to pay for: no new services and no AI calls. Rate limits are a few small rows in Supabase, and the
+Nothing new to pay for: no new services and no AI calls. Turnstile is free with no visitor limit ("check"). Rate limits are a few small rows in Supabase, and the
 worker's address check runs inside the worker machine.
 
 | Stage | Added each month |

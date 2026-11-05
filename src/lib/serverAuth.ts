@@ -33,6 +33,19 @@ export async function requireRole(request: Request, workspaceId: unknown, min: M
   return { sb };
 }
 
+/** Check the caller is signed in, for routes about the person rather than a workspace (their own account). */
+export async function requireUser(request: Request): Promise<{ sb: SupabaseClient; userId: string; email: string } | { denied: Response }> {
+  const url = supabaseUrl();
+  const key = process.env.SUPABASE_PUBLISHABLE_KEY?.trim();
+  if (!url || !key) return { denied: Response.json({ error: "Supabase is not set up on the server." }, { status: 500 }) };
+  const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
+  if (!token) return { denied: Response.json({ error: "Please sign in again." }, { status: 401 }) };
+  const sb = createClient(url, key, { global: { headers: { Authorization: `Bearer ${token}` } }, auth: { persistSession: false, autoRefreshToken: false } });
+  const { data } = await sb.auth.getUser(token);
+  if (!data?.user) return { denied: Response.json({ error: "Please sign in again." }, { status: 401 }) };
+  return { sb, userId: data.user.id, email: data.user.email ?? "" };
+}
+
 /** True when the signed-in person can make changes (and spend) in the workspace. */
 export async function isEditor(sb: SupabaseClient, workspaceId: string): Promise<boolean> {
   const { data } = await sb.rpc("has_role", { ws: workspaceId, min: "editor" });
