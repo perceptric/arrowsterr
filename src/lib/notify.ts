@@ -1,15 +1,20 @@
 import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { emailHtml, emailReady, esc, sendEmail } from "./email";
+import type { Run } from "./chats";
+import { listRuns } from "./db";
+import { emailReady, sendBuilt } from "./email";
+import type { Email } from "./emailKit";
+import { alertEmail, weeklyEmail, type AlertData, type Footer, type WeeklyBrand } from "./emails";
 import { entitlement } from "./entitlements";
-import { pts, weekOf, type Metric } from "./visibility";
+import { brandStats, promptMoves } from "./metrics";
+import { weekOf, type Metric } from "./visibility";
 
 // Notification emails people choose in Settings → Notifications (supabase/035_notifications.sql):
 //   weekly: a Monday summary of each brand's AI visibility,
 //   alerts: visibility moved by the alert size, or a competitor overtook a brand (Pro and up),
 //   jobs:   a Content Plan or a brief finished or failed, sent to the person who started it.
-// Every email carries a one-click unsubscribe link for its kind.
+// Every email carries a one-click unsubscribe link for its kind. What each email says: src/lib/emails.ts.
 
 export type Kind = "weekly" | "alerts" | "jobs";
 export const KINDS: Record<Kind, string> = {
@@ -50,13 +55,19 @@ async function recipients(db: SupabaseClient, ws: string, kind: Kind, only?: str
 }
 
 /** Send one email per person, each with their own unsubscribe link. Returns how many went out. */
-async function sendEach(people: Person[], ws: string, kind: Kind, subject: string, build: (footer: string) => string) {
+async function sendEach(people: Person[], ws: string, kind: Kind, build: (footer: Footer) => Email) {
   let sent = 0;
   for (const p of people) {
     const url = unsubscribeUrl(p.user_id, ws, kind);
-    const footer = `You get ${KINDS[kind]} for this workspace. <a href="${esc(url)}" style="color:#7a8499">Unsubscribe</a> or <a href="${esc(app())}/settings/notifications" style="color:#7a8499">change your emails</a>.`;
+    const footer: Footer = {
+      text: `You get ${KINDS[kind]} for this workspace.`,
+      links: [
+        { label: "Unsubscribe", url },
+        { label: "Choose your emails", url: `${app()}/settings/notifications` },
+      ],
+    };
     try {
-      if (await sendEmail([p.email], subject, build(footer), { "List-Unsubscribe": `<${url}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" })) sent++;
+      if (await sendBuilt([p.email], build(footer), { "List-Unsubscribe": `<${url}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" })) sent++;
     } catch (e) {
       console.error(`Email ${kind} to ${p.email} failed:`, e instanceof Error ? e.message : e);
     }
@@ -70,24 +81,31 @@ async function claim(db: SupabaseClient, ws: string, kind: string, period: strin
   return !error;
 }
 
+/** Runs whose UTC day is in [from, to). */
+const between = (runs: Run[], from: string, to: string) => runs.filter((r) => r.at.slice(0, 10) >= from && r.at.slice(0, 10) < to);
+
 // ─────────────── alerts ───────────────
 
 /** Email the day's visibility alert for a brand. Called after the Slack alert, once per brand and day. */
-export async function emailAlert(db: SupabaseClient, ws: string, brand: { id: string; name: string }, day: string, reasons: string[]) {
+export async function emailAlert(db: SupabaseClient, ws: string, brand: { id: string; name: string }, day: string, data: Omit<AlertData, "brand" | "day" | "url" | "lost"> & { prevDay: string }) {
   if (!emailReady() || !(await claim(db, ws, `alert:${brand.id}`, day))) return 0;
   const people = await recipients(db, ws, "alerts");
-  return sendEach(people, ws, "alerts", `${brand.name}: AI visibility alert`, (footer) =>
-    emailHtml(`${brand.name}'s AI visibility changed`, reasons, { label: "See what changed", url: `${app()}/prompts` }, { footer }),
-  );
+  if (!people.length) return 0;
+  // The prompts the brand dropped out of since the check before. Optional: the alert still goes out without them.
+  const runs = (await listRuns(db, brand.id, 4).catch(() => [])) as Run[];
+  const next = new Date(Date.parse(`${day}T00:00:00Z`) + DAY).toISOString().slice(0, 10);
+  const { lost } = promptMoves(between(runs, day, next), between(runs, data.prevDay, day), brand.name);
+  const mail: AlertData = { ...data, brand: brand.name, day: new Date(`${day}T12:00:00Z`), lost, url: `${app()}/prompts?brand=${brand.id}` };
+  return sendEach(people, ws, "alerts", (footer) => alertEmail(mail, footer));
 }
 
 // ─────────────── jobs ───────────────
 
 /** Tell the person who started a Content Plan or a brief that it finished or failed. */
-export async function emailJob(db: SupabaseClient, ws: string, userId: string | null | undefined, msg: { subject: string; title: string; lines: string[]; button: string; path: string }) {
+export async function emailJob(db: SupabaseClient, ws: string, userId: string | null | undefined, build: (footer: Footer) => Email) {
   if (!userId || !emailReady()) return 0;
   const people = await recipients(db, ws, "jobs", [userId]);
-  return sendEach(people, ws, "jobs", msg.subject, (footer) => emailHtml(msg.title, msg.lines, { label: msg.button, url: `${app()}${msg.path}` }, { footer }));
+  return sendEach(people, ws, "jobs", build);
 }
 
 // ─────────────── weekly summary ───────────────
@@ -102,16 +120,21 @@ function localNow(tz: string | null) {
   return { weekday: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(parts.weekday), hour: Number(parts.hour), date: `${parts.year}-${parts.month}-${parts.day}` };
 }
 
-export function brandBlock(name: string, w: NonNullable<ReturnType<typeof weekOf>>) {
-  const change = w.change === null ? "" : `<span style="font-size:14px;color:${w.change >= 0 ? "#0B7A54" : "#C2341F"}">${w.change >= 0 ? "▲" : "▼"} ${esc(pts(w.change))}</span>`;
-  const cell = "padding:6px 0;font-size:14px;color:#3d4657;border-top:1px solid #eef0f4";
-  const num = `${cell};text-align:right;font-family:Menlo,monospace`;
-  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e6e8f0;border-radius:12px;padding:16px">
-<tr><td colspan="2" style="font-size:16px;font-weight:600;color:#061B44;padding-bottom:4px">${esc(name)}</td></tr>
-<tr><td colspan="2" style="padding-bottom:10px"><span style="font-size:28px;font-weight:600;color:#061B44;font-family:Menlo,monospace">${w.visibility}%</span> <span style="font-size:13px;color:#7a8499">of AI answers named you</span> ${change}</td></tr>
-${w.byEngine.map((e) => `<tr><td style="${cell}">${esc(e.engine)}</td><td style="${num}">${e.visibility}%</td></tr>`).join("")}
-${w.top.length ? `<tr><td colspan="2" style="font-size:13px;font-weight:600;color:#7a8499;padding:12px 0 2px">Named most besides you</td></tr>${w.top.map((t) => `<tr><td style="${cell}">${esc(t.name)}</td><td style="${num}">${t.visibility}%</td></tr>`).join("")}` : ""}
-</table>`;
+/** Position, sentiment and the prompts gained and lost this week, from the saved runs. Empty when they can't load. */
+async function weekDetail(db: SupabaseClient, brand: { id: string; name: string; domain: string | null }, today: string) {
+  const start = new Date(Date.parse(`${today}T00:00:00Z`) - 7 * DAY).toISOString().slice(0, 10);
+  const prevStart = new Date(Date.parse(`${today}T00:00:00Z`) - 14 * DAY).toISOString().slice(0, 10);
+  try {
+    const runs = (await listRuns(db, brand.id, 16)) as Run[];
+    const now = between(runs, start, today);
+    const before = between(runs, prevStart, start);
+    const me = brandStats(now.flatMap((r) => r.chats), { name: brand.name, domain: brand.domain ?? "" }).find((s) => s.isYou);
+    const { gained, lost } = promptMoves(now, before, brand.name);
+    return { position: me?.position ?? null, sentiment: me?.sentiment ?? null, gained, lost };
+  } catch (e) {
+    console.error(`Weekly detail for ${brand.name} failed:`, e instanceof Error ? e.message : e);
+    return {};
+  }
 }
 
 /**
@@ -135,25 +158,24 @@ export async function sendWeekly(db: SupabaseClient) {
     if (local.weekday !== 1 || local.hour < 8) continue;
     const e = await entitlement(w.id);
     if (e.readOnly) continue;
-    const { data: brands } = await db.from("brands").select("id, name").eq("workspace_id", w.id).order("created_at");
+    const { data: brands } = await db.from("brands").select("id, name, domain").eq("workspace_id", w.id).order("created_at");
     if (!brands?.length) continue;
     if (!(await claim(db, w.id, "weekly", local.date))) continue;
 
     const since = new Date(Date.parse(`${local.date}T00:00:00Z`) - 14 * DAY).toISOString().slice(0, 10);
-    const blocks: string[] = [];
-    const lines: string[] = [];
-    for (const b of brands) {
+    const weeks: (WeeklyBrand & { id: string })[] = [];
+    for (const b of brands as { id: string; name: string; domain: string | null }[]) {
       const { data: rows } = await db.from("daily_metrics").select("day, engine, named, is_you, answers, mentions").eq("brand_id", b.id).gte("day", since).lt("day", local.date);
       const week = weekOf((rows ?? []) as Metric[], local.date);
       if (!week) continue;
-      blocks.push(brandBlock(b.name, week));
-      if (week.change !== null && Math.abs(week.change) >= 1) lines.push(`${b.name} ${week.change > 0 ? "rose" : "fell"} ${Math.abs(Math.round(week.change * 10) / 10)} points to ${week.visibility}%.`);
+      weeks.push({ id: b.id, name: b.name, ...week, ...(await weekDetail(db, b, local.date)) });
     }
-    if (!blocks.length) continue;
+    if (!weeks.length) continue;
     const people = await recipients(db, w.id, "weekly");
-    sent += await sendEach(people, w.id, "weekly", `Your week in AI answers: ${w.name}`, (footer) =>
-      emailHtml("Your week in AI answers", [`How ChatGPT, Gemini, Google's AI and the rest talked about ${w.name}'s brands over the last 7 days, against the week before.`, ...lines], { label: "Open Arrowsterr", url: `${app()}/prompts` }, { blocks, footer }),
-    );
+    const to = new Date(Date.parse(`${local.date}T12:00:00Z`) - DAY);
+    const from = new Date(to.getTime() - 6 * DAY);
+    const url = weeks.length === 1 ? `${app()}/prompts?brand=${weeks[0].id}` : `${app()}/prompts`;
+    sent += await sendEach(people, w.id, "weekly", (footer) => weeklyEmail({ workspace: w.name, from, to, brands: weeks, url, appUrl: app() }, footer));
   }
   return { sent };
 }

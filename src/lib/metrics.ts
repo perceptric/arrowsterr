@@ -581,3 +581,33 @@ export function battle(chats: Chat[], a: string, b: string, engines: string[], t
     byPrompt: topics.flatMap((t) => t.prompts.map((p) => row(p, chats.filter((c) => c.prompt === p), t.name))).filter((r) => r.a !== null),
   };
 }
+
+/**
+ * Prompts the brand gained or lost between two periods, for the weekly email and alerts. A prompt is gained when
+ * some AI named the brand for it now and none did before, and lost the other way round. Both periods must have
+ * answers for the prompt, so a prompt that wasn't asked doesn't count as a change. Most AIs first.
+ */
+export function promptMoves(now: Run[], before: Run[], you: string) {
+  const named = (runs: Run[]) => {
+    const asked = new Set<string>();
+    const by = new Map<string, Set<string>>();
+    for (const r of runs)
+      for (const c of r.chats) {
+        if (!isAnswered(c)) continue;
+        asked.add(c.prompt);
+        if (!c.brands.some((b) => same(b.name, you))) continue;
+        const s = by.get(c.prompt) ?? new Set<string>();
+        s.add(c.engine);
+        by.set(c.prompt, s);
+      }
+    return { asked, by };
+  };
+  const a = named(now);
+  const b = named(before);
+  const pick = (from: Map<string, Set<string>>, other: Map<string, Set<string>>) =>
+    [...from.entries()]
+      .filter(([p]) => a.asked.has(p) && b.asked.has(p) && !other.has(p))
+      .map(([prompt, engines]) => ({ prompt, engines: [...engines].sort() }))
+      .sort((x, y) => y.engines.length - x.engines.length || x.prompt.localeCompare(y.prompt));
+  return { gained: pick(a.by, b.by), lost: pick(b.by, a.by) };
+}

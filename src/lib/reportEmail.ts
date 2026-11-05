@@ -1,6 +1,10 @@
 // The email a schedule sends (docs/reports.md, section 32.4): one email per send, each page's PDF attached.
 // In the brand design it carries the Brand Kit's name and color, and Arrowsterr's name appears nowhere.
-// Pure, so tests can check the HTML and the plain text.
+// Pure, so tests can check the HTML and the plain text. Look and parts: src/lib/emailKit.ts.
+
+import { fileSize, ptsTag, renderEmail, type Block, type Tag } from "./emailKit.ts";
+
+type Score = { now: number | null; before: number | null };
 
 export type ReportEmail = {
   maker: string; // "Arrowsterr", or the Brand Kit's name
@@ -12,29 +16,49 @@ export type ReportEmail = {
   period: string; // "Last 30 days · Sep 26, 2026 – Oct 25, 2026"
   files: string[]; // the attached PDFs' titles
   date: Date;
+  /** Each attached file's size in bytes, in the same order as files. */
+  sizes?: number[];
+  /** The headline numbers from the prompts page, when the report has one. */
+  scores?: { visibility: Score; position: Score; sentiment: Score } | null;
 };
 
-const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-const safeColor = (c: string) => (/^#[0-9a-f]{6}$/i.test(c) ? c : "#0943B0");
+const round = (n: number) => Math.round(n * 10) / 10;
+const diffTag = (s: Score, lowerIsBetter = false): Tag | undefined => {
+  if (s.now === null || s.before === null) return undefined;
+  const d = round(s.now - s.before);
+  const good = lowerIsBetter ? d < 0 : d > 0;
+  return { text: `${d > 0 ? "+" : ""}${d}`, tone: d === 0 ? "neutral" : good ? "good" : "bad" };
+};
 
 export function reportEmail(e: ReportEmail): { subject: string; html: string; text: string } {
   const day = e.date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
-  const subject = (e.subject || `${e.brand}: ${e.name} · ${day}`).replace(/[\r\n]+/g, " ").slice(0, 200);
-  const lead = `${e.brand}'s report is attached: ${e.period}.`;
-  const foot = `${e.when}. Reply to this email to change or stop it.`;
-  const accent = safeColor(e.accent);
-  const html = `<!doctype html><html><body style="margin:0;background:#f6f7f9;font-family:Inter,Arial,sans-serif;color:#1b2230">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:32px 16px">
-<table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;background:#fff;border-radius:16px;padding:32px">
-<tr><td style="font-size:15px;font-weight:600;color:${accent};padding-bottom:20px">${esc(e.maker)}</td></tr>
-<tr><td style="font-size:22px;font-weight:600;line-height:1.3;padding-bottom:16px">${esc(e.name)}</td></tr>
-<tr><td style="font-size:15px;line-height:1.6;color:#3d4657;padding-bottom:12px">${esc(lead)}</td></tr>
-<tr><td style="padding:4px 0 8px"><table role="presentation" cellpadding="0" cellspacing="0" width="100%">${e.files
-    .map((f) => `<tr><td style="font-size:14px;line-height:1.5;color:#1b2230;padding:8px 12px;border:1px solid #e3e6ec;border-radius:8px">${esc(f)} <span style="color:#7a8499">· PDF</span></td></tr><tr><td style="height:6px"></td></tr>`)
-    .join("")}</table></td></tr>
-</table>
-<table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px"><tr><td style="font-size:12px;line-height:1.6;color:#7a8499;padding:16px 8px">${esc(foot)}</td></tr></table>
-</td></tr></table></body></html>`;
-  const text = [e.maker, "", e.name, "", lead, "", "Attached:", ...e.files.map((f) => `- ${f} (PDF)`), "", foot].join("\n");
-  return { subject, html, text };
+  const period = e.period.replace(/\s+·\s+/g, ", ");
+  const subject = e.subject || `${e.brand}: ${e.name}, ${day}`;
+  const blocks: Block[] = [];
+  const s = e.scores;
+  if (s && s.visibility.now !== null) {
+    const vis = s.visibility.before !== null ? ptsTag(s.visibility.now - s.visibility.before) : undefined;
+    blocks.push({
+      t: "stats",
+      items: [
+        { label: "Visibility", value: `${round(s.visibility.now)}%`, ...(vis ? { tag: vis } : {}) },
+        ...(s.position.now !== null ? [{ label: "Average position", value: String(round(s.position.now)), ...(diffTag(s.position, true) ? { tag: diffTag(s.position, true) } : {}) }] : []),
+        ...(s.sentiment.now !== null ? [{ label: "Sentiment", value: String(Math.round(s.sentiment.now)), ...(diffTag(s.sentiment) ? { tag: diffTag(s.sentiment) } : {}) }] : []),
+      ],
+    });
+  }
+  blocks.push({ t: "label", text: "Attached" }, { t: "files", items: e.files.map((name, i) => ({ name, ...(e.sizes?.[i] ? { size: fileSize(e.sizes[i]) } : {}) })) });
+  const lead = s?.visibility.now !== null && s?.visibility.now !== undefined ? `${round(s.visibility.now)}% visibility.` : "";
+  const mail = renderEmail({
+    subject,
+    preview: [lead, `${e.files.length} PDF${e.files.length === 1 ? "" : "s"} attached.`].filter(Boolean).join(" "),
+    eyebrow: e.name,
+    title: `${e.brand}'s report`,
+    sub: { text: period },
+    blocks,
+    footer: { text: `${e.when}. Reply to this email to change or stop it.` },
+    // Arrowsterr's own design shows the logo; a Brand Kit shows its name in its color.
+    ...(e.maker.trim().toLowerCase() === "arrowsterr" ? {} : { maker: { name: e.maker, color: e.accent } }),
+  });
+  return { subject: mail.subject, html: mail.html, text: mail.text };
 }

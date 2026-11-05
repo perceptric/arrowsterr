@@ -134,6 +134,14 @@ export function EditorialCalendar({
       .catch(() => {});
   }, [sb, site.id]);
   useEffect(loadWriting, [loadWriting]);
+  // An email's link like /editorial-calendar?item=ID opens that piece once its plan has loaded.
+  const [linked, setLinked] = useState<string | null>(() => (typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("item")));
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has("item")) return;
+    params.delete("item");
+    window.history.replaceState(null, "", window.location.pathname + (params.size ? `?${params}` : ""));
+  }, []);
   // Everyone in the workspace, to pick as a piece's owner.
   const [members, setMembers] = useState<string[]>([]);
   useEffect(() => {
@@ -477,7 +485,8 @@ export function EditorialCalendar({
       </div>
     );
 
-  const openItem = panel?.piece ? (items.find((i) => i.id === panel.piece) ?? null) : null;
+  const pieceId = panel?.piece ?? (panel ? null : linked);
+  const openItem = pieceId ? (items.find((i) => i.id === pieceId) ?? null) : null;
   const move = (id: string, date: string | null) => {
     const was = items.find((i) => i.id === id);
     if (was && was.due_date !== date) patch(id, { due_date: date });
@@ -487,7 +496,10 @@ export function EditorialCalendar({
 
   // A keyword opens as its own screen, the Keyword Deep Dive.
   if (openItem) {
-    const back = () => setPanel(panel?.day && view !== "list" ? { day: panel.day, piece: null } : null);
+    const back = () => {
+      setLinked(null);
+      setPanel(panel?.day && view !== "list" ? { day: panel.day, piece: null } : null);
+    };
     return (
       <>
         <KeywordDeepDive
