@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 /** Tailwind width names the callers pass, as Twenty's modal sizes. */
 const MODAL_SIZE: Record<string, string> = { "max-w-sm": "tw-modal--sm", "max-w-md": "", "max-w-lg": "tw-modal--md", "max-w-xl": "tw-modal--md", "max-w-2xl": "tw-modal--lg", "max-w-3xl": "tw-modal--lg", "max-w-4xl": "tw-modal--lg" };
@@ -43,6 +43,42 @@ export function Confirm({ title, text, action, busy, error, onConfirm, onClose }
           {busy ? "Working..." : action}
         </button>
       </div>
+    </Modal>
+  );
+}
+
+/** Ask for a name, in place of the browser's prompt. */
+export function NameDialog({ title, label, action, init = "", onSave, onClose }: { title: string; label: string; action: string; init?: string; onSave: (name: string) => Promise<void> | void; onClose: () => void }) {
+  const [name, setName] = useState(init);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!name.trim()) return;
+    setBusy(true);
+    setError("");
+    try {
+      await onSave(name.trim());
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+      setBusy(false);
+    }
+  }
+  return (
+    <Modal title={title} onClose={onClose} width="max-w-md">
+      <form onSubmit={submit} className="flex flex-col gap-4">
+        <input value={name} onChange={(e) => setName(e.target.value)} aria-label={label} placeholder={label} required autoFocus className="aw-input" />
+        {error ? <p className="aw-error">{error}</p> : null}
+        <div className="tw-modal__actions">
+          <button type="button" className="aw-btn aw-btn--secondary" onClick={onClose}>
+            Cancel
+          </button>
+          <button type="submit" className="aw-btn aw-btn--primary" disabled={busy || !name.trim()}>
+            {busy ? "Working..." : action}
+          </button>
+        </div>
+      </form>
     </Modal>
   );
 }

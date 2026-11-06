@@ -1,13 +1,51 @@
 "use client";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { GoogleButton } from "./GoogleButton";
 import { Logo } from "./Logo";
+import { plainError } from "@/lib/authErrors";
 
 type Mode = "signin" | "signup" | "forgot" | "link";
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
+
+/** Seconds before the same email can be sent again. */
+const RESEND_WAIT = 30;
+
+/** A password box with a button that shows what was typed. */
+function PasswordInput({ id, autoComplete, minLength, value, onChange, autoFocus }: { id: string; autoComplete: string; minLength?: number; value: string; onChange: (v: string) => void; autoFocus?: boolean }) {
+  const [shown, setShown] = useState(false);
+  return (
+    <div className="relative">
+      <input
+        id={id}
+        type={shown ? "text" : "password"}
+        autoComplete={autoComplete}
+        minLength={minLength}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        required
+        autoFocus={autoFocus}
+        className="aw-input pr-11!"
+      />
+      <button
+        type="button"
+        onClick={() => setShown(!shown)}
+        aria-label={shown ? "Hide password" : "Show password"}
+        aria-pressed={shown}
+        title={shown ? "Hide password" : "Show password"}
+        className="aw-icon-btn absolute top-1/2 right-1.5 -translate-y-1/2"
+      >
+        <svg className="aw-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
+          <circle cx="12" cy="12" r="3" />
+          {shown ? <path d="M4 4l16 16" /> : null}
+        </svg>
+      </button>
+    </div>
+  );
+}
 
 function Frame({ children }: { children: React.ReactNode }) {
   return (
@@ -22,15 +60,75 @@ function Frame({ children }: { children: React.ReactNode }) {
   );
 }
 
+/** True when the address asks for the Create account tab: /?signup, as the Start free buttons link. */
+const wantsSignup = () => {
+  try {
+    return new URLSearchParams(window.location.search).has("signup");
+  } catch {
+    return false;
+  }
+};
+
 /** Sign in, create an account, or reset a password. */
 export function AuthScreen({ sb, invited, googleClientId = null }: { sb: SupabaseClient; invited: boolean; googleClientId?: string | null }) {
-  const [mode, setMode] = useState<Mode>(invited ? "signup" : "signin");
+  const [mode, setMode] = useState<Mode>(() => (invited || wantsSignup() ? "signup" : "signin"));
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  // The email already has an account: the error offers Sign in.
+  const [exists, setExists] = useState(false);
   const [sent, setSent] = useState("");
+  // Which email went out, so Send again sends the same one and the code is checked the right way.
+  const [kind, setKind] = useState<"signup" | "link" | "reset" | null>(null);
+  const [wait, setWait] = useState(0);
   const [code, setCode] = useState("");
+
+  useEffect(() => {
+    if (wait <= 0) return;
+    const t = window.setTimeout(() => setWait((w) => w - 1), 1000);
+    return () => window.clearTimeout(t);
+  }, [wait]);
+
+  function fail(err: unknown) {
+    const text = plainError(message(err));
+    setExists(text === "This email already has an account.");
+    setError(text);
+  }
+
+  /** Sends one email: the confirm link, a sign-in link or a reset link. */
+  async function send(k: "signup" | "link" | "reset") {
+    const redirect = window.location.origin;
+    if (k === "signup") {
+      const { error } = await sb.auth.resend({ type: "signup", email, options: { emailRedirectTo: redirect } });
+      if (error) throw error;
+      setSent(`We sent a link to ${email}. Click it to finish creating your account.`);
+    } else if (k === "link") {
+      // Signs in, or makes the account on a first visit. Comes back to this page, so invite links keep working.
+      const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: redirect + window.location.pathname } });
+      if (error) throw error;
+      setSent(`We sent a sign-in link to ${email}. Click it to sign in.`);
+    } else {
+      const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: redirect });
+      if (error) throw error;
+      setSent(`If ${email} has an account, a reset link is on its way.`);
+    }
+    setKind(k);
+    setWait(RESEND_WAIT);
+  }
+
+  async function sendAgain() {
+    if (!kind || wait > 0) return;
+    setBusy(true);
+    setError("");
+    try {
+      await send(kind);
+    } catch (err) {
+      fail(err);
+    } finally {
+      setBusy(false);
+    }
+  }
 
   /** The code in the sign-in or confirm email, for a link opened on another device. */
   async function verify(e: React.FormEvent) {
@@ -40,10 +138,10 @@ export function AuthScreen({ sb, invited, googleClientId = null }: { sb: Supabas
     try {
       const token = code.trim();
       let { error } = await sb.auth.verifyOtp({ email, token, type: "email" });
-      if (error && mode === "signup") ({ error } = await sb.auth.verifyOtp({ email, token, type: "signup" }));
+      if (error && kind === "signup") ({ error } = await sb.auth.verifyOtp({ email, token, type: "signup" }));
       if (error) throw error;
     } catch (err) {
-      setError(/invalid|expired/i.test(message(err)) ? "That code is not right or has expired. Check the newest email." : message(err));
+      setError(/invalid|expired/i.test(message(err)) ? "That code is not right or has expired. Check the newest email." : plainError(message(err)));
       setCode("");
     } finally {
       setBusy(false);
@@ -54,28 +152,43 @@ export function AuthScreen({ sb, invited, googleClientId = null }: { sb: Supabas
     e.preventDefault();
     setBusy(true);
     setError("");
+    setExists(false);
     setSent("");
+    setKind(null);
     try {
       const redirect = window.location.origin;
       if (mode === "signin") {
         const { error } = await sb.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        if (error) {
+          // The account is there but the email was never confirmed: send the link again in place of a dead end.
+          if (/email not confirmed/i.test(error.message)) {
+            await send("signup");
+            setSent(`Confirm your email first. We sent a new link to ${email}.`);
+            return;
+          }
+          throw error;
+        }
       } else if (mode === "signup") {
         const { data, error } = await sb.auth.signUp({ email, password, options: { emailRedirectTo: redirect } });
         if (error) throw error;
-        if (!data.session) setSent(`We sent a link to ${email}. Click it to finish creating your account.`);
+        // Supabase answers a sign-up for a confirmed email with no error and no identities, and sends nothing.
+        if (data.user && !data.user.identities?.length) {
+          setExists(true);
+          setError("This email already has an account.");
+          return;
+        }
+        if (!data.session) {
+          setSent(`We sent a link to ${email}. Click it to finish creating your account.`);
+          setKind("signup");
+          setWait(RESEND_WAIT);
+        }
       } else if (mode === "link") {
-        // Signs in, or makes the account on a first visit. Comes back to this page, so invite links keep working.
-        const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: redirect + window.location.pathname } });
-        if (error) throw error;
-        setSent(`We sent a sign-in link to ${email}. Click it to sign in.`);
+        await send("link");
       } else {
-        const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: redirect });
-        if (error) throw error;
-        setSent(`If ${email} has an account, a reset link is on its way.`);
+        await send("reset");
       }
     } catch (err) {
-      setError(message(err));
+      fail(err);
     } finally {
       setBusy(false);
     }
@@ -86,7 +199,7 @@ export function AuthScreen({ sb, invited, googleClientId = null }: { sb: Supabas
     setError("");
     const { error } = await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.origin + window.location.pathname } });
     if (error) {
-      setError(error.message);
+      setError(plainError(error.message));
       setBusy(false);
     }
   }
@@ -94,7 +207,9 @@ export function AuthScreen({ sb, invited, googleClientId = null }: { sb: Supabas
   function switchTo(m: Mode) {
     setMode(m);
     setError("");
+    setExists(false);
     setSent("");
+    setKind(null);
     setCode("");
   }
 
@@ -167,26 +282,44 @@ export function AuthScreen({ sb, invited, googleClientId = null }: { sb: Supabas
             <label className="aw-label" htmlFor="password">
               Password
             </label>
-            <input
+            <PasswordInput
               id="password"
-              type="password"
               autoComplete={mode === "signup" ? "new-password" : "current-password"}
               minLength={mode === "signup" ? 8 : undefined}
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="aw-input"
+              onChange={setPassword}
             />
             {mode === "signup" ? <p className="aw-small mt-2">At least 8 characters.</p> : null}
           </div>
         ) : null}
-        {error ? <p className="aw-error">{error}</p> : null}
-        {sent ? <p className="aw-callout text-[15px]!">{sent}</p> : null}
+        {error ? (
+          <p className="aw-error">
+            {error}
+            {exists ? (
+              <>
+                {" "}
+                <button type="button" className="aw-text-link" onClick={() => switchTo("signin")}>
+                  Sign in
+                </button>
+              </>
+            ) : null}
+          </p>
+        ) : null}
+        {sent ? (
+          <div className="aw-callout flex flex-col items-start gap-2 text-[15px]!">
+            <span>{sent}</span>
+            {kind ? (
+              <button type="button" className="aw-text-link text-[13px]" onClick={sendAgain} disabled={busy || wait > 0}>
+                {wait > 0 ? `Send again in ${wait}s` : "Send again"}
+              </button>
+            ) : null}
+          </div>
+        ) : null}
         <button type="submit" className="aw-btn aw-btn--primary aw-btn--block" disabled={busy}>
           {busy ? "Please wait..." : mode === "signin" ? "Sign in" : mode === "signup" ? "Create account" : mode === "link" ? "Email me a sign-in link" : "Send reset link"}
         </button>
       </form>
-      {sent && (mode === "link" || mode === "signup") ? (
+      {sent && (kind === "link" || kind === "signup") ? (
         <form onSubmit={verify} className="flex flex-col gap-3">
           <label className="aw-label" htmlFor="email-code">
             Code from the email
@@ -254,7 +387,7 @@ export function NewPassword({ sb, onDone }: { sb: SupabaseClient; onDone: () => 
     setError("");
     const { error } = await sb.auth.updateUser({ password });
     setBusy(false);
-    if (error) setError(error.message);
+    if (error) setError(plainError(error.message));
     else onDone();
   }
 
@@ -266,17 +399,7 @@ export function NewPassword({ sb, onDone }: { sb: SupabaseClient; onDone: () => 
           <label className="aw-label" htmlFor="new-password">
             New password
           </label>
-          <input
-            id="new-password"
-            type="password"
-            autoComplete="new-password"
-            minLength={8}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            autoFocus
-            className="aw-input"
-          />
+          <PasswordInput id="new-password" autoComplete="new-password" minLength={8} value={password} onChange={setPassword} autoFocus />
         </div>
         {error ? <p className="aw-error">{error}</p> : null}
         <button type="submit" className="aw-btn aw-btn--primary aw-btn--block" disabled={busy}>
@@ -305,7 +428,7 @@ export function CodeCheck({ sb, onDone }: { sb: SupabaseClient; onDone: () => vo
       if (error) throw error;
       onDone();
     } catch (err) {
-      setError(/invalid/i.test(message(err)) ? "That code is not right. Check the app and try the newest one." : message(err));
+      setError(/invalid/i.test(message(err)) ? "That code is not right. Check the app and try the newest one." : plainError(message(err)));
       setCode("");
     } finally {
       setBusy(false);

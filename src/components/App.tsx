@@ -57,6 +57,7 @@ import { researchTarget } from "./research/pdfTarget";
 import { PDF_PAGES, type PdfPage } from "@/lib/pdf/pages";
 import { answersSince, competitorsSnapshot, promptsSnapshot } from "@/lib/shareSnapshot";
 import { ShareButton } from "./ShareDialog";
+import { NameDialog } from "./reports/Dialog";
 import { ExportsSettings, JobsSettings } from "./JobsSettings";
 import { BillingPage, choosePlan } from "./BillingPage";
 import { Onboarding, type Checking, type NewBrand, type Welcome } from "./Onboarding";
@@ -365,7 +366,8 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
         }
       }
       if (!list.length) {
-        await createWorkspace(sb, firstWorkspaceName(email));
+        // A work email names the workspace after the company, so onboarding skips the workspace step.
+        await createWorkspace(sb, guessCompany(email) || firstWorkspaceName(email));
         list = await listWorkspaces(sb, userId);
       }
       setWorkspaces(list);
@@ -1143,6 +1145,7 @@ function Sidebar({
   onHide: () => void;
 }) {
   const wsMenu = useAnchoredPop();
+  const [naming, setNaming] = useState(false);
   const [closedGroups, setClosedGroups] = useState<Set<string>>(new Set());
   // On a phone the pages fold into a menu button, so the page comes first.
   const [menu, setMenu] = useState(false);
@@ -1226,10 +1229,9 @@ function Sidebar({
               <div className="my-1 border-t border-rule-faint" />
               <button
                 type="button"
-                onClick={async () => {
-                  const name = prompt("Name your new workspace");
+                onClick={() => {
                   wsMenu.close();
-                  if (name?.trim()) await onNewWorkspace(name.trim());
+                  setNaming(true);
                 }}
                 className="flex h-8 w-full items-center rounded-aw px-2 text-left text-[13px] text-body hover:bg-surface-2"
               >
@@ -1249,6 +1251,7 @@ function Sidebar({
             </div>
           </Pop>
         ) : null}
+        {naming ? <NameDialog title="New workspace" label="Workspace name" action="Create workspace" onSave={onNewWorkspace} onClose={() => setNaming(false)} /> : null}
       </div>
 
       <nav className={`${menu ? "flex" : "hidden"} flex-col gap-0.5 md:flex`} aria-label="Modules">

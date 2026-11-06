@@ -85,7 +85,7 @@ const FAQ: { q: string; a: string }[] = [
 export function PricingPage() {
   const [cycle, setCycle] = useState<Interval>("month");
   const trial = (primary: boolean, label = "Start free trial") => (
-    <Link href="/" className={`aw-btn aw-btn--block ${primary ? "aw-btn--primary" : "aw-btn--secondary"}`}>
+    <Link href="/?signup" className={`aw-btn aw-btn--block ${primary ? "aw-btn--primary" : "aw-btn--secondary"}`}>
       {label}
     </Link>
   );
@@ -100,7 +100,7 @@ export function PricingPage() {
             <Link href="/" className="aw-btn aw-btn--secondary aw-btn--sm">
               Sign in
             </Link>
-            <Link href="/" className="aw-btn aw-btn--primary aw-btn--sm hidden sm:inline-flex">
+            <Link href="/?signup" className="aw-btn aw-btn--primary aw-btn--sm hidden sm:inline-flex">
               Start free
             </Link>
           </nav>
@@ -201,7 +201,7 @@ export function PricingPage() {
           <LogoStack size={30} />
           <h2 className="text-[32px] leading-tight font-medium text-white sm:text-[40px]">Find out what AI says about you</h2>
           <p className="max-w-xl text-[16px] text-white/80">Your first results in minutes. Free forever.</p>
-          <Link href="/" className="aw-btn aw-btn--lg bg-white! text-brand!">
+          <Link href="/?signup" className="aw-btn aw-btn--lg bg-white! text-brand!">
             Start free
           </Link>
         </div>
