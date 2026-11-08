@@ -16,4 +16,4 @@ primary_region = "nrt" # Tokyo, next to the app
 
 [[vm]]
   size = "shared-cpu-1x"
-  memory = "2048mb" # Chromium for report PDFs and the pages article research reads (docs/content-v2.md)
+  memory = "512mb" # Chromium for report PDFs and the pages article research reads (docs/content-v2.md); peak use was ~235 MB
