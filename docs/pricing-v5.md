@@ -34,7 +34,7 @@ Mix: 50% Starter, 40% Pro, 10% Agency.
 |---|---|---|
 | Paying teams, typical use | ~$2,765 | ~$27,650 |
 | Free users | ~$225 | ~$2,250 |
-| Servers: Render web, Fly worker, Supabase Pro (check) | ~$45 | ~$150 |
+| Servers: the Hostinger VPS (web, worker and Postgres; old Render, Fly and Supabase numbers, check) | ~$45 | ~$150 |
 | **Total cost** | **~$3,035** | **~$30,050** |
 | Revenue (monthly billing) | ~$7,050 | ~$70,500 |
 | **Gross margin** | **~57%** | **~57%** |

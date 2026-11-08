@@ -38,8 +38,7 @@ The Customer gives general approval for Arrowsterr to use sub-processors. The cu
 
 | Sub-processor | Purpose | Location |
 | --- | --- | --- |
-| Supabase | Database and sign-in | [REGION] |
-| Render | App hosting | [REGION] |
+| Hostinger | Servers, database and sign-in (VPS) | [REGION] |
 | Stripe | Payments | United States |
 | Anthropic | AI processing | United States |
 | OpenAI | AI processing | United States |

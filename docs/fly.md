@@ -1,5 +1,7 @@
 # Moving Arrowsterr from Render to Fly.io
 
+No longer used: everything runs on the Hostinger VPS now, with Postgres on the same machine (README, Deploy). This page is kept for its history.
+
 Two Fly apps, both in Tokyo (`nrt`). Tokyo is the closest Fly region to the Supabase database in Seoul.
 
 | App | Config | Machine | Cost a month (check) |
