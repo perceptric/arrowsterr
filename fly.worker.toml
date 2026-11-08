@@ -14,6 +14,9 @@ primary_region = "nrt" # Tokyo, next to the app
 [[restart]]
   policy = "always"
 
+# Swap is a cushion: a heavy page runs slower instead of crashing the worker.
+swap_size_mb = 512
+
 [[vm]]
   size = "shared-cpu-1x"
-  memory = "512mb" # Chromium for report PDFs and the pages article research reads (docs/content-v2.md); peak use was ~235 MB
+  memory = "1gb" # Chromium for report PDFs and the pages article research reads (docs/content-v2.md); peak use was ~235 MB
