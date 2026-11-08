@@ -623,12 +623,12 @@ Agency and Enterprise. Enforced on the server: the report API strips white-label
 - Every scheduled send creates one, so the email, the PDF and the link always match.
 
 ### 12.3 PDF
-- Rendered on the server: a `report_pdf` job on the Fly worker opens `/r/print/[token]` in Playwright (Chromium), waits for the page's `data-ready` flag, and prints.
+- Rendered on the server: a `report_pdf` job on the worker (VPS) opens `/r/print/[token]` in Playwright (Chromium), waits for the page's `data-ready` flag, and prints.
 - A4 or US Letter, the report's orientation and margins.
 - Fonts embedded, text selectable, links clickable, the table of contents clickable.
 - Page breaks never split a KPI, chart or table header. Tables longer than a page continue with their header row repeated.
 - Targets: under 15 seconds for 20 pages, under 8 MB.
-- Stored in Supabase Storage for 90 days; downloads use a signed URL valid for 1 hour.
+- Stored in storage on the VPS for 90 days; downloads use a signed URL valid for 1 hour.
 - File name: `Brand – Report name – Period.pdf`.
 
 ### 12.4 Other exports
@@ -1107,7 +1107,7 @@ Every phase ships with tests in `tests/` (Node test runner, as today):
   - Date ranges and compare.
   - Plan gating on all report routes.
   - `report_links` with live, frozen, password, expiry, revoke and views.
-  - Server PDF on the Fly worker.
+  - Server PDF on the worker (VPS).
   - Move `shared_reports` and `report_styles` across.
 - **Done when:**
   - A saved report survives a reload.
@@ -1119,16 +1119,16 @@ Every phase ships with tests in `tests/` (Node test runner, as today):
   - Tables: `supabase/043_reports.sql` (`reports`, `report_versions`, `report_links`, the `report-pdfs` bucket). Old `shared_reports` tokens are copied into `report_links` as frozen links.
   - Routes: `/api/reports/list`, `create`, `data`, `links`, `pdf`, `summary` (saved reports), `/api/pdf/next`, `done`, `fail` (the worker), `/api/r/view`, `/api/r/unlock` (public links).
   - Pages: the library and editor at `/reports` and `/reports?report=<id>`, public links at `/r/<token>`, the worker's print page at `/r/print/<id>`.
-  - PDFs: the Fly worker (`scripts/worker.mjs`) runs Chromium from the Playwright image and prints `/r/print/<id>` to A4. If no worker takes the job in 90 seconds, the editor offers browser print.
+  - PDFs: the worker on the VPS (`scripts/worker.mjs`) runs Chromium from the Playwright image and prints `/r/print/<id>` to A4. If no worker takes the job in 90 seconds, the editor offers browser print.
   - Prompts, Competitors and Content Intelligence reports are still built in the browser from the app's dates, so they share as frozen links only.
-  - Setup: run `043_reports.sql` in Supabase. Optional: set `REPORT_LINK_SECRET` on the app (otherwise it signs with `SUPABASE_SECRET_KEY`).
+  - Setup: run `043_reports.sql` with `psql` on the VPS database. Optional: set `REPORT_LINK_SECRET` on the app (otherwise it signs with `SUPABASE_SECRET_KEY`).
 - **Running cost of phase 1:**
 
   | Item | Beta (50 teams) | Growth (500 teams) |
   |---|---|---|
-  | Fly worker from 256 MB to 1 GB for Chromium (shared-cpu-1x) | +$3.70 (check) | +$9.40, two 1 GB machines (check) |
+  | Worker on the VPS with 1 GB for Chromium | +$3.70 (check) | +$9.40, two 1 GB machines (check) |
   | Claude tokens: AI summaries on Sonnet 5.5 (≈250 / 2,500 a month at ≈$0.04, paid for by tasks) | $10 | $100 |
-  | Supabase Storage for PDFs (last 5 per report) | $0, inside the current plan (check) | $0 (check) |
+  | Storage on the VPS for PDFs (last 5 per report) | $0, inside the VPS (check) | $0 (check) |
   | Live link builds: cached an hour, run on the app server | $0 | $0 |
   | **Monthly total** | **≈ $14** | **≈ $110** |
 
@@ -1193,9 +1193,9 @@ Assumptions:
 | Item | Beta (50 teams) | Growth (500 teams) |
 |---|---|---|
 | Claude tokens: AI commentary and drafts (1,000 / 10,000 reports a month, half batched) | $30 | $300 |
-| PDF rendering: larger Fly worker for Chromium (2 GB, then 2 machines) | $10 (check) | $25 (check) |
+| PDF rendering: a larger worker on the VPS for Chromium (2 GB, then 2 machines) | $10 (check) | $25 (check) |
 | Email: Resend Pro, needed for first-of-month spikes over the free tier's 100 a day (≈1,250 / 12,500 report emails a month) | $20 (check) | $20 (check) |
-| Storage: PDFs, snapshots and thumbnails in Supabase Storage (≈1 GB / 10 GB a month, kept 90 days) | $0, inside the current plan (check) | $0–5 (check) |
+| Storage: PDFs, snapshots and thumbnails in storage on the VPS (≈1 GB / 10 GB a month, kept 90 days) | $0, inside the VPS (check) | $0–5 (check) |
 | Custom domains: Cloudflare for SaaS custom hostnames (first 100 free, then $0.10 each) | $0 (check) | $0 (check) |
 | Google Search Console API | $0 | $0 |
 | **Monthly total** | **≈ $60** | **≈ $350** |
@@ -1285,7 +1285,7 @@ Chat can restyle with AI ("darker", "match their pitch deck"). It changes colors
 | C | The template board: 11 templates in 4 purpose columns (`PURPOSES`, `TEMPLATES` in `reportDoc.ts`) | 1 week | Built (October 2026) |
 | D | Kit → report theme everywhere (report, live link, PDF, email, portal), the Style switch, client kits learned in the background when a brand is added, plan checks on the server | 1 week | |
 
-Setup for phase A: run `supabase/045_brand_kits.sql` in Supabase. Until phase D, reports still read `report_styles`.
+Setup for phase A: run `supabase/045_brand_kits.sql` with `psql` on the VPS database. Until phase D, reports still read `report_styles`.
 
 ### 31.7 Running cost
 
@@ -1296,7 +1296,7 @@ Added on top of section 29.
 | Claude tokens to learn kits: about 12K in and 2K out each on Opus 5.5 ($4 / $20 per million, check), ≈ $0.09. About 150 a month at Beta and 2,000 at Growth, with agency client kits and re-learns | $14 | $180 |
 | Chat edits to modules and restyles (paid for by tasks) | $5 | $50 |
 | Reading sites: the homepage and up to 30 stylesheets on the app server, under a second of parsing each | $0 | $0 |
-| Kit storage in Supabase (a few KB a kit; logos are links or small inline SVGs) | $0 (check) | $0 (check) |
+| Kit storage in Postgres on the VPS (a few KB a kit; logos are links or small inline SVGs) | $0 (check) | $0 (check) |
 | **Monthly total added** | **≈ $19** | **≈ $230** |
 
 ---
@@ -1319,7 +1319,7 @@ Added on top of section 29.
 
 - Both designs share one layout. The server decides the design: a brand design below white label, or with no kit, comes back as Arrowsterr's (`tokensFor`).
 - `/api/files` builds the numbers on the server (`src/lib/pdf/server.ts`), stores them on a `report_files` row, and queues a `report_pdf` job.
-- The Fly worker prints `/r/file/[id]` (signed for 15 minutes) to A4 with page numbers. The file is kept in the `report-pdfs` bucket under `files/`.
+- The worker on the VPS prints `/r/file/[id]` (signed for 15 minutes) to A4 with page numbers. The file is kept in the `report-pdfs` bucket under `files/`.
 
 ### 32.3 What each PDF shows
 
@@ -1371,9 +1371,9 @@ Zippie has no PDF.
 
 | Item | Beta (50 teams) | Growth (500 teams) |
 |---|---|---|
-| PDF worker on Fly: about 1,000 / 10,000 PDFs a month at ~10 s each. Beta fits the current 1 GB machine; Growth needs a second one | $0 | +$9.40 (check) |
+| PDF worker on the VPS: about 1,000 / 10,000 PDFs a month at ~10 s each. Beta fits the current 1 GB machine; Growth needs a second one | $0 | +$9.40 (check) |
 | Email: Resend Pro, ≈2,000 / 20,000 scheduled emails a month (phase 4) | $20 (check) | $20 (check) |
-| PDF storage: ≈0.3 / 3 GB a month, kept a year, inside Supabase Pro's 100 GB | $0 (check) | $0 (check) |
+| PDF storage: ≈0.3 / 3 GB a month, kept a year, on the VPS disk | $0 (check) | $0 (check) |
 | Claude tokens: none, since PDFs use no AI | $0 | $0 |
 | Research PDFs: saved results only, no DataForSEO calls | $0 | $0 |
 | Scheduled sends: ≈1,000 / 10,000 extra PDFs a month at Beta / Growth, inside the worker line above | $0 | $0 |
@@ -1387,5 +1387,5 @@ Email attachments count toward Resend's 40 MB limit per email (check). A send wi
 - The browser builds the snapshot (`src/lib/shareSnapshot.ts`) from the same functions and view the page uses: `PromptsSnapshot` (scores, topics by AI, every prompt with each AI's latest answer for its deep dive) and `CompetitorsSnapshot` (you plus the competitors the plan tracks, up to 50). Answer texts are cut down before a Prompts snapshot passes 3 MB; the numbers always stay.
 - `/api/reports/share` checks the snapshot (`shareProblem`), checks the brand is in the workspace, and saves a frozen `report_links` row (`043_reports.sql`). Anyone with `/r/<token>` sees it drawn by `PromptsDoc` or `CompetitorsDoc`. Links have no expiry, password or revoke screen yet.
 - `tests/shareSnapshot.test.ts` checks the numbers match the page, filters, empty data, size trimming and what the route accepts.
-- Running cost: one small database row per link (a few KB to 3 MB of JSON) inside Supabase Pro, no AI and no worker. Beta (50 teams): $0 (check). Growth (500 teams): $0 (check).
+- Running cost: one small database row per link (a few KB to 3 MB of JSON) inside Postgres on the VPS, no AI and no worker. Beta (50 teams): $0 (check). Growth (500 teams): $0 (check).
 - **Password, expiry and revoke (built):** the Share window and Reports → Links (`LinksTab.tsx`, `LinkSettings.tsx`) set a password and an expiry date on a link, or revoke it so it stops opening at once. Links lists every link with its views and state (Open, Expired, Revoked). `/api/reports/links` saves them; adding a password or an expiry date is on Pro and up, and removing one works on every plan (`linkSettingsProblem`, tested in `tests/reportLinks.test.ts`). A link expires at the end of its day (UTC). `/r/<token>` and `/api/r/unlock` already enforce all three. Running cost: $0 at both stages.

@@ -25,7 +25,7 @@ What each email says lives in `src/lib/emails.ts` (pure builders) and `src/lib/r
 | Trial ending, tasks at 80% | `nudges.ts` | Admins |
 | Scheduled report | `scheduleServer.ts` | The schedule's list |
 | Free tools paused | `freeTools.ts` | `FREE_ALERT_EMAIL` |
-| Confirm, sign-in link, reset password | Supabase Auth | The person signing in |
+| Confirm, sign-in link, reset password | The sign-in service | The person signing in |
 
 Failed jobs never show a vendor or database error. `plainError` turns it into one plain line; the raw error stays in the logs.
 
@@ -35,22 +35,22 @@ Failed jobs never show a vendor or database error. `plainError` turns it into on
 npm run emails
 ```
 
-This writes every email with sample data to `email-previews/` (HTML and plain text, ignored by git) and rewrites the three Supabase templates in `supabase/templates/`. Open a preview in a browser and switch the system to dark mode to see the dark version. Before a change to the look ships, send each email to Gmail, Outlook and Apple Mail.
+This writes every email with sample data to `email-previews/` (HTML and plain text, ignored by git) and rewrites the three sign-in templates in `supabase/templates/`. Open a preview in a browser and switch the system to dark mode to see the dark version. Before a change to the look ships, send each email to Gmail, Outlook and Apple Mail.
 
-## Sign-in emails (Supabase)
+## Sign-in emails
 
-Supabase sends the confirm, sign-in link and reset password emails. They use its plain default templates until these steps are done in the Supabase dashboard.
+The sign-in service on the VPS sends the confirm, sign-in link and reset password emails. They use its plain default templates until these steps are done in its settings.
 
-1. **Send through Resend.** Authentication → Emails → SMTP Settings → Enable custom SMTP:
+1. **Send through Resend.** Turn on custom SMTP:
    - Host `smtp.resend.com`, port `465`, user `resend`, password: a Resend API key with sending access.
    - Sender email `hello@arrowsterr.com`, sender name `Arrowsterr`.
-   - Without this, Supabase sends from its own address with a low hourly limit (check).
-2. **Paste the templates.** Authentication → Emails → Templates:
+   - Without this, the sign-in service sends from its own address with a low hourly limit (check).
+2. **Paste the templates** into its email templates:
    - Confirm signup: `supabase/templates/confirmation.html`
    - Magic link: `supabase/templates/magic_link.html`
    - Reset password: `supabase/templates/recovery.html`
    - Subjects: `supabase/templates/subjects.txt`
-3. **Keep the code at 6 digits.** Authentication → Providers → Email → Email OTP length: 6. The sign-in screen takes the code under "We sent a link", so a link opened on another device still works.
+3. **Keep the code at 6 digits.** Email OTP length: 6. The sign-in screen takes the code under "We sent a link", so a link opened on another device still works.
 
 Edit the builders in `src/lib/emails.ts` (`authEmail`), run `npm run emails` and paste the templates again. Never edit the HTML files by hand.
 

@@ -35,7 +35,7 @@ Seventeen free tools on arrowsterr.com. Each one answers a real question in unde
 - `PAGESPEED_API_KEY`: a free Google Cloud key with the PageSpeed Insights API on. Without it, Google allows only a few tests a day.
 
 **Setup:**
-- Run `supabase/044_free_tools.sql` in Supabase.
+- Run `supabase/044_free_tools.sql` with `psql` on the VPS database.
 - Optional server settings: `FREE_CAP_KEYWORD` (default 500 runs a day), `FREE_PER_TOOL` (5), `FREE_PER_VISITOR` (15), `FREE_SPEND_DAY` (15 dollars), `FREE_ALERT_EMAIL` (who hears when the spend alarm trips).
 - Bot check: Cloudflare Turnstile on every tool, required in production (see Abuse protection below). Set `TURNSTILE_SECRET` on the app and `AW_TURNSTILE_SITEKEY` in the site's wp-config.php.
 
@@ -205,7 +205,7 @@ Ahrefs' free tools put Cloudflare Turnstile right under the form: a "Verify you 
 - Bot Fight Mode stays off. It covers the whole domain and would block Stripe webhooks, the WordPress plugin and MCP clients calling the app.
 
 ### 6. Stop throwaway accounts
-- **Turnstile on sign-up:** Supabase Auth has it built in (Authentication, Attack Protection, CAPTCHA, Turnstile). `AuthScreen.tsx` sends the token with sign-up and sign-in.
+- **Turnstile on sign-up:** the sign-in service has it built in (its CAPTCHA setting, Turnstile). `AuthScreen.tsx` sends the token with sign-up and sign-in.
 - **Email confirmation on:** a Free workspace starts its AI checks only after the email is confirmed.
 - **No throwaway email:** sign-up refuses domains on the open-source `disposable-email-domains` list (a file in the repo, updated monthly).
 - **One Free workspace per tracked domain:** a domain already tracked by a Free workspace can't be added to another Free workspace. Paid plans aren't affected. Making 10 accounts for the same brand gets nothing.
@@ -279,7 +279,7 @@ Assumes about half of all runs come back from saved results, and Share of Voice 
 | DataForSEO and Haiku for the 11 cheap tools | ~$25 | ~$250 |
 | AI Share of Voice | ~$15 | ~$150 |
 | Turnstile, PageSpeed Insights | $0 | $0 |
-| Servers (current Render web and Fly worker; one more Render instance at Growth, check) | $0 | ~$25 |
+| Servers (the Hostinger VPS; a larger plan at Growth, check) | $0 | ~$25 |
 | **Total** | **~$40** | **~$425** |
 
 The caps per tool (`FREE_CAP_<TOOL>`) set the worst case. With the default caps below, every tool maxed out with no saved results costs about $50 a day:
@@ -317,7 +317,7 @@ Assumes about 2,000 runs at Beta and 20,000 at Growth across the seven new tools
 | Keyword Gap Tool (DataForSEO Labs) | ~$2 | ~$25 |
 | Schema and Meta generators (Haiku 5.5) | ~$1 | ~$5 |
 | Robots.txt Tester | $0 | $0 |
-| Servers (same Render web and Fly worker) | $0 | $0 |
+| Servers (the same VPS) | $0 | $0 |
 | Long articles (WordPress pages, no new service) | $0 | $0 |
 | **Total** | **~$22** | **~$220** |
 

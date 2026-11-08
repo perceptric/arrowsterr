@@ -47,8 +47,7 @@ We use these service providers (sub-processors) to run Arrowsterr:
 
 | Provider | What they do | Location |
 | --- | --- | --- |
-| Supabase | Database and sign-in | [REGION] |
-| Render | App hosting | [REGION] |
+| Hostinger | Servers, database and sign-in (VPS) | [REGION] |
 | Stripe | Payments and invoices | United States |
 | Anthropic | AI answers and writing | United States |
 | OpenAI | AI answers | United States |

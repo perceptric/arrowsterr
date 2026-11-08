@@ -103,7 +103,7 @@ Yearly billing takes about 15 points off each margin. These are lower than a usu
 |---|---|---|
 | Paying teams, typical use (mix: 50% Starter, 40% Pro, 10% Agency) | ~$2,970 | ~$29,700 |
 | Free users | ~$225 | ~$2,250 |
-| Servers: Render web, Fly worker, Supabase Pro (check) | ~$45 | ~$150 |
+| Servers: the Hostinger VPS (web, worker and Postgres; old Render, Fly and Supabase numbers, check) | ~$45 | ~$150 |
 | **Total cost** | **~$3,240** | **~$32,100** |
 | Revenue at that mix (monthly billing) | ~$6,200 | ~$62,000 |
 | **Gross margin** | **~48%** | **~48%** |

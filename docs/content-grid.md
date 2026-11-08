@@ -100,4 +100,4 @@ At 10 articles per team a month, if every article is fully generated:
 | Beta (50 teams) | 500 | ~$265 (check) |
 | Growth (500 teams) | 5,000 | ~$2,650 (check) |
 
-Fewer modules bring it down from ~$315 and ~$3,150. Articles writers fill by hand cost only the brief (~$90 and ~$900). Brand fonts load free from Google Fonts. Writing, saving and Full view use the browser's own Supabase connection: $0.
+Fewer modules bring it down from ~$315 and ~$3,150. Articles writers fill by hand cost only the brief (~$90 and ~$900). Brand fonts load free from Google Fonts. Writing, saving and Full view use the browser's own database connection: $0.
