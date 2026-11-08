@@ -4,7 +4,7 @@ name: Build images
 
 on:
   push:
-    branches: [claude/arrowsterr-ai-visibility-ft7nva, claude/relaxed-fermat-jk5bjb]
+    branches: [claude/arrowsterr-ai-visibility-ft7nva]
   workflow_dispatch:
 
 permissions:
