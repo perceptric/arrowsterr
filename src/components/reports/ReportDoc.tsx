@@ -1,5 +1,6 @@
 "use client";
 
+import type { SeoSnapshot } from "@/lib/reportSeo";
 import { preinit } from "react-dom";
 import { blocksFromSections, BLOCKS, type BlockId } from "@/lib/reportDoc";
 import type { ReportSnapshot } from "@/lib/reportTypes";
@@ -124,6 +125,70 @@ function Kpi({ label, value, sub, change }: { label: string; value: React.ReactN
   );
 }
 
+/** The "SEO and links" block: one row of numbers for each tool with saved results, then the pages and keywords to act on. */
+function SeoBlock({ n, s }: { n: number; s: SeoSnapshot }) {
+  const kpis: React.ReactNode[] = [];
+  if (s.site) kpis.push(<Kpi key="site" label="Site health" value={s.site.score} change={<Change now={s.site.score} before={s.site.before} />} sub={`${num(s.site.pages)} pages`} />);
+  if (s.onpage) kpis.push(<Kpi key="onpage" label="On-page score" value={s.onpage.avg} sub={s.onpage.topAvg !== null ? `top 10 average ${s.onpage.topAvg}` : `${s.onpage.pages} pages`} />);
+  if (s.backlinks) kpis.push(<Kpi key="bl" label="Linking sites" value={num(s.backlinks.domains)} change={<Change now={s.backlinks.domains} before={s.backlinks.before} />} sub={`authority ${s.backlinks.rank}`} />);
+  if (s.links) kpis.push(<Kpi key="links" label="Links won" value={s.links.wonInPeriod} sub={`${s.links.won} in total${s.links.gone ? `, ${s.links.gone} gone` : ""}`} />);
+  if (s.map) kpis.push(<Kpi key="map" label="Topics to write" value={s.map.missing} sub={`${s.map.covered} covered${s.map.overlap ? `, ${s.map.overlap} competing` : ""}`} />);
+  return (
+    <section className="sec">
+      <SectionHead n={n} title="SEO and links" />
+      {kpis.length ? <div className="grid g4">{kpis.slice(0, 4)}</div> : null}
+      {kpis.length > 4 ? <div className="grid g4">{kpis.slice(4)}</div> : null}
+      {s.onpage?.worst.length ? (
+        <div className="card">
+          <table>
+            <thead>
+              <tr>
+                <th>Page to improve</th>
+                <th className="r">Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              {s.onpage.worst.map((w) => (
+                <tr key={`${w.url}|${w.keyword}`}>
+                  <td>
+                    <span style={{ display: "block", color: "var(--ink)" }}>{w.keyword}</span>
+                    <span style={{ fontSize: 12, color: "var(--muted)", overflowWrap: "anywhere" }}>{w.url}</span>
+                  </td>
+                  <td className="r">{w.score}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
+      {s.local?.length ? (
+        <div className="card">
+          <table>
+            <thead>
+              <tr>
+                <th>Google Maps keyword</th>
+                <th className="r">Average rank</th>
+                <th className="r">Top 3 on the map</th>
+              </tr>
+            </thead>
+            <tbody>
+              {s.local.map((l) => (
+                <tr key={l.keyword}>
+                  <td>{l.keyword}</td>
+                  <td className="r">
+                    {l.avg} <Change now={l.avg} before={l.before} lowerIsBetter />
+                  </td>
+                  <td className="r">{l.read ? pctOf((l.top3 / l.read) * 100) : "–"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 function SectionHead({ n, title, note }: { n: number; title: string; note?: string }) {
   return (
     <div className="sec-h">
@@ -144,6 +209,7 @@ const EMPTY: Partial<Record<BlockId, string>> = {
   traffic: "Connect Google Analytics or the tracking script to show website traffic.",
   visitors: "Connect the tracking script to show visitors and leads.",
   content: "No Content Plan for this brand yet.",
+  seo: "No site audit, on-page audit, backlinks, link building, content map or local scan saved for this brand yet.",
 };
 
 /**
@@ -402,6 +468,7 @@ export function ReportDoc({ r, id = "report", editing = false }: { r: ReportSnap
           ) : null}
         </section>
     ) : null,
+    seo: (n) => r.seo ? <SeoBlock n={n} s={r.seo} /> : null,
     content: (n) => r.content ? (
         <section className="sec">
           <SectionHead n={n} title="Content" />

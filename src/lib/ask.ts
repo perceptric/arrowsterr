@@ -10,13 +10,9 @@ import { cleanDomain } from "./siteAudit";
 import { claudeModel } from "./claude";
 import { capsOf, EDITABLE, faqsIn, imagesWithoutAlt, linksIn, listItems } from "./cmsEdit";
 import type { CmsKind } from "./cmsTypes";
-import { requireWriter, take } from "./entitlements";
-import { bareDomain, gapRivals, parseGap, type Overview } from "./backlinks";
-import { aiCited, keys as blKeys, loadOverview, saved as savedBacklinks } from "./backlinksServer";
+import { requireWriter } from "./entitlements";
 import type { Profile } from "./db";
-import { boardStats, suppressed, type Stage } from "./linkBuilding";
-import { mapStats, type ContentMap } from "./contentMap";
-import type { ScanResult } from "./local";
+import { suppressed } from "./linkBuilding";
 import { addProspects, findAiCites, linkList, suppression } from "./linkBuildingServer";
 import { enqueue, queueReady } from "./jobs";
 import { ToolError } from "./mcp/protocol";
@@ -182,56 +178,6 @@ const LOCAL: LocalTool[] = [
     },
   },
   {
-    name: "get_backlinks",
-    label: "Reading backlinks",
-    description: `Who links to a brand's site: linking sites, backlinks, authority (0 to 100), spam score, new and lost linking sites by week, top anchors and most linked pages, plus the link gap: sites that link to its rivals but not to it, with the ones its AI answers cite flagged. Saved answers are free; a fresh overview uses ${TASK_COST.backlinks} tasks and a fresh gap ${TASK_COST.linkgap}.`,
-    input_schema: { type: "object", properties: { brand: { type: "string", description: "Brand name or domain. Leave out for the brand on screen or the first brand." } } },
-    async run(ctx, args) {
-      const { data: brands } = await ctx.db.from("brands").select("id, name, domain, profile").eq("workspace_id", ctx.ws).order("created_at");
-      const list = (brands ?? []) as { id: string; name: string; domain: string; profile: Profile | null }[];
-      const want = str(args.brand, 200).toLowerCase();
-      const b = (want && list.find((x) => x.name.toLowerCase() === want || cleanDomain(x.domain) === cleanDomain(want))) || list.find((x) => x.name === ctx.where?.brand) || list[0];
-      if (!b) throw new ToolError("Add a brand first.");
-      const target = bareDomain(b.domain);
-      let overview = await savedBacklinks<Overview & { at: string }>(blKeys.overview(target));
-      if (!overview) {
-        if (!ctx.canEdit) return { brand: b.name, note: "Backlinks haven't been loaded for this brand. Ask an editor to open Backlinks and load them." };
-        const took = await take(ctx.ws, "tasks", TASK_COST.backlinks, { refundIfFree: false });
-        if (!took.ok) throw new ToolError(((await took.response.json()) as { error: string }).error);
-        overview = await loadOverview(target);
-      }
-      const rivals = gapRivals((b.profile?.competitors ?? []).map((c) => c.domain), target);
-      const raw = rivals.length ? await savedBacklinks<{ perRival: { rival: string; items: unknown[] }[] }>(blKeys.gap(target, rivals)) : undefined;
-      const gap = raw?.perRival ? parseGap(raw.perRival, target, await aiCited(ctx.db, b.id)).slice(0, 40) : null;
-      return {
-        brand: b.name,
-        site: target,
-        updated: overview.at,
-        summary: overview.summary,
-        weeks: overview.weeks,
-        anchors: overview.anchors.slice(0, 10),
-        most_linked_pages: overview.pages.slice(0, 5),
-        rivals,
-        link_gap: gap,
-        note: gap ? undefined : rivals.length ? "The link gap hasn't been loaded. It's on Backlinks, Link gap." : "No rivals with websites on the brand profile, so there's no link gap yet.",
-      };
-    },
-  },
-  {
-    name: "get_link_building",
-    label: "Reading Link Building",
-    description: "The brand's Link Building board: every site by stage (prospect, contacted, replied, won, lost), where it came from (AI cites, link gap, broken page, unlinked mention), why, its authority, whether a pitch is drafted, and for won links whether the link is still live.",
-    input_schema: { type: "object", properties: { brand: { type: "string", description: "Brand name or domain. Leave out for the brand on screen or the first brand." } } },
-    async run(ctx, args) {
-      const b = await pickBrand(ctx, args.brand);
-      const list = await linkList(ctx.db, ctx.ws, b.id);
-      if (!list) return { brand: b.name, cards: [], note: "The board is empty. Prospects come from Links, Link Building: sites AI cites, dead rival pages, unlinked mentions and the Backlinks link gap." };
-      const { data } = await ctx.db.from("outreach_targets").select("domain, url, stage, source, note, authority, email, draft_subject, link_page, link_live").eq("list_id", list).order("created_at", { ascending: false }).limit(200);
-      const cards = (data ?? []) as { stage: Stage; link_live: boolean | null }[];
-      return { brand: b.name, stats: boardStats(cards), cards };
-    },
-  },
-  {
     name: "find_link_prospects",
     label: "Finding link prospects",
     description: "Add sites to the brand's Link Building board that its AI answers of the last 30 days cite when they name a rival and not the brand. Free. Needs competitors with websites on the brand profile.",
@@ -245,49 +191,6 @@ const LOCAL: LocalTool[] = [
       const dnc = await suppression(ctx.db, ctx.ws);
       const added = await addProspects(ctx.db, ctx.ws, list, found.filter((p) => !suppressed(p, dnc)));
       return { brand: b.name, found: found.length, added, top: found.slice(0, 10).map((p) => ({ site: p.domain, page: p.url, why: p.note })) };
-    },
-  },
-  {
-    name: "get_content_map",
-    label: "Reading the content map",
-    description: "The brand's latest Content Map: topics grouped into pillars, each covered (a page ranks top 20), missing (rivals rank top 10 and the brand doesn't, or planned and not started), in progress, or two pages competing; with searches, the brand's visits, which rivals rank, whether AI names the brand for it, and whether the pillar's main page links to it.",
-    input_schema: { type: "object", properties: { brand: { type: "string" } } },
-    async run(ctx, args) {
-      const b = await pickBrand(ctx, args.brand);
-      const { data } = await ctx.db.from("content_maps").select("result, created_at").eq("brand_id", b.id).eq("status", "done").order("created_at", { ascending: false }).limit(1).maybeSingle();
-      if (!data?.result) return { brand: b.name, note: "No content map yet. An editor builds it on Content, Content Map." };
-      const m = data.result as ContentMap;
-      return {
-        brand: b.name,
-        built: data.created_at,
-        stats: mapStats(m.topics),
-        rivals: m.rivals,
-        pillars: m.pillars.map((p) => ({
-          name: p.name,
-          main_page: p.hub,
-          topics: m.topics.filter((t) => t.pillar === p.name).map((t) => ({ topic: t.name, status: t.status, searches: t.volume, visits: t.traffic, pages: t.urls, rivals: t.rivals, planned: t.planned, ai_names_brand: t.ai, linked_from_main_page: t.linked })),
-        })),
-      };
-    },
-  },
-  {
-    name: "get_local_research",
-    label: "Reading Local Research",
-    description: "The brand's Google Maps rankings: the business, and for each tracked keyword the latest 7 by 7 grid scan: average rank (not found counts as 21), share of points in the top 3, points in the top 20, rating and reviews, the local rivals holding the top 3 with their ratings, reviews and categories, and the listing check (name, phone, address, LocalBusiness schema, category against rivals).",
-    input_schema: { type: "object", properties: { brand: { type: "string" } } },
-    async run(ctx, args) {
-      const b = await pickBrand(ctx, args.brand);
-      const loc = b.profile?.location;
-      if (!loc) return { brand: b.name, note: "No business location yet. An editor adds it on Organic Research, Local Research." };
-      const { data } = await ctx.db.from("local_scans").select("keyword, created_at, result").eq("brand_id", b.id).eq("status", "done").order("created_at", { ascending: false }).limit(30);
-      const latest = new Map<string, { created_at: string; result: ScanResult }>();
-      for (const r of (data ?? []) as { keyword: string; created_at: string; result: ScanResult }[]) if (!latest.has(r.keyword)) latest.set(r.keyword, r);
-      return {
-        business: { name: loc.title, address: loc.address, category: loc.category, phone: loc.phone },
-        keywords: loc.keywords,
-        weekly: loc.weekly,
-        scans: [...latest.entries()].map(([k, r]) => ({ keyword: k, scanned: r.created_at, average_rank: r.result.avg, top3_points: r.result.top3, top20_points: r.result.found, points_read: r.result.read, you: r.result.you, rivals: r.result.rivals.slice(0, 5), listing: (r.result as ScanResult & { listing?: unknown }).listing ?? null })),
-      };
     },
   },
   {
