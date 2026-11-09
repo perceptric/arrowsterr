@@ -56,6 +56,17 @@ export const BUILTIN_SKILLS: Omit<Skill, "builtin" | "enabled">[] = [
 6. Name any won link that's gone, and suggest asking the site to put it back.`,
   },
   {
+    key: "fill-content-map",
+    name: "Fill the content map",
+    description: "Finds the missing topics worth writing first and adds them to the Content Plan.",
+    instructions: `1. Call get_content_map. If there's none, say an editor builds it on Content, Content Map, in one line.
+2. Report topics, covered, missing, competing pages and pages not linked from their pillar's main page in one line.
+3. Pick the 5 best missing topics: ones rivals rank for and that aren't planned, most searches first, and favour pillars the brand already covers well, since those pages can link to them.
+4. Ask before adding. Then add them with add_to_content_plan, one line of angle in notes for each: what rivals cover and what the brand can add.
+5. For competing pages, say which page should stay and that the other should merge into it with a redirect.
+6. For topics not linked from their pillar's main page, offer propose_changes with play "links" on that page. Changes wait for approval.`,
+  },
+  {
     key: "faq-builder",
     name: "FAQ sections",
     description: "FAQ sections built from the questions buyers ask AI, with FAQ structured data.",

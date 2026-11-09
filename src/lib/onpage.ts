@@ -42,7 +42,8 @@ export function stem(w: string): string {
   if (w.length > 3 && w.endsWith("s") && !/(ss|us|is)$/.test(w)) return w.slice(0, -1);
   return w;
 }
-const keyWords = (keyword: string) => [...new Set(words(keyword).filter((w) => !STOP.has(w)).map(stem))];
+/** The meaningful words of a phrase, stemmed, without stopwords. */
+export const keyWords = (keyword: string) => [...new Set(words(keyword).filter((w) => !STOP.has(w)).map(stem))];
 
 /** Share of the keyword's words (stopwords aside) found in a piece of text, 0 to 1. */
 export function keywordShare(keyword: string, text: string): number {

@@ -15,6 +15,7 @@ import { bareDomain, gapRivals, parseGap, type Overview } from "./backlinks";
 import { aiCited, keys as blKeys, loadOverview, saved as savedBacklinks } from "./backlinksServer";
 import type { Profile } from "./db";
 import { boardStats, suppressed, type Stage } from "./linkBuilding";
+import { mapStats, type ContentMap } from "./contentMap";
 import { addProspects, findAiCites, linkList, suppression } from "./linkBuildingServer";
 import { enqueue, queueReady } from "./jobs";
 import { ToolError } from "./mcp/protocol";
@@ -243,6 +244,29 @@ const LOCAL: LocalTool[] = [
       const dnc = await suppression(ctx.db, ctx.ws);
       const added = await addProspects(ctx.db, ctx.ws, list, found.filter((p) => !suppressed(p, dnc)));
       return { brand: b.name, found: found.length, added, top: found.slice(0, 10).map((p) => ({ site: p.domain, page: p.url, why: p.note })) };
+    },
+  },
+  {
+    name: "get_content_map",
+    label: "Reading the content map",
+    description: "The brand's latest Content Map: topics grouped into pillars, each covered (a page ranks top 20), missing (rivals rank top 10 and the brand doesn't, or planned and not started), in progress, or two pages competing; with searches, the brand's visits, which rivals rank, whether AI names the brand for it, and whether the pillar's main page links to it.",
+    input_schema: { type: "object", properties: { brand: { type: "string" } } },
+    async run(ctx, args) {
+      const b = await pickBrand(ctx, args.brand);
+      const { data } = await ctx.db.from("content_maps").select("result, created_at").eq("brand_id", b.id).eq("status", "done").order("created_at", { ascending: false }).limit(1).maybeSingle();
+      if (!data?.result) return { brand: b.name, note: "No content map yet. An editor builds it on Content, Content Map." };
+      const m = data.result as ContentMap;
+      return {
+        brand: b.name,
+        built: data.created_at,
+        stats: mapStats(m.topics),
+        rivals: m.rivals,
+        pillars: m.pillars.map((p) => ({
+          name: p.name,
+          main_page: p.hub,
+          topics: m.topics.filter((t) => t.pillar === p.name).map((t) => ({ topic: t.name, status: t.status, searches: t.volume, visits: t.traffic, pages: t.urls, rivals: t.rivals, planned: t.planned, ai_names_brand: t.ai, linked_from_main_page: t.linked })),
+        })),
+      };
     },
   },
   {

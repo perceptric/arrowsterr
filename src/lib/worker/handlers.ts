@@ -22,6 +22,7 @@ import { wpPublishJob } from "../wpSyncServer";
 import { queueWeeklyAudits, runAudit } from "../audit";
 import { runOnpage } from "../onpageServer";
 import { checkLink, queueLinkChecks } from "../linkBuildingServer";
+import { runMap } from "../contentMapServer";
 import { queueReportSends } from "../scheduleServer";
 import { applySet, preparePlay, undoSet } from "../plays";
 import { checkDue, promptAllowance } from "../plans";
@@ -294,6 +295,13 @@ export async function plan(db: SupabaseClient, job: Job) {
 export async function audit(db: SupabaseClient, job: Job) {
   const { auditId, domain } = job.payload as { auditId: string; domain: string };
   await runAudit(db, auditId, domain);
+  await finish(job.id);
+}
+
+// Content Map (docs/content-map.md). A failed build saves its error and hands its tasks back itself.
+export async function content_map(db: SupabaseClient, job: Job) {
+  const { mapId } = job.payload as { mapId: string };
+  await runMap(db, mapId);
   await finish(job.id);
 }
 

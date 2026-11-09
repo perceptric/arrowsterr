@@ -96,6 +96,7 @@ export const TASK_COST = {
   broken: 20, // sites linking to dead pages on up to 3 rivals
   mentions: 20, // pages that name you without a link: a web search, then each page read
   pitch: 3, // one outreach email draft
+  contentmap: 40, // a content map: what you and 2 rivals rank for, grouped into pillars, links checked
 } as const;
 
 /** The two toolsets. Starter opens one of them; Free, the trial and Pro and up open both. */
