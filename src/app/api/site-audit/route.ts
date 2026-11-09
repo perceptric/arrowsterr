@@ -1,10 +1,7 @@
 import { startAudit } from "@/lib/audit";
 import type { AuditResult } from "@/lib/audit";
-import { startPlay } from "@/lib/ask";
-import { capsOf } from "@/lib/cmsEdit";
-import type { CmsKind } from "@/lib/cmsTypes";
 import { requireTrack } from "@/lib/entitlements";
-import { PLAYS } from "@/lib/plays";
+import { FixError, startFix } from "@/lib/fixServer";
 import { adminClient, requireRole } from "@/lib/serverAuth";
 import { fixPlayOf, isStuck } from "@/lib/siteAudit";
 
@@ -56,24 +53,11 @@ export async function POST(request: Request) {
     const issue = ((audit.result as AuditResult).issues ?? []).find((i) => i.id === str(body.issueId, 60));
     const play = issue && fixPlayOf(issue);
     if (!issue || !play) return err("This issue can't be fixed from here.");
-    // The brand's own publishing sites, first one that can take this fix.
-    const { data: conns } = await db.from("cms_connections").select("id, kind, name, config").eq("workspace_id", ws).eq("brand_id", brand.id).order("created_at");
-    if (!conns?.length) return err(`Connect ${brand.name}'s website to fix this.`, 409, { connect: true });
-    let pick: { id: string; name: string } | null = null;
-    let note = "";
-    for (const c of conns) {
-      const caps = await capsOf(c.kind as CmsKind, (c.config ?? {}) as Record<string, string>).catch(() => null);
-      if (caps?.[PLAYS[play].cap]) {
-        pick = c;
-        break;
-      }
-      note ||= caps?.note ?? "";
-    }
-    if (!pick) return err(note || `${conns[0].name} can't make this fix yet.`, 409);
     try {
-      const set = await startPlay(db, ws, userId, null, pick.id, play, { limit: PLAYS[play].limit, ...(issue.pages.length ? { ids: issue.pages } : {}) });
+      const set = await startFix(db, ws, userId, brand, play, issue.pages);
       return Response.json({ setId: set.id, title: set.title });
     } catch (e) {
+      if (e instanceof FixError) return err(e.message, e.status, e.connect ? { connect: true } : {});
       return err(e instanceof Error ? e.message : String(e), 500);
     }
   }

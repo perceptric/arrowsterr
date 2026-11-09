@@ -3,6 +3,9 @@ import Anthropic from "@anthropic-ai/sdk";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { after } from "next/server";
 import { MAX_PAGES, startAudit as startCrawl, type AuditResult } from "./audit";
+import type { OnpageResult } from "./onpage";
+import { startOnpage } from "./onpageServer";
+import { TASK_COST } from "./plans";
 import { cleanDomain } from "./siteAudit";
 import { claudeModel } from "./claude";
 import { capsOf, EDITABLE, faqsIn, imagesWithoutAlt, linksIn, listItems } from "./cmsEdit";
@@ -101,6 +104,64 @@ const LOCAL: LocalTool[] = [
       const a = await startAudit(ctx.db, ctx.ws, ctx.userId, str(args.domain, 200) || (await brandDomain(ctx)));
       emit({ type: "audit", id: a.id });
       return { started: true, audit_id: a.id, domain: a.domain, note: "It runs in the background for a few minutes. A card in this chat shows its progress and score. Call get_site_audit when it is done to read the details." };
+    },
+  },
+  {
+    name: "start_onpage_audit",
+    label: "Starting an on-page audit",
+    description: `Score one page against Google's top 10 for one keyword: keyword use, content depth and the terms top pages share, technical checks, AI answer-ready checks and links, with a suggested title, meta description and opening. Uses ${TASK_COST.onpage} tasks, handed back if it fails. Takes about a minute in the background.`,
+    input_schema: {
+      type: "object",
+      properties: { url: { type: "string", description: "The full page address." }, keyword: { type: "string", description: "The search the page should rank for." } },
+      required: ["url", "keyword"],
+    },
+    async run(ctx, args) {
+      if (!ctx.canEdit) throw new ToolError("Only editors and admins can start an audit.");
+      const url = str(args.url, 2000);
+      const keyword = str(args.keyword, 120).toLowerCase();
+      let host = "";
+      try {
+        host = new URL(/^https?:\/\//i.test(url) ? url : `https://${url}`).hostname.replace(/^www\./, "");
+      } catch {
+        throw new ToolError("That doesn't look like a page address.");
+      }
+      if (keyword.length < 2) throw new ToolError("Say which keyword the page should rank for.");
+      const { data: brands } = await ctx.db.from("brands").select("id, name, domain").eq("workspace_id", ctx.ws).order("created_at");
+      const list = (brands ?? []) as { id: string; name: string; domain: string }[];
+      const brand = list.find((b) => cleanDomain(b.domain) === host || host.endsWith(`.${cleanDomain(b.domain)}`)) ?? list.find((b) => b.name === ctx.where?.brand) ?? list[0];
+      if (!brand) throw new ToolError("Add a brand first.");
+      // The job takes the tasks itself: this chat route hands back what it took if its stream fails, audit or not.
+      const id = await startOnpage(ctx.db, ctx.ws, ctx.userId, brand.id, /^https?:\/\//i.test(url) ? url : `https://${url}`, keyword, "job");
+      return { started: true, audit_id: id, brand: brand.name, note: "It runs for about a minute. Call get_onpage_audit with this id to read it. It also shows on the On-page Audit page." };
+    },
+  },
+  {
+    name: "get_onpage_audit",
+    label: "Reading the on-page audit",
+    description: "An on-page audit: the score, the top 10 average, where the page ranks, every check that failed or needs work with its fix, the terms top pages share that this page lacks, and the suggested title, meta description and opening. Without an id, the latest one in the workspace.",
+    input_schema: { type: "object", properties: { audit_id: { type: "string" } } },
+    async run(ctx, args) {
+      let q = ctx.db.from("onpage_audits").select("id, url, keyword, status, step, score, top_score, result, error").eq("workspace_id", ctx.ws);
+      q = args.audit_id ? q.eq("id", str(args.audit_id, 60)) : q.order("created_at", { ascending: false }).limit(1);
+      const { data } = await q.maybeSingle();
+      if (!data) return { audit: null, note: "No on-page audit yet. Start one with start_onpage_audit." };
+      if (data.status !== "done") return { id: data.id, url: data.url, keyword: data.keyword, status: data.status, step: data.step, error: data.error };
+      const r = data.result as OnpageResult;
+      return {
+        id: data.id,
+        url: r.url,
+        keyword: r.keyword,
+        score: r.score,
+        top_10_average: r.topScore,
+        top_pages_read: r.read,
+        rank_on_google: r.rank,
+        areas: r.areas,
+        to_fix: r.checks.filter((c) => c.status === "fail" || c.status === "warn").map((c) => ({ check: c.label, status: c.status, detail: c.detail, fix_play: c.fix })),
+        missing_terms: r.terms.filter((t) => t.page === 0).map((t) => `${t.term} (top pages use it ${t.top} times on average)`),
+        words: r.words,
+        top_10_median_words: r.medianWords,
+        suggested: r.suggest,
+      };
     },
   },
   {
@@ -360,7 +421,7 @@ Brands in this workspace: ${brands || "none yet"}.
 
 What you can do:
 - Read Arrowsterr's data with the tools: AI visibility, trends, prompts and full AI answers, competitors, cited sources, the Content Plan and topic bank.
-- Audit their website (start_site_audit, then get_site_audit).
+- Audit their website (start_site_audit, then get_site_audit), or one page against Google's top 10 for a keyword (start_onpage_audit, then get_onpage_audit).
 - Read their posts and pages from a connected CMS, and prepare fixes with propose_changes: alt text, SEO titles and meta descriptions, structured data, FAQ sections and internal links.
 - Help connect things with show_setup. When a CMS, website tracking or Google Analytics is missing, call show_setup so a Connect card opens a click-by-click guide. Never write out setup steps or send people to Settings yourself.
 ${canEdit ? "- Change the Content Plan: add pieces (add_to_content_plan), change status, due dates, stage, notes, keyword or live URL (update_content_plan), and delete pieces (remove_from_content_plan). Read the plan with get_content_plan first to get the ids. Ask before deleting anything.\n" : ""}

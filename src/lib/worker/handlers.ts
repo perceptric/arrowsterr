@@ -20,6 +20,7 @@ import { articleResearchJob } from "../articleResearchServer";
 import { writerBriefJob, writerDraftJob } from "../writerServer";
 import { wpPublishJob } from "../wpSyncServer";
 import { queueWeeklyAudits, runAudit } from "../audit";
+import { runOnpage } from "../onpageServer";
 import { queueReportSends } from "../scheduleServer";
 import { applySet, preparePlay, undoSet } from "../plays";
 import { checkDue, promptAllowance } from "../plans";
@@ -290,6 +291,13 @@ export async function plan(db: SupabaseClient, job: Job) {
 export async function audit(db: SupabaseClient, job: Job) {
   const { auditId, domain } = job.payload as { auditId: string; domain: string };
   await runAudit(db, auditId, domain);
+  await finish(job.id);
+}
+
+// On-page Audit (docs/onpage-audit.md). A failed audit saves its error and hands its tasks back itself.
+export async function onpage(db: SupabaseClient, job: Job) {
+  const { auditId } = job.payload as { auditId: string };
+  await runOnpage(db, auditId);
   await finish(job.id);
 }
 

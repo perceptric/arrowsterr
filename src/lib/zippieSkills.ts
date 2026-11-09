@@ -24,6 +24,16 @@ export const BUILTIN_SKILLS: Omit<Skill, "builtin" | "enabled">[] = [
 - To change real pages, use get_site_content, then propose_changes with play "meta". Tell the person the changes wait for their approval.`,
   },
   {
+    key: "onpage-fix",
+    name: "On-page fix",
+    description: "Scores a page against Google's top 10 for its keyword, then prepares the fixes.",
+    instructions: `1. Ask for the page and its keyword if the person didn't say. If they only gave a page, ask which search it should win.
+2. Call start_onpage_audit, wait about a minute, then call get_onpage_audit with its id. If it's still running, call it again.
+3. Report the score next to the top 10 average, where the page ranks, and the 3 biggest gaps, most points first.
+4. For fixes a play can make (fix_play meta, schema, faq, alt, links), offer propose_changes for that page. Tell the person the changes wait for their approval.
+5. For content gaps, list the missing terms and the length gap, and give the suggested opening paragraph and title from the audit. Never invent facts the page doesn't state.`,
+  },
+  {
     key: "faq-builder",
     name: "FAQ sections",
     description: "FAQ sections built from the questions buyers ask AI, with FAQ structured data.",

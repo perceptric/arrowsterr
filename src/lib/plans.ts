@@ -89,6 +89,7 @@ export const TASK_COST = {
   widget: 25, // an interactive element
   ai: 3, // a small AI job: ideas, a summary, prompt suggestions
   guideline: 10, // reading a site for its brand guideline
+  onpage: 25, // an on-page audit: Google's top 10 read, every page scored, suggestions written
 } as const;
 
 /** The two toolsets. Starter opens one of them; Free, the trial and Pro and up open both. */

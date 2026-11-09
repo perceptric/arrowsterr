@@ -8,15 +8,15 @@ import { sendWeekly } from "@/lib/notify";
 import { adminClient } from "@/lib/serverAuth";
 import { reportSend } from "@/lib/scheduleServer";
 import { perceptionProbe, perceptionRun } from "@/lib/perceptionServer";
-import { apply, article_research, audit, brief, check, clean_brands, plan, play, rollup, schedule, writer_brief, writer_draft, wp_publish } from "@/lib/worker/handlers";
+import { apply, article_research, audit, brief, check, clean_brands, onpage, plan, play, rollup, schedule, writer_brief, writer_draft, wp_publish } from "@/lib/worker/handlers";
 
 // One worker tick. scripts/worker.mjs calls this over and over.
 // Each tick queues the scheduler for this 10-minute window, then claims a batch of jobs and runs them a few at a time.
 
 export const maxDuration = 300;
 
-const HANDLERS: Record<WebJobKind, (db: SupabaseClient, job: Job) => Promise<void>> = { schedule, check, brief, plan, rollup, audit, play, apply, report_send: reportSend, article_research, writer_brief, writer_draft, wp_publish, clean_brands, perception: perceptionRun, perception_probe: perceptionProbe };
-const ACTION: Record<WebJobKind, string> = { schedule: "daily check", check: "daily check", brief: "content brief", plan: "content plan", rollup: "daily numbers", audit: "site audit", play: "ask arrowsterr", apply: "ask arrowsterr apply", report_send: "scheduled report", article_research: "article research", writer_brief: "writer brief", writer_draft: "writer draft", wp_publish: "publish to wordpress", clean_brands: "brand check", perception: "perception", perception_probe: "perception questions" };
+const HANDLERS: Record<WebJobKind, (db: SupabaseClient, job: Job) => Promise<void>> = { schedule, check, brief, plan, rollup, audit, play, apply, report_send: reportSend, article_research, writer_brief, writer_draft, wp_publish, clean_brands, perception: perceptionRun, perception_probe: perceptionProbe, onpage };
+const ACTION: Record<WebJobKind, string> = { schedule: "daily check", check: "daily check", brief: "content brief", plan: "content plan", rollup: "daily numbers", audit: "site audit", play: "ask arrowsterr", apply: "ask arrowsterr apply", report_send: "scheduled report", article_research: "article research", writer_brief: "writer brief", writer_draft: "writer draft", wp_publish: "publish to wordpress", clean_brands: "brand check", perception: "perception", perception_probe: "perception questions", onpage: "on-page audit" };
 const WORKER = `web-${randomUUID().slice(0, 8)}`;
 const KINDS = Object.keys(HANDLERS) as WebJobKind[];
 const CONCURRENCY = Math.max(1, Number(process.env.WORKER_CONCURRENCY) || 8);

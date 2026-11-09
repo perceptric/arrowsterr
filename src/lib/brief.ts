@@ -26,7 +26,8 @@ type Item = {
   references?: { url?: string; domain?: string }[];
 };
 
-async function googleTop10(keyword: string, country: string | undefined) {
+/** Google's top 10 for a keyword in a market, with People Also Ask, related searches and the AI Overview. */
+export async function googleTop10(keyword: string, country: string | undefined) {
   const m = marketOf(country);
   const tasks = await call("serp/google/organic/live/advanced", [
     { keyword, location_code: m.location, language_code: m.language, device: "desktop", depth: 10, load_async_ai_overview: true, people_also_ask_click_depth: 1 },
