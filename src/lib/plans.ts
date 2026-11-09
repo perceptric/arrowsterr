@@ -93,6 +93,9 @@ export const TASK_COST = {
   backlinks: 20, // a site's link overview: totals, new and lost by week, anchors, most linked pages
   links: 6, // one page of 100 linking sites
   linkgap: 25, // sites that link to up to 3 rivals but not you: one request per rival
+  broken: 20, // sites linking to dead pages on up to 3 rivals
+  mentions: 20, // pages that name you without a link: a web search, then each page read
+  pitch: 3, // one outreach email draft
 } as const;
 
 /** The two toolsets. Starter opens one of them; Free, the trial and Pro and up open both. */

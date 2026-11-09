@@ -4,6 +4,7 @@ import type { Profile } from "@/lib/db";
 import { requireTrack, take } from "@/lib/entitlements";
 import { meteredRoute } from "@/lib/meter";
 import { TASK_COST } from "@/lib/plans";
+import { linkList } from "@/lib/linkBuildingServer";
 import { adminClient, isEditor, requireRole } from "@/lib/serverAuth";
 
 export const maxDuration = 120;
@@ -91,24 +92,16 @@ async function handle(request: Request) {
     if (!domains.length) return err("Pick at least one site.");
     const list = await linkList(db, ws, brand.id, true);
     if (!list) return err("Run supabase/040_outreach.sql in Supabase.", 500);
+    // Before 064_link_building.sql there's no source column; the cards still land on the list.
+    const withSource = !(await db.from("outreach_targets").select("source").limit(1)).error;
     const { error } = await db
       .from("outreach_targets")
-      .upsert(domains.map((d) => ({ list_id: list, workspace_id: ws, kind: "website", name: d, domain: d, url: `https://${d}`, added_from: "link_gap" })), { onConflict: "list_id,kind,name", ignoreDuplicates: true });
+      .upsert(domains.map((d) => ({ list_id: list, workspace_id: ws, kind: "website", name: d, domain: d, url: `https://${d}`, added_from: "link_gap", ...(withSource ? { source: "link_gap", note: "Links to your rivals and not to you" } : {}) })), { onConflict: "list_id,kind,name", ignoreDuplicates: true });
     if (error) return err(error.message, 500);
     return Response.json({ added: domains });
   }
 
   return err("Unknown action.");
-}
-
-/** The brand's "Link building" outreach list, made on first use. Null before 040_outreach.sql. */
-async function linkList(db: NonNullable<ReturnType<typeof adminClient>>, ws: string, brandId: string, make = false): Promise<string | null> {
-  const { data, error } = await db.from("outreach_lists").select("id").eq("workspace_id", ws).eq("brand_id", brandId).eq("name", "Link building").limit(1).maybeSingle();
-  if (error) return null;
-  if (data) return data.id as string;
-  if (!make) return null;
-  const { data: made } = await db.from("outreach_lists").insert({ workspace_id: ws, brand_id: brandId, name: "Link building" }).select("id").single();
-  return (made?.id as string | undefined) ?? null;
 }
 
 export const POST = meteredRoute("backlinks", handle);

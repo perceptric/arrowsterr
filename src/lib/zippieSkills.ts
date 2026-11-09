@@ -45,6 +45,17 @@ export const BUILTIN_SKILLS: Omit<Skill, "builtin" | "enabled">[] = [
 6. Never send anything yourself.`,
   },
   {
+    key: "win-links-ai-sources",
+    name: "Win links from AI sources",
+    description: "Finds the sites AI quotes for your rivals, puts them on Link Building and drafts the pitches.",
+    instructions: `1. Call find_link_prospects to add the sites AI cites when it names a rival and not the brand. If it says competitors are missing, ask for 2 or 3 rival websites.
+2. Call get_link_building. Report prospects, contacted, reply rate, links won and links gone in one line.
+3. Pick the 5 best prospects: AI cites first, then link gap sites that link to more rivals, then the strongest.
+4. For each, say what the page is about and what the brand could offer it: data, an example, a quote or a correction.
+5. Draft one pitch per site under 120 words, leading with what helps their readers. The person sends it from their own email; never say you sent anything.
+6. Name any won link that's gone, and suggest asking the site to put it back.`,
+  },
+  {
     key: "faq-builder",
     name: "FAQ sections",
     description: "FAQ sections built from the questions buyers ask AI, with FAQ structured data.",

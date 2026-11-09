@@ -21,6 +21,7 @@ import { writerBriefJob, writerDraftJob } from "../writerServer";
 import { wpPublishJob } from "../wpSyncServer";
 import { queueWeeklyAudits, runAudit } from "../audit";
 import { runOnpage } from "../onpageServer";
+import { checkLink, queueLinkChecks } from "../linkBuildingServer";
 import { queueReportSends } from "../scheduleServer";
 import { applySet, preparePlay, undoSet } from "../plays";
 import { checkDue, promptAllowance } from "../plans";
@@ -50,6 +51,8 @@ export async function schedule(db: SupabaseClient, job: Job) {
   await queueReportSends(db).catch((e) => console.error("Report schedules failed:", e instanceof Error ? e.message : e));
   // Weekly site audits (docs/site-audit.md), for brands that already ran one. A failure here never holds up the daily checks.
   await queueWeeklyAudits(db).catch((e) => console.error("Weekly site audits failed:", e instanceof Error ? e.message : e));
+  // Won links get checked once a week (docs/link-building.md).
+  await queueLinkChecks(db).catch((e) => console.error("Link checks failed:", e instanceof Error ? e.message : e));
   const engines = availableEngines();
   if (!engines.length) return finish(job.id);
   const now = new Date();
@@ -291,6 +294,13 @@ export async function plan(db: SupabaseClient, job: Job) {
 export async function audit(db: SupabaseClient, job: Job) {
   const { auditId, domain } = job.payload as { auditId: string; domain: string };
   await runAudit(db, auditId, domain);
+  await finish(job.id);
+}
+
+// Link Building (docs/link-building.md): is a won link still on its page?
+export async function link_check(db: SupabaseClient, job: Job) {
+  const { id } = job.payload as { id: string };
+  await checkLink(db, id);
   await finish(job.id);
 }
 

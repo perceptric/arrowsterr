@@ -14,6 +14,8 @@ import { requireWriter, take } from "./entitlements";
 import { bareDomain, gapRivals, parseGap, type Overview } from "./backlinks";
 import { aiCited, keys as blKeys, loadOverview, saved as savedBacklinks } from "./backlinksServer";
 import type { Profile } from "./db";
+import { boardStats, suppressed, type Stage } from "./linkBuilding";
+import { addProspects, findAiCites, linkList, suppression } from "./linkBuildingServer";
 import { enqueue, queueReady } from "./jobs";
 import { ToolError } from "./mcp/protocol";
 import { TOOLS as MCP_TOOLS } from "./mcp/tools";
@@ -43,6 +45,16 @@ const str = (v: unknown, n = 300) => (typeof v === "string" ? v.trim().slice(0, 
 async function brandDomain(ctx: AskCtx) {
   const { data } = await ctx.db.from("brands").select("domain").eq("workspace_id", ctx.ws).order("created_at").limit(1).maybeSingle();
   return (data?.domain as string | undefined) ?? "";
+}
+
+/** The brand a tool means: by name or domain, else the one on screen, else the first. */
+async function pickBrand(ctx: AskCtx, arg: unknown) {
+  const { data } = await ctx.db.from("brands").select("id, name, domain, profile").eq("workspace_id", ctx.ws).order("created_at");
+  const list = (data ?? []) as { id: string; name: string; domain: string; profile: Profile | null }[];
+  const want = str(arg, 200).toLowerCase();
+  const b = (want && list.find((x) => x.name.toLowerCase() === want || cleanDomain(x.domain) === cleanDomain(want))) || list.find((x) => x.name === ctx.where?.brand) || list[0];
+  if (!b) throw new ToolError("Add a brand first.");
+  return b;
 }
 
 async function connections(ctx: AskCtx) {
@@ -201,6 +213,36 @@ const LOCAL: LocalTool[] = [
         link_gap: gap,
         note: gap ? undefined : rivals.length ? "The link gap hasn't been loaded. It's on Backlinks, Link gap." : "No rivals with websites on the brand profile, so there's no link gap yet.",
       };
+    },
+  },
+  {
+    name: "get_link_building",
+    label: "Reading Link Building",
+    description: "The brand's Link Building board: every site by stage (prospect, contacted, replied, won, lost), where it came from (AI cites, link gap, broken page, unlinked mention), why, its authority, whether a pitch is drafted, and for won links whether the link is still live.",
+    input_schema: { type: "object", properties: { brand: { type: "string", description: "Brand name or domain. Leave out for the brand on screen or the first brand." } } },
+    async run(ctx, args) {
+      const b = await pickBrand(ctx, args.brand);
+      const list = await linkList(ctx.db, ctx.ws, b.id);
+      if (!list) return { brand: b.name, cards: [], note: "The board is empty. Prospects come from Links, Link Building: sites AI cites, dead rival pages, unlinked mentions and the Backlinks link gap." };
+      const { data } = await ctx.db.from("outreach_targets").select("domain, url, stage, source, note, authority, email, draft_subject, link_page, link_live").eq("list_id", list).order("created_at", { ascending: false }).limit(200);
+      const cards = (data ?? []) as { stage: Stage; link_live: boolean | null }[];
+      return { brand: b.name, stats: boardStats(cards), cards };
+    },
+  },
+  {
+    name: "find_link_prospects",
+    label: "Finding link prospects",
+    description: "Add sites to the brand's Link Building board that its AI answers of the last 30 days cite when they name a rival and not the brand. Free. Needs competitors with websites on the brand profile.",
+    input_schema: { type: "object", properties: { brand: { type: "string" } } },
+    async run(ctx, args) {
+      if (!ctx.canEdit) throw new ToolError("Only editors and admins can add prospects.");
+      const b = await pickBrand(ctx, args.brand);
+      const list = await linkList(ctx.db, ctx.ws, b.id, true);
+      if (!list) throw new ToolError("Link Building isn't set up in this workspace yet.");
+      const found = await findAiCites(ctx.db, { ...b, profile: b.profile });
+      const dnc = await suppression(ctx.db, ctx.ws);
+      const added = await addProspects(ctx.db, ctx.ws, list, found.filter((p) => !suppressed(p, dnc)));
+      return { brand: b.name, found: found.length, added, top: found.slice(0, 10).map((p) => ({ site: p.domain, page: p.url, why: p.note })) };
     },
   },
   {
