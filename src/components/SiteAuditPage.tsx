@@ -6,6 +6,7 @@ import type { AuditIssue, AuditResult } from "@/lib/audit";
 import { demoSiteAudit } from "@/lib/demo";
 import type { RunAuth } from "@/lib/runner";
 import { fixPlayOf, isFull, issueChanges, previousFull, SEVERITY_LABEL, type AuditRow, type IssueChange } from "@/lib/siteAudit";
+import { ToolStart, TsDomain } from "./ToolStart";
 import { Card, Delta, SidePanel, Thinking } from "./ui";
 import { ChangeSetCard, useApi } from "./ZippiePage";
 
@@ -30,8 +31,10 @@ export function SiteAuditPage({ brand, sb, auth, canEdit, onConnect }: { brand: 
   const [open, setOpen] = useState<string | null>(null);
   const [setId, setSetId] = useState<string | null>(null);
   const [needsSite, setNeedsSite] = useState("");
-  // No crawl yet: the screen shows example data, so every part of it can be tried. Crawl now runs the real one.
+  // No crawl yet: the tool's start page (ToolStart) explains it, with this screen on example data inside it.
+  // Open the example report shows that screen full size, where every part can be tried.
   const isDemo = auditsState !== null && auditsState.length === 0;
+  const [showExample, setShowExample] = useState(false);
   const demoRows = useMemo(() => demoSiteAudit({ name: brand.name, domain: brand.domain }) as unknown as Row[], [brand.name, brand.domain]);
   const audits = isDemo ? demoRows : auditsState;
   const shown = isDemo ? demoRows[0] : shownState;
@@ -130,7 +133,14 @@ export function SiteAuditPage({ brand, sb, auth, canEdit, onConnect }: { brand: 
   const head = (
     <div className="flex flex-wrap items-end justify-between gap-3">
       <h1 className="aw-h2 mb-0!">Site Audit</h1>
-      {isDemo ? <span className="aw-status aw-status--pending">Example data</span> : null}
+      {isDemo ? (
+        <span className="mr-auto flex flex-wrap items-center gap-2">
+          <span className="aw-status aw-status--pending">Example data</span>
+          <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setShowExample(false)}>
+            About Site Audit
+          </button>
+        </span>
+      ) : null}
       {canEdit && audits?.length ? (
         <div className="flex flex-wrap items-center gap-3">
           {weekly !== null ? (
@@ -153,7 +163,7 @@ export function SiteAuditPage({ brand, sb, auth, canEdit, onConnect }: { brand: 
   const score = shown && !partial ? shown.score : null;
   const lastFailed = audits[0]?.status === "failed" ? audits[0] : null;
 
-  return (
+  const page = (
     <div className="flex flex-col gap-6">
       {head}
       {error ? <p className="aw-error">{error}</p> : null}
@@ -174,7 +184,7 @@ export function SiteAuditPage({ brand, sb, auth, canEdit, onConnect }: { brand: 
       {shown && result ? (
         <>
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
-            <Card>
+            <div data-tour="1"><Card>
               <div className="flex flex-col items-center gap-2 px-4 py-5">
                 <Gauge score={score} />
                 <div className="flex flex-wrap items-center justify-center gap-2 text-[13px] text-muted">
@@ -183,7 +193,7 @@ export function SiteAuditPage({ brand, sb, auth, canEdit, onConnect }: { brand: 
                 </div>
                 {history.length > 1 ? <History rows={history} /> : null}
               </div>
-            </Card>
+            </Card></div>
             <Card>
               <div className="flex flex-col gap-4 px-5 py-4">
                 {partial ? (
@@ -196,7 +206,7 @@ export function SiteAuditPage({ brand, sb, auth, canEdit, onConnect }: { brand: 
                     ) : null}
                   </div>
                 ) : null}
-                <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                <dl data-tour="2" className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                   <Fact label="Crawled" value={when(shown.finished_at ?? shown.created_at)} />
                   <Fact label="Pages read" value={`${shown.pages}${result.found > shown.pages ? ` of ${result.found}` : ""}`} />
                   <Fact label="Broken links" value={String(result.brokenLinks.length)} bad={result.brokenLinks.length > 0} />
@@ -217,7 +227,7 @@ export function SiteAuditPage({ brand, sb, auth, canEdit, onConnect }: { brand: 
           </div>
 
           {issues.length ? (
-            (["high", "medium", "low"] as const).map((sev) => {
+            <div data-tour="3" className="flex flex-col gap-6">{(["high", "medium", "low"] as const).map((sev) => {
               const list = issues.filter((i) => i.severity === sev);
               if (!list.length) return null;
               const max = Math.max(1, shown.pages);
@@ -232,7 +242,8 @@ export function SiteAuditPage({ brand, sb, auth, canEdit, onConnect }: { brand: 
                         share={i.pages.length || i.id === "broken_links" ? Math.min(1, i.count / max) : null}
                         open={open === i.id}
                         onOpen={() => setOpen(open === i.id ? null : i.id)}
-                        fixable={canEdit && !isDemo && Boolean(fixPlayOf(i))}
+                        fixable={(canEdit || isDemo) && Boolean(fixPlayOf(i))}
+                        locked={isDemo}
                         busy={busy === i.id}
                         onFix={() => fix(i)}
                         broken={i.id === "broken_links" ? result.brokenLinks : null}
@@ -241,7 +252,7 @@ export function SiteAuditPage({ brand, sb, auth, canEdit, onConnect }: { brand: 
                   </ul>
                 </Card>
               );
-            })
+            })}</div>
           ) : (
             <Card>
               <p className="px-5 py-6 text-[14px] text-body">No issues found on {shown.pages} pages.</p>
@@ -257,6 +268,29 @@ export function SiteAuditPage({ brand, sb, auth, canEdit, onConnect }: { brand: 
       ) : null}
     </div>
   );
+
+  if (isDemo && !showExample)
+    return (
+      <ToolStart
+        key={brand.id}
+        tool="siteaudit"
+        error={error}
+        example={page}
+        onOpenExample={() => setShowExample(true)}
+        onCta={canEdit ? crawl : undefined}
+        form={
+          <div className="ts-q">
+            <TsDomain domain={brand.domain} />
+            {canEdit ? (
+              <button type="button" className="ts-btn ts-btn--primary ts-btn--lg" onClick={crawl} disabled={busy === "crawl"}>
+                {busy === "crawl" ? "Starting" : "Start audit"} <span className="ts-arr">→</span>
+              </button>
+            ) : null}
+          </div>
+        }
+      />
+    );
+  return page;
 }
 
 function Fact({ label, value, bad = false }: { label: string; value: string; bad?: boolean }) {
@@ -317,6 +351,7 @@ function IssueRow(p: {
   open: boolean;
   onOpen: () => void;
   fixable: boolean;
+  locked?: boolean;
   busy: boolean;
   onFix: () => void;
   broken: AuditResult["brokenLinks"] | null;
@@ -342,7 +377,7 @@ function IssueRow(p: {
             {i.count} {i.id === "broken_links" ? (i.count === 1 ? "link" : "links") : i.id === "ai_bots_blocked" ? (i.count === 1 ? "crawler" : "crawlers") : i.pages.length ? (i.count === 1 ? "page" : "pages") : ""}
           </span>
           {p.fixable ? (
-            <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={p.onFix} disabled={p.busy}>
+            <button type="button" data-tour="4" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={p.onFix} disabled={p.busy || p.locked}>
               {p.busy ? "Preparing" : "Fix"}
             </button>
           ) : null}

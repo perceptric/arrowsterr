@@ -5,6 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { layout, mapStats, type ContentMap, type Topic, type TopicStatus } from "@/lib/contentMap";
 import type { RunAuth } from "@/lib/runner";
 import { demoMap } from "@/lib/demo";
+import { ToolStart, TsDomain } from "./ToolStart";
 import { Card, SidePanel, Thinking } from "./ui";
 import { ChangeSetCard, useApi } from "./ZippiePage";
 
@@ -105,6 +106,8 @@ export function ContentMapPage({ brand, sb, auth, canEdit, onConnect }: { brand:
 
   const demo = useMemo(() => demoMap({ name: brand.name, domain: brand.domain }), [brand.name, brand.domain]);
   const isDemo = !map && rows !== null && !running;
+  // Before the first build, the tool's start page (ToolStart) explains the map, with the example map inside it.
+  const [showExample, setShowExample] = useState(false);
   const m = map?.m ?? (isDemo ? demo : null);
   const geo = useMemo(() => (m ? layout(m) : null), [m]);
   const byId = useMemo(() => new Map((m?.topics ?? []).map((t) => [t.id, t])), [m]);
@@ -117,6 +120,11 @@ export function ContentMapPage({ brand, sb, auth, canEdit, onConnect }: { brand:
       <div className="mr-auto flex flex-wrap items-center gap-3">
         <h1 className="aw-h2 mb-0!">Content Map</h1>
         {isDemo ? <span className="aw-status aw-status--pending">Example data</span> : null}
+        {isDemo ? (
+          <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setShowExample(false)}>
+            About Content Map
+          </button>
+        ) : null}
       </div>
       {isDemo ? (
         canEdit ? (
@@ -139,7 +147,7 @@ export function ContentMapPage({ brand, sb, auth, canEdit, onConnect }: { brand:
 
   if (rows === null) return <div className="flex flex-col gap-6">{head}{error ? <p className="aw-error">{error}</p> : <Thinking text="Loading" />}</div>;
 
-  return (
+  const page = (
     <div className="flex flex-col gap-6">
       {head}
       {error ? <p className="aw-error">{error}</p> : null}
@@ -155,14 +163,14 @@ export function ContentMapPage({ brand, sb, auth, canEdit, onConnect }: { brand:
 
       {m && geo && stats ? (
         <>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+          <div data-tour="1" className="grid grid-cols-2 gap-3 sm:grid-cols-5">
             <Stat label="Topics" value={stats.topics} />
             <Stat label="Covered" value={stats.covered} color="var(--aw-pos)" />
             <Stat label="Missing" value={stats.missing} color="var(--aw-neg)" />
             <Stat label="Pages competing" value={stats.overlap} color="var(--aw-warn)" />
             <Stat label="In progress" value={stats.progress} color="var(--aw-brand)" />
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div data-tour="2" className="flex flex-wrap gap-2">
             {([["all", "All"], ["missing", "Missing"], ["overlap", "Competing"], ["ai", "Named by AI"], ["unlinked", "Link missing"]] as [Filter, string][]).map(([k, l]) => (
               <button key={k} type="button" aria-pressed={filter === k} onClick={() => setFilter(k)} className={`aw-btn aw-btn--sm ${filter === k ? "aw-btn--primary" : "aw-btn--secondary"}`}>
                 {l}
@@ -170,7 +178,7 @@ export function ContentMapPage({ brand, sb, auth, canEdit, onConnect }: { brand:
             ))}
           </div>
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
-            <Card>
+            <Card tour={3}>
               <div className="overflow-x-auto p-3">
                 <svg viewBox={`0 0 ${geo.w} ${geo.h}`} className="block h-auto w-full" style={{ minWidth: Math.min(geo.w, 720) }} role="img" aria-label="Content map">
                   {geo.nodes.filter((x) => !x.pillar).map((x) => {
@@ -224,7 +232,7 @@ export function ContentMapPage({ brand, sb, auth, canEdit, onConnect }: { brand:
                 </span>
               </div>
             </Card>
-            <Card>
+            <Card tour={4}>
               <div className="flex flex-col gap-3 px-5 py-4">
                 <Detail m={m} sel={sel} canEdit={canEdit && !isDemo} busy={busy} planned={planned} onPlan={addToPlan} onLinks={addLinks} />
               </div>
@@ -240,6 +248,29 @@ export function ContentMapPage({ brand, sb, auth, canEdit, onConnect }: { brand:
       ) : null}
     </div>
   );
+
+  if (isDemo && !showExample)
+    return (
+      <ToolStart
+        tool="contentmap"
+        error={error}
+        example={page}
+        onOpenExample={() => setShowExample(true)}
+        onCta={canEdit ? build : undefined}
+        below={lastFailed ? <p className="ts-err">The last build failed: {lastFailed.error}</p> : null}
+        form={
+          <div className="ts-q">
+            <TsDomain domain={brand.domain} />
+            {canEdit ? (
+              <button type="button" className="ts-btn ts-btn--primary ts-btn--lg" onClick={build} disabled={busy === "build"}>
+                {busy === "build" ? "Starting" : "Build the map"} <span className="ts-arr">→</span>
+              </button>
+            ) : null}
+          </div>
+        }
+      />
+    );
+  return page;
 }
 
 function Stat({ label, value, color }: { label: string; value: number; color?: string }) {

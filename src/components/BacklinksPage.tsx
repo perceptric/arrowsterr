@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { LINK_KINDS, spamLevel, type GapRow, type LinkKind, type LinkRow, type Overview, type Week } from "@/lib/backlinks";
 import type { RunAuth } from "@/lib/runner";
 import { demoBacklinks } from "@/lib/demo";
+import { ToolStart, TsDomain } from "./ToolStart";
 import { Card, Delta, Seg, Thinking } from "./ui";
 import { useApi } from "./ZippiePage";
 
@@ -28,17 +29,51 @@ export function BacklinksPage({ brand, auth, canEdit }: { brand: Brand; auth: Ru
   const [error, setError] = useState("");
   const call = useCallback(<T,>(action: string, extra: Record<string, unknown> = {}) => api<T>("/api/backlinks", { action, brandId: brand.id, ...extra }), [api, brand.id]);
   const demo = useMemo(() => demoBacklinks({ name: brand.name, domain: brand.domain }), [brand.name, brand.domain]);
+  // Before the first overview, the tool's start page (ToolStart) explains Backlinks, with this screen on example data
+  // inside it. Its button asks the Overview tab to load (loadReq), and the tab reports back (ov).
+  const [ov, setOv] = useState<{ demo: boolean; busy: boolean }>({ demo: false, busy: false });
+  const [loadReq, setLoadReq] = useState(0);
+  const [showExample, setShowExample] = useState(false);
 
-  return (
+  const page = (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <h1 className="aw-h2 mb-0!">Backlinks</h1>
-        <Seg label="Backlinks view" value={tab} onChange={setTab} options={[{ id: "overview", label: "Overview" }, { id: "links", label: "Links" }, { id: "gap", label: "Link gap" }]} />
+        {ov.demo && showExample ? (
+          <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm mr-auto" onClick={() => setShowExample(false)}>
+            About Backlinks
+          </button>
+        ) : null}
+        <span data-tour="4">
+          <Seg label="Backlinks view" value={tab} onChange={setTab} options={[{ id: "overview", label: "Overview" }, { id: "links", label: "Links" }, { id: "gap", label: "Link gap" }]} />
+        </span>
       </div>
       {error ? <p className="aw-error">{error}</p> : null}
-      {tab === "overview" ? <OverviewTab demo={demo} call={call} canEdit={canEdit} onError={setError} /> : tab === "links" ? <LinksTab demo={demo} call={call} canEdit={canEdit} onError={setError} /> : <GapTab brand={brand} demo={demo} call={call} canEdit={canEdit} onError={setError} />}
+      {tab === "overview" ? <OverviewTab demo={demo} call={call} canEdit={canEdit} onError={setError} loadReq={loadReq} onState={setOv} /> : tab === "links" ? <LinksTab demo={demo} call={call} canEdit={canEdit} onError={setError} /> : <GapTab brand={brand} demo={demo} call={call} canEdit={canEdit} onError={setError} />}
     </div>
   );
+
+  if (tab === "overview" && ov.demo && !showExample)
+    return (
+      <ToolStart
+        tool="backlinks"
+        error={error}
+        example={page}
+        onOpenExample={() => setShowExample(true)}
+        onCta={canEdit ? () => setLoadReq((n) => n + 1) : undefined}
+        form={
+          <div className="ts-q">
+            <TsDomain domain={brand.domain} />
+            {canEdit ? (
+              <button type="button" className="ts-btn ts-btn--primary ts-btn--lg" onClick={() => setLoadReq((n) => n + 1)} disabled={ov.busy}>
+                {ov.busy ? "Loading" : "Load backlinks"} <span className="ts-arr">→</span>
+              </button>
+            ) : null}
+          </div>
+        }
+      />
+    );
+  return page;
 }
 
 type Call = <T>(action: string, extra?: Record<string, unknown>) => Promise<T>;
@@ -58,7 +93,7 @@ function Updated({ at, busy, canRefresh, onRefresh }: { at: string; busy: boolea
   );
 }
 
-function OverviewTab({ demo, call, canEdit, onError }: { demo: Demo; call: Call; canEdit: boolean; onError: (e: string) => void }) {
+function OverviewTab({ demo, call, canEdit, onError, loadReq, onState }: { demo: Demo; call: Call; canEdit: boolean; onError: (e: string) => void; loadReq: number; onState: (s: { demo: boolean; busy: boolean }) => void }) {
   const [data, setData] = useState<{ overview: Ov; before: Snap; canRefresh: boolean } | null | "none">(null);
   const [busy, setBusy] = useState(false);
   const load = useCallback(
@@ -81,6 +116,16 @@ function OverviewTab({ demo, call, canEdit, onError }: { demo: Demo; call: Call;
     // eslint-disable-next-line react-hooks/set-state-in-effect
     load(false);
   }, [load]);
+  // A Load from the start page. A tab mounted after that request (the full screen) must not load again.
+  const handled = useRef(loadReq);
+  useEffect(() => {
+    if (loadReq === handled.current) return;
+    handled.current = loadReq;
+    load(true);
+  }, [loadReq, load]);
+  useEffect(() => {
+    onState({ demo: data === "none", busy });
+  }, [data, busy, onState]);
 
   if (data === null) return <Thinking text="Loading" />;
   const isDemo = data === "none";
@@ -116,7 +161,7 @@ function OverviewTab({ demo, call, canEdit, onError }: { demo: Demo; call: Call;
   return (
     <div className="flex flex-col gap-4">
       {head}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+      <div data-tour="1" className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         <Kpi label="Linking sites" value={n(s.domains)} delta={<Delta now={s.domains} before={before?.domains ?? null} digits={0} />} />
         <Kpi label="Backlinks" value={n(s.backlinks)} delta={<Delta now={s.backlinks} before={before?.backlinks ?? null} digits={0} />} />
         <Kpi label="New sites, 4 weeks" value={n(newDomains)} tone="pos" />
@@ -124,10 +169,10 @@ function OverviewTab({ demo, call, canEdit, onError }: { demo: Demo; call: Call;
         <Kpi label="Authority" value={String(s.rank)} delta={<span className={`aw-status ${SPAM_CLASS[level]}`}>{level === "low" ? "Low spam" : level === "medium" ? "Some spam" : "High spam"}</span>} />
       </div>
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
-        <Card title="New and lost linking sites" action={<span className="flex gap-3 text-[12px] text-body"><Key color="var(--aw-pos)" label="New" /><Key color="var(--aw-neg)" label="Lost" /></span>}>
+        <Card tour={2} title="New and lost linking sites" action={<span className="flex gap-3 text-[12px] text-body"><Key color="var(--aw-pos)" label="New" /><Key color="var(--aw-neg)" label="Lost" /></span>}>
           <div className="px-5 pb-5">{o.weeks.length ? <Bars weeks={o.weeks} /> : <p className="text-[13px] text-muted">No weekly history yet.</p>}</div>
         </Card>
-        <Card title="Anchors">
+        <Card tour={3} title="Anchors">
           <div className="flex flex-col gap-2 px-5 pb-5">
             {o.anchors.length ? (
               o.anchors.slice(0, 8).map((a) => (
