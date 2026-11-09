@@ -56,7 +56,7 @@ Removed from the sidebar: Zippie, Content Intelligence. Content Intelligence for
 
 ## How one article is made
 
-A `write_article` job on the Fly worker, step by step. Each step saves its output, so a retry starts where it stopped and never pays twice.
+A `write_article` job on the worker (VPS), step by step. Each step saves its output, so a retry starts where it stopped and never pays twice.
 
 | Step | What happens | Tool |
 |---|---|---|
@@ -142,7 +142,7 @@ Each team gets 10 articles a month.
 |---|---|---|
 | Claude for articles | ~$250 | ~$2,500 |
 | DataForSEO and AI engine calls | ~$30 (check) | ~$300 (check) |
-| Fly worker to 2 GB for Playwright | ~$10 (check) | ~$60 (check) |
+| Worker on the VPS with 2 GB for Playwright | ~$10 (check) | ~$60 (check) |
 | **Added** | **~$290** | **~$2,860** |
 
 That is about $6 a team a month, inside the Pro plan's margin at $179.

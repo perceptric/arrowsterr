@@ -46,7 +46,7 @@ A wrong word costs more than a missing one, so every rule leans toward leaving a
 
 ## Setup
 
-Run `supabase/059_perception.sql`, then `supabase/060_perception_category.sql`, in Supabase → SQL Editor. Until 060 runs, reads are saved without a category and the Seen as tag stays hidden. Before it runs, the schedule queues nothing and the page asks for it. The last 30 days of runs are read once, newest first, up to 40 runs every 10-minute tick. A one-time cost of about $0.0003 per answer, so roughly $2 for a team with 6,500 answers a month.
+Run `supabase/059_perception.sql`, then `supabase/060_perception_category.sql`, with `psql` on the VPS database. Until 060 runs, reads are saved without a category and the Seen as tag stays hidden. Before it runs, the schedule queues nothing and the page asks for it. The last 30 days of runs are read once, newest first, up to 40 runs every 10-minute tick. A one-time cost of about $0.0003 per answer, so roughly $2 for a team with 6,500 answers a month.
 
 Reads are saved with plain inserts (`insertReads` in `src/lib/perception.ts`). The buyer key is a partial index, and an upsert can't name one, so version 1 saved nothing; version 2 reads every run again under new job keys. A retried batch skips rows it already saved.
 
@@ -62,7 +62,7 @@ Assumes a team checks 50 prompts on the 6 engines (Claude and Perplexity weekly)
 | Weekly direct questions, paid plans (~80% of teams): about 260 engine answers per team at ~$0.01 each (check), plus Haiku reading them | ~$110 | ~$1,080 |
 | Word and category lists, once per brand | under $1 | under $5 |
 | Seen as: about 20 more output tokens per read, in the same call | under $1 | about $3 |
-| Supabase storage for `perception_reads`, about 6.5 MB per team a month (check) | ~$1 | ~$10 |
+| Postgres on the VPS for `perception_reads`, about 6.5 MB per team a month (check) | ~$1 | ~$10 |
 | **Added per month** | **~$215** | **~$2,150** |
 
 The direct questions are the line to watch. Asking rivals monthly instead of weekly cuts that line by about two thirds.

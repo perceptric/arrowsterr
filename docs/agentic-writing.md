@@ -82,7 +82,7 @@ The outline prompt (`briefPrompt`) gets the house rules, the examples rules and 
 
 ## 5. Branded images
 
-All images are made on the Fly worker with the Chromium it already runs, then saved to the `doc-images` bucket at `<workspace>/<draft>/<version>/<n>.webp`. The same path every time, so a retried job overwrites and never stores twice.
+All images are made on the worker (VPS) with the Chromium it already runs, then saved to the `doc-images` bucket at `<workspace>/<draft>/<version>/<n>.webp`. The same path every time, so a retried job overwrites and never stores twice.
 
 **Screenshots** (`screenshot` job kind, `scripts/worker.mjs`): our capture method from the blogs.
 - 1440 by 900 window, waits for the page to settle, accepts cookie prompts, hides consent banners, chat bubbles and sticky bars (shadow DOM too), and scrolls to the part the article talks about when the outline names one.
@@ -168,15 +168,15 @@ Claude Sonnet 5.5 at $2 input and $10 output per million tokens (from `docs/cont
 | Lint and proofread | code | $0 |
 | **One article** | | **~$0.82** |
 
-Setting up a brand costs about $0.04 once (the kit and guidelines calls), so about $4 for 100 brands. Images add about 2 MB of storage per article (12 images at about 150 KB) and leave Supabase once, when Publish copies them to WordPress.
+Setting up a brand costs about $0.04 once (the kit and guidelines calls), so about $4 for 100 brands. Images add about 2 MB of storage per article (12 images at about 150 KB) and leave the VPS once, when Publish copies them to WordPress.
 
 | Line | Beta (50 teams, 500 articles) | Growth (500 teams, 5,000 articles) |
 |---|---|---|
 | Claude for articles | ~$410 | ~$4,100 |
 | DataForSEO and AI engine calls (today) | ~$30 (check) | ~$300 (check) |
 | Brand setup (new brands that month) | ~$2 | ~$20 |
-| Image storage (1 GB a month at Beta, 10 GB at Growth, inside Supabase Pro's 100 GB at first) | ~$0 (check) | ~$0 for the first 9 months, then ~$0.02 a GB (check) |
-| Fly worker: a second 2 GB machine at Growth for screenshots and renders | $0 | ~$12 (check) |
+| Image storage (1 GB a month at Beta, 10 GB at Growth, on the VPS disk) | ~$0 (check) | ~$0 (check) |
+| Worker on the VPS: more memory at Growth (check) for screenshots and renders | $0 | ~$12 (check) |
 | **Monthly total** | **~$442** | **~$4,432** |
 
 That adds about $147 at Beta and about $1,482 at Growth over today's article cost.
