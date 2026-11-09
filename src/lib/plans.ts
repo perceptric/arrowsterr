@@ -90,6 +90,9 @@ export const TASK_COST = {
   ai: 3, // a small AI job: ideas, a summary, prompt suggestions
   guideline: 10, // reading a site for its brand guideline
   onpage: 25, // an on-page audit: Google's top 10 read, every page scored, suggestions written
+  backlinks: 20, // a site's link overview: totals, new and lost by week, anchors, most linked pages
+  links: 6, // one page of 100 linking sites
+  linkgap: 25, // sites that link to up to 3 rivals but not you: one request per rival
 } as const;
 
 /** The two toolsets. Starter opens one of them; Free, the trial and Pro and up open both. */

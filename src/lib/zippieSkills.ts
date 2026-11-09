@@ -34,6 +34,17 @@ export const BUILTIN_SKILLS: Omit<Skill, "builtin" | "enabled">[] = [
 5. For content gaps, list the missing terms and the length gap, and give the suggested opening paragraph and title from the audit. Never invent facts the page doesn't state.`,
   },
   {
+    key: "link-gap-outreach",
+    name: "Link gap outreach",
+    description: "Finds sites that link to your rivals but not to you, starting with the ones AI cites, and drafts the pitch.",
+    instructions: `1. Call get_backlinks. Report linking sites, authority and the last 4 weeks of new and lost sites in one or two lines.
+2. If there is no link gap yet, say the rivals it needs, or point to Backlinks, Link gap, in one line.
+3. Pick 5 to 10 gap sites: first ones AI cites, then ones that link to more than one rival, then the strongest.
+4. For each, say why it fits in one line, and what the brand could offer them: data, a quote, a guide, a tool, a correction.
+5. Draft one short pitch per site the person can edit and send. Lead with what helps their readers. No link begging, no flattery.
+6. Never send anything yourself.`,
+  },
+  {
     key: "faq-builder",
     name: "FAQ sections",
     description: "FAQ sections built from the questions buyers ask AI, with FAQ structured data.",

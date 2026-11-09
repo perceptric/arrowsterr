@@ -10,7 +10,10 @@ import { cleanDomain } from "./siteAudit";
 import { claudeModel } from "./claude";
 import { capsOf, EDITABLE, faqsIn, imagesWithoutAlt, linksIn, listItems } from "./cmsEdit";
 import type { CmsKind } from "./cmsTypes";
-import { requireWriter } from "./entitlements";
+import { requireWriter, take } from "./entitlements";
+import { bareDomain, gapRivals, parseGap, type Overview } from "./backlinks";
+import { aiCited, keys as blKeys, loadOverview, saved as savedBacklinks } from "./backlinksServer";
+import type { Profile } from "./db";
 import { enqueue, queueReady } from "./jobs";
 import { ToolError } from "./mcp/protocol";
 import { TOOLS as MCP_TOOLS } from "./mcp/tools";
@@ -161,6 +164,42 @@ const LOCAL: LocalTool[] = [
         words: r.words,
         top_10_median_words: r.medianWords,
         suggested: r.suggest,
+      };
+    },
+  },
+  {
+    name: "get_backlinks",
+    label: "Reading backlinks",
+    description: `Who links to a brand's site: linking sites, backlinks, authority (0 to 100), spam score, new and lost linking sites by week, top anchors and most linked pages, plus the link gap: sites that link to its rivals but not to it, with the ones its AI answers cite flagged. Saved answers are free; a fresh overview uses ${TASK_COST.backlinks} tasks and a fresh gap ${TASK_COST.linkgap}.`,
+    input_schema: { type: "object", properties: { brand: { type: "string", description: "Brand name or domain. Leave out for the brand on screen or the first brand." } } },
+    async run(ctx, args) {
+      const { data: brands } = await ctx.db.from("brands").select("id, name, domain, profile").eq("workspace_id", ctx.ws).order("created_at");
+      const list = (brands ?? []) as { id: string; name: string; domain: string; profile: Profile | null }[];
+      const want = str(args.brand, 200).toLowerCase();
+      const b = (want && list.find((x) => x.name.toLowerCase() === want || cleanDomain(x.domain) === cleanDomain(want))) || list.find((x) => x.name === ctx.where?.brand) || list[0];
+      if (!b) throw new ToolError("Add a brand first.");
+      const target = bareDomain(b.domain);
+      let overview = await savedBacklinks<Overview & { at: string }>(blKeys.overview(target));
+      if (!overview) {
+        if (!ctx.canEdit) return { brand: b.name, note: "Backlinks haven't been loaded for this brand. Ask an editor to open Backlinks and load them." };
+        const took = await take(ctx.ws, "tasks", TASK_COST.backlinks, { refundIfFree: false });
+        if (!took.ok) throw new ToolError(((await took.response.json()) as { error: string }).error);
+        overview = await loadOverview(target);
+      }
+      const rivals = gapRivals((b.profile?.competitors ?? []).map((c) => c.domain), target);
+      const raw = rivals.length ? await savedBacklinks<{ perRival: { rival: string; items: unknown[] }[] }>(blKeys.gap(target, rivals)) : undefined;
+      const gap = raw?.perRival ? parseGap(raw.perRival, target, await aiCited(ctx.db, b.id)).slice(0, 40) : null;
+      return {
+        brand: b.name,
+        site: target,
+        updated: overview.at,
+        summary: overview.summary,
+        weeks: overview.weeks,
+        anchors: overview.anchors.slice(0, 10),
+        most_linked_pages: overview.pages.slice(0, 5),
+        rivals,
+        link_gap: gap,
+        note: gap ? undefined : rivals.length ? "The link gap hasn't been loaded. It's on Backlinks, Link gap." : "No rivals with websites on the brand profile, so there's no link gap yet.",
       };
     },
   },
