@@ -11,9 +11,21 @@ npm run dev      # http://localhost:3000
 
 ## Deploy on the Hostinger VPS
 
-Everything runs on the Hostinger VPS: the app (`arrowsterr-web`), the job worker (`arrowsterr-worker`) and the Postgres database. Every push to the production branch builds both images through `.github/workflows/build-images.yml` and publishes them to GitHub's container registry; the VPS pulls them. `.github/workflows/checks.yml` runs the checks.
+Everything runs on the Hostinger VPS: the app (`arrowsterr-web`), the job worker (`arrowsterr-worker`) and the Postgres database. Every push to the production branch builds both images through `.github/workflows/build-images.yml` and publishes them to GitHub's container registry. On the VPS, the `autodeploy` container pulls new images every 5 minutes and restarts what changed. `.github/workflows/checks.yml` runs the checks.
 
-The database starts from `supabase/schema.sql`, then each numbered file in `supabase/` in order, run with `psql "$DATABASE_URL" -f <file>` (the folder keeps its old name). Sign-in and file storage still go through the Supabase-style API at `SUPABASE_URL` in the code, so the `SUPABASE_*` variable names stay.
+The database starts from `supabase/schema.sql`, then each numbered file in `supabase/` in order (the folder keeps its old name). Sign-in and file storage still go through the Supabase-style API at `SUPABASE_URL` in the code, so the `SUPABASE_*` variable names stay.
+
+### Migrations run on their own
+
+A runner on the VPS (`/docker/arrowsterr-migrate`) checks the production branch every 2 minutes. It runs each `supabase/NNN_*.sql` file it hasn't run yet, in filename order, one transaction per file, and records it in `ops.schema_migrations`. If a file fails, it's rolled back and its error goes to `docker logs arrowsterr-migrate-migrate-1`. The files after it wait until the next push, or 30 minutes.
+
+So a new migration file must:
+
+- Run inside a transaction: no `begin`/`commit`, `create index concurrently` or `vacuum`.
+- Be safe to run twice: use `if not exists`, `drop policy if exists` and `on conflict do nothing`.
+- Work with the code that's already live. It can run a few minutes before the new images do, so drop or rename a column only after the code has stopped using it.
+
+To run a file again, delete its row from `ops.schema_migrations`, then run `docker compose restart` in `/docker/arrowsterr-migrate`.
 
 Render and Fly are no longer used ([docs/fly.md](docs/fly.md) is kept for its history).
 
