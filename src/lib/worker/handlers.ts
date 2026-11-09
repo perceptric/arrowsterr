@@ -23,6 +23,7 @@ import { queueWeeklyAudits, runAudit } from "../audit";
 import { runOnpage } from "../onpageServer";
 import { checkLink, queueLinkChecks } from "../linkBuildingServer";
 import { runMap } from "../contentMapServer";
+import { collectScan, queueWeeklyScans } from "../localServer";
 import { queueReportSends } from "../scheduleServer";
 import { applySet, preparePlay, undoSet } from "../plays";
 import { checkDue, promptAllowance } from "../plans";
@@ -54,6 +55,8 @@ export async function schedule(db: SupabaseClient, job: Job) {
   await queueWeeklyAudits(db).catch((e) => console.error("Weekly site audits failed:", e instanceof Error ? e.message : e));
   // Won links get checked once a week (docs/link-building.md).
   await queueLinkChecks(db).catch((e) => console.error("Link checks failed:", e instanceof Error ? e.message : e));
+  // Local Research: each keyword's weekly Google Maps grid scan (docs/local-research.md).
+  await queueWeeklyScans(db).catch((e) => console.error("Weekly local scans failed:", e instanceof Error ? e.message : e));
   const engines = availableEngines();
   if (!engines.length) return finish(job.id);
   const now = new Date();
@@ -295,6 +298,13 @@ export async function plan(db: SupabaseClient, job: Job) {
 export async function audit(db: SupabaseClient, job: Job) {
   const { auditId, domain } = job.payload as { auditId: string; domain: string };
   await runAudit(db, auditId, domain);
+  await finish(job.id);
+}
+
+// Local Research (docs/local-research.md): collect a grid scan's Google Maps answers, again until all are in.
+export async function local_fetch(db: SupabaseClient, job: Job) {
+  const { scanId, round } = job.payload as { scanId: string; round?: number };
+  await collectScan(db, scanId, round ?? 0);
   await finish(job.id);
 }
 

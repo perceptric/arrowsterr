@@ -16,6 +16,7 @@ import { aiCited, keys as blKeys, loadOverview, saved as savedBacklinks } from "
 import type { Profile } from "./db";
 import { boardStats, suppressed, type Stage } from "./linkBuilding";
 import { mapStats, type ContentMap } from "./contentMap";
+import type { ScanResult } from "./local";
 import { addProspects, findAiCites, linkList, suppression } from "./linkBuildingServer";
 import { enqueue, queueReady } from "./jobs";
 import { ToolError } from "./mcp/protocol";
@@ -266,6 +267,26 @@ const LOCAL: LocalTool[] = [
           main_page: p.hub,
           topics: m.topics.filter((t) => t.pillar === p.name).map((t) => ({ topic: t.name, status: t.status, searches: t.volume, visits: t.traffic, pages: t.urls, rivals: t.rivals, planned: t.planned, ai_names_brand: t.ai, linked_from_main_page: t.linked })),
         })),
+      };
+    },
+  },
+  {
+    name: "get_local_research",
+    label: "Reading Local Research",
+    description: "The brand's Google Maps rankings: the business, and for each tracked keyword the latest 7 by 7 grid scan: average rank (not found counts as 21), share of points in the top 3, points in the top 20, rating and reviews, the local rivals holding the top 3 with their ratings, reviews and categories, and the listing check (name, phone, address, LocalBusiness schema, category against rivals).",
+    input_schema: { type: "object", properties: { brand: { type: "string" } } },
+    async run(ctx, args) {
+      const b = await pickBrand(ctx, args.brand);
+      const loc = b.profile?.location;
+      if (!loc) return { brand: b.name, note: "No business location yet. An editor adds it on Organic Research, Local Research." };
+      const { data } = await ctx.db.from("local_scans").select("keyword, created_at, result").eq("brand_id", b.id).eq("status", "done").order("created_at", { ascending: false }).limit(30);
+      const latest = new Map<string, { created_at: string; result: ScanResult }>();
+      for (const r of (data ?? []) as { keyword: string; created_at: string; result: ScanResult }[]) if (!latest.has(r.keyword)) latest.set(r.keyword, r);
+      return {
+        business: { name: loc.title, address: loc.address, category: loc.category, phone: loc.phone },
+        keywords: loc.keywords,
+        weekly: loc.weekly,
+        scans: [...latest.entries()].map(([k, r]) => ({ keyword: k, scanned: r.created_at, average_rank: r.result.avg, top3_points: r.result.top3, top20_points: r.result.found, points_read: r.result.read, you: r.result.you, rivals: r.result.rivals.slice(0, 5), listing: (r.result as ScanResult & { listing?: unknown }).listing ?? null })),
       };
     },
   },

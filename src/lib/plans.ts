@@ -96,6 +96,9 @@ export const TASK_COST = {
   broken: 20, // sites linking to dead pages on up to 3 rivals
   mentions: 20, // pages that name you without a link: a web search, then each page read
   pitch: 3, // one outreach email draft
+  localscan: 6, // the weekly Google Maps rank grid: 49 points for one keyword, standard queue
+  localnow: 12, // a Google Maps rank grid now: 49 points, priority queue
+  localfind: 1, // finding the business on Google Maps
   contentmap: 40, // a content map: what you and 2 rivals rank for, grouped into pillars, links checked
 } as const;
 
