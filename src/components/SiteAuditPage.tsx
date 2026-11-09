@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { AuditIssue, AuditResult } from "@/lib/audit";
+import { demoSiteAudit } from "@/lib/demo";
 import type { RunAuth } from "@/lib/runner";
 import { fixPlayOf, isFull, issueChanges, previousFull, SEVERITY_LABEL, type AuditRow, type IssueChange } from "@/lib/siteAudit";
-import { ToolIntro } from "./ToolIntro";
 import { Card, Delta, SidePanel, Thinking } from "./ui";
 import { ChangeSetCard, useApi } from "./ZippiePage";
 
@@ -21,15 +21,21 @@ const tone = (s: number) => (s >= 80 ? "var(--aw-pos)" : s >= 60 ? "var(--aw-war
 
 export function SiteAuditPage({ brand, sb, auth, canEdit, onConnect }: { brand: Brand; sb: SupabaseClient; auth: RunAuth; canEdit: boolean; onConnect: () => void }) {
   const api = useApi(auth);
-  const [audits, setAudits] = useState<Row[] | null>(null);
-  const [shown, setShown] = useState<Row | null>(null);
-  const [before, setBefore] = useState<Row | null>(null);
+  const [auditsState, setAudits] = useState<Row[] | null>(null);
+  const [shownState, setShown] = useState<Row | null>(null);
+  const [beforeState, setBefore] = useState<Row | null>(null);
   const [weekly, setWeekly] = useState<boolean | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState("");
   const [open, setOpen] = useState<string | null>(null);
   const [setId, setSetId] = useState<string | null>(null);
   const [needsSite, setNeedsSite] = useState("");
+  // No crawl yet: the screen shows example data, so every part of it can be tried. Crawl now runs the real one.
+  const isDemo = auditsState !== null && auditsState.length === 0;
+  const demoRows = useMemo(() => demoSiteAudit({ name: brand.name, domain: brand.domain }) as unknown as Row[], [brand.name, brand.domain]);
+  const audits = isDemo ? demoRows : auditsState;
+  const shown = isDemo ? demoRows[0] : shownState;
+  const before = isDemo ? demoRows[1] : beforeState;
 
   const load = useCallback(async () => {
     const { data, error: err } = await sb
@@ -124,6 +130,7 @@ export function SiteAuditPage({ brand, sb, auth, canEdit, onConnect }: { brand: 
   const head = (
     <div className="flex flex-wrap items-end justify-between gap-3">
       <h1 className="aw-h2 mb-0!">Site Audit</h1>
+      {isDemo ? <span className="aw-status aw-status--pending">Example data</span> : null}
       {canEdit && audits?.length ? (
         <div className="flex flex-wrap items-center gap-3">
           {weekly !== null ? (
@@ -141,25 +148,6 @@ export function SiteAuditPage({ brand, sb, auth, canEdit, onConnect }: { brand: 
   );
 
   if (audits === null) return <div className="flex flex-col gap-6">{head}{error ? <p className="aw-error">{error}</p> : <Thinking text="Loading" />}</div>;
-
-  if (!audits.length)
-    return (
-      <div className="flex flex-col gap-6">
-        {head}
-        {error ? <p className="aw-error">{error}</p> : null}
-        <ToolIntro
-          title={`Audit ${brand.domain}`}
-          lead="Every page read the way Google and AI crawlers read it, scored, with what to fix first."
-          action={
-            canEdit ? (
-              <button type="button" className="aw-btn aw-btn--primary" onClick={crawl} disabled={busy === "crawl"}>
-                {busy === "crawl" ? "Starting" : "Run site audit"}
-              </button>
-            ) : null
-          }
-        />
-      </div>
-    );
 
   const partial = result?.partial ?? null;
   const score = shown && !partial ? shown.score : null;
@@ -244,7 +232,7 @@ export function SiteAuditPage({ brand, sb, auth, canEdit, onConnect }: { brand: 
                         share={i.pages.length || i.id === "broken_links" ? Math.min(1, i.count / max) : null}
                         open={open === i.id}
                         onOpen={() => setOpen(open === i.id ? null : i.id)}
-                        fixable={canEdit && Boolean(fixPlayOf(i))}
+                        fixable={canEdit && !isDemo && Boolean(fixPlayOf(i))}
                         busy={busy === i.id}
                         onFix={() => fix(i)}
                         broken={i.id === "broken_links" ? result.brokenLinks : null}

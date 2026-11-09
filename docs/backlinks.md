@@ -60,3 +60,7 @@ Typical use per team a month, with saved answers covering repeat opens: 4 overvi
 | DataForSEO Backlinks API | ~$37 | ~$365 |
 | Snapshots and cache rows (inside the VPS database) | $0 | $0 |
 | **Monthly total added** | **~$37** | **~$365** |
+
+## Example data
+
+Before the first real result, the screen shows example data from `src/lib/demo.ts`, tagged "Example data". Tabs, filters, panels and the map all work. The buttons that fetch real data stay live. Buttons that would change real records are off. It runs in the browser, so it adds $0 a month at Beta and at Growth.
