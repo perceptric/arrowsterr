@@ -55,3 +55,7 @@ Per audit: one DataForSEO Google SERP with People Also Ask and AI Overview (abou
 | PageSpeed Insights (free with a key) | $0 | $0 |
 | Worker time (inside the current worker) | $0 | $0 |
 | **Monthly total added** | **~$28** | **~$280** |
+
+## Example data
+
+Before the first real result, the screen shows example data from `src/lib/demo.ts`, tagged "Example data". Tabs, filters, panels and the map all work. The buttons that fetch real data stay live. Buttons that would change real records are off. It runs in the browser, so it adds $0 a month at Beta and at Growth.

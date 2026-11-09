@@ -1,15 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { GRID, reviewHistory, SPACINGS, type ListingCheck, type Location, type Place, type ScanResult } from "@/lib/local";
 import type { RunAuth } from "@/lib/runner";
-import { ToolIntro } from "./ToolIntro";
+import { demoLocal } from "@/lib/demo";
 import { Card, Delta, Seg, Thinking } from "./ui";
 import { useApi } from "./ZippiePage";
 
 // Local Research (docs/local-research.md): where the business ranks in Google Maps from 49 points around it, who holds
-// the map pack, reviews against rivals over time, and whether the website agrees with the Google listing.
+// the map pack, reviews against rivals over time, and whether the website agrees with the Google listing. Until a
+// business is picked, the screen shows an example business under the Find form.
 
 type Brand = { id: string; name: string; domain: string };
 type Scan = { id: string; keyword: string; status: "running" | "done" | "failed"; step: string; error: string | null; created_at: string; result: (ScanResult & { listing?: ListingCheck[] }) | null };
@@ -26,6 +27,7 @@ export function LocalResearchPage({ brand, sb, auth, canEdit }: { brand: Brand; 
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState("");
   const call = useCallback(<T,>(action: string, extra: Record<string, unknown> = {}) => api<T>("/api/local", { action, brandId: brand.id, ...extra }), [api, brand.id]);
+  const demo = useMemo(() => demoLocal({ name: brand.name, domain: brand.domain }), [brand.name, brand.domain]);
 
   useEffect(() => {
     let live = true;
@@ -60,7 +62,10 @@ export function LocalResearchPage({ brand, sb, auth, canEdit }: { brand: Brand; 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <h1 className="aw-h2 mb-0!">Local Research</h1>
+        <div className="mr-auto flex flex-wrap items-center gap-3">
+          <h1 className="aw-h2 mb-0!">Local Research</h1>
+          {loc === null ? <span className="aw-status aw-status--pending">Example data</span> : null}
+        </div>
         {loc ? (
           <div className="flex flex-wrap items-center gap-3 text-[13px]">
             <span className="text-body wrap-break-word">
@@ -77,14 +82,23 @@ export function LocalResearchPage({ brand, sb, auth, canEdit }: { brand: Brand; 
       </div>
       {error ? <p className="aw-error">{error}</p> : null}
       {note ? <p className="aw-callout">{note}</p> : null}
-      {loc === undefined ? <Thinking text="Loading" /> : loc === null ? <Setup brand={brand} canEdit={canEdit} call={call} onSet={setLoc} onError={setError} /> : <Scans brand={brand} loc={loc} sb={sb} canEdit={canEdit} busy={busy} call={call} run={run} save={save} onNote={setNote} />}
+      {loc === undefined ? (
+        <Thinking text="Loading" />
+      ) : loc === null ? (
+        <>
+          {canEdit ? <Setup brand={brand} call={call} onSet={setLoc} onError={setError} /> : null}
+          <Scans brand={brand} loc={demo.loc} sb={sb} canEdit={false} busy={busy} call={call} run={run} save={save} onNote={setNote} demoScans={demo.scans} />
+        </>
+      ) : (
+        <Scans key={loc.cid ?? loc.title} brand={brand} loc={loc} sb={sb} canEdit={canEdit} busy={busy} call={call} run={run} save={save} onNote={setNote} />
+      )}
     </div>
   );
 }
 
 type Call = <T>(action: string, extra?: Record<string, unknown>) => Promise<T>;
 
-function Setup({ brand, canEdit, call, onSet, onError }: { brand: Brand; canEdit: boolean; call: Call; onSet: (l: Location) => void; onError: (e: string) => void }) {
+function Setup({ brand, call, onSet, onError }: { brand: Brand; call: Call; onSet: (l: Location) => void; onError: (e: string) => void }) {
   const [query, setQuery] = useState(`${brand.name} `);
   const [places, setPlaces] = useState<Place[] | null>(null);
   const [busy, setBusy] = useState("");
@@ -111,28 +125,20 @@ function Setup({ brand, canEdit, call, onSet, onError }: { brand: Brand; canEdit
   }
   return (
     <>
-      <ToolIntro
-        title="Add the business on Google Maps"
-        lead="See where it ranks on the map, block by block, against the businesses nearby."
-        action={
-          canEdit ? (
-            <form
-              className="flex flex-wrap items-center gap-2"
-              onSubmit={(e) => {
-                e.preventDefault();
-                find();
-              }}
-            >
-              <input id="local-query" className="aw-input min-w-72" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Business name and city" aria-label="Business name and city" />
-              <button type="submit" className="aw-btn aw-btn--primary" disabled={query.trim().length < 3 || busy === "find"}>
-                {busy === "find" ? "Finding" : "Find"}
-              </button>
-            </form>
-          ) : (
-            <p className="aw-small">Ask an editor to add the business.</p>
-          )
-        }
-      />
+      <Card>
+        <form
+          className="flex flex-wrap items-center gap-2 px-5 py-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            find();
+          }}
+        >
+          <input id="local-query" className="aw-input min-w-0 flex-1 sm:max-w-96" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Business name and city" aria-label="Business name and city" />
+          <button type="submit" className="aw-btn aw-btn--primary aw-btn--sm" disabled={query.trim().length < 3 || busy === "find"}>
+            {busy === "find" ? "Finding" : "Find"}
+          </button>
+        </form>
+      </Card>
       {places ? (
         <Card title={places.length ? "Which one is it?" : undefined}>
           {places.length ? (
@@ -150,7 +156,7 @@ function Setup({ brand, canEdit, call, onSet, onError }: { brand: Brand; canEdit
               ))}
             </ul>
           ) : (
-            <p className="px-5 py-5 text-[13px] text-muted">No business found. Try the name as it shows on Google, with the city.</p>
+            <p className="px-5 py-5 text-[13px] text-muted">No business found.</p>
           )}
         </Card>
       ) : null}
@@ -158,16 +164,21 @@ function Setup({ brand, canEdit, call, onSet, onError }: { brand: Brand; canEdit
   );
 }
 
-function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote }: { brand: Brand; loc: Location; sb: SupabaseClient; canEdit: boolean; busy: string; call: Call; run: <T>(k: string, fn: () => Promise<T>) => Promise<T | null>; save: (x: Record<string, unknown>) => Promise<void>; onNote: (s: string) => void }) {
+function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote, demoScans }: { brand: Brand; loc: Location; sb: SupabaseClient; canEdit: boolean; busy: string; call: Call; run: <T>(k: string, fn: () => Promise<T>) => Promise<T | null>; save: (x: Record<string, unknown>) => Promise<void>; onNote: (s: string) => void; demoScans?: Scan[] }) {
   const [kw, setKw] = useState(loc.keywords[0] ?? "");
-  const [scans, setScans] = useState<Scan[] | null>(null);
+  const [saved, setScans] = useState<Scan[] | null>(null);
+  const scans = demoScans ? demoScans.filter((s) => s.keyword === kw) : saved;
+  // Example data: the controls show, and only the keyword switch and the map work.
+  const lock = Boolean(demoScans);
+  const controls = canEdit || lock;
   const [pt, setPt] = useState<number | null>(null);
   const [newKw, setNewKw] = useState("");
   const load = useCallback(async () => {
+    if (demoScans) return;
     if (!kw) return setScans([]);
     const { data } = await sb.from("local_scans").select("id, keyword, status, step, error, created_at, result").eq("brand_id", brand.id).eq("keyword", kw).order("created_at", { ascending: false }).limit(12);
     setScans((data ?? []) as Scan[]);
-  }, [sb, brand.id, kw]);
+  }, [sb, brand.id, kw, demoScans]);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
@@ -194,14 +205,14 @@ function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote }: { bra
                 <button type="button" aria-pressed={kw === k} onClick={() => { setKw(k); setPt(null); }} className={`aw-btn aw-btn--sm ${kw === k ? "aw-btn--primary" : "aw-btn--secondary"}`}>
                   {k}
                 </button>
-                {canEdit ? (
-                  <button type="button" className="aw-iconbtn h-6! w-6!" aria-label={`Remove ${k}`} onClick={() => save({ keywords: loc.keywords.filter((x) => x !== k) })}>
+                {controls ? (
+                  <button type="button" className="aw-iconbtn h-6! w-6!" aria-label={`Remove ${k}`} disabled={lock} onClick={() => save({ keywords: loc.keywords.filter((x) => x !== k) })}>
                     ×
                   </button>
                 ) : null}
               </span>
             ))}
-            {canEdit && loc.keywords.length < 5 ? (
+            {controls && loc.keywords.length < 5 ? (
               <form
                 className="flex items-center gap-2"
                 onSubmit={async (e) => {
@@ -214,24 +225,24 @@ function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote }: { bra
                 }}
               >
                 <input id="local-kw" className="aw-input py-1.5! text-[13px]!" value={newKw} onChange={(e) => setNewKw(e.target.value)} placeholder="emergency dentist" aria-label="Add a keyword" />
-                <button type="submit" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={!newKw.trim()}>
+                <button type="submit" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={lock || !newKw.trim()}>
                   Add
                 </button>
               </form>
             ) : null}
           </div>
-          {canEdit ? (
+          {controls ? (
             <div className="flex flex-wrap items-center gap-3">
-              <Seg label="Grid spacing" value={String(loc.spacing)} onChange={(v) => save({ spacing: Number(v) })} options={SPACINGS.map((s) => ({ id: String(s), label: `${s} mi` }))} />
+              <Seg label="Grid spacing" value={String(loc.spacing)} onChange={(v) => !lock && save({ spacing: Number(v) })} options={SPACINGS.map((s) => ({ id: String(s), label: `${s} mi` }))} />
               <label className="flex cursor-pointer items-center gap-2 text-[13px] text-body">
-                <button type="button" role="switch" aria-checked={loc.weekly} aria-label="Weekly scan" className={`aw-toggle ${loc.weekly ? "is-on" : ""}`} onClick={() => save({ weekly: !loc.weekly })} />
+                <button type="button" role="switch" aria-checked={loc.weekly} aria-label="Weekly scan" className={`aw-toggle ${loc.weekly ? "is-on" : ""}`} disabled={lock} onClick={() => save({ weekly: !loc.weekly })} />
                 Weekly scan
               </label>
-              <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" disabled={!kw || Boolean(running) || busy === "scan"} onClick={async () => (await run("scan", () => call("scan", { keyword: kw }))) && load()}>
+              <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" disabled={lock || !kw || Boolean(running) || busy === "scan"} onClick={async () => (await run("scan", () => call("scan", { keyword: kw }))) && load()}>
                 {running ? "Scanning" : busy === "scan" ? "Starting" : "Scan now"}
               </button>
               {loc.city ? (
-                <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={busy === "prompts"} onClick={async () => { const r = await run("prompts", () => call<{ added: string[] }>("prompts")); if (r) onNote(`Tracking ${r.added.length} local prompts in AI Visibility, under the topic Local.`); }}>
+                <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={lock || busy === "prompts"} onClick={async () => { const r = await run("prompts", () => call<{ added: string[] }>("prompts")); if (r) onNote(`Tracking ${r.added.length} local prompts in AI Visibility, under the topic Local.`); }}>
                   Track in AI answers
                 </button>
               ) : null}
@@ -240,9 +251,8 @@ function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote }: { bra
         </div>
       </Card>
 
-      {!kw ? <p className="aw-small">Add a keyword people search to find a business like this one.</p> : null}
       {running ? <Thinking text={running.step || "Scanning"} /> : failed ? <p className="aw-error">The last scan failed: {failed.error}</p> : null}
-      {kw && scans && !done.length && !running && !failed ? <p className="aw-small">No scan for “{kw}” yet.</p> : null}
+      {kw && scans && !done.length && !running && !failed ? <p className="aw-small">No scan for “{kw}”.</p> : null}
 
       {cur ? (
         <>
@@ -438,7 +448,6 @@ function Reviews({ done, you }: { done: Scan[]; you: string }) {
             <span className="aw-num">{s.vals.at(-1) ?? "–"}</span>
           </span>
         ))}
-        <span className="text-[12px] text-muted">The chart starts after the next scan.</span>
       </div>
     );
   }

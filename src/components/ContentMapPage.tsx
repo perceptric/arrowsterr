@@ -4,13 +4,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { layout, mapStats, type ContentMap, type Topic, type TopicStatus } from "@/lib/contentMap";
 import type { RunAuth } from "@/lib/runner";
-import { ToolIntro } from "./ToolIntro";
+import { demoMap } from "@/lib/demo";
 import { Card, SidePanel, Thinking } from "./ui";
 import { ChangeSetCard, useApi } from "./ZippiePage";
 
 // Content Map (docs/content-map.md): the brand's topics as bubbles around their pillars. Green is covered, blue in
 // progress, red dashed missing, amber two pages competing; a star means AI names the brand for it. Lines run from
-// each pillar's main page: solid when it links to the topic's page, dashed when it doesn't.
+// each pillar's main page: solid when it links to the topic's page, dashed when it doesn't. Before the first build the
+// screen shows an example map.
 
 type Row = { id: string; status: "running" | "done" | "failed"; step: string; error: string | null; created_at: string; result?: ContentMap | null };
 type Brand = { id: string; name: string; domain: string };
@@ -102,7 +103,9 @@ export function ContentMapPage({ brand, sb, auth, canEdit, onConnect }: { brand:
     }
   }
 
-  const m = map?.m ?? null;
+  const demo = useMemo(() => demoMap({ name: brand.name, domain: brand.domain }), [brand.name, brand.domain]);
+  const isDemo = !map && rows !== null && !running;
+  const m = map?.m ?? (isDemo ? demo : null);
   const geo = useMemo(() => (m ? layout(m) : null), [m]);
   const byId = useMemo(() => new Map((m?.topics ?? []).map((t) => [t.id, t])), [m]);
   const show = (t: Topic) => filter === "all" || (filter === "missing" && (t.status === "missing" || t.status === "progress")) || (filter === "overlap" && t.status === "overlap") || (filter === "ai" && t.ai) || (filter === "unlinked" && t.linked === false);
@@ -111,8 +114,17 @@ export function ContentMapPage({ brand, sb, auth, canEdit, onConnect }: { brand:
 
   const head = (
     <div className="flex flex-wrap items-end justify-between gap-3">
-      <h1 className="aw-h2 mb-0!">Content Map</h1>
-      {m ? (
+      <div className="mr-auto flex flex-wrap items-center gap-3">
+        <h1 className="aw-h2 mb-0!">Content Map</h1>
+        {isDemo ? <span className="aw-status aw-status--pending">Example data</span> : null}
+      </div>
+      {isDemo ? (
+        canEdit ? (
+          <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={build} disabled={busy === "build"}>
+            {busy === "build" ? "Starting" : "Build the map"}
+          </button>
+        ) : null
+      ) : m ? (
         <div className="flex flex-wrap items-center gap-3 text-[12px] text-muted">
           <span>Updated {when(m.at)}</span>
           {canEdit ? (
@@ -140,14 +152,6 @@ export function ContentMapPage({ brand, sb, auth, canEdit, onConnect }: { brand:
         </div>
       ) : null}
       {running ? <Thinking text={running.step || "Building"} /> : lastFailed ? <p className="aw-error">The last build failed: {lastFailed.error}</p> : null}
-
-      {!m && !running ? (
-        <ToolIntro
-          title={`Map ${brand.domain}'s topics`}
-          lead="Every topic you cover, the ones your rivals win and you don't, and the pages that compete with each other."
-          action={canEdit ? <button type="button" className="aw-btn aw-btn--primary" onClick={build} disabled={busy === "build"}>{busy === "build" ? "Starting" : "Build the map"}</button> : <p className="aw-small">Ask an editor to build the map.</p>}
-        />
-      ) : null}
 
       {m && geo && stats ? (
         <>
@@ -212,12 +216,17 @@ export function ContentMapPage({ brand, sb, auth, canEdit, onConnect }: { brand:
                   </svg>
                   Named by AI
                 </span>
-                <span>Dashed line: no link from the pillar&apos;s main page</span>
+                <span className="flex items-center gap-1.5">
+                  <svg width="16" height="4" aria-hidden="true">
+                    <line x1="0" y1="2" x2="16" y2="2" stroke="var(--aw-faint)" strokeWidth="1.2" strokeDasharray="4 4" />
+                  </svg>
+                  Link missing
+                </span>
               </div>
             </Card>
             <Card>
               <div className="flex flex-col gap-3 px-5 py-4">
-                <Detail m={m} sel={sel} canEdit={canEdit} busy={busy} planned={planned} onPlan={addToPlan} onLinks={addLinks} />
+                <Detail m={m} sel={sel} canEdit={canEdit && !isDemo} busy={busy} planned={planned} onPlan={addToPlan} onLinks={addLinks} />
               </div>
             </Card>
           </div>
@@ -289,11 +298,16 @@ function Detail({ m, sel, canEdit, busy, planned, onPlan, onLinks }: { m: Conten
     const s = mapStats(m.topics);
     return (
       <>
-        <h2 className="aw-h4">Map summary</h2>
-        <p className="text-[13px] text-body">
-          {s.missing} topics missing, {s.overlap} with pages competing, {s.unlinked} not linked from their pillar&apos;s main page. AI names you for {s.ai}.
-        </p>
-        {m.rivals.length ? <p className="text-[12px] text-muted wrap-anywhere">Compared with {m.rivals.join(", ")}</p> : <p className="text-[12px] text-muted">Add competitors with websites to the brand to see what they win.</p>}
+        <h2 className="aw-h4">Summary</h2>
+        <dl className="grid grid-cols-2 gap-3">
+          {([["Missing", s.missing], ["Competing", s.overlap], ["Link missing", s.unlinked], ["Named by AI", s.ai]] as [string, number][]).map(([l, v]) => (
+            <div key={l}>
+              <dt className="text-[12px] text-muted">{l}</dt>
+              <dd className="aw-num m-0 text-[18px] font-semibold text-ink">{v}</dd>
+            </div>
+          ))}
+        </dl>
+        {m.rivals.length ? <p className="text-[12px] text-muted wrap-anywhere">Rivals: {m.rivals.join(", ")}</p> : null}
       </>
     );
   }
@@ -325,7 +339,7 @@ function Detail({ m, sel, canEdit, busy, planned, onPlan, onLinks }: { m: Conten
               {u}
             </a>
           ))}
-          {t.linked === false ? <span className="text-[12px] text-neg">Not linked from the pillar&apos;s main page</span> : null}
+          {t.linked === false ? <span className="text-[12px] text-neg">Link missing</span> : null}
         </div>
       ) : null}
       {t.rivals.length ? <p className="text-[13px] text-body wrap-anywhere">Ranks for it: {t.rivals.join(", ")}</p> : null}

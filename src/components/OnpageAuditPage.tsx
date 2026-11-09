@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { AREAS, fixGain, type Check, type FixPlay, type MainKeyword, type OnpageResult } from "@/lib/onpage";
+import { demoOnpage } from "@/lib/demo";
 import type { RunAuth } from "@/lib/runner";
-import { ToolIntro } from "./ToolIntro";
 import { Card, Seg, SidePanel, Thinking } from "./ui";
 import { ChangeSetCard, useApi } from "./ZippiePage";
 
@@ -24,7 +24,11 @@ const msg = (e: unknown) => (e instanceof Error ? e.message : String(e));
 export function OnpageAuditPage({ brand, sb, auth, canEdit, onConnect }: { brand: Brand; sb: SupabaseClient; auth: RunAuth; canEdit: boolean; onConnect: () => void }) {
   const api = useApi(auth);
   const [tab, setTab] = useState<Tab>("page");
-  const [rows, setRows] = useState<Row[] | null>(null);
+  const [rowsState, setRows] = useState<Row[] | null>(null);
+  // No audit yet: the screen shows example audits, so every part of it can be tried. Audit runs a real one.
+  const isDemo = rowsState !== null && rowsState.length === 0;
+  const demoRows = useMemo(() => demoOnpage({ name: brand.name, domain: brand.domain }) as unknown as Row[], [brand.name, brand.domain]);
+  const rows = isDemo ? demoRows : rowsState;
   const [openId, setOpenId] = useState<string | null>(null);
   const [url, setUrl] = useState("");
   const [keyword, setKeyword] = useState("");
@@ -55,7 +59,7 @@ export function OnpageAuditPage({ brand, sb, auth, canEdit, onConnect }: { brand
 
   // The open audit's result, read once it's done and kept by id.
   const [results, setResults] = useState<Record<string, OnpageResult | null>>({});
-  const needResult = current?.status === "done" && !(current.id in results) ? current.id : null;
+  const needResult = current?.status === "done" && !current.result && !(current.id in results) ? current.id : null;
   useEffect(() => {
     if (!needResult) return;
     let live = true;
@@ -68,7 +72,7 @@ export function OnpageAuditPage({ brand, sb, auth, canEdit, onConnect }: { brand
       live = false;
     };
   }, [needResult, sb]);
-  const detail: Row | null = current ? { ...current, result: results[current.id] } : null;
+  const detail: Row | null = current ? { ...current, result: current.result ?? results[current.id] } : null;
 
   const running = rows?.some((r) => r.status === "running");
   useEffect(() => {
@@ -149,27 +153,12 @@ export function OnpageAuditPage({ brand, sb, auth, canEdit, onConnect }: { brand
   const head = (
     <div className="flex flex-wrap items-end justify-between gap-3">
       <h1 className="aw-h2 mb-0!">On-page Audit</h1>
+      {isDemo ? <span className="aw-status aw-status--pending mr-auto">Example data</span> : null}
       {rows?.length || tab === "all" ? <Seg label="On-page Audit view" value={tab} onChange={setTab} options={[{ id: "page", label: "This page" }, { id: "all", label: "All pages" }]} /> : null}
     </div>
   );
 
   if (rows === null) return <div className="flex flex-col gap-6">{head}{error ? <p className="aw-error">{error}</p> : <Thinking text="Loading" />}</div>;
-
-  if (!rows.length && tab === "page")
-    return (
-      <div className="flex flex-col gap-6">
-        {head}
-        {error ? <p className="aw-error">{error}</p> : null}
-        <ToolIntro title="Score a page against Google's top 10" lead="Pick a page and the keyword it should rank for. Every check comes with its fix." action={form} />
-        {canEdit ? (
-          <div>
-            <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setTab("all")}>
-              Find my pages
-            </button>
-          </div>
-        ) : null}
-      </div>
-    );
 
   return (
     <div className="flex flex-col gap-6">
@@ -189,7 +178,7 @@ export function OnpageAuditPage({ brand, sb, auth, canEdit, onConnect }: { brand
       ) : (
         <>
           {form ? <Card><div className="px-5 py-4">{form}</div></Card> : null}
-          {detail ? <Detail row={detail} history={rows.filter((r) => r.url === detail.url && r.keyword === detail.keyword && r.status === "done")} canEdit={canEdit} busy={busy} proposed={proposed} onFix={fix} onAgain={() => start(detail.url, detail.keyword)} /> : null}
+          {detail ? <Detail row={detail} history={rows.filter((r) => r.url === detail.url && r.keyword === detail.keyword && r.status === "done")} canEdit={canEdit} demo={isDemo} busy={busy} proposed={proposed} onFix={fix} onAgain={() => start(detail.url, detail.keyword)} /> : null}
         </>
       )}
 
@@ -223,7 +212,7 @@ const STATUS_ICON: Record<Check["status"], { text: string; cls: string }> = {
   unknown: { text: "–", cls: "bg-[var(--aw-surface-2)] text-muted" },
 };
 
-function Detail({ row, history, canEdit, busy, proposed, onFix, onAgain }: { row: Row; history: Row[]; canEdit: boolean; busy: string; proposed: Set<string>; onFix: (p: FixPlay) => void; onAgain: () => void }) {
+function Detail({ row, history, canEdit, demo = false, busy, proposed, onFix, onAgain }: { row: Row; history: Row[]; canEdit: boolean; demo?: boolean; busy: string; proposed: Set<string>; onFix: (p: FixPlay) => void; onAgain: () => void }) {
   const [view, setView] = useState<"now" | "suggested">("now");
   const [copied, setCopied] = useState("");
   if (row.status === "running") return <Thinking text={`${row.step || "Working"}: ${row.url}`} />;
@@ -317,7 +306,7 @@ function Detail({ row, history, canEdit, busy, proposed, onFix, onAgain }: { row
                   <span className="text-[14px] font-medium text-ink">{FIX_LABEL[p]}</span>
                   <span className="flex items-center gap-2">
                     {gain ? <span className="text-[12px] font-medium text-pos">+{gain} points</span> : null}
-                    <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => onFix(p)} disabled={busy === p || proposed.has(key)}>
+                    <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => onFix(p)} disabled={demo || busy === p || proposed.has(key)}>
                       {proposed.has(key) ? "Proposed" : busy === p ? "Preparing" : "Fix"}
                     </button>
                   </span>

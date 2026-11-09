@@ -53,3 +53,7 @@ That's about $0.11, charged as 40 tasks (about $0.20 of plan value). Add interna
 | Builds, about 2 per team a month (DataForSEO and Claude, check) | ~$11 | ~$110 |
 | Main page reads (worker) | $0 | $0 |
 | **Monthly total added** | **~$11** | **~$110** |
+
+## Example data
+
+Before the first real result, the screen shows example data from `src/lib/demo.ts`, tagged "Example data". Tabs, filters, panels and the map all work. The buttons that fetch real data stay live. Buttons that would change real records are off. It runs in the browser, so it adds $0 a month at Beta and at Growth.

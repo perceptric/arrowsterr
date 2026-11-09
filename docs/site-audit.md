@@ -49,3 +49,7 @@ Crawls are plain page loads from the worker (up to 200 pages and 120 link checks
 | Alert emails (inside Resend's current plan, check) | $0 | $0 |
 | Fixes (existing plays, Claude, already in the plan's tasks) | $0 extra | $0 extra |
 | **Monthly total added** | **$0** | **~$12** |
+
+## Example data
+
+Before the first real result, the screen shows example data from `src/lib/demo.ts`, tagged "Example data". Tabs, filters, panels and the map all work. The buttons that fetch real data stay live. Buttons that would change real records are off. It runs in the browser, so it adds $0 a month at Beta and at Growth.

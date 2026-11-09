@@ -64,3 +64,7 @@ Earlier link gap adds become `source = link_gap`.
 | Pitch drafts, about 20 a team a month (Claude Sonnet, about 1.5K in and 300 out, check) | ~$0.006 | ~$6 | ~$60 |
 | Contact finding and weekly link checks (plain page loads on the worker) | $0 | $0 | $0 |
 | **Monthly total added** | | **~$15** | **~$144** |
+
+## Example data
+
+Before the first real result, the screen shows example data from `src/lib/demo.ts`, tagged "Example data". Tabs, filters, panels and the map all work. The buttons that fetch real data stay live. Buttons that would change real records are off. It runs in the browser, so it adds $0 a month at Beta and at Growth.

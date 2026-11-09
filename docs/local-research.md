@@ -69,3 +69,7 @@ Assume 20% of teams track a local business (10 at Beta, 100 at Growth), each wit
 | Finding businesses (DataForSEO, live) | ~$0 | ~$1 |
 | Listing checks and collecting results (worker) | $0 | $0 |
 | **Monthly total added** | **~$5** | **~$51** |
+
+## Example data
+
+Before the first real result, the screen shows example data from `src/lib/demo.ts`, tagged "Example data". Tabs, filters, panels and the map all work. The buttons that fetch real data stay live. Buttons that would change real records are off. It runs in the browser, so it adds $0 a month at Beta and at Growth.
