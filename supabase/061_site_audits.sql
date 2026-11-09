@@ -1,5 +1,5 @@
 -- Site Audit screen (docs/site-audit.md): each crawl belongs to a brand, so the screen shows that brand's history and
--- the change since the last crawl, and brands can turn the weekly crawl off. Run once in Supabase → SQL Editor, after
+-- the change since the last crawl, and brands can turn the weekly crawl off. Run once with psql on the VPS database, after
 -- 060_perception_category.sql. Safe to run again.
 
 alter table public.site_audits add column if not exists brand_id uuid references public.brands (id) on delete cascade;

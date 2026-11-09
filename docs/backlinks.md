@@ -58,5 +58,5 @@ Typical use per team a month, with saved answers covering repeat opens: 4 overvi
 | Line | Beta (50 teams) | Growth (500 teams) |
 |---|---|---|
 | DataForSEO Backlinks API | ~$37 | ~$365 |
-| Snapshots and cache rows (inside Supabase Pro) | $0 | $0 |
+| Snapshots and cache rows (inside the VPS database) | $0 | $0 |
 | **Monthly total added** | **~$37** | **~$365** |

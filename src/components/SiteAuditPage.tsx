@@ -38,7 +38,7 @@ export function SiteAuditPage({ brand, sb, auth, canEdit, onConnect }: { brand: 
       .eq("brand_id", brand.id)
       .order("created_at", { ascending: false })
       .limit(12);
-    if (err) return setError(/brand_id/.test(err.message) ? "Run supabase/061_site_audits.sql in Supabase." : err.message);
+    if (err) return setError(/brand_id/.test(err.message) ? "Run supabase/061_site_audits.sql with psql on the VPS database." : err.message);
     const rows = (data ?? []) as Row[];
     // The newest finished crawl is the one on screen, with its result. The change arrow compares it to the last full crawl.
     const latest = rows.find((r) => r.status === "done") ?? null;

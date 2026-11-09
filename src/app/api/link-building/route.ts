@@ -11,7 +11,7 @@ export const maxDuration = 300;
 
 const str = (v: unknown, n: number) => String(v ?? "").trim().slice(0, n);
 const err = (error: string, status = 400) => Response.json({ error }, { status });
-const SETUP = "Run supabase/064_link_building.sql in Supabase to turn on Link Building.";
+const SETUP = "Run supabase/064_link_building.sql with psql on the VPS database to turn on Link Building.";
 
 // Link Building (docs/link-building.md). Cards are outreach_targets on the brand's "Link building" list.
 //   list:   { brandId }                          viewers: every card, and which are on the do-not-contact list
@@ -48,7 +48,7 @@ async function handle(request: Request) {
 
   if (!editor) return err("Ask an editor to change Link Building.", 403);
   const listId = await linkList(db, ws, b.id, true);
-  if (!listId) return err("Run supabase/040_outreach.sql in Supabase.", 500);
+  if (!listId) return err("Run supabase/040_outreach.sql with psql on the VPS database.", 500);
 
   if (body.action === "find") {
     const locked = await requireTrack(ws, "seo");

@@ -9,7 +9,7 @@ export const maxDuration = 120;
 
 const str = (v: unknown, n: number) => String(v ?? "").trim().slice(0, n);
 const err = (error: string, status = 400, extra: Record<string, unknown> = {}) => Response.json({ error, ...extra }, { status });
-const SETUP = "Run supabase/062_onpage.sql in Supabase to turn on the On-page Audit.";
+const SETUP = "Run supabase/062_onpage.sql with psql on the VPS database to turn on the On-page Audit.";
 
 /** A full https address from what someone typed, or "" when it isn't one. */
 function cleanUrl(raw: string): string {

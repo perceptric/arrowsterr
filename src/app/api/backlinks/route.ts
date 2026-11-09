@@ -91,7 +91,7 @@ async function handle(request: Request) {
     const domains = (Array.isArray(body.domains) ? (body.domains as unknown[]) : []).map((d) => bareDomain(str(d, 200))).filter((d) => /\.[a-z]{2,}$/.test(d)).slice(0, 300);
     if (!domains.length) return err("Pick at least one site.");
     const list = await linkList(db, ws, brand.id, true);
-    if (!list) return err("Run supabase/040_outreach.sql in Supabase.", 500);
+    if (!list) return err("Run supabase/040_outreach.sql with psql on the VPS database.", 500);
     // Before 064_link_building.sql there's no source column; the cards still land on the list.
     const withSource = !(await db.from("outreach_targets").select("source").limit(1)).error;
     const { error } = await db

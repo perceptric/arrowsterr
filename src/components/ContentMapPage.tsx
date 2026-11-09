@@ -43,7 +43,7 @@ export function ContentMapPage({ brand, sb, auth, canEdit, onConnect }: { brand:
 
   const load = useCallback(async () => {
     const { data, error: e } = await sb.from("content_maps").select("id, status, step, error, created_at").eq("brand_id", brand.id).order("created_at", { ascending: false }).limit(5);
-    if (e) return setError(/content_maps/.test(e.message) ? "Run supabase/065_content_map.sql in Supabase." : e.message);
+    if (e) return setError(/content_maps/.test(e.message) ? "Run supabase/065_content_map.sql with psql on the VPS database." : e.message);
     const list = (data ?? []) as Row[];
     setRows(list);
     const done = list.find((r) => r.status === "done");

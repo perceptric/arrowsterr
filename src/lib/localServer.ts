@@ -31,7 +31,7 @@ export async function findPlaces(query: string, country: string | undefined): Pr
 export async function startScan(db: SupabaseClient, ws: string, userId: string | null, brandId: string, loc: Location, keyword: string, opts: { fast: boolean; charge: Charge | null; language: string }) {
   const points = grid(loc.lat, loc.lng, loc.spacing);
   const { data: row, error } = await db.from("local_scans").insert({ workspace_id: ws, brand_id: brandId, keyword, spacing: loc.spacing, created_by: userId, charge: opts.charge, step: "Asking Google Maps" }).select("id").single();
-  if (error || !row) throw new Error(/local_scans/.test(error?.message ?? "") ? "Run supabase/066_local.sql in Supabase." : (error?.message ?? "Could not start the scan."));
+  if (error || !row) throw new Error(/local_scans/.test(error?.message ?? "") ? "Run supabase/066_local.sql with psql on the VPS database." : (error?.message ?? "Could not start the scan."));
   try {
     const zoom = zoomFor(loc.spacing);
     const tasks = await call(

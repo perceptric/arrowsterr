@@ -1,5 +1,5 @@
 -- On-page Audit (docs/onpage-audit.md): one page scored against Google's top 10 for one keyword, kept per brand so
--- the screen shows every audited page and each page's history. Run once in Supabase → SQL Editor, after
+-- the screen shows every audited page and each page's history. Run once with psql on the VPS database, after
 -- 061_site_audits.sql. Safe to run again.
 
 create table if not exists public.onpage_audits (

@@ -42,7 +42,7 @@ export async function addProspects(db: SupabaseClient, ws: string, listId: strin
     .map((p) => ({ list_id: listId, workspace_id: ws, kind: "website", name: p.domain, domain: p.domain, url: p.url, source: p.source, note: p.note.slice(0, 300), authority: p.authority ?? null, added_from: p.source }));
   if (!rows.length) return 0;
   const { error } = await db.from("outreach_targets").upsert(rows, { onConflict: "list_id,kind,name", ignoreDuplicates: true });
-  if (error) throw new Error(/stage|source|note|authority/.test(error.message) ? "Run supabase/064_link_building.sql in Supabase." : error.message);
+  if (error) throw new Error(/stage|source|note|authority/.test(error.message) ? "Run supabase/064_link_building.sql with psql on the VPS database." : error.message);
   return rows.length;
 }
 

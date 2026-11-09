@@ -1,5 +1,5 @@
--- Content Map (docs/content-map.md): each build of a brand's topic map, newest on screen. Run once in Supabase → SQL
--- Editor, after 064_link_building.sql. Safe to run again.
+-- Content Map (docs/content-map.md): each build of a brand's topic map, newest on screen. Run once with psql on the VPS
+-- database, after 064_link_building.sql. Safe to run again.
 
 create table if not exists public.content_maps (
   id uuid primary key default gen_random_uuid(),

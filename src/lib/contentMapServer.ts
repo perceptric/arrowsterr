@@ -21,7 +21,7 @@ type Charge = { period: string; plan: number; pack: number };
 
 export async function startMap(db: SupabaseClient, ws: string, userId: string, brandId: string, charge: Charge | null) {
   const { data, error } = await db.from("content_maps").insert({ workspace_id: ws, brand_id: brandId, created_by: userId, charge }).select("id").single();
-  if (error || !data) throw new Error(/content_maps/.test(error?.message ?? "") ? "Run supabase/065_content_map.sql in Supabase." : (error?.message ?? "Could not start."));
+  if (error || !data) throw new Error(/content_maps/.test(error?.message ?? "") ? "Run supabase/065_content_map.sql with psql on the VPS database." : (error?.message ?? "Could not start."));
   if (await queueReady()) await enqueue("content_map", { mapId: data.id }, { workspaceId: ws, key: `content_map:${data.id}`, maxAttempts: 1 });
   else after(() => runMap(db, data.id));
   return data.id as string;

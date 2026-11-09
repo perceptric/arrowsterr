@@ -1,5 +1,5 @@
 -- Local Research (docs/local-research.md): each Google Maps rank grid scan for a brand and keyword. The business itself
--- (picked from Google Maps) and its keywords live on brands.profile.location. Run once in Supabase → SQL Editor, after
+-- (picked from Google Maps) and its keywords live on brands.profile.location. Run once with psql on the VPS database, after
 -- 065_content_map.sql. Safe to run again.
 
 create table if not exists public.local_scans (

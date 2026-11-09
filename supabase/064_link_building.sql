@@ -1,6 +1,6 @@
 -- Link Building board (docs/link-building.md): each outreach target on a brand's "Link building" list is a card with a
--- stage and where it came from, and a won link keeps the page it sits on and its weekly check. Run once in Supabase →
--- SQL Editor, after 063_backlinks.sql. Safe to run again.
+-- stage and where it came from, and a won link keeps the page it sits on and its weekly check. Run once with psql
+-- on the VPS database, after 063_backlinks.sql. Safe to run again.
 
 alter table public.outreach_targets add column if not exists stage text not null default 'prospect' check (stage in ('prospect', 'contacted', 'replied', 'won', 'lost'));
 alter table public.outreach_targets add column if not exists source text not null default 'manual' check (source in ('ai_cites', 'link_gap', 'broken_page', 'unlinked_mention', 'manual'));

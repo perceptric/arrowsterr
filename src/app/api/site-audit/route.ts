@@ -9,7 +9,7 @@ export const maxDuration = 60;
 
 const str = (v: unknown, n: number) => String(v ?? "").trim().slice(0, n);
 const err = (error: string, status = 400, extra: Record<string, unknown> = {}) => Response.json({ error, ...extra }, { status });
-const SETUP = "Run supabase/061_site_audits.sql in Supabase to turn on the Site Audit screen.";
+const SETUP = "Run supabase/061_site_audits.sql with psql on the VPS database to turn on the Site Audit screen.";
 
 // Site Audit (docs/site-audit.md). Reading crawls needs no route: the page asks Supabase, and viewers may read.
 //   start:  { brandId }                     editors, Organic Research plans: crawl the brand's site now

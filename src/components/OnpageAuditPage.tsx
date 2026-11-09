@@ -42,7 +42,7 @@ export function OnpageAuditPage({ brand, sb, auth, canEdit, onConnect }: { brand
       .eq("brand_id", brand.id)
       .order("created_at", { ascending: false })
       .limit(100);
-    if (e) return setError(/onpage_audits/.test(e.message) ? "Run supabase/062_onpage.sql in Supabase." : e.message);
+    if (e) return setError(/onpage_audits/.test(e.message) ? "Run supabase/062_onpage.sql with psql on the VPS database." : e.message);
     setRows((data ?? []) as Row[]);
   }, [sb, brand.id]);
 
