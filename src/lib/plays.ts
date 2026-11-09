@@ -5,6 +5,7 @@ import { askJson, claudeModel, parseJson } from "./claude";
 import { addLink, capsOf, faqHtml, faqsIn, getItem, imagesWithoutAlt, linksIn, listItems, setAlts, snapshot, textOf, writeItem, type Caps, type Fields, type Item, type ItemType } from "./cmsEdit";
 import type { CmsKind } from "./cmsTypes";
 import { take } from "./entitlements";
+import { matchesPages } from "./siteAudit";
 import { charge, claudeCost } from "./meter";
 
 // Plays: Zippie's site-wide fixes. Each one reads the CMS, proposes a change per page,
@@ -251,7 +252,8 @@ export async function preparePlay(db: SupabaseClient, setId: string) {
     await step(`Reading ${conn.name}`);
     const opts = { limit: PLAYS[play].limit, ...(set.options as Partial<Options>) } as Options;
     let items = await listItems(conn.kind, conn.config, 300);
-    if (opts.ids?.length) items = items.filter((i) => opts.ids!.includes(i.id) || opts.ids!.includes(i.url));
+    // Ids can be CMS ids or page addresses from a crawl, written with or without www or a trailing slash.
+    if (opts.ids?.length) items = items.filter((i) => matchesPages(i, opts.ids!));
     const brand = await brandOf(db, set.workspace_id);
     const site = items[0] ? new URL(items[0].url).origin : `https://${brand?.domain ?? ""}`;
     const brandInfo = { name: brand?.name ?? new URL(site).hostname, domain: brand?.domain ?? new URL(site).hostname };

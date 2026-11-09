@@ -54,7 +54,7 @@ const TOOL_LABEL: Record<string, string> = {
 const toolLabel = (n: string) => TOOL_LABEL[n] ?? n.replace(/_/g, " ");
 const FILE_TYPES = ".txt,.md,.markdown,.csv,.json,.html,.htm,.xml,.pdf";
 
-function useApi(auth: RunAuth) {
+export function useApi(auth: RunAuth) {
   return useCallback(
     async <T,>(path: string, body: Record<string, unknown>): Promise<T> => {
       const res = await fetch(path, {
@@ -788,7 +788,7 @@ function SetupCard({ id, auth, canEdit, onSend }: { id: string; auth: RunAuth; c
   );
 }
 
-function ChangeSetCard({ id, api, canEdit }: { id: string; api: ReturnType<typeof useApi>; canEdit: boolean }) {
+export function ChangeSetCard({ id, api, canEdit }: { id: string; api: ReturnType<typeof useApi>; canEdit: boolean }) {
   const [set, setSet] = useState<SetRow | null>(null);
   const [changes, setChanges] = useState<Change[]>([]);
   const [all, setAll] = useState(false);
@@ -1013,7 +1013,7 @@ function AuditCard({ id, api }: { id: string; api: ReturnType<typeof useApi> }) 
   return (
     <div className="zp-card">
       <div className="flex items-center gap-3">
-        {audit.status === "done" ? (
+        {audit.status === "done" && audit.score !== null && !r?.partial ? (
           <div className="zp-score" style={{ background: `conic-gradient(${tone} ${score * 3.6}deg, #E6EAF2 0deg)` }}>
             <span style={{ color: tone }}>{score}</span>
           </div>
@@ -1031,6 +1031,8 @@ function AuditCard({ id, api }: { id: string; api: ReturnType<typeof useApi> }) 
               </span>
             ) : audit.status === "failed" ? (
               `Failed: ${audit.error}`
+            ) : r?.partial ? (
+              `Partial crawl, no score: ${r.partial}`
             ) : (
               `Score ${score} of 100 · ${audit.pages} pages checked · ${issues.length} issue${issues.length === 1 ? "" : "s"}${r?.blockedBots.length ? ` · blocks ${r.blockedBots.join(", ")}` : ""}`
             )}

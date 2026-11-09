@@ -2,7 +2,8 @@ import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { after } from "next/server";
-import { MAX_PAGES, runAudit, type AuditResult } from "./audit";
+import { MAX_PAGES, startAudit as startCrawl, type AuditResult } from "./audit";
+import { cleanDomain } from "./siteAudit";
 import { claudeModel } from "./claude";
 import { capsOf, EDITABLE, faqsIn, imagesWithoutAlt, linksIn, listItems } from "./cmsEdit";
 import type { CmsKind } from "./cmsTypes";
@@ -52,15 +53,10 @@ async function pickConnection(ctx: AskCtx, arg: unknown) {
   return hit;
 }
 
-/** Start an audit now: on the job queue when it exists, otherwise right after this reply. */
+/** Start an audit now, for the workspace's brand with that domain when there is one (audit.ts). */
 export async function startAudit(db: SupabaseClient, ws: string, userId: string, domain: string) {
-  const clean = domain.toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/.*$/, "");
-  if (!/^[a-z0-9.-]+\.[a-z]{2,}$/.test(clean)) throw new ToolError("That doesn't look like a website address.");
-  const { data, error } = await db.from("site_audits").insert({ workspace_id: ws, domain: clean, created_by: userId }).select("id").single();
-  if (error || !data) throw new Error(error?.message ?? "Could not start the audit.");
-  if (await queueReady()) await enqueue("audit", { auditId: data.id, domain: clean }, { workspaceId: ws, key: `audit:${data.id}`, maxAttempts: 1 });
-  else after(() => runAudit(db, data.id, clean));
-  return { id: data.id as string, domain: clean };
+  if (!cleanDomain(domain)) throw new ToolError("That doesn't look like a website address.");
+  return startCrawl(db, ws, userId, domain);
 }
 
 /** Start building a change set's proposals. */
@@ -122,6 +118,7 @@ const LOCAL: LocalTool[] = [
         domain: data.domain,
         checked_at: data.created_at,
         score: data.score,
+        ...(r.partial ? { partial: r.partial, note: "This crawl was partial, so it has no score. Don't describe the site as healthy from it; suggest crawling again." } : {}),
         pages_checked: data.pages,
         pages_found: r.found,
         ai_crawlers_blocked: r.blockedBots,

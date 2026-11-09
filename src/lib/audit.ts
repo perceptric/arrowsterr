@@ -1,7 +1,12 @@
 import "server-only";
+import { after } from "next/server";
 import * as cheerio from "cheerio";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { entitlement } from "./entitlements";
+import { enqueue, queueReady } from "./jobs";
+import { emailAuditDrop } from "./notify";
 import { findPages } from "./sitemap";
+import { cleanDomain, dropAlert, isStuck, partialReason, previousFull, scoreToSave, weeklyDue, type AuditRow } from "./siteAudit";
 
 // The site audit: crawl a website the way a search engine or AI crawler does, then list what to fix.
 // Runs as a background job (worker kind "audit"). Results land in site_audits.result.
@@ -41,6 +46,8 @@ export type AuditResult = {
   blockedBots: string[];
   llmsTxt: boolean;
   brokenLinks: { url: string; status: number; from: string }[];
+  /** Why this crawl got no score (most pages didn't load, or the crawl stopped early). Missing on a full crawl. */
+  partial?: string;
 };
 
 async function get(url: string, method: "GET" | "HEAD" = "GET") {
@@ -205,15 +212,15 @@ export function scoreOf(issues: AuditIssue[], pages: number) {
   return Math.max(0, Math.round(100 - penalty));
 }
 
-/** Crawl the site and save the audit. */
+/** Crawl the site and save the audit. A crawl that can't be trusted is saved without a score (docs/site-audit.md). */
 export async function runAudit(db: SupabaseClient, auditId: string, domain: string) {
   const step = (s: string, extra: Record<string, unknown> = {}) => db.from("site_audits").update({ step: s, ...extra }).eq("id", auditId);
+  const pages: (AuditPage & { hrefs: string[] })[] = [];
+  const base = `https://${domain}`;
   try {
     await step("Finding your pages");
-    const base = `https://${domain}`;
     const [{ source, pages: listed }, robots, llms] = await Promise.all([findPages(domain), get(`${base}/robots.txt`), get(`${base}/llms.txt`)]);
     const urls = [...new Set([base, ...listed.map((p) => p.url)].map(norm))].slice(0, MAX_PAGES);
-    const pages: (AuditPage & { hrefs: string[] })[] = [];
     let done = 0;
     await pool(urls, 6, async (url) => {
       const r = await get(url);
@@ -234,11 +241,83 @@ export async function runAudit(db: SupabaseClient, auditId: string, domain: stri
     for (const p of pages) if (p.status >= 400 || p.status === 0) for (const q of pages) if (q.hrefs.includes(norm(p.url))) brokenLinks.push({ url: p.url, status: p.status, from: q.url });
 
     const site = { blockedBots: robots.status === 200 ? blockedBots(robots.body) : [], llmsTxt: llms.status === 200 && llms.body.length > 20 && !/<html/i.test(llms.body), brokenLinks: brokenLinks.slice(0, 200) };
-    const clean: AuditPage[] = pages.map(({ hrefs, ...p }) => (void hrefs, p)).sort((a, b) => a.url.localeCompare(b.url));
-    const issues = issuesOf(clean, site);
-    const result: AuditResult = { pages: clean, issues, found: listed.length, sitemap: source, ...site };
-    await db.from("site_audits").update({ status: "done", step: "Done", pages: clean.length, score: scoreOf(issues, clean.length), result, finished_at: new Date().toISOString() }).eq("id", auditId);
+    await save(db, auditId, pages, site, listed.length, source, partialReason(pages, base));
   } catch (e) {
-    await db.from("site_audits").update({ status: "failed", error: e instanceof Error ? e.message : String(e), finished_at: new Date().toISOString() }).eq("id", auditId);
+    const msg = e instanceof Error ? e.message : String(e);
+    // Pages already read are still worth showing, but a crawl that stopped early never gets a score.
+    if (pages.length) await save(db, auditId, pages, { blockedBots: [], llmsTxt: true, brokenLinks: [] }, pages.length, null, `The crawl stopped after ${pages.length} pages: ${msg}`).catch(() => undefined);
+    else await db.from("site_audits").update({ status: "failed", error: msg, finished_at: new Date().toISOString() }).eq("id", auditId);
+  }
+}
+
+async function save(db: SupabaseClient, auditId: string, pages: (AuditPage & { hrefs: string[] })[], site: Pick<AuditResult, "blockedBots" | "llmsTxt" | "brokenLinks">, found: number, sitemap: string | null, partial: string | null) {
+  const clean: AuditPage[] = pages.map(({ hrefs, ...p }) => (void hrefs, p)).sort((a, b) => a.url.localeCompare(b.url));
+  const issues = issuesOf(clean, site);
+  const result: AuditResult = { pages: clean, issues, found, sitemap, ...site, ...(partial ? { partial } : {}) };
+  const { error } = await db
+    .from("site_audits")
+    .update({ status: "done", step: "Done", pages: clean.length, score: scoreToSave(scoreOf(issues, clean.length), partial), result, error: null, finished_at: new Date().toISOString() })
+    .eq("id", auditId);
+  if (error) throw new Error(error.message);
+  await alertOnDrop(db, auditId).catch((e) => console.error("Site audit alert failed:", e instanceof Error ? e.message : e));
+}
+
+/** Email the brand's alert list when the score fell since the last full crawl. Once per crawl. */
+async function alertOnDrop(db: SupabaseClient, auditId: string) {
+  const { data: now } = await db.from("site_audits").select("id, workspace_id, brand_id, status, score, created_at, result").eq("id", auditId).maybeSingle();
+  if (!now?.brand_id) return;
+  const { data: list } = await db.from("site_audits").select("id, status, score, created_at, result").eq("brand_id", now.brand_id).order("created_at", { ascending: false }).limit(12);
+  const rows = (list ?? []) as (AuditRow & { result: AuditResult })[];
+  const current = rows.find((r) => r.id === auditId);
+  if (!current) return;
+  const prev = previousFull(rows, current) as (AuditRow & { result: AuditResult }) | null;
+  const drop = dropAlert(prev, current);
+  if (drop === null || !prev) return;
+  const { data: brand } = await db.from("brands").select("id, name, domain").eq("id", now.brand_id).maybeSingle();
+  if (!brand) return;
+  const before = new Set((prev.result?.issues ?? []).map((i) => i.id));
+  const fresh = (current.result?.issues ?? []).filter((i) => !before.has(i.id));
+  await emailAuditDrop(db, now.workspace_id, brand, { auditId, score: current.score as number, before: prev.score as number, issues: (fresh.length ? fresh : current.result?.issues ?? []).slice(0, 5).map((i) => ({ title: i.title, count: i.count, isNew: before.size > 0 && !before.has(i.id) })) });
+}
+
+/** Start a crawl for a brand, or for a domain (Zippie). Returns the new audit's id. */
+export async function startAudit(db: SupabaseClient, ws: string, userId: string | null, rawDomain: string, brandId?: string | null) {
+  const domain = cleanDomain(rawDomain);
+  if (!domain) throw new Error("That doesn't look like a website address.");
+  let brand = brandId ?? null;
+  if (!brand) {
+    // Zippie names a domain: the crawl belongs to the workspace's brand with that domain, if there is one.
+    const { data: brands } = await db.from("brands").select("id, domain").eq("workspace_id", ws);
+    brand = (brands ?? []).find((b) => cleanDomain(String(b.domain)) === domain)?.id ?? null;
+  }
+  const { data, error } = await db.from("site_audits").insert({ workspace_id: ws, domain, created_by: userId, ...(brand ? { brand_id: brand } : {}) }).select("id").single();
+  if (error || !data) throw new Error(error?.message ?? "Could not start the audit.");
+  if (await queueReady()) await enqueue("audit", { auditId: data.id, domain }, { workspaceId: ws, key: `audit:${data.id}`, maxAttempts: 1 });
+  else after(() => runAudit(db, data.id, domain));
+  return { id: data.id as string, domain };
+}
+
+/** The daily tick: start each brand's weekly crawl when it's due. Brands start weekly crawls after their first crawl. */
+export async function queueWeeklyAudits(db: SupabaseClient) {
+  const { data: brands, error } = await db.from("brands").select("id, workspace_id, domain, audit_weekly").eq("audit_weekly", true);
+  if (error) {
+    if (/audit_weekly/.test(error.message)) return; // before 061_site_audits.sql
+    throw new Error(error.message);
+  }
+  if (!brands?.length) return;
+  const now = Date.now();
+  const latest = new Map<string, { created_at: string; status: string }>();
+  for (let i = 0; i < brands.length; i += 200) {
+    const ids = brands.slice(i, i + 200).map((b) => b.id);
+    const { data } = await db.from("site_audits").select("brand_id, status, created_at").in("brand_id", ids).order("created_at", { ascending: false }).limit(2000);
+    for (const a of data ?? []) if (!latest.has(a.brand_id)) latest.set(a.brand_id, a);
+  }
+  for (const b of brands) {
+    const last = latest.get(b.id);
+    const running = Boolean(last && last.status === "running" && !isStuck(last, now));
+    if (!weeklyDue({ weekly: b.audit_weekly, lastStarted: last?.created_at ?? null, running, now })) continue;
+    const e = await entitlement(b.workspace_id);
+    if (e.readOnly || !e.open.seo) continue;
+    await startAudit(db, b.workspace_id, null, String(b.domain), b.id).catch((err) => console.error(`Weekly audit for ${b.domain} failed to start:`, err instanceof Error ? err.message : err));
   }
 }

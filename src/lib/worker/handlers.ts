@@ -19,7 +19,7 @@ import type { AgentResult } from "../research";
 import { articleResearchJob } from "../articleResearchServer";
 import { writerBriefJob, writerDraftJob } from "../writerServer";
 import { wpPublishJob } from "../wpSyncServer";
-import { runAudit } from "../audit";
+import { queueWeeklyAudits, runAudit } from "../audit";
 import { queueReportSends } from "../scheduleServer";
 import { applySet, preparePlay, undoSet } from "../plays";
 import { checkDue, promptAllowance } from "../plans";
@@ -47,6 +47,8 @@ export const slotOf = (brandId: string) => seed(brandId) % WINDOW_MIN;
 export async function schedule(db: SupabaseClient, job: Job) {
   // Scheduled reports due this tick (docs/reports.md, section 32.4). A failure here never holds up the daily checks.
   await queueReportSends(db).catch((e) => console.error("Report schedules failed:", e instanceof Error ? e.message : e));
+  // Weekly site audits (docs/site-audit.md), for brands that already ran one. A failure here never holds up the daily checks.
+  await queueWeeklyAudits(db).catch((e) => console.error("Weekly site audits failed:", e instanceof Error ? e.message : e));
   const engines = availableEngines();
   if (!engines.length) return finish(job.id);
   const now = new Date();
