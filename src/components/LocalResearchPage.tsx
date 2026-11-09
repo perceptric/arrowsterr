@@ -5,6 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { GRID, reviewHistory, SPACINGS, type ListingCheck, type Location, type Place, type ScanResult } from "@/lib/local";
 import type { RunAuth } from "@/lib/runner";
 import { demoLocal } from "@/lib/demo";
+import { ToolStart } from "./ToolStart";
 import { Card, Delta, Seg, Thinking } from "./ui";
 import { useApi } from "./ZippiePage";
 
@@ -28,6 +29,9 @@ export function LocalResearchPage({ brand, sb, auth, canEdit }: { brand: Brand; 
   const [busy, setBusy] = useState("");
   const call = useCallback(<T,>(action: string, extra: Record<string, unknown> = {}) => api<T>("/api/local", { action, brandId: brand.id, ...extra }), [api, brand.id]);
   const demo = useMemo(() => demoLocal({ name: brand.name, domain: brand.domain }), [brand.name, brand.domain]);
+  // With no business picked, the tool's start page (ToolStart) explains Local Research, with an example business
+  // inside it. Its search box finds the real one.
+  const [showExample, setShowExample] = useState(false);
 
   useEffect(() => {
     let live = true;
@@ -59,12 +63,17 @@ export function LocalResearchPage({ brand, sb, auth, canEdit }: { brand: Brand; 
     if (r) setLoc(r.location);
   };
 
-  return (
+  const page = (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="mr-auto flex flex-wrap items-center gap-3">
           <h1 className="aw-h2 mb-0!">Local Research</h1>
           {loc === null ? <span className="aw-status aw-status--pending">Example data</span> : null}
+          {loc === null ? (
+            <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setShowExample(false)}>
+              {canEdit ? "Find your business" : "About Local Research"}
+            </button>
+          ) : null}
         </div>
         {loc ? (
           <div className="flex flex-wrap items-center gap-3 text-[13px]">
@@ -85,20 +94,20 @@ export function LocalResearchPage({ brand, sb, auth, canEdit }: { brand: Brand; 
       {loc === undefined ? (
         <Thinking text="Loading" />
       ) : loc === null ? (
-        <>
-          {canEdit ? <Setup brand={brand} call={call} onSet={setLoc} onError={setError} /> : null}
-          <Scans brand={brand} loc={demo.loc} sb={sb} canEdit={false} busy={busy} call={call} run={run} save={save} onNote={setNote} demoScans={demo.scans} />
-        </>
+        <Scans brand={brand} loc={demo.loc} sb={sb} canEdit={false} busy={busy} call={call} run={run} save={save} onNote={setNote} demoScans={demo.scans} />
       ) : (
         <Scans key={loc.cid ?? loc.title} brand={brand} loc={loc} sb={sb} canEdit={canEdit} busy={busy} call={call} run={run} save={save} onNote={setNote} />
       )}
     </div>
   );
+
+  if (loc === null && !showExample) return <LocalStart brand={brand} call={call} canEdit={canEdit} error={error} onSet={setLoc} onError={setError} example={page} onOpenExample={() => setShowExample(true)} />;
+  return page;
 }
 
 type Call = <T>(action: string, extra?: Record<string, unknown>) => Promise<T>;
 
-function Setup({ brand, call, onSet, onError }: { brand: Brand; call: Call; onSet: (l: Location) => void; onError: (e: string) => void }) {
+function LocalStart({ brand, call, canEdit, error, onSet, onError, example, onOpenExample }: { brand: Brand; call: Call; canEdit: boolean; error: string; onSet: (l: Location) => void; onError: (e: string) => void; example: React.ReactNode; onOpenExample: () => void }) {
   const [query, setQuery] = useState(`${brand.name} `);
   const [places, setPlaces] = useState<Place[] | null>(null);
   const [busy, setBusy] = useState("");
@@ -124,43 +133,65 @@ function Setup({ brand, call, onSet, onError }: { brand: Brand; call: Call; onSe
     }
   }
   return (
-    <>
-      <Card>
-        <form
-          className="flex flex-wrap items-center gap-2 px-5 py-4"
-          onSubmit={(e) => {
-            e.preventDefault();
-            find();
-          }}
-        >
-          <input id="local-query" className="aw-input min-w-0 flex-1 sm:max-w-96" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Business name and city" aria-label="Business name and city" />
-          <button type="submit" className="aw-btn aw-btn--primary aw-btn--sm" disabled={query.trim().length < 3 || busy === "find"}>
-            {busy === "find" ? "Finding" : "Find"}
-          </button>
-        </form>
-      </Card>
-      {places ? (
-        <Card title={places.length ? "Which one is it?" : undefined}>
-          {places.length ? (
-            <ul className="flex flex-col px-5 pb-4">
-              {places.map((p) => (
-                <li key={p.cid ?? `${p.title}${p.address}`} className="flex flex-wrap items-center gap-3 border-t border-[var(--aw-rule)] py-3 first:border-t-0">
-                  <span className="flex min-w-0 flex-1 flex-col">
-                    <span className="text-[14px] font-medium text-ink wrap-break-word">{p.title}</span>
-                    <span className="text-[12px] text-muted wrap-break-word">{[p.category, p.address, p.rating !== null ? `★ ${p.rating} (${p.reviews ?? 0})` : null].filter(Boolean).join(", ")}</span>
+    <ToolStart
+      tool="local"
+      error={error}
+      example={example}
+      onOpenExample={onOpenExample}
+      onCta={
+        canEdit
+          ? () => {
+              window.scrollTo({ top: 0, behavior: "smooth" });
+              document.getElementById("ts-local-query")?.focus();
+            }
+          : undefined
+      }
+      form={
+        canEdit ? (
+          <form
+            className="ts-q"
+            onSubmit={(e) => {
+              e.preventDefault();
+              find();
+            }}
+          >
+            <input id="ts-local-query" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Business name and city" aria-label="Business name and city" />
+            <button type="submit" className="ts-btn ts-btn--primary ts-btn--lg" disabled={query.trim().length < 3 || busy === "find"}>
+              {busy === "find" ? "Finding" : "Find"} <span className="ts-arr">→</span>
+            </button>
+          </form>
+        ) : (
+          <div className="ts-q">
+            <span className="ts-domain">{brand.name}</span>
+          </div>
+        )
+      }
+      below={
+        places ? (
+          <div className="ts-places">
+            {places.length ? (
+              places.map((p) => (
+                <div key={p.cid ?? `${p.title}${p.address}`} className="ts-place">
+                  <span>
+                    <b>{p.title}</b>
+                    <small>{[p.category, p.address, p.rating !== null ? `★ ${p.rating} (${p.reviews ?? 0})` : null].filter(Boolean).join(", ")}</small>
                   </span>
-                  <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => pick(p)} disabled={Boolean(busy) || p.lat === null}>
+                  <button type="button" className="ts-btn ts-btn--quiet ts-btn--sm" onClick={() => pick(p)} disabled={Boolean(busy) || p.lat === null}>
                     {busy === (p.cid ?? p.title) ? "Saving" : "This is us"}
                   </button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="px-5 py-5 text-[13px] text-muted">No business found.</p>
-          )}
-        </Card>
-      ) : null}
-    </>
+                </div>
+              ))
+            ) : (
+              <div className="ts-place">
+                <span>
+                  <b>No business found.</b>
+                </span>
+              </div>
+            )}
+          </div>
+        ) : null
+      }
+    />
   );
 }
 
@@ -197,7 +228,7 @@ function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote, demoSca
 
   return (
     <div className="flex flex-col gap-4">
-      <Card>
+      <Card tour={1}>
         <div className="flex flex-col gap-3 px-5 py-4">
           <div className="flex flex-wrap items-center gap-2">
             {loc.keywords.map((k) => (
@@ -262,7 +293,7 @@ function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote, demoSca
             <Stat label="In the top 20" value={`${cur.found} of ${cur.read}`} sub={cur.read < GRID * GRID ? `${GRID * GRID - cur.read} points didn't load` : undefined} />
           </div>
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-            <Card title={`“${cur.keyword}”, ${cur.spacing} mi apart, ${when(done[0].created_at)}`}>
+            <Card tour={2} title={`“${cur.keyword}”, ${cur.spacing} mi apart, ${when(done[0].created_at)}`}>
               <div className="px-4 pb-4">
                 <Grid scan={cur} sel={pt} onSel={setPt} />
                 <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-muted">
@@ -278,7 +309,7 @@ function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote, demoSca
                 <PackAt scan={cur} i={pt ?? Math.floor((GRID * GRID) / 2)} you={loc.title} />
               </Card>
               {cur.listing ? (
-                <Card title="Listing check">
+                <Card tour={3} title="Listing check">
                   <ul className="flex flex-col px-5 pb-4">
                     {cur.listing.map((c) => (
                       <li key={c.id} className="flex items-start gap-3 border-t border-[var(--aw-rule)] py-2.5 first:border-t-0">
@@ -297,7 +328,7 @@ function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote, demoSca
             </div>
           </div>
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-            <Card title="Local rivals">
+            <Card tour={4} title="Local rivals">
               <div className="overflow-x-auto">
                 <table className="aw-table">
                   <thead>

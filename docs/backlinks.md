@@ -63,4 +63,4 @@ Typical use per team a month, with saved answers covering repeat opens: 4 overvi
 
 ## Example data
 
-Before the first real result, the screen shows example data from `src/lib/demo.ts`, tagged "Example data". Tabs, filters, panels and the map all work. The buttons that fetch real data stay live. Buttons that would change real records are off. It runs in the browser, so it adds $0 a month at Beta and at Growth.
+Before the first real result, the tool opens on its start page (`docs/tool-start.md`): what it shows, the example report with numbered parts, how it works, a glossary and common questions, with the tool's real action at the top. "Open the example report" shows this screen on example data from `src/lib/demo.ts`, tagged "Example data", where tabs, filters, panels and the map all work. Buttons that would change real records are off there. It runs in the browser, so it adds $0 a month at Beta and at Growth.

@@ -5,6 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { AREAS, fixGain, type Check, type FixPlay, type MainKeyword, type OnpageResult } from "@/lib/onpage";
 import { demoOnpage } from "@/lib/demo";
 import type { RunAuth } from "@/lib/runner";
+import { ToolStart } from "./ToolStart";
 import { Card, Seg, SidePanel, Thinking } from "./ui";
 import { ChangeSetCard, useApi } from "./ZippiePage";
 
@@ -25,8 +26,9 @@ export function OnpageAuditPage({ brand, sb, auth, canEdit, onConnect }: { brand
   const api = useApi(auth);
   const [tab, setTab] = useState<Tab>("page");
   const [rowsState, setRows] = useState<Row[] | null>(null);
-  // No audit yet: the screen shows example audits, so every part of it can be tried. Audit runs a real one.
+  // No audit yet: the tool's start page (ToolStart) explains it, with this screen on example audits inside it.
   const isDemo = rowsState !== null && rowsState.length === 0;
+  const [showExample, setShowExample] = useState(false);
   const demoRows = useMemo(() => demoOnpage({ name: brand.name, domain: brand.domain }) as unknown as Row[], [brand.name, brand.domain]);
   const rows = isDemo ? demoRows : rowsState;
   const [openId, setOpenId] = useState<string | null>(null);
@@ -153,14 +155,21 @@ export function OnpageAuditPage({ brand, sb, auth, canEdit, onConnect }: { brand
   const head = (
     <div className="flex flex-wrap items-end justify-between gap-3">
       <h1 className="aw-h2 mb-0!">On-page Audit</h1>
-      {isDemo ? <span className="aw-status aw-status--pending mr-auto">Example data</span> : null}
+      {isDemo ? (
+        <span className="mr-auto flex flex-wrap items-center gap-2">
+          <span className="aw-status aw-status--pending">Example data</span>
+          <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setShowExample(false)}>
+            About On-page Audit
+          </button>
+        </span>
+      ) : null}
       {rows?.length || tab === "all" ? <Seg label="On-page Audit view" value={tab} onChange={setTab} options={[{ id: "page", label: "This page" }, { id: "all", label: "All pages" }]} /> : null}
     </div>
   );
 
   if (rows === null) return <div className="flex flex-col gap-6">{head}{error ? <p className="aw-error">{error}</p> : <Thinking text="Loading" />}</div>;
 
-  return (
+  const page = (
     <div className="flex flex-col gap-6">
       {head}
       {error ? <p className="aw-error">{error}</p> : null}
@@ -189,6 +198,39 @@ export function OnpageAuditPage({ brand, sb, auth, canEdit, onConnect }: { brand
       ) : null}
     </div>
   );
+
+  if (isDemo && !showExample)
+    return (
+      <ToolStart
+        tool="onpage"
+        error={error}
+        example={page}
+        onOpenExample={() => setShowExample(true)}
+        onCta={canEdit ? () => { window.scrollTo({ top: 0, behavior: "smooth" }); document.getElementById("ts-onpage-url")?.focus(); } : undefined}
+        form={
+          canEdit ? (
+            <form
+              className="ts-q"
+              onSubmit={(e) => {
+                e.preventDefault();
+                start();
+              }}
+            >
+              <input id="ts-onpage-url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder={`${brand.domain}/page`} aria-label="Page" />
+              <input id="ts-onpage-keyword" value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="Keyword" aria-label="Keyword" />
+              <button type="submit" className="ts-btn ts-btn--primary ts-btn--lg" disabled={busy === "start" || !url.trim() || !keyword.trim()}>
+                {busy === "start" ? "Starting" : "Audit"} <span className="ts-arr">→</span>
+              </button>
+            </form>
+          ) : (
+            <div className="ts-q">
+              <span className="ts-domain">{brand.domain}</span>
+            </div>
+          )
+        }
+      />
+    );
+  return page;
 }
 
 function Ring({ value, size = 120, stroke = 11, label }: { value: number | null; size?: number; stroke?: number; label?: React.ReactNode }) {
@@ -250,7 +292,7 @@ function Detail({ row, history, canEdit, demo = false, busy, proposed, onFix, on
   return (
     <div className="flex flex-col gap-4">
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-        <Card>
+        <Card tour={1}>
           <div className="flex flex-wrap items-center gap-6 px-5 py-5">
             <Ring value={r.score} size={128} label={<div><div className="aw-num text-[32px] leading-none font-semibold text-ink">{r.score}</div><div className="mt-1 text-[12px] text-muted">of 100</div></div>} />
             <div className="flex min-w-0 flex-1 flex-col gap-2.5">
@@ -272,7 +314,7 @@ function Detail({ row, history, canEdit, demo = false, busy, proposed, onFix, on
             </div>
           </div>
         </Card>
-        <Card
+        <Card tour={2}
           title="Google preview"
           action={s ? <Seg label="Preview" value={view} onChange={setView} options={[{ id: "now", label: "Now" }, { id: "suggested", label: "Suggested" }]} /> : null}
         >
@@ -296,7 +338,7 @@ function Detail({ row, history, canEdit, demo = false, busy, proposed, onFix, on
       </div>
 
       {canEdit && plays.length ? (
-        <Card title="Fixes">
+        <Card tour={3} title="Fixes">
           <ul className="flex flex-col">
             {plays.map((p) => {
               const key = `${row.id}:${p}`;
@@ -353,7 +395,7 @@ function Detail({ row, history, canEdit, demo = false, busy, proposed, onFix, on
               <p className="px-5 pb-5 text-[13.5px] leading-relaxed text-body">{s.answer}</p>
             </Card>
           ) : null}
-          <Card title="Terms the top pages share">
+          <Card tour={4} title="Terms the top pages share">
             <div className="flex flex-col gap-2 px-5 pb-5">
               {r.terms.length ? (
                 <div className="flex flex-wrap gap-1.5">

@@ -125,7 +125,7 @@ export type ZippieWhere = { brand: string | null; page: string };
  * Zippie's chat. As a page it shows the chats on the right. compact fits it in the floating panel: the chats
  * list takes the panel's place when opened, and onClose closes the panel.
  */
-export function ZippiePage({ auth, canEdit, compact = false, where = null, onClose }: { auth: RunAuth; canEdit: boolean; compact?: boolean; where?: ZippieWhere | null; onClose?: () => void }) {
+export function ZippiePage({ auth, canEdit, compact = false, where = null, onClose, ask = null }: { auth: RunAuth; canEdit: boolean; compact?: boolean; where?: ZippieWhere | null; onClose?: () => void; ask?: { text: string; n: number } | null }) {
   const api = useApi(auth);
   const [view, setView] = useState<View>("chat");
   const [threads, setThreads] = useState<Thread[]>([]);
@@ -243,6 +243,14 @@ export function ZippiePage({ auth, canEdit, compact = false, where = null, onClo
       loadThreads();
     }
   };
+  // A question sent from a tool's start page (askZippie): send it once per ask.
+  const askedRef = useRef(0);
+  useEffect(() => {
+    if (!ask || ask.n === askedRef.current) return;
+    askedRef.current = ask.n;
+    send(ask.text, null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ask]);
 
   const threadAction = async (t: Thread, action: "rename" | "delete" | "move", extra: Record<string, unknown> = {}) => {
     try {

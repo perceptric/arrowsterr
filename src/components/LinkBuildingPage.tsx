@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { boardStats, SOURCES, STAGES, type Source, type Stage } from "@/lib/linkBuilding";
 import type { RunAuth } from "@/lib/runner";
 import { demoCards } from "@/lib/demo";
+import { ToolStart, TsDomain } from "./ToolStart";
 import { Card, SidePanel, Thinking } from "./ui";
 import { useApi } from "./ZippiePage";
 
@@ -74,6 +75,8 @@ export function LinkBuildingPage({ brand, auth, onBacklinks }: { brand: Brand; a
   }, [load]);
 
   const isDemo = cards !== null && cards.length === 0;
+  // An empty board opens on the tool's start page (ToolStart), with the example board inside it.
+  const [showExample, setShowExample] = useState(false);
   const board = isDemo ? demoState : cards;
   const replace = (c: CardRow) => {
     const swap = (list: CardRow[] | null) => (list ?? []).map((x) => (x.id === c.id ? c : x));
@@ -170,12 +173,17 @@ export function LinkBuildingPage({ brand, auth, onBacklinks }: { brand: Brand; a
 
   if (cards === null) return <div className="flex flex-col gap-6"><h1 className="aw-h2 mb-0!">Link Building</h1><Thinking text="Loading" /></div>;
 
-  return (
+  const page = (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="mr-auto flex flex-wrap items-center gap-3">
           <h1 className="aw-h2 mb-0!">Link Building</h1>
           {isDemo ? <span className="aw-status aw-status--pending">Example data</span> : null}
+          {isDemo ? (
+            <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setShowExample(false)}>
+              About Link Building
+            </button>
+          ) : null}
         </div>
         {finders}
       </div>
@@ -183,7 +191,7 @@ export function LinkBuildingPage({ brand, auth, onBacklinks }: { brand: Brand; a
       {note ? <p className="aw-callout">{note}</p> : null}
 
       <>
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+          <div data-tour="1" className="grid grid-cols-2 gap-3 lg:grid-cols-5">
             <Kpi label="Prospects" value={stats.prospects} />
             <Kpi label="Contacted" value={stats.reached} />
             <Kpi label="Reply rate" value={`${stats.replyRate}%`} />
@@ -191,7 +199,7 @@ export function LinkBuildingPage({ brand, auth, onBacklinks }: { brand: Brand; a
             <Kpi label="Links gone" value={stats.gone} tone={stats.gone ? "neg" : undefined} />
           </div>
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap gap-2">
+            <div data-tour="2" className="flex flex-wrap gap-2">
               {[{ id: "all" as const, label: "All" }, ...SOURCES].map((s) => (
                 <button key={s.id} type="button" aria-pressed={filter === s.id} onClick={() => setFilter(s.id)} className={`aw-btn aw-btn--sm ${filter === s.id ? "aw-btn--primary" : "aw-btn--secondary"}`}>
                   {s.label}
@@ -213,13 +221,14 @@ export function LinkBuildingPage({ brand, auth, onBacklinks }: { brand: Brand; a
               </form>
             ) : null}
           </div>
-          <div className="grid auto-cols-[minmax(240px,1fr)] grid-flow-col gap-3 overflow-x-auto pb-2">
+          <div data-tour="3" className="grid auto-cols-[minmax(240px,1fr)] grid-flow-col gap-3 overflow-x-auto pb-2">
             {STAGES.map((st) => {
               const list = shown.filter((c) => c.stage === st.id);
               return (
                 <section
                   key={st.id}
                   aria-label={st.label}
+                  data-tour={st.id === "won" ? "4" : undefined}
                   className={`flex min-h-72 flex-col gap-2 rounded-[12px] bg-[var(--aw-surface-2)] p-2.5 transition-shadow ${over === st.id ? "shadow-[inset_0_0_0_2px_var(--aw-brand)]" : ""}`}
                   onDragOver={(e) => {
                     if (!drag || !canMove) return;
@@ -266,6 +275,46 @@ export function LinkBuildingPage({ brand, auth, onBacklinks }: { brand: Brand; a
       ) : null}
     </div>
   );
+
+  if (isDemo && !showExample)
+    return (
+      <ToolStart
+        tool="linkbuilding"
+        error={error}
+        example={page}
+        onOpenExample={() => setShowExample(true)}
+        onCta={canEdit && rivals ? () => find("ai_cites") : undefined}
+        below={note ? <p className="ts-err" style={{ background: "#e6f6ee", color: "#0b7a52" }}>{note}</p> : null}
+        form={
+          <>
+            <div className="ts-q">
+              <TsDomain domain={brand.domain} />
+              {canEdit ? (
+                <button type="button" className="ts-btn ts-btn--primary ts-btn--lg" onClick={() => find("ai_cites")} disabled={Boolean(busy) || !rivals}>
+                  {busy === "find:ai_cites" ? "Finding" : "Sites AI cites"} <span className="ts-arr">→</span>
+                </button>
+              ) : null}
+            </div>
+            {canEdit ? (
+              <div className="ts-qfoot">
+                <span>Or find</span>
+                <button type="button" onClick={() => find("broken_page")} disabled={Boolean(busy) || !rivals}>
+                  {busy === "find:broken_page" ? "Finding" : "Dead rival pages"}
+                </button>
+                <button type="button" onClick={() => find("unlinked_mention")} disabled={Boolean(busy)}>
+                  {busy === "find:unlinked_mention" ? "Searching" : "Unlinked mentions"}
+                </button>
+                <button type="button" onClick={onBacklinks}>
+                  Link gap
+                </button>
+                {!rivals ? <span>Sites AI cites and dead rival pages need competitors on the brand.</span> : null}
+              </div>
+            ) : null}
+          </>
+        }
+      />
+    );
+  return page;
 }
 
 function Kpi({ label, value, tone }: { label: string; value: string | number; tone?: "pos" | "neg" }) {
