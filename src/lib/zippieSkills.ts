@@ -24,6 +24,69 @@ export const BUILTIN_SKILLS: Omit<Skill, "builtin" | "enabled">[] = [
 - To change real pages, use get_site_content, then propose_changes with play "meta". Tell the person the changes wait for their approval.`,
   },
   {
+    key: "onpage-fix",
+    name: "On-page fix",
+    description: "Scores a page against Google's top 10 for its keyword, then prepares the fixes.",
+    instructions: `1. Ask for the page and its keyword if the person didn't say. If they only gave a page, ask which search it should win.
+2. Call start_onpage_audit, wait about a minute, then call get_onpage_audit with its id. If it's still running, call it again.
+3. Report the score next to the top 10 average, where the page ranks, and the 3 biggest gaps, most points first.
+4. For fixes a play can make (fix_play meta, schema, faq, alt, links), offer propose_changes for that page. Tell the person the changes wait for their approval.
+5. For content gaps, list the missing terms and the length gap, and give the suggested opening paragraph and title from the audit. Never invent facts the page doesn't state.`,
+  },
+  {
+    key: "link-gap-outreach",
+    name: "Link gap outreach",
+    description: "Finds sites that link to your rivals but not to you, starting with the ones AI cites, and drafts the pitch.",
+    instructions: `1. Call get_backlinks. Report linking sites, authority and the last 4 weeks of new and lost sites in one or two lines.
+2. If there is no link gap yet, say the rivals it needs, or point to Backlinks, Link gap, in one line.
+3. Pick 5 to 10 gap sites: first ones AI cites, then ones that link to more than one rival, then the strongest.
+4. For each, say why it fits in one line, and what the brand could offer them: data, a quote, a guide, a tool, a correction.
+5. Draft one short pitch per site the person can edit and send. Lead with what helps their readers. No link begging, no flattery.
+6. Never send anything yourself.`,
+  },
+  {
+    key: "win-links-ai-sources",
+    name: "Win links from AI sources",
+    description: "Finds the sites AI quotes for your rivals, puts them on Link Building and drafts the pitches.",
+    instructions: `1. Call find_link_prospects to add the sites AI cites when it names a rival and not the brand. If it says competitors are missing, ask for 2 or 3 rival websites.
+2. Call get_link_building. Report prospects, contacted, reply rate, links won and links gone in one line.
+3. Pick the 5 best prospects: AI cites first, then link gap sites that link to more rivals, then the strongest.
+4. For each, say what the page is about and what the brand could offer it: data, an example, a quote or a correction.
+5. Draft one pitch per site under 120 words, leading with what helps their readers. The person sends it from their own email; never say you sent anything.
+6. Name any won link that's gone, and suggest asking the site to put it back.`,
+  },
+  {
+    key: "fill-content-map",
+    name: "Fill the content map",
+    description: "Finds the missing topics worth writing first and adds them to the Content Plan.",
+    instructions: `1. Call get_content_map. If there's none, say an editor builds it on Content, Content Map, in one line.
+2. Report topics, covered, missing, competing pages and pages not linked from their pillar's main page in one line.
+3. Pick the 5 best missing topics: ones rivals rank for and that aren't planned, most searches first, and favour pillars the brand already covers well, since those pages can link to them.
+4. Ask before adding. Then add them with add_to_content_plan, one line of angle in notes for each: what rivals cover and what the brand can add.
+5. For competing pages, say which page should stay and that the other should merge into it with a redirect.
+6. For topics not linked from their pillar's main page, offer propose_changes with play "links" on that page. Changes wait for approval.`,
+  },
+  {
+    key: "local-audit",
+    name: "Local audit",
+    description: "Why rivals win the Google Maps pack near the business, and what to fix first.",
+    instructions: `1. Call get_local_research. If there's no location or no scan, say what to add on Local Research in one line.
+2. For each keyword, give the average rank, the top 3 share and where on the grid the business is weakest (edges, one side).
+3. Compare with the 2 rivals holding the top 3 most: reviews, rating and category.
+4. List the listing check failures first: a phone that differs, a missing address or LocalBusiness schema, a category rivals use and the business doesn't.
+5. End with 3 moves, most impact first: fix the listing, add the rivals' category if it fits, get more reviews, add location pages or schema. Each says what to do and why.`,
+  },
+  {
+    key: "review-response-plan",
+    name: "Review response plan",
+    description: "A plan to get more Google reviews and reply to them, against the rivals winning the map.",
+    instructions: `1. Call get_local_research. Compare the business's reviews and rating with the rivals holding the top 3.
+2. Set a monthly goal for new reviews that closes the gap in 6 months, with the math shown in one line.
+3. Give 3 moments to ask for a review that fit this kind of business, and a short ask for each (text message and email), in the brand's voice.
+4. Give reply templates for a 5-star, a 3-star and a 1-star review: short, personal, no copy-paste feel, and never offering anything in return for a review.
+5. Remind the person that Google forbids paying for or gating reviews.`,
+  },
+  {
     key: "faq-builder",
     name: "FAQ sections",
     description: "FAQ sections built from the questions buyers ask AI, with FAQ structured data.",

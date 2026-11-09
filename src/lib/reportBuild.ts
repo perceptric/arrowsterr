@@ -1,4 +1,5 @@
 import "server-only";
+import { seoSnapshot, type SeoRaw, type SeoSnapshot } from "./reportSeo";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Run } from "./chats";
 import { listCalendar, type CalendarItem } from "./db";
@@ -28,11 +29,26 @@ export type BuildInput = {
 const all = () => true;
 const sectionsOf = (doc: ReportDocument): ReportSection[] => {
   const on = new Set(doc.blocks.filter((b) => b.on).map((b) => b.id));
-  return [...(on.has("kpis") || on.has("models") ? (["ai"] as const) : []), ...(["competitors", "traffic", "visitors", "content"] as const).filter((s) => on.has(s))];
+  return [...(on.has("kpis") || on.has("models") ? (["ai"] as const) : []), ...(["competitors", "traffic", "visitors", "content", "seo"] as const).filter((s) => on.has(s))];
 };
 
 function spanOf(start: string, end: string, tz: string | null): Span {
   return { start, end, startAt: Date.parse(dayStart(start, tz)), endAt: Date.parse(dayStart(addDays(end, 1), tz)) };
+}
+
+/** The SEO block's saved results (src/lib/reportSeo.ts). Tables from 061 to 066 that don't exist yet just add nothing. */
+async function seoFor(db: SupabaseClient, brand: { id: string; workspace_id: string }, start: string, end: string): Promise<SeoSnapshot | null> {
+  const rows = async <T>(q: PromiseLike<{ data: T[] | null; error: unknown }>): Promise<T[]> => ((await q).data ?? []) as T[];
+  const { data: list } = await db.from("outreach_lists").select("id").eq("workspace_id", brand.workspace_id).eq("brand_id", brand.id).eq("name", "Link building").limit(1).maybeSingle();
+  const [audits, onpage, snaps, cards, maps, scans] = await Promise.all([
+    rows<SeoRaw["audits"][number]>(db.from("site_audits").select("status, score, created_at, pages, result").eq("brand_id", brand.id).eq("status", "done").order("created_at", { ascending: false }).limit(20)),
+    rows<SeoRaw["onpage"][number]>(db.from("onpage_audits").select("url, keyword, score, top_score, created_at, status").eq("brand_id", brand.id).order("created_at", { ascending: false }).limit(200)),
+    rows<SeoRaw["snaps"][number]>(db.from("backlink_snapshots").select("day, domains, backlinks, rank").eq("brand_id", brand.id).order("day", { ascending: false }).limit(60)),
+    list ? rows<NonNullable<SeoRaw["cards"]>[number]>(db.from("outreach_targets").select("stage, stage_at, link_live").eq("list_id", list.id).limit(2000)) : Promise.resolve(null),
+    rows<SeoRaw["maps"][number]>(db.from("content_maps").select("created_at, result").eq("brand_id", brand.id).eq("status", "done").order("created_at", { ascending: false }).limit(3)),
+    rows<SeoRaw["scans"][number]>(db.from("local_scans").select("keyword, created_at, result").eq("brand_id", brand.id).eq("status", "done").order("created_at", { ascending: false }).limit(60)),
+  ]);
+  return seoSnapshot({ start, end, audits, onpage, snaps, cards, maps, scans });
 }
 
 /** Saved runs for a brand between two moments, oldest first, with tidy sources. */
@@ -79,6 +95,7 @@ export async function buildClientReport(input: BuildInput): Promise<Built> {
     on.has("visitors") || on.has("content") ? soft(brandVisitors(db, brand.id, cur)) : Promise.resolve(null),
     on.has("content") ? soft(calendarFor(db, brand)) : Promise.resolve(null),
   ]);
+  const seo = on.has("seo") ? await soft(seoFor(db, brand, range.start, range.end)) : null;
   const t = Date.parse;
   const current = runs.filter((r) => t(r.at) >= cur.startAt);
   const previous = prev ? [...prevRuns, ...runs].filter((r) => t(r.at) >= prev.startAt && t(r.at) < prev.endAt) : [];
@@ -148,6 +165,7 @@ export async function buildClientReport(input: BuildInput): Promise<Built> {
           pages: contentRows({ items: list, citedPaths: chats.length ? citedPathsOf(chats, brand.domain) : null, traffic: tr, visitors }),
         }
       : null,
+    seo,
     wins: prev ? wins : [],
     drops: prev ? drops : [],
   };

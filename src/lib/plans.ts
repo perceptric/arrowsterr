@@ -89,6 +89,17 @@ export const TASK_COST = {
   widget: 25, // an interactive element
   ai: 3, // a small AI job: ideas, a summary, prompt suggestions
   guideline: 10, // reading a site for its brand guideline
+  onpage: 25, // an on-page audit: Google's top 10 read, every page scored, suggestions written
+  backlinks: 20, // a site's link overview: totals, new and lost by week, anchors, most linked pages
+  links: 6, // one page of 100 linking sites
+  linkgap: 25, // sites that link to up to 3 rivals but not you: one request per rival
+  broken: 20, // sites linking to dead pages on up to 3 rivals
+  mentions: 20, // pages that name you without a link: a web search, then each page read
+  pitch: 3, // one outreach email draft
+  localscan: 6, // the weekly Google Maps rank grid: 49 points for one keyword, standard queue
+  localnow: 12, // a Google Maps rank grid now: 49 points, priority queue
+  localfind: 1, // finding the business on Google Maps
+  contentmap: 40, // a content map: what you and 2 rivals rank for, grouped into pillars, links checked
 } as const;
 
 /** The two toolsets. Starter opens one of them; Free, the trial and Pro and up open both. */

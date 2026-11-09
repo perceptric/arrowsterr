@@ -5,21 +5,21 @@ import type { Run } from "./chats";
 import { listRuns } from "./db";
 import { emailReady, sendBuilt } from "./email";
 import type { Email } from "./emailKit";
-import { alertEmail, weeklyEmail, type AlertData, type Footer, type WeeklyBrand } from "./emails";
+import { alertEmail, auditDropEmail, weeklyEmail, type AlertData, type Footer, type WeeklyBrand } from "./emails";
 import { entitlement } from "./entitlements";
 import { brandStats, promptMoves } from "./metrics";
 import { weekOf, type Metric } from "./visibility";
 
 // Notification emails people choose in Settings → Notifications (supabase/035_notifications.sql):
 //   weekly: a Monday summary of each brand's AI visibility,
-//   alerts: visibility moved by the alert size, or a competitor overtook a brand (Pro and up),
+//   alerts: visibility moved by the alert size, or a competitor overtook a brand (Pro and up), or site health fell,
 //   jobs:   a Content Plan or a brief finished or failed, sent to the person who started it.
 // Every email carries a one-click unsubscribe link for its kind. What each email says: src/lib/emails.ts.
 
 export type Kind = "weekly" | "alerts" | "jobs";
 export const KINDS: Record<Kind, string> = {
   weekly: "the weekly summary",
-  alerts: "visibility alerts",
+  alerts: "visibility and site health alerts",
   jobs: "Content Plan and brief updates",
 };
 
@@ -97,6 +97,14 @@ export async function emailAlert(db: SupabaseClient, ws: string, brand: { id: st
   const { lost } = promptMoves(between(runs, day, next), between(runs, data.prevDay, day), brand.name);
   const mail: AlertData = { ...data, brand: brand.name, day: new Date(`${day}T12:00:00Z`), lost, url: `${app()}/prompts?brand=${brand.id}` };
   return sendEach(people, ws, "alerts", (footer) => alertEmail(mail, footer));
+}
+
+/** Email the site audit alert when a crawl's score fell since the last full crawl (docs/site-audit.md). Once per crawl. */
+export async function emailAuditDrop(db: SupabaseClient, ws: string, brand: { id: string; name: string; domain: string }, a: { auditId: string; score: number; before: number; issues: { title: string; count: number; isNew: boolean }[] }) {
+  if (!emailReady() || !(await claim(db, ws, `audit:${brand.id}`, a.auditId))) return 0;
+  const people = await recipients(db, ws, "alerts");
+  if (!people.length) return 0;
+  return sendEach(people, ws, "alerts", (footer) => auditDropEmail({ brand: brand.name, domain: brand.domain, score: a.score, before: a.before, issues: a.issues, url: `${app()}/site-audit?brand=${brand.id}` }, footer));
 }
 
 // ─────────────── jobs ───────────────

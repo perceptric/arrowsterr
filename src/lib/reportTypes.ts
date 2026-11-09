@@ -2,14 +2,16 @@
 import type { DocBlock } from "./reportDoc.ts";
 import type { ContentRow } from "./reports.ts";
 import type { ReportTheme } from "./reportTheme.ts";
+import type { SeoSnapshot } from "./reportSeo.ts";
 
-export type ReportSection = "ai" | "competitors" | "traffic" | "visitors" | "content";
+export type ReportSection = "ai" | "competitors" | "traffic" | "visitors" | "content" | "seo";
 export const SECTIONS: { id: ReportSection; label: string }[] = [
   { id: "ai", label: "AI visibility" },
   { id: "competitors", label: "Competitors" },
   { id: "traffic", label: "Traffic" },
   { id: "visitors", label: "Visitors" },
   { id: "content", label: "Content" },
+  { id: "seo", label: "SEO and links" },
 ];
 
 /** White label settings. theme is missing on reports made before templates existed. */
@@ -51,6 +53,8 @@ export type ReportSnapshot = {
   traffic: { visits: number; visitsBefore: number | null; ai: number; aiBefore: number | null; byEngine: { engine: string; visits: number; prev: number | null }[] } | null; // before: null with no comparison
   visitors: { total: number; hot: number; actions: number; top: { name: string; emoji: string; score: number; label: string; source: string }[] } | null;
   content: { published: number; writing: number; briefs: number; planned: number; pages: ContentRow[] } | null;
+  /** Site health, on-page, backlinks, links won, content map and Google Maps ranks. Missing on reports made before it. */
+  seo?: SeoSnapshot | null;
   wins: { text: string; change: number; unit: string; area: string }[];
   drops: { text: string; change: number; unit: string; area: string }[];
 };

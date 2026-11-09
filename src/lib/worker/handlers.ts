@@ -19,7 +19,11 @@ import type { AgentResult } from "../research";
 import { articleResearchJob } from "../articleResearchServer";
 import { writerBriefJob, writerDraftJob } from "../writerServer";
 import { wpPublishJob } from "../wpSyncServer";
-import { runAudit } from "../audit";
+import { queueWeeklyAudits, runAudit } from "../audit";
+import { runOnpage } from "../onpageServer";
+import { checkLink, queueLinkChecks } from "../linkBuildingServer";
+import { runMap } from "../contentMapServer";
+import { collectScan, queueWeeklyScans } from "../localServer";
 import { queueReportSends } from "../scheduleServer";
 import { applySet, preparePlay, undoSet } from "../plays";
 import { checkDue, promptAllowance } from "../plans";
@@ -47,6 +51,12 @@ export const slotOf = (brandId: string) => seed(brandId) % WINDOW_MIN;
 export async function schedule(db: SupabaseClient, job: Job) {
   // Scheduled reports due this tick (docs/reports.md, section 32.4). A failure here never holds up the daily checks.
   await queueReportSends(db).catch((e) => console.error("Report schedules failed:", e instanceof Error ? e.message : e));
+  // Weekly site audits (docs/site-audit.md), for brands that already ran one. A failure here never holds up the daily checks.
+  await queueWeeklyAudits(db).catch((e) => console.error("Weekly site audits failed:", e instanceof Error ? e.message : e));
+  // Won links get checked once a week (docs/link-building.md).
+  await queueLinkChecks(db).catch((e) => console.error("Link checks failed:", e instanceof Error ? e.message : e));
+  // Local Research: each keyword's weekly Google Maps grid scan (docs/local-research.md).
+  await queueWeeklyScans(db).catch((e) => console.error("Weekly local scans failed:", e instanceof Error ? e.message : e));
   const engines = availableEngines();
   if (!engines.length) return finish(job.id);
   const now = new Date();
@@ -288,6 +298,34 @@ export async function plan(db: SupabaseClient, job: Job) {
 export async function audit(db: SupabaseClient, job: Job) {
   const { auditId, domain } = job.payload as { auditId: string; domain: string };
   await runAudit(db, auditId, domain);
+  await finish(job.id);
+}
+
+// Local Research (docs/local-research.md): collect a grid scan's Google Maps answers, again until all are in.
+export async function local_fetch(db: SupabaseClient, job: Job) {
+  const { scanId, round } = job.payload as { scanId: string; round?: number };
+  await collectScan(db, scanId, round ?? 0);
+  await finish(job.id);
+}
+
+// Content Map (docs/content-map.md). A failed build saves its error and hands its tasks back itself.
+export async function content_map(db: SupabaseClient, job: Job) {
+  const { mapId } = job.payload as { mapId: string };
+  await runMap(db, mapId);
+  await finish(job.id);
+}
+
+// Link Building (docs/link-building.md): is a won link still on its page?
+export async function link_check(db: SupabaseClient, job: Job) {
+  const { id } = job.payload as { id: string };
+  await checkLink(db, id);
+  await finish(job.id);
+}
+
+// On-page Audit (docs/onpage-audit.md). A failed audit saves its error and hands its tasks back itself.
+export async function onpage(db: SupabaseClient, job: Job) {
+  const { auditId } = job.payload as { auditId: string };
+  await runOnpage(db, auditId);
   await finish(job.id);
 }
 
