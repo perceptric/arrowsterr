@@ -105,6 +105,7 @@ export const TASK_COST = {
   localscan: 6, // the weekly Google Maps rank grid: 49 points for one keyword, standard queue
   localnow: 12, // a Google Maps rank grid now: 49 points, priority queue
   localfind: 1, // finding the business on Google Maps
+  localprofile: 5, // the Google profiles of a location's business and its 3 leaders: details, questions, posts
   contentmap: 40, // a content map: what you and 2 rivals rank for, grouped into pillars, links checked
 } as const;
 

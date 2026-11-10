@@ -13,6 +13,16 @@ Local Research (Organic Research, Local Research, at `/local-research`) shows wh
 - **Suggested keywords:** the categories of the businesses that hold the most top 3 spots, the business's own categories, and "{main keyword} near me", leaving out keywords already tracked.
 - **Tasks follow the points:** a scan takes 6 tasks per 49 points on the standard queue (scheduled scans) and 12 per 49 on the priority queue (Scan now), at least 1. A 13 × 13 grid scheduled is 21 tasks; a 3 × 3 is 2.
 
+## Profile (phase 2 of `docs/local-research-plan.md`)
+
+- **The Profile tab** on each location reads the Google profile of the business and of the 3 businesses that hold the most top 3 spots in its latest scans: categories, hours, photos, description, attributes, posts in the last 30 days, questions and how many have no answer, booking link, rating and reviews, and whether it's claimed.
+- **You against the top 3:** one table, your column first, gaps in red. "Gaps only" hides the rest.
+- **Fix first:** the gaps in order. A gap needs 2 of the 3 leaders to have the thing you don't (an unclaimed profile always comes first).
+- **Profile score, of 100:** claimed 10, categories 10, hours 10, description 10, photos 15, attributes 5, posts 10, questions answered 5, booking link 5, website 10, phone 5, rating 5. A part Google didn't return counts as met, so a missing read never lowers the score.
+- **Changed on Google:** when the business's name, categories, phone, website, address or hours read differently from the last read, a second read runs a day later. The change shows (before and now) only when the two newest reads agree, so one odd read never shows.
+- **When it runs:** weekly for every location with scheduled scans, and on Read now (editors). Details land in about a minute; posts come from DataForSEO's queue a little later and are collected for up to about 45 minutes. Posts that never arrive stay unknown and are never counted as zero.
+- Each read costs 5 plan tasks. Tests: `tests/localProfile.test.ts`.
+
 ## What it shows
 
 - **Setup:** search the business by name and city (one Google Maps request, 1 task), then pick it. Its Google ids, address, phone, category and position are saved on `brands.profile.location`.
@@ -68,7 +78,8 @@ Request and response fields follow DataForSEO's docs: `cid`, `place_id`, `rating
 
 - `supabase/066_local.sql` adds `local_scans`: tasks, raw points and the summed-up result per scan. Viewers may read.
 - `supabase/071_local_locations.sql` adds `local_locations` (viewers may read), and `location_id`, `size`, `shape`, `center_lat` and `center_lng` on `local_scans`. It copies each brand's one location from `brands.profile.location` and points its scans at it.
-- `/api/local` takes `limits`, `find`, `set` (a new location, or a new business for one), `remove`, `settings`, `scan` and `prompts`, each with a `locationId`.
+- `supabase/072_local_profiles.sql` adds `local_profiles`: one row per business per read (`you` marks the location's own business, `confirm` marks a confirm read). Viewers may read. The `local_profile` job reads and collects posts (`src/lib/localProfileServer.ts`).
+- `/api/local` takes `limits`, `find`, `set` (a new location, or a new business for one), `remove`, `settings`, `scan`, `prompts` and `profile` (Read now), each with a `locationId`.
 - Zippie reads it with `get_local_research`. Two skills use it: "Local audit" and "Review response plan."
 
 ## Running cost
@@ -96,6 +107,15 @@ Assume 20% of teams track a local business (10 at Beta, 100 at Growth), each wit
 | Listing checks and collecting results (worker) | $0 | $0 |
 | **Monthly total** | **~$7.50** | **~$76** |
 | Added by phase 1 (more locations) | ~$2.50 | ~$25 |
+
+**Phase 2, profile reads.** Each read is 4 businesses (yours and the top 3), each with one live profile read, one live questions read and one posts task on the standard queue, plus a confirm read of your business when its listing changed. About $0.08 a location a month (DataForSEO Business Data prices, check). Charged as 5 tasks per read.
+
+| Line | Beta (15 locations) | Growth (150 locations) |
+|---|---|---|
+| Profile, questions and posts (DataForSEO Business Data, check) | ~$1.20 | ~$12 |
+| Collecting posts (worker) | $0 | $0 |
+| **Added by phase 2** | **~$1.20** | **~$12** |
+| **Local Research monthly total** | **~$8.70** | **~$88** |
 
 ## Example data
 
