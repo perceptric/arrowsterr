@@ -5,7 +5,7 @@ import { boardStats, SOURCES, STAGES, type Source, type Stage } from "@/lib/link
 import type { RunAuth } from "@/lib/runner";
 import { demoCards } from "@/lib/demo";
 import { ToolStart, TsDomain } from "./ToolStart";
-import { Card, SidePanel, Thinking } from "./ui";
+import { SidePanel, StatStrip, Thinking } from "./ui";
 import { useApi } from "./ZippiePage";
 
 // Link Building (docs/link-building.md): a board from prospect to won. Prospects come from the Backlinks link gap,
@@ -191,17 +191,20 @@ export function LinkBuildingPage({ brand, auth, onBacklinks }: { brand: Brand; a
       {note ? <p className="aw-callout">{note}</p> : null}
 
       <>
-          <div data-tour="1" className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-            <Kpi label="Prospects" value={stats.prospects} />
-            <Kpi label="Contacted" value={stats.reached} />
-            <Kpi label="Reply rate" value={`${stats.replyRate}%`} />
-            <Kpi label="Links won" value={stats.won} tone="pos" />
-            <Kpi label="Links gone" value={stats.gone} tone={stats.gone ? "neg" : undefined} />
-          </div>
+          <StatStrip
+            tour={1}
+            stats={[
+              { label: "Links won", value: stats.won, tone: "pos" },
+              { label: "Prospects", value: stats.prospects },
+              { label: "Contacted", value: stats.reached },
+              { label: "Reply rate", value: `${stats.replyRate}%` },
+              { label: "Links gone", value: stats.gone, tone: stats.gone ? "neg" : undefined },
+            ]}
+          />
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div data-tour="2" className="flex flex-wrap gap-2">
               {[{ id: "all" as const, label: "All" }, ...SOURCES].map((s) => (
-                <button key={s.id} type="button" aria-pressed={filter === s.id} onClick={() => setFilter(s.id)} className={`aw-btn aw-btn--sm ${filter === s.id ? "aw-btn--primary" : "aw-btn--secondary"}`}>
+                <button key={s.id} type="button" aria-pressed={filter === s.id} onClick={() => setFilter(s.id)} className="aw-chip aw-chip--btn">
                   {s.label}
                 </button>
               ))}
@@ -229,7 +232,7 @@ export function LinkBuildingPage({ brand, auth, onBacklinks }: { brand: Brand; a
                   key={st.id}
                   aria-label={st.label}
                   data-tour={st.id === "won" ? "4" : undefined}
-                  className={`flex min-h-72 flex-col gap-2 rounded-[12px] bg-[var(--aw-surface-2)] p-2.5 transition-shadow ${over === st.id ? "shadow-[inset_0_0_0_2px_var(--aw-brand)]" : ""}`}
+                  className={`flex min-h-72 flex-col gap-2 rounded-[12px] bg-[var(--aw-surface-2)] p-2.5 transition-shadow ${over === st.id ? "shadow-[inset_0_0_0_2px_var(--signal)]" : ""}`}
                   onDragOver={(e) => {
                     if (!drag || !canMove) return;
                     e.preventDefault();
@@ -317,17 +320,6 @@ export function LinkBuildingPage({ brand, auth, onBacklinks }: { brand: Brand; a
   return page;
 }
 
-function Kpi({ label, value, tone }: { label: string; value: string | number; tone?: "pos" | "neg" }) {
-  return (
-    <Card>
-      <div className="flex flex-col gap-1 px-4 py-3.5">
-        <span className="text-[12px] font-medium text-muted">{label}</span>
-        <span className={`aw-num text-[22px] font-semibold ${tone === "pos" ? "text-pos" : tone === "neg" ? "text-neg" : "text-ink"}`}>{value}</span>
-      </div>
-    </Card>
-  );
-}
-
 function BoardCard({ c, blocked, canEdit, onOpen, onNext, onDrag }: { c: CardRow; blocked: boolean; canEdit: boolean; onOpen: () => void; onNext: () => void; onDrag: (id: string | null) => void }) {
   const last = c.stage === "won" || c.stage === "lost";
   return (
@@ -342,7 +334,7 @@ function BoardCard({ c, blocked, canEdit, onOpen, onNext, onDrag }: { c: CardRow
     >
       <button type="button" onClick={onOpen} className="flex items-start gap-2 text-left">
         <span className="min-w-0 flex-1 text-[13.5px] font-semibold text-ink wrap-anywhere">{c.domain ?? c.name}</span>
-        {c.authority !== null ? <span className="aw-num rounded-[6px] bg-[var(--aw-brand-bg)] px-1.5 text-[12px] font-semibold text-brand">{c.authority}</span> : null}
+        {c.authority !== null ? <span className="aw-num rounded-[6px] bg-[var(--signal-soft)] px-1.5 text-[12px] font-semibold text-[var(--signal-ink)]">{c.authority}</span> : null}
       </button>
       <span className="flex flex-wrap gap-1">
         <span className={`aw-status ${SOURCE_CLASS[c.source]}`}>{sourceLabel(c.source)}</span>
@@ -384,7 +376,7 @@ function Detail({ c, blocked, canEdit, demo = false, busy, wantStage, onAct, onM
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-1.5">
         {c.url ? (
-          <a href={c.url} target="_blank" rel="noreferrer" className="text-[13px] text-brand wrap-anywhere hover:underline">
+          <a href={c.url} target="_blank" rel="noreferrer" className="text-[13px] text-[var(--signal-ink)] wrap-anywhere hover:underline">
             {c.url}
           </a>
         ) : null}

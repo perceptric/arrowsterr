@@ -6,7 +6,7 @@ import { GRID, reviewHistory, SPACINGS, type ListingCheck, type Location, type P
 import type { RunAuth } from "@/lib/runner";
 import { demoLocal } from "@/lib/demo";
 import { ToolStart } from "./ToolStart";
-import { Card, Delta, Seg, Thinking } from "./ui";
+import { Card, Delta, Seg, StatStrip, Thinking } from "./ui";
 import { useApi } from "./ZippiePage";
 
 // Local Research (docs/local-research.md): where the business ranks in Google Maps from 49 points around it, who holds
@@ -233,7 +233,7 @@ function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote, demoSca
           <div className="flex flex-wrap items-center gap-2">
             {loc.keywords.map((k) => (
               <span key={k} className="inline-flex items-center">
-                <button type="button" aria-pressed={kw === k} onClick={() => { setKw(k); setPt(null); }} className={`aw-btn aw-btn--sm ${kw === k ? "aw-btn--primary" : "aw-btn--secondary"}`}>
+                <button type="button" aria-pressed={kw === k} onClick={() => { setKw(k); setPt(null); }} className="aw-chip aw-chip--btn">
                   {k}
                 </button>
                 {controls ? (
@@ -287,11 +287,14 @@ function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote, demoSca
 
       {cur ? (
         <>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <Stat label="Average rank" value={cur.avg === null ? "–" : String(cur.avg)} delta={cur.avg !== null && prev?.avg != null ? <Delta now={cur.avg} before={prev.avg} lowerIsBetter /> : null} />
-            <Stat label="Top 3 on the map" value={`${cur.read ? Math.round((cur.top3 / cur.read) * 100) : 0}%`} sub={`${cur.top3} of ${cur.read} points`} />
-            <Stat label="In the top 20" value={`${cur.found} of ${cur.read}`} sub={cur.read < GRID * GRID ? `${GRID * GRID - cur.read} points didn't load` : undefined} />
-          </div>
+          <StatStrip
+            spark={done.length > 1 ? done.map((d) => -(d.result?.avg ?? 21)).reverse() : undefined}
+            stats={[
+              { label: "Average rank", value: cur.avg === null ? "–" : String(cur.avg), delta: cur.avg !== null && prev?.avg != null ? <Delta now={cur.avg} before={prev.avg} lowerIsBetter /> : null },
+              { label: "Top 3 on the map", value: `${cur.read ? Math.round((cur.top3 / cur.read) * 100) : 0}%`, sub: `${cur.top3} of ${cur.read} points` },
+              { label: "In the top 20", value: `${cur.found} of ${cur.read}`, sub: cur.read < GRID * GRID ? `${GRID * GRID - cur.read} points didn't load` : undefined },
+            ]}
+          />
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
             <Card tour={2} title={`“${cur.keyword}”, ${cur.spacing} mi apart, ${when(done[0].created_at)}`}>
               <div className="px-4 pb-4">
@@ -373,21 +376,6 @@ function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote, demoSca
   );
 }
 
-function Stat({ label, value, delta, sub }: { label: string; value: string; delta?: React.ReactNode; sub?: string }) {
-  return (
-    <Card>
-      <div className="flex flex-col gap-1 px-4 py-3.5">
-        <span className="text-[12px] font-medium text-muted">{label}</span>
-        <span className="flex flex-wrap items-baseline gap-2">
-          <span className="aw-num text-[22px] font-semibold text-ink">{value}</span>
-          {delta}
-        </span>
-        {sub ? <span className="text-[12px] text-muted">{sub}</span> : null}
-      </div>
-    </Card>
-  );
-}
-
 const Key = ({ c, t }: { c: [string, string]; t: string }) => (
   <span className="flex items-center gap-1.5">
     <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: c[0], boxShadow: `inset 0 0 0 1.5px ${c[1]}` }} />
@@ -399,7 +387,7 @@ function Bar({ share, you = false }: { share: number; you?: boolean }) {
   return (
     <span className="grid grid-cols-[minmax(0,1fr)_40px] items-center gap-2">
       <span className="block h-2 rounded-full bg-[var(--aw-surface-2)]">
-        <span className="block h-full rounded-full" style={{ width: `${Math.round(share * 100)}%`, background: you ? "var(--aw-brand)" : "var(--aw-faint)" }} />
+        <span className="block h-full rounded-full" style={{ width: `${Math.round(share * 100)}%`, background: you ? "var(--signal)" : "var(--aw-faint)" }} />
       </span>
       <span className="aw-num text-right text-[12px]">{Math.round(share * 100)}%</span>
     </span>
@@ -456,7 +444,7 @@ function PackAt({ scan, i, you }: { scan: ScanResult; i: number; you: string }) 
         {p.top.map((t, k) => (
           <li key={`${t.cid ?? t.title}${k}`} className="flex items-center gap-3 border-t border-[var(--aw-rule)] py-2 first:border-t-0">
             <span className="aw-num w-6 text-[12px] text-muted">#{k + 1}</span>
-            <span className={`min-w-0 text-[13px] wrap-break-word ${t.title === you ? "font-semibold text-brand" : "text-ink"}`}>{t.title}</span>
+            <span className={`min-w-0 text-[13px] wrap-break-word ${t.title === you ? "font-semibold text-[var(--signal-ink)]" : "text-ink"}`}>{t.title}</span>
           </li>
         ))}
       </ol>
@@ -469,7 +457,7 @@ function Reviews({ done, you }: { done: Scan[]; you: string }) {
   const latest = done[0]?.result;
   const names = (latest?.rivals ?? []).slice(0, 2).map((r) => r.title);
   const h = reviewHistory(done.map((s) => ({ at: s.created_at, you: s.result!.you, rivals: s.result!.rivals })), names);
-  const series = [{ name: you, color: "var(--aw-brand)", vals: h.map((x) => x.you) }, ...names.map((n, k) => ({ name: n, color: k ? "var(--aw-muted)" : "var(--aw-ink)", vals: h.map((x) => x.rivals[n]) }))];
+  const series = [{ name: you, color: "var(--signal)", vals: h.map((x) => x.you) }, ...names.map((n, k) => ({ name: n, color: k ? "var(--aw-muted)" : "var(--aw-ink)", vals: h.map((x) => x.rivals[n]) }))];
   if (h.length < 2) {
     return (
       <div className="flex flex-col gap-1 px-5 pb-4 text-[13px] text-body">

@@ -56,6 +56,43 @@ export function Delta({ now, before, unit = "", lowerIsBetter = false, digits = 
 }
 
 /** A row of tabs where one is picked: text on a hairline, the picked one underlined in Signal Blue (brand v5). */
+/** A small trend line with a soft fill. Hidden from screen readers: the number beside it says the same. */
+export function Spark({ values, color = "var(--signal)", className = "" }: { values: number[]; color?: string; className?: string }) {
+  if (values.length < 2) return null;
+  const w = 200, h = 44, min = Math.min(...values), span = Math.max(...values) - min || 1;
+  const pts = values.map((v, i) => `${((i / (values.length - 1)) * w).toFixed(1)},${(h - 4 - ((v - min) / span) * (h - 10)).toFixed(1)}`).join(" ");
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className={`aw-spark ${className}`} aria-hidden="true">
+      <polygon points={`0,${h} ${pts} ${w},${h}`} fill={color} opacity="0.1" />
+      <polyline points={pts} fill="none" stroke={color} strokeWidth="2" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+    </svg>
+  );
+}
+
+export type StripStat = { label: string; value: React.ReactNode; delta?: React.ReactNode; tone?: "pos" | "neg" | "warn" | "brand"; sub?: React.ReactNode };
+/**
+ * A screen's numbers as one strip: the first is the lead (wider, tinted, with an optional trend line or extra part),
+ * the rest follow in cells split by hairlines. Use this for KPI rows; never a row of equal boxes.
+ */
+export function StatStrip({ stats, spark, extra, tour }: { stats: StripStat[]; spark?: number[]; extra?: React.ReactNode; tour?: number }) {
+  return (
+    <section className="aw-strip" data-tour={tour} style={{ "--aw-strip-n": Math.max(1, stats.length - 1) } as React.CSSProperties}>
+      {stats.map((s, i) => (
+        <div key={s.label} className={`aw-strip__cell ${i === 0 ? "aw-strip__lead" : ""}`}>
+          <span className="aw-strip__label">{s.label}</span>
+          <span className="aw-strip__row">
+            <span className={`aw-num aw-strip__num ${s.tone ? `is-${s.tone}` : ""}`}>{s.value}</span>
+            {s.delta}
+          </span>
+          {s.sub ? <span className="aw-strip__sub">{s.sub}</span> : null}
+          {i === 0 && spark ? <Spark values={spark} className="aw-strip__spark" /> : null}
+          {i === 0 ? extra : null}
+        </div>
+      ))}
+    </section>
+  );
+}
+
 export function Seg<T extends string>({ value, options, onChange, label }: { value: T; options: { id: T; label: React.ReactNode }[]; onChange: (v: T) => void; label: string }) {
   return (
     <div role="tablist" aria-label={label} className="aw-tabs">

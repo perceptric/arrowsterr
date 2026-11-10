@@ -14,7 +14,7 @@ import { ENGINE_LOGOS, EngineName } from "./Engines";
 import { Markdown } from "./Markdown";
 import { cleanAnswer } from "@/lib/answerText";
 import { TrendChart } from "./TrendChart";
-import { BrandName, Delta, Empty, favicon, OTHER_COLORS, pct, Seg, Tip, TIPS, YOU_COLOR } from "./ui";
+import { BrandName, Delta, Empty, favicon, OTHER_COLORS, pct, Seg, Tip, TIPS, YOU_COLOR, Spark } from "./ui";
 
 type Props = {
   sb: SupabaseClient;
@@ -194,6 +194,8 @@ function Scores({ view, loading }: { view: View; loading?: boolean }) {
   const me = stats.find((s) => s.isYou)!;
   const meBefore = before.find((s) => s.isYou);
   const hadBefore = prev.length > 0;
+  // Your visibility day by day, for the trend line in the lead cell.
+  const daily = trend(current, [brand.name], "visibility", filter).map((p) => p.values[brand.name] ?? 0);
   const change = hadBefore ? me.visibility - (meBefore?.visibility ?? 0) : null;
   const headline =
     change === null
@@ -206,7 +208,7 @@ function Scores({ view, loading }: { view: View; loading?: boolean }) {
         <span className="text-[15px] text-ink">{headline}</span>
         {loading ? <span className="aw-label aw-label--brand aw-pending__note">First check still running</span> : null}
       </div>
-      <div className="grid sm:grid-cols-3">
+      <div className="grid sm:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)_minmax(0,1fr)]">
         {(
           [
             { id: "visibility", lab: "Visibility", tip: TIPS.visibility, now: me.visibility, before: hadBefore ? (meBefore?.visibility ?? 0) : null, help: "Share of AI answers that name you" },
@@ -217,7 +219,7 @@ function Scores({ view, loading }: { view: View; loading?: boolean }) {
           const r = rankOf(stats, m.id);
           const rb = hadBefore ? rankOf(before, m.id) : null;
           return (
-            <div key={m.id} className={`flex flex-col gap-3 px-5 py-5 ${i ? "border-t border-rule sm:border-t-0 sm:border-l" : ""}`}>
+            <div key={m.id} className={`relative flex flex-col gap-3 px-5 py-5 ${i ? "border-t border-rule sm:border-t-0 sm:border-l" : "aw-lead"}`}>
               <span className="aw-label">
                 {m.lab}
                 <Tip text={m.tip} />
@@ -225,10 +227,11 @@ function Scores({ view, loading }: { view: View; loading?: boolean }) {
               <span className="flex items-center gap-4">
                 <Gauge value={m.now} color={GAUGE[m.id]} label={m.lab} />
                 <span className="flex items-baseline gap-2">
-                  <span className="aw-num text-[38px] leading-none tracking-tight text-ink">{m.now === null ? "–" : Math.round(m.now)}</span>
+                  <span className={`aw-num leading-none tracking-tight text-ink ${i ? "text-[38px]" : "text-[52px] font-semibold"}`}>{m.now === null ? "–" : Math.round(m.now)}</span>
                   <Delta now={m.now} before={m.before} digits={0} />
                 </span>
               </span>
+              {i === 0 && daily.length > 2 ? <Spark values={daily} className="aw-lead__spark" /> : null}
               <span className="flex flex-wrap items-center justify-between gap-2 text-[13px] text-muted">
                 {m.help}
                 <span className="aw-num">
@@ -244,7 +247,7 @@ function Scores({ view, loading }: { view: View; loading?: boolean }) {
   );
 }
 
-const GAUGE = { visibility: "var(--aw-brand)", sentiment: "var(--aw-pos)", position: "#7B61C9" } as const;
+const GAUGE = { visibility: "var(--signal)", sentiment: "var(--aw-pos)", position: "#7B61C9" } as const;
 
 const ENGINE_SHORT: Record<string, string> = { ChatGPT: "ChatGPT", Claude: "Claude", Gemini: "Gemini", Perplexity: "Perplexity", "AI Overview": "AIO", "AI Mode": "AI Mode" };
 const shortUrl = (u: string) => u.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");

@@ -1,5 +1,16 @@
 # Arrowsterr brand (v5)
 
+> **v9, 10 November 2026: keys and strips.** The calm look stays, and the working screens now match the tool start pages (`docs/tool-start.md`). Where v9 and the notes below disagree, v9 wins.
+>
+> - **Buttons are keys.** 8px corners in place of pills. The main action is Signal Blue with a dark ring and a top highlight (`aw-btn--primary`). `aw-btn--dark` stays charcoal for a second strong action.
+> - **Cards have 16px corners.** A card inside a card keeps 12px.
+> - **Titles are firmer.** Page titles are 28px at weight 600. Card titles are weight 600.
+> - **Stat strips, never rows of equal boxes.** A screen's numbers sit in one `StatStrip` (`src/components/ui.tsx`): the first number is the lead, wider and on a Signal Blue tint, with a trend line when there is one. The rest follow in cells split by hairlines. Usage meters are one card of rows (`aw-meters`).
+> - **Switches and filters.** A view switch (`Seg`, `aw-tabs`) is a gray tray with a white key. A filter is a chip (`aw-chip aw-chip--btn`); the picked one is Signal Blue on its soft fill.
+> - **You are blue in every chart.** Your brand, your page and your business use `--signal`. `--aw-brand` is charcoal and is for ink, never for "you".
+> - **Files.** `src/app/keyed-ui.css`, loaded after `calm-ui.css`.
+> - **Cost.** $0 at Beta (50 teams) and $0 at Growth (500 teams). It is a static stylesheet and layout changes.
+
 > **v8, 3 November 2026: the calm look.** The app follows Claritia's calm style (its `docs/brand.md`, version 4, after zite.com): a light gray shell, a white page panel on a ring shadow, a white header bar over a #fafafa work area, pill buttons, 6px tags, 8px inputs, 12px cards and Inter for every word. Signal Blue #0943B0 is the one signal: the open menu item, the open tab, your brand and focus. Values live in `src/app/calm-ui.css`, loaded after `omni-ui.css`, which still flattens the older layers. Class names and copy are unchanged. Cost: $0 at Beta (50 teams) and $0 at Growth (500 teams), since it is a static stylesheet. Where v8 and the rules below disagree, v8 wins.
 
 > **v7, 30 October 2026: the framed look.** The app now follows the Omniscient house style: black and white, square and framed, Inter at 13px, a 1px black frame on cards, buttons, filters and menus, and no shadows, gradients or round corners. Black is the action color. Signal Blue marks your own brand ("You" and your chart series). Values live in `src/app/omni-ui.css`, loaded last. Plan and cost: `docs/ui-framed.md`. Where v7 and the rules below disagree, v7 wins.

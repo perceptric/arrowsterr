@@ -19,7 +19,7 @@ type Tab = "page" | "all";
 
 const FIX_LABEL: Record<FixPlay, string> = { meta: "Rewrite title and description", schema: "Add structured data", faq: "Add an FAQ", alt: "Write alt text", links: "Add internal links" };
 const when = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-const tone = (s: number) => (s >= 80 ? "var(--aw-pos)" : s >= 65 ? "var(--aw-brand)" : s >= 50 ? "var(--aw-warn)" : "var(--aw-neg)");
+const tone = (s: number) => (s >= 80 ? "var(--aw-pos)" : s >= 65 ? "var(--signal)" : s >= 50 ? "var(--aw-warn)" : "var(--aw-neg)");
 const msg = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
 export function OnpageAuditPage({ brand, sb, auth, canEdit, onConnect }: { brand: Brand; sb: SupabaseClient; auth: RunAuth; canEdit: boolean; onConnect: () => void }) {
@@ -321,7 +321,7 @@ function Detail({ row, history, canEdit, demo = false, busy, proposed, onFix, on
           <div className="flex flex-col gap-3 px-5 pb-5">
             <div className="flex flex-col gap-1 rounded-[10px] bg-[var(--aw-surface-2)] px-4 py-3">
               <span className="text-[12px] text-body wrap-anywhere">{r.url}</span>
-              <span className="text-[17px] leading-snug text-brand wrap-break-word">{shownTitle || "No title"}</span>
+              <span className="text-[17px] leading-snug text-[var(--signal-ink)] wrap-break-word">{shownTitle || "No title"}</span>
               <span className="text-[13px] text-muted wrap-break-word">{shownDesc || "No meta description"}</span>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -434,7 +434,7 @@ function Detail({ row, history, canEdit, demo = false, busy, proposed, onFix, on
 }
 
 function AreaBar({ label, you, top }: { label: string; you: number | null; top: number | null }) {
-  const color = you === null ? "var(--aw-rule)" : top === null || you >= top ? "var(--aw-pos)" : you >= top - 15 ? "var(--aw-brand)" : "var(--aw-warn)";
+  const color = you === null ? "var(--aw-rule)" : top === null || you >= top ? "var(--aw-pos)" : you >= top - 15 ? "var(--signal)" : "var(--aw-warn)";
   return (
     <div className="grid grid-cols-[minmax(96px,130px)_minmax(0,1fr)_36px] items-center gap-3 text-[13px]">
       <span className="text-body">{label}</span>
