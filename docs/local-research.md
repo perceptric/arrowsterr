@@ -10,8 +10,11 @@ Local Research (Organic Research, Local Research, at `/local-research`) shows wh
   - Weekly scan on or off.
   - **Scan now.**
   - **Track in AI answers:** adds "best {category} in {city}"-style prompts under a Local topic in AI Visibility. It goes through the same add-prompts tool as Zippie, so plan limits apply.
-- **Average rank and share of voice** for the picked business (the business itself by default). Average rank counts a point where it isn't in the top 20 as 21, so gaps pull the average down instead of hiding. Share of voice is the share of the map pack spots (3 at each answered point) it holds; all businesses add up to 100%.
-- **Rank distribution:** the share of points that are good (1 to 3), average (4 to 10), poor (11 to 20) and out of the top 20.
+- **Four tiles of the same size** for the picked business (the business itself by default):
+  - Average rank on a ring, full and green at #1. A point where it isn't in the top 20 counts as 21, so gaps pull the average down instead of hiding.
+  - Share of voice as a donut against the three strongest competitors and everyone else: the share of the map pack spots (3 at each answered point) each holds. All businesses add up to 100%.
+  - Rank distribution as one stacked bar: 1 to 3, 4 to 10, 11 to 20 and not in the top 20.
+  - Top 3 coverage: the grid in small and the points in the map pack, with #1 spots.
 - **The map:** the 7 by 7 grid on a real street map (MapLibre with OpenFreeMap's free tiles, attribution shown). Each dot is coloured by the picked business's rank: green 1 to 3, amber 4 to 10, orange 11 to 20, red not in the top 20, a dashed "?" for a point that didn't answer. A pin marks the business. Click a dot to see the top 5 there. If the map can't load (no WebGL, tiles blocked), the drawn grid shows instead.
 - **Businesses:** every business in the scan, sortable by average rank, reviews or rating, with address, rating, reviews and top 3 points. Click one to see its ranks on the map. The ranks come from the scan's saved Google Maps results (`businesses` in `src/lib/local.ts`), so older scans work too.
 - **What this scan says:** one headline and short findings worked out from the scan (`localInsights` in `src/lib/local.ts`): the rank at the business's own address, its best spot and where, how far out it stays in the top 10, its strongest and weakest side, the change since the last scan, reviews and rating against the leader, and how many listing checks need a fix. No AI call.
@@ -20,7 +23,10 @@ Local Research (Organic Research, Local Research, at `/local-research`) shows wh
   - LocalBusiness schema.
   - The main category against the category the competitors holding the top 3 use most.
   - Problems first, with a count of what to fix.
-- **Reviews against the map's leaders:** reviews and rating for the business and the top 3 competitors as bars, and review counts over time once there are two scans.
+- **Three cards of the same height below the map:**
+  - What this scan says, with average rank on each side of the business (north, east, south, west) as a small compass.
+  - Listing check, with a ring of checks passed.
+  - Reviews against the leaders: bars, the trend once there are two scans, the reviews needed to match the leader and the rating against the leaders' average.
 
 ## How a scan runs
 
