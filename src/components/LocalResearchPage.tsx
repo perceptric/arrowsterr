@@ -284,51 +284,89 @@ function Results({ cur, prev, done, loc, domain, raw, pt, onPt }: { cur: ScanRes
   const pct = (n: number) => (bands.read ? Math.round((n / bands.read) * 100) : 0);
   const prevAvg = picked.you ? prev?.avg ?? null : null;
 
+  const others = list.filter((b) => b.key !== picked.key).sort((a, b) => b.voice - a.voice);
+  const voice = [
+    { label: picked.you ? "You" : picked.title, value: picked.voice, color: "var(--signal)" },
+    ...others.slice(0, 3).map((b, k) => ({ label: b.you ? "You" : b.title, value: b.voice, color: ["#1F2937", "#6B7280", "#B0B6C0"][k] })),
+  ];
+  const rest = Math.max(0, 1 - voice.reduce((a, v) => a + v.value, 0));
+  if (rest > 0.001) voice.push({ label: "Everyone else", value: rest, color: "#E5E7EB" });
+  const passed = (cur.listing ?? []).filter((c) => c.status === "pass").length;
+  const checks = (cur.listing ?? []).length;
+
   return (
     <>
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
-        <Card>
-          <div className="flex flex-col px-5 py-4">
-            <span className="text-[12px] font-medium text-muted">Average rank{picked.you ? "" : `, ${picked.title}`}</span>
-            <span className="flex items-baseline gap-2">
-              <span className="aw-num text-[30px] leading-tight font-semibold text-ink">{picked.avg ?? "–"}</span>
-              {picked.avg !== null && prevAvg !== null ? <Delta now={picked.avg} before={prevAvg} lowerIsBetter /> : null}
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <Tile label={picked.you ? "Average rank" : `Average rank, ${picked.title}`}>
+          <div className="flex items-center gap-4">
+            <RankGauge avg={picked.avg} />
+            <div className="flex min-w-0 flex-col gap-1">
+              <span className="flex items-baseline gap-2">
+                <span className="aw-num text-[30px] leading-none font-semibold text-ink">{picked.avg ?? "–"}</span>
+                {picked.avg !== null && prevAvg !== null ? <Delta now={picked.avg} before={prevAvg} lowerIsBetter /> : null}
+              </span>
+              <span className="text-[12px] text-muted">across {bands.read} points, lower is better</span>
+            </div>
+          </div>
+        </Tile>
+        <Tile label="Share of voice">
+          <div className="flex items-center gap-4">
+            <Donut parts={voice} centre={`${Math.round(picked.voice * 1000) / 10}%`} />
+            <ul className="flex min-w-0 flex-1 flex-col gap-1">
+              {voice.map((v) => (
+                <li key={v.label} className="flex items-center gap-2 text-[12px]">
+                  <i className="inline-block h-2 w-2 shrink-0 rounded-full" style={{ background: v.color }} />
+                  <span className={`min-w-0 flex-1 wrap-break-word ${v.color === "var(--signal)" ? "font-semibold text-ink" : "text-body"}`}>{v.label}</span>
+                  <span className="aw-num shrink-0 text-muted">{Math.round(v.value * 100)}%</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </Tile>
+        <Tile label="Rank distribution">
+          <div className="flex flex-col gap-3">
+            <span className="flex h-3 w-full gap-0.5 overflow-hidden rounded-full bg-[var(--aw-surface-2)]">
+              {([[bands.good, MAP.top3], [bands.average, MAP.top10], [bands.poor, MAP.top20], [bands.out, "#E5484D"]] as const).map(([n, c], k) => (n ? <span key={k} className="h-full" style={{ width: `${pct(n)}%`, background: c }} /> : null))}
             </span>
-            <span className="my-3 block h-px bg-[var(--aw-rule)]" />
-            <span className="text-[12px] font-medium text-muted">Share of voice</span>
-            <span className="aw-num text-[30px] leading-tight font-semibold text-ink">{Math.round(picked.voice * 1000) / 10}%</span>
-            <span className="text-[12px] text-muted">of the map pack spots across {bands.read} points</span>
+            <ul className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+              {([["1 to 3", bands.good, MAP.top3], ["4 to 10", bands.average, MAP.top10], ["11 to 20", bands.poor, MAP.top20], ["Not in top 20", bands.out, "#E5484D"]] as const).map(([label, n, c]) => (
+                <li key={label} className="flex items-center gap-2 text-[12px]">
+                  <i className="inline-block h-2 w-2 shrink-0 rounded-full" style={{ background: c }} />
+                  <span className="min-w-0 flex-1 text-body">{label}</span>
+                  <span className="aw-num font-medium text-ink">{pct(n)}%</span>
+                </li>
+              ))}
+            </ul>
           </div>
-        </Card>
-        <Card title="Rank distribution">
-          <div className="flex flex-col gap-2.5 px-5 pb-5">
-            {([["Good (1 to 3)", bands.good, MAP.top3], ["Average (4 to 10)", bands.average, MAP.top10], ["Poor (11 to 20)", bands.poor, MAP.top20], ["Out of the top 20", bands.out, "#E5484D"]] as const).map(([label, n, color]) => (
-              <div key={label} className="grid grid-cols-[minmax(110px,150px)_44px_minmax(0,1fr)] items-center gap-3 text-[13px]">
-                <span className="text-body">{label}</span>
-                <span className="aw-num text-right font-medium text-ink">{pct(n)}%</span>
-                <span className="block h-3 rounded-[4px] bg-[var(--aw-surface-2)]">
-                  <span className="block h-full rounded-[4px]" style={{ width: `${pct(n)}%`, background: color }} />
-                </span>
-              </div>
-            ))}
+        </Tile>
+        <Tile label="Top 3 coverage">
+          <div className="flex items-center gap-4">
+            <Matrix ranks={picked.ranks} />
+            <div className="flex min-w-0 flex-col gap-1">
+              <span className="aw-num text-[30px] leading-none font-semibold text-ink">
+                {bands.good}
+                <span className="text-[16px] font-medium text-muted"> / {bands.read}</span>
+              </span>
+              <span className="text-[12px] text-muted">points in the map pack, #1 at {picked.ranks.filter((r) => r === 1).length}</span>
+            </div>
           </div>
-        </Card>
+        </Tile>
       </div>
 
       <Card>
         <div className="grid lg:grid-cols-[320px_minmax(0,1fr)]">
-          <div className="flex min-w-0 flex-col border-b border-[var(--aw-rule)] lg:border-r lg:border-b-0">
+          <div className="flex min-w-0 flex-col border-b border-[var(--aw-rule)] lg:h-[620px] lg:border-r lg:border-b-0">
             <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-3">
               <span className="text-[13px] font-semibold text-ink">“{cur.keyword}”</span>
               <Seg label="Sort businesses" value={sort} onChange={setSort} options={[{ id: "rank", label: "Rank" }, { id: "reviews", label: "Reviews" }, { id: "rating", label: "Rating" }]} />
             </div>
-            <ul className="flex max-h-[520px] flex-col overflow-y-auto px-2 pb-2">
+            <ul className="flex max-h-[520px] min-h-0 flex-1 flex-col overflow-y-auto px-2 pb-2 lg:max-h-none">
               {shown.map((b) => {
                 const on = b.key === picked.key;
                 return (
                   <li key={b.key}>
                     <button type="button" aria-pressed={on} onClick={() => setPick(b.key)} className={`flex w-full items-start gap-3 rounded-[10px] px-2.5 py-2.5 text-left ${on ? "bg-[var(--signal-soft)]" : "hover:bg-[var(--aw-surface-2)]"}`}>
-                      <span className="aw-num mt-0.5 grid h-7 min-w-9 shrink-0 place-items-center rounded-[6px] bg-[var(--aw-surface-2)] px-1 text-[12px] font-semibold text-ink">{b.avg ?? "–"}</span>
+                      <span className="aw-num mt-0.5 grid h-7 min-w-10 shrink-0 place-items-center rounded-[6px] px-1 text-[12px] font-semibold text-white" style={{ background: b.avg === null || b.avg > 20 ? "#E5484D" : b.avg <= 3 ? MAP.top3 : b.avg <= 10 ? MAP.top10 : MAP.top20 }}>{b.avg ?? "–"}</span>
                       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                         <span className="flex items-start justify-between gap-2">
                           <span className={`text-[13px] font-semibold wrap-break-word ${b.you ? "text-[var(--signal-ink)]" : "text-ink"}`}>{b.title}</span>
@@ -381,10 +419,10 @@ function Results({ cur, prev, done, loc, domain, raw, pt, onPt }: { cur: ScanRes
         </div>
       </Card>
 
-      <div className="grid gap-4 xl:grid-cols-2">
-        <Card title="What this scan says">
-          <div className="flex flex-col gap-3 px-5 pb-5">
-            <p className="text-[15px] leading-snug font-semibold text-ink wrap-break-word">{headline}</p>
+      <div className="grid gap-4 xl:grid-cols-3">
+        <Card title="What this scan says" className="h-full">
+          <div className="flex h-full flex-col gap-3 px-5 pt-4 pb-5">
+            <p className="rounded-[10px] bg-[var(--signal-soft)] px-3.5 py-3 text-[14px] leading-snug font-semibold text-ink wrap-break-word">{headline}</p>
             <ul className="flex flex-col gap-2">
               {insights.map((x) => (
                 <li key={x.text} className="flex items-start gap-2.5 text-[13px] leading-snug text-body">
@@ -392,39 +430,126 @@ function Results({ cur, prev, done, loc, domain, raw, pt, onPt }: { cur: ScanRes
                   <span className="min-w-0 wrap-break-word">{x.text}</span>
                 </li>
               ))}
-              {fixes ? (
-                <li className="flex items-start gap-2.5 text-[13px] leading-snug text-body">
-                  <i className="mt-[5px] inline-block h-2 w-2 shrink-0 rounded-full" style={{ background: INSIGHT.bad }} />
-                  <span>
-                    {fixes} {fixes === 1 ? "thing" : "things"} on your website disagree with your Google listing. See the listing check.
-                  </span>
-                </li>
-              ) : null}
             </ul>
+            <Sides ranks={picked.ranks} />
           </div>
         </Card>
-        {cur.listing ? (
-          <Card title="Listing check" action={<span className={`aw-status ${fixes ? "aw-status--warn" : "aw-status--ranked"}`}>{fixes ? `${fixes} to fix` : "All good"}</span>}>
-            <ul className="flex flex-col px-5 pb-4">
-              {[...cur.listing].sort((a, b) => ORDER[a.status] - ORDER[b.status]).map((c) => (
-                <li key={c.id} className="flex items-start gap-3 border-t border-[var(--aw-rule)] py-2.5 first:border-t-0">
-                  <span className={`mt-0.5 grid h-[18px] w-[18px] shrink-0 place-items-center rounded-full text-[11px] font-bold ${c.status === "pass" ? "bg-[var(--aw-pos-bg)] text-pos" : c.status === "warn" ? "bg-[var(--aw-warn-bg)] text-warn" : "bg-[var(--aw-neg-bg)] text-neg"}`} aria-label={c.status}>
-                    {c.status === "pass" ? "✓" : c.status === "warn" ? "!" : "×"}
-                  </span>
-                  <span className="flex min-w-0 flex-col">
-                    <span className="text-[13.5px] font-medium text-ink">{c.label}</span>
-                    <span className="text-[12px] text-muted wrap-break-word">{c.detail}</span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </Card>
-        ) : null}
+        <Card title="Listing check" className="h-full" action={checks ? <span className={`aw-status ${fixes ? "aw-status--warn" : "aw-status--ranked"}`}>{fixes ? `${fixes} to fix` : "All good"}</span> : null}>
+          {cur.listing ? (
+            <div className="flex flex-col gap-3 px-5 pt-4 pb-4">
+              <div className="flex items-center gap-4 rounded-[10px] bg-[var(--aw-surface-2)] px-3.5 py-3">
+                <Donut parts={[{ label: "Passed", value: passed, color: MAP.top3 }, { label: "To fix", value: checks - passed, color: "#E5E7EB" }]} centre={`${passed}/${checks}`} size={64} />
+                <span className="text-[13px] leading-snug text-body">
+                  {fixes ? `${fixes} of ${checks} checks show your website and Google listing disagree. Google trusts a listing more when they match.` : "Your website and Google listing agree."}
+                </span>
+              </div>
+              <ul className="flex flex-col">
+                {[...cur.listing].sort((a, b) => ORDER[a.status] - ORDER[b.status]).map((c) => (
+                  <li key={c.id} className="flex items-start gap-3 border-t border-[var(--aw-rule)] py-2.5 first:border-t-0">
+                    <span className={`mt-0.5 grid h-[18px] w-[18px] shrink-0 place-items-center rounded-full text-[11px] font-bold ${c.status === "pass" ? "bg-[var(--aw-pos-bg)] text-pos" : c.status === "warn" ? "bg-[var(--aw-warn-bg)] text-warn" : "bg-[var(--aw-neg-bg)] text-neg"}`} aria-label={c.status}>
+                      {c.status === "pass" ? "✓" : c.status === "warn" ? "!" : "×"}
+                    </span>
+                    <span className="flex min-w-0 flex-col">
+                      <span className="text-[13.5px] font-medium text-ink">{c.label}</span>
+                      <span className="text-[12px] text-muted wrap-break-word">{c.detail}</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <p className="px-5 pt-4 pb-5 text-[13px] text-muted">The listing check runs with the next scan.</p>
+          )}
+        </Card>
+        <Card title="Reviews against the leaders" className="h-full">
+          <Reviews done={done} owners={owners} />
+        </Card>
       </div>
-      <Card title="Reviews against the map's leaders">
-        <Reviews done={done} owners={owners} />
-      </Card>
     </>
+  );
+}
+
+/** Average rank on each side of the grid, as a compass: where the business is strong and where it fades. */
+function Sides({ ranks }: { ranks: (number | null | undefined)[] }) {
+  const h = Math.floor(GRID / 2);
+  const side = (test: (r: number, c: number) => boolean) => {
+    const vals = ranks.map((v, i) => ({ v, r: Math.floor(i / GRID), c: i % GRID })).filter((x) => x.v !== undefined && test(x.r, x.c)).map((x) => Math.min(x.v ?? 21, 21));
+    return vals.length ? Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10 : null;
+  };
+  const cells = [
+    { name: "North", v: side((r) => r < h), area: "1 / 2" },
+    { name: "West", v: side((_, c) => c < h), area: "2 / 1" },
+    { name: "East", v: side((_, c) => c > h), area: "2 / 3" },
+    { name: "South", v: side((r) => r > h), area: "3 / 2" },
+  ];
+  const fill = (v: number | null) => (v === null ? "var(--aw-faint)" : v <= 3 ? MAP.top3 : v <= 10 ? MAP.top10 : v <= 20 ? MAP.top20 : "#E5484D");
+  return (
+    <div className="mt-auto flex items-center gap-4 rounded-[10px] bg-[var(--aw-surface-2)] px-3.5 py-3">
+      <div className="grid shrink-0 grid-cols-[repeat(3,44px)] grid-rows-[repeat(3,30px)] gap-1">
+        {cells.map((c) => (
+          <span key={c.name} className="aw-num grid place-items-center rounded-[6px] text-[12px] font-semibold text-white" style={{ gridArea: c.area, background: fill(c.v) }} title={c.name}>
+            {c.v ?? "–"}
+          </span>
+        ))}
+        <span className="grid place-items-center text-[10px] font-semibold text-muted" style={{ gridArea: "2 / 2" }}>
+          You
+        </span>
+      </div>
+      <span className="text-[12px] leading-snug text-body">Average rank on each side of the business. A lower number means stronger.</span>
+    </div>
+  );
+}
+
+/** A card of the top row: a label and one visual with its number. All four are the same height. */
+function Tile({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <section className="aw-frame flex h-full min-w-0 flex-col gap-3 px-5 py-4">
+      <span className="text-[12px] font-medium text-muted wrap-break-word">{label}</span>
+      <div className="flex flex-1 flex-col justify-center">{children}</div>
+    </section>
+  );
+}
+
+/** Average rank on a ring: full and green at #1, empty and red at 21 (not in the top 20). */
+function RankGauge({ avg }: { avg: number | null }) {
+  const r = 26;
+  const len = 2 * Math.PI * r;
+  const share = avg === null ? 0 : Math.max(0, Math.min(1, (21 - avg) / 20));
+  const color = avg === null ? "var(--aw-faint)" : avg <= 3 ? MAP.top3 : avg <= 10 ? MAP.top10 : avg <= 20 ? MAP.top20 : "#E5484D";
+  return (
+    <svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true" className="shrink-0">
+      <circle cx="32" cy="32" r={r} fill="none" stroke="var(--aw-surface-2)" strokeWidth="7" />
+      <circle cx="32" cy="32" r={r} fill="none" stroke={color} strokeWidth="7" strokeLinecap="round" strokeDasharray={`${share * len} ${len}`} transform="rotate(-90 32 32)" />
+    </svg>
+  );
+}
+
+/** A donut of shares with a label in the middle. */
+function Donut({ parts, centre, size = 76 }: { parts: { label: string; value: number; color: string }[]; centre: string; size?: number }) {
+  const total = parts.reduce((a, p) => a + p.value, 0) || 1;
+  const r = 30;
+  const len = 2 * Math.PI * r;
+  const arcs = parts.map((p, k) => ({ ...p, d: (p.value / total) * len, start: parts.slice(0, k).reduce((a, q) => a + (q.value / total) * len, 0) }));
+  return (
+    <svg width={size} height={size} viewBox="0 0 76 76" aria-hidden="true" className="shrink-0">
+      <circle cx="38" cy="38" r={r} fill="none" stroke="var(--aw-surface-2)" strokeWidth="9" />
+      {arcs.map((p) => (p.d > 0 ? <circle key={p.label} cx="38" cy="38" r={r} fill="none" stroke={p.color} strokeWidth="9" strokeDasharray={`${p.d} ${len - p.d}`} strokeDashoffset={-p.start} transform="rotate(-90 38 38)" /> : null))}
+      <text x="38" y="42" textAnchor="middle" fill="var(--aw-ink)" style={{ font: "600 13px Inter, system-ui, sans-serif", fontVariantNumeric: "tabular-nums" }}>
+        {centre}
+      </text>
+    </svg>
+  );
+}
+
+/** The grid in small: a 7 by 7 matrix of the picked business's ranks. */
+function Matrix({ ranks }: { ranks: (number | null | undefined)[] }) {
+  return (
+    <span className="grid shrink-0 gap-[3px]" style={{ gridTemplateColumns: `repeat(${GRID}, 7px)` }} aria-hidden="true">
+      {Array.from({ length: GRID * GRID }, (_, i) => {
+        const r = ranks[i];
+        return <i key={i} className="block h-[7px] w-[7px] rounded-[2px]" style={{ background: r === undefined ? "var(--aw-surface-2)" : r === null ? "#F3B5B7" : r <= 3 ? MAP.top3 : r <= 10 ? MAP.top10 : MAP.top20 }} />;
+      })}
+    </span>
   );
 }
 
@@ -578,11 +703,15 @@ function Reviews({ done, owners }: { done: Scan[]; owners: MapOwner[] }) {
   const leaders = owners.filter((o) => !o.you).slice(0, 3);
   const rows = [you, ...leaders];
   const max = Math.max(1, ...rows.map((r) => r.reviews ?? 0));
+  const top = [...leaders].sort((a, b) => (b.reviews ?? 0) - (a.reviews ?? 0))[0] ?? null;
+  const gap = top && you.reviews !== null ? (top.reviews ?? 0) - you.reviews : 0;
+  const rated = leaders.filter((l) => l.rating !== null);
+  const rateGap = you.rating !== null && rated.length ? Math.round((you.rating - rated.reduce((a, l) => a + l.rating!, 0) / rated.length) * 10) / 10 : null;
   const names = leaders.slice(0, 2).map((r) => r.title);
   const h = reviewHistory(done.map((s) => ({ at: s.created_at, you: s.result!.you, rivals: s.result!.rivals })), names);
   const series = [{ name: you.title, color: "var(--signal)", vals: h.map((x) => x.you) }, ...names.map((n, k) => ({ name: n, color: k ? "var(--aw-faint)" : "var(--aw-ink)", vals: h.map((x) => x.rivals[n]) }))];
   return (
-    <div className="grid gap-6 px-5 pb-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+    <div className="flex h-full flex-col gap-5 px-5 pt-4 pb-5">
       <div className="flex flex-col gap-3">
         {rows.map((r) => (
           <div key={r.title} className="flex flex-col gap-1.5">
@@ -599,7 +728,19 @@ function Reviews({ done, owners }: { done: Scan[]; owners: MapOwner[] }) {
           </div>
         ))}
       </div>
-      {h.length >= 2 ? <ReviewLines h={h} series={series} /> : <p className="self-center text-[13px] text-muted">The trend shows after the next scan.</p>}
+      {h.length >= 2 ? <ReviewLines h={h} series={series} /> : <p className="rounded-[10px] bg-[var(--aw-surface-2)] px-3.5 py-3 text-[12px] text-muted">The review trend shows after the next scan.</p>}
+      {top && you.reviews !== null ? (
+        <div className="mt-auto grid grid-cols-2 gap-2">
+          <span className="flex flex-col gap-1 rounded-[10px] bg-[var(--aw-surface-2)] px-3.5 py-3">
+            <span className="text-[11px] font-medium text-muted">Reviews to match {top.title}</span>
+            <span className={`aw-num text-[20px] leading-none font-semibold ${gap > 0 ? "text-ink" : "text-pos"}`}>{gap > 0 ? `+${gap.toLocaleString("en-US")}` : "Ahead"}</span>
+          </span>
+          <span className="flex flex-col gap-1 rounded-[10px] bg-[var(--aw-surface-2)] px-3.5 py-3">
+            <span className="text-[11px] font-medium text-muted">Rating against the leaders</span>
+            <span className={`aw-num text-[20px] leading-none font-semibold ${rateGap === null ? "text-muted" : rateGap >= 0 ? "text-pos" : "text-neg"}`}>{rateGap === null ? "–" : `${rateGap >= 0 ? "+" : ""}${rateGap.toFixed(1)}`}</span>
+          </span>
+        </div>
+      ) : null}
     </div>
   );
 }
