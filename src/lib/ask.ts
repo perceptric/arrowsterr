@@ -110,7 +110,7 @@ const LOCAL: LocalTool[] = [
   {
     name: "start_site_audit",
     label: "Starting a site audit",
-    description: `Crawl a website (up to ${MAX_PAGES} pages) and check what hurts it in Google and AI answers: AI crawlers blocked in robots.txt, llms.txt, broken pages and links, titles, meta descriptions, headings, alt text, structured data, canonicals, noindex, thin and slow pages. Takes a few minutes and runs in the background. Defaults to the brand's own website.`,
+    description: `Crawl a website (up to ${MAX_PAGES}) and check what hurts it in Google and AI answers: AI crawlers blocked in robots.txt, llms.txt, broken pages and links, titles, meta descriptions, headings, alt text, structured data, canonicals, noindex, thin and slow pages. Takes a few minutes and runs in the background. Defaults to the brand's own website.`,
     input_schema: { type: "object", properties: { domain: { type: "string", description: "The website, like example.com. Leave out for the brand's site." } } },
     async run(ctx, args, emit) {
       if (!ctx.canEdit) throw new ToolError("Only editors and admins can start an audit.");

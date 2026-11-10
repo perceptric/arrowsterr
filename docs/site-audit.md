@@ -16,12 +16,15 @@ The crawler already existed for Zippie (`src/lib/audit.ts`). This adds the scree
 
 A false "healthy" costs more than no score, so:
 
-- **Partial crawls get no score** (`partialReason` in `src/lib/siteAudit.ts`). A crawl is partial when the homepage didn't load, or when more than half of the pages didn't answer at all. Pages that answer with an error (404, 500) still count: they are findings.
-- **A crawl that stops early keeps what it read,** marked partial with the reason, and no score. Before, it was lost.
+- **Partial crawls get no score** (`partialReason` in `src/lib/siteAudit.ts`). A crawl is partial when the homepage didn't load, when more than half of the pages didn't answer at all, when robots.txt returns a server error, or when the crawl hit its 3-hour cap. Pages that answer with an error (404, 500) still count: they are findings.
+- **A firewall that blocks our crawler stops the crawl** with "Your firewall blocked our crawler" instead of reporting every page as broken.
+- **A crawl that stops early keeps what it read,** marked partial with the reason, and no score.
+- **Unknown is never broken:** links to pages the crawl didn't fetch, and canonicals to pages it didn't fetch, are never counted as errors. Outbound links that answer 401, 403 or 429 are a site refusing bots, not a broken link.
+- **Hiccups retry first:** a page that fails once and loads on the retry is fine, and its response time is the retry's.
 - **The change arrow and the alert only compare full crawls.** Partial and failed crawls are skipped.
-- **A crawl stuck for 45 minutes** (the worker died) is closed as failed, so the next one can start.
+- **A crawl that goes quiet for 20 minutes** (no progress report, so the worker died) is closed as failed, so the next one can start. Long crawls report progress every few seconds, so they're never cut off for running long.
 - **Fix finds CMS pages by address** with or without www, a trailing slash or different case (`matchesPages`). Before, a crawled `acme.com/post` never matched the CMS's `www.acme.com/post/`, so the play changed nothing.
-- Tests: `tests/siteAudit.test.ts`.
+- Tests: `tests/siteAudit.test.ts` and `tests/techChecks.test.ts` (URL cleaning, templates, page reading, every group of checks, link counting and depth, sitemaps, settings, the quiet-crawl rule). The crawler itself was run end to end against a local test site with a flaky page, a redirect chain, a robots.txt block, an orphan, duplicates, a noindex page in the sitemap and an endless calendar, and split across many short jobs with the same result.
 
 ## Weekly crawl and alert
 
@@ -32,23 +35,28 @@ A false "healthy" costs more than no score, so:
 
 ## Data
 
+`supabase/067_crawler.sql`: `crawl_queue` (server only), `crawl_pages` (viewers may read), `site_audits.crawl`, `settings` and `heartbeat_at`, `brands.audit_settings`. The two newest finished crawls per brand keep their page rows; older ones keep their summary.
+
 `supabase/061_site_audits.sql`:
 - `site_audits.brand_id`, with crawls made before it matched to the brand with the same domain.
 - `brands.audit_weekly`, on by default.
 
-Reading crawls needs no route: the page reads `site_audits` as the signed-in person, and viewers may read. `/api/site-audit` takes `start`, `weekly` and `fix` from editors. Zippie's `start_site_audit` now saves the crawl to the brand with that domain, so it shows on the screen too.
+Reading crawls needs no route: the page reads `site_audits` and `crawl_pages` as the signed-in person, and viewers may read. `/api/site-audit` takes `start`, `weekly`, `settings` and `fix` from editors. Zippie's `start_site_audit` now saves the crawl to the brand with that domain, so it shows on the screen too.
 
 ## Running cost
 
-Crawls are plain page loads from the worker (up to 200 pages and 120 link checks each). They use no paid API and no Claude tokens. Fix runs the existing plays, which already count against the plan's tasks.
+Crawls are plain page loads from the worker. They use no paid API and no Claude tokens. Fix runs the existing plays, which already count against the plan's tasks.
+
+Assumptions: about 2 sites per team, 2,000 pages each on average, crawled weekly: about 16,000 page loads per team a month (800,000 at Beta, 8,000,000 at Growth). Page rows for the last 2 crawls are about 9 KB a page, about 4 GB at Beta and 40 GB at Growth.
 
 | Line | Beta (50 teams) | Growth (500 teams) |
 |---|---|---|
-| Weekly crawls, about 2 brands per team (plain page loads) | $0 | $0 |
-| Worker time for crawls (fits the current Fly worker at Beta, a share of a second 2 GB machine at Growth, check) | $0 | ~$12 |
+| Crawl compute on the VPS (one size up at Beta; a second VPS for workers at Growth, check) | ~$10 | ~$35 |
+| Database storage for page rows (inside the VPS disk) | $0 | $0 |
+| Bigger backups (check) | $0 | ~$5 |
 | Alert emails (inside Resend's current plan, check) | $0 | $0 |
 | Fixes (existing plays, Claude, already in the plan's tasks) | $0 extra | $0 extra |
-| **Monthly total added** | **$0** | **~$12** |
+| **Monthly total added** | **~$10** | **~$40** |
 
 ## Example data
 

@@ -592,7 +592,9 @@ A false failure costs more than a missing check. These rules are part of each ph
 
 Estimates are for one engineer who knows the codebase. Each phase ships behind the `seo` track and is usable on its own.
 
-### Phase 1: Crawler v2 and Site Audit v2 (5 weeks)
+### Phase 1: Crawler v2 and Site Audit v2 (5 weeks) — built November 2026
+
+Shipped: the crawler as a chain of jobs in the web worker (the Chromium renderer stays for phase 3), crawl_queue and crawl_pages (templates are a column, not a table yet), about 70 checks, area scores, the rebuilt Site Audit with Overview, Issues and Pages tabs, crawl settings, and plan page limits (Agency 20,000 and Enterprise 50,000 for now). Not yet: Fix for noindex and canonicals (they need new CMS plays), crawl-to-crawl page comparison, and the separate Pages screen in the sidebar (Pages is a Site Audit tab). See `docs/site-audit.md`.
 
 - Tables from 6.2 (crawls, crawl_urls, crawl_pages, crawl_links, crawl_issues, crawl_templates) in `supabase/0NN_crawler.sql`.
 - Fetcher loop in the worker container; queue with leases; per-host speed; retries; redirect hops; sitemap index and gzip; robots.txt per bot; link checks.

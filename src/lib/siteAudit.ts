@@ -72,7 +72,11 @@ export function weeklyDue(opts: { weekly: boolean; lastStarted: string | null; r
 
 /** A running crawl older than this is stuck (the worker died): the next crawl may start. */
 export const STUCK_MS = 45 * 60_000;
-export const isStuck = (a: { status: string; created_at: string }, now: number) => a.status === "running" && now - Date.parse(a.created_at) > STUCK_MS;
+/** A crawl with no progress report for this long has stopped (crawls report progress every few seconds while they run). */
+export const QUIET_MS = 20 * 60_000;
+/** A running crawl is stuck when it went quiet for 20 minutes, or, before progress reports existed, ran 45 minutes. */
+export const isStuck = (a: { status: string; created_at: string; heartbeat_at?: string | null }, now: number) =>
+  a.status === "running" && (a.heartbeat_at ? now - Date.parse(a.heartbeat_at) > QUIET_MS : now - Date.parse(a.created_at) > STUCK_MS);
 
 /** A domain the way crawls store it: no scheme, no www, no path. Empty when it isn't a domain. */
 export function cleanDomain(raw: string): string {
