@@ -28,6 +28,7 @@ import { collectScan, queueWeeklyScans } from "../localServer";
 import { queueProfileReads, runProfileRead } from "../localProfileServer";
 import { queueReviewPulls, runReviewPull } from "../localReviewsServer";
 import { collectAiScan, queueAiScans } from "../localAiServer";
+import { collectRecheck } from "../localAlertsServer";
 import { queueReportSends } from "../scheduleServer";
 import { applySet, preparePlay, undoSet } from "../plays";
 import { checkDue, promptAllowance } from "../plans";
@@ -332,6 +333,13 @@ export async function local_reviews(db: SupabaseClient, job: Job) {
 export async function local_ai(db: SupabaseClient, job: Job) {
   const { scanId, round } = job.payload as { scanId: string; round?: number };
   await collectAiScan(db, scanId, round ?? 0);
+  await finish(job.id);
+}
+
+// Local Research alerts (docs/local-research-plan.md, 4.8): the second read of a rank drop.
+export async function local_alert(db: SupabaseClient, job: Job) {
+  const { alertId, round } = job.payload as { alertId: string; round?: number };
+  await collectRecheck(db, alertId, round ?? 0);
   await finish(job.id);
 }
 

@@ -41,7 +41,7 @@ import { splitPeriods, type Filter } from "@/lib/metrics";
 import type { View } from "@/lib/view";
 import { runAll, type RunAuth } from "@/lib/runner";
 import { getSupabase, type SupaConfig } from "@/lib/supa";
-import { clearStash, primeStash } from "@/lib/stash";
+import { clearStash, peek, primeStash } from "@/lib/stash";
 import { AuthScreen, CodeCheck, NewPassword } from "./AuthScreen";
 import { WorkspaceAvatar } from "./WorkspaceAvatar";
 import { BrandLogo } from "./BrandLogo";
@@ -87,7 +87,7 @@ type Page = "prompts" | "competitors" | "perception" | "domains" | "urls" | "tra
 const RESEARCH: Page[] = ["keywords", "domain", "gap", "calendar"];
 const VISIBILITY: Page[] = ["prompts", "competitors", "perception", "domains", "urls"];
 /** Pages with their own PDF (docs/reports.md, section 32.3). */
-const PDF_OF: Partial<Record<Page, PdfPage>> = { prompts: "prompts", competitors: "competitors", domains: "sources", urls: "sources", keywords: "keywords", domain: "domain", gap: "gap" };
+const PDF_OF: Partial<Record<Page, PdfPage>> = { prompts: "prompts", competitors: "competitors", domains: "sources", urls: "sources", keywords: "keywords", domain: "domain", gap: "gap", local: "local" };
 /** Pages with Share, a frozen link anyone can open (docs/reports.md, section 32.7). */
 const SHARE_OF: Partial<Record<Page, "prompts" | "competitors">> = { prompts: "prompts", competitors: "competitors" };
 
@@ -776,6 +776,10 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
                   target={() => {
                     const p = PDF_OF[page]!;
                     if (p === "keywords" || p === "domain" || p === "gap") return researchTarget(p, active.id, days);
+                    if (p === "local") {
+                      const id = peek<string | null>(`local:${active.id}:loc`);
+                      return id ? { params: { locationId: id, days: 30 }, title: "Local Research", line: "Last 30 days" } : { error: "Open a location first." };
+                    }
                     const line = [`Last ${days} days`, topic !== "All" ? topic : "", model !== "All" ? model : ""].filter(Boolean).join(" · ");
                     return { params: { days, topic, model }, title: PDF_PAGES.find((x) => x.id === p)!.title, line };
                   }}
@@ -972,7 +976,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
               }}
             />
           ) : page === "local" ? (
-            <LocalResearchPage key={view.brand.id} brand={{ id: view.brand.id, name: view.brand.name, domain: view.brand.domain }} sb={sb} auth={auth} canEdit={canEdit} />
+            <LocalResearchPage key={view.brand.id} brand={{ id: view.brand.id, name: view.brand.name, domain: view.brand.domain }} sb={sb} auth={auth} canEdit={canEdit} secure={plan ? reportLimits(plan.plan).secure : false} />
           ) : page === "contentmap" ? (
             <ContentMapPage key={view.brand.id} brand={{ id: view.brand.id, name: view.brand.name, domain: view.brand.domain }} sb={sb} auth={auth} canEdit={canEdit} onConnect={() => go("publishing")} />
           ) : page === "backlinks" ? (

@@ -5,6 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import QRCode from "qrcode";
 import { keywordMentions, keywordWords, monthly, reviewStats, themeShare, themeTable, toAnswer, writeReviewUrl, type SavedReview, type ThemeHit } from "@/lib/localReviews";
 import { Card, Seg, StatStrip, Thinking } from "../ui";
+import { saveCsv } from "./saveCsv";
 
 // Local Research, Reviews (docs/local-research-plan.md, 4.5): the business's Google reviews against its 3 leaders.
 // Reviews per month, reply rate and time, themes with quotes, keyword words, reviews to answer with Draft reply, and
@@ -146,7 +147,22 @@ export function ReviewsTab({ sb, locationId, placeId, keywords, city, canEdit, c
           {leaders.length ? `, against ${leaders.map((g) => g.title).join(", ")}` : ""}
           {unread ? `. ${unread} reviews still being read for themes.` : ""}
         </span>
-        {readButton}
+        <span className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            className="aw-btn aw-btn--secondary aw-btn--sm"
+            onClick={() =>
+              saveCsv(
+                `reviews ${meta.at?.slice(0, 10) ?? ""}.csv`,
+                ["Business", "You", "Rating", "Posted", "Author", "Review", "Reply", "Replied", "Themes", "Removed", "Link"],
+                (rows ?? []).map((r) => [r.title, r.you ? "Yes" : "", r.rating, r.posted_at?.slice(0, 10), r.author, r.text, r.reply, r.replied_at?.slice(0, 10), (r.themes ?? []).map((t) => `${t.theme} (${t.tone})`).join("; "), r.removed_at ? r.removed_at.slice(0, 10) : "", r.url]),
+              )
+            }
+          >
+            Export CSV
+          </button>
+          {readButton}
+        </span>
       </div>
       <StatStrip
         stats={[

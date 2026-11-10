@@ -1,4 +1,5 @@
 import "server-only";
+import { loadLocal } from "./localReportServer";
 import { seoSnapshot, type SeoRaw, type SeoSnapshot } from "./reportSeo";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Run } from "./chats";
@@ -46,8 +47,9 @@ async function seoFor(db: SupabaseClient, brand: { id: string; workspace_id: str
     rows<SeoRaw["maps"][number]>(db.from("content_maps").select("created_at, result").eq("brand_id", brand.id).eq("status", "done").order("created_at", { ascending: false }).limit(3)),
     rows<SeoRaw["scans"][number]>(db.from("local_scans").select("keyword, created_at, result").eq("brand_id", brand.id).eq("status", "done").order("created_at", { ascending: false }).limit(60)),
   ]);
+  const locations = await loadLocal(db, brand.id, start, end).catch(() => []);
   // Link Building was removed, so reports have no link board section.
-  return seoSnapshot({ start, end, audits, onpage, snaps, cards: null, maps, scans });
+  return seoSnapshot({ start, end, audits, onpage, snaps, cards: null, maps, scans, locations });
 }
 
 /** Saved runs for a brand between two moments, oldest first, with tidy sources. */

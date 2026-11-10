@@ -210,6 +210,8 @@ The same rules as the rest of the product: a wrong signal costs more than a miss
 
 **Phase 4 built, November 2026:** the AI answers tab on each location. Google's AI Mode is asked "best {keyword}" from a 5 × 5 grid over the same area as the Maps grid, and ChatGPT and Gemini once for the city, monthly and on Scan now. It shows the share of points where AI Mode names the business, its average place in the answer, ChatGPT and Gemini, the AI map, the businesses AI names (matched by Maps link, website, then name, marked "By name"), the sites AI cites, and where AI Mode and the Maps top 3 disagree. See `docs/local-research.md`.
 
+**Phase 6 built, November 2026:** alerts and reports. Rank drops (read twice before sending), new competitors in the top 3, changes Google made, 1 and 2 star reviews and a rating level, emailed once a day at most per location and listed on a new Alerts tab; Google Maps rows in the weekly email; a Local section per location in the client report's SEO block with each keyword's rank grid; Download PDF and a share link for a location; CSV exports on Rankings, Reviews and AI answers. Phase 5 (the Google Business Profile connection) waits for Google's API approval. See `docs/local-research.md`.
+
 
 | Phase | Weeks | What ships | Done when |
 |---|---|---|---|

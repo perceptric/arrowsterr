@@ -42,6 +42,8 @@ export type Location = {
   /** Where the grid is centred, when not on the business pin (service-area businesses). */
   center?: { lat: number; lng: number } | null;
   schedule?: Schedule;
+  /** Alerts (phase 6): on unless turned off, and a Google rating level to warn below. */
+  alerts?: { on?: boolean; ratingBelow?: number | null };
 };
 export type Shape = "square" | "circle";
 export type Schedule = "weekly" | "biweekly" | "monthly" | "off";

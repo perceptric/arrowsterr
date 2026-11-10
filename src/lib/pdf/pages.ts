@@ -15,6 +15,7 @@ export const PDF_PAGES: { id: PdfPage; title: string }[] = [
   { id: "keywords", title: "Keyword Report" },
   { id: "domain", title: "Domain Report" },
   { id: "gap", title: "Keyword Gap" },
+  { id: "local", title: "Local Research" },
 ];
 export const isPdfPage = (v: unknown): v is PdfPage => PDF_PAGES.some((p) => p.id === v);
 export const isAiPage = (v: unknown): v is AiPage => v === "prompts" || v === "competitors" || v === "sources";
@@ -27,6 +28,7 @@ export function fileLine(page: string, params: Record<string, unknown>): string 
     return [s(params.keyword) || s(params.domain), s(params.country)].filter(Boolean).join(" · ");
   }
   if (page === "gap") return s(params.competitor) ? `vs ${s(params.competitor)}` : "";
+  if (page === "local") return `Last ${Number(params.days) || 30} days`;
   return [`Last ${Number(params.days) || 30} days`, s(params.topic), s(params.model)].filter(Boolean).join(" · ");
 }
 

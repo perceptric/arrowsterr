@@ -6,6 +6,7 @@ import type { Profile } from "./db";
 import { entitlement, take } from "./entitlements";
 import { enqueue } from "./jobs";
 import { grid, gridOf, listingCheck, parsePlaces, scanDue, scanTasks, scheduleOf, summarize, zoomFor, type Location, type Place, type ScanResult, type Shape } from "./local";
+import { afterScan } from "./localAlertsServer";
 import { schemaTypes } from "./pageFacts";
 import { marketOf } from "./research";
 import { safeFetch } from "./safeFetch";
@@ -116,6 +117,7 @@ export async function collectScan(db: SupabaseClient, scanId: string, round: num
   if (!result.read) return fail(db, scanId, "Google Maps didn't answer for any point. Try again in a few minutes.");
   result.listing = await siteListing(String(b.domain), loc, result).catch(() => undefined);
   await db.from("local_scans").update({ status: "done", step: "Done", points, result, error: null, finished_at: new Date().toISOString() }).eq("id", scanId);
+  await afterScan(db, scanId).catch((e) => console.error("Local scan alerts failed:", e instanceof Error ? e.message : e));
 }
 
 /** Read the brand's homepage for the listing check. Free. */

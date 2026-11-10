@@ -1,6 +1,7 @@
 "use client";
 
 import type { SeoSnapshot } from "@/lib/reportSeo";
+import { RankGrid } from "../local/RankGrid";
 import { preinit } from "react-dom";
 import { blocksFromSections, BLOCKS, type BlockId } from "@/lib/reportDoc";
 import type { ReportSnapshot } from "@/lib/reportTypes";
@@ -161,7 +162,58 @@ function SeoBlock({ n, s }: { n: number; s: SeoSnapshot }) {
           </table>
         </div>
       ) : null}
-      {s.local?.length ? (
+      {s.locations?.length ? (
+        s.locations.map((l) => (
+          <div key={`${l.title}|${l.name}`} className="card" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: "4px 12px" }}>
+              <span className="lab">Google Maps, {l.name}</span>
+              <span style={{ fontSize: 13, color: "var(--muted)" }}>
+                {[l.rating !== null ? `Rated ${l.rating}${l.reviews !== null ? ` from ${num(l.reviews)} reviews` : ""}` : "", l.newReviews !== null ? `${num(l.newReviews)} new ${l.newReviews === 1 ? "review" : "reviews"} in these dates` : ""].filter(Boolean).join(", ")}
+              </span>
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 18 }}>
+              {l.keywords.slice(0, 4).map((k) => (
+                <div key={k.keyword} style={{ display: "flex", flexDirection: "column", gap: 6, width: 168 }}>
+                  <RankGrid size={k.grid.size} shape={k.grid.shape} ranks={k.grid.ranks} label={`Google Maps ranks for ${k.keyword}`} />
+                  <span style={{ fontSize: 13, color: "var(--ink)", overflowWrap: "break-word" }}>{k.keyword}</span>
+                </div>
+              ))}
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Keyword</th>
+                  <th className="r">Average rank</th>
+                  <th className="r">Top 3 on the map</th>
+                  <th className="r">AI Mode names you</th>
+                </tr>
+              </thead>
+              <tbody>
+                {l.keywords.map((k) => (
+                  <tr key={k.keyword}>
+                    <td>{k.keyword}</td>
+                    <td className="r">
+                      {k.avg ?? "–"} {k.avg !== null ? <Change now={k.avg} before={k.before} lowerIsBetter /> : null}
+                    </td>
+                    <td className="r">{k.read ? pctOf((k.top3 / k.read) * 100) : "–"}</td>
+                    <td className="r">{k.aiShare === null ? "–" : pctOf(k.aiShare * 100)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {l.alerts.length ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 13 }}>
+                <span className="lab">Alerts</span>
+                {l.alerts.map((a) => (
+                  <span key={`${a.at}|${a.title}`} style={{ color: "var(--ink)", overflowWrap: "break-word" }}>
+                    {a.title}. <span style={{ color: "var(--muted)" }}>{a.detail}</span>
+                  </span>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ))
+      ) : s.local?.length ? (
         <div className="card">
           <table>
             <thead>

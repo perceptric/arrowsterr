@@ -8,6 +8,8 @@ import { aiGridOf, aiTasks } from "@/lib/localAi";
 import { startAiScan } from "@/lib/localAiServer";
 import { TOOLS as MCP_TOOLS } from "@/lib/mcp/tools";
 import { meteredRoute } from "@/lib/meter";
+import { makeSnapshot } from "@/lib/pdf/server";
+import { migrationHint } from "@/lib/reportServer";
 import { TASK_COST } from "@/lib/plans";
 import { marketOf } from "@/lib/research";
 import { adminClient, requireRole } from "@/lib/serverAuth";
@@ -22,12 +24,13 @@ const err = (error: string, status = 400) => Response.json({ error }, { status }
 //   find:     { brandId, query }                   editors: the business on Google Maps by name and city (1 task)
 //   set:      { brandId, place, locationId? }      editors: add a location, or change the business of one
 //   remove:   { brandId, locationId }              editors: delete a location and its scans
-//   settings: { brandId, locationId, name?, keywords?, spacing?, size?, shape?, center?, schedule? }
+//   settings: { brandId, locationId, name?, keywords?, spacing?, size?, shape?, center?, schedule?, alerts? }
 //   scan:     { brandId, locationId, keyword }     editors: a grid scan now, on the priority queue (tasks by points)
 //   prompts:  { brandId, locationId }              editors: track local prompts in AI Visibility (plan limits apply)
 //   profile:  { brandId, locationId }              editors: read the Google profiles now (the business and its 3 leaders)
 //   reviews:  { brandId, locationId }              editors: pull the Google reviews now (the business and its 3 leaders)
 //   reply:    { brandId, locationId, reviewId }    editors: a draft reply to one of the business's reviews (1 task)
+//   share:    { brandId, locationId }              editors: a share link to the location's report (last 30 days)
 //   aiscan:   { brandId, locationId, keyword }     editors: ask AI Mode from the AI grid, and ChatGPT and Gemini for the city
 async function handle(request: Request) {
   const body = await request.json().catch(() => ({}));
@@ -119,6 +122,12 @@ async function handle(request: Request) {
         next.schedule = body.schedule as Schedule;
         next.weekly = body.schedule !== "off";
       }
+      if (body.alerts && typeof body.alerts === "object") {
+        const a = body.alerts as { on?: unknown; ratingBelow?: unknown };
+        const r = a.ratingBelow === null || a.ratingBelow === "" ? null : Number(a.ratingBelow);
+        if (r !== null && !(Number.isFinite(r) && r > 1 && r <= 5)) return err("Pick a rating between 1 and 5.");
+        next.alerts = { on: a.on !== false, ratingBelow: r === null ? null : Math.round(r * 10) / 10 };
+      }
       if (body.center === null) next.center = null;
       else if (body.center && typeof body.center === "object") {
         const c = body.center as { lat?: unknown; lng?: unknown };
@@ -191,6 +200,17 @@ async function handle(request: Request) {
       // The metered route hands the tasks back on its own when the answer is an error.
       const scanId = await startAiScan(db, ws, me.user?.id ?? null, brand.id, loc, keyword, { country: profile.country, charge: took.period ? { period: took.period, plan: cost - pack, pack } : null });
       return Response.json({ scanId });
+    }
+
+    if (body.action === "share") {
+      const locked = await requireTrack(ws, "seo");
+      if (locked) return locked;
+      // A frozen link to this location's report (the same file Download PDF makes), under the report_links rules.
+      const made = await makeSnapshot(db, ws, brand.id, "local", "arrowsterr", { locationId: loc.id, days: 30 });
+      const { data: link, error } = await db.from("report_links").insert({ workspace_id: ws, brand_id: brand.id, mode: "frozen", snapshot: { kind: "pdf", snapshot: made.snapshot }, created_by: me.user?.id ?? null }).select("id, token").single();
+      if (error || !link) return err(migrationHint(error?.message ?? "Could not make the link."), 500);
+      const origin = process.env.APP_URL?.trim().replace(/\/+$/, "") || "https://app.arrowsterr.com";
+      return Response.json({ url: `${origin}/r/${link.token}`, id: link.id });
     }
 
     if (body.action === "prompts") {

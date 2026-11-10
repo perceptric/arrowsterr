@@ -7,6 +7,7 @@ import { call } from "./dataforseo";
 import { entitlement, take } from "./entitlements";
 import { enqueue } from "./jobs";
 import { scheduleOf, type Location } from "./local";
+import { afterReviewPull } from "./localAlertsServer";
 import { keywordFor, targets } from "./localProfileServer";
 import { checkThemes, mergeReviews, parseReviews, pullDepth, replyPrompt, THEME_SCHEMA, themePrompt, type Review } from "./localReviews";
 import { TASK_COST } from "./plans";
@@ -68,6 +69,7 @@ async function collect(db: SupabaseClient, locationId: string, tasks: PullTask[]
   const ws = (loc.workspace_id as string) ?? null;
   // Up to about 45 minutes; a business that never answers is left out of this pull.
   if (left.length && round < 7) await enqueue("local_reviews", { locationId, round: round + 1, tasks: left }, { workspaceId: ws, key: `local_reviews:${locationId}:${left[0].id}:${round + 1}`, runAt: new Date(Date.now() + Math.min(15 * 60_000, 60_000 * 2 ** round)), maxAttempts: 3 });
+  if (saved && tasks.some((t) => t.you && !left.includes(t))) await afterReviewPull(db, locationId).catch((e) => console.error("Local review alerts failed:", e instanceof Error ? e.message : e));
   if (saved) await enqueue("local_reviews", { locationId, theme: true }, { workspaceId: ws, key: `local_reviews:${locationId}:theme:${Date.now()}`, maxAttempts: 2 });
 }
 

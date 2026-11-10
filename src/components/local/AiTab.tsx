@@ -6,6 +6,7 @@ import { grid, placeText, type Location, type ScanResult } from "@/lib/local";
 import { aiGridOf, aiVsMaps, type AiReads, type AiResult } from "@/lib/localAi";
 import { LocalMap, MAP_COLORS, type MapDot } from "../LocalMap";
 import { Card, StatStrip, Thinking } from "../ui";
+import { saveCsv } from "./saveCsv";
 
 // Local Research, AI answers (docs/local-research-plan.md, 4.6): where Google's AI Mode names the business across the
 // grid, its place in the answer, what ChatGPT and Gemini say for the city, the businesses AI names instead and the
@@ -220,7 +221,24 @@ export function AiTab({ sb, loc, canEdit, call, onError }: { sb: SupabaseClient;
       </Card>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        <Card title="Businesses AI names">
+        <Card
+          title="Businesses AI names"
+          action={
+            <button
+              type="button"
+              className="aw-btn aw-btn--secondary aw-btn--sm"
+              onClick={() =>
+                saveCsv(
+                  `ai answers ${kw} ${last.created_at.slice(0, 10)}.csv`,
+                  ["Business", "You", "AI Mode share", "Points named", "Points answered", "Average place", "ChatGPT", "Gemini", "Matched by"],
+                  r.businesses.map((b) => [b.title, b.you ? "Yes" : "", `${Math.round(b.share * 100)}%`, b.points, r.read, b.avgPos, b.chatgpt === null ? "" : b.chatgpt === 0 ? "Not named" : b.chatgpt, b.gemini === null ? "" : b.gemini === 0 ? "Not named" : b.gemini, b.byName ? "Name" : "Link"]),
+                )
+              }
+            >
+              Export CSV
+            </button>
+          }
+        >
           <div className="overflow-x-auto">
             <table className="aw-table">
               <thead>
