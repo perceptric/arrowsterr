@@ -13,11 +13,12 @@ test("tool screens show their numbers in a stat strip, never a row of equal boxe
   }
 });
 
-test("before a tool has data, its screen is the title and a search bar, with no example data", () => {
+test("before a tool has data, its screen is the title, a search bar and what the tool shows, with no example data", () => {
   assert.ok(!existsSync(new URL("../src/lib/demo.ts", import.meta.url)), "no example data file");
   for (const f of PAGES) {
     const src = read(f);
     assert.match(src, /<SearchBar/, `${f} has a search bar`);
-    assert.doesNotMatch(src, /ToolStart|ToolIntro|lib\/demo|isDemo|Example data/, `${f} has no start page or example data`);
+    assert.match(src, /<[A-Za-z]+Intro \/>/, `${f} shows what the tool does`);
+    assert.doesNotMatch(src, /ToolStart|lib\/demo|isDemo|Example data/, `${f} has no start page or example data`);
   }
 });

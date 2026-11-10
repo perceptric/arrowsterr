@@ -5,6 +5,7 @@ import { LINK_KINDS, spamLevel, type GapRow, type LinkKind, type LinkRow, type O
 import type { RunAuth } from "@/lib/runner";
 import { DomainField, SearchBar, SearchButton } from "./SearchBar";
 import { Card, Delta, Seg, StatStrip, Thinking } from "./ui";
+import { BacklinksIntro } from "./ToolIntros";
 import { useApi } from "./ZippiePage";
 
 // Backlinks (docs/backlinks.md): who links to the brand, new and lost by week, anchors and most linked pages, every
@@ -81,10 +82,13 @@ function OverviewTab({ brand, call, canEdit, onError }: { brand: Brand; call: Ca
   if (data === null) return <Thinking text="Loading" />;
   if (data === "none")
     return (
+    <div className="flex flex-col gap-6">
       <SearchBar onSubmit={() => load(true)}>
         <DomainField domain={brand.domain} />
         {canEdit ? <SearchButton label="Load backlinks" busyLabel="Loading" busy={busy} /> : null}
       </SearchBar>
+      <BacklinksIntro />
+    </div>
     );
   const head = <Updated at={data.overview.at} busy={busy} canRefresh={data.canRefresh} onRefresh={() => load(true)} />;
 

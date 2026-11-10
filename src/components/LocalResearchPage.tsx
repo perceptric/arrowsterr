@@ -7,6 +7,7 @@ import type { RunAuth } from "@/lib/runner";
 import { BAR_INPUT } from "./research/shared";
 import { SearchBar, SearchButton } from "./SearchBar";
 import { Card, Delta, Seg, StatStrip, Thinking } from "./ui";
+import { LocalIntro } from "./ToolIntros";
 import { useApi } from "./ZippiePage";
 
 // Local Research (docs/local-research.md): where the business ranks in Google Maps from 49 points around it, who holds
@@ -145,6 +146,7 @@ function Find({ brand, call, canEdit, onSet, onError }: { brand: Brand; call: Ca
           )}
         </Card>
       ) : null}
+      <LocalIntro />
     </>
   );
 }

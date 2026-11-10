@@ -6,6 +6,7 @@ import { layout, mapStats, type ContentMap, type Topic, type TopicStatus } from 
 import type { RunAuth } from "@/lib/runner";
 import { DomainField, SearchBar, SearchButton } from "./SearchBar";
 import { Card, SidePanel, StatStrip, Thinking } from "./ui";
+import { ContentMapIntro } from "./ToolIntros";
 import { ChangeSetCard, useApi } from "./ZippiePage";
 
 // Content Map (docs/content-map.md): the brand's topics as bubbles around their pillars. Green is covered, blue in
@@ -147,6 +148,8 @@ export function ContentMapPage({ brand, sb, auth, canEdit, onConnect }: { brand:
         </SearchBar>
       ) : null}
       {running ? <Thinking text={running.step || "Building"} /> : lastFailed ? <p className="aw-error">The last build failed: {lastFailed.error}</p> : null}
+
+      {!m && !running ? <ContentMapIntro /> : null}
 
       {m && geo && stats ? (
         <>

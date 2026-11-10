@@ -7,6 +7,7 @@ import type { RunAuth } from "@/lib/runner";
 import { fixPlayOf, isFull, issueChanges, previousFull, SEVERITY_LABEL, type AuditRow, type IssueChange } from "@/lib/siteAudit";
 import { DomainField, SearchBar, SearchButton } from "./SearchBar";
 import { Card, Delta, SidePanel, Thinking } from "./ui";
+import { SiteAuditIntro } from "./ToolIntros";
 import { ChangeSetCard, useApi } from "./ZippiePage";
 
 // Site Audit (docs/site-audit.md): the brand's latest crawl, its score against the last full crawl, and every issue
@@ -151,6 +152,7 @@ export function SiteAuditPage({ brand, sb, auth, canEdit, onConnect }: { brand: 
           {canEdit ? <SearchButton label="Start audit" busyLabel="Starting" busy={busy === "crawl"} /> : null}
         </SearchBar>
         {error ? <p className="aw-error">{error}</p> : null}
+        <SiteAuditIntro />
       </div>
     );
 

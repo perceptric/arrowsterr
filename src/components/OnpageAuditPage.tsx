@@ -7,6 +7,7 @@ import type { RunAuth } from "@/lib/runner";
 import { BAR_INPUT } from "./research/shared";
 import { SearchBar, SearchButton } from "./SearchBar";
 import { Card, Seg, SidePanel, Thinking } from "./ui";
+import { OnpageIntro } from "./ToolIntros";
 import { ChangeSetCard, useApi } from "./ZippiePage";
 
 // On-page Audit (docs/onpage-audit.md): one page scored against Google's top 10 for its keyword, every check with
@@ -160,6 +161,7 @@ export function OnpageAuditPage({ brand, sb, auth, canEdit, onConnect }: { brand
       ) : (
         <>
           {form}
+          {!rows.length ? <OnpageIntro /> : null}
           {detail ? <Detail row={detail} history={rows.filter((r) => r.url === detail.url && r.keyword === detail.keyword && r.status === "done")} canEdit={canEdit} busy={busy} proposed={proposed} onFix={fix} onAgain={() => start(detail.url, detail.keyword)} /> : null}
         </>
       )}

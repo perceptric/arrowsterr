@@ -63,4 +63,4 @@ Typical use per team a month, with saved answers covering repeat opens: 4 overvi
 
 ## Example data
 
-Before the first result, the screen is the title and the tool's search bar (`src/components/SearchBar.tsx`), the same as Keyword Research. There is no example data. This adds $0 a month at Beta and at Growth.
+Before the first result, the screen is the title, the tool's search bar (`src/components/SearchBar.tsx`) and what the tool shows (`src/components/ToolIntros.tsx`), the same as Keyword Research. There is no example report. This adds $0 a month at Beta and at Growth.
