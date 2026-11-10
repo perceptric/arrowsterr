@@ -106,6 +106,8 @@ export const TASK_COST = {
   localnow: 12, // a Google Maps rank grid now: 49 points, priority queue
   localfind: 1, // finding the business on Google Maps
   localprofile: 5, // the Google profiles of a location's business and its 3 leaders: details, questions, posts
+  localreviews: 3, // the Google reviews of a location's business and its 3 leaders: the newest 50 each (200 the first time), themes
+  localreply: 1, // one draft reply to a review
   contentmap: 40, // a content map: what you and 2 rivals rank for, grouped into pillars, links checked
 } as const;
 

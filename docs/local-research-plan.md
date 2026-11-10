@@ -104,7 +104,7 @@ DataForSEO Google Reviews for the business and the top 3 ([Google Reviews](https
 - **First pull:** up to the newest 200 reviews per business. Then weekly, newest first, stopping at the first review already saved (by review id).
 - **Numbers:** reviews per month (velocity) against the top 3, rating over time, share with an owner reply, median reply time, unanswered reviews.
 - **Themes:** what people praise and complain about, per business, with counts. Haiku picks up to 5 themes per review with a quote copied from the review; code keeps a theme only when the quote is really in the review (the same "Haiku picks, code proves" rule as Perception, `docs/perception.md`). "Patients mention 'wait time' in 18% of your reviews and 4% of the leader's."
-- **Unanswered reviews** list, oldest first, with a **Draft reply** button: Sonnet writes a short reply in the brand voice (`brandVoice.ts`) that the person edits and copies. Arrowsterr never posts it.
+- **Unanswered reviews** list, 1 to 3 stars first, then oldest first, with a **Draft reply** button: Sonnet writes a short reply in the brand voice (`brandVoice.ts`) that the person edits and copies. Arrowsterr never posts it.
 - **Review link and QR code** from the place id (`https://search.google.com/local/writereview?placeid=...`), free, for asking customers.
 - Words in reviews that match the keywords: "'emergency' appears in 12 of the leader's reviews and 1 of yours."
 
@@ -205,6 +205,8 @@ The same rules as the rest of the product: a wrong signal costs more than a miss
 **Phase 1 built, November 2026:** many locations per brand with an all-locations table, grids from 3 × 3 to 13 × 13, square or round, 0.25 to 5 miles apart, a centre moved by clicking the map, keyword suggestions, weekly, every 2 weeks or monthly scans, comparing the latest scan with any earlier one on the same grid, and plan limits. Not yet: the pin map of all locations, and skipping points outside a service area (needs the profile data of phase 2). See `docs/local-research.md`.
 
 **Phase 2 built, November 2026:** the Profile tab on each location. It reads the Google profile of the business and of the 3 businesses with the most top 3 spots every week (and on Read now), shows them side by side with the gaps in red, lists what to fix first, gives a profile score of 100, and shows "Changed on Google" for name, categories, phone, website, address and hours only once two reads a day apart agree. See `docs/local-research.md`.
+
+**Phase 3 built, November 2026:** the Reviews tab on each location. Reviews of the business and its 3 leaders are pulled weekly (and on Read now), saved by review id, with removed ones marked. It shows reviews per month, rating and answered share against the leaders, median reply time, themes with quotes (Haiku picks, code proves), keyword words in reviews, the reviews to answer with Draft reply, and the review link with a QR code. See `docs/local-research.md`.
 
 
 | Phase | Weeks | What ships | Done when |

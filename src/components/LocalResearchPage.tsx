@@ -5,6 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { businesses, GRID, gridOf, headToHead, isBusiness, keywordSuggestions, keywordTable, localInsights, mapOwners, placeKey, placeText, rankBands, rankMoves, reviewHistory, scanTasks, scheduleOf, SCHEDULES, SIZES, SPACINGS, type Business, type Duel, type KeywordRun, type ListingCheck, type Location, type MapOwner, type Move, type Place, type ScanResult } from "@/lib/local";
 import { LocalMap, rankDot, type MapDot } from "./LocalMap";
 import { ProfileTab } from "./local/ProfileTab";
+import { ReviewsTab } from "./local/ReviewsTab";
 import type { RunAuth } from "@/lib/runner";
 import { Dropdown } from "./Pickers";
 import { BAR_INPUT } from "./research/shared";
@@ -32,7 +33,7 @@ export function LocalResearchPage({ brand, sb, auth, canEdit }: { brand: Brand; 
   const [adding, setAdding] = useState(false);
   const [replacing, setReplacing] = useState(false);
   const [removing, setRemoving] = useState(false);
-  const [tab, setTab] = useState<"rankings" | "profile">("rankings");
+  const [tab, setTab] = useState<"rankings" | "profile" | "reviews">("rankings");
   const [limits, setLimits] = useState<Limits | null>(null);
   const [error, setError] = useState("");
   const [note, setNote] = useState("");
@@ -184,14 +185,16 @@ export function LocalResearchPage({ brand, sb, auth, canEdit }: { brand: Brand; 
       ) : loc ? (
         <>
           <div role="tablist" aria-label="Location view" className="aw-tabs flex">
-            {(["rankings", "profile"] as const).map((t) => (
+            {(["rankings", "profile", "reviews"] as const).map((t) => (
               <button key={t} type="button" role="tab" aria-selected={tab === t} onClick={() => setTab(t)}>
-                {t === "rankings" ? "Rankings" : "Profile"}
+                {t === "rankings" ? "Rankings" : t === "profile" ? "Profile" : "Reviews"}
               </button>
             ))}
           </div>
           {tab === "profile" ? (
             <ProfileTab key={loc.id} sb={sb} locationId={loc.id} canEdit={canEdit} call={call} onError={setError} />
+          ) : tab === "reviews" ? (
+            <ReviewsTab key={loc.id} sb={sb} locationId={loc.id} placeId={loc.placeId} keywords={loc.keywords} city={loc.city ?? null} canEdit={canEdit} call={call} onError={setError} />
           ) : (
             <Scans key={loc.id} brand={brand} loc={loc} sb={sb} canEdit={canEdit} busy={busy} call={call} run={run} save={save} onNote={setNote} maxKeywords={limits?.keywords ?? 5} />
           )}
