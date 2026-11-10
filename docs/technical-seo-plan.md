@@ -630,7 +630,10 @@ Shipped: the render loop in the worker's Chromium (`RENDERERS`, default 2), samp
 - DOM fingerprint for templates.
 - **Done when:** a JavaScript-only test page is flagged; a server-rendered page with a cookie banner isn't; internal rank matches a reference PageRank on the test site within 1%.
 
-### Phase 4: AI access (2.5 weeks)
+### Phase 4: AI access (2.5 weeks) — built November 2026
+
+Shipped: the bot check for 16 crawlers (robots.txt, firewall with two passes a minute apart, per-bot meta and headers, readable text), 10 AI checks, the AI access screen with JavaScript dependence by template, the brand's pages AI cites, competitor pages AI cites with "what they do that you don't", structured data by template, an llms.txt draft from the crawl, and IndexNow and llms.txt in the WordPress plugin (1.2.0). Not yet: broken cited pages on the AI Visibility pages, and robots.txt writing through the plugin. See `docs/ai-access.md`.
+
 
 - Bot matrix with robots.txt, firewall, meta and readable-text columns.
 - Competitor pages AI cites and "what they do that you don't".

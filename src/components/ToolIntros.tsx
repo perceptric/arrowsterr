@@ -237,3 +237,20 @@ export function StructureIntro() {
     />
   );
 }
+
+export function AiAccessIntro() {
+  return (
+    <ToolIntro
+      title="Check that AI tools can reach and read your site"
+      lead="From the latest Site Audit: which AI crawlers your robots.txt and firewall let in, how much of each page needs JavaScript (AI crawlers don't run it), your pages AI cites, and how the competitor pages AI cites are built."
+      features={[
+        { title: "Every AI crawler", text: "GPTBot, OAI-SearchBot, ClaudeBot, PerplexityBot and more, against robots.txt, your firewall and robots meta tags.", visual: <SampleChecks items={[["OAI-SearchBot allowed", true], ["PerplexityBot challenge page", false], ["Bingbot allowed", true]]} /> },
+        { title: "Firewall check", text: "Each bot fetches your pages twice, a minute apart, next to a normal browser, so one hiccup never reads as a block.", visual: <SampleChips items={[["Likely blocked", "#E5484D"], ["Allowed", "#D1FAE5"]]} /> },
+        { title: "JavaScript dependence", text: "Raw HTML next to the rendered page for each template, with phone screenshots.", visual: <SampleRows rows={[["Blog", 92, "92%"], ["Product", 41, "41%"], ["Docs", 18, "18%"]]} /> },
+        { title: "Pages AI cites", text: "Your pages AI answers link to, and any that broke.", visual: <SampleRows rows={[["/pricing", 64, "12%"], ["/blog/geo-guide", 40, "8%"], ["/docs/api", 22, "4%"]]} /> },
+        { title: "What they do that you don't", text: "How the competitor pages AI cites are built: text in the HTML, answers up top, FAQ markup.", visual: <SampleStats items={[["FAQ markup", "75%"], ["Yours", "10%"]]} /> },
+        { title: "llms.txt and IndexNow", text: "Make llms.txt from your best pages and turn on IndexNow in WordPress.", visual: <SampleChips items={[["llms.txt", "#E0E7FF"], ["IndexNow on", "#D1FAE5"]]} /> },
+      ]}
+    />
+  );
+}

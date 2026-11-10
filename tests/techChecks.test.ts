@@ -305,3 +305,67 @@ test("site structure: folders, weak pages and link suggestions", async () => {
   assert.deepEqual(s.map((x) => x.from), ["https://acme.com/d", "https://acme.com/a"]);
   assert.equal(anchorFor({ title: "GEO guide | Acme", h1: "" }), "GEO guide");
 });
+
+test("AI access: a bot counts as blocked only when it fails twice and the browser got the page", async () => {
+  const { probeVerdict, firewallOf, isChallengePage, botDirectives } = await import("../src/lib/tech/ai.ts");
+  const ok = { status: 200, final: "https://acme.com/", bytes: 40_000, title: "Acme", challenge: false };
+  const cf = "<html><head><title>Just a moment...</title></head><body>cf-chl-bypass</body></html>";
+  assert.equal(isChallengePage(403, cf), true);
+  // A long real page that only mentions a captcha isn't a challenge.
+  assert.equal(isChallengePage(200, `<p>Our captcha guide: verify you are human</p>${"x".repeat(50_000)}`), false);
+  assert.equal(probeVerdict(ok, ok), "ok");
+  assert.equal(probeVerdict(ok, { ...ok, status: 403 }), "blocked");
+  assert.equal(probeVerdict(ok, { ...ok, status: 403, challenge: true }), "challenged");
+  assert.equal(probeVerdict(ok, { ...ok, final: "https://acme.com/blocked" }), "different");
+  assert.equal(probeVerdict(ok, { ...ok, bytes: 900 }), "different");
+  assert.equal(probeVerdict(ok, { ...ok, final: "https://acme.com" }), "ok"); // a trailing slash is the same page
+  // The browser itself failed: nothing can be said.
+  assert.equal(probeVerdict({ ...ok, status: 503 }, { ...ok, status: 403 }), "unknown");
+  // One failed pass is a hiccup; two are a block.
+  assert.equal(firewallOf({ "/": "blocked", "/a": "ok" }, { "/": "ok" }), "ok");
+  assert.equal(firewallOf({ "/": "challenged" }, { "/": "challenged" }), "challenged");
+  assert.equal(firewallOf({ "/": "blocked" }, null), "unknown"); // failed once, never checked again: not judged
+  assert.equal(firewallOf({ "/": "unknown" }, null), "unknown");
+  // Per-bot directives from X-Robots-Tag and meta tags.
+  assert.deepEqual(botDirectives("<meta name=GPTBot content='noindex'>", "", "GPTBot"), ["noindex"]);
+  assert.deepEqual(botDirectives("", "googlebot: noindex, noai", "GPTBot"), []);
+  assert.deepEqual(botDirectives("", "noai, gptbot: noindex", "GPTBot").sort(), ["noai", "noindex"]);
+  assert.deepEqual(botDirectives("<meta name=robots content='max-snippet:50'>", "unavailable_after: 2030-01-01", "ClaudeBot"), []);
+});
+
+test("AI access checks: firewall blocks by bot kind, Bingbot, broken citations, JavaScript and answers", async () => {
+  const { BOTS } = await import("../src/lib/tech/ai.ts");
+  const bots = BOTS.map((b) => ({ id: b.id, robots: { allowed: b.id !== "Bingbot", rule: b.id === "Bingbot" ? "Disallow: /" : null }, firewall: b.id === "OAI-SearchBot" ? ("challenged" as const) : b.id === "GPTBot" ? ("blocked" as const) : !b.ua ? ("token" as const) : b.ipChecked ? ("ip" as const) : ("ok" as const), status: 200, meta: [] }));
+  const cited = page("https://acme.com/cited", {}, { firstWords: 140, questions: 3, schema: [] });
+  cited.rendered = { status: 200, final: cited.url, timeout: false, words: cited.facts!.words * 3, title: cited.facts!.title, description: cited.facts!.description, canonical: cited.facts!.canonical, noindex: false, h1: cited.facts!.h1, headings: 1, schema: [], internal: 0, onlyRendered: [], errors: 0, errorSamples: [], failed: [], resources: [] };
+  const plain = page("https://acme.com/plain", {}, { noai: true });
+  const s = site({ ai: { bots, llms: { valid: false, links: 4, broken: ["https://acme.com/gone"] }, indexNow: false, cited: [cited.url], citedBroken: [{ url: "https://acme.com/old", why: "Error 404" }] } });
+  const issues = runChecks([page("https://acme.com/", { depth: 0 }), cited, plain], s);
+  const got = issues.map((i) => i.id);
+  for (const id of ["ai_firewall_block", "ai_firewall_training", "bing_blocked", "no_indexnow", "llms_txt_invalid", "llms_txt_broken_links", "ai_cited_page_broken", "ai_js_dependent", "answer_ready", "noai_meta"]) assert.ok(got.includes(id), id);
+  assert.match(issues.find((i) => i.id === "ai_firewall_block")!.title, /OAI-SearchBot/);
+  assert.doesNotMatch(issues.find((i) => i.id === "ai_firewall_block")!.title, /GPTBot/);
+  assert.deepEqual(issues.find((i) => i.id === "ai_js_dependent")!.pages, [cited.url]);
+  assert.deepEqual(issues.find((i) => i.id === "noai_meta")!.pages, [plain.url]);
+  // Bots we can't test (tokens, IP-checked) and unknown IndexNow never count.
+  const quiet = runChecks([page("https://acme.com/", { depth: 0 })], site({ ai: { bots: bots.map((b) => ({ ...b, firewall: b.firewall === "ok" || b.firewall === "challenged" || b.firewall === "blocked" ? ("unknown" as const) : b.firewall, robots: null })), llms: null, indexNow: null, cited: [], citedBroken: [] } })).map((i) => i.id);
+  assert.deepEqual(quiet.filter((id) => /^(ai_|bing_|no_indexnow|llms_)/.test(id)), []);
+});
+
+test("llms.txt is read and written in the llmstxt.org format, and builds are compared", async () => {
+  const { parseLlms, buildLlms, compareBuilds, answerGaps } = await import("../src/lib/tech/ai.ts");
+  const read = parseLlms("# Acme\n\n> Tools for teams\n\n## Docs\n\n- [API](/docs/api): the API\n- [Guide](https://acme.com/guide#top)\n", "https://acme.com/");
+  assert.equal(read.valid, true);
+  assert.deepEqual(read.links, ["https://acme.com/docs/api", "https://acme.com/guide"]);
+  assert.equal(parseLlms("Acme\n- [a](/a)", "https://acme.com/").valid, false);
+  const text = buildLlms({ name: "Acme", summary: "Tools for teams." }, [{ url: "https://acme.com/a", title: "A [new] page", description: "About A", group: "Blog" }, { url: "https://acme.com/p", title: "Pricing", description: "", group: "Main pages" }]);
+  assert.equal(text, "# Acme\n\n> Tools for teams.\n\n## Blog\n\n- [A new page](https://acme.com/a): About A\n\n## Main pages\n\n- [Pricing](https://acme.com/p)\n");
+  assert.equal(parseLlms(text, "https://acme.com/").links.length, 2);
+  const b = (o: Partial<{ words: number; schema: string[]; questions: number; firstWords: number; headings: number }>) => ({ url: "u", words: 1200, schema: ["FAQPage"], questions: 3, firstWords: 40, headings: 10, ...o });
+  const rows = compareBuilds([b({}), b({}), b({ schema: [] })], [b({ schema: [], questions: 0 }), b({ schema: [], questions: 0 })]);
+  assert.equal(rows.find((r) => r.label.startsWith("FAQ"))!.gap, true);
+  assert.equal(rows.find((r) => r.label.startsWith("Over 1,000"))!.gap, false);
+  assert.deepEqual(answerGaps({ firstWords: 40, questions: 0, schema: [] }), []);
+  assert.deepEqual(answerGaps({ firstWords: 5, questions: 2, schema: ["Article"] }), ["answer", "faq"]);
+  assert.deepEqual(answerGaps({ schema: [] }), []); // no paragraph found: not judged
+});

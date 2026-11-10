@@ -1,15 +1,18 @@
 import "server-only";
 import { gunzipSync } from "node:zlib";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { wpPlugin } from "./cmsEdit";
 import { entitlement } from "./entitlements";
 import { parseRobots, robotsAllows, type ParsedRobots } from "./robotsTest";
 import { partialReason, scoreToSave } from "./siteAudit";
-import type { CheckPage, GoogleFacts, Issue, SiteFacts } from "./tech/checks";
+import { BOTS, BROWSER_UA, PROBED, botDirectives, firewallOf, isBad, isChallengePage, parseLlms, probeVerdict, titleOf, type BotAccess, type Probe, type Verdict } from "./tech/ai";
+import type { AiFacts, CheckPage, GoogleFacts, Issue, SiteFacts } from "./tech/checks";
 import { otherCanonical, passes, type Vitals } from "./tech/google";
 import { cleanSettings, passesRules, pickRenders, renderLimit, type CrawlSettings } from "./tech/limits";
 import type { Rendered } from "./tech/render";
 import { readPage, refreshTarget, type Link, type PageFacts } from "./tech/parse";
 import { parseSitemap, robotsSitemaps } from "./tech/sitemaps";
+import { folderOf } from "./tech/structure";
 import { LinkTally, summarize, type Stats } from "./tech/summary";
 import { NOT_A_PAGE, isInternal, normUrl, pathOnly, templates } from "./tech/url";
 
@@ -51,6 +54,10 @@ type State = {
   variants: Record<string, number>;
   infinite: string[];
   stopped?: string;
+  /** llms.txt, when the site has one: whether it starts with a title, and the pages it links to. */
+  llms?: { valid: boolean; links: string[] } | null;
+  /** AI crawler access: sample pages, each bot's answer on the first pass and on the second a minute later. */
+  bots?: { pages: string[]; at: number; first: Record<string, Record<string, Verdict>>; second?: Record<string, Record<string, Verdict>>; status: Record<string, number>; meta: Record<string, string[]>; done?: boolean };
 };
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -225,6 +232,7 @@ async function seed(db: SupabaseClient, auditId: string, domain: string, state: 
     },
     llmsTxt: llms.status === 200 && llms.body.trim().length > 20 && !/<html/i.test(llms.body.slice(0, 500)),
   };
+  state.llms = state.site.llmsTxt ? parseLlms(llms.body.slice(0, 500_000), root) : null;
   // Sitemap pages are remembered as such; the home page goes first.
   await addToQueue(db, auditId, state, [{ url: root, depth: 0, source: "start" }]);
   const allowed = sitemapUrls.filter((u) => allowedUrl(u, state, parsed));
@@ -381,7 +389,12 @@ async function finish(db: SupabaseClient, auditId: string, workspaceId: string, 
   const google = brandId ? await googleFacts(db, brandId).catch(() => null) : null;
   const robots = parseRobots(state.robotsText);
   const robotsAllowsGoogle = state.robotsText ? (u: string) => !isInternal(u, state.root, true) || robotsAllows(robots, "Googlebot", pathQuery(u)).allowed : undefined;
-  const site: SiteFacts = { ...state.site, infinite: state.infinite, statusOf, google, robotsAllowsGoogle, sitemapPaths: state.site.sitemaps.paths, links: { broken: tally.broken, brokenCount: tally.brokenCount, external, externalCount: external.length, toRedirect: tally.toRedirect, toRedirectCount: tally.toRedirectCount } };
+  await setState(db, auditId, state, { step: "Checking AI access" });
+  const ai = await aiFacts(db, state, pages, brandId).catch((e) => {
+    console.error(`AI access facts for ${auditId}:`, e instanceof Error ? e.message : e);
+    return null;
+  });
+  const site: SiteFacts = { ...state.site, infinite: state.infinite, statusOf, google, ai, robotsAllowsGoogle, sitemapPaths: state.site.sitemaps.paths, links: { broken: tally.broken, brokenCount: tally.brokenCount, external, externalCount: external.length, toRedirect: tally.toRedirect, toRedirectCount: tally.toRedirectCount } };
   const s = summarize(pages, site);
 
   // Each page's links in, depth, template, indexability and issues, for the Pages table.
@@ -408,6 +421,7 @@ async function finish(db: SupabaseClient, auditId: string, workspaceId: string, 
     brokenLinks: tally.broken.slice(0, 200).map((b) => ({ url: b.to, status: b.status, from: b.from })),
     redirectLinks: tally.toRedirect.slice(0, 200),
     rendered: { pages: pages.filter((p) => p.rendered).length, skipped: state.render?.skipped ?? 0 },
+    ...(ai ? { ai: { bots: ai.bots, llms: ai.llms, indexNow: ai.indexNow, cited: ai.cited.length, citedBroken: ai.citedBroken.slice(0, 100) } } : {}),
     areas: s.areas,
     stats: s.stats,
     settings: state.settings,
@@ -447,6 +461,166 @@ async function googleFacts(db: SupabaseClient, brandId: string): Promise<GoogleF
     gscSitemapErrors: (sm.data ?? []).filter((s) => Number(s.errors) > 0).map((s) => s.path as string),
     originPass: origin.data?.vitals ? passes(origin.data.vitals as Vitals) : null,
     vitals: Object.fromEntries(((urls.data ?? []) as { url: string; vitals: Vitals }[]).map((u) => [u.url, vit(u.vitals)])),
+  };
+}
+
+// ─────────────── AI access (phase 4) ───────────────
+
+/** One fetch as one user agent, with what the firewall check needs. */
+async function probe(url: string, ua: string): Promise<Probe & { html: string; xr: string }> {
+  const f = await fetchUrl(url, "GET", ua);
+  const end = f.chain[f.chain.length - 1]?.status ?? f.status;
+  return { status: end, final: f.final, bytes: f.body.length || f.bytes, title: titleOf(f.body), challenge: isChallengePage(end, f.body), html: f.body, xr: f.headers["x-robots-tag"] ?? "" };
+}
+
+/** The home page and up to 2 more pages from other folders, for the bot checks. */
+async function samplePages(db: SupabaseClient, auditId: string, root: string): Promise<string[]> {
+  const { data } = await db.from("crawl_pages").select("url, facts->type").eq("audit_id", auditId).eq("status", 200).order("url").limit(400);
+  const html = ((data ?? []) as { url: string; type?: string }[]).filter((r) => r.url !== root && /html/i.test(r.type ?? "")).map((r) => r.url);
+  // Pages from folders not used yet first, then any.
+  const out = [root];
+  const folders = new Set([folderOf(root)]);
+  for (const u of html) {
+    if (out.length >= 3) break;
+    if (folders.has(folderOf(u))) continue;
+    folders.add(folderOf(u));
+    out.push(u);
+  }
+  for (const u of html) if (out.length < 3 && !out.includes(u)) out.push(u);
+  return out;
+}
+
+/** First pass: each bot's user agent on the sample pages, next to a normal browser. Meta and headers per bot too. */
+async function probeBots(db: SupabaseClient, auditId: string, state: State) {
+  await setState(db, auditId, state, { step: "Checking AI crawler access" });
+  const pages = await samplePages(db, auditId, state.root);
+  const normal: Record<string, Probe & { html: string; xr: string }> = {};
+  await paced(pages, state.settings.speed, async (u) => {
+    normal[u] = await probe(u, BROWSER_UA);
+  });
+  const home = normal[state.root];
+  const meta = Object.fromEntries(BOTS.map((b) => [b.id, home ? botDirectives(home.html, home.xr, b.id) : []]));
+  const first: Record<string, Record<string, Verdict>> = {};
+  const status: Record<string, number> = {};
+  await paced(PROBED.flatMap((b) => pages.map((u) => ({ b, u }))), state.settings.speed, async ({ b, u }) => {
+    const r = await probe(u, b.ua!);
+    (first[b.id] ??= {})[u] = probeVerdict(normal[u], r);
+    if (u === state.root) status[b.id] = r.status;
+  });
+  state.bots = { pages, at: Date.now(), first, status, meta };
+}
+
+/** Bots that failed a page on the first pass, with those pages. */
+const pendingBots = (b: NonNullable<State["bots"]>) => PROBED.map((x) => ({ bot: x, pages: Object.entries(b.first[x.id] ?? {}).filter(([, v]) => isBad(v)).map(([u]) => u) })).filter((x) => x.pages.length);
+
+/** Second pass, a minute later, for the pages a bot failed: a block counts only when it happens twice. */
+async function probeAgain(state: State) {
+  const b = state.bots!;
+  const todo = pendingBots(b);
+  const urls = [...new Set(todo.flatMap((t) => t.pages))];
+  const normal: Record<string, Probe> = {};
+  await paced(urls, state.settings.speed, async (u) => {
+    normal[u] = await probe(u, BROWSER_UA);
+  });
+  b.second = {};
+  await paced(todo.flatMap((t) => t.pages.map((u) => ({ bot: t.bot, u }))), state.settings.speed, async ({ bot, u }) => {
+    const r = await probe(u, bot.ua!);
+    (b.second![bot.id] ??= {})[u] = probeVerdict(normal[u], r);
+    if (u === state.root) b.status[bot.id] = r.status;
+  });
+}
+
+/** The brand's own pages that AI answers cited in the last 30 days. */
+async function citedPages(db: SupabaseClient, brandId: string, root: string): Promise<string[]> {
+  const since = new Date(Date.now() - 30 * 864e5).toISOString();
+  const { data } = await db.from("runs").select("chats").eq("brand_id", brandId).gte("at", since).limit(400);
+  const host = new URL(root).hostname.replace(/^www\./, "");
+  const out = new Set<string>();
+  for (const r of (data ?? []) as { chats?: { sources?: { url: string }[] }[] }[])
+    for (const c of r.chats ?? [])
+      for (const src of c.sources ?? []) {
+        try {
+          if (new URL(src.url).hostname.replace(/^www\./, "") !== host) continue;
+        } catch {
+          continue;
+        }
+        const u = normUrl(src.url.split("#")[0]);
+        if (u && !NOT_A_PAGE.test(pathOnly(u))) out.add(u);
+      }
+  return [...out].slice(0, 300);
+}
+
+const samePath = (a: string, b: string) => {
+  try {
+    const x = new URL(a);
+    const y = new URL(b);
+    return x.hostname.replace(/^www\./, "") === y.hostname.replace(/^www\./, "") && x.pathname.replace(/\/+$/, "").toLowerCase() === y.pathname.replace(/\/+$/, "").toLowerCase();
+  } catch {
+    return a === b;
+  }
+};
+
+/**
+ * What's wrong with a page a citation or llms.txt points to, or null when it's fine or can't be told. Refusals (401,
+ * 403, 429) and no answer at all are unknown, never broken.
+ */
+function brokenWhy(url: string, status: number, final: string, noindex: boolean): string | null {
+  if (status === 0 || status === 401 || status === 403 || status === 429) return null;
+  if (status >= 400) return `Error ${status}`;
+  if (!samePath(url, final)) return "Redirects elsewhere";
+  if (noindex) return "noindex";
+  return null;
+}
+
+/** Check pages the crawl didn't read: up to `max`, at the crawl's speed. */
+async function checkUrls(urls: string[], speed: number, max: number): Promise<Map<string, string | null>> {
+  const out = new Map<string, string | null>();
+  await paced(urls.slice(0, max), speed, async (u) => {
+    const r = await probe(u, UA);
+    out.set(u, brokenWhy(u, r.status, r.final, botDirectives(r.html, r.xr, "googlebot").some((d) => d === "noindex" || d === "none")));
+  });
+  return out;
+}
+
+/** IndexNow from the Arrowsterr Connector plugin on the brand's WordPress site. Null when there's no way to tell. */
+async function indexNowState(db: SupabaseClient, brandId: string): Promise<boolean | null> {
+  const { data } = await db.from("cms_connections").select("config").eq("brand_id", brandId).eq("kind", "wordpress").order("created_at").limit(1);
+  const conn = data?.[0];
+  if (!conn) return null;
+  const st = (await wpPlugin((conn.config ?? {}) as Record<string, string>).catch(() => null)) as { indexnow?: boolean } | null;
+  // No answer from the plugin: it may be missing or the site may be down, so it can't be judged.
+  return st ? Boolean(st.indexnow) : null;
+}
+
+/** Everything the AI access checks need, from the bot passes, llms.txt, citations and the plugin. */
+async function aiFacts(db: SupabaseClient, state: State, pages: CheckPage[], brandId: string | null): Promise<AiFacts> {
+  const robots = parseRobots(state.robotsText);
+  const b = state.bots;
+  const bots: BotAccess[] = BOTS.map((bot) => {
+    const r = state.robotsText ? robotsAllows(robots, bot.id, "/") : null;
+    const firewall: BotAccess["firewall"] = !bot.ua ? "token" : bot.ipChecked ? "ip" : b ? firewallOf(b.first[bot.id] ?? {}, b.second?.[bot.id] ?? null) : "unknown";
+    return { id: bot.id, robots: r ? { allowed: r.allowed, rule: r.rule?.text ?? null } : null, firewall, status: b?.status[bot.id] ?? null, meta: b?.meta[bot.id] ?? [] };
+  });
+  const at = new Map<string, CheckPage>();
+  for (const p of pages) {
+    at.set(p.url, p);
+    if (!at.has(p.final)) at.set(p.final, p);
+  }
+  const judge = (u: string) => {
+    const p = at.get(u);
+    return p ? { known: true, why: brokenWhy(u, p.chainEnd, p.final, Boolean(p.facts?.noindex)) } : { known: false, why: null };
+  };
+  const cited = brandId ? await citedPages(db, brandId, state.root).catch(() => []) : [];
+  const llmsInternal = (state.llms?.links ?? []).filter((u) => isInternal(u, state.root, true));
+  const unknown = [...new Set([...cited, ...llmsInternal].filter((u) => !judge(u).known))];
+  const fetched = await checkUrls(unknown, state.settings.speed, 60);
+  const why = (u: string) => (judge(u).known ? judge(u).why : (fetched.get(u) ?? null));
+  return {
+    bots,
+    llms: state.llms ? { valid: state.llms.valid, links: state.llms.links.length, broken: llmsInternal.filter((u) => why(u)) } : null,
+    indexNow: brandId ? await indexNowState(db, brandId).catch(() => null) : null,
+    cited,
+    citedBroken: cited.map((u) => ({ url: u, why: why(u) })).filter((c): c is { url: string; why: string } => Boolean(c.why)),
   };
 }
 
@@ -506,6 +680,7 @@ export type CrawlResult = {
   brokenLinks: { url: string; status: number; from: string }[];
   redirectLinks: { from: string; to: string }[];
   rendered: { pages: number; skipped: number };
+  ai?: { bots: BotAccess[]; llms: AiFacts["llms"]; indexNow: boolean | null; cited: number; citedBroken: AiFacts["citedBroken"] };
   areas: Record<string, number>;
   stats: Stats;
   settings: CrawlSettings;
@@ -542,6 +717,7 @@ export async function crawlStep(db: SupabaseClient, auditId: string, budgetMs = 
         await setState(db, auditId, state);
         return "more";
       }
+      await probeBots(db, auditId, state).catch((e) => console.error(`Bot checks for ${auditId}:`, e instanceof Error ? e.message : e));
       state.phase = canRender ? "render" : "final";
       await setState(db, auditId, state);
       if (state.phase === "render") {
@@ -558,6 +734,18 @@ export async function crawlStep(db: SupabaseClient, auditId: string, budgetMs = 
     if (state.phase === "render") {
       if (!(await renderDone(db, auditId, state))) return "wait";
       state.phase = "final";
+      await setState(db, auditId, state);
+    }
+    // A bot that failed the first pass gets a second one a minute later, so one hiccup never reads as a block.
+    if (state.bots && !state.bots.done && state.phase === "final" && !state.stopped) {
+      if (pendingBots(state.bots).length) {
+        if (Date.now() - state.bots.at < 60_000) {
+          await setState(db, auditId, state, { step: "Checking AI crawler access again" });
+          return "wait";
+        }
+        await probeAgain(state).catch((e) => console.error(`Bot recheck for ${auditId}:`, e instanceof Error ? e.message : e));
+      }
+      state.bots.done = true;
       await setState(db, auditId, state);
     }
     await finish(db, auditId, audit.workspace_id, state, audit.brand_id ?? null);

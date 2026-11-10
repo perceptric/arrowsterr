@@ -1,3 +1,4 @@
+import { answerGaps, botById, isBad, type BotAccess } from "./ai.ts";
 import type { PageFacts } from "./parse.ts";
 import type { Rendered } from "./render.ts";
 import { slashTwin, pathOnly } from "./url.ts";
@@ -68,6 +69,19 @@ export type SiteFacts = {
   /** The sitemaps the crawl read, for comparing with Search Console. */
   sitemapPaths?: string[];
   google?: GoogleFacts | null;
+  /** AI access (phase 4): each bot's robots.txt, firewall and meta answers, llms.txt, IndexNow and pages AI cites. */
+  ai?: AiFacts | null;
+};
+
+export type AiFacts = {
+  bots: BotAccess[];
+  llms: { valid: boolean; links: number; broken: string[] } | null;
+  /** On, off (a WordPress site we could turn it on for), or null when we can't tell. */
+  indexNow: boolean | null;
+  /** The brand's own pages that AI answers cited in the last 30 days. */
+  cited: string[];
+  /** Cited pages that now answer with an error, redirect elsewhere or say noindex. */
+  citedBroken: { url: string; why: string }[];
 };
 
 /** A value by URL, matching with or without a trailing slash and www, since Google and the crawl may differ. */
@@ -173,7 +187,17 @@ export const CHECKS: Record<string, Def> = {
   cls_poor: { severity: "medium", area: "speed", title: "Pages that jump while loading", why: "Content moves as the page loads, so visitors tap the wrong thing.", how: "Give images, ads and embeds a fixed size." },
   ai_bots_blocked: { severity: "high", area: "ai", title: "robots.txt blocks AI search crawlers", why: "These crawlers fetch pages for ChatGPT, Claude and Perplexity answers, so blocked pages can't be cited.", how: "Remove the Disallow rule for these bots." },
   ai_training_blocked: { severity: "low", area: "ai", title: "robots.txt blocks AI training crawlers", why: "Blocking training is a fair choice and doesn't stop AI search. Listed so it's on purpose." },
-  no_llms_txt: { severity: "low", area: "ai", title: "No llms.txt file", why: "llms.txt gives AI tools a short map of your most useful pages. It's optional, but cheap to add." },
+  no_llms_txt: { severity: "low", area: "ai", title: "No llms.txt file", why: "llms.txt gives AI tools a short map of your most useful pages. It's optional, but cheap to add.", how: "Open AI access to make one from your best pages." },
+  ai_firewall_block: { severity: "high", area: "ai", title: "Your firewall likely blocks AI search crawlers", why: "These crawlers got a block or a challenge page twice, a minute apart, while a normal browser got the page. ChatGPT, Claude or Perplexity can't fetch or cite the site.", how: "Allow these bots in your CDN or firewall (in Cloudflare: Security, Bots, and AI Crawl Control)." },
+  ai_firewall_training: { severity: "low", area: "ai", title: "Your firewall blocks AI training crawlers", why: "Blocking training is a fair choice and doesn't stop AI search. Listed so it's on purpose (Cloudflare blocks them by default on many sites)." },
+  bing_blocked: { severity: "high", area: "ai", title: "robots.txt blocks Bingbot", why: "Bing's index feeds ChatGPT search and Copilot, so pages Bing can't crawl rarely show up there.", how: "Remove the Disallow rule for Bingbot." },
+  ai_js_dependent: { severity: "high", area: "ai", title: "Pages AI cites or Google sends clicks to that need JavaScript", why: "Over half of the text on these pages only appears after JavaScript runs. AI crawlers don't run it, so they see a thin page.", how: "Render the main content on the server." },
+  ai_cited_page_broken: { severity: "high", area: "ai", title: "Pages AI answers cite that are broken", why: "AI answers link to these pages, but they now return an error, redirect elsewhere or say noindex, so the citation stops sending people.", how: "Bring the page back, or redirect it to the closest live page and update links." },
+  no_indexnow: { severity: "low", area: "ai", title: "IndexNow is off", why: "IndexNow tells Bing about new and changed pages at once. Bing feeds ChatGPT search, so it's the fastest way to get fixes seen.", how: "Turn it on in AI access (the Arrowsterr Connector plugin does it for WordPress)." },
+  llms_txt_invalid: { severity: "low", area: "ai", title: "llms.txt doesn't start with a title", why: "The llms.txt format starts with a # title line, then links in Markdown.", how: "Start the file with \"# \" and your site's name." },
+  llms_txt_broken_links: { severity: "low", area: "ai", title: "llms.txt lists pages that are broken or redirect", why: "AI tools that read llms.txt follow these links to dead or moved pages.", how: "Update the links in llms.txt." },
+  noai_meta: { severity: "low", area: "ai", title: "Pages with noai or noimageai", why: "These tags ask AI tools not to use the page. Listed so it's a choice, not an accident." },
+  answer_ready: { severity: "low", area: "ai", title: "Valuable pages that aren't ready for AI answers", why: "AI answers quote pages that answer in the first paragraph and mark up their questions. These pages get clicks or citations but miss one of those.", how: "Open with a 15 to 90 word answer, and add FAQPage markup where the page asks questions." },
 };
 
 /** Valid hreflang: a language (2 or 3 letters), an optional script and region, or x-default. */
@@ -361,6 +385,26 @@ export function runChecks(pages: CheckPage[], site: SiteFacts): Issue[] {
   if (site.robots.blockedSearch.length) siteWide("ai_bots_blocked", site.robots.blockedSearch.length, { title: `robots.txt blocks ${site.robots.blockedSearch.join(", ")}` });
   if (site.robots.blockedTraining.length) siteWide("ai_training_blocked", site.robots.blockedTraining.length, { title: `robots.txt blocks ${site.robots.blockedTraining.join(", ")} (AI training)` });
   if (!site.llmsTxt) siteWide("no_llms_txt");
+  add("noai_meta", where(html, (_, x) => Boolean(x.noai)));
+  const ai = site.ai;
+  if (ai) {
+    const fw = (pick: (kind: string | undefined) => boolean) => ai.bots.filter((b) => isBad(b.firewall) && pick(botById(b.id)?.kind)).map((b) => b.id);
+    const answerBots = fw((k) => k === "search" || k === "user");
+    const trainingBots = fw((k) => k === "training");
+    if (answerBots.length) siteWide("ai_firewall_block", answerBots.length, { title: `Your firewall likely blocks ${answerBots.join(", ")}` });
+    if (trainingBots.length) siteWide("ai_firewall_training", trainingBots.length, { title: `Your firewall blocks ${trainingBots.join(", ")} (AI training)` });
+    if (ai.bots.find((b) => b.id === "Bingbot")?.robots?.allowed === false) siteWide("bing_blocked");
+    if (ai.indexNow === false) siteWide("no_indexnow");
+    if (ai.llms && !ai.llms.valid) siteWide("llms_txt_invalid");
+    if (ai.llms?.broken.length) siteWide("llms_txt_broken_links", ai.llms.broken.length, { pages: ai.llms.broken.slice(0, 100) });
+    add("ai_cited_page_broken", ai.citedBroken.map((c) => c.url));
+    // Pages that matter for AI: cited by AI answers, or getting search clicks.
+    const cited = new Set(ai.cited);
+    const clicks = site.google?.clicks ?? {};
+    const valuable = (p: CheckPage) => cited.has(p.url) || cited.has(p.final) || (byUrl(clicks, p.url) ?? 0) > 0;
+    add("ai_js_dependent", rendered.filter((p) => valuable(p) && p.rendered!.words >= 100 && p.facts!.words / p.rendered!.words < 0.5).map((p) => p.url));
+    add("answer_ready", idx.filter((p) => valuable(p) && answerGaps(p.facts!).length > 0).map((p) => p.url));
+  }
 
   // Search Console and Chrome UX Report, when the brand has them.
   const g = site.google;

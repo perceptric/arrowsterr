@@ -2,8 +2,8 @@
 /**
  * Plugin Name:       Arrowsterr Connector
  * Plugin URI:        https://arrowsterr.com/
- * Description:       Lets Arrowsterr publish articles with their interactive modules, and set SEO titles, meta descriptions and structured data on your posts and pages. Works with Yoast SEO and Rank Math, or on its own.
- * Version:           1.1.0
+ * Description:       Lets Arrowsterr publish articles with their interactive modules, set SEO titles, meta descriptions and structured data on your posts and pages, serve llms.txt and tell Bing and other search engines about changed pages with IndexNow. Works with Yoast SEO and Rank Math, or on its own.
+ * Version:           1.2.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Arrowsterr
@@ -14,7 +14,9 @@ if (!defined('ABSPATH')) {
 	exit;
 }
 
-define('ARROWSTERR_CONNECTOR_VERSION', '1.1.0');
+define('ARROWSTERR_CONNECTOR_VERSION', '1.2.0');
+// The largest llms.txt Arrowsterr stores, in bytes.
+define('ARROWSTERR_LLMS_MAX', 200000);
 // The largest module Arrowsterr stores, in bytes. Modules are single HTML files with inline CSS and JS.
 define('ARROWSTERR_MODULE_MAX', 500000);
 
@@ -176,7 +178,44 @@ add_action('rest_api_init', function () {
 			return current_user_can('edit_posts');
 		},
 		'callback'            => function () {
-			return array('version' => ARROWSTERR_CONNECTOR_VERSION, 'seo' => arrowsterr_seo_plugin(), 'modules' => true);
+			return array('version' => ARROWSTERR_CONNECTOR_VERSION, 'seo' => arrowsterr_seo_plugin(), 'modules' => true, 'indexnow' => arrowsterr_indexnow_on() || arrowsterr_indexnow_other() !== '', 'indexnow_by' => arrowsterr_indexnow_on() ? 'arrowsterr' : arrowsterr_indexnow_other(), 'llms' => get_option('arrowsterr_llms', '') !== '', 'admin' => current_user_can('manage_options'));
+		},
+	));
+
+	// Turn IndexNow on or off. Site-wide, so it needs an administrator.
+	register_rest_route('arrowsterr/v1', '/indexnow', array(
+		'methods'             => 'POST',
+		'permission_callback' => function () {
+			return current_user_can('manage_options');
+		},
+		'callback'            => function (WP_REST_Request $request) {
+			$on = (bool) $request->get_param('on');
+			if ($on && !arrowsterr_indexnow_key()) {
+				update_option('arrowsterr_indexnow_key', bin2hex(random_bytes(16)), true);
+			}
+			update_option('arrowsterr_indexnow', $on ? '1' : '', true);
+			return array('indexnow' => arrowsterr_indexnow_on(), 'key_url' => $on ? home_url('/' . arrowsterr_indexnow_key() . '.txt') : null);
+		},
+	));
+
+	// Save llms.txt, served at /llms.txt when the site has no file of its own. Empty text removes it.
+	register_rest_route('arrowsterr/v1', '/llms', array(
+		'methods'             => 'POST',
+		'permission_callback' => function () {
+			return current_user_can('manage_options');
+		},
+		'callback'            => function (WP_REST_Request $request) {
+			$text = str_replace("\r\n", "\n", (string) $request->get_param('text'));
+			if (strlen($text) > ARROWSTERR_LLMS_MAX) {
+				return new WP_Error('arrowsterr_llms', 'llms.txt is too large.', array('status' => 400));
+			}
+			$text = wp_check_invalid_utf8($text);
+			if (trim($text) === '') {
+				delete_option('arrowsterr_llms');
+			} else {
+				update_option('arrowsterr_llms', $text, false);
+			}
+			return array('llms' => get_option('arrowsterr_llms', '') !== '', 'url' => home_url('/llms.txt'));
 		},
 	));
 
@@ -346,3 +385,92 @@ add_action('wp_head', function () {
 		}
 	}
 }, 5);
+
+// ─────────────── IndexNow and llms.txt ───────────────
+// IndexNow: a key file at /<key>.txt proves the site owns the key, and every published or updated post or page is
+// sent to api.indexnow.org, which shares it with Bing, Yandex, Naver, Seznam and the others. Sent once per request,
+// after the page is done, without waiting for an answer.
+
+function arrowsterr_indexnow_key() {
+	$key = (string) get_option('arrowsterr_indexnow_key', '');
+	return preg_match('/^[a-f0-9]{32}$/', $key) ? $key : '';
+}
+
+function arrowsterr_indexnow_on() {
+	return get_option('arrowsterr_indexnow', '') === '1' && arrowsterr_indexnow_key() !== '';
+}
+
+/** Another plugin that already sends IndexNow: Rank Math's Instant Indexing module. */
+function arrowsterr_indexnow_other() {
+	$rm = get_option('rank_math_modules', array());
+	if (defined('RANK_MATH_VERSION') && is_array($rm) && in_array('instant-indexing', $rm, true)) {
+		return 'rankmath';
+	}
+	return '';
+}
+
+/** The path this request asks for, relative to the site's home. */
+function arrowsterr_request_path() {
+	$path = (string) wp_parse_url(isset($_SERVER['REQUEST_URI']) ? wp_unslash($_SERVER['REQUEST_URI']) : '', PHP_URL_PATH);
+	$home = rtrim((string) wp_parse_url(home_url('/'), PHP_URL_PATH), '/');
+	if ($home !== '' && strpos($path, $home) === 0) {
+		$path = substr($path, strlen($home));
+	}
+	return $path;
+}
+
+// Serve the key file and llms.txt before WordPress looks for a post. A real file on the server wins, since the
+// web server answers for it without calling WordPress.
+add_action('init', function () {
+	$path = arrowsterr_request_path();
+	$key  = arrowsterr_indexnow_key();
+	if ($key !== '' && arrowsterr_indexnow_on() && $path === '/' . $key . '.txt') {
+		header('Content-Type: text/plain; charset=utf-8');
+		echo $key; // phpcs:ignore WordPress.Security.EscapeOutput -- 32 hex characters.
+		exit;
+	}
+	if ($path === '/llms.txt') {
+		$text = (string) get_option('arrowsterr_llms', '');
+		if ($text !== '') {
+			header('Content-Type: text/plain; charset=utf-8');
+			header('X-Robots-Tag: noindex');
+			echo $text; // phpcs:ignore WordPress.Security.EscapeOutput -- plain text, served as text/plain.
+			exit;
+		}
+	}
+}, 0);
+
+$GLOBALS['arrowsterr_indexnow_queue'] = array();
+
+add_action('transition_post_status', function ($new_status, $old_status, $post) {
+	if ($new_status !== 'publish' || !arrowsterr_indexnow_on() || wp_is_post_revision($post) || wp_is_post_autosave($post) || $post->post_password !== '') {
+		return;
+	}
+	$type = get_post_type_object($post->post_type);
+	if (!$type || !$type->public) {
+		return;
+	}
+	$url = get_permalink($post);
+	if ($url) {
+		$GLOBALS['arrowsterr_indexnow_queue'][$url] = true;
+	}
+}, 10, 3);
+
+add_action('shutdown', function () {
+	$urls = array_keys($GLOBALS['arrowsterr_indexnow_queue']);
+	if (!$urls || !arrowsterr_indexnow_on()) {
+		return;
+	}
+	$key = arrowsterr_indexnow_key();
+	wp_remote_post('https://api.indexnow.org/indexnow', array(
+		'blocking' => false,
+		'timeout'  => 3,
+		'headers'  => array('Content-Type' => 'application/json; charset=utf-8'),
+		'body'     => wp_json_encode(array(
+			'host'        => (string) wp_parse_url(home_url('/'), PHP_URL_HOST),
+			'key'         => $key,
+			'keyLocation' => home_url('/' . $key . '.txt'),
+			'urlList'     => array_slice($urls, 0, 100),
+		)),
+	));
+});
