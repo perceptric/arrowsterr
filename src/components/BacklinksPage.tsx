@@ -123,8 +123,11 @@ function OverviewTab({ demo, call, canEdit, onError, loadReq, onState }: { demo:
     handled.current = loadReq;
     load(true);
   }, [loadReq, load]);
+  // Report only once the tab knows. The page swaps this tab between the start page and the full screen on what it
+  // reports, and each swap mounts the tab again: a "not example" report while still loading would swap it straight
+  // back, and the two would trade places forever.
   useEffect(() => {
-    onState({ demo: data === "none", busy });
+    if (data !== null) onState({ demo: data === "none", busy });
   }, [data, busy, onState]);
 
   if (data === null) return <Thinking text="Loading" />;
