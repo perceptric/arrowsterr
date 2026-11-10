@@ -6,7 +6,7 @@ const PAGES = ["SiteAuditPage", "OnpageAuditPage", "BacklinksPage", "LinkBuildin
 const read = (f: string) => readFileSync(new URL(`../src/components/${f}.tsx`, import.meta.url), "utf8");
 
 test("tool screens show their numbers in a stat strip, never a row of equal boxes", () => {
-  for (const f of ["BacklinksPage", "LinkBuildingPage", "ContentMapPage", "LocalResearchPage"]) {
+  for (const f of ["BacklinksPage", "LinkBuildingPage", "ContentMapPage"]) {
     const src = read(f);
     assert.match(src, /<StatStrip/, `${f} uses StatStrip`);
     assert.doesNotMatch(src, /function (Kpi|Stat)\(/, `${f} has no local stat box`);

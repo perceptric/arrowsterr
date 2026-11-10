@@ -10,14 +10,11 @@ Local Research (Organic Research, Local Research, at `/local-research`) shows wh
   - Weekly scan on or off.
   - **Scan now.**
   - **Track in AI answers:** adds "best {category} in {city}"-style prompts under a Local topic in AI Visibility. It goes through the same add-prompts tool as Zippie, so plan limits apply.
-- **Four numbers:**
-  - Average rank, with the change since the last scan. A point where the business isn't in the top 20 counts as 21, so gaps pull the average down instead of hiding.
-  - Share of points in the top 3.
-  - Points in the top 20, and how many points didn't load.
-  - Points where the business is #1.
-- **The heat map:** 7 by 7 dots over a soft colour field: green for the top 3, amber for 4 to 10, orange for 11 to 20, a pale red wash where the business isn't in the top 20. A dashed "?" marks a point that didn't answer. The business is the ringed dot in the middle. Click a point to see its map pack, with each business's rating and reviews.
+- **Average rank and share of voice** for the picked business (the business itself by default). Average rank counts a point where it isn't in the top 20 as 21, so gaps pull the average down instead of hiding. Share of voice is the share of the map pack spots (3 at each answered point) it holds; all businesses add up to 100%.
+- **Rank distribution:** the share of points that are good (1 to 3), average (4 to 10), poor (11 to 20) and out of the top 20.
+- **The map:** the 7 by 7 grid on a real street map (MapLibre with OpenFreeMap's free tiles, attribution shown). Each dot is coloured by the picked business's rank: green 1 to 3, amber 4 to 10, orange 11 to 20, red not in the top 20, a dashed "?" for a point that didn't answer. A pin marks the business. Click a dot to see the top 5 there. If the map can't load (no WebGL, tiles blocked), the drawn grid shows instead.
+- **Businesses:** every business in the scan, sortable by average rank, reviews or rating, with address, rating, reviews and top 3 points. Click one to see its ranks on the map. The ranks come from the scan's saved Google Maps results (`businesses` in `src/lib/local.ts`), so older scans work too.
 - **What this scan says:** one headline and short findings worked out from the scan (`localInsights` in `src/lib/local.ts`): the rank at the business's own address, its best spot and where, how far out it stays in the top 10, its strongest and weakest side, the change since the last scan, reviews and rating against the leader, and how many listing checks need a fix. No AI call.
-- **Who holds the map:** the business and up to 8 competitors by share of top 3 points, with #1 spots, rating, reviews and category (`mapOwners`). The business's row is highlighted.
 - **Listing check:**
   - Name, phone and street address on the homepage. Phone numbers match across formats, and only a number as long as Google's counts as a different phone, so dates and zip codes in the page text don't.
   - LocalBusiness schema.
@@ -51,6 +48,8 @@ Request and response fields follow DataForSEO's docs: `cid`, `place_id`, `rating
 - Zippie reads it with `get_local_research`. Two skills use it: "Local audit" and "Review response plan."
 
 ## Running cost
+
+The map tiles come from OpenFreeMap's public instance: free with no limit on map views, attribution required (openfreemap.org, checked November 2026). MapLibre is open source. They add $0 at Beta (50 teams) and $0 at Growth (500 teams).
 
 DataForSEO Google Maps, per point (100 results; depth 20 bills as one):
 - Standard queue: $0.0006.

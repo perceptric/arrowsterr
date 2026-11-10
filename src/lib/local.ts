@@ -74,6 +74,8 @@ export function rankAt(results: Place[], loc: Parameters<typeof isBusiness>[1]):
 }
 
 const keyOf = (p: Pick<Place, "cid" | "placeId" | "title">) => p.cid || p.placeId || clean(p.title);
+/** The key a business has in `businesses`. */
+export const placeKey = keyOf;
 
 /**
  * Sum up a scan: average rank (not found counts as 21, so a gap pulls the average down instead of hiding),
@@ -332,4 +334,68 @@ export function localInsights(scan: ScanResult, prev: ScanResult | null, you: Pi
     out.push({ tone: "warn", text: `Your rating is ${scan.you.rating}, ${poss(leader.title)} is ${leader.rating}.` });
   }
   return { headline, insights: out };
+}
+
+export type Business = {
+  key: string;
+  title: string;
+  you: boolean;
+  address: string | null;
+  category: string | null;
+  rating: number | null;
+  reviews: number | null;
+  /** Rank at each grid point, by point number: a number, null when not in the top 20, undefined when the point failed. */
+  ranks: (number | null | undefined)[];
+  avg: number | null;
+  top3: number;
+  found: number;
+  /** Share of the map pack: the 3 slots at each answered point that this business holds. All businesses add up to 100%. */
+  voice: number;
+};
+
+/**
+ * Every business in a scan with its rank at each point, from the saved Google Maps results, so any of them can be shown
+ * on the map. The business itself is always in the list. Averages count "not in the top 20" as 21, like `summarize`.
+ */
+export function businesses(perPoint: { i: number; results: Place[] | null }[], loc: Parameters<typeof isBusiness>[1] & { address?: string | null; category?: string | null }, size = GRID): Business[] {
+  const all = new Map<string, Business>();
+  const answered = perPoint.filter((p) => p.results).length;
+  const blank = (b: Omit<Business, "ranks" | "avg" | "top3" | "found" | "voice">): Business => ({ ...b, ranks: Array.from({ length: size * size }, (_, i) => (perPoint.find((p) => p.i === i)?.results ? null : undefined)), avg: null, top3: 0, found: 0, voice: 0 });
+  const youKey = "__you";
+  all.set(youKey, blank({ key: youKey, title: loc.title, you: true, address: loc.address ?? null, category: loc.category ?? null, rating: null, reviews: null }));
+  for (const { i, results } of perPoint) {
+    if (!results) continue;
+    const seenHere = new Set<string>();
+    for (const p of [...results].sort((a, b) => a.rank - b.rank)) {
+      const me = isBusiness(p, loc);
+      const k = me ? youKey : keyOf(p);
+      if (seenHere.has(k)) continue;
+      seenHere.add(k);
+      const b = all.get(k) ?? blank({ key: k, title: p.title, you: false, address: p.address, category: p.category, rating: p.rating, reviews: p.reviews });
+      if (p.rank <= MAX_DEPTH) b.ranks[i] = p.rank;
+      if (p.reviews !== null && (b.reviews === null || p.reviews > b.reviews)) Object.assign(b, { reviews: p.reviews, rating: p.rating });
+      if (!b.address && p.address) b.address = p.address;
+      all.set(k, b);
+    }
+  }
+  for (const b of all.values()) {
+    const ok = b.ranks.filter((r) => r !== undefined) as (number | null)[];
+    b.found = ok.filter((r) => r !== null).length;
+    b.top3 = ok.filter((r) => r !== null && r <= 3).length;
+    b.avg = ok.length ? Math.round((ok.reduce<number>((s, r) => s + Math.min(r ?? MAX_DEPTH + 1, MAX_DEPTH + 1), 0) / ok.length) * 10) / 10 : null;
+    b.voice = answered ? b.top3 / (answered * 3) : 0;
+  }
+  return [...all.values()].sort((a, b) => (a.avg ?? 99) - (b.avg ?? 99) || b.top3 - a.top3 || Number(b.you) - Number(a.you));
+}
+
+/** How many answered points fall in each rank band. */
+export function rankBands(ranks: (number | null | undefined)[]): { good: number; average: number; poor: number; out: number; read: number } {
+  const ok = ranks.filter((r) => r !== undefined) as (number | null)[];
+  return {
+    good: ok.filter((r) => r !== null && r <= 3).length,
+    average: ok.filter((r) => r !== null && r > 3 && r <= 10).length,
+    poor: ok.filter((r) => r !== null && r > 10).length,
+    out: ok.filter((r) => r === null).length,
+    read: ok.length,
+  };
 }
