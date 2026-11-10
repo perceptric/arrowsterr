@@ -5,6 +5,7 @@ import type { Profile as BrandProfile } from "./db";
 import { entitlement, take } from "./entitlements";
 import { enqueue } from "./jobs";
 import { scheduleOf, type Location, type ScanResult } from "./local";
+import { afterProfileRead } from "./localAlertsServer";
 import { leaders, needsConfirm, parseInfo, parsePosts, parseQuestions, type Profile } from "./localProfile";
 import { TASK_COST } from "./plans";
 import { marketOf } from "./research";
@@ -86,6 +87,7 @@ export async function runProfileRead(db: SupabaseClient, p: { locationId: string
     if (error) throw new Error(/local_profiles/.test(error.message) ? MIGRATION : error.message);
     if (r.postId) posts.push({ rowId: row.id as string, id: r.postId });
   }
+  await afterProfileRead(db, p.locationId).catch((e) => console.error("Local profile alerts failed:", e instanceof Error ? e.message : e));
   if (posts.length) await enqueue("local_profile", { locationId: p.locationId, round: 1, posts, at }, { workspaceId: t.row.workspace_id, key: `local_profile:${p.locationId}:${at}:1`, runAt: new Date(Date.now() + 90_000), maxAttempts: 3 });
   // The listing reads differently from last time: read it again tomorrow, so a change shows only once two reads agree.
   if (!p.youOnly) {

@@ -2,7 +2,8 @@
 // One PDF for one page (docs/reports.md, section 32.3): the shared frame, then that page's own sections.
 // No hooks and no browser code, so the print page renders it on the server exactly as stored.
 import type { CompetitorsPdf, PdfSnapshot, PromptsPdf, SourcesPdf } from "@/lib/pdf/pages";
-import type { DomainBulkPdf, DomainPdf, GapPdf, KeywordBulkPdf, KeywordPdf, KwRow } from "@/lib/pdf/research";
+import type { DomainBulkPdf, DomainPdf, GapPdf, KeywordBulkPdf, KeywordPdf, KwRow, LocalPdf } from "@/lib/pdf/research";
+import { RankGrid } from "../local/RankGrid";
 import type { GapRow } from "@/lib/gap";
 
 export type { PdfSnapshot };
@@ -925,6 +926,81 @@ function GapBody({ d }: { d: GapPdf }) {
   );
 }
 
+function LocalBody({ d }: { d: LocalPdf }) {
+  const l = d.location;
+  const best = l.keywords.filter((k) => k.avg !== null).sort((a, b) => (a.avg ?? 99) - (b.avg ?? 99))[0];
+  const ai = l.keywords.map((k) => k.aiShare).filter((x): x is number => x !== null);
+  return (
+    <>
+      <Tiles
+        items={[
+          { label: "Keywords tracked", value: num(l.keywords.length) },
+          { label: "Best average rank", value: best?.avg !== null && best?.avg !== undefined ? String(best.avg) : "–", note: best?.keyword },
+          { label: "Google rating", value: l.rating !== null ? String(l.rating) : "–", note: l.reviews !== null ? `${num(l.reviews)} reviews` : undefined },
+          { label: "New reviews", value: num(l.newReviews) },
+          { label: "AI Mode names you", value: ai.length ? pct((ai.reduce((a, b) => a + b, 0) / ai.length) * 100) : "–", note: "Share of grid points" },
+        ]}
+      />
+      <Section title="Google Maps ranks across the grid">
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 18 }}>
+          {l.keywords.map((k) => (
+            <div key={k.keyword} style={{ display: "flex", flexDirection: "column", gap: 6, width: 168, breakInside: "avoid" }}>
+              <RankGrid size={k.grid.size} shape={k.grid.shape} ranks={k.grid.ranks} label={`Google Maps ranks for ${k.keyword}`} />
+              <span className="strong" style={{ overflowWrap: "break-word" }}>{k.keyword}</span>
+              <span style={{ color: "var(--muted)" }}>
+                Average {k.avg ?? "–"}
+                {k.before !== null && k.avg !== null && k.before !== k.avg ? `, was ${k.before}` : ""}
+              </span>
+            </div>
+          ))}
+        </div>
+      </Section>
+      <Section title="Keywords">
+        <table className="pdf-table">
+          <thead>
+            <tr>
+              <th>Keyword</th>
+              <th className="r">Average rank</th>
+              <th className="r">Before</th>
+              <th className="r">Top 3 on the map</th>
+              <th className="r">AI Mode names you</th>
+              <th>Leads the map pack</th>
+            </tr>
+          </thead>
+          <tbody>
+            {l.keywords.map((k) => (
+              <tr key={k.keyword}>
+                <td className="strong">{k.keyword}</td>
+                <td className="r num">{k.avg ?? "–"}</td>
+                <td className="r num">{k.before ?? "–"}</td>
+                <td className="r num">{k.read ? pct((k.top3 / k.read) * 100) : "–"}</td>
+                <td className="r num">{k.aiShare === null ? "–" : pct(k.aiShare * 100)}</td>
+                <td>{k.leader ? `${k.leader.title} (${k.leader.top3} points)` : "You"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Section>
+      {l.alerts.length ? (
+        <Section title="Alerts">
+          <table className="pdf-table">
+            <tbody>
+              {l.alerts.map((a) => (
+                <tr key={`${a.at}|${a.title}`}>
+                  <td className="num" style={{ whiteSpace: "nowrap" }}>{new Date(a.at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</td>
+                  <td>
+                    <span className="strong">{a.title}</span> {a.detail}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Section>
+      ) : null}
+    </>
+  );
+}
+
 /** The whole PDF: cover, the page's sections, and the footer. */
 export function PdfDoc({ s }: { s: PdfSnapshot }) {
   const t = s.tokens;
@@ -981,6 +1057,8 @@ export function PdfDoc({ s }: { s: PdfSnapshot }) {
           <DomainBody d={d} />
         ) : d.page === "domain-bulk" ? (
           <DomainBulkBody d={d} />
+        ) : d.page === "local" ? (
+          <LocalBody d={d} />
         ) : (
           <GapBody d={d} />
         )}

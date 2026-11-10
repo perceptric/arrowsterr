@@ -5,7 +5,7 @@ import type { Run } from "./chats";
 import { listRuns } from "./db";
 import { emailReady, sendBuilt } from "./email";
 import type { Email } from "./emailKit";
-import { alertEmail, auditDropEmail, weeklyEmail, type AlertData, type Footer, type WeeklyBrand } from "./emails";
+import { alertEmail, auditDropEmail, localAlertEmail, weeklyEmail, type AlertData, type Footer, type WeeklyBrand, type WeeklyLocal } from "./emails";
 import { entitlement } from "./entitlements";
 import { brandStats, promptMoves } from "./metrics";
 import { weekOf, type Metric } from "./visibility";
@@ -107,6 +107,54 @@ export async function emailAuditDrop(db: SupabaseClient, ws: string, brand: { id
   return sendEach(people, ws, "alerts", (footer) => auditDropEmail({ brand: brand.name, domain: brand.domain, score: a.score, before: a.before, issues: a.issues, url: `${app()}/site-audit?brand=${brand.id}` }, footer));
 }
 
+/** Email a location's new Local Research alerts (docs/local-research-plan.md, 4.8). Once per location and day. */
+export async function emailLocalAlerts(db: SupabaseClient, ws: string, brand: { id: string; name: string }, loc: { id: string; title: string; name: string | null }, alerts: { kind: string; title: string; detail: string }[]) {
+  if (!emailReady() || !alerts.length || !(await claim(db, ws, `local:${loc.id}`, new Date().toISOString().slice(0, 10)))) return 0;
+  const people = await recipients(db, ws, "alerts");
+  if (!people.length) return 0;
+  const location = loc.name && loc.name !== loc.title ? `${loc.title} (${loc.name})` : loc.title;
+  const tab = alerts.some((a) => a.kind === "bad_review") ? "&tab=reviews" : "";
+  return sendEach(people, ws, "alerts", (footer) => localAlertEmail({ brand: brand.name, location, alerts, url: `${app()}/local-research?brand=${brand.id}&location=${loc.id}${tab}` }, footer));
+}
+
+/** The weekly email's Local Research numbers for a brand: each location's keywords, reviews and AI share. Empty on any trouble. */
+async function weekLocal(db: SupabaseClient, brandId: string): Promise<WeeklyLocal[]> {
+  try {
+    const { data: locs, error } = await db.from("local_locations").select("id, data").eq("brand_id", brandId).order("position");
+    if (error || !locs?.length) return [];
+    const out: WeeklyLocal[] = [];
+    for (const l of locs as { id: string; data: { title: string; name?: string; keywords?: string[] } }[]) {
+      const { data: scans } = await db.from("local_scans").select("keyword, created_at, result").eq("location_id", l.id).eq("status", "done").order("created_at", { ascending: false }).limit(60);
+      const keywords = (l.data.keywords ?? [])
+        .map((k) => {
+          const done = ((scans ?? []) as { keyword: string; created_at: string; result: { avg: number | null } | null }[]).filter((s) => s.keyword === k && s.result?.avg !== null && s.result?.avg !== undefined);
+          if (!done[0]) return null;
+          const avg = done[0].result!.avg as number;
+          return { keyword: k, avg, change: done[1] ? Math.round((avg - (done[1].result!.avg as number)) * 10) / 10 : null };
+        })
+        .filter((x): x is NonNullable<typeof x> => Boolean(x));
+      if (!keywords.length) continue;
+      const since = new Date(Date.now() - 7 * DAY).toISOString();
+      const [rev, prof, ai] = await Promise.all([
+        db.from("local_reviews").select("id", { count: "exact", head: true }).eq("location_id", l.id).eq("you", true).gte("posted_at", since),
+        db.from("local_profiles").select("data").eq("location_id", l.id).eq("you", true).order("read_at", { ascending: false }).limit(1).maybeSingle(),
+        db.from("local_ai_scans").select("result").eq("location_id", l.id).eq("status", "done").order("created_at", { ascending: false }).limit(1).maybeSingle(),
+      ]);
+      out.push({
+        name: l.data.name || l.data.title,
+        keywords,
+        newReviews: rev.error ? null : (rev.count ?? 0),
+        rating: (prof.data?.data as { rating?: number | null } | null)?.rating ?? null,
+        aiShare: (ai.data?.result as { share?: number | null } | null)?.share ?? null,
+      });
+    }
+    return out;
+  } catch (e) {
+    console.error("Weekly local numbers failed:", e instanceof Error ? e.message : e);
+    return [];
+  }
+}
+
 // ─────────────── jobs ───────────────
 
 /** Tell the person who started a Content Plan or a brief that it finished or failed. */
@@ -176,7 +224,7 @@ export async function sendWeekly(db: SupabaseClient) {
       const { data: rows } = await db.from("daily_metrics").select("day, engine, named, is_you, answers, mentions").eq("brand_id", b.id).gte("day", since).lt("day", local.date);
       const week = weekOf((rows ?? []) as Metric[], local.date);
       if (!week) continue;
-      weeks.push({ id: b.id, name: b.name, ...week, ...(await weekDetail(db, b, local.date)) });
+      weeks.push({ id: b.id, name: b.name, ...week, ...(await weekDetail(db, b, local.date)), local: await weekLocal(db, b.id) });
     }
     if (!weeks.length) continue;
     const people = await recipients(db, w.id, "weekly");

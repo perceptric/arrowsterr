@@ -2,6 +2,8 @@
 // site health, on-page scores, backlinks, links won, the content map and Google Maps ranks for the report's dates.
 // Built only from saved results, so a report never spends tasks. Pure, so the server and the tests share one copy.
 
+import type { LocalReportLoc } from "./localReport.ts";
+
 export type SeoSnapshot = {
   site: { score: number; before: number | null; pages: number; high: number } | null;
   onpage: { pages: number; avg: number; topAvg: number | null; worst: { url: string; keyword: string; score: number }[] } | null;
@@ -9,6 +11,8 @@ export type SeoSnapshot = {
   links: { won: number; wonInPeriod: number; gone: number; contacted: number } | null;
   map: { covered: number; missing: number; overlap: number; progress: number } | null;
   local: { keyword: string; avg: number; before: number | null; top3: number; read: number }[] | null;
+  /** Local Research per location (phase 6). Missing on reports made before it; then `local` shows instead. */
+  locations?: LocalReportLoc[] | null;
 };
 
 export type SeoRaw = {
@@ -20,6 +24,8 @@ export type SeoRaw = {
   cards: { stage: string; stage_at: string | null; link_live: boolean | null }[] | null;
   maps: { created_at: string; result: { topics: { status: string }[] } | null }[];
   scans: { keyword: string; created_at: string; result: { avg: number | null; top3: number; read: number } | null }[];
+  /** Built by src/lib/localReportServer.ts for the same dates. */
+  locations?: LocalReportLoc[];
 };
 
 const day = (iso: string) => iso.slice(0, 10);
@@ -76,6 +82,6 @@ export function seoSnapshot(raw: SeoRaw): SeoSnapshot | null {
     })
     .filter((x): x is NonNullable<typeof x> => Boolean(x));
 
-  const out: SeoSnapshot = { site, onpage, backlinks, links, map, local: local.length ? local : null };
+  const out: SeoSnapshot = { site, onpage, backlinks, links, map, local: local.length ? local : null, locations: raw.locations?.length ? raw.locations : null };
   return Object.values(out).some((v) => v !== null) ? out : null;
 }

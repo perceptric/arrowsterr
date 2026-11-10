@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { connection } from "next/server";
+import { PdfDoc } from "@/components/pdf/PdfDoc";
 import { PrintButton } from "@/components/reports/PrintButton";
+import type { PdfSnapshot } from "@/lib/pdf/pages";
 import { CompetitorsDoc } from "@/components/reports/CompetitorsDoc";
 import { IntelDoc } from "@/components/reports/IntelDoc";
 import { LinkViews } from "@/components/reports/LinkViews";
@@ -78,6 +80,21 @@ export default async function SharedReport({ params }: { params: Promise<{ token
   if (!data || typeof data !== "object") return <Note text="This report link is not valid or was removed." />;
 
   const kind = (data as { kind?: string }).kind;
+  // A page's PDF shared as a link (Local Research): drawn the same way as the file.
+  if (kind === "pdf") {
+    const snap = (data as { snapshot: PdfSnapshot }).snapshot;
+    return (
+      <main className="min-h-screen py-8 print:py-0" style={{ background: snap.tokens.paper }}>
+        {count ? <LinkViews token={token} /> : null}
+        <div className="mx-auto mb-4 flex max-w-6xl justify-end px-4 print:hidden">
+          <PrintButton />
+        </div>
+        <div className="mx-auto max-w-5xl px-4 print:px-0">
+          <PdfDoc s={snap} />
+        </div>
+      </main>
+    );
+  }
   const isPrompts = kind === "prompts" || kind === "competitors" || kind === "intel";
   const paper = isPrompts ? undefined : themeOf((data as ReportSnapshot).style ?? { color: "" }).paper;
   return (

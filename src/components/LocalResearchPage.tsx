@@ -7,6 +7,10 @@ import { LocalMap, rankDot, type MapDot } from "./LocalMap";
 import { ProfileTab } from "./local/ProfileTab";
 import { ReviewsTab } from "./local/ReviewsTab";
 import { AiTab } from "./local/AiTab";
+import { AlertsTab } from "./local/AlertsTab";
+import { saveCsv } from "./local/saveCsv";
+import { ShareButton } from "./ShareDialog";
+import { putStash } from "@/lib/stash";
 import type { RunAuth } from "@/lib/runner";
 import { Dropdown } from "./Pickers";
 import { BAR_INPUT } from "./research/shared";
@@ -27,14 +31,28 @@ const when = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month:
 type SavedLoc = Location & { id: string };
 type Limits = { locations: number; keywords: number };
 
-export function LocalResearchPage({ brand, sb, auth, canEdit }: { brand: Brand; sb: SupabaseClient; auth: RunAuth; canEdit: boolean }) {
+type Tab = "rankings" | "ai" | "profile" | "reviews" | "alerts";
+const TABS: { id: Tab; label: string }[] = [
+  { id: "rankings", label: "Rankings" },
+  { id: "ai", label: "AI answers" },
+  { id: "profile", label: "Profile" },
+  { id: "reviews", label: "Reviews" },
+  { id: "alerts", label: "Alerts" },
+];
+/** The tab an alert email links to (?tab=reviews), or Rankings. */
+const tabFromUrl = (): Tab => {
+  const t = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("tab") : null;
+  return TABS.find((x) => x.id === t)?.id ?? "rankings";
+};
+
+export function LocalResearchPage({ brand, sb, auth, canEdit, secure = false }: { brand: Brand; sb: SupabaseClient; auth: RunAuth; canEdit: boolean; secure?: boolean }) {
   const api = useApi(auth);
   const [locs, setLocs] = useState<SavedLoc[] | undefined>(undefined);
   const [sel, setSel] = useState("");
   const [adding, setAdding] = useState(false);
   const [replacing, setReplacing] = useState(false);
   const [removing, setRemoving] = useState(false);
-  const [tab, setTab] = useState<"rankings" | "profile" | "reviews" | "ai">("rankings");
+  const [tab, setTab] = useState<Tab>(() => tabFromUrl());
   const [limits, setLimits] = useState<Limits | null>(null);
   const [error, setError] = useState("");
   const [note, setNote] = useState("");
@@ -57,7 +75,9 @@ export function LocalResearchPage({ brand, sb, auth, canEdit }: { brand: Brand; 
         }
         const list = ((data ?? []) as { id: string; data: Location }[]).map((r) => ({ ...r.data, id: r.id }));
         setLocs(list);
-        setSel(list.length > 1 ? "all" : (list[0]?.id ?? ""));
+        // An alert email links straight to its location (?location=...).
+        const asked = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("location") : null;
+        setSel(asked && list.some((l) => l.id === asked) ? asked : list.length > 1 ? "all" : (list[0]?.id ?? ""));
       });
     return () => {
       live = false;
@@ -83,6 +103,10 @@ export function LocalResearchPage({ brand, sb, auth, canEdit }: { brand: Brand; 
   }
   const put = (l: SavedLoc) => setLocs((all) => (all ?? []).some((x) => x.id === l.id) ? (all ?? []).map((x) => (x.id === l.id ? l : x)) : [...(all ?? []), l]);
   const loc = locs?.find((l) => l.id === sel) ?? null;
+  // Download PDF in the top bar makes the open location's report.
+  useEffect(() => {
+    putStash(`local:${brand.id}:loc`, loc?.id ?? null);
+  }, [brand.id, loc?.id]);
   const save = async (extra: Record<string, unknown>) => {
     if (!loc) return;
     const r = await run("settings", () => call<{ location: SavedLoc }>("settings", { locationId: loc.id, ...extra }));
@@ -185,14 +209,19 @@ export function LocalResearchPage({ brand, sb, auth, canEdit }: { brand: Brand; 
         <Overview brand={brand} sb={sb} locs={locs} onPick={setSel} />
       ) : loc ? (
         <>
-          <div role="tablist" aria-label="Location view" className="aw-tabs flex">
-            {(["rankings", "ai", "profile", "reviews"] as const).map((t) => (
-              <button key={t} type="button" role="tab" aria-selected={tab === t} onClick={() => setTab(t)}>
-                {t === "rankings" ? "Rankings" : t === "ai" ? "AI answers" : t === "profile" ? "Profile" : "Reviews"}
-              </button>
-            ))}
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div role="tablist" aria-label="Location view" className="aw-tabs flex">
+              {TABS.map((t) => (
+                <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} onClick={() => setTab(t.id)}>
+                  {t.label}
+                </button>
+              ))}
+            </div>
+            {canEdit ? <ShareButton auth={auth} brandId={brand.id} title={`Local Research: ${loc.name || loc.title}`} secure={secure} make={() => call<{ url: string; id: string }>("share", { locationId: loc.id })} /> : null}
           </div>
-          {tab === "profile" ? (
+          {tab === "alerts" ? (
+            <AlertsTab key={loc.id} sb={sb} loc={loc} canEdit={canEdit} onSave={(alerts) => save({ alerts })} onError={setError} />
+          ) : tab === "profile" ? (
             <ProfileTab key={loc.id} sb={sb} locationId={loc.id} canEdit={canEdit} call={call} onError={setError} />
           ) : tab === "ai" ? (
             <AiTab key={loc.id} sb={sb} loc={loc} canEdit={canEdit} call={call} onError={setError} />
@@ -705,6 +734,20 @@ function Results({ cur, prev, prevAt, compare, compareId, onCompare, done, loc, 
                 <Dropdown<string> label="Compare with" value={compareId} onChange={onCompare} options={compare.map((c) => ({ id: c.id, label: `Against ${when(c.at)}` }))} />
               ) : null}
               <span className="text-[12.5px] text-body wrap-break-word">{summary ?? (picked.you ? "Pick a competitor in the list to compare head to head." : `Showing ${picked.title}'s ranks.`)}</span>
+              <button
+                type="button"
+                className="aw-btn aw-btn--secondary aw-btn--sm"
+                onClick={() => {
+                  const pts = [...inGrid].sort((a, b) => a - b);
+                  saveCsv(
+                    `${loc.name || loc.title} ${keyword} ${done[0].created_at.slice(0, 10)}.csv`,
+                    ["Business", "You", "Average rank", "Top 3 points", "Points found", "Rating", "Reviews", ...pts.map((i) => `Point ${i + 1}`)],
+                    list.map((b) => [b.title, b.you ? "Yes" : "", b.avg, b.top3, b.found, b.rating, b.reviews, ...pts.map((i) => (b.ranks[i] === undefined ? "" : (b.ranks[i] ?? "20+")))]),
+                  );
+                }}
+              >
+                Export CSV
+              </button>
             </div>
             {mapFailed ? (
               <Heat ranks={picked.ranks} spacing={cur.spacing} size={size} inGrid={inGrid} sel={at} onSel={onPt} />

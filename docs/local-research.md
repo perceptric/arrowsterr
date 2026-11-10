@@ -45,6 +45,22 @@ Local Research (Organic Research, Local Research, at `/local-research`) shows wh
 - **Sites AI cites:** the sites the answers cite most, marked Your site or Competitor site, each linking to Backlinks.
 - A scan takes 12 tasks on a 5 × 5 grid (about 2 per 5 points, plus 2). Tests: `tests/localAi.test.ts`.
 
+## Alerts and reports (phase 6 of `docs/local-research-plan.md`)
+
+- **Alerts** (`local_alerts`, one row per alert, unique per location and key, so nothing alerts twice):
+  - **Rank drop:** a keyword's average rank 2 or more worse than the scan before on the same grid, or its top 3 share down 15 points or more. The points that got worse are read again on the standard queue first; the alert opens only when at least half of them answer and at least half of those are still worse. Otherwise it's dropped as a one-read blip. The second read costs about $0.0006 a point and isn't charged to the plan.
+  - **New in the top 3:** a competitor in the map pack's top 3 at 5 points or more that wasn't in the scan before. A first scan never alerts.
+  - **Changed on Google:** a change to the name, categories, phone, website, address or hours once two reads agree (phase 2).
+  - **Low review:** a 1 or 2 star review of the business, new this pull and posted in the last 14 days.
+  - **Rating:** the Google rating crossed below the level set on the Alerts tab.
+- **Emails:** each location's new alerts go out in one email to everyone who gets alerts (Settings, Notifications), at most one a day per location; later alerts wait for the next day. A low review's email links to the Reviews tab.
+- **Alerts tab:** the alerts, newest first ("Checking again" while a drop is read twice), and the settings: alerts on or off, and the rating level.
+- **Weekly email:** each brand in the Monday summary gets a Google Maps part per location: keywords with their average rank and change, new reviews, rating and AI Mode's share.
+- **Client reports:** the SEO block shows each location with a picture of each keyword's rank grid, average rank and change, top 3 share, AI Mode's share, rating, new reviews in the dates and the alerts. Reports made before keep the old keyword table.
+- **Download PDF** in the top bar makes the open location's report for the last 30 days (`local` PDF page), kept in Reports like other PDFs. **Share** (next to the tabs) makes a frozen link to the same report under the `report_links` rules: password and expiry on Pro and up, listed in Reports, Links.
+- **CSV:** Export CSV on Rankings (every business with its rank at each point), Reviews (every review with its reply and themes) and AI answers (every business AI names). Cells that start like a formula are saved as text.
+- Tests: `tests/localAlerts.test.ts`.
+
 ## What it shows
 
 - **Setup:** search the business by name and city (one Google Maps request, 1 task), then pick it. Its Google ids, address, phone, category and position are saved on `brands.profile.location`.
@@ -103,7 +119,8 @@ Request and response fields follow DataForSEO's docs: `cid`, `place_id`, `rating
 - `supabase/072_local_profiles.sql` adds `local_profiles`: one row per business per read (`you` marks the location's own business, `confirm` marks a confirm read). Viewers may read. The `local_profile` job reads and collects posts (`src/lib/localProfileServer.ts`).
 - `supabase/073_local_reviews.sql` adds `local_reviews` (one row per review, unique on location, business and review id; viewers may read), and `reviews_at` and `reviews_from` on `local_locations` (when reviews were last pulled, and from which businesses). The `local_reviews` job posts the pulls, collects them and reads themes (`src/lib/localReviewsServer.ts`).
 - `supabase/074_local_ai_scans.sql` adds `local_ai_scans`: one row per keyword per AI grid, with the businesses looked for, each answer as saved (who it names, the sites it cites, the start of its text) and the summary. Viewers may read. The `local_ai` job collects the answers (`src/lib/localAiServer.ts`).
-- `/api/local` takes `limits`, `find`, `set` (a new location, or a new business for one), `remove`, `settings`, `scan`, `prompts`, `profile` (Read now on Profile), `reviews` (Read now on Reviews), `reply` (a draft reply) and `aiscan` (Scan now on AI answers), each with a `locationId`.
+- `supabase/075_local_alerts.sql` adds `local_alerts` (viewers may read). The `local_alert` job collects a rank drop's second read; the worker's hourly tick emails new alerts (`src/lib/localAlertsServer.ts`). Report data: `src/lib/localReport.ts` and `src/lib/localReportServer.ts`.
+- `/api/local` takes `limits`, `find`, `set` (a new location, or a new business for one), `remove`, `settings` (including `alerts`), `scan`, `prompts`, `profile` (Read now on Profile), `reviews` (Read now on Reviews), `reply` (a draft reply), `aiscan` (Scan now on AI answers) and `share` (a link to the location's report), each with a `locationId`.
 - Zippie reads it with `get_local_research`. Two skills use it: "Local audit" and "Review response plan."
 
 ## Running cost
@@ -162,6 +179,16 @@ Assume 20% of teams track a local business (10 at Beta, 100 at Growth), each wit
 | Collecting and matching (worker) | $0 | $0 |
 | **Added by phase 4** | **~$4.00** | **~$40** |
 | **Local Research monthly total** | **~$15.80** | **~$159** |
+
+**Phase 6, alerts and reports.** Second reads of rank drops: DataForSEO Google Maps standard queue, $0.0006 a point (checked November 2026). Assume one drop a location a month, about 15 points read again: about $0.01 a location. Emails go through Resend inside its current plan (check). PDFs use the PDF worker already running. No Claude calls.
+
+| Line | Beta (15 locations) | Growth (150 locations) |
+|---|---|---|
+| Second reads of rank drops (DataForSEO) | ~$0.15 | ~$1.50 |
+| Alert and weekly emails (Resend, check) | $0 | $0 |
+| PDFs, share links, CSV (servers already running) | $0 | $0 |
+| **Added by phase 6** | **~$0.15** | **~$1.50** |
+| **Local Research monthly total** | **~$16** | **~$161** |
 
 ## Example data
 

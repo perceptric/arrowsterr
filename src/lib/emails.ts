@@ -22,7 +22,32 @@ export type WeeklyBrand = {
   sentiment?: number | null;
   gained?: PromptMove[];
   lost?: PromptMove[];
+  /** Local Research, one entry per location with scans (docs/local-research-plan.md, 4.8). */
+  local?: WeeklyLocal[];
 };
+
+export type WeeklyLocal = {
+  name: string;
+  keywords: { keyword: string; avg: number; change: number | null }[];
+  newReviews: number | null;
+  rating: number | null;
+  aiShare: number | null;
+};
+
+const rankTag = (change: number | null): Tag | undefined => (change === null || Math.abs(change) < 0.1 ? undefined : { text: `${change < 0 ? "up" : "down"} ${Math.abs(Math.round(change * 10) / 10)}`, tone: change < 0 ? "good" : "bad" });
+
+/** The weekly email's Local Research rows for a brand. */
+function localBlocks(b: WeeklyBrand, one: boolean): Block[] {
+  const out: Block[] = [];
+  for (const l of b.local ?? []) {
+    out.push({ t: "label", text: one ? `Google Maps, ${l.name}` : `${b.name} on Google Maps, ${l.name}` });
+    const rows: { title: string; meta?: string; right?: string; tag?: Tag }[] = l.keywords.slice(0, 5).map((k) => ({ title: k.keyword, meta: "Average rank", right: String(k.avg), tag: rankTag(k.change) }));
+    const extra = [l.rating !== null ? `rated ${l.rating}` : "", l.newReviews !== null ? `${plural(l.newReviews, "new review")} this week` : "", l.aiShare !== null ? `AI Mode names you at ${Math.round(l.aiShare * 100)}% of points` : ""].filter(Boolean);
+    if (extra.length) rows.push({ title: "Reviews and AI", meta: extra.join(", ") });
+    out.push({ t: "rows", items: rows });
+  }
+  return out;
+}
 
 export function weeklyEmail(w: { workspace: string; from: Date; to: Date; brands: WeeklyBrand[]; url: string; appUrl: string }, footer: Footer): Email {
   const range = `${day(w.from)} to ${day(w.to)}`;
@@ -53,6 +78,7 @@ export function weeklyEmail(w: { workspace: string; from: Date; to: Date; brands
       ...(b.lost ?? []).slice(0, 3).map((m) => ({ title: m.prompt, meta: `${list(m.engines)} stopped naming ${one ? "you" : b.name}`, tag: { text: "Lost", tone: "bad" } as Tag })),
     ];
     if (moves.length) blocks.push({ t: "label", text: "Prompts this week" }, { t: "rows", items: moves });
+    blocks.push(...localBlocks(b, Boolean(one)));
   }
   const gained = w.brands.reduce((n, b) => n + (b.gained?.length ?? 0), 0);
   const lost = w.brands.reduce((n, b) => n + (b.lost?.length ?? 0), 0);
@@ -112,6 +138,32 @@ export function alertEmail(a: AlertData, footer: Footer): Email {
     blocks.push({ t: "label", text: "Prompts you lost" }, { t: "rows", items: a.lost.slice(0, 3).map((m) => ({ title: m.prompt, meta: `${list(m.engines)} stopped naming you` })) });
   }
   return renderEmail({ subject: title, preview, eyebrow: `Visibility alert, ${day(a.day)}`, title, blocks, button: { label: "See what changed", url: a.url }, footer });
+}
+
+// ─────────────── local alerts ───────────────
+
+export type LocalAlertData = { brand: string; location: string; alerts: { kind: string; title: string; detail: string }[]; url: string };
+const LOCAL_TAG: Record<string, Tag> = {
+  rank_drop: { text: "Rank drop", tone: "bad" },
+  new_rival: { text: "New in the top 3", tone: "neutral" },
+  profile_change: { text: "Changed on Google", tone: "bad" },
+  bad_review: { text: "Low review", tone: "bad" },
+  rating_low: { text: "Rating", tone: "bad" },
+};
+
+/** A location's new Local Research alerts, one email a day at most (docs/local-research-plan.md, 4.8). */
+export function localAlertEmail(a: LocalAlertData, footer: Footer): Email {
+  const n = a.alerts.length;
+  const title = n === 1 ? a.alerts[0].title : `${n} alerts for ${a.location}`;
+  return renderEmail({
+    subject: n === 1 ? `${a.location}: ${a.alerts[0].title}` : `${a.location}: ${n} Google Maps alerts`,
+    preview: a.alerts.map((x) => x.title).slice(0, 3).join(". "),
+    eyebrow: `Local Research, ${a.brand}`,
+    title,
+    blocks: [{ t: "rows", items: a.alerts.slice(0, 10).map((x) => ({ title: x.title, meta: x.detail, tag: LOCAL_TAG[x.kind] })) }],
+    button: { label: a.alerts.some((x) => x.kind === "bad_review") ? "Draft a reply" : "Open Local Research", url: a.url },
+    footer,
+  });
 }
 
 // ─────────────── site audit ───────────────

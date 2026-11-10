@@ -37,21 +37,23 @@ export function ShareButton({
   title,
   secure,
   snapshot,
+  make,
 }: {
   auth: RunAuth;
   brandId: string;
   title: string;
   /** The plan allows a password and an expiry date on links. */
   secure: boolean;
-  snapshot: () => Promise<PromptsSnapshot | CompetitorsSnapshot> | PromptsSnapshot | CompetitorsSnapshot;
+  snapshot?: () => Promise<PromptsSnapshot | CompetitorsSnapshot> | PromptsSnapshot | CompetitorsSnapshot;
+  /** Makes the link on the server instead (Local Research), returning it as the share route does. */
+  make?: () => Promise<{ url: string; id: string }>;
 }) {
   const [state, setState] = useState<State>(null);
 
   async function share() {
     setState({ busy: true, url: "", copied: false, error: "", link: null });
     try {
-      const data = fitSnapshot(await snapshot());
-      const { url, id } = await post<{ url: string; id: string }>(auth, "/api/reports/share", { brandId, data });
+      const { url, id } = make ? await make() : await post<{ url: string; id: string }>(auth, "/api/reports/share", { brandId, data: fitSnapshot(await snapshot!()) });
       const copied = await copy(url);
       setState((s) => s && { ...s, busy: false, url, copied, link: { id, locked: false, expires_at: null } });
     } catch (e) {
