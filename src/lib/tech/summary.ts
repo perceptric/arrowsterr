@@ -57,6 +57,31 @@ export class LinkTally {
 
   inOf = (url: string) => this.linksIn[this.id.get(url) ?? -1] ?? 0;
 
+  /**
+   * Internal link score, 0 to 10: PageRank over the site's own links (damping 0.85, 20 rounds), on a log scale so the
+   * home page is about 10 and a page with one weak link is near 0. Pages with no links out share their score evenly.
+   */
+  rank(): Map<string, number> {
+    const n = this.urls.length;
+    if (!n) return new Map();
+    let pr = new Float64Array(n).fill(1 / n);
+    for (let round = 0; round < 20; round++) {
+      const next = new Float64Array(n).fill(0.15 / n);
+      let dangling = 0;
+      for (let i = 0; i < n; i++) {
+        const out = this.out[i];
+        if (!out.length) dangling += pr[i];
+        else for (const j of out) next[j] += (0.85 * pr[i]) / out.length;
+      }
+      for (let i = 0; i < n; i++) next[i] += (0.85 * dangling) / n;
+      pr = next;
+    }
+    const logs = Array.from(pr, (v) => Math.log(v));
+    const lo = Math.min(...logs);
+    const hi = Math.max(...logs);
+    return new Map(this.urls.map((u, i) => [u, hi - lo < 1e-9 ? 5 : Math.round(((logs[i] - lo) / (hi - lo)) * 100) / 10]));
+  }
+
   /** Click depth of every page from the start pages, following the links counted so far. */
   depth(starts: string[]): Map<string, number> {
     const adj = new Map<string, string[]>();

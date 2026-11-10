@@ -5,6 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { AuditResult } from "@/lib/audit";
 import { CHECKS } from "@/lib/tech/checks";
 import type { PageFacts } from "@/lib/tech/parse";
+import { rawShare, type Rendered } from "@/lib/tech/render";
 import { Dropdown } from "../Pickers";
 import { downloadCsv } from "../research/shared";
 import { Card, SidePanel, Thinking } from "../ui";
@@ -13,9 +14,9 @@ import { num, SEV, SevDot, short } from "./shared";
 // Every crawled URL from crawl_pages, read as the signed-in person (viewers may read), with quick filters, a template
 // and issue filter, sorting, 100 rows a page, and a panel with everything the crawl saw on one page.
 
-type PageRow = { url: string; status: number; template: string | null; indexable: boolean; reason: string | null; depth: number | null; words: number; links_in: number; ms: number; in_sitemap: boolean; title: string | null; issues: string[] };
+type PageRow = { url: string; status: number; template: string | null; indexable: boolean; reason: string | null; depth: number | null; words: number; links_in: number; ms: number; in_sitemap: boolean; title: string | null; issues: string[]; rendered_words: number | null; internal_rank: number | null };
 type Quick = "all" | "errors" | "notindexable" | "orphans" | "deep" | "issues" | "nositemap";
-type Sort = "url" | "links_in" | "depth" | "words" | "ms" | "status";
+type Sort = "url" | "links_in" | "depth" | "words" | "ms" | "status" | "internal_rank";
 const QUICK: { id: Quick; label: string }[] = [
   { id: "all", label: "All" },
   { id: "errors", label: "Errors" },
@@ -25,8 +26,10 @@ const QUICK: { id: Quick; label: string }[] = [
   { id: "issues", label: "With issues" },
   { id: "nositemap", label: "Not in sitemap" },
 ];
-const COLS = "url, status, template, indexable, reason, depth, words, links_in, ms, in_sitemap, title, issues";
+const COLS = "url, status, template, indexable, reason, depth, words, links_in, ms, in_sitemap, title, issues, rendered_words, internal_rank";
 const PAGE = 100;
+/** The share of the rendered text the raw HTML already had, for pages Chromium rendered. */
+const rawPct = (r: Pick<PageRow, "words" | "rendered_words">) => (r.rendered_words === null ? null : rawShare(r.words, { words: r.rendered_words }));
 
 export function Pages({ sb, auditId, result, issue, onIssue }: { sb: SupabaseClient; auditId: string; result: AuditResult; issue: string | null; onIssue: (id: string | null) => void }) {
   const [quick, setQuick] = useState<Quick>("all");
@@ -79,7 +82,7 @@ export function Pages({ sb, auditId, result, issue, onIssue }: { sb: SupabaseCli
   };
   async function csv() {
     const { data } = await query(COLS, 0, 9999);
-    downloadCsv("site-audit-pages.csv", ["url", "status", "template", "indexable", "reason", "depth", "words", "links in", "response ms", "in sitemap", "title", "issues"], ((data ?? []) as unknown as PageRow[]).map((r) => [r.url, r.status, r.template, r.indexable ? "yes" : "no", r.reason, r.depth, r.words, r.links_in, r.ms, r.in_sitemap ? "yes" : "no", r.title, r.issues.join(" ")]));
+    downloadCsv("site-audit-pages.csv", ["url", "status", "template", "indexable", "reason", "depth", "words", "rendered words", "raw text %", "links in", "link score", "response ms", "in sitemap", "title", "issues"], ((data ?? []) as unknown as PageRow[]).map((r) => [r.url, r.status, r.template, r.indexable ? "yes" : "no", r.reason, r.depth, r.words, r.rendered_words, rawPct(r) ?? "", r.links_in, r.internal_rank, r.ms, r.in_sitemap ? "yes" : "no", r.title, r.issues.join(" ")]));
   }
   const th = (by: Sort, children: string, right = false) => (
     <th key={by} className={right ? "text-right" : undefined}>
@@ -138,7 +141,9 @@ export function Pages({ sb, auditId, result, issue, onIssue }: { sb: SupabaseCli
                   <th>Indexable</th>
                   {th("words", "Words", true)}
                   {th("depth", "Depth", true)}
+                  <th className="text-right">Raw text</th>
                   {th("links_in", "Links in", true)}
+                  {th("internal_rank", "Link score", true)}
                   {th("ms", "Response", true)}
                   <th>Issues</th>
                 </tr>
@@ -159,7 +164,12 @@ export function Pages({ sb, auditId, result, issue, onIssue }: { sb: SupabaseCli
                     <td>{r.indexable ? <span className="aw-status aw-status--ranked">Yes</span> : <span className="text-[12.5px] text-muted">{r.reason ?? "No"}</span>}</td>
                     <td className="aw-num text-right">{num(r.words)}</td>
                     <td className="aw-num text-right">{r.depth ?? "–"}</td>
+                    <td className="aw-num text-right">{(() => {
+                      const x = rawPct(r);
+                      return x === null ? <span className="text-muted">–</span> : <span className={x < 30 ? "text-neg" : x < 70 ? "text-[var(--aw-warn)]" : ""}>{x}%</span>;
+                    })()}</td>
                     <td className="aw-num text-right">{num(r.links_in)}</td>
+                    <td className="aw-num text-right">{r.internal_rank === null ? <span className="text-muted">–</span> : r.internal_rank.toFixed(1)}</td>
                     <td className={`aw-num text-right ${r.ms > 1000 ? "text-neg" : ""}`}>{(r.ms / 1000).toFixed(2)} s</td>
                     <td>{r.issues.length ? <span className="aw-num text-[13px] text-ink">{r.issues.length}</span> : <span className="text-muted">–</span>}</td>
                   </tr>
@@ -189,15 +199,15 @@ export function Pages({ sb, auditId, result, issue, onIssue }: { sb: SupabaseCli
   );
 }
 
-type Full = PageRow & { facts: { final?: string; chain?: { url: string; status: number }[]; loop?: boolean; bytes?: number; compressed?: boolean; type?: string; page?: Omit<PageFacts, "internal" | "external">; links?: { u: string; a: string; n: number }[]; ext?: string[] } };
+type Full = PageRow & { rendered: Rendered | null; shot: string | null; facts: { final?: string; chain?: { url: string; status: number }[]; loop?: boolean; bytes?: number; compressed?: boolean; type?: string; page?: Omit<PageFacts, "internal" | "external">; links?: { u: string; a: string; n: number }[]; ext?: string[] } };
 
 function PagePanel({ sb, auditId, url, root, onClose }: { sb: SupabaseClient; auditId: string; url: string; root?: string; onClose: () => void }) {
   const [row, setRow] = useState<Full | null>(null);
   const [linksIn, setLinksIn] = useState<string[] | null>(null);
-  const [tab, setTab] = useState<"overview" | "issues" | "links">("overview");
+  const [tab, setTab] = useState<"overview" | "issues" | "links" | "rendering">("overview");
   useEffect(() => {
     sb.from("crawl_pages")
-      .select(`${COLS}, facts`)
+      .select(`${COLS}, facts, rendered, shot`)
       .eq("audit_id", auditId)
       .eq("url", url)
       .maybeSingle()
@@ -228,9 +238,9 @@ function PagePanel({ sb, auditId, url, root, onClose }: { sb: SupabaseClient; au
       ) : (
         <div className="flex flex-col gap-4">
           <div role="tablist" className="flex gap-1 border-b border-[var(--aw-rule)]">
-            {(["overview", "issues", "links"] as const).map((t) => (
+            {(["overview", "issues", "links", ...(row.rendered ? (["rendering"] as const) : [])] as const).map((t) => (
               <button key={t} type="button" role="tab" aria-selected={tab === t} onClick={() => setTab(t)} className={`-mb-px border-b-2 px-3 py-2 text-[13.5px] font-medium ${tab === t ? "border-[var(--signal)] text-ink" : "border-transparent text-muted"}`}>
-                {t === "overview" ? "Overview" : t === "issues" ? `Issues ${row.issues.length}` : "Links"}
+                {t === "overview" ? "Overview" : t === "issues" ? `Issues ${row.issues.length}` : t === "links" ? "Links" : "Rendering"}
               </button>
             ))}
           </div>
@@ -266,6 +276,7 @@ function PagePanel({ sb, auditId, url, root, onClose }: { sb: SupabaseClient; au
               ) : null}
               {kv("Depth", row.depth === null ? "Not linked from the home page" : `${row.depth} ${row.depth === 1 ? "click" : "clicks"} from home`)}
               {kv("Links in", num(row.links_in))}
+              {row.internal_rank !== null ? kv("Link score", `${row.internal_rank.toFixed(1)} of 10`) : null}
               {kv("In a sitemap", row.in_sitemap ? "Yes" : "No")}
               {kv("Response", `${(row.ms / 1000).toFixed(2)} s, ${num(Math.round((row.facts.bytes ?? 0) / 1024))} KB${row.facts.compressed ? ", compressed" : ", not compressed"}`)}
               <div className="flex flex-wrap gap-2 pt-3">
@@ -274,6 +285,8 @@ function PagePanel({ sb, auditId, url, root, onClose }: { sb: SupabaseClient; au
                 </a>
               </div>
             </div>
+          ) : tab === "rendering" && row.rendered ? (
+            <RenderTab row={row} r={row.rendered} root={root} />
           ) : tab === "issues" ? (
             row.issues.length ? (
               <ul className="flex flex-col gap-3">
@@ -327,5 +340,94 @@ function PagePanel({ sb, auditId, url, root, onClose }: { sb: SupabaseClient; au
         </div>
       )}
     </SidePanel>
+  );
+}
+
+/** Raw HTML next to what Chromium saw after JavaScript ran, with the browser's errors and a screenshot. */
+function RenderTab({ row, r, root }: { row: Full; r: Rendered; root?: string }) {
+  const f = row.facts.page;
+  const share = rawShare(row.words, r);
+  const same = (a: string, b: string) => a.trim() === b.trim();
+  const line = (label: string, raw: React.ReactNode, after: React.ReactNode, changed = false) => (
+    <tr key={label}>
+      <td className="text-muted">{label}</td>
+      <td className="wrap-anywhere">{raw}</td>
+      <td className="wrap-anywhere">{changed ? <span className="font-medium text-[var(--aw-warn)]">{after}</span> : after}</td>
+    </tr>
+  );
+  const rawNoindex = /noindex/i.test(`${f?.metaRobots ?? ""} ${f?.xRobots ?? ""}`);
+  return (
+    <div className="flex flex-col gap-5 text-[13px]">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className={`aw-status ${r.status >= 200 && r.status < 300 ? "aw-status--ranked" : "aw-status--missed"}`}>{r.status || "No answer"}</span>
+        {share !== null ? <span className={`aw-status ${share < 30 ? "aw-status--missed" : share < 70 ? "aw-status--warn" : "aw-status--ranked"}`}>{share}% of the text in raw HTML</span> : null}
+        {r.timeout ? <span className="aw-status aw-status--warn">Still loading after 10 s</span> : null}
+      </div>
+      <div className="overflow-x-auto">
+        <table className="aw-table">
+          <thead>
+            <tr>
+              <th />
+              <th>Raw HTML</th>
+              <th>After JavaScript</th>
+            </tr>
+          </thead>
+          <tbody>
+            {line("Words", num(row.words), num(r.words), share !== null && share < 70)}
+            {line("Internal links", num(row.facts.links?.length ?? 0), num(r.internal), r.onlyRendered.length >= 5)}
+            {line("Headings", num(f?.headings ?? 0), num(r.headings))}
+            {line("Title", f?.title || "–", r.title || "–", !same(f?.title ?? "", r.title))}
+            {line("Description", f?.description || "–", r.description || "–", !same(f?.description ?? "", r.description))}
+            {line("H1", f?.h1.join(" | ") || "–", r.h1.join(" | ") || "–", !same(f?.h1.join("|") ?? "", r.h1.join("|")))}
+            {line("Canonical", f?.canonical ? short(f.canonical, root) : "None", r.canonical ? short(r.canonical, root) : "None", (f?.canonical ?? null) !== r.canonical)}
+            {line("Robots", rawNoindex ? "noindex" : "index", r.noindex ? "noindex" : "index", rawNoindex !== r.noindex)}
+            {line("Structured data", f?.schema.join(", ") || "None", r.schema.join(", ") || "None", (f?.schema.length ?? 0) !== r.schema.length)}
+          </tbody>
+        </table>
+      </div>
+      {r.onlyRendered.length ? (
+        <div>
+          <h3 className="aw-h4 mb-1">Links only after JavaScript ({num(r.onlyRendered.length)})</h3>
+          <ul className="flex flex-col gap-1">
+            {r.onlyRendered.map((u) => (
+              <li key={u} className="wrap-anywhere">
+                {short(u, root)}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+      {r.errors ? (
+        <div>
+          <h3 className="aw-h4 mb-1">JavaScript errors ({num(r.errors)})</h3>
+          <ul className="flex flex-col gap-1 font-mono text-[12px]">
+            {r.errorSamples.map((e, i) => (
+              <li key={i} className="wrap-anywhere text-body">
+                {e}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+      {r.failed.length ? (
+        <div>
+          <h3 className="aw-h4 mb-1">Failed requests ({num(r.failed.length)})</h3>
+          <ul className="flex flex-col gap-1">
+            {r.failed.map((x) => (
+              <li key={x.url} className="wrap-anywhere">
+                {short(x.url, root)} <span className="text-muted">{x.type}, {x.reason}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+      {row.shot ? (
+        <div>
+          <h3 className="aw-h4 mb-2">Phone screenshot</h3>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={`data:image/jpeg;base64,${row.shot}`} alt={`How ${short(row.url, root)} looks on a phone`} className="w-full max-w-72 border border-[var(--aw-rule)]" />
+        </div>
+      ) : null}
+    </div>
   );
 }

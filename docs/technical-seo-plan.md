@@ -619,7 +619,10 @@ Shipped: Search Console sign-in (its own connection, read only), property match,
 - Fixes: redirects, links to redirects and 404s.
 - **Done when:** a connected test property shows index status for 1,500 pages a day without hitting quota errors; speed screen matches PageSpeed Insights for the same URL.
 
-### Phase 3: Rendering and structure (3 weeks)
+### Phase 3: Rendering and structure (3 weeks) — built November 2026
+
+Shipped: the render loop in the worker's Chromium (`RENDERERS`, default 2), sample mode (3 per template plus thin pages) on Trial and Foundation and full mode up to 2,000 to 50,000 pages on larger plans, phone screenshots for the first page of each template, 11 rendering checks, the Rendering tab and Raw text and Link score columns in Site Audit's Pages, the internal link score (PageRank, 0 to 10), and the Site structure screen with the crawl map, depth, pages that need links with suggestions, orphans and redirects. Not yet: DOM fingerprints for templates (templates still come from URL patterns). See `docs/site-structure.md`.
+
 
 - Renderer loop with Chromium; sample and full modes by plan; screenshots.
 - Raw vs rendered in the page drawer; rendering checks.

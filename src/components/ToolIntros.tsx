@@ -220,3 +220,20 @@ export function SpeedIntro() {
     />
   );
 }
+
+export function StructureIntro() {
+  return (
+    <ToolIntro
+      title="See how your pages link together"
+      lead="A map of your site from the latest Site Audit: how many clicks each page sits from the home page, which pages earn search clicks but get few internal links, and which pages should link to them."
+      features={[
+        { title: "Crawl map", text: "Every page by folder and click depth, colored by its internal link score.", visual: <SampleStats items={[["Pages", "1,566"], ["Avg depth", "2.8"], ["4+ deep", "212"]]} /> },
+        { title: "Click depth", text: "How deep your pages sit, with the ones that earn search clicks marked.", visual: <SampleRows rows={[["1 click", 30, "48"], ["2 clicks", 100, "640"], ["4+ clicks", 34, "212"]]} /> },
+        { title: "Internal link score", text: "A 0 to 10 score from how your own pages link to each page, like PageRank.", visual: <SampleRows rows={[["/", 100, "10.0"], ["/pricing", 82, "8.2"], ["/blog/geo-guide", 21, "2.1"]]} /> },
+        { title: "Pages that need links", text: "Pages with search clicks that sit deep or have few links in.", visual: <SampleChecks items={[["/blog/geo-guide, 5 clicks deep", false], ["/docs/api, 1 link in", false], ["/pricing", true]]} /> },
+        { title: "Link suggestions", text: "Pages on the same topic that should link there, with the anchor text to use.", visual: <SampleChips items={[["geo", "#E0E7FF"], ["search", "#E0E7FF"], ["guide", "#E0E7FF"]]} /> },
+        { title: "Orphans and redirects", text: "Pages in your sitemaps with no links, redirect chains and links that point to redirects.", visual: <SampleChips items={[["14 orphans", "#E5484D"], ["6 chains", "#FEF3C7"]]} /> },
+      ]}
+    />
+  );
+}

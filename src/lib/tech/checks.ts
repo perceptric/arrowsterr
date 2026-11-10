@@ -1,4 +1,5 @@
 import type { PageFacts } from "./parse.ts";
+import type { Rendered } from "./render.ts";
 import { slashTwin, pathOnly } from "./url.ts";
 
 // The Site Audit's checks (docs/technical-seo-plan.md, section 7): each one with its area, severity, why it matters and
@@ -48,6 +49,8 @@ export type CheckPage = {
   inSitemap: boolean;
   linksIn: number;
   facts: Omit<PageFacts, "internal" | "external"> | null;
+  /** What Chromium saw after JavaScript ran, for rendered pages. */
+  rendered?: Rendered | null;
 };
 
 export type SiteFacts = {
@@ -60,6 +63,8 @@ export type SiteFacts = {
   links: { broken: { from: string; to: string; status: number }[]; brokenCount: number; external: { from: string; to: string; status: number }[]; externalCount: number; toRedirect: { from: string; to: string }[]; toRedirectCount: number };
   /** Every crawled or checked URL's status, for canonical and hreflang targets. */
   statusOf: Record<string, number>;
+  /** robots.txt rules, to check whether Google may fetch the scripts and styles pages need. */
+  robotsAllowsGoogle?: (url: string) => boolean;
   /** The sitemaps the crawl read, for comparing with Search Console. */
   sitemapPaths?: string[];
   google?: GoogleFacts | null;
@@ -116,6 +121,17 @@ export const CHECKS: Record<string, Def> = {
   www_and_bare: { severity: "high", area: "index", title: "Both www and non-www load", why: "Two copies of the whole site compete with each other.", how: "Redirect one version to the other with a 301." },
   trailing_slash_dupes: { severity: "medium", area: "index", title: "Pages that load with and without a trailing slash", why: "Each page exists twice.", how: "Redirect one form to the other, or set a canonical." },
   parameter_dupes: { severity: "medium", area: "index", title: "Pages indexable under extra parameters", why: "The same page under ?sort= or ?page= variants splits signals.", how: "Point their canonical at the clean URL." },
+  js_most_content: { severity: "high", area: "render", title: "Pages where most of the text needs JavaScript", why: "Over 70% of the main text only appears after JavaScript runs. AI crawlers don't run it, and Google renders later, so these pages look nearly empty.", how: "Render the main content on the server (server-side rendering or static pages)." },
+  js_main_content: { severity: "medium", area: "render", title: "Pages where part of the text needs JavaScript", why: "30 to 70% of the main text only appears after JavaScript runs, so AI crawlers miss it.", how: "Put the text in the HTML the server sends." },
+  js_robots_changed: { severity: "high", area: "render", title: "JavaScript changes the robots tag", why: "The noindex in the raw HTML and the one after JavaScript disagree. Google may follow either.", how: "Set the robots tag in the HTML the server sends, and don't change it with JavaScript." },
+  js_canonical_changed: { severity: "medium", area: "render", title: "JavaScript changes the canonical", why: "Google may read the canonical before or after rendering, so it can't trust either.", how: "Set the canonical on the server only." },
+  js_title_meta: { severity: "medium", area: "render", title: "Title, description or H1 only after JavaScript", why: "Crawlers that don't run JavaScript see a different or missing title, description or main heading.", how: "Send them in the HTML from the server." },
+  js_links_only: { severity: "medium", area: "render", title: "Internal links that only appear after JavaScript", why: "Crawlers that don't run JavaScript can't follow these links, so the pages they point to get found and crawled less.", how: "Use plain <a href> links in the HTML the server sends." },
+  js_schema_only: { severity: "low", area: "render", title: "Structured data added by JavaScript", why: "Google reads it after rendering, but AI crawlers and other tools never see it.", how: "Put the JSON-LD in the HTML the server sends." },
+  render_failed_requests: { severity: "medium", area: "render", title: "Files the page needs that fail to load", why: "Scripts, styles or data calls fail in the browser, so parts of the page may not show for Google either.", how: "Fix or remove the failing requests." },
+  robots_blocks_resources: { severity: "medium", area: "render", title: "robots.txt blocks scripts or styles pages need", why: "Google can't load them, so it may render the page broken or empty.", how: "Allow the folders with your JavaScript and CSS in robots.txt." },
+  render_errors: { severity: "low", area: "render", title: "JavaScript errors when the page loads", why: "Errors can stop parts of the page from showing.", how: "Open the browser console on these pages and fix the errors." },
+  render_timeout: { severity: "low", area: "render", title: "Pages still loading after 10 seconds", why: "Google and browsers may give up before the content shows.", how: "Cut slow third-party scripts and requests that never finish." },
   empty_shell: { severity: "high", area: "render", title: "Pages with no text until JavaScript runs", why: "AI crawlers don't run JavaScript, and Google renders it later, so these pages look empty.", how: "Render the main content on the server." },
   few_links_in: { severity: "low", area: "links", title: "Pages with only one internal link to them", why: "Pages with few links in look unimportant.", how: "Link to them from related pages." },
   many_links_out: { severity: "low", area: "links", title: "Pages with more than 300 links", why: "Very long link lists spread link value thin.", how: "Trim menus and footers, or split the page." },
@@ -277,6 +293,24 @@ export function runChecks(pages: CheckPage[], site: SiteFacts): Issue[] {
 
   // Rendering
   add("empty_shell", where(html, (_, x) => x.shell));
+  const rendered = html.filter((p) => p.rendered && p.rendered.status >= 200 && p.rendered.status < 300);
+  const share = (p: CheckPage) => (p.rendered!.words >= 100 ? p.facts!.words / p.rendered!.words : 1);
+  // A page whose raw HTML is an empty shell is already reported once; it isn't counted again here.
+  add("js_most_content", rendered.filter((p) => !p.facts!.shell && share(p) < 0.3).map((p) => p.url));
+  add("js_main_content", rendered.filter((p) => share(p) >= 0.3 && share(p) < 0.7).map((p) => p.url));
+  add("js_robots_changed", rendered.filter((p) => p.rendered!.noindex !== p.facts!.noindex).map((p) => p.url));
+  add("js_canonical_changed", rendered.filter((p) => Boolean(p.facts!.canonical && p.rendered!.canonical && p.facts!.canonical !== p.rendered!.canonical)).map((p) => p.url));
+  add("js_title_meta", rendered.filter((p) => {
+    const r = p.rendered!;
+    const x = p.facts!;
+    return (!x.title && Boolean(r.title)) || (!x.description && Boolean(r.description)) || (!x.h1.length && r.h1.length > 0);
+  }).map((p) => p.url));
+  add("js_links_only", rendered.filter((p) => p.rendered!.onlyRendered.length >= 5 && p.rendered!.onlyRendered.length >= p.rendered!.internal * 0.2).map((p) => p.url));
+  add("js_schema_only", rendered.filter((p) => p.rendered!.schema.some((t) => !p.facts!.schema.includes(t))).map((p) => p.url));
+  add("render_failed_requests", rendered.filter((p) => p.rendered!.failed.length > 0).map((p) => p.url));
+  if (site.robotsAllowsGoogle) add("robots_blocks_resources", rendered.filter((p) => p.rendered!.resources.some((u) => !site.robotsAllowsGoogle!(u))).map((p) => p.url));
+  add("render_errors", rendered.filter((p) => p.rendered!.errors > 0).map((p) => p.url));
+  add("render_timeout", html.filter((p) => p.rendered?.timeout).map((p) => p.url));
 
   // Links
   add("few_links_in", idx.filter((p) => p.linksIn === 1 && p.url !== site.home).map((p) => p.url));

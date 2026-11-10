@@ -6,11 +6,12 @@ import { parseRobots, robotsAllows, type ParsedRobots } from "./robotsTest";
 import { partialReason, scoreToSave } from "./siteAudit";
 import type { CheckPage, GoogleFacts, Issue, SiteFacts } from "./tech/checks";
 import { otherCanonical, passes, type Vitals } from "./tech/google";
-import { cleanSettings, passesRules, type CrawlSettings } from "./tech/limits";
+import { cleanSettings, passesRules, pickRenders, renderLimit, type CrawlSettings } from "./tech/limits";
+import type { Rendered } from "./tech/render";
 import { readPage, refreshTarget, type Link, type PageFacts } from "./tech/parse";
 import { parseSitemap, robotsSitemaps } from "./tech/sitemaps";
 import { LinkTally, summarize, type Stats } from "./tech/summary";
-import { NOT_A_PAGE, isInternal, normUrl, pathOnly } from "./tech/url";
+import { NOT_A_PAGE, isInternal, normUrl, pathOnly, templates } from "./tech/url";
 
 // Crawler v2 (docs/technical-seo-plan.md, section 6). A crawl runs as a chain of "audit" jobs: each one fetches pages
 // for about 3 minutes from the queue in crawl_queue, saves them to crawl_pages, and hands over to the next job. The
@@ -36,7 +37,9 @@ type Fetched = { url: string; final: string; status: number; chain: Hop[]; loop:
 
 /** What a crawl remembers between its jobs, on site_audits.crawl. */
 type State = {
-  phase: "seed" | "fetch" | "final";
+  phase: "seed" | "fetch" | "render" | "final";
+  /** Rendering: pages queued for Chromium, how many were finished at the last look, and when that number last moved. */
+  render?: { queued: number; seen: number; movedAt: number; startedAt: number; skipped: number; plan: string };
   root: string;
   settings: CrawlSettings;
   started: number;
@@ -341,14 +344,14 @@ async function finish(db: SupabaseClient, auditId: string, workspaceId: string, 
   for (const m of marked ?? []) sitemapMarks.add(m.url);
   const ext = new Map<string, string>();
 
-  for await (const chunk of pagesOf(db, auditId, "url, status, ms, in_sitemap, facts->final, facts->chain, facts->loop, facts->bytes, facts->compressed, facts->page")) {
-    for (const r of chunk as unknown as (Row & Row["facts"])[]) {
+  for await (const chunk of pagesOf(db, auditId, "url, status, ms, in_sitemap, rendered, facts->final, facts->chain, facts->loop, facts->bytes, facts->compressed, facts->page")) {
+    for (const r of chunk as unknown as (Row & Row["facts"] & { rendered?: Rendered | null })[]) {
       const chain = r.chain ?? [{ url: r.url, status: r.status }];
       const end = chain[chain.length - 1]?.status ?? r.status;
       statusOf[r.url] = r.status;
       if (r.final && r.final !== r.url) statusOf[r.final] ??= end;
       tally.page(r.url, r.status);
-      pages.push({ url: r.url, final: r.final ?? r.url, status: r.status, hops: Math.max(0, chain.length - 1), loop: Boolean(r.loop), chainEnd: end, ms: r.ms, bytes: r.bytes ?? 0, compressed: Boolean(r.compressed), depth: null, inSitemap: r.in_sitemap || sitemapMarks.has(r.url), linksIn: 0, facts: r.page ?? null });
+      pages.push({ url: r.url, final: r.final ?? r.url, status: r.status, hops: Math.max(0, chain.length - 1), loop: Boolean(r.loop), chainEnd: end, ms: r.ms, bytes: r.bytes ?? 0, compressed: Boolean(r.compressed), depth: null, inSitemap: r.in_sitemap || sitemapMarks.has(r.url), linksIn: 0, facts: r.page ?? null, rendered: r.rendered && "words" in r.rendered ? r.rendered : null });
     }
   }
   for await (const chunk of pagesOf(db, auditId, "url, facts->links, facts->ext")) {
@@ -358,6 +361,7 @@ async function finish(db: SupabaseClient, auditId: string, workspaceId: string, 
     }
   }
   const depth = tally.depth([state.root]);
+  const ranks = tally.rank();
   for (const p of pages) {
     p.linksIn = tally.inOf(p.url);
     p.depth = depth.get(p.url) ?? null;
@@ -375,14 +379,16 @@ async function finish(db: SupabaseClient, auditId: string, workspaceId: string, 
   });
 
   const google = brandId ? await googleFacts(db, brandId).catch(() => null) : null;
-  const site: SiteFacts = { ...state.site, infinite: state.infinite, statusOf, google, sitemapPaths: state.site.sitemaps.paths, links: { broken: tally.broken, brokenCount: tally.brokenCount, external, externalCount: external.length, toRedirect: tally.toRedirect, toRedirectCount: tally.toRedirectCount } };
+  const robots = parseRobots(state.robotsText);
+  const robotsAllowsGoogle = state.robotsText ? (u: string) => !isInternal(u, state.root, true) || robotsAllows(robots, "Googlebot", pathQuery(u)).allowed : undefined;
+  const site: SiteFacts = { ...state.site, infinite: state.infinite, statusOf, google, robotsAllowsGoogle, sitemapPaths: state.site.sitemaps.paths, links: { broken: tally.broken, brokenCount: tally.brokenCount, external, externalCount: external.length, toRedirect: tally.toRedirect, toRedirectCount: tally.toRedirectCount } };
   const s = summarize(pages, site);
 
   // Each page's links in, depth, template, indexability and issues, for the Pages table.
   await setState(db, auditId, state, { step: "Saving results" });
   const updates = pages.map((p) => {
     const reason = !(p.status >= 200 && p.status < 300) ? (p.status === 0 ? "No answer" : p.status < 400 ? "Redirect" : `Error ${p.status}`) : !p.facts ? "Not HTML" : p.facts.noindex ? "noindex" : p.facts.canonical && p.facts.canonical !== p.final && p.facts.canonical !== p.url ? "Canonical elsewhere" : null;
-    return { audit_id: auditId, workspace_id: workspaceId, url: p.url, links_in: p.linksIn, depth: p.depth, template: s.template.get(p.url) ?? "/", indexable: !reason, reason, in_sitemap: p.inSitemap, issues: s.perPage.get(p.url) ?? [] };
+    return { audit_id: auditId, workspace_id: workspaceId, url: p.url, links_in: p.linksIn, depth: p.depth, template: s.template.get(p.url) ?? "/", indexable: !reason, reason, in_sitemap: p.inSitemap, issues: s.perPage.get(p.url) ?? [], internal_rank: ranks.get(p.url) ?? null };
   });
   for (let i = 0; i < updates.length; i += 500) {
     const { error } = await db.from("crawl_pages").upsert(updates.slice(i, i + 500), { onConflict: "audit_id,url" });
@@ -400,6 +406,8 @@ async function finish(db: SupabaseClient, auditId: string, workspaceId: string, 
     blockedBots: state.site.robots.blockedSearch,
     llmsTxt: state.site.llmsTxt,
     brokenLinks: tally.broken.slice(0, 200).map((b) => ({ url: b.to, status: b.status, from: b.from })),
+    redirectLinks: tally.toRedirect.slice(0, 200),
+    rendered: { pages: pages.filter((p) => p.rendered).length, skipped: state.render?.skipped ?? 0 },
     areas: s.areas,
     stats: s.stats,
     settings: state.settings,
@@ -442,6 +450,50 @@ async function googleFacts(db: SupabaseClient, brandId: string): Promise<GoogleF
   };
 }
 
+/** Mark the pages Chromium should render (docs/technical-seo-plan.md, phase 3). Returns how many. */
+async function queueRenders(db: SupabaseClient, auditId: string, limit: number): Promise<number> {
+  if (limit < 0) return 0;
+  const html: { url: string; template: string; words: number }[] = [];
+  for await (const chunk of pagesOf(db, auditId, "url, status, words, facts->type")) {
+    for (const r of chunk as unknown as { url: string; status: number; words: number; type?: string }[]) if (r.status >= 200 && r.status < 300 && /html/i.test(r.type ?? "")) html.push({ url: r.url, template: "", words: r.words });
+  }
+  const tpl = templates(html.map((p) => p.url));
+  for (const p of html) p.template = tpl.get(p.url) ?? "/";
+  const picks = pickRenders(html, limit);
+  for (const shot of [true, false]) {
+    const urls = picks.filter((p) => p.shot === shot).map((p) => p.url);
+    for (let i = 0; i < urls.length; i += 300) await db.from("crawl_pages").update({ render_state: "queued", render_shot: shot }).eq("audit_id", auditId).in("url", urls.slice(i, i + 300));
+  }
+  return picks.length;
+}
+
+/** Wait time for rendering: none of the pages started within 6 minutes (no renderer running), or no progress in 10. */
+const RENDER_START_MS = 6 * 60_000;
+const RENDER_QUIET_MS = 10 * 60_000;
+
+/** True when rendering is finished, or given up on. Pages left unrendered are marked skipped and the crawl goes on. */
+async function renderDone(db: SupabaseClient, auditId: string, state: State): Promise<boolean> {
+  const r = state.render!;
+  const { count: left } = await db.from("crawl_pages").select("url", { count: "exact", head: true }).eq("audit_id", auditId).in("render_state", ["queued", "leased"]);
+  if (!left) return true;
+  const finished = r.queued - left;
+  const now = Date.now();
+  if (finished > r.seen) {
+    r.seen = finished;
+    r.movedAt = now;
+    await setState(db, auditId, state, { step: `Rendering pages with JavaScript: ${finished} of ${r.queued}` });
+    return false;
+  }
+  const stalled = finished === 0 ? now - r.startedAt > RENDER_START_MS : now - r.movedAt > RENDER_QUIET_MS;
+  if (!stalled) {
+    await setState(db, auditId, state);
+    return false;
+  }
+  r.skipped = left;
+  await db.from("crawl_pages").update({ render_state: "skipped" }).eq("audit_id", auditId).in("render_state", ["queued", "leased"]);
+  return true;
+}
+
 /** What a finished v2 crawl saves on site_audits.result. */
 export type CrawlResult = {
   version: 2;
@@ -452,6 +504,8 @@ export type CrawlResult = {
   blockedBots: string[];
   llmsTxt: boolean;
   brokenLinks: { url: string; status: number; from: string }[];
+  redirectLinks: { from: string; to: string }[];
+  rendered: { pages: number; skipped: number };
   areas: Record<string, number>;
   stats: Stats;
   settings: CrawlSettings;
@@ -463,7 +517,7 @@ export type CrawlResult = {
  * One job's share of a crawl. Returns "done" when the crawl finished (or failed), "more" when another job should
  * carry on. Errors are saved on the audit; pages already read are kept and scored as a partial crawl.
  */
-export async function crawlStep(db: SupabaseClient, auditId: string, budgetMs = BUDGET_MS): Promise<"done" | "more"> {
+export async function crawlStep(db: SupabaseClient, auditId: string, budgetMs = BUDGET_MS, canRender = true): Promise<"done" | "more" | "wait"> {
   const until = Date.now() + budgetMs;
   const { data: audit } = await db.from("site_audits").select("id, workspace_id, brand_id, domain, status, crawl, settings").eq("id", auditId).maybeSingle();
   if (!audit || audit.status !== "running") return "done";
@@ -488,10 +542,23 @@ export async function crawlStep(db: SupabaseClient, auditId: string, budgetMs = 
         await setState(db, auditId, state);
         return "more";
       }
-      state.phase = "final";
+      state.phase = canRender ? "render" : "final";
       await setState(db, auditId, state);
+      if (state.phase === "render") {
+        const plan = String((await entitlement(audit.workspace_id)).plan);
+        const n = await queueRenders(db, auditId, renderLimit(plan));
+        state.render = { queued: n, seen: 0, movedAt: Date.now(), startedAt: Date.now(), skipped: 0, plan };
+        if (!n) state.phase = "final";
+        await setState(db, auditId, state, n ? { step: `Rendering ${n} pages with JavaScript` } : {});
+        if (n) return "wait";
+      }
       // Counting and checking need time of their own: start them in a fresh job when this one is nearly out.
       if (Date.now() > until - Math.min(60_000, budgetMs / 3)) return "more";
+    }
+    if (state.phase === "render") {
+      if (!(await renderDone(db, auditId, state))) return "wait";
+      state.phase = "final";
+      await setState(db, auditId, state);
     }
     await finish(db, auditId, audit.workspace_id, state, audit.brand_id ?? null);
     return "done";
