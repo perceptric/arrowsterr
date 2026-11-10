@@ -1,0 +1,299 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   ARROWSTERR PRODUCT UI · brand v10, the clear look (docs/brand.md)
+   Loaded last, so it wins over every older layer. Geist for every word, one
+   cool grey ramp, white cards with a 1px border and a soft shadow on 16px
+   corners, 10px buttons and inputs, pill switches and dot tags, and Signal
+   Blue #0943B0 as the one accent. Same class names: every screen keeps its
+   markup and takes the new look.
+
+   The older layers (brand.css to keyed-ui.css) still hold rules for rare
+   parts. This file resets the tokens they all read, then restyles each
+   shared part with the same selectors as calm-ui.css, so it wins on order.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ─────────────── 1. Tokens ─────────────── */
+:root, [data-theme="light"] {
+  --v10-signal: #0943B0; --v10-signal-strong: #072F80; --v10-signal-soft: #EEF3FD; --v10-signal-tint: rgb(9 67 176 / 0.045); --v10-signal-ring: rgb(9 67 176 / 0.15);
+  --v10-ink: #171717; --v10-ink-2: #3F4250; --v10-muted: #5E6270; --v10-faint: #8B8F9C;
+  --v10-border-strong: #D5D8E0; --v10-border: #E7E9EE; --v10-soft: #F6F7F9; --v10-canvas: #FBFBFC; --v10-card: #FFFFFF;
+  --v10-success: #15803D; --v10-success-soft: #EAF6EE; --v10-warning: #B45309; --v10-warning-soft: #FDF3E2; --v10-danger: #B91C1C; --v10-danger-soft: #FCECEC;
+  --v10-shadow-xs: 0 1px 2px rgb(16 24 40 / 0.04);
+  --v10-shadow-sm: 0 1px 2px rgb(16 24 40 / 0.05), 0 1px 3px rgb(16 24 40 / 0.06);
+  --v10-shadow-md: 0 4px 12px -2px rgb(16 24 40 / 0.08), 0 2px 4px -2px rgb(16 24 40 / 0.04);
+  --v10-shadow-lg: 0 18px 36px -18px rgb(16 24 40 / 0.22), 0 1px 2px rgb(16 24 40 / 0.04);
+  --v10-shadow-xl: 0 24px 48px -12px rgb(16 24 40 / 0.18);
+
+  /* The calm and keyed layers' tokens, pointed at v10. */
+  --bg-primary: var(--v10-card); --bg-secondary: var(--v10-canvas); --bg-tertiary: var(--v10-soft); --bg-quaternary: var(--v10-soft);
+  --text-primary: var(--v10-ink-2); --text-strong: var(--v10-ink); --text-secondary: var(--v10-muted); --text-tertiary: var(--v10-faint); --text-light: var(--v10-border-strong);
+  --text-sidebar: var(--v10-ink-2);
+  --border-strong: var(--v10-border-strong); --border-medium: var(--v10-border); --border-light: var(--v10-border);
+  --frame: var(--v10-border); --ink-2: var(--v10-ink-2);
+  --accent-3: var(--v10-soft); --accent-5: var(--v10-border-strong); --accent-9: var(--v10-ink); --accent-10: #000000; --accent-11: var(--v10-ink);
+  --signal: var(--v10-signal); --signal-ink: var(--v10-signal); --signal-soft: var(--v10-signal-soft); --signal-rgb: 9 67 176; --signal-strong: var(--v10-signal-strong); --signal-hover: var(--v10-signal-strong); --on-signal: #FFFFFF;
+  --green-3: var(--v10-success-soft); --green-11: var(--v10-success); --red-3: var(--v10-danger-soft); --red-11: var(--v10-danger); --orange-3: var(--v10-warning-soft); --orange-11: var(--v10-warning);
+  --shell: var(--v10-canvas); --paper-deep: var(--v10-canvas); --row-border: var(--v10-border); --on-primary: #FFFFFF;
+  --shadow-rest: 0 0 0 1px var(--v10-border), var(--v10-shadow-xs);
+  --shadow-hover: 0 0 0 1px rgb(23 23 23 / 0.2), var(--v10-shadow-lg);
+  --shadow-chip: var(--v10-shadow-sm);
+  --shadow-outline: 0 0 0 1px var(--v10-border);
+  --shadow-input: 0 0 0 1px var(--v10-border-strong);
+  --shadow-input-hover: 0 0 0 1px #B9BDC8;
+  --shadow-focus: 0 0 0 1px var(--v10-signal), 0 0 0 4px var(--v10-signal-ring);
+  --shadow-menu: 0 0 0 1px var(--v10-border), var(--v10-shadow-lg);
+  --shadow-modal: 0 0 0 1px var(--v10-border), var(--v10-shadow-xl);
+  --shadow-primary: none; --shadow-key: none;
+  --ease-calm: cubic-bezier(0.2, 0.8, 0.2, 1); --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --t-fast: 120ms; --t-normal: 180ms; --t-slow: 500ms;
+}
+[data-theme="dark"] {
+  --v10-signal: #5B87EA; --v10-signal-strong: #7EA2F2; --v10-signal-soft: rgb(91 135 234 / 0.14); --v10-signal-ring: rgb(91 135 234 / 0.25);
+  --v10-ink: #EDEEF2; --v10-ink-2: #C9CCD5; --v10-muted: #A3A7B3; --v10-faint: #6B7080;
+  --v10-border-strong: #343A48; --v10-border: #262B37; --v10-soft: #1B1F29; --v10-canvas: #0E1015; --v10-card: #151821;
+  --v10-success: #4ADE80; --v10-success-soft: rgb(74 222 128 / 0.12); --v10-warning: #F5B451; --v10-warning-soft: rgb(245 180 81 / 0.12); --v10-danger: #F87171; --v10-danger-soft: rgb(248 113 113 / 0.12);
+  --v10-shadow-xs: 0 0 #0000; --v10-shadow-sm: 0 0 #0000; --v10-shadow-md: 0 0 #0000; --v10-shadow-lg: 0 16px 40px -8px rgb(0 0 0 / 0.7); --v10-shadow-xl: 0 32px 64px -16px rgb(0 0 0 / 0.8);
+  --signal-rgb: 91 135 234; --on-signal: #FFFFFF; --on-primary: #0E1015; --accent-10: #FFFFFF;
+  --shadow-input-hover: 0 0 0 1px #4A5162;
+}
+
+/* The --aw-* tokens the Tailwind utilities read (text-muted, bg-surface-2, border-rule ...). */
+:root :is(.aw, #calm) {
+  --aw-font: var(--font-geist), "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --aw-mono: var(--aw-font);
+  --aw-display: var(--aw-font);
+  --aw-read: var(--aw-font);
+  --aw-brand: var(--v10-signal); --aw-brand-lift: var(--v10-signal-strong); --aw-brand-deep: var(--v10-signal-strong); --aw-brand-bg: var(--v10-signal-soft); --aw-brand-pale: var(--v10-signal-soft);
+  --aw-ink: var(--v10-ink); --aw-ink-hover: #000000; --aw-body: var(--v10-ink-2); --aw-muted: var(--v10-muted); --aw-faint: var(--v10-faint);
+  --aw-rule: var(--v10-border); --aw-rule-faint: var(--v10-border);
+  --aw-paper: var(--v10-card); --aw-surface: var(--v10-card); --aw-surface-2: var(--v10-soft); --aw-surface-3: var(--v10-border);
+  --aw-pos: var(--v10-success); --aw-pos-bg: var(--v10-success-soft); --aw-neg: var(--v10-danger); --aw-neg-bg: var(--v10-danger-soft); --aw-warn: var(--v10-warning); --aw-warn-bg: var(--v10-warning-soft);
+  --aw-r-xs: 4px; --aw-r-sm: 6px; --aw-r-md: 10px; --aw-r-lg: 16px; --aw-r-pill: 9999px;
+  --aw-shadow-xs: var(--v10-shadow-xs); --aw-shadow-sm: var(--shadow-rest); --aw-shadow-md: var(--shadow-menu); --aw-shadow-lg: var(--shadow-modal); --aw-shadow-control: var(--shadow-outline);
+  --btn-radius: 10px;
+  font-family: var(--aw-font);
+  font-size: 14px;
+  line-height: 1.45;
+  letter-spacing: 0;
+  color: var(--v10-ink-2);
+  -webkit-font-smoothing: antialiased;
+}
+html, body { background: var(--v10-canvas) !important; }
+:root :is(.aw, #calm) { background: var(--v10-canvas) !important; }
+:root :is(.aw, #calm) :focus-visible { outline: 2px solid var(--v10-signal) !important; outline-offset: 2px !important; }
+:root :is(.aw, #calm) :is(.aw-num, .aw-stat__num, .aw-kpi__num, .aw-strip__num) { font-family: var(--aw-font) !important; font-variant-numeric: tabular-nums; }
+
+/* ─────────────── 2. Type ─────────────── */
+:root :is(.aw, #calm) :is(h1.aw-h2, .aw-h1) { font-size: 28px !important; line-height: 1.2 !important; font-weight: 600 !important; letter-spacing: -0.03em !important; color: var(--v10-ink) !important; text-wrap: balance; }
+:root :is(.aw, #calm) .aw-h2:not(h1) { font-size: 22px !important; line-height: 1.3 !important; font-weight: 600 !important; letter-spacing: -0.025em !important; color: var(--v10-ink) !important; }
+:root :is(.aw, #calm) .aw-h3 { font-size: 18px !important; line-height: 1.35 !important; font-weight: 600 !important; letter-spacing: -0.02em !important; color: var(--v10-ink) !important; }
+:root :is(.aw, #calm) .aw-h4 { font-size: 15px !important; line-height: 1.4 !important; font-weight: 600 !important; letter-spacing: -0.01em !important; color: var(--v10-ink) !important; }
+:root :is(.aw, #calm) :is(.aw-hero, .aw-display, .aw-intro__title, .aw-onb__title) { font-family: var(--aw-font) !important; font-weight: 600 !important; letter-spacing: -0.035em !important; color: var(--v10-ink) !important; }
+:root :is(.aw, #calm) .aw-label { font-size: 13px !important; font-weight: 500 !important; color: var(--v10-ink) !important; letter-spacing: 0 !important; text-transform: none !important; }
+:root :is(.aw, #calm) .aw-small { font-size: 13px !important; line-height: 1.5 !important; color: var(--v10-muted) !important; }
+:root :is(.aw, #calm) .aw-micro { font-size: 12px !important; color: var(--v10-muted) !important; }
+:root :is(.aw, #calm) .aw-error { color: var(--v10-danger) !important; font-size: 13px !important; }
+:root :is(.aw, #calm) .aw-text-link, :root :is(.aw, #calm) a.aw-text-link:is(:link, :visited) { color: var(--v10-signal) !important; font-weight: 500 !important; text-decoration: none !important; }
+:root :is(.aw, #calm) .aw-text-link:hover { text-decoration: underline !important; text-underline-offset: 3px; }
+
+/* ─────────────── 3. App shell ─────────────── */
+:root :is(.aw, #calm) :is(.aw-sidebar, .aw-rail) { background: transparent !important; border: 0 !important; }
+:root :is(.aw, #calm) :is(.aw-nav-link, .aw-mod, .aw-mod--sm, .aw-mod__item) {
+  height: 36px !important; min-height: 36px !important; border-radius: 10px !important; font-size: 14px !important; font-weight: 400 !important; color: var(--v10-ink-2) !important; box-shadow: none !important;
+}
+:root :is(.aw, #calm) :is(.aw-nav-link, .aw-mod, .aw-mod__item):hover { background: var(--v10-soft) !important; color: var(--v10-ink) !important; }
+:root :is(.aw, #calm) :is(.aw-nav-link.is-on, .aw-nav-link[aria-current="page"], .aw-mod.is-on, .aw-mod--sm.is-on, .aw-mod__item.is-on),
+:root :is(.aw, #calm) :is(.aw-nav-link.is-on, .aw-nav-link[aria-current="page"]):hover {
+  background: var(--v10-signal-soft) !important; color: var(--v10-signal-strong) !important; font-weight: 500 !important; box-shadow: none !important;
+}
+:root :is(.aw, #calm) :is(.aw-nav-link, .aw-mod, .aw-mod__item) .aw-nav__icon { width: 16px; height: 16px; color: var(--v10-muted) !important; }
+:root :is(.aw, #calm) :is(.aw-nav-link.is-on, .aw-nav-link[aria-current="page"], .aw-mod.is-on, .aw-mod__item.is-on) .aw-nav__icon { color: var(--v10-signal-strong) !important; }
+:root :is(.aw, #calm) .aw-nav-section { font-size: 12px !important; font-weight: 500 !important; color: var(--v10-muted) !important; letter-spacing: 0 !important; text-transform: none !important; margin-top: 12px; }
+:root :is(.aw, #calm) :is(.aw-ws-switch, .aw-taskbar) { border-radius: 10px !important; }
+:root :is(.aw, #calm) :is(.aw-ws-switch, .aw-taskbar):hover { background: var(--v10-soft) !important; }
+:root :is(.aw, #calm) .aw-taskbar__track { background: var(--v10-border) !important; border-radius: 9999px !important; }
+:root :is(.aw, #calm) .aw-taskbar__fill { background: var(--v10-signal) !important; border-radius: 9999px !important; }
+:root :is(.aw, #calm) .aw-taskbar__fill.is-low { background: var(--v10-warning) !important; }
+
+/* The page panel: one white card on the canvas, 8px in from the edges. */
+@media (min-width: 768px) {
+  :root :is(.aw, #calm) div:has(> .aw-page-body) {
+    margin: 8px 8px 8px 0 !important; min-height: calc(100vh - 16px);
+    background: var(--v10-card) !important; border-radius: 16px !important; box-shadow: var(--shadow-rest) !important;
+  }
+  :root :is(.aw, #calm) div:has(> .aw-page-body) > .aw-page-head { border-radius: 16px 16px 0 0 !important; }
+}
+:root :is(.aw, #calm) .aw-page-head { min-height: 56px; background: var(--v10-card) !important; border-bottom: 1px solid var(--v10-border) !important; padding-left: 24px !important; padding-right: 24px !important; }
+:root :is(.aw, #calm) .aw-page-title { font-size: 14px !important; font-weight: 500 !important; letter-spacing: 0 !important; color: var(--v10-ink) !important; }
+:root :is(.aw, #calm) .aw-page-title__group { font-weight: 400 !important; color: var(--v10-muted) !important; }
+:root :is(.aw, #calm) .aw-page-title__sep { color: var(--v10-faint) !important; }
+:root :is(.aw, #calm) .aw-page-body, :root :is(.aw, #calm) .aw-page-body:is(*) { background: var(--v10-card) !important; }
+@media (min-width: 640px) {
+  :root :is(.aw, #calm) main.aw-page-body { padding: 28px 32px 48px !important; }
+}
+
+/* ─────────────── 4. Buttons: 10px corners, flat fills ─────────────── */
+:root :is(.aw, #calm) :is(.aw-btn, .tw-btn) {
+  height: 40px; padding: 0 16px; border-radius: 10px !important; border: 0 !important; font-size: 14px !important; font-weight: 500 !important; letter-spacing: 0 !important; text-transform: none !important;
+  transition: background-color var(--t-fast) var(--ease-calm), box-shadow var(--t-fast) var(--ease-calm), color var(--t-fast) var(--ease-calm) !important;
+}
+:root :is(.aw, #calm) :is(.aw-btn--sm, .tw-btn--sm) { height: 32px; min-height: 32px; padding: 0 12px !important; font-size: 13px !important; border-radius: 10px !important; }
+:root :is(.aw, #calm) .aw-btn--lg { height: 44px; padding: 0 20px !important; font-weight: 600 !important; }
+:root :is(.aw, #calm) :is(.aw-btn, .tw-btn, .aw-iconbtn, .aw-icon-btn, .aw-ctl):active { transform: none; }
+:root :is(.aw, #calm) :is(.aw-btn--primary, .aw-btn--accent, .aw-btn--brand):not(:disabled):not([aria-disabled="true"]),
+:root :is(.aw, #calm) a:is(.aw-btn--primary, .aw-btn--accent, .aw-btn--brand):is(:link, :visited) {
+  background: var(--v10-signal) !important; color: #FFFFFF !important; box-shadow: none !important;
+}
+:root :is(.aw, #calm) :is(.aw-btn--primary, .aw-btn--accent, .aw-btn--brand):not(:disabled):not([aria-disabled="true"]):hover { background: var(--v10-signal-strong) !important; }
+:root :is(.aw, #calm) .aw-btn--dark:not(:disabled) { background: var(--v10-ink) !important; color: #FFFFFF !important; box-shadow: none !important; }
+:root :is(.aw, #calm) :is(.aw-btn--secondary, .aw-ctl, .aw-try, .aw-viewbtn), :root :is(.aw, #calm) a.aw-btn--secondary:is(:link, :visited) {
+  background: var(--v10-card) !important; color: var(--v10-ink) !important; box-shadow: inset 0 0 0 1px var(--v10-border) !important; border-radius: 10px !important;
+}
+:root :is(.aw, #calm) :is(.aw-btn--secondary, .aw-ctl, .aw-try, .aw-viewbtn):hover { background: var(--v10-soft) !important; box-shadow: inset 0 0 0 1px var(--v10-border-strong) !important; }
+:root :is(.aw, #calm) .aw-ctl { height: 32px; min-height: 32px; font-size: 13px !important; font-weight: 500 !important; }
+:root :is(.aw, #calm) :is(.aw-btn--ghost, .aw-btn--tertiary, .aw-btn--text) { background: transparent !important; box-shadow: none !important; color: var(--v10-ink-2) !important; }
+:root :is(.aw, #calm) :is(.aw-btn--ghost, .aw-btn--tertiary, .aw-btn--text):hover { background: var(--v10-soft) !important; color: var(--v10-ink) !important; }
+:root :is(.aw, #calm) :is(.aw-btn--danger, .tw-btn--danger):not(:disabled) { background: var(--v10-danger) !important; color: #FFFFFF !important; box-shadow: none !important; }
+:root :is(.aw, #calm) :is(.aw-btn--danger, .tw-btn--danger):not(:disabled):hover { background: #991B1B !important; }
+:root :is(.aw, #calm) .aw-btn:is(:disabled, [aria-disabled="true"]), :root :is(.aw, #calm) .aw-btn:is(:disabled, [aria-disabled="true"]):hover {
+  opacity: 0.5 !important; transform: none; cursor: not-allowed;
+}
+:root :is(.aw, #calm) .aw-btn--primary:is(:disabled, [aria-disabled="true"]) { background: var(--v10-signal) !important; color: #FFFFFF !important; box-shadow: none !important; }
+:root :is(.aw, #calm) .aw-btn--secondary:is(:disabled, [aria-disabled="true"]) { background: var(--v10-card) !important; color: var(--v10-ink) !important; box-shadow: inset 0 0 0 1px var(--v10-border) !important; }
+:root :is(.aw, #calm) :is(.aw-iconbtn, .aw-icon-btn, .zp-icon-btn) { border-radius: 10px !important; color: var(--v10-muted) !important; box-shadow: none !important; }
+:root :is(.aw, #calm) :is(.aw-iconbtn, .aw-icon-btn, .zp-icon-btn):hover { background: var(--v10-soft) !important; color: var(--v10-ink) !important; }
+:root :is(.aw, #calm) :is(.aw-btn, .aw-ctl, .tw-btn, .aw-iconbtn):focus-visible { outline: 2px solid var(--v10-signal) !important; outline-offset: 2px !important; box-shadow: none !important; }
+
+/* ─────────────── 5. Fields: 10px corners, a 1px line ─────────────── */
+:root :is(.aw, #calm) :is(.aw-input, .aw-textarea, .aw-select, .aw-dropdown, .aw-dropdown--field, .aw-pop__field),
+:root :is(.aw, #calm) input:is([type="text"], [type="email"], [type="url"], [type="search"], [type="password"], [type="number"], [type="tel"], [type="date"], [type="time"], :not([type])):not(.aw-sheet__input):not(.aw-docs__title):not(.tw-bare),
+:root :is(.aw, #calm) textarea:not(.aw-sheet__input):not(.tw-bare) {
+  background-color: var(--v10-card) !important; border: 0 !important; border-radius: 10px !important; box-shadow: var(--shadow-input) !important; color: var(--v10-ink) !important; font-size: 14px !important;
+}
+:root :is(.aw, #calm) :is(.aw-input, .aw-textarea, .aw-select, .aw-dropdown, .aw-dropdown--field, .aw-pop__field, input, textarea)::placeholder { color: var(--v10-faint) !important; }
+:root :is(.aw, #calm) .aw-dropdown.aw-dropdown--bare, :root :is(.aw, #calm) .aw-dropdown.aw-dropdown--bare:hover:not(:disabled) { box-shadow: none !important; background: transparent !important; }
+:root :is(.aw, #calm) input[type="checkbox"] { border-radius: 6px !important; accent-color: var(--v10-signal); }
+
+/* ─────────────── 6. Tags: pills; states lead with a dot ─────────────── */
+:root :is(.aw, #calm) :is(.aw-chip, .aw-status, .aw-sbadge, .aw-badge, .aw-tag, .aw-pill, .aw-pri, .aw-engine, .tw-tag, .aw-stat__delta) {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 22px; padding: 0 9px !important; border: 0 !important; border-radius: 9999px !important;
+  background: var(--v10-soft) !important; color: var(--v10-ink-2) !important; font-family: var(--aw-font) !important; font-size: 12px !important; font-weight: 600 !important; line-height: 1.35 !important;
+  letter-spacing: 0 !important; text-transform: none !important; white-space: nowrap; box-shadow: none !important;
+}
+:root :is(.aw, #calm) :is(.aw-status, .aw-sbadge)::before { content: ""; width: 6px; height: 6px; flex: 0 0 6px; border-radius: 9999px; background: currentColor; }
+:root :is(.aw, #calm) :is(.aw-status--ranked, .aw-sbadge--success, .tw-tag--green, .aw-stat__delta:not(.aw-stat__delta--down):not(.aw-stat__delta--flat)) { background: var(--v10-success-soft) !important; color: var(--v10-success) !important; }
+:root :is(.aw, #calm) :is(.aw-status--missed, .aw-sbadge--danger, .tw-tag--red, .aw-stat__delta--down) { background: var(--v10-danger-soft) !important; color: var(--v10-danger) !important; }
+:root :is(.aw, #calm) :is(.aw-status--warn, .aw-sbadge--warning, .tw-tag--orange) { background: var(--v10-warning-soft) !important; color: var(--v10-warning) !important; }
+:root :is(.aw, #calm) :is(.aw-status--pending) { background: var(--v10-soft) !important; color: var(--v10-muted) !important; }
+:root :is(.aw, #calm) :is(.aw-badge, .aw-chip--brand, .aw-pill.is-on) { background: var(--v10-signal-soft) !important; color: var(--v10-signal) !important; }
+:root :is(.aw, #calm) .aw-tag { font-weight: 500 !important; color: var(--v10-ink-2) !important; }
+:root :is(.aw, #calm) .aw-chip.aw-chip--btn {
+  height: 28px; padding: 0 12px !important; font-size: 13px !important; font-weight: 500 !important; cursor: pointer;
+  background: var(--v10-card) !important; color: var(--v10-ink-2) !important; box-shadow: inset 0 0 0 1px var(--v10-border) !important;
+}
+:root :is(.aw, #calm) .aw-chip.aw-chip--btn:hover { background: var(--v10-soft) !important; }
+:root :is(.aw, #calm) .aw-chip.aw-chip--btn:is([aria-pressed="true"], .is-on) { background: var(--v10-signal-soft) !important; color: var(--v10-signal-strong) !important; box-shadow: inset 0 0 0 1px rgb(var(--signal-rgb) / 0.3) !important; }
+:root :is(.aw, #calm) .aw-chip.aw-chip--btn.aw-chip--quiet { background: transparent !important; box-shadow: none !important; color: var(--v10-muted) !important; }
+
+/* ─────────────── 7. Cards, tables, callouts ─────────────── */
+:root :is(.aw, #calm) :is(.aw-frame, .aw-table-wrap, .aw-kpi, .aw-card-stat, .aw-card, .aw-tile, .aw-module, .aw-run, .aw-cost) {
+  background: var(--v10-card) !important; border: 0 !important; border-radius: 16px !important; box-shadow: var(--shadow-rest) !important;
+}
+:root :is(.aw, #calm) :is(.aw-card, .aw-tile, .aw-module, .aw-run):is(button, a):hover { box-shadow: var(--shadow-hover) !important; transform: translateY(-2px); transition: transform 200ms var(--ease-calm), box-shadow 200ms var(--ease-calm); }
+:root :is(.aw, #calm) :is(.aw-frame, .aw-card, .aw-module) :is(.aw-frame, .aw-table-wrap, .aw-card, .aw-tile) { box-shadow: none !important; background: var(--v10-soft) !important; border-radius: 12px !important; }
+:root :is(.aw, #calm) .aw-frame__body--flush .aw-table-wrap, :root :is(.aw, #calm) .aw-frame > .aw-table-wrap { background: transparent !important; box-shadow: none !important; border-radius: 0 !important; }
+:root :is(.aw, #calm) .aw-frame__head {
+  border-radius: 16px 16px 0 0 !important; background: transparent !important; border-bottom: 0 !important; padding: 18px 20px 12px !important; min-height: 0 !important; gap: 12px;
+  font-size: 15px !important; font-weight: 600 !important; letter-spacing: -0.01em !important; color: var(--v10-ink) !important;
+}
+:root :is(.aw, #calm) .aw-frame__head :is(.aw-h4, h2, h3) { font-size: 15px !important; font-weight: 600 !important; letter-spacing: -0.01em !important; color: var(--v10-ink) !important; }
+:root :is(.aw, #calm) .aw-callout { border: 0 !important; border-radius: 12px !important; background: var(--v10-soft) !important; box-shadow: none !important; color: var(--v10-ink-2) !important; font-size: 14px !important; }
+:root :is(.aw, #calm) .aw-callout--warn { background: var(--v10-warning-soft) !important; color: #7C3A06 !important; }
+:root :is(.aw, #calm) :is(.aw-callout--error, .aw-callout--danger) { background: var(--v10-danger-soft) !important; color: #7F1D1D !important; }
+
+:root :is(.aw, #calm) table:not(.aw-sheet table) th {
+  padding-top: 10px !important; padding-bottom: 10px !important; font-size: 12px !important; font-weight: 500 !important; color: var(--v10-muted) !important; letter-spacing: 0 !important; text-transform: none !important;
+  background: transparent !important; border-bottom: 1px solid var(--v10-border) !important;
+}
+:root :is(.aw, #calm) table:not(.aw-sheet table) td { border-bottom: 1px solid rgb(231 233 238 / 0.6) !important; color: var(--v10-ink-2); }
+[data-theme="dark"] :is(.aw, #calm) table:not(.aw-sheet table) td { border-bottom-color: var(--v10-border) !important; }
+:root :is(.aw, #calm) table:not(.aw-sheet table) tbody tr:last-child > td { border-bottom: 0 !important; }
+:root :is(.aw, #calm) table:not(.aw-sheet table) tbody tr:hover > td { background: rgb(246 247 249 / 0.6) !important; }
+:root :is(.aw, #calm) .aw-table :is(th, td):first-child { padding-left: 20px !important; }
+:root :is(.aw, #calm) .aw-table :is(th, td):last-child { padding-right: 20px !important; }
+:root :is(.aw, #calm) .aw-table td { padding-top: 12px !important; padding-bottom: 12px !important; font-size: 14px !important; vertical-align: top; }
+:root :is(.aw, #calm) .aw-table th.text-right, :root :is(.aw, #calm) .aw-table th[class~="text-right"] { text-align: right !important; }
+:root :is(.aw, #calm) .aw-table th.text-center { text-align: center !important; }
+:root :is(.aw, #calm) :is(.aw-meter, .aw-bar, .aw-progress) { border-radius: 9999px !important; background: var(--v10-soft) !important; overflow: hidden; }
+
+/* ─────────────── 8. Switches and tabs ─────────────── */
+/* A view switch: a pill tray with a white raised pill. */
+:root :is(.aw, #calm) :is(.aw-seg, .aw-pick) {
+  gap: 2px !important; padding: 3px !important; border: 0 !important; border-radius: 9999px !important; background: var(--v10-soft) !important; box-shadow: inset 0 0 0 1px var(--v10-border) !important;
+}
+:root :is(.aw, #calm) :is(.aw-seg, .aw-pick) > button, :root :is(.aw, #calm) .aw-seg button {
+  height: 28px !important; min-height: 28px !important; padding: 0 12px !important; border-radius: 9999px !important; border: 0 !important; color: var(--v10-muted) !important; background: transparent !important; font-size: 13px !important; font-weight: 500 !important; box-shadow: none !important;
+}
+:root :is(.aw, #calm) :is(.aw-seg, .aw-pick) > button:hover { color: var(--v10-ink) !important; }
+:root :is(.aw, #calm) :is(.aw-seg, .aw-pick) > :is(button.is-on, button[aria-selected="true"], button[aria-checked="true"], button[aria-pressed="true"]),
+:root :is(.aw, #calm) .aw-seg button.is-on {
+  background: var(--v10-card) !important; color: var(--v10-ink) !important; box-shadow: var(--v10-shadow-sm), 0 0 0 1px var(--v10-border) !important;
+}
+/* Page tabs: words with a Signal Blue underline. */
+:root :is(.aw, #calm) .aw-tabs {
+  gap: 20px !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important; background: transparent !important; box-shadow: inset 0 -1px 0 var(--v10-border) !important;
+  width: 100% !important; height: auto !important; flex-wrap: nowrap !important; overflow-x: auto;
+}
+:root :is(.aw, #calm) .aw-tabs > button {
+  height: 40px !important; min-height: 40px !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important; background: transparent !important; box-shadow: inset 0 -2px 0 transparent !important;
+  color: var(--v10-muted) !important; font-size: 14px !important; font-weight: 500 !important; white-space: nowrap;
+}
+:root :is(.aw, #calm) .aw-tabs > button:hover { background: transparent !important; color: var(--v10-ink) !important; }
+:root :is(.aw, #calm) .aw-tabs > :is(button.is-on, button[aria-selected="true"], button[aria-checked="true"]) { background: transparent !important; color: var(--v10-ink) !important; box-shadow: inset 0 -2px 0 var(--v10-signal) !important; }
+
+/* ─────────────── 9. Numbers: the stat row (StatStrip) ───────────────
+   No boxes: a big tabular number over a muted label, with a delta tag. */
+:root :is(.aw, #calm) .aw-strip {
+  display: grid !important; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)) !important; gap: 20px 24px !important; padding: 4px 0 !important;
+  background: transparent !important; border-radius: 0 !important; box-shadow: none !important;
+}
+:root :is(.aw, #calm) .aw-strip__cell { padding: 0 !important; border: 0 !important; gap: 4px !important; background: transparent !important; border-radius: 0 !important; overflow: visible !important; }
+:root :is(.aw, #calm) .aw-strip__lead { background: transparent !important; }
+:root :is(.aw, #calm) .aw-strip__row { order: 1; align-items: center !important; }
+:root :is(.aw, #calm) .aw-strip__label { order: 2; font-size: 14px !important; font-weight: 400 !important; color: var(--v10-muted) !important; }
+:root :is(.aw, #calm) .aw-strip__lead .aw-strip__label { color: var(--v10-muted) !important; }
+:root :is(.aw, #calm) .aw-strip__sub { order: 3; font-size: 12px !important; color: var(--v10-muted) !important; }
+:root :is(.aw, #calm) .aw-strip__cell > :not(.aw-strip__row):not(.aw-strip__label):not(.aw-strip__sub) { order: 4; }
+:root :is(.aw, #calm) :is(.aw-strip__num, .aw-strip__lead .aw-strip__num) { font-size: 24px !important; line-height: 1.2 !important; font-weight: 600 !important; letter-spacing: -0.025em !important; color: var(--v10-ink) !important; }
+:root :is(.aw, #calm) .aw-strip__num.is-pos { color: var(--v10-success) !important; }
+:root :is(.aw, #calm) .aw-strip__num.is-neg { color: var(--v10-danger) !important; }
+:root :is(.aw, #calm) .aw-strip__num.is-warn { color: var(--v10-warning) !important; }
+:root :is(.aw, #calm) .aw-strip__num.is-brand { color: var(--v10-signal) !important; }
+:root :is(.aw, #calm) .aw-strip__spark { display: none !important; }
+@media (max-width: 900px) {
+  :root :is(.aw, #calm) .aw-strip { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  :root :is(.aw, #calm) .aw-strip__lead { grid-column: auto !important; border-radius: 0 !important; }
+  :root :is(.aw, #calm) .aw-strip__cell:not(.aw-strip__lead) { border-top: 0 !important; }
+}
+/* The older stat boxes read the same way. */
+:root :is(.aw, #calm) :is(.aw-stat__num, .aw-kpi__num) { font-size: 24px !important; line-height: 1.2 !important; font-weight: 600 !important; letter-spacing: -0.025em !important; color: var(--v10-ink) !important; }
+:root :is(.aw, #calm) :is(.aw-stat__lab, .aw-kpi__lab) { font-size: 14px !important; color: var(--v10-muted) !important; letter-spacing: 0 !important; text-transform: none !important; }
+
+/* ─────────────── 10. Floating layer ─────────────── */
+:root :is(.aw, #calm) :is(.aw-pop, .aw-menu, .aw-popover, .aw-toast, .aw-undo) { background: var(--v10-card) !important; border: 0 !important; border-radius: 12px !important; box-shadow: var(--shadow-menu) !important; }
+:root :is(.aw, #calm) :is(.aw-pop__item, .aw-pop__opt) { border-radius: 8px !important; font-size: 14px !important; }
+:root :is(.aw, #calm) :is(.aw-pop__item, .aw-pop__opt):hover { background: var(--v10-soft) !important; }
+:root :is(.aw, #calm) :is(.tw-modal, .aw-dialog) { background: var(--v10-card) !important; border: 0 !important; border-radius: 16px !important; box-shadow: var(--shadow-modal) !important; }
+:root :is(.aw, #calm) :is(.tw-side-panel, .aw-side-panel) { background: var(--v10-card) !important; border: 0 !important; box-shadow: var(--shadow-modal) !important; }
+:root :is(.aw, #calm) :is(.aw-tip, .aw-tooltip, [role="tooltip"]) {
+  background: var(--v10-card) !important; color: var(--v10-ink-2) !important; border-radius: 12px !important; box-shadow: var(--shadow-menu) !important; font-size: 13px !important;
+}
+:root :is(.aw, #calm) :is(.tw-overlay, .tw-side-overlay) { background: rgb(14 16 21 / 0.4) !important; }
+
+/* ─────────────── 11. Tool intros and loading ─────────────── */
+:root :is(.aw, #calm) .aw-intro__card { background: var(--v10-card) !important; border: 0 !important; border-radius: 16px !important; box-shadow: var(--shadow-rest) !important; overflow: hidden; }
+:root :is(.aw, #calm) .aw-intro__vis {
+  background-color: var(--v10-soft) !important; border-bottom: 1px solid var(--v10-border) !important;
+  background-image: radial-gradient(var(--v10-border) 1px, transparent 1px) !important; background-size: 22px 22px !important;
+}
+:root :is(.aw, #calm) .aw-think__icon { border: 0 !important; border-radius: 12px !important; background: var(--v10-signal-soft) !important; box-shadow: none !important; }
+:root :is(.aw, #calm) .aw-skel, :root :is(.aw, #calm) .aw-shimmer { border-radius: 9999px !important; }

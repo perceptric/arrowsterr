@@ -9,6 +9,7 @@
 @import "./omni-ui.css";
 @import "./calm-ui.css";
 @import "./keyed-ui.css";
+@import "./brand-v10.css";
 
 /* Point the brand font tokens at the fonts loaded by next/font in layout.tsx. */
 .aw {
