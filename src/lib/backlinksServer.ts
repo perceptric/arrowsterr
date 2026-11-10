@@ -3,7 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { cleanSources } from "./sources";
 import { DAY, readCache, writeCache } from "./cache";
 import { call } from "./dataforseo";
-import { citedDomains, linksQuery, parseAnchors, parseGap, parseLinks, parsePages, parseSummary, parseWeeks, type GapRow, type LinkKind, type LinkRow, type Overview } from "./backlinks";
+import { citedDomains, linksQuery, parseAnchors, parseBulk, parseGap, parseLinks, parsePages, parseSummary, parseWeeks, type BlTarget, type BulkRow, type GapRow, type LinkKind, type LinkRow, type Overview } from "./backlinks";
 
 // DataForSEO Backlinks calls for the Backlinks screen (docs/backlinks.md). Every answer is kept 7 days in keyword_cache,
 // so opening the page again, or a teammate opening it, costs nothing. Price: $0.024 a request plus $0.000036 a row.
@@ -21,16 +21,22 @@ export const keys = {
   overview: (target: string) => `bl:ov:${target}`,
   links: (target: string, kind: LinkKind, page: number) => `bl:links:${kind}:${page}:${target}`,
   gap: (target: string, rivals: string[]) => `bl:gap2:${target}:${[...rivals].sort().join(",")}`,
+  bulk: (targets: string[]) => `bl:bulk:${[...targets].sort().join(",")}`,
 };
+
+/** The target part of every request: a domain counts its subdomains; a subdomain or a page stands alone. */
+const aim = (t: BlTarget) => (t.scope === "domain" ? { target: t.target, include_subdomains: true } : t.scope === "subdomain" ? { target: t.target, include_subdomains: false } : { target: t.target });
 
 /** Read a saved answer, with when it was saved. */
 export async function saved<T>(key: string): Promise<T | undefined> {
   return readCache<T>(key, KEEP);
 }
 
-export async function loadOverview(target: string): Promise<Overview & { at: string }> {
+export async function loadOverview(t: BlTarget): Promise<Overview & { at: string }> {
   const from = new Date(Date.now() - 13 * 7 * DAY).toISOString().slice(0, 10);
-  const base = { target, include_subdomains: true, ...SCALE };
+  const base = { ...aim(t), ...SCALE };
+  const page = t.scope === "url";
+  const none = Promise.resolve({ items: [] as unknown[] });
   let partial = false;
   // The summary must answer. The chart, anchors and pages may fail on their own; then the page shows what came back
   // and nothing is saved, so the next open tries again instead of showing gaps for a week.
@@ -41,20 +47,21 @@ export async function loadOverview(target: string): Promise<Overview & { at: str
     });
   const [summary, weeks, anchors, pages] = await Promise.all([
     task("summary", { ...base, backlinks_status_type: "live" }),
-    soft(task("timeseries_new_lost_summary", { target, include_subdomains: true, date_from: from, group_range: "week" })),
+    // One page has no weekly history or pages of its own to list.
+    page ? none : soft(task("timeseries_new_lost_summary", { ...aim(t), date_from: from, group_range: "week" })),
     soft(task("anchors", { ...base, limit: 30, order_by: ["referring_domains,desc"] })),
-    soft(task("domain_pages_summary", { ...base, limit: 10, order_by: ["referring_domains,desc"] })),
+    page ? none : soft(task("domain_pages_summary", { ...base, limit: 10, order_by: ["referring_domains,desc"] })),
   ]);
   const s = parseSummary(summary);
-  const out = { target, summary: s, weeks: parseWeeks(weeks.items), anchors: s ? parseAnchors(anchors.items, s.domains) : [], pages: s ? parsePages(pages.items) : [], at: new Date().toISOString() };
-  if (!partial) await writeCache(keys.overview(target), out);
+  const out = { target: t.label, summary: s, weeks: parseWeeks(weeks.items), anchors: s ? parseAnchors(anchors.items, s.domains) : [], pages: s ? parsePages(pages.items) : [], at: new Date().toISOString() };
+  if (!partial) await writeCache(keys.overview(t.id), out);
   return out;
 }
 
-export async function loadLinks(target: string, kind: LinkKind, page: number): Promise<{ rows: LinkRow[]; total: number; at: string }> {
-  const r = await task("backlinks", { target, include_subdomains: true, limit: 100, offset: page * 100, ...linksQuery(kind) });
+export async function loadLinks(t: BlTarget, kind: LinkKind, page: number): Promise<{ rows: LinkRow[]; total: number; at: string }> {
+  const r = await task("backlinks", { ...aim(t), limit: 100, offset: page * 100, ...linksQuery(kind) });
   const out = { rows: parseLinks(r.items), total: Number(r.total_count ?? 0), at: new Date().toISOString() };
-  await writeCache(keys.links(target, kind, page), out);
+  await writeCache(keys.links(t.id, kind, page), out);
   return out;
 }
 
@@ -71,6 +78,26 @@ export async function loadGap(target: string, rivals: string[]): Promise<{ perRi
   );
   const out = { perRival, at: new Date().toISOString() };
   await writeCache(keys.gap(target, rivals), out);
+  return out;
+}
+
+/**
+ * Up to 200 sites or pages side by side: authority, linking sites, backlinks and spam, four bulk requests in all.
+ * Spam may fail on its own; then that column is empty and nothing is saved.
+ */
+export async function loadBulk(targets: string[]): Promise<{ rows: BulkRow[]; at: string }> {
+  let partial = false;
+  const [ranks, backlinks, domains, spam] = await Promise.all([
+    task("bulk_ranks", { targets, ...SCALE }),
+    task("bulk_backlinks", { targets }),
+    task("bulk_referring_domains", { targets }),
+    task("bulk_spam_score", { targets }).catch(() => {
+      partial = true;
+      return null;
+    }),
+  ]);
+  const out = { rows: parseBulk(targets, { ranks: ranks.items, backlinks: backlinks.items, domains: domains.items, spam: spam ? (spam.items ?? []) : null }), at: new Date().toISOString() };
+  if (!partial) await writeCache(keys.bulk(targets), out);
   return out;
 }
 

@@ -1,5 +1,5 @@
-import { bareDomain, gapRivals, LINK_KINDS, weekAgo, type LinkKind, type Overview } from "@/lib/backlinks";
-import { aiCited, gapRows, keys, loadGap, loadLinks, loadOverview, saved, snapshot } from "@/lib/backlinksServer";
+import { bareDomain, BL_SCOPES, blTarget, BULK_MAX, bulkTargets, gapRivals, LINK_KINDS, weekAgo, type BlScope, type LinkKind, type Overview } from "@/lib/backlinks";
+import { aiCited, gapRows, keys, loadBulk, loadGap, loadLinks, loadOverview, saved, snapshot } from "@/lib/backlinksServer";
 import type { Profile } from "@/lib/db";
 import { requireTrack, take } from "@/lib/entitlements";
 import { meteredRoute } from "@/lib/meter";
@@ -14,10 +14,14 @@ const err = (error: string, status = 400) => Response.json({ error }, { status }
 
 // Backlinks (docs/backlinks.md). Saved answers are free for everyone; a fresh one costs tasks and needs an editor.
 // With peek, only saved answers come back, so opening the page never spends anything.
-//   overview: { brandId, refresh? }               totals, new and lost by week, anchors, most linked pages, change since last week
-//   links:    { brandId, kind, page?, refresh? }  100 linking sites per page: all, new, lost, follow, nofollow or spam
-//   gap:      { brandId, rivals?, refresh? }      sites linking to up to 3 rivals but not the brand, AI-cited ones flagged
-//   add:      { brandId, domains }                editors: put gap sites on the brand's Link building list
+// overview, links and gap read any site or page: target and scope (domain, subdomain or url), the brand's own domain
+// when left out.
+//   overview: { brandId, target?, scope?, refresh? }               totals, new and lost by week, anchors, most linked pages
+//   links:    { brandId, target?, scope?, kind, page?, refresh? }  100 linking sites per page: all, new, lost, follow, nofollow or spam
+//   gap:      { brandId, target?, scope?, rivals?, refresh? }      sites linking to up to 3 competitors but not the target
+//   peers:    { brandId }                                          the brand's domain and its competitors, for quick picks
+//   bulk:     { brandId, targets, refresh? }                       up to 200 sites or pages side by side
+//   add:      { brandId, domains }                                 editors: put gap sites on the brand's Link building list
 async function handle(request: Request) {
   const body = await request.json().catch(() => ({}));
   const auth = await requireRole(request, body.workspaceId, "viewer");
@@ -27,7 +31,14 @@ async function handle(request: Request) {
   if (!db) return err("Add SUPABASE_SECRET_KEY to the server's settings.", 500);
   const { data: brand } = await db.from("brands").select("id, name, domain, profile").eq("id", str(body.brandId, 60)).eq("workspace_id", ws).maybeSingle();
   if (!brand) return err("Brand not found.", 404);
-  const target = bareDomain(String(brand.domain));
+  const own = bareDomain(String(brand.domain));
+  const profile = (brand.profile ?? {}) as Profile;
+  const scope: BlScope = BL_SCOPES.some((x) => x.id === body.scope) ? body.scope : "domain";
+  const typed = str(body.target, 500);
+  const t = typed ? blTarget(typed, scope) : blTarget(own, "domain");
+  if (!t && ["overview", "links", "gap"].includes(body.action)) return err(scope === "url" ? "Enter a page, like acme.com/pricing." : scope === "subdomain" ? "Enter a subdomain, like blog.acme.com." : "Enter a domain, like acme.com.");
+  // Week-on-week snapshots belong to the brand's own domain only.
+  const mine = t?.scope === "domain" && t.target === own;
   const editor = await isEditor(auth.sb, ws);
   const refresh = body.refresh === true;
 
@@ -51,10 +62,27 @@ async function handle(request: Request) {
     }
   }
 
+  if (body.action === "peers") {
+    return Response.json({ own, competitors: [...new Set((profile.competitors ?? []).map((c) => bareDomain(c.domain)).filter((d) => d && d !== own))] });
+  }
+
+  if (body.action === "bulk") {
+    const { targets, skipped } = bulkTargets(Array.isArray(body.targets) ? (body.targets as unknown[]).map((x) => str(x, 500)) : str(body.targets, 100_000));
+    if (!targets.length) return err("Paste at least one site, like acme.com, one per line.");
+    if (targets.length > BULK_MAX) return err(`Up to ${BULK_MAX} sites at a time. This list has ${targets.length}.`);
+    const list = targets.map((x) => x.target);
+    const r = await get(keys.bulk(list), TASK_COST.blbulk(list.length), () => loadBulk(list));
+    if (r instanceof Response) return r;
+    return Response.json({ bulk: r.data, skipped, own, canRefresh: editor });
+  }
+
+  if (!t) return err("Unknown action.");
+
   if (body.action === "overview") {
-    const r = await get(keys.overview(target), TASK_COST.backlinks, () => loadOverview(target));
+    const r = await get(keys.overview(t.id), TASK_COST.backlinks, () => loadOverview(t));
     if (r instanceof Response) return r;
     const o = r.data as Overview & { at: string };
+    if (!mine) return Response.json({ overview: o, before: null, canRefresh: editor });
     if (r.fresh) await snapshot(db, ws, brand.id, o);
     const { data: snaps } = await db.from("backlink_snapshots").select("day, rank, backlinks, domains, spam").eq("brand_id", brand.id).order("day", { ascending: false }).limit(20);
     const before = weekAgo((snaps ?? []) as { day: string; rank: number; backlinks: number; domains: number; spam: number }[], new Date().toISOString().slice(0, 10));
@@ -64,13 +92,14 @@ async function handle(request: Request) {
   if (body.action === "links") {
     const kind = (LINK_KINDS.some((k) => k.id === body.kind) ? body.kind : "all") as LinkKind;
     const page = Math.max(0, Math.min(9, Number(body.page) || 0));
-    const r = await get(keys.links(target, kind, page), TASK_COST.links, () => loadLinks(target, kind, page));
+    const r = await get(keys.links(t.id, kind, page), TASK_COST.links, () => loadLinks(t, kind, page));
     if (r instanceof Response) return r;
     return Response.json({ links: r.data, canRefresh: editor });
   }
 
   if (body.action === "gap") {
-    const profile = (brand.profile ?? {}) as Profile;
+    // A page's gap is its site's gap: competitors' links are counted per site.
+    const target = t.scope === "url" ? t.host.replace(/^www\./, "") : t.target;
     const asked = Array.isArray(body.rivals) ? (body.rivals as unknown[]).map((x) => str(x, 200)) : (profile.competitors ?? []).map((c) => c.domain);
     const rivals = gapRivals(asked, target);
     if (!rivals.length) return Response.json({ gap: null, rivals: [], suggested: (profile.competitors ?? []).map((c) => bareDomain(c.domain)).filter(Boolean) });

@@ -1,46 +1,187 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { LINK_KINDS, spamLevel, type GapRow, type LinkKind, type LinkRow, type Overview, type Week } from "@/lib/backlinks";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { BL_SCOPES, BULK_MAX, guessScope, LINK_KINDS, spamLevel, type BlScope, type BulkRow, type GapRow, type LinkKind, type LinkRow, type Overview, type Week } from "@/lib/backlinks";
 import type { RunAuth } from "@/lib/runner";
-import { DomainField, SearchBar, SearchButton } from "./SearchBar";
-import { Card, Delta, Seg, StatStrip, Thinking } from "./ui";
+import { domainHref, setUrl, urlParams } from "@/lib/researchUrl";
+import { scopeOf } from "@/lib/scope";
+import { useStash } from "@/lib/stash";
+import { Dropdown } from "./Pickers";
+import { SearchBar, SearchButton } from "./SearchBar";
+import { BAR_FIELD, BAR_INPUT, downloadCsv } from "./research/shared";
+import { Card, Delta, favicon, Seg, StatStrip, Thinking } from "./ui";
 import { BacklinksIntro } from "./ToolIntros";
 import { useApi } from "./ZippiePage";
 
-// Backlinks (docs/backlinks.md): who links to the brand, new and lost by week, anchors and most linked pages, every
-// linking site by type, and the link gap against up to 3 rivals with sites AI cites flagged. Opening the page shows
-// saved answers only; editors load fresh ones, which cost tasks.
+// Backlinks (docs/backlinks.md): who links to any site, subdomain or page, new and lost by week, anchors and most
+// linked pages, every linking site by type, the link gap against up to 3 competitors with sites AI cites flagged, and
+// up to 200 sites compared side by side. The search lives in the address bar (/backlinks?q=acme.com&view=links), so it
+// can be shared and Back steps through searches. Opening the page shows saved answers only; a search or a tab someone
+// picks loads fresh ones for editors, which cost tasks.
 
 type Brand = { id: string; name: string; domain: string };
-type Tab = "overview" | "links" | "gap";
+type Tab = "overview" | "links" | "gap" | "compare";
 type Snap = { day: string; rank: number; backlinks: number; domains: number; spam: number } | null;
 type Ov = Overview & { at: string };
+type Q = { q: string; scope: BlScope; n: number };
+type Open = (q: string, scope: BlScope) => void;
 
+const TABS: Tab[] = ["overview", "links", "gap", "compare"];
 const n = (x: number) => x.toLocaleString("en-US");
 const when = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 const msg = (e: unknown) => (e instanceof Error ? e.message : String(e));
 const SPAM_CLASS = { low: "aw-status--ranked", medium: "aw-status--warn", high: "aw-status--missed" } as const;
+const bare = (x: string) => x.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/+$/, "");
+const hostOf = (x: string) => bare(x).replace(/[/?#].*$/, "");
 
 export function BacklinksPage({ brand, auth, canEdit }: { brand: Brand; auth: RunAuth; canEdit: boolean }) {
   const api = useApi(auth);
+  const own = hostOf(brand.domain);
   const [tab, setTab] = useState<Tab>("overview");
+  const [active, setActive] = useState<Q>({ q: own, scope: "domain", n: 0 });
+  const [input, setInput] = useState(own);
+  const [scope, setScope] = useState<BlScope>("domain");
+  // Opening the page only reads saved answers. Once someone searches or picks a tab, editors load fresh ones.
+  const [armed, setArmed] = useState(false);
+  const [peers, setPeers] = useState<string[]>([]);
   const [error, setError] = useState("");
-  const call = useCallback(<T,>(action: string, extra: Record<string, unknown> = {}) => api<T>("/api/backlinks", { action, brandId: brand.id, ...extra }), [api, brand.id]);
+  const call = useCallback(
+    <T,>(action: string, extra: Record<string, unknown> = {}) => api<T>("/api/backlinks", { action, brandId: brand.id, target: active.q, scope: active.scope, ...extra }),
+    [api, brand.id, active.q, active.scope],
+  );
+
+  // Show what the address bar asks for, on open and on Back.
+  useEffect(() => {
+    const sync = () => {
+      const p = urlParams();
+      const q = p.get("q")?.trim() || own;
+      const sc = (BL_SCOPES.some((x) => x.id === p.get("scope")) ? p.get("scope") : (p.get("q") ? guessScope(q, scopeOf) : null) ?? "domain") as BlScope;
+      const v = TABS.includes(p.get("view") as Tab) ? (p.get("view") as Tab) : "overview";
+      setInput(q);
+      setScope(sc);
+      setTab(v);
+      setActive((a) => (bare(a.q) === bare(q) && a.scope === sc ? a : { q, scope: sc, n: a.n + 1 }));
+    };
+    sync();
+    window.addEventListener("popstate", sync);
+    api<{ competitors: string[] }>("/api/backlinks", { action: "peers", brandId: brand.id })
+      .then((r) => setPeers(r.competitors ?? []))
+      .catch(() => {});
+    return () => window.removeEventListener("popstate", sync);
+  }, [api, brand.id, own]);
+
+  const address = (q: string, sc: BlScope, v: Tab) => ({ q: bare(q) === own && sc === "domain" ? null : q, scope: sc === "domain" ? null : sc, view: v === "overview" ? null : v });
+  const open: Open = (q, sc) => {
+    const next = tab === "compare" ? "overview" : tab;
+    setError("");
+    setArmed(true);
+    setInput(q);
+    setScope(sc);
+    setTab(next);
+    setActive((a) => ({ q: q.trim(), scope: sc, n: a.n + 1 }));
+    setUrl(address(q.trim(), sc, next), true);
+  };
+  const pickTab = (v: Tab) => {
+    setError("");
+    setArmed(true);
+    setTab(v);
+    setUrl(address(active.q, active.scope, v), true);
+  };
+
+  const key = `${active.scope}:${active.q}:${active.n}`;
+  const isOwn = active.scope === "domain" && bare(active.q) === own;
+  const label = bare(active.q);
+  const hint = BL_SCOPES.find((x) => x.id === scope)!.hint;
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <h1 className="aw-h2 mb-0!">Backlinks</h1>
-        <Seg label="Backlinks view" value={tab} onChange={setTab} options={[{ id: "overview", label: "Overview" }, { id: "links", label: "Links" }, { id: "gap", label: "Link gap" }]} />
+        <Seg label="Backlinks view" value={tab} onChange={pickTab} options={[{ id: "overview", label: "Overview" }, { id: "links", label: "Links" }, { id: "gap", label: "Link gap" }, { id: "compare", label: "Compare" }]} />
       </div>
+      {tab !== "compare" ? (
+        <div className="flex flex-col gap-3">
+          <SearchBar onSubmit={() => input.trim() && open(input, scope)}>
+            <Dropdown<BlScope> label="Look at" value={scope} onChange={setScope} className={BAR_FIELD} options={BL_SCOPES.map((x) => ({ id: x.id, label: x.label }))} />
+            <input
+              value={input}
+              onChange={(e) => {
+                setInput(e.target.value);
+                const g = guessScope(e.target.value, scopeOf);
+                if (g) setScope(g);
+              }}
+              placeholder={hint}
+              aria-label="Domain or URL"
+              className={BAR_INPUT}
+            />
+            <SearchButton label="Analyze" busyLabel="Analyzing" busy={false} disabled={!input.trim()} />
+          </SearchBar>
+          <div className="flex flex-wrap items-center gap-2">
+            {[own, ...peers].slice(0, 7).map((d) => (
+              <button key={d} type="button" className="aw-chip aw-chip--btn inline-flex items-center gap-1.5" aria-pressed={active.scope === "domain" && bare(active.q) === d} onClick={() => open(d, "domain")}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={favicon(d)} alt="" width={14} height={14} className="h-3.5 w-3.5" />
+                {d}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
       {error ? <p className="aw-error">{error}</p> : null}
-      {tab === "overview" ? <OverviewTab brand={brand} call={call} canEdit={canEdit} onError={setError} /> : tab === "links" ? <LinksTab call={call} canEdit={canEdit} onError={setError} /> : <GapTab brand={brand} call={call} canEdit={canEdit} onError={setError} />}
+      {tab !== "compare" ? (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={favicon(hostOf(active.q))} alt="" width={28} height={28} className="h-7 w-7 rounded-[6px]" />
+            <h2 className="aw-h3 mb-0! min-w-0 wrap-anywhere">
+              {label} {isOwn ? <span className="aw-badge align-middle">You</span> : null}
+              {active.scope !== "domain" ? <span className="aw-tag ml-2 align-middle">{BL_SCOPES.find((x) => x.id === active.scope)?.label}</span> : null}
+            </h2>
+          </div>
+          <a className="aw-btn aw-btn--secondary aw-btn--sm" href={domainHref(label, active.scope)}>
+            Open in Domain Research
+          </a>
+        </div>
+      ) : null}
+      {tab === "overview" ? (
+        <OverviewTab key={key} call={call} canEdit={canEdit} armed={armed} onError={setError} onOpen={open} />
+      ) : tab === "links" ? (
+        <LinksTab key={key} call={call} canEdit={canEdit} armed={armed} label={label} onError={setError} onOpen={open} />
+      ) : tab === "gap" ? (
+        <GapTab key={key} label={label} call={call} canEdit={canEdit} onError={setError} onOpen={open} />
+      ) : (
+        <CompareTab brand={brand} own={own} peers={peers} call={call} canEdit={canEdit} onError={setError} onOpen={open} />
+      )}
     </div>
   );
 }
 
 type Call = <T>(action: string, extra?: Record<string, unknown>) => Promise<T>;
+
+/** A linking or gap site: its name opens its own backlinks, the arrow opens the site. */
+function SiteLink({ domain, sub, href, onOpen }: { domain: string; sub?: string; href: string; onOpen: Open }) {
+  return (
+    <span className="flex min-w-0 flex-col">
+      <span className="flex min-w-0 items-center gap-2">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={favicon(domain)} alt="" width={16} height={16} className="h-4 w-4 shrink-0" />
+        <button type="button" className="text-left font-medium text-ink wrap-anywhere hover:underline" onClick={() => onOpen(domain, "domain")}>
+          {domain}
+        </button>
+        <a href={href} target="_blank" rel="noreferrer" aria-label={`Open ${domain}`} className="text-muted hover:text-ink">
+          ↗
+        </a>
+      </span>
+      {sub ? <span className="text-[12px] text-muted wrap-anywhere">{sub}</span> : null}
+    </span>
+  );
+}
+
+const CsvButton = ({ onClick }: { onClick: () => void }) => (
+  <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={onClick}>
+    Export CSV
+  </button>
+);
 
 function Updated({ at, busy, canRefresh, onRefresh }: { at: string; busy: boolean; canRefresh: boolean; onRefresh: () => void }) {
   return (
@@ -55,7 +196,7 @@ function Updated({ at, busy, canRefresh, onRefresh }: { at: string; busy: boolea
   );
 }
 
-function OverviewTab({ brand, call, canEdit, onError }: { brand: Brand; call: Call; canEdit: boolean; onError: (e: string) => void }) {
+function OverviewTab({ call, canEdit, armed, onError, onOpen }: { call: Call; canEdit: boolean; armed: boolean; onError: (e: string) => void; onOpen: Open }) {
   const [data, setData] = useState<{ overview: Ov; before: Snap; canRefresh: boolean } | null | "none">(null);
   const [busy, setBusy] = useState(false);
   const load = useCallback(
@@ -63,7 +204,7 @@ function OverviewTab({ brand, call, canEdit, onError }: { brand: Brand; call: Ca
       if (fresh) setBusy(true);
       onError("");
       try {
-        const r = await call<{ overview?: Ov; before?: Snap; canRefresh?: boolean; notSaved?: boolean }>("overview", fresh ? { refresh: true } : { peek: true });
+        const r = await call<{ overview?: Ov; before?: Snap; canRefresh?: boolean; notSaved?: boolean }>("overview", fresh ? { refresh: true } : armed ? {} : { peek: true });
         setData(r.notSaved || !r.overview ? "none" : { overview: r.overview, before: r.before ?? null, canRefresh: Boolean(r.canRefresh) });
       } catch (e) {
         onError(msg(e));
@@ -72,23 +213,26 @@ function OverviewTab({ brand, call, canEdit, onError }: { brand: Brand; call: Ca
         setBusy(false);
       }
     },
-    [call, onError],
+    [call, onError, armed],
   );
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     load(false);
   }, [load]);
 
-  if (data === null) return <Thinking text="Loading" />;
+  if (data === null) return <Thinking text={armed ? "Reading links" : "Loading"} />;
   if (data === "none")
     return (
-    <div className="flex flex-col gap-6">
-      <SearchBar onSubmit={() => load(true)}>
-        <DomainField domain={brand.domain} />
-        {canEdit ? <SearchButton label="Load backlinks" busyLabel="Loading" busy={busy} /> : null}
-      </SearchBar>
-      <BacklinksIntro />
-    </div>
+      <div className="flex flex-col gap-6">
+        {canEdit ? (
+          <div>
+            <button type="button" className="aw-btn aw-btn--primary" onClick={() => load(true)} disabled={busy}>
+              {busy ? "Loading" : "Load backlinks"}
+            </button>
+          </div>
+        ) : null}
+        <BacklinksIntro />
+      </div>
     );
   const head = <Updated at={data.overview.at} busy={busy} canRefresh={data.canRefresh} onRefresh={() => load(true)} />;
 
@@ -115,24 +259,37 @@ function OverviewTab({ brand, call, canEdit, onError }: { brand: Brand; call: Ca
         stats={[
           { label: "Linking sites", value: n(s.domains), delta: <Delta now={s.domains} before={before?.domains ?? null} digits={0} /> },
           { label: "Backlinks", value: n(s.backlinks), delta: <Delta now={s.backlinks} before={before?.backlinks ?? null} digits={0} /> },
-          { label: "New sites, 4 weeks", value: n(newDomains), tone: "pos" },
-          { label: "Lost sites, 4 weeks", value: n(lostDomains), tone: lostDomains > newDomains ? "neg" : undefined },
+          // One page has no weekly history, so it shows its nofollow and broken links instead.
+          ...(o.weeks.length
+            ? [
+                { label: "New sites, 4 weeks", value: n(newDomains), tone: "pos" as const },
+                { label: "Lost sites, 4 weeks", value: n(lostDomains), tone: lostDomains > newDomains ? ("neg" as const) : undefined },
+              ]
+            : [
+                { label: "Nofollow sites", value: n(s.nofollowDomains) },
+                { label: "Broken backlinks", value: n(s.broken), tone: s.broken ? ("neg" as const) : undefined },
+              ]),
           { label: "Authority", value: String(s.rank), delta: <span className={`aw-status ${SPAM_CLASS[level]}`}>{level === "low" ? "Low spam" : level === "medium" ? "Some spam" : "High spam"}</span> },
         ]}
       />
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
-        <Card title="New and lost linking sites" action={<span className="flex gap-3 text-[12px] text-body"><Key color="var(--aw-pos)" label="New" /><Key color="var(--aw-neg)" label="Lost" /></span>}>
-          <div className="px-5 pb-5">{o.weeks.length ? <Bars weeks={o.weeks} /> : <p className="text-[13px] text-muted">No weekly history yet.</p>}</div>
-        </Card>
-        <Card title="Anchors">
+      <div className={`grid gap-4 ${o.weeks.length ? "lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]" : ""}`}>
+        {o.weeks.length ? (
+          <Card title="New and lost linking sites" action={<span className="flex gap-3 text-[12px] text-body"><Key color="var(--aw-pos)" label="New" /><Key color="var(--aw-neg)" label="Lost" /></span>}>
+            <div className="px-5 pb-5">
+              <Bars weeks={o.weeks} />
+            </div>
+          </Card>
+        ) : null}
+        <Card title="Anchors" action={o.anchors.length ? <CsvButton onClick={() => downloadCsv(`${bare(o.target).replace(/[/?#]+/g, "_")}-anchors.csv`, ["anchor", "linking sites", "backlinks", "share %"], o.anchors.map((a) => [a.anchor, a.domains, a.backlinks, a.share]))} /> : undefined}>
           <div className="flex flex-col gap-2 px-5 pb-5">
             {o.anchors.length ? (
-              o.anchors.slice(0, 8).map((a) => (
-                <div key={a.anchor} className="grid grid-cols-[minmax(0,1fr)_minmax(60px,120px)_40px] items-center gap-3 text-[13px]">
+              o.anchors.slice(0, o.weeks.length ? 8 : 15).map((a) => (
+                <div key={a.anchor} className="grid grid-cols-[minmax(0,1fr)_minmax(60px,240px)_72px_40px] items-center gap-3 text-[13px]">
                   <span className="text-body wrap-break-word">{a.anchor}</span>
                   <span className="block h-2 rounded-full bg-[var(--aw-surface-2)]">
                     <span className="block h-full rounded-full bg-[var(--signal)]" style={{ width: `${Math.max(2, a.share)}%` }} />
                   </span>
+                  <span className="aw-num text-right text-muted">{n(a.domains)} sites</span>
                   <span className="aw-num text-right font-medium text-ink">{a.share}%</span>
                 </div>
               ))
@@ -142,18 +299,21 @@ function OverviewTab({ brand, call, canEdit, onError }: { brand: Brand; call: Ca
           </div>
         </Card>
       </div>
-      <Card title="Most linked pages">
-        <ul className="flex flex-col px-5 pb-4">
-          {o.pages.map((p) => (
-            <li key={p.url} className="flex flex-wrap items-center gap-3 border-t border-[var(--aw-rule)] py-2.5 first:border-t-0">
-              <a href={p.url} target="_blank" rel="noreferrer" className="min-w-0 flex-1 text-[13px] text-ink wrap-anywhere hover:underline">
-                {p.url}
-              </a>
-              <span className="aw-num text-[13px] text-body">{n(p.domains)} sites</span>
-            </li>
-          ))}
-        </ul>
-      </Card>
+      {o.pages.length ? (
+        <Card title="Most linked pages" action={<CsvButton onClick={() => downloadCsv(`${bare(o.target)}-pages.csv`, ["page", "linking sites", "backlinks"], o.pages.map((p) => [p.url, p.domains, p.backlinks]))} />}>
+          <ul className="flex flex-col px-5 pb-4">
+            {o.pages.map((p) => (
+              <li key={p.url} className="flex flex-wrap items-center gap-3 border-t border-[var(--aw-rule)] py-2.5 first:border-t-0">
+                <button type="button" onClick={() => onOpen(p.url, "url")} className="min-w-0 flex-1 text-left text-[13px] text-ink wrap-anywhere hover:underline">
+                  {p.url}
+                </button>
+                <span className="aw-num text-[13px] text-body">{n(p.domains)} sites</span>
+                <span className="aw-num w-28 text-right text-[13px] text-muted">{n(p.backlinks)} links</span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      ) : null}
     </div>
   );
 }
@@ -214,17 +374,19 @@ function Bars({ weeks }: { weeks: Week[] }) {
   );
 }
 
-function LinksTab({ call, canEdit, onError }: { call: Call; canEdit: boolean; onError: (e: string) => void }) {
+function LinksTab({ call, canEdit, armed, label, onError, onOpen }: { call: Call; canEdit: boolean; armed: boolean; label: string; onError: (e: string) => void; onOpen: Open }) {
   const [kind, setKind] = useState<LinkKind>("all");
   const [pages, setPages] = useState<Record<string, { rows: LinkRow[]; total: number; at: string } | "none">>({});
   const [shown, setShown] = useState(1);
   const [busy, setBusy] = useState(false);
+  // After a search or a tab pick, a list that isn't saved loads on its own for editors.
+  const live = useRef(armed);
   const fetchPage = useCallback(
     async (k: LinkKind, page: number, fresh: boolean) => {
       if (fresh) setBusy(true);
       onError("");
       try {
-        const r = await call<{ links?: { rows: LinkRow[]; total: number; at: string }; notSaved?: boolean }>("links", { kind: k, page, ...(fresh ? { refresh: true } : { peek: true }) });
+        const r = await call<{ links?: { rows: LinkRow[]; total: number; at: string }; notSaved?: boolean }>("links", { kind: k, page, ...(fresh ? { refresh: true } : live.current ? {} : { peek: true }) });
         setPages((m) => ({ ...m, [`${k}:${page}`]: r.links ?? "none" }));
       } catch (e) {
         onError(msg(e));
@@ -253,7 +415,7 @@ function LinksTab({ call, canEdit, onError }: { call: Call; canEdit: boolean; on
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap gap-2">
         {LINK_KINDS.map((k) => (
-          <button key={k.id} type="button" onClick={() => { setKind(k.id); setShown(1); }} aria-pressed={kind === k.id} className="aw-chip aw-chip--btn">
+          <button key={k.id} type="button" onClick={() => { live.current = true; setKind(k.id); setShown(1); }} aria-pressed={kind === k.id} className="aw-chip aw-chip--btn">
             {k.label}
           </button>
         ))}
@@ -274,7 +436,12 @@ function LinksTab({ call, canEdit, onError }: { call: Call; canEdit: boolean; on
       ) : (
         <Card
           title={`${n(total)} linking ${total === 1 ? "site" : "sites"}`}
-          action={<Updated at={first.at} busy={busy} canRefresh={canEdit} onRefresh={() => { setShown(1); setPages((m) => Object.fromEntries(Object.entries(m).filter(([k]) => !k.startsWith(`${kind}:`)))); fetchPage(kind, 0, true); }} />}
+          action={
+            <span className="flex flex-wrap items-center gap-3">
+              {rows.length ? <CsvButton onClick={() => downloadCsv(`${label.replace(/[/?#]+/g, "_")}-${kind}-links.csv`, ["linking site", "from page", "authority", "anchor", "to page", "follow", "spam", "new", "lost", "first seen"], rows.map((l) => [l.domain, l.from, l.rank, l.anchor, l.to, l.follow ? "follow" : "nofollow", l.spam, l.isNew ? "yes" : "", l.isLost ? "yes" : "", l.firstSeen ?? ""]))} /> : null}
+              <Updated at={first.at} busy={busy} canRefresh={canEdit} onRefresh={() => { setShown(1); setPages((m) => Object.fromEntries(Object.entries(m).filter(([k]) => !k.startsWith(`${kind}:`)))); fetchPage(kind, 0, true); }} />
+            </span>
+          }
         >
           {rows.length ? (
             <div className="overflow-x-auto">
@@ -293,10 +460,7 @@ function LinksTab({ call, canEdit, onError }: { call: Call; canEdit: boolean; on
                   {rows.map((l) => (
                     <tr key={`${l.from}>${l.to}`}>
                       <td className="min-w-48">
-                        <a href={l.from} target="_blank" rel="noreferrer" className="flex flex-col hover:underline">
-                          <span className="font-medium text-ink wrap-anywhere">{l.domain}</span>
-                          <span className="text-[12px] text-muted wrap-anywhere">{l.from}</span>
-                        </a>
+                        <SiteLink domain={l.domain} sub={l.from} href={l.from} onOpen={onOpen} />
                       </td>
                       <td className="aw-num text-right">{l.rank}</td>
                       <td className="min-w-32 wrap-break-word">{l.anchor || <span className="text-muted">{l.type === "image" ? "Image" : "No text"}</span>}</td>
@@ -338,7 +502,7 @@ function LinksTab({ call, canEdit, onError }: { call: Call; canEdit: boolean; on
   );
 }
 
-function GapTab({ brand, call, canEdit, onError }: { brand: Brand; call: Call; canEdit: boolean; onError: (e: string) => void }) {
+function GapTab({ label, call, canEdit, onError, onOpen }: { label: string; call: Call; canEdit: boolean; onError: (e: string) => void; onOpen: Open }) {
   const [rivals, setRivals] = useState<string[]>([]);
   const [suggested, setSuggested] = useState<string[]>([]);
   const [input, setInput] = useState("");
@@ -445,13 +609,14 @@ function GapTab({ brand, call, canEdit, onError }: { brand: Brand; call: Call; c
         <Thinking text="Loading" />
       ) : gap === "none" ? null : (
         <Card
-          title={`${n(rows.length)} sites link to ${rivals.length === 1 ? "your competitor" : "your competitors"} and not to ${brand.name}`}
+          title={`${n(rows.length)} sites link to ${rivals.length === 1 ? "your competitor" : "your competitors"} and not to ${label.replace(/[/?#].*$/, "")}`}
           action={
             <span className="flex flex-wrap items-center gap-3">
               <label className="flex cursor-pointer items-center gap-2 text-[13px] text-body">
                 <input type="checkbox" checked={onlyAi} onChange={(e) => setOnlyAi(e.target.checked)} className="h-4 w-4 accent-[var(--signal)]" />
                 Only sites AI cites
               </label>
+              {rows.length ? <CsvButton onClick={() => downloadCsv(`${label.replace(/[/?#].*$/, "")}-link-gap.csv`, ["site", "authority", ...rivals, "ai cites"], rows.map((g) => [g.domain, g.rank, ...rivals.map((r) => (g.rivals.includes(r) ? "yes" : "")), g.aiCited]))} /> : null}
               {canEdit && notAdded.length ? (
                 <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => add(notAdded)} disabled={busy === "all"}>
                   {busy === "all" ? "Adding" : `Add ${notAdded.length} to Link building`}
@@ -480,9 +645,7 @@ function GapTab({ brand, call, canEdit, onError }: { brand: Brand; call: Call; c
                     <tr key={g.domain}>
                       <td className="min-w-48">
                         <span className="flex flex-col gap-1">
-                          <a href={`https://${g.domain}`} target="_blank" rel="noreferrer" className="font-medium text-ink wrap-anywhere hover:underline">
-                            {g.domain}
-                          </a>
+                          <SiteLink domain={g.domain} href={`https://${g.domain}`} onOpen={onOpen} />
                           {g.aiCited ? <span className="aw-status aw-status--ranked self-start">AI cites it {g.aiCited}×</span> : null}
                         </span>
                       </td>
@@ -510,6 +673,126 @@ function GapTab({ brand, call, canEdit, onError }: { brand: Brand; call: Call; c
           <p className="px-5 pb-4 text-[12px] text-muted">Updated {when(gap.at)}</p>
         </Card>
       )}
+    </div>
+  );
+}
+
+/** Up to 200 sites or pages side by side: authority, linking sites, backlinks, nofollow share and spam. */
+function CompareTab({ brand, own, peers, call, canEdit, onError, onOpen }: { brand: Brand; own: string; peers: string[]; call: Call; canEdit: boolean; onError: (e: string) => void; onOpen: Open }) {
+  const [text, setText] = useStash<string>(`blc:${brand.id}:q`, "");
+  const [result, setResult] = useStash<{ rows: BulkRow[]; at: string; skipped: number } | null>(`blc:${brand.id}:result`, null);
+  const [busy, setBusy] = useState(false);
+  const lines = text.split(/[\n,]+/).map((x) => x.trim()).filter(Boolean);
+  const over = lines.length > BULK_MAX;
+
+  // Start with the brand and its competitors.
+  useEffect(() => {
+    if (!text.trim() || text.trim() === own) setText([own, ...peers].join("\n"));
+  }, [own, peers]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function run(fresh: boolean) {
+    setBusy(true);
+    onError("");
+    try {
+      const r = await call<{ bulk?: { rows: BulkRow[]; at: string }; skipped?: number; notSaved?: boolean }>("bulk", { targets: lines, ...(fresh ? { refresh: true } : {}) });
+      if (r.notSaved || !r.bulk) onError("Not loaded yet. Ask an editor to run this comparison.");
+      else setResult({ ...r.bulk, skipped: r.skipped ?? 0 });
+    } catch (e) {
+      onError(msg(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const rows = result?.rows ?? [];
+  const top = Math.max(1, ...rows.map((r) => r.domains));
+  const mine = (t: string) => bare(t) === own;
+
+  return (
+    <div className="flex flex-col gap-4">
+      <form
+        className="aw-frame flex flex-col gap-3 p-3"
+        onSubmit={(e) => {
+          e.preventDefault();
+          run(false);
+        }}
+      >
+        <textarea value={text} onChange={(e) => setText(e.target.value)} placeholder={"competitor.com\nblog.competitor.com\ncompetitor.com/pricing"} rows={7} aria-label="Sites or pages, one per line" className="aw-textarea w-full resize-y font-mono text-[14px]" />
+        <div className="flex flex-wrap items-center gap-3">
+          <span className={`aw-num text-[12px] ${over ? "font-medium text-neg" : "text-muted"}`}>
+            {lines.length} of {BULK_MAX}
+          </span>
+          <span className="flex-1" />
+          {canEdit ? (
+            <button type="submit" className="aw-btn aw-btn--primary" disabled={busy || !lines.length || over}>
+              {busy ? "Comparing" : "Compare"}
+            </button>
+          ) : null}
+        </div>
+      </form>
+
+      {busy ? <Thinking text={`Reading links for ${lines.length} ${lines.length === 1 ? "site" : "sites"}`} /> : null}
+
+      {!busy && result ? (
+        <Card
+          title={`${n(rows.length)} ${rows.length === 1 ? "site" : "sites"}`}
+          action={
+            <span className="flex flex-wrap items-center gap-3">
+              <CsvButton onClick={() => downloadCsv("backlinks-compare.csv", ["site", "authority", "linking sites", "backlinks", "nofollow sites", "spam"], rows.map((r) => [r.target, r.rank, r.domains, r.backlinks, r.nofollowDomains, r.spam ?? ""]))} />
+              <Updated at={result.at} busy={busy} canRefresh={canEdit} onRefresh={() => run(true)} />
+            </span>
+          }
+        >
+          {result.skipped ? <p className="px-5 pb-2 text-[13px] text-muted">{result.skipped} skipped: not a site or page.</p> : null}
+          <div className="overflow-x-auto">
+            <table className="aw-table">
+              <thead>
+                <tr>
+                  <th>Site</th>
+                  <th className="text-right">Authority</th>
+                  <th>Linking sites</th>
+                  <th className="text-right">Backlinks</th>
+                  <th className="text-right">Nofollow</th>
+                  <th className="text-right">Spam</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r) => {
+                  const page = /^https?:\/\//.test(r.target);
+                  const name = bare(r.target);
+                  const level = r.spam === null ? null : spamLevel(r.spam);
+                  return (
+                    <tr key={r.target} className={mine(r.target) ? "bg-[var(--signal-tint,rgba(9,67,176,0.045))]" : undefined}>
+                      <td className="min-w-48">
+                        <span className="flex min-w-0 items-center gap-2">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={favicon(hostOf(r.target))} alt="" width={16} height={16} className="h-4 w-4 shrink-0" />
+                          <button type="button" className="text-left font-medium text-ink wrap-anywhere hover:underline" onClick={() => onOpen(name, page ? "url" : "domain")}>
+                            {name}
+                          </button>
+                          {mine(r.target) ? <span className="aw-badge">You</span> : null}
+                        </span>
+                      </td>
+                      <td className="aw-num text-right">{r.rank}</td>
+                      <td className="min-w-56">
+                        <span className="flex items-center gap-3">
+                          <span className="block h-2 flex-1 rounded-full bg-[var(--aw-surface-2)]">
+                            <span className={`block h-full rounded-full ${mine(r.target) ? "bg-[var(--signal)]" : "bg-[var(--aw-muted)]"}`} style={{ width: `${Math.max(1, (r.domains / top) * 100)}%` }} />
+                          </span>
+                          <span className="aw-num w-16 text-right text-ink">{n(r.domains)}</span>
+                        </span>
+                      </td>
+                      <td className="aw-num text-right">{n(r.backlinks)}</td>
+                      <td className="aw-num text-right">{r.domains ? `${Math.round((r.nofollowDomains / r.domains) * 100)}%` : "–"}</td>
+                      <td className="text-right">{level ? <span className={`aw-status ${SPAM_CLASS[level]}`}>{r.spam}</span> : <span className="text-muted">–</span>}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      ) : null}
     </div>
   );
 }

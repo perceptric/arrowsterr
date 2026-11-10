@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { bareDomain, citedDomains, gapRivals, linksQuery, parseAnchors, parseGap, parseLinks, parsePages, parseSummary, parseWeeks, spamLevel, weekAgo } from "../src/lib/backlinks.ts";
+import { bareDomain, blTarget, bulkTargets, citedDomains, gapRivals, guessScope, parseBulk, linksQuery, parseAnchors, parseGap, parseLinks, parsePages, parseSummary, parseWeeks, spamLevel, weekAgo } from "../src/lib/backlinks.ts";
 
 test("a site with zero links has no summary, empty lists and no gap", () => {
   assert.equal(parseSummary({ backlinks: 0, referring_domains: 0, rank: 0 }), null);
@@ -76,4 +76,47 @@ test("the KPI arrow compares with the last snapshot at least 6 days old", () => 
   const snaps = [{ day: "2026-11-09" }, { day: "2026-11-05" }, { day: "2026-11-02" }, { day: "2026-10-26" }];
   assert.equal(weekAgo(snaps, "2026-11-09")?.day, "2026-11-02");
   assert.equal(weekAgo([{ day: "2026-11-09" }], "2026-11-09"), null);
+});
+
+test("any typed site or page becomes the right Backlinks target", () => {
+  assert.deepEqual(blTarget("https://www.Acme.com/pricing", "domain"), { scope: "domain", target: "acme.com", label: "acme.com", host: "acme.com", id: "acme.com" });
+  assert.deepEqual(blTarget("blog.acme.com", "subdomain"), { scope: "subdomain", target: "blog.acme.com", label: "blog.acme.com", host: "blog.acme.com", id: "sub:blog.acme.com" });
+  const page = blTarget("www.acme.com/pricing?plan=pro", "url");
+  assert.equal(page?.target, "https://www.acme.com/pricing?plan=pro");
+  assert.equal(page?.label, "www.acme.com/pricing?plan=pro");
+  assert.equal(page?.id, "url:https://www.acme.com/pricing?plan=pro");
+  // A page needs a path, and junk is refused.
+  assert.equal(blTarget("acme.com", "url"), null);
+  assert.equal(blTarget("not a site", "domain"), null);
+  assert.equal(blTarget("", "domain"), null);
+  // The same host as a domain and as a subdomain are kept apart in the cache.
+  assert.notEqual(blTarget("blog.acme.com", "domain")?.id, blTarget("blog.acme.com", "subdomain")?.id);
+});
+
+test("the scope is guessed from what is typed, a folder counting as its page", () => {
+  const g = (s: string) => (s.includes("/blog") ? "subfolder" : s.startsWith("blog.") ? "subdomain" : s.includes("/") ? "url" : "domain");
+  assert.equal(guessScope("acme.com/blog", g), "url");
+  assert.equal(guessScope("acme.com/pricing", g), "url");
+  assert.equal(guessScope("blog.acme.com", g), "subdomain");
+  assert.equal(guessScope("acme.com", g), "domain");
+  assert.equal(guessScope("x", () => null), null);
+});
+
+test("a pasted list is cleaned, deduped and split into sites and pages", () => {
+  const { targets, skipped } = bulkTargets("acme.com\nhttps://www.acme.com/\nrival.io, rival.io/pricing\nnot a site\n\n");
+  assert.deepEqual(targets.map((t) => t.target), ["acme.com", "rival.io", "https://rival.io/pricing"]);
+  assert.equal(skipped, 1);
+});
+
+test("bulk answers join by target, biggest profile first, spam left empty when it failed", () => {
+  const rows = parseBulk(["acme.com", "https://rival.io/pricing"], {
+    ranks: [{ target: "acme.com", rank: 41.4 }, { target: "https://rival.io/pricing/", rank: 20 }],
+    backlinks: [{ target: "acme.com", backlinks: 3960 }, { target: "rival.io/pricing", backlinks: 12 }],
+    domains: [{ target: "ACME.com", referring_domains: 412, referring_domains_nofollow: 100 }, { target: "https://rival.io/pricing", referring_domains: 900 }],
+    spam: null,
+  });
+  assert.deepEqual(rows, [
+    { target: "https://rival.io/pricing", rank: 20, backlinks: 12, domains: 900, nofollowDomains: 0, spam: null },
+    { target: "acme.com", rank: 41, backlinks: 3960, domains: 412, nofollowDomains: 100, spam: null },
+  ]);
 });
