@@ -1,4 +1,5 @@
 import "server-only";
+import { fixSerp } from "./serpResolve";
 import { aiContext } from "./aiSettings";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import * as cheerio from "cheerio";
@@ -34,7 +35,7 @@ export async function googleTop10(keyword: string, country: string | undefined) 
   ]);
   const task = tasks[0];
   if (task?.status_code !== 20000) throw new Error(`DataForSEO: ${task?.status_message ?? "no result"}`);
-  const items: Item[] = task.result?.[0]?.items ?? [];
+  const items: Item[] = await fixSerp((task.result?.[0]?.items ?? []) as Item[]);
   const aio = items.find((i) => i.type === "ai_overview");
   const aioItems = (aio?.items ?? []).filter((x): x is Item => typeof x === "object");
   const refs = [...(aio?.references ?? []), ...aioItems.flatMap((i) => i.references ?? [])].filter((r) => r.url);

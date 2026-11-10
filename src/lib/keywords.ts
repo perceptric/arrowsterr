@@ -1,4 +1,5 @@
 import "server-only";
+import { fixSerp } from "./serpResolve";
 import { call } from "./dataforseo";
 import { DAY, readCache, writeCache } from "./cache";
 import type { DomainBulkRow, DomainMonth, Keyword } from "./research";
@@ -97,7 +98,7 @@ export async function overview(keywords: string[], m: Market, spend: Spend): Pro
 export async function topUrls(keyword: string, m: Market, spend: Spend): Promise<string[]> {
   const tasks = await call("serp/google/organic/live/regular", [{ keyword, location_code: m.location, language_code: m.language, depth: 10 }]);
   spend.add(tasks);
-  const items: { type?: string; url?: string }[] = tasks[0]?.result?.[0]?.items ?? [];
+  const items: { type?: string; url?: string; breadcrumb?: string | null }[] = await fixSerp(tasks[0]?.result?.[0]?.items ?? []);
   return items
     .filter((i) => i.type === "organic" && i.url)
     .slice(0, 10)

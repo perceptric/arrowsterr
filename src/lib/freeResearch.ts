@@ -1,4 +1,5 @@
 import "server-only";
+import { fixSerp } from "./serpResolve";
 import { cached, DAY } from "./cache";
 import { askLive, call } from "./dataforseo";
 import { intersect, rows } from "./gapServer";
@@ -156,13 +157,13 @@ export function backlinks(target: string) {
 
 // ─────────────── Keyword Rank Checker ───────────────
 
-type SerpItem = { type?: string; rank_group?: number; url?: string; domain?: string; title?: string; items?: SerpItem[]; references?: { url?: string; domain?: string }[] };
+type SerpItem = { type?: string; rank_group?: number; url?: string; domain?: string; title?: string; breadcrumb?: string | null; items?: SerpItem[]; references?: { url?: string; domain?: string }[] };
 
 /** Google's top 100 for a keyword, saved a day per keyword and country so every domain checking it shares one call. */
 const google100 = (keyword: string, m: Market) =>
-  cached(`free:serp100:${m.location}:${m.language}:${keyword}`, DAY, async () => {
+  cached(`free:serp100b:${m.location}:${m.language}:${keyword}`, DAY, async () => {
     const r = await task("serp/google/organic/live/advanced", { keyword, location_code: m.location, language_code: m.language, device: "desktop", depth: 100, load_async_ai_overview: true });
-    const items: SerpItem[] = r.items ?? [];
+    const items: SerpItem[] = await fixSerp(r.items ?? []);
     const aio = items.find((i) => i.type === "ai_overview");
     const refs = [...(aio?.references ?? []), ...(aio?.items ?? []).flatMap((i) => i.references ?? [])].filter((x) => x.url).map((x) => ({ url: x.url!, domain: x.domain ?? "" }));
     const organic: OrganicRow[] = items

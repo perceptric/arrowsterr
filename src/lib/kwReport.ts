@@ -1,5 +1,6 @@
 import "server-only";
 import { cached, DAY, readCache, writeCache } from "./cache";
+import { fixSerp } from "./serpResolve";
 import { call } from "./dataforseo";
 import { broadWords, BULK_LIMIT, clustersOf, exactRegex, MARKETS, type KeywordReport, type KwList, type KwSerp, type KwSummary, type MatchType } from "./research";
 
@@ -241,18 +242,20 @@ type SerpItem = {
   title?: string;
   rating?: { value?: number } | null;
   links?: unknown[] | null;
+  breadcrumb?: string | null;
   items?: SerpItem[];
   references?: { url?: string; domain?: string; title?: string }[];
 };
 
 async function serp(keyword: string, m: Market, device: string, cost: { total: number }): Promise<KwSerp> {
-  const { data } = await cached<KwSerp>(`serp:${m.location}:${m.language}:${device}:${keyword}`, 7 * DAY, async () => {
+  // serp2: results with Google redirect links (google.com/goto) now resolve to the real address.
+  const { data } = await cached<KwSerp>(`serp2:${m.location}:${m.language}:${device}:${keyword}`, 7 * DAY, async () => {
     const r = await task(
       "serp/google/organic/live/advanced",
       { keyword, location_code: m.location, language_code: m.language, device, depth: 10, load_async_ai_overview: true },
       cost,
     );
-    const items: SerpItem[] = r.items ?? [];
+    const items: SerpItem[] = await fixSerp(r.items ?? []);
     const aio = items.find((i) => i.type === "ai_overview");
     const refs = [...(aio?.references ?? []), ...(aio?.items ?? []).flatMap((i) => i.references ?? [])].filter((x) => x.url);
     const cites = [...new Map(refs.map((x) => [x.url!, { url: x.url!, domain: (x.domain ?? "").replace(/^www\./, ""), title: x.title ?? "" }])).values()];

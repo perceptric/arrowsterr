@@ -1,4 +1,5 @@
 import "server-only";
+import { breadcrumbUrl, isGoogleRedirect, plainTarget } from "./serpUrl";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { charge } from "./meter";
 import { cleanSources, linksInText, type Source } from "./sources";
@@ -107,7 +108,11 @@ function read(engine: DfsEngine, result: { markdown?: string; sources?: Raw[]; i
       engine === "AI Overview"
         ? all
             .filter((i) => i.type === "organic" && i.url)
-            .map((i) => ({ rank: i.rank_group ?? 0, domain: (i.domain ?? "").replace(/^www\./, ""), url: i.url! }))
+            .map((i) => {
+              // A Google redirect link (google.com/goto) takes its real address from the breadcrumb.
+              const url = isGoogleRedirect(i.url) ? (plainTarget(i.url!) ?? breadcrumbUrl((i as { breadcrumb?: string | null }).breadcrumb) ?? i.url!) : i.url!;
+              return { rank: i.rank_group ?? 0, domain: url === i.url ? (i.domain ?? "").replace(/^www\./, "") : new URL(url).hostname.replace(/^www\./, ""), url };
+            })
             .slice(0, 20)
         : undefined;
     const aio = all.find((i) => i.type === "ai_overview");

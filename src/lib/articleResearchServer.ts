@@ -1,4 +1,5 @@
 import "server-only";
+import { fixSerp } from "./serpResolve";
 import { lookup } from "node:dns/promises";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { call } from "./dataforseo";
@@ -46,7 +47,9 @@ const deps: Deps = {
       },
     ]);
     if (task?.status_code !== 20000) throw new Error(`DataForSEO: ${task?.status_message ?? "no result"}`);
-    return readSerp(task.result?.[0]);
+    const result = task.result?.[0];
+    if (result?.items) await fixSerp(result.items);
+    return readSerp(result);
   },
   ask: (engine, question) => askEngine(engine as Engine, question),
   engines: () => availableEngines(),
