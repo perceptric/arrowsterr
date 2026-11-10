@@ -1,70 +1,72 @@
-# Arrowsterr brand (v5)
+# Arrowsterr brand (v10)
 
-> **v9, 10 November 2026: keys and strips.** The calm look stays, and the working screens get key buttons and stat strips. Where v9 and the notes below disagree, v9 wins.
->
-> - **Buttons are keys.** 8px corners in place of pills. The main action is Signal Blue with a dark ring and a top highlight (`aw-btn--primary`). `aw-btn--dark` stays charcoal for a second strong action.
-> - **Cards have 16px corners.** A card inside a card keeps 12px.
-> - **Titles are firmer.** Page titles are 28px at weight 600. Card titles are weight 600.
-> - **Stat strips, never rows of equal boxes.** A screen's numbers sit in one `StatStrip` (`src/components/ui.tsx`): the first number is the lead, wider and on a Signal Blue tint, with a trend line when there is one. The rest follow in cells split by hairlines. Usage meters are one card of rows (`aw-meters`).
-> - **Switches and filters.** A view switch (`Seg`, `aw-tabs`) is a gray tray with a white key. A filter is a chip (`aw-chip aw-chip--btn`); the picked one is Signal Blue on its soft fill.
-> - **You are blue in every chart.** Your brand, your page and your business use `--signal`. `--aw-brand` is charcoal and is for ink, never for "you".
-> - **Files.** `src/app/keyed-ui.css`, loaded after `calm-ui.css`.
-> - **Cost.** $0 at Beta (50 teams) and $0 at Growth (500 teams). It is a static stylesheet and layout changes.
+> **v10, 10 November 2026: the clear look.** A full reset. Earlier versions (v5 to v9) stacked one look on top of another, and the app ended up with six stylesheets fighting each other. v10 replaces all of them with one system: Geist type, cool neutral greys, white cards with soft shadows and 16px corners, rounded buttons, pill switches and dot tags, and Signal Blue `#0943B0` as the one accent. It is modeled on a reference page shared on 10 November 2026 (a clean SaaS pricing page), with its orange accent swapped for Signal Blue. The old guide is kept at `docs/archive/brand-v9.md` for history only. Where anything else in the repo disagrees with this file, this file wins.
 
-> **v8, 3 November 2026: the calm look.** The app follows Claritia's calm style (its `docs/brand.md`, version 4, after zite.com): a light gray shell, a white page panel on a ring shadow, a white header bar over a #fafafa work area, pill buttons, 6px tags, 8px inputs, 12px cards and Inter for every word. Signal Blue #0943B0 is the one signal: the open menu item, the open tab, your brand and focus. Values live in `src/app/calm-ui.css`, loaded after `omni-ui.css`, which still flattens the older layers. Class names and copy are unchanged. Cost: $0 at Beta (50 teams) and $0 at Growth (500 teams), since it is a static stylesheet. Where v8 and the rules below disagree, v8 wins.
+The visual reference with live components is the **Arrowsterr Brand v10** artifact. This file is the source of truth; the artifact shows it.
 
-> **v7, 30 October 2026: the framed look.** The app now follows the Omniscient house style: black and white, square and framed, Inter at 13px, a 1px black frame on cards, buttons, filters and menus, and no shadows, gradients or round corners. Black is the action color. Signal Blue marks your own brand ("You" and your chart series). Values live in `src/app/omni-ui.css`, loaded last. Plan and cost: `docs/ui-framed.md`. Where v7 and the rules below disagree, v7 wins.
+---
 
-> **v6, 28 October 2026: the Brew look.** Type, neutrals, corners and buttons now follow brew.new. Signal Blue `#0943B0` stays the brand colour. Where v6 and the rules below disagree, v6 wins.
->
-> - **Fonts.** Big headings use the system face (SF Pro on a Mac), weight 500, ink `#302F2C`. Website text is Inter 16/26 at -0.01em in `#5C5B57`. The app runs on Geist at 14/20 in `#262626`, with secondary text in `#6B6B6B`. Eyebrows are Geist Mono 14px, weight 500, uppercase, 0.08em, in Signal Blue. Funnel Display is retired.
-> - **Sizes.** Hero 40/44 on phones and 56/60 from 768px. Section heads 28/34 and 36/44. Sub-heads 20/28 and 24/32. Lead 16/26 and 18/28. Buttons 14/20 weight 500.
-> - **Shape.** Pill buttons with a two-stop Signal Blue fill and a 1.5px raised edge. White cards with 16px corners and a soft shadow on warm paper `#FAFAF7` on the website; 12px cards with hairline `#E7E7E7` borders in the app. No Notch.
-> - **Files.** The app's values live in `src/app/brew-ui.css`, loaded last. The website's live in the v6 section at the end of `public/brand/arrowsterr-brand.css`.
-> - **Cost.** $0 at Beta (50 teams) and $0 at Growth (500 teams). The fonts are free and the stylesheets are static files.
+## Contents
 
-The full brand system. The live version with component previews is the Arrowsterr Brand design system: https://claude.ai/artifact/UPHjbokXkgMsfgTZuJ5KbN. The stylesheet for the website, embeds, emails and decks is `public/brand/arrowsterr-brand.css` (served at `https://app.arrowsterr.com/brand/arrowsterr-brand.css`). The app's own rules live in `src/app/brand.css`, `brand-v2.css` and `twenty.css`.
+1. [What changed](#what-changed)
+2. [Design principles](#design-principles)
+3. [Personality](#personality)
+4. [Voice and copy](#voice-and-copy)
+5. [Logo](#logo)
+6. [Color](#color)
+7. [Typography](#typography)
+8. [Spacing and layout](#spacing-and-layout)
+9. [Shape: radius, borders, elevation](#shape-radius-borders-elevation)
+10. [Backgrounds and atmosphere](#backgrounds-and-atmosphere)
+11. [Icons and logos of other products](#icons-and-logos-of-other-products)
+12. [Motion](#motion)
+13. [Components](#components)
+14. [Patterns](#patterns)
+15. [Data visualization](#data-visualization)
+16. [Accessibility](#accessibility)
+17. [Token reference](#token-reference)
+18. [Moving the app to v10](#moving-the-app-to-v10)
+19. [Running cost](#running-cost)
 
-Arrowsterr is **the Navigator**: a sharp, upbeat guide who shows you where AI sends your buyers and points at your next move. Every screen points somewhere. Numbers come before claims. One spark of gold marks the win.
+---
 
-The look starts from a calm, grey product UI (hairline borders, 13px Inter, 32px rows) and adds a short list of moves that only Arrowsterr makes: Funnel Display headlines with a Signal Blue payoff, the Climb chevrons, the Notch on the main button, and a single gold Spark when something good happens.
+## What changed
 
-## How to use this system
+| Area | v9 (keys and strips) | v10 (the clear look) |
+|---|---|---|
+| Type | Inter 13px UI, Funnel Display headlines, Geist Mono numbers | Geist for everything, Geist Mono only for code and ids |
+| Neutrals | Warm greys, several near-duplicates | One cool grey ramp with a slight blue bias |
+| Accent | Signal Blue plus gold Spark plus Sky | Signal Blue, with a soft tint and a ring; gold only for one win per view |
+| Buttons | Square keys with a dark ring and top highlight | 10px corners, flat Signal Blue fill, no ring, no highlight |
+| Switches | Grey tray with white key | Pill tray with a white raised pill |
+| Tags | Square 6px tags | Pills with a leading dot |
+| Cards | 16px, hairline frame | 16px, 1px border plus a soft shadow, lift on hover |
+| Numbers | Stat strip with a tinted lead cell | Stat row: big tabular number over a muted label, no boxes |
+| Atmosphere | Flight grid lines | Dot grid and one soft blue glow, marketing and first screens only |
+| Stylesheets | `brand.css`, `brand-v2.css`, `brand-v5.css`, `brew-ui.css`, `strong-ui.css`, `omni-ui.css`, `calm-ui.css`, `keyed-ui.css` | One file: `src/app/brand-v10.css` |
 
-- Build product screens, the website, blog embeds, emails and decks from these tokens and components. Never hard-code a hex value that has a token.
-- Outside the app, load `arrowsterr-brand.css` and wrap the block in `<div class="aw">`. Add `data-theme="dark"` for the dark theme. Every class in the component cards (`aw-btn`, `aw-tag`, `aw-table` and the rest) comes from that file.
-- Load three Google Fonts: **Funnel Display** (300 to 800), **Inter** (400 to 700) and **Geist Mono** (400, 500). The website body runs on Geist today; treat Geist and Inter as the same text voice.
-- Read the sections in order the first time: Personality, Voice, Logo, Color, Typography, Motifs, Layout, Imagery.
+---
 
-## The ten brand rules
+## Design principles
 
-1. **Logo.** Always the SVG file from the Logos group, never the word typed out. Always set its height (`aw-logo--sm` 20px, `--md` 28px, `--lg` 40px). Clear space on every side equals the height of the sparkle.
-2. **Headings.** Funnel Display (`hero`, `display`, `h1`, `h2`, `h3`) at 18px and up, weight 600 (700 for `hero`), tight tracking. Below 18px, headings are Inter 600 (`h4`).
-3. **The payoff word.** One to four words of a heading may be `signal-text` (`aw-accent`). Pick the words that name what the reader gets.
-4. **Titles stand alone.** At most one `lead` line under a title. Never a paragraph.
-5. **Colour weight.** Greys (`bg-*`, `line-*`, `ink-*`) carry about 85% of any view, `signal` about 10%, `night` closes the page, and `spark` stays under 1%: one gold element per view.
-6. **Shape.** `radius-sm` (4px) on controls and tags, `radius-md` (8px) on cards, `radius-lg` (12px) on marketing frames. Hairline `line` borders, no card shadows, no gradients, no pills.
-7. **The Notch.** The primary button and featured frames have a 45 degree cut on the top-right corner (`notch`, 8px; 16px on frames). Nothing else is notched.
-8. **Direction.** Arrows and chevrons point up or right. They point down only for a falling `aw-delta` or a menu that opens.
-9. **Numbers.** Every number is Geist Mono with tabular figures (`num`, `stat`). Every change sits next to its number as an `aw-delta`, with a chevron and a sign, so it reads without colour.
-10. **Copy.** 9th-grade words, short sentences, direct "you", verbs first. No em dashes, no emoji. Avoid "not X, Y" and "X, not Y". Avoid lists of three in prose.
+These eight rules decide every case this guide does not cover.
 
-## Accessibility floor
+1. **Clarity first.** If a reader has to work out what something means, it is wrong. Labels say what a number is. Units sit next to the number.
+2. **Numbers lead.** A screen opens with its key numbers in a stat row, then the detail. Every number shows its change when there is a previous value.
+3. **One accent.** Signal Blue marks the one primary action, the selected thing, your own brand in charts and focus. If two things on a screen are blue and only one is the point, make the other grey.
+4. **Quiet neutrals do the work.** About 80% of any screen is white and grey, 15% is ink text and 5% is blue.
+5. **Soft depth, never heavy.** Cards float a little: 1px border, a soft shadow, a 2px lift on hover. Nothing has a dark frame or a hard drop shadow.
+6. **Round, never bubbly.** 10px buttons, 16px cards, 24px feature panels, full pills for switches and tags. Never mix corner sizes inside one component.
+7. **Show the product.** Illustrations are small, real-looking pieces of the UI (skeleton bars, a tiny chart, a ranked list), never stock art or abstract blobs.
+8. **Explain once.** A tool explains itself on its first screen. Working screens hold labels, buttons and real errors only.
 
-- Text meets 4.5:1 on the grounds its token note names, in both themes. `ink-4` is for disabled text only. `sky` and `spark` are shape colours; text on them uses `on-spark`, and text never sits on `sky`.
-- Focus is a solid 2px `focus` ring with a 2px offset. On notched buttons the ring sits inside (an inset `on-signal` line), because the cut would clip an outside ring.
-- `pos` and `neg` always come with a word or a chevron. Never tell good from bad by colour alone.
-- Respect `prefers-reduced-motion`: the stylesheet drops every transition when it is set.
-
-## Running cost
-
-The brand system adds nothing to the monthly bill. The three fonts are free on Google Fonts and the stylesheet is a static file. Beta (50 teams): $0. Growth (500 teams): $0.
+---
 
 ## Personality
 
-Arrowsterr is **the Navigator**. Picture the friend in the passenger seat who has the map open, knows the shortcut and tells you to take the next exit. Calm about the problem. Excited about the win. Always pointing somewhere.
+Arrowsterr is **the Navigator**: the friend in the passenger seat with the map open, who knows the shortcut and tells you which exit to take. Calm about the problem. Glad about the win. Always pointing somewhere.
 
-The name says it: an **arrow** for direction and a **star** for the moment you get there. The mark shows both: two chevrons climbing and a sparkle above them.
+The name holds both halves: an **arrow** for direction and a **star** for arriving. The mark shows two chevrons climbing and a sparkle above them.
 
 ### Four traits
 
@@ -75,581 +77,729 @@ The name says it: an **arrow** for direction and a **star** for the moment you g
 | **Proof-first** | "Up 6.1 points since you fixed the pricing page." | "Massive gains in visibility!" |
 | **Bright** | "New citation. Perplexity now quotes your docs." | Confetti, exclamation marks, hype |
 
-### How the traits show up in the design
+### How the traits show in the design
 
-- **Pointed** becomes the Climb chevrons, the eyebrow mark, arrow links and the up-and-right rule. Every view has one clear next step, painted `signal` with the Notch.
-- **Plain-spoken** becomes the grey, quiet product UI: `bg`, `line`, 13px `ui` text, no decoration that does not carry meaning.
-- **Proof-first** becomes Geist Mono numbers, `aw-delta` next to every figure, tables before adjectives and real charts on the website.
-- **Bright** becomes the Spark: `spark` gold, used once per view, for a citation won, a rank gained or an AI answer that names you.
+- **Pointed:** every view has one clear next step, the single Signal Blue button. Links end in a right arrow (→).
+- **Plain-spoken:** cool greys, plenty of white, no decoration that carries no meaning.
+- **Proof-first:** stat rows, tabular numbers, deltas, tables and real charts before adjectives.
+- **Bright:** the Spark (gold `#F5B70A`) marks one win per view at most: a citation won, a rank gained.
 
 ### Zippie
 
-Zippie is the mascot: a small navy character (`night` body) with a gold spark (`spark`). Zippie appears on empty states, onboarding and the 404 page. Zippie never appears in the product's working screens, in charts, or next to errors. Zippie never talks in the UI; the copy stays in Arrowsterr's own voice.
+Zippie is the mascot: a small navy character with a gold spark. Zippie appears on empty states, onboarding and the 404 page. Zippie never appears in working screens, charts or next to errors, and never talks in the UI.
+
+---
 
 ## Voice and copy
 
-Write like the Navigator talks: short, direct, and about the reader's next move.
+Write like the Navigator talks: short, direct and about the reader's next move.
 
-### The rules
+### Rules
 
 - **9th-grade words.** "Use" over "leverage", "show" over "surface", "check" over "audit" when both work.
-- **Short sentences.** One idea each. Aim for 8 to 14 words.
-- **Say "you".** Talk to one person. Use "we" only for what Arrowsterr does ("We check every prompt daily").
-- **Verbs first** on buttons and headlines: "Run check", "Add prompts", "Start free", "Book a demo".
+- **Short sentences.** One idea each, 8 to 14 words.
+- **Say "you".** Use "we" only for what Arrowsterr does ("We check every prompt daily").
+- **Verbs first** on buttons: "Run check", "Add prompts", "Start free", "Book a demo".
 - **Numbers over adjectives.** "Named in 38% of answers" beats "great visibility".
+- **Say "competitor".** Never "rival".
 - **No em dashes.** Use a full stop or a comma.
 - **Skip the contrast trick.** Avoid "not X, Y" and "X, not Y". Say the positive thing.
-- **Avoid lists of three in prose.** Two items or four items read as real; three reads as a slogan.
-- **No emoji, no exclamation marks** in the product. One exclamation mark per email at most.
-- **Sentence case** everywhere: headings, buttons, tabs, table headers. Product names keep their own case: ChatGPT, Perplexity, Gemini, Claude, Google AI Overviews.
+- **Avoid lists of three in prose.** Two or four items read as real; three reads as a slogan.
+- **No emoji, no exclamation marks** in the product. One per email at most.
+- **Sentence case** everywhere. Product names keep their case: ChatGPT, Perplexity, Gemini, Claude, Google AI Overviews.
 
-### Headlines from the website
-
-These are on-brand and show the payoff-word pattern (`aw-accent` on the bold part):
-
-- Everything you need to win search, **in one place**
-- Get named in **AI answers**
-- More platform. **Better price.**
-- From AI visibility to **published content**
-
-### Product copy
+### Copy by spot
 
 | Spot | Write | Avoid |
 |---|---|---|
+| Eyebrow | Pricing | PRICING PLANS!! |
+| Page headline | See where AI sends your buyers | Revolutionize your AI presence |
 | Primary button | Run check | Submit |
+| Secondary button | Compare plans | Click here |
 | Empty state | No prompts yet. Add the questions your buyers ask. | Nothing to see here! |
-| Success | Check done. 25 prompts on 5 models. | Success! Your check has completed successfully. |
+| Success toast | Check done. 25 prompts on 5 models. | Success! Your check has completed successfully. |
 | Error | Gemini timed out on 3 prompts. We retry in 1 hour. | An error occurred. |
 | Win | New citation. Perplexity now quotes your pricing page. | Amazing news! |
 | Delete | Delete Acme and its 214 answers? | Are you sure? |
-
-### Screens hold labels, buttons and real errors
-
-Working screens carry no help text, tips or cost notes. Explaining happens once, on a tool's first screen before there is data.
+| Not included (table) | — (an em dash glyph as a table value only) | No / ✗ / N/A |
 
 ### Numbers in copy
 
-- Use digits for every number, even small ones: "3 prompts", "5 models".
-- Percent with no space: "38%". Points for changes in a percent: "+6.1 pts".
+- Digits for every number: "3 prompts", "5 models".
+- Percent with no space: "38%". Changes in a percent use points: "+6.1 pts".
 - Ranks with a hash: "#1", "#3".
-- Money with the symbol and no decimals when whole: "$99/mo".
+- Money with the symbol, no decimals when whole: "$99/mo".
+- Big counts abbreviated with a plus when they are floors: "100M+", "12,000+".
+- Thousands get commas: "3,960".
+
+---
 
 ## Logo
 
-The mark is the **Climb and Spark**: an outer chevron in Signal Blue `#0943B0`, an inner chevron in Sky `#4F7FE0`, and a four-point sparkle in Signal Blue above them. The wordmark sets "Arrowsterr" in near-black `#171717` beside it.
+The mark is the **Climb and Spark**: an outer chevron in Signal Blue `#0943B0`, an inner chevron in Sky `#4F7FE0` and a four-point sparkle in Signal Blue above. The wordmark sets "Arrowsterr" in ink `#171717`, Geist 600, letter-spacing −0.02em.
 
-### Files (Logos group)
+### Files
 
 | File | Use it on |
 |---|---|
-| `arrowsterr-logo-color.svg` | White, `bg`, `bg-2` and light photos. The default. |
-| `arrowsterr-logo-white.svg` | `night`, `signal` and dark photos. All white ink `#FFFFFF`. |
-| `arrowsterr-mark-color.svg` | App icon, favicon, avatar, social profile, small spaces on light grounds. |
-| `arrowsterr-mark-white.svg` | The same spots on `night` or `signal`. All white ink `#FFFFFF`. |
+| `public/brand/arrowsterr-logo-color.svg` | White and light grey grounds. The default. |
+| `public/brand/arrowsterr-logo-white.svg` | Signal Blue, navy and dark photos. |
+| `public/brand/arrowsterr-mark-color.svg` | App icon, favicon, avatar, small spaces on light grounds. |
+| `public/brand/arrowsterr-mark-white.svg` | The same spots on dark grounds. |
 
-The site serves the same files at `https://app.arrowsterr.com/brand/<file>`.
+### Sizes
 
-### Rules
+| Place | Height |
+|---|---|
+| App sidebar and site nav | 24px (full logo) |
+| Footer | 24px |
+| Email header | 28px |
+| Deck cover | 40px |
+| Favicon / app icon | Mark only, 16 to 512px |
 
-- Always place the SVG. Never type "Arrowsterr" in a font as a logo.
-- Always set the height: 20px in nav bars and footers (`aw-logo--sm`), 28px in headers and emails (`aw-logo--md`), 40px on covers (`aw-logo--lg`). Width follows.
-- Clear space on every side equals the height of the sparkle (about a quarter of the mark's height).
-- Smallest sizes: the full logo at 16px tall, the mark at 16px tall.
-- On a dark theme surface, use the white logo, or place the colour logo on a white `aw-logo-badge` tile.
-- Featured images and social cards: the colour logo in a white `aw-logo-badge`, centered at the top.
+Clear space on every side equals the height of the sparkle. Smallest size: 16px tall for both the logo and the mark.
 
 ### Never
 
-- Recolour the chevrons, swap their order, or fill the sparkle with gold. Gold is `spark`, a UI colour; the logo stays blue.
-- Stretch, tilt, outline, add a shadow or put it on a busy photo.
-- Pair the mark with a different wordmark font.
-- Use the chevrons on their own as a logo. Alone, they are the Climb motif.
+- Recolour, reorder or outline the chevrons. Never fill the sparkle with gold.
+- Stretch, tilt, add a shadow or place it on a busy photo.
+- Type "Arrowsterr" in a font as a logo.
+- Use the chevrons alone as a logo.
+
+---
 
 ## Color
 
-Four brand colours sit on a grey product base. Greys do most of the work so the blue can point.
+### Brand
 
-### The brand four
+| Token | Hex | Use |
+|---|---|---|
+| `--signal` | `#0943B0` | Primary buttons, links, selected items, focus, your brand in charts |
+| `--signal-strong` | `#072F80` | Hover and pressed on primary, eyebrow text, links on tinted grounds |
+| `--signal-soft` | `#EEF3FD` | Tinted backgrounds: selected rows, active nav item, icon chips, the glow |
+| `--signal-tint` | `rgb(9 67 176 / 0.045)` | A whole highlighted column or recommended card wash |
+| `--signal-ring` | `rgb(9 67 176 / 0.15)` | The 4px ring around a recommended card or a focused input |
+| `--sky` | `#4F7FE0` | Inner logo chevron and the second series in a two-series chart. Never text. |
+| `--spark` | `#F5B70A` | One win per view. Never a button, never text on white. |
 
-| Token | Light | Dark | Role |
+### Neutrals
+
+A cool grey ramp, biased slightly toward blue so it sits well next to Signal Blue.
+
+| Token | Hex | Use |
+|---|---|---|
+| `--ink` | `#171717` | Headlines, numbers, primary text |
+| `--ink-2` | `#3F4250` | Body text, table values |
+| `--muted` | `#5E6270` | Secondary text, labels, captions, axis labels |
+| `--faint` | `#8B8F9C` | Placeholders, disabled text, decorative only (fails 4.5:1) |
+| `--border-strong` | `#D5D8E0` | Input borders, hover borders |
+| `--border` | `#E7E9EE` | Card and table borders, dividers |
+| `--soft` | `#F6F7F9` | Section bands, allowance panels, table section rows, segmented tray |
+| `--canvas` | `#FBFBFC` | The app shell behind cards |
+| `--card` | `#FFFFFF` | Cards, inputs, popovers, the page panel |
+
+### Status
+
+| Token | Hex | Soft fill | Use |
 |---|---|---|---|
-| `signal` | `#0943B0` | `#2F63D6` | **Signal Blue.** The one thing to click, your brand in a chart, the outer chevron. |
-| `sky` | `#4F7FE0` | `#4F7FE0` | **Sky.** Inner chevron, second chart series. Shape colour only. |
-| `night` | `#0B1B3F` | `#0B1B3F` | **Night.** Headlines (`ink-strong` in light), closing CTA bands, deck title slides. |
-| `spark` | `#F5A70A` | `#FFC53D` | **Spark Gold.** The win. One per view. |
+| `--success` | `#15803D` | `#EAF6EE` | Up deltas, included checks, passed, live |
+| `--warning` | `#B45309` | `#FDF3E2` | Needs attention, partial |
+| `--danger` | `#B91C1C` | `#FCECEC` | Down deltas, failed, destructive buttons |
+| `--info` | `#0943B0` | `#EEF3FD` | Same as Signal Blue |
+
+Status colors mean status only. A green button or a red heading is never allowed.
+
+### Data colors
+
+| Token | Hex | Use |
+|---|---|---|
+| `--data-you` | `#0943B0` | Your brand, always |
+| `--data-1` | `#1F2937` | First competitor |
+| `--data-2` | `#6B7280` | Second competitor |
+| `--data-3` | `#A3A8B3` | Third competitor |
+| `--data-rest` | `#E5E7EB` | Everyone else |
+| `--rank-top3` | `#15803D` | Rank 1 to 3 (map dots, rank badges) |
+| `--rank-top10` | `#B45309` | Rank 4 to 10 |
+| `--rank-top20` | `#C2410C` | Rank 11 to 20 |
+| `--rank-out` | `#B91C1C` | Not in the top 20 |
+
+The rank colors are dark enough to carry white numbers at 12px bold (all pass 5:1 on white text).
 
 ### How much of each
 
-- Greys (`bg-*`, `line-*`, `ink`, `ink-2`, `ink-3`): about 85% of a view.
-- `signal` and `signal-tint`: about 10%. One primary button, the accent words, your row in a table, your line in a chart.
-- `night`: one band per page, usually the last.
-- `spark`: under 1%. A spark tag, the win stat, the end dot of a rising line. Never more than one gold thing in sight.
+| Share of a screen | Colors |
+|---|---|
+| ~80% | `--card`, `--canvas`, `--soft`, `--border` |
+| ~15% | `--ink`, `--ink-2`, `--muted` |
+| ~5% | `--signal` and its tints |
+| Rare | Status colors, only where a state needs it |
+| Once at most | `--spark` |
 
-### Pairs that pass (4.5:1 or more)
+### Contrast (measured, WCAG 2.1)
 
-| Text | On | Light | Dark |
+| Text | Ground | Ratio | Passes |
 |---|---|---|---|
-| `ink-strong` | `bg` | 16.9 | 16.8 |
-| `ink` | `bg-3` | 11.2 | 14.1 |
-| `ink-2` | `bg-3` | 5.1 | 8.0 |
-| `ink-3` | `bg` | 5.0 | 5.3 |
-| `signal-text` | `signal-tint` | 7.7 | 6.9 |
-| `on-signal` | `signal` | 8.6 | 5.4 |
-| `spark-text` | `spark-tint` | 6.2 | 9.2 |
-| `on-spark` | `spark` | 8.4 | 10.7 |
-| `pos` | `pos-tint` | 4.7 | 6.8 |
-| `neg` | `neg-tint` | 5.0 | 6.4 |
-| `on-night-2` | `night` | 9.9 | 9.9 |
+| `#171717` ink | `#FFFFFF` | 17.9:1 | AAA |
+| `#3F4250` ink-2 | `#FFFFFF` | 10.0:1 | AAA |
+| `#5E6270` muted | `#FFFFFF` | 6.1:1 | AA |
+| `#5E6270` muted | `#F6F7F9` soft | 5.7:1 | AA |
+| `#8B8F9C` faint | `#FFFFFF` | 3.2:1 | Large text only |
+| `#0943B0` signal | `#FFFFFF` | 8.6:1 | AAA |
+| `#FFFFFF` | `#0943B0` signal | 8.6:1 | AAA |
+| `#0943B0` signal | `#EEF3FD` soft | 7.7:1 | AAA |
+| `#072F80` signal-strong | `#EEF3FD` soft | 10.9:1 | AAA |
+| `#15803D` success | `#EAF6EE` | 4.5:1 | AA |
+| `#B45309` warning | `#FDF3E2` | 4.6:1 | AA |
+| `#B91C1C` danger | `#FCECEC` | 5.7:1 | AA |
+| `#4F7FE0` sky | `#FFFFFF` | 3.9:1 | Never use for text |
 
-### Rules
+### Dark theme
 
-- Paint links, eyebrows and accent words with `signal-text`, never `signal`, so they stay readable in dark.
-- Never set text in `sky` or `spark`. Gold words use `spark-text`.
-- Put white text only on `signal`, `night` and `neg`.
-- `pos` and `neg` carry a chevron or a word every time (`aw-delta`, `aw-tag--green` with "Cited").
-- Charts: `signal` is you, `sky` is the closest rival, `line-strong` is everyone else. Never use more than three series colours.
-- No gradients anywhere. The only blend is the chart area fill, `signal` at 8%.
-- Dark theme greys follow the product: `bg` `#171717`, `bg-2` `#1B1B1B`, `bg-3` `#1D1D1D`, `bg-4` `#222222`.
+| Token | Light | Dark |
+|---|---|---|
+| `--canvas` | `#FBFBFC` | `#0E1015` |
+| `--card` | `#FFFFFF` | `#151821` |
+| `--soft` | `#F6F7F9` | `#1B1F29` |
+| `--border` | `#E7E9EE` | `#262B37` |
+| `--border-strong` | `#D5D8E0` | `#343A48` |
+| `--ink` | `#171717` | `#EDEEF2` |
+| `--ink-2` | `#3F4250` | `#C9CCD5` |
+| `--muted` | `#5E6270` | `#A3A7B3` |
+| `--faint` | `#8B8F9C` | `#6B7080` |
+| `--signal` | `#0943B0` | `#5B87EA` (text and borders) |
+| `--signal-fill` | `#0943B0` | `#3D6FE0` (button fill, white text 4.6:1) |
+| `--signal-strong` | `#072F80` | `#7EA2F2` |
+| `--signal-soft` | `#EEF3FD` | `rgb(91 135 234 / 0.14)` |
+
+Dark is a palette swap only: same layout, same radii, shadows drop to near zero and borders carry the edges.
+
+---
 
 ## Typography
 
-Three faces, each with one job.
+### Families
 
-| Family | Token | Job |
+| Role | Family | Fallback |
 |---|---|---|
-| **Funnel Display** | `display` | Headings 18px and up. The voice of the brand. |
-| **Inter** | `sans` | Everything you read or click: body, UI, buttons, labels. |
-| **Geist Mono** | `mono` | Every number, rank, delta, code and keyboard key. |
+| Everything (UI, body, headlines, numbers) | **Geist** 400, 500, 600 | `ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif` |
+| Code, API keys, ids, URLs in tables | **Geist Mono** 400, 500 | `ui-monospace, SFMono-Regular, Menlo, monospace` |
 
-### Why Funnel Display
+Both are free on Google Fonts (SIL Open Font License). Load them with `next/font/google`. One family keeps the look calm; headlines get their character from weight 600 and tight letter-spacing.
 
-Funnel Display narrows as it gets heavier, a little like a funnel or a path closing in on a target. It has the geometric bones of a tech brand and a warmer, odd edge in letters like **a**, **g** and **y** that makes headlines feel like Arrowsterr and nobody else. It runs from weight 300 to 800 and is free on Google Fonts.
+### Type scale
 
-### The scale
+All sizes in px. Letter-spacing in em. Line height as a number.
 
-| Style | Size / line | Weight | Tracking | Use |
-|---|---|---|---|---|
-| `hero` | 64 / 1.0 | 700 | -0.035em | One per page, the top headline. 40px on phones. |
-| `display` | 48 / 1.05 | 600 | -0.03em | Website section heads, slide titles. 34px on phones. |
-| `h1` | 36 / 1.1 | 600 | -0.025em | Post titles, email headlines. |
-| `h2` | 28 / 1.15 | 600 | -0.02em | Headings inside posts. |
-| `h3` | 22 / 1.2 | 600 | -0.015em | Tile titles, FAQ questions. |
-| `h4` | 15 / 22 | 600 Inter | 0 | Card and panel titles in the product. |
-| `lead` | 18 / 28 | 400 | 0 | The one line under a hero. |
-| `body` | 16 / 26 | 400 | 0 | Website and blog copy. |
-| `ui` | 13 / 20 | 400 | 0 | All product UI. |
-| `label` | 12 / 16 | 500 | 0 | Tags, field labels, table headers. |
-| `stat` | 40 / 1.0 | 500 mono | -0.02em | Hero numbers. |
-| `num` | 13 / 20 | 500 mono | 0 | Numbers in tables and KPIs. |
+| Token | Size | Line | Weight | Tracking | Use |
+|---|---|---|---|---|---|
+| `display-xl` | clamp(36, 4.5vw, 60) | 1.08 | 600 | −0.045 | Website hero only. `text-wrap: balance`, max 22ch |
+| `display` | 36 (30 on phones) | 1.15 | 600 | −0.035 | Website section titles |
+| `h1` | 28 | 1.2 | 600 | −0.03 | App page title |
+| `h2` | 22 | 1.3 | 600 | −0.025 | Card group titles, first-screen headline in the app |
+| `h3` | 18 | 1.35 | 600 | −0.02 | Card titles on the website, dialog titles |
+| `h4` | 15 | 1.4 | 600 | −0.01 | Card titles in the app |
+| `price` | 44 | 1 | 600 | −0.05 | Plan prices |
+| `stat` | 24 | 1.2 | 600 | −0.025 | Stat row numbers (tabular) |
+| `stat-lg` | 32 | 1.1 | 600 | −0.03 | The lead number on a tile |
+| `body-lg` | 18 | 1.75 | 400 | 0 | Website lead paragraphs, max 760px wide |
+| `body` | 16 | 1.6 | 400 | 0 | Website body |
+| `ui` | 14 | 1.45 | 400 / 500 | 0 | App default: body, buttons, inputs, table cells |
+| `small` | 13 | 1.5 | 400 / 500 | 0 | Secondary text, allowance rows, plan subtitles |
+| `caption` | 12 | 1.35 | 400 / 500 | 0 | Axis labels, helper meta, badge text |
+| `micro` | 11 | 1.45 | 600 | +0.08 uppercase | Popover headings, table group labels. Use rarely |
+| `eyebrow` | 14 | 1.4 | 600 | 0 | Section kicker above a headline, in `--signal-strong` |
+| `eyebrow-caps` | 12 | 1.35 | 600 | +0.12 uppercase | Kicker on feature cards (Starter, Growth) |
 
 ### Rules
 
-- Headings use `ink-strong`. The payoff words use `signal-text` (`aw-accent`). Never colour a whole heading blue.
-- Never set Funnel Display under 18px or in all caps. Never letter-space it open.
-- Use `text-wrap: balance` on headings so lines break evenly.
-- Body copy runs 60 to 70 characters wide (`aw-prose`, `aw-lead`).
-- Numbers are always mono and tabular, so columns line up and changes do not jiggle.
-- No italics in headings. Use weight, not italics, for emphasis in body copy.
-- Eyebrows (`aw-eyebrow`) are 13px Inter 600 in `signal-text` with the Climb mark. Never all caps.
+- Every number that can sit in a column uses `font-variant-numeric: tabular-nums`.
+- Headlines use `text-wrap: balance`; long words use `overflow-wrap: anywhere`.
+- Body text never wider than 65 characters (`max-width: 760px` at 18px, `680px` at 16px).
+- Headings are one colour: `--ink`. No two-tone headlines, no gradient text.
+- Weights: 400 for reading, 500 for UI emphasis and buttons, 600 for headings and numbers. Never 700 or bolder.
+- Muted text is `--muted`, never a lighter opacity of ink.
+- Never all caps for more than 3 words, and never for buttons.
 
-## Signature motifs
+---
 
-Six moves make a screen look like Arrowsterr even with the logo covered. Use them on purpose and sparingly.
+## Spacing and layout
 
-### The Climb
+### Spacing scale (4px grid)
 
-Two stacked chevrons from the mark, pointing up. It means "this way, higher".
+| Token | px | Typical use |
+|---|---|---|
+| `space-0.5` | 2 | Icon to text nudge |
+| `space-1` | 4 | Tight gaps inside badges |
+| `space-1.5` | 6 | Dot to label |
+| `space-2` | 8 | Icon to label, chip gaps |
+| `space-2.5` | 10 | List row gaps |
+| `space-3` | 12 | Button group gaps, small card padding |
+| `space-4` | 16 | Default gap, inner padding of panels |
+| `space-5` | 20 | Card grid gap, phone side gutter |
+| `space-6` | 24 | Card padding |
+| `space-8` | 32 | Desktop side gutter, gap between stat columns |
+| `space-10` | 40 | Gap between a header block and its content |
+| `space-12` | 48 | Gap between major blocks inside a section |
+| `space-16` | 64 | Section padding on phones |
+| `space-24` | 96 | Section padding on desktop |
 
-- Eyebrows above section titles (`aw-eyebrow`).
-- The info callout icon (`aw-callout`) and the pull-quote mark (`aw-quote`).
-- A large, 6% white watermark in the corner of a Night panel (`aw-panel-night--climb`).
-- List bullets use a single chevron turned to point right (`aw-list`).
+### Website layout
 
-### The Spark
+- Container: `max-width: 1280px`, side padding 20px (phone) / 32px (desktop).
+- Section rhythm: `padding-block: 64px` on phones, `96px` from 1024px. Sections are split by a 1px `--border` line or a change to `--soft` background.
+- Section header: eyebrow, then headline 12px below, then lead 16px below. On wide screens the header may split into two columns: title left, a short paragraph right aligned to its bottom (`grid-template-columns: 1fr 420px; align-items: end; gap: 64px`).
+- Card grids: 1 column on phones, 2 from 768px, 3 or 4 from 1280px, gap 20px.
 
-The four-point star from the mark, in `spark` gold. It means "you won something".
+### App layout
 
-- A spark tag (`aw-tag--spark`) for a new citation or a rank gained.
-- The win stat (`aw-stat--win`) on a dashboard.
-- The end dot of a line that hit a new high (`aw-chart-dot--win`).
-- The "In short" label of a quick summary (`aw-summary`).
-- One per view. If two things want gold, the smaller one goes blue.
-
-### The Notch
-
-A 45 degree cut on the top-right corner, like an arrow tip or a folded map corner.
-
-- The primary button (`aw-btn--primary`, `aw-btn--on-night`) and the top rank badge (`aw-rank--top`). 8px cut; 10px on large buttons.
-- One featured frame per section (`aw-frame--notch`), 16px cut with a `line-strong` edge.
-- Nothing else is notched: never cards, inputs, tags or images.
-
-### Target ticks
-
-Four small L-shaped corner marks, 6px outside a box, in `signal-text` (`aw-ticks`). They say "look here".
-
-- One per view, on the number or card you want read first.
-- Never on a button or around text.
-
-### The flight grid
-
-A 16px dot grid in `line-strong` on `bg-2` (`aw-dotgrid`). It is the ground that product views sit on in marketing frames, featured images and slide backgrounds. Never behind body copy.
-
-### The payoff word
-
-One to four words of a headline in `signal-text` (`aw-accent`). Pick the words that name the result: "Get named in **AI answers**".
-
-## Layout, motion and responsive
-
-### Grid and spacing
-
-- Spacing runs on 4px steps: `space-1` 4, `space-2` 8, `space-3` 12, `space-4` 16, `space-6` 24, `space-8` 32, `space-12` 48, `space-16` 64, `space-28` 112.
-- Website content is `max-width` 1120px with a 24px gutter (16px on phones).
-- Website sections pad `space-28` (112px) top and bottom; 88px under 960px; 64px under 600px.
-- A section head (`aw-section-head`) is an eyebrow, a `display` title and at most one `lead` line, with `space-12` before the content.
-- Feature sections use the bento (`aw-bento`): 10 columns, 16px gaps, tiles spanning 6 + 4 or 4 + 6, alternating by row.
-- Product screens use `space-4` card padding and `space-4` gaps. Rows and controls are `control-md` (32px).
-
-### Page rhythm on the website
-
-1. Hero: `hero` headline with a payoff word, one `lead` line, a primary and a secondary button, a product view on the flight grid.
-2. Proof: logos or one stat row.
-3. Features: a bento of product views.
-4. How it works: a numbered list (`aw-list--num`).
-5. Pricing or a table.
-6. FAQ (`aw-faq`).
-7. Night CTA band (`aw-panel-night--climb`) to close.
-
-### Motion
-
-- Quick and plain: 120 to 150ms, `cubic-bezier(.22, 1, .36, 1)`.
-- Things move up or right when they enter: 8px rise, fade in.
-- Arrow links nudge 3px right on hover.
-- No bounces, spins or parallax. Respect `prefers-reduced-motion`.
-
-### Responsive
-
-| Width | Change |
+| Part | Size |
 |---|---|
-| 960px and down | Bento and 3 or 4 column grids fold to 1 or 2 columns. Sections pad 88px. |
-| 600px and down | `hero` 40, `display` 34, `h1` 30, `h2` 24, `h3` 20. All grids one column. Sections pad 64px. Gutter 16px. Inline forms stack. Buttons with `aw-btn--block-mobile` go full width. |
-| Any width | Tables scroll inside `aw-table-wrap`; the page never scrolls sideways. |
+| Sidebar | 248px wide, `--canvas` background, collapses to 64px icons below 1024px |
+| Page panel | White `--card`, 16px radius, 1px border, sits 8px inside the canvas on desktop |
+| Page header bar | 56px tall: breadcrumb left, brand switcher, actions right |
+| Content | `max-width: 1240px`, padding 32px desktop / 16px phone |
+| Gap between blocks | 16px between cards in a row, 24px between rows |
 
-## Imagery and icons
+### Breakpoints
 
-### Show the product
+| Name | Min width |
+|---|---|
+| `sm` | 640px |
+| `md` | 768px |
+| `lg` | 1024px |
+| `xl` | 1280px |
 
-- The main image is always a real product view: a table, a chart or a list, in an `aw-window` or `aw-frame`, sitting on the flight grid (`aw-dotgrid`).
-- Use believable sample data: real model names, made-up brands (Acme, Northwind, Globex, Initech), numbers that add up.
-- Crop tight. Show the one part that proves the point, with Target ticks on the number that matters.
-- No stock photos of people at laptops. No 3D blobs, no glowing orbs, no purple gradients.
+Every screen must work at 400px wide with no sideways page scroll. Tables scroll inside their own card.
 
-### Featured images and social cards
+---
 
-- 1200 × 630.
-- `bg-2` flight grid, the colour logo in a white `aw-logo-badge` centered at the top, one product view below it.
-- No words in the image. The title lives in the post.
+## Shape: radius, borders, elevation
 
-### Icons
+### Radius
 
-- 16px line icons, 1.5px stroke, round caps and joins, drawn on a 16px grid. Same style as Lucide.
-- Icons use `ink-2` at rest and `ink` on hover. Icons that carry meaning meet 3:1.
-- Brand-only icons: the Climb (direction, tips), the Spark (wins, AI), a single chevron (bullets, deltas).
-- No emoji anywhere in the product, emails or decks.
+| Token | px | Use |
+|---|---|---|
+| `radius-xs` | 4 | Skeleton bars, chart bar ends |
+| `radius-sm` | 6 | Checkboxes, small inline chips, map rank badges |
+| `radius-md` | 10 | **Buttons**, inputs, selects, menu rows |
+| `radius-lg` | 12 | Panels inside a card (allowance list, notes), popovers, tooltips |
+| `radius-xl` | 16 | **Cards**, dialogs, the app page panel |
+| `radius-2xl` | 24 | Feature panels on the website (the upgrade-path strip) |
+| `radius-full` | 9999 | Segmented switches, badges and tags, avatars, logo chips, toggle switches |
 
-### Charts
+A card inside a card takes the next size down (16 outside, 12 inside).
 
-- `signal` is you, `sky` is the nearest rival, `line-strong` is everyone else.
-- 2px lines, round joins, a `signal` area at 8%.
-- Grid lines in `line-faint`, axis labels in Geist Mono 11px `ink-3`.
-- A line that ends on a new high gets the Spark end dot.
-- Label the series in a legend (`aw-legend`), never by colour alone in the copy.
+### Borders
 
-### Decks
+- 1px solid `--border` on every card, table and panel.
+- Inside a soft panel, row dividers use `--border` at 60% opacity.
+- Dashed 1px borders mean "custom" or "optional": a custom-plan chip, a drop zone, a point with no answer.
+- Hover on an interactive card: border becomes `rgb(23 23 23 / 0.2)`.
+- Never a 2px or darker frame. The only 2px line is the Signal Blue bar across the top of a highlighted table column.
 
-- Title slide: `night` background, white logo top-left, `display` headline in white with a payoff word in `#8FB0FF`, the Climb watermark bottom-right.
-- Content slides: `bg` background, `display` title, one product view or one chart per slide, numbers in Geist Mono.
-- 16:9, 64px margins.
-
-## Token reference
-
-| Token | Light | Dark | Use |
-|---|---|---|---|
-| `signal` | `#0943B0` | `#2F63D6` | Signal Blue, the brand colour. Primary button fill, selected states, the outer chevron of the mark, the lead chart series. One Signal element leads each view. |
-| `signal-hover` | `#07368E` | `#3A6BDB` | Hover and pressed fill for anything painted `signal`. |
-| `signal-text` | `#0943B0` | `#8FB0FF` | Links, accent words in headings, eyebrows, active nav text. Reads on `bg`, `bg-2`, `bg-3` and `signal-tint` in both themes (7.4:1 or more). |
-| `signal-tint` | `#EEF3FF` | `#1D2740` | Tinted fill behind blue tags, selected table rows and the info callout. Text on it is `signal-text`. |
-| `on-signal` | `#FFFFFF` | `#FFFFFF` | Text and icons on `signal` fills (8.6:1 light, 5.4:1 dark). |
-| `sky` | `#4F7FE0` | `#4F7FE0` | Sky, the inner chevron of the mark and the second chart series. A shape colour only: never set text in it. |
-| `spark` | `#F5A70A` | `#FFC53D` | Spark Gold. The four-point star and the one win moment per view (a new citation, a rank gain, an AI answer). Fill only; text on it is `on-spark`. |
-| `spark-text` | `#8A4B00` | `#FFC53D` | Gold words: the label inside a spark tag, a 'New' marker. Reads on `bg`, `bg-2` and `spark-tint` (6.2:1 or more). |
-| `spark-tint` | `#FFF4DC` | `#33280F` | Fill of the spark tag and the spark callout. |
-| `on-spark` | `#0B1B3F` | `#0B1B3F` | Text on `spark` fills (8.4:1 light, 10.7:1 dark). |
-| `night` | `#0B1B3F` | `#0B1B3F` | Night, the deep navy of the mascot. Dark panels, the closing CTA band, deck title slides. Same in both themes; in dark, give a Night panel a `line` border. |
-| `on-night` | `#FFFFFF` | `#FFFFFF` | Headlines and buttons on `night` (16.9:1). |
-| `on-night-2` | `#B3C7F2` | `#B3C7F2` | Body copy and captions on `night` (9.9:1). |
-| `ink-strong` | `#0B1B3F` | `#F5F7FF` | Headings, big numbers, the wordmark. On `bg`, `bg-2`, `bg-3`. |
-| `ink` | `#333333` | `#EBEBEB` | Body copy and table cells. On every `bg-*` (11:1 or more). |
-| `ink-2` | `#666666` | `#B3B3B3` | Secondary text: table headers, meta lines, inactive tabs. On `bg`, `bg-2`, `bg-3` (5:1 or more). |
-| `ink-3` | `#707070` | `#8C8C8C` | Captions, axis labels, placeholders, helper icons. On `bg` and `bg-2` only (4.6:1 or more). |
-| `ink-4` | `#B3B3B3` | `#5C5C5C` | Disabled text only. Never for anything a person must read. |
-| `bg` | `#FFFFFF` | `#171717` | Default surface: cards, tables, inputs, the page in the app. |
-| `bg-2` | `#FCFCFC` | `#1B1B1B` | Page background behind cards, side panels, table header row. |
-| `bg-3` | `#F1F1F1` | `#1D1D1D` | Segmented controls, hover rows, neutral tag fill, code blocks. |
-| `bg-4` | `#EBEBEB` | `#222222` | Pressed states, the selected segment track, progress tracks. |
-| `hover` | `rgba(0, 0, 0, 0.04)` | `rgba(255, 255, 255, 0.06)` | Laid over any surface on hover: nav links, ghost buttons, table rows. |
-| `line` | `#EBEBEB` | `#292929` | Card and table borders, dividers. Borders carry the structure; there are no card shadows. |
-| `line-faint` | `#F1F1F1` | `#222222` | Row dividers inside tables and lists, chart grid lines. |
-| `line-strong` | `#D6D6D6` | `#333333` | Secondary button border, menus, dot-grid dots, the notch edge. |
-| `line-control` | `#8C8C8C` | `#6B6B6B` | Input, checkbox and radio borders (3.4:1 on `bg`). |
-| `focus` | `#0943B0` | `#8FB0FF` | The 2px focus ring on every control, offset 2px. 3:1 or more on every surface. |
-| `pos` | `#0B7A54` | `#4FC08D` | Gains and passes: rank up, cited, live. Always paired with an up chevron or a word. On `bg` and `pos-tint`. |
-| `pos-tint` | `#E6F4EE` | `#13291F` | Fill of the green tag and the success callout. |
-| `neg` | `#C02A35` | `#FF7A84` | Losses and errors: rank down, missing, failed. Always paired with a down chevron or a word. On `bg` and `neg-tint`. |
-| `neg-tint` | `#FBEBEC` | `#331A1C` | Fill of the red tag and the error callout. |
-
+### Elevation
 
 | Token | Value | Use |
 |---|---|---|
-| `space-1` | `4px` | Icon to label, tag padding. |
-| `space-2` | `8px` | Gaps inside controls and between tags. |
-| `space-3` | `12px` | Button side padding, table cell padding, gaps between stacked fields. |
-| `space-4` | `16px` | Card padding in the app, grid gaps, the dot-grid pitch. |
-| `space-6` | `24px` | Card padding on the site, page gutter, gap between cards. |
-| `space-8` | `32px` | Space between a heading block and its content. |
-| `space-12` | `48px` | Space between groups inside a section. |
-| `space-16` | `64px` | Section padding on phones. |
-| `space-28` | `112px` | Section padding on the website at desktop width. |
-| `radius-sm` | `4px` | Buttons, inputs, tags, menus items, segmented controls. The product's default. |
-| `radius-md` | `8px` | Cards, tables, menus, dialogs, windows. |
-| `radius-lg` | `12px` | Marketing frames and bento tiles on the website. |
-| `radius-full` | `999px` | Avatars and status dots only. Nothing else is round. |
-| `control-sm` | `24px` | Small buttons, segmented options, icon buttons in toolbars. |
-| `control-md` | `32px` | Default button and input height in the product, table row height. |
-| `control-lg` | `40px` | Website and email buttons, form inputs on the site. |
-| `tag-h` | `20px` | Tag and chip height. |
-| `notch` | `8px` | The Notch: the top-right corner cut on primary buttons. 16px on frames. |
-| `max-width` | `1120px` | Website content width. |
+| `shadow-xs` | `0 1px 2px rgb(16 24 40 / 0.04)` | Resting cards, tables, inputs |
+| `shadow-sm` | `0 1px 2px rgb(16 24 40 / 0.05), 0 1px 3px rgb(16 24 40 / 0.06)` | Selected pill in a segmented switch |
+| `shadow-md` | `0 4px 12px -2px rgb(16 24 40 / 0.08), 0 2px 4px -2px rgb(16 24 40 / 0.04)` | Recommended card, sticky bars |
+| `shadow-lg` | `0 18px 36px -18px rgb(16 24 40 / 0.22), 0 1px 2px rgb(16 24 40 / 0.04)` | Card on hover, popovers, mock UI cards in illustrations |
+| `shadow-xl` | `0 24px 48px -12px rgb(16 24 40 / 0.18)` | Dialogs |
+| `ring-signal` | `0 0 0 4px rgb(9 67 176 / 0.15)` | Recommended card, focused input |
+
+Hover lift on interactive cards: `transform: translateY(-2px)` with `shadow-lg`, 200ms ease-out.
+
+---
+
+## Backgrounds and atmosphere
+
+Atmosphere is for the website, the first screen of a tool and empty states. Working screens stay flat white and grey.
+
+| Device | Recipe |
+|---|---|
+| **Top glow** | `radial-gradient(circle at 72% 8%, var(--signal-soft), transparent 48%)`, 440px tall, masked to fade out at the bottom. One per page, at the top. |
+| **Dot grid** | `radial-gradient(var(--border) 1px, transparent 1px)` at `22px 22px`, masked with an ellipse so it fades at the edges, 70% opacity. Behind plan cards and illustrations. |
+| **Soft blobs** | 560 to 620px circles of `--signal` at 4.5% to 7% opacity, `blur(150px)`, one top-right and one bottom-left. Only behind a full pricing or feature band. |
+| **Top hairline** | 1px line across the top of a band: `linear-gradient(to right, transparent, rgb(9 67 176 / 0.35), transparent)`. |
+| **Section wash** | `linear-gradient(to bottom, rgb(9 67 176 / 0.05), transparent)` over the first 560px of a highlighted band. |
+
+Never more than two devices at once. Never a gradient on a button, a heading or a card fill.
+
+---
+
+## Icons and logos of other products
+
+### Icons
+
+- Line icons, 1.5px stroke, round caps and joins, `currentColor`. Lucide is the reference set.
+- Sizes: 12px inside badges and checks, 16px in buttons and rows, 20px in empty states.
+- An icon in a button sits 8px from its label. Icon-only buttons are 36px square with a tooltip.
+- **Check:** a 20px circle in `--success` at 10% with a 12px check in `--success` means "included".
+- **Not included:** an em dash in `--muted` at 70%.
+- **Arrow:** a right arrow (→ or a 16px arrow icon) ends every link that moves forward; a down arrow means "jump to this section".
+- **Plus/minus:** FAQ rows open with a plus that turns 45° into an ×.
+
+### Logos of AI platforms and other tools
+
+- Always show the logo (ChatGPT, Perplexity, Gemini, Claude, Google AI Overviews, Copilot, Grok) with its name as the label or tooltip.
+- In a row of several, each logo sits in a 24px white circle with a 1px card-coloured border, overlapping by 4px (`-space-x-1`).
+- In a list, each logo sits in a 24px circle with a 1px `--border` and `--canvas` fill, 8px from its name.
+- Brand colours of other products stay as they are inside their logos and nowhere else.
+
+---
+
+## Motion
+
+| Token | Duration | Use |
+|---|---|---|
+| `fast` | 120ms | Colour and border changes on hover |
+| `base` | 180ms | Tooltips, popovers, pill switch, tab change |
+| `move` | 200ms | Card lift, button press |
+| `slow` | 500ms | Illustration hover moves, chart draw |
+
+Easing: `cubic-bezier(0.2, 0.8, 0.2, 1)` for entering and moving, `ease-in` for leaving. Animate `transform`, `opacity`, `background-color`, `border-color` and `box-shadow` only.
+
+- Hover on cards: lift 2px. Hover on illustration pieces: move 4px in a different direction each.
+- Tooltips: fade in and rise 4px.
+- Numbers never count up. Charts may draw once on first view.
+- Everything stops under `prefers-reduced-motion: reduce`.
+
+---
 
 ## Components
 
-Every class below is in `arrowsterr-brand.css`, scoped to `.aw`.
+Each component lists its anatomy, sizes, states and rules. Class names are the v10 names in `src/app/brand-v10.css`; React components live in `src/components/ui.tsx`.
 
 ### Button
 
-Buttons for every action; the primary one carries the Notch.
+| Variant | Fill | Text | Border | Hover |
+|---|---|---|---|---|
+| **Primary** | `--signal` | white, 500 | none | `--signal-strong` |
+| **Secondary** | `--card` | `--ink`, 500 | 1px `--border` | fill `--soft` |
+| **Ghost** | transparent | `--ink-2` | none | fill `--soft` |
+| **Link** | none | `--signal`, 500 | none | underline 1px, 3px offset |
+| **Danger** | `--danger` | white | none | 10% darker |
 
-**Provide:** a verb-first label ("Run check"), and an icon only when it adds meaning. Use `<button>` for actions and `<a>` for links.
+| Size | Height | Padding | Text |
+|---|---|---|---|
+| `sm` | 32px | 0 12px | 13px |
+| `md` (default) | 40px | 0 16px | 14px |
+| `lg` | 44px | 0 20px | 14px, 600 |
 
-**Classes:** `aw-btn` plus one of `--primary`, `--secondary`, `--ghost`, `--danger`, `--on-night`, `--ghost-night`; sizes `--sm` (24px), default (32px), `--lg` (40px, website and email); `--icon`, `--block`, `--block-mobile`. Group with `aw-btn-row`.
+- Radius 10px on every size. No shadow, no ring, no gradient.
+- Focus: `outline: 2px solid var(--signal); outline-offset: 2px`.
+- Disabled: 50% opacity, no hover.
+- Loading: the label stays, a 14px spinner replaces the icon.
+- One primary button per view. Secondary actions are secondary or ghost.
+- Full-width buttons only inside cards and on phones.
+- A primary button may end with a right arrow icon when it moves forward ("Choose a plan →").
 
-- Do show one primary per view. Pair it with a secondary.
-- Do use `--lg` on the website and in emails, the default in the product.
-- Don't round the corners past `radius-sm` or add a shadow to the primary.
-- Don't write "Submit", "Click here" or "Learn more".
+### Segmented switch
 
-### Callout
+A pill tray for switching a view (Monthly / Annual, Ranks / Change / Head to head).
 
-Callouts: a tinted box with an icon for a tip, a win, a pass or a failure.
+- Tray: `--soft`, 1px `--border`, `radius-full`, 4px padding, 2px gap.
+- Item: 36px tall, 16px side padding, 14px 500, `--muted`.
+- Selected item: `--card` fill, `--ink` text, `shadow-sm`, `radius-full`.
+- A small status pill may sit inside an item ("Save about 15%" in success soft).
+- Never used for page tabs. Page sections use Tabs.
 
-**Provide:** a bold lead word ("Tip.", "Check failed.") and one or two sentences.
+### Tabs
 
-**Classes:** `aw-callout` (Climb, blue), `--spark` (win), `--pos` (pass), `--neg` (failure).
+- Text tabs with a 2px underline in `--signal` on the selected tab, 14px 500.
+- Unselected `--muted`, hover `--ink`.
+- 40px tall, 20px gap, a 1px `--border` line under the whole row.
 
-- Do say what happened and what happens next on a failure.
-- Don't add a coloured side border or a shadow.
+### Input, select and textarea
+
+- 40px tall (inputs, selects), 10px radius, 1px `--border-strong`, `--card` fill, 14px text, 12px side padding.
+- Placeholder `--faint`. Label above in 13px 500 `--ink`, 6px gap. Help text below in 12px `--muted`.
+- Focus: border `--signal`, plus `ring-signal`.
+- Error: border `--danger`, message below in 12px `--danger`.
+- Search bars on tool screens: 48px tall inside a card, with the action button at 48px on the right.
+- Never the browser's own `<select>`, `alert`, `confirm` or `prompt`. Use the app's `Select` and dialogs.
+
+### Checkbox, radio and toggle
+
+- Checkbox 16px, `radius-sm`, checked fill `--signal` with a white check.
+- Toggle 36 × 20px, `radius-full`, off `--border-strong`, on `--signal`, white 16px knob.
+
+### Badge (dot badge)
+
+Small pill that names a state or a highlight.
+
+- 24px tall (20px small), `radius-full`, 10px side padding, 12px 600.
+- Leading 6px dot in `currentColor`.
+- Tones: signal (`--signal` on 10% signal), success, warning, danger, neutral (`--ink-2` on `--soft`).
+- "Recommended" on a plan card is a signal badge.
+- "Custom plan" uses a 1px dashed signal border at 60% with no fill.
+
+### Tag (label chip)
+
+For filters and categories. 28px, `radius-full`, 1px `--border`, `--card`, 13px 500. Selected: `--signal-soft` fill, `--signal-strong` text, border `--signal` at 30%.
 
 ### Card
 
-Cards and product windows: white boxes with hairline borders that hold one piece of product.
+The base surface.
 
-**Provide:** a title (`aw-h4`), the content and at most one link or button.
+- `--card`, 1px `--border`, `radius-xl` (16px), `shadow-xs`, padding 24px (20px on phones).
+- Card header: title (h4 in the app, h3 on the site) left, actions right, 16px below to content.
+- Interactive card: hover lifts 2px, `shadow-lg`, border to 20% ink, 200ms.
+- **Highlighted card** (the recommended plan, your brand's tile): border `--signal` at 60%, `shadow-md`, `ring-signal`, and a top wash `linear-gradient(to bottom, var(--signal-tint), transparent)` 144px tall.
+- Never nest more than one level. A panel inside a card uses `--soft` fill and `radius-lg` with no shadow.
 
-**Classes:** `aw-card` with `--lg`, `--flush`, `--tint`, `--link`; `aw-card__head`; `aw-window` with `aw-window__bar` (breadcrumb plus `aw-kbd`) and `aw-window__body`; `aw-skel` for placeholder lines.
+### Plan card
 
-- Do let borders carry structure. No shadow on cards.
-- Don't nest cards inside cards. Use a divider instead.
+Anatomy top to bottom: muted kicker (13px 500), plan name (24px 600 −0.03em) with optional badge on the right, one-line description (14px muted), price block (44px number, "/ month" muted, old price struck through in muted 80%), a note line (13px muted), the full-width button, a divider, a "What you can do" list with check circles, and an allowance panel (`--soft`, `radius-lg`) of label / value rows.
 
-### Chart
+### Stat row
 
-Charts: inline SVG lines and bars plus share-of-voice bars in HTML.
+How a screen shows its key numbers. No boxes around each number.
 
-**Provide:** the data, a legend and a text label for the chart.
+- Each stat: number on top (24px 600 tabular, −0.025em), label below (14px `--muted`), 4px gap.
+- Columns: 2 on phones, 3 at 640px, 5 at 1024px. Gap 24px across, 20px down.
+- A delta badge may sit right of the number.
+- An interactive stat (opens a popover) shows a dotted underline on its label.
 
-**Classes:** `aw-chart`, `aw-chart-grid`, `aw-chart-base`, `aw-chart-label`, `aw-chart-line` (`--2`, `--muted`), `aw-chart-area`, `aw-chart-dot`, `aw-chart-dot--win`, `aw-chart-bar` (`--you`, `--2`); `aw-sov`, `aw-sov__row`, `is-you`; `aw-legend`.
+### Tile (stat tile with a visual)
 
-- Do paint you in `signal`, the nearest rival in `sky`, all others in `line-strong`.
-- Do mark a new high with the Spark end dot.
-- Don't use pie charts or 3D.
+For dashboards: a card with a 12px muted label at the top and one visual with its number below (ring, donut, stacked bar, small matrix). All tiles in a row share one height.
 
-### Controls
+### Allowance list
 
-Checkboxes, radios, toggles, segmented controls and the inline sign-up form.
-
-**Provide:** a label next to every control.
-
-**Classes:** `aw-check` around a native checkbox or radio; `aw-toggle` on a checkbox for on/off settings; `aw-seg` with `aria-pressed` buttons; `aw-inline-form` for email plus button.
-
-- Do use a toggle for settings that apply at once, a checkbox for choices saved with a button.
-- Don't use more than four options in a segmented control.
-
-### FAQ
-
-The FAQ: native `<details>` rows with the question in Funnel Display.
-
-**Provide:** questions as buyers ask them, answers of one to three sentences.
-
-**Classes:** `aw-faq` around `<details><summary>Question</summary><div>Answer</div></details>`.
-
-- Do open the first question by default.
-- Don't put links-only answers or more than eight questions in one block.
-
-### Frame
-
-Marketing frames for product views, with the Notch and the flight grid on the featured one.
-
-**Provide:** a product view (window, table or chart) on an `aw-dotgrid` top half and an `aw-h3` title below.
-
-**Classes:** `aw-frame`, `aw-frame--notch`, `aw-dotgrid`, `aw-ticks`.
-
-- Do notch one frame per section, the one that matters most.
-- Do put Target ticks on the number you want read first.
-- Don't put text on the dot grid.
-
-### Heading
-
-Headings in Funnel Display with an eyebrow above and one payoff word in Signal Blue.
-
-**Markup:** `<span class="aw-eyebrow">AI visibility</span>`, then `<h1 class="aw-hero">Get named in <span class="aw-accent">AI answers</span></h1>`, then at most one `<p class="aw-lead">`.
-
-**Classes:** `aw-hero`, `aw-display`, `aw-h1`, `aw-h2`, `aw-h3` (Funnel Display), `aw-h4` (Inter 600), `aw-lead`, `aw-body`, `aw-small`, `aw-caption`, `aw-label`, `aw-num`, `aw-code`, `aw-kbd`, `aw-eyebrow`, `aw-accent`, `aw-link`, `aw-link--arrow`, `aw-prose`.
-
-- Do give each page one `aw-hero` and each section one `aw-display`.
-- Do put the accent on the words that name the result.
-- Don't set Funnel Display under 18px, in caps or in a colour other than `ink-strong`, `on-night` or the accent.
-- Don't add a paragraph under a title. One lead line at most.
-
-### Input
-
-Text fields and the custom select: labels on top, errors below, no native dropdowns.
-
-**Provide:** a short label, a placeholder that shows the format, and an error that says how to fix it.
-
-**Classes:** `aw-field`, `aw-field__label`, `aw-field__error`, `aw-input` (`--lg` on the website), `aw-textarea`, `aw-select` (a button), `aw-menu`, `aw-menu__item`.
-
-- Do set `aria-invalid="true"` on a field with an error.
-- Don't use `<select>`, `window.prompt`, `window.confirm` or `window.alert`. Open an `aw-menu` or a dialog.
-- Don't add help text under fields.
-
-### List
-
-Lists with chevron bullets, check marks or mono numbers.
-
-**Provide:** short items, one line each where you can.
-
-**Classes:** `aw-list` (chevrons), `aw-list--check` (wins and features), `aw-list--num` (steps, 01 02 03), `aw-list--tight`; a nested `<ul>` gets small square dots.
-
-- Do keep items parallel: all start with a verb or all with a noun.
-- Don't nest more than one level.
-
-### Logo
-
-The Arrowsterr logo and mark, always placed as SVG files with a set height.
-
-**Provide:** the file from the Logos group and an `alt` of "Arrowsterr" (empty `alt` for a mark next to the word).
-
-**Classes:** `aw-logo` with `aw-logo--sm` (20px), `aw-logo--md` (28px) or `aw-logo--lg` (40px); `aw-mark` (32px) with `--sm` (20px) or `--lg` (56px); `aw-logo-badge` for a white tile.
-
-- Do use the colour files on white and light greys, the white files on `night` and `signal`.
-- Do keep clear space equal to the sparkle's height.
-- Don't type the name as a logo, recolour the chevrons or put the logo on a busy photo.
-
-### Motifs
-
-The four shapes that mark a screen as Arrowsterr: the Climb, the Spark, the Notch, and Target ticks on the flight grid.
-
-**Classes:** `aw-climb` (inline mark, sized by font-size), `aw-star` (inline spark), the Notch on `aw-btn--primary` and `aw-frame--notch`, `aw-ticks` on any box, `aw-dotgrid` on a backdrop.
-
-- Do use one Spark and one set of Target ticks per view.
-- Do point chevrons up or right.
-- Don't notch cards, inputs, tags or images.
-- Don't put the flight grid behind body copy.
-
-### NightPanel
-
-The Night panel: a deep navy band that closes a page or opens a deck.
-
-**Provide:** an eyebrow, a `display` headline with a payoff word, one short line and two buttons (`--on-night` and `--ghost-night`).
-
-**Classes:** `aw-panel-night`, `aw-panel-night--climb` (Climb watermark), `aw-cta-band`.
-
-- Do use one per page, as the last section.
-- Don't put tables, forms or gold inside it.
-
-### Quote
-
-The pull quote: a customer's words in Funnel Display under the Climb mark.
-
-**Provide:** a quote under 30 words with a result in it, the person's name and role.
-
-**Classes:** `aw-quote` on a `<figure>` with `<blockquote>` and `<figcaption><b>Name</b> · Role</figcaption>`.
-
-- Do quote a number when the customer gave one.
-- Don't use quote marks; the Climb is the mark.
-
-### Section
-
-A website section: eyebrow, display title with a payoff word, then a bento of frames.
-
-**Provide:** a title of six to ten words and two to six frames.
-
-**Classes:** `aw-wrap`, `aw-section` (`--tight`, `--tint`), `aw-section-head` (`--center`), `aw-bento` with `aw-span-4`, `aw-span-6`, `aw-span-10`; `aw-grid-2`, `-3`, `-4`; `aw-stack`, `aw-row`.
-
-- Do alternate 6 + 4 and 4 + 6 rows in the bento.
-- Don't put more than one notched frame in a section.
-
-### Stat
-
-Stat blocks: a label, a big mono number and its change.
-
-**Provide:** a label, a value with its unit in `<small>`, and an `aw-delta`.
-
-**Classes:** `aw-stats` (joined row), `aw-stat`, `aw-stat__label`, `aw-stat__value`, `aw-stat__note`, `aw-stat--hero`, `aw-stat--win` (adds the Spark).
-
-- Do show the change next to every number.
-- Do give the Spark to one stat at most.
-- Don't round away the meaning: "38.4%" beats "about 40%".
-
-### Summary
-
-The "In short" box at the top of a post: the takeaways before the detail.
-
-**Provide:** two to five bullet points, each a full sentence with a number where you have one.
-
-**Classes:** `aw-summary`, `aw-summary__label`, and an `aw-list` inside.
-
-- Do put it right after the post's first paragraph.
-- Don't use it twice in one post.
+A `--soft` panel, `radius-lg`, 16px padding, title 13px 600, then `<dl>` rows: 36px min height, label in 70% ink, value right-aligned 500 tabular. Rows split by 60% `--border` lines. A footer link in `--signal` 12px 500 ("Compare all features ↓").
 
 ### Table
 
-Data tables: 32px rows, mono numbers on the right, your brand's row in Signal tint.
+- Lives inside a card with `overflow: clip` and the card's radius.
+- Header row: 12px 500 `--muted`, 16px vertical padding, sticky at the top on long tables with `--card` background.
+- Section rows: `--soft` at 50% fill, 12px 500 70% ink, 8px vertical padding.
+- Body rows: 14px vertical padding, 20px side padding, 1px `--border` at 60% between rows, hover fill `--soft` at 40%.
+- First column: labels in 75% ink, 400. Values: 500 tabular.
+- A term with a definition has a dashed underline (`decoration-dashed`, 30% muted) and a tooltip.
+- **Highlighted column** (your plan, your brand): every cell gets `--signal-tint`; the header gets a 2px `--signal` bar across its top.
+- Check circle for included, an em dash for not included, "Custom" in text.
 
-**Provide:** a `<table class="aw-table">` inside `aw-table-wrap`; `is-num` on number cells and their header; `is-you` on the row for the viewer's brand.
+### Tooltip and popover
 
-**Classes:** `aw-table-wrap`, `aw-table`, `is-num`, `is-you`, `aw-cell-brand`, `aw-fav`, `aw-heat--0` to `--3`.
+- `--card`, 1px `--border`, `radius-lg`, `shadow-lg`, 12px 14px padding, 13px text.
+- Optional heading: `micro` style (11px 600 uppercase, +0.08em, `--muted`).
+- Opens on hover and on focus, 180ms fade and rise, from a floating layer so nothing clips it.
 
-- Do right-align numbers and keep headers in sentence case.
-- Do use heat cells for shares so the eye finds the leaders.
-- Don't zebra-stripe. Row lines and hover are enough.
+### FAQ (accordion)
 
-### Tag
+- A list of `<details>` rows split by 1px `--border` lines, with one line above the first row.
+- Question: 16px 500, 44px min height, plus icon on the right in `--muted`.
+- Answer: 14px `--muted`, max 760px, 12px below the question.
+- Open state turns the plus 45°.
 
-Tags, chips, deltas and rank badges: small, square-cornered labels for state and change.
+### Callout
 
-**Provide:** one or two words for a tag; a signed number for a delta ("+6.1", "−3"); "#n" for a rank.
+- `--soft` fill, `radius-lg`, 16px padding, 14px `--ink-2`.
+- Tones swap the fill for the status soft colour and add a 16px status icon on the left.
+- Never used for help text in a working screen.
 
-**Classes:** `aw-tag` with `--blue`, `--green`, `--red`, `--spark`, `--night`, `--outline`; `aw-dot` inside a tag for live state; `aw-chip` for a removable filter; `aw-delta--up`, `--down`, `--flat`; `aw-rank` and `aw-rank--top`.
+### Dialog
 
-- Do use `aw-tag--spark` only for a win, once per view.
-- Do pair green and red with a word or chevron.
-- Don't make tags round or taller than `tag-h` (20px).
+- `--card`, `radius-xl`, `shadow-xl`, max 480px (small) or 640px, 24px padding.
+- Title h3, body 14px `--ink-2`, buttons right-aligned: secondary then primary (danger for deletes).
+- Backdrop `rgb(14 16 21 / 0.4)`.
+
+### Toast
+
+- Bottom right, 360px max, `--card`, `radius-lg`, `shadow-lg`, 14px text, optional action link in `--signal`. 5s, pausable on hover.
+
+### Skeleton and loading
+
+- Skeleton bars: `--ink` at 7% to 14%, 6px tall, `radius-full`, widths 40px to 80px.
+- Loading a section: skeleton rows in the shape of the content. Never a lone spinner for a whole page, never the word "Loading…".
+
+### Navigation
+
+**Website nav:** 64px, white, logo left, menu triggers (14px 500 with a 12px chevron) center-left, "Pricing" as a plain link, actions right: "Log in" plain link, "Book a demo" plain link, primary button "Start free". Dropdowns are 640px flyout cards (`radius-xl`, `shadow-lg`) with rows of name, one-line description and a right arrow that slides 2px on hover.
+
+**App sidebar:** `--canvas`, 248px. Workspace switcher at the top. Group labels 12px 500 `--muted`, 24px above each group. Items 36px, 14px, 16px icons, `radius-md`; hover `--soft`; selected `--signal-soft` fill with `--signal-strong` text and icon. Usage meter and Settings at the bottom.
+
+**App page header:** 56px, breadcrumb (`--muted` / `--ink` 500 for the current page), brand switcher as a secondary button, page actions on the right.
+
+### Empty state and first screen
+
+- First screen of a tool: eyebrow, h2 headline, one lead line (16px `--muted`, max 640px), the tool's search bar or main button, then a grid of feature cards. Each card has a 160px illustration area (`--soft` with the dot grid, a small mock of the real UI) and a title plus one sentence.
+- Empty state inside a working screen: a 20px icon in a 40px `--signal-soft` circle, a 15px 600 title, one 14px `--muted` line, one button.
+
+### Illustration cards (mock UI)
+
+Small, honest pieces of the product used on the website and first screens.
+
+- A white card (`radius-lg`, 1px `--border`, `shadow-lg`) 240 to 260px wide.
+- Contents drawn with skeleton bars, a brand chip (24 to 28px Signal Blue square, `radius-md`, with a white 10px square inside), real-looking numbers (10px 500 tabular) and one accent element in `--signal`.
+- One or two floating chips (a notification, "MCP", "API" in Geist Mono 10px) overlap the card edge and move on hover.
+- Sit on the dot grid with a 224px soft blue glow behind (`blur-3xl`, 15% signal).
+
+---
+
+## Patterns
+
+### Page header (website)
+
+Eyebrow (14px 600 `--signal-strong`), `display-xl` headline, `body-lg` lead in `--muted`, then a primary button. Below, a stat row with a 14px 600 title and a 14px muted subtitle above it.
+
+### Pricing band
+
+`--soft` at 70% background, the dot grid and two soft blobs, a top hairline. Header split left (eyebrow, display, lead) and right (billing switch). A summary strip card split into 3 cells by dividers (included note, platform logos, a region count). Then 4 plan cards in a row with the recommended card highlighted, then the comparison table.
+
+### Upgrade path strip
+
+One card, `radius-2xl`, 3 columns split by 1px dividers. Each column: a 240px illustration area on `--soft` at 55% with the dot grid and glow, then the caps eyebrow, an h3, a 14px muted paragraph and a "Best for" line above a divider.
+
+### Dashboard screen (app)
+
+Page title, then a row of equal tiles, then the main card (often list plus chart or map), then a row of equal cards whose bottoms align. Detail panels open from the right or as a floating card that closes with ×.
+
+---
+
+## Data visualization
+
+- **You are always Signal Blue.** Competitors are dark to light grey in rank order (`--data-1` to `--data-3`), everyone else `--data-rest`.
+- **Lines:** 2px, round joins, one area fill under the main line (`--signal` 18% to 0% top to bottom), an emphasized endpoint (3.5px white dot with a 2px signal stroke and an 8px 18% halo).
+- **Grid:** dashed 2 4 lines in `--border`, 3 or 4 of them. No vertical grid lines.
+- **Axis labels:** 11 to 12px `--muted`, tabular.
+- **Bars:** `radius-xs` ends, 2px gaps in stacked bars, track `--soft`.
+- **Donuts:** 9px ring on a 76px box, your share first from 12 o'clock, center label 13px 600 tabular.
+- **Rank maps:** 30px dots with white 11.5px 600 numbers in the rank colors, a 2px white border and `shadow-sm`; a 3px ink ring on the selected dot; dashed white dot with "?" for no answer.
+- **Deltas:** a badge with an up or down arrow: success soft for good, danger soft for bad. Lower-is-better metrics (rank) flip the colors.
+- Every chart has a legend or direct labels. Never colour alone: pair it with a number, a label or a position.
+
+---
+
+## Accessibility
+
+- Text meets 4.5:1 (body) and 3:1 (18px+ or 14px 600+) against its ground. The contrast table above lists the safe pairs.
+- `--faint` and `--sky` never carry text that has to be read.
+- Every interactive element has a visible focus: 2px `--signal` outline, 2px offset.
+- Touch targets at least 40 × 40px (44px for the main CTA).
+- Icon-only buttons have an `aria-label` and a tooltip.
+- Charts have a text alternative: a summary line or a table.
+- Motion stops under `prefers-reduced-motion`.
+- Text never truncates with an ellipsis. It wraps.
+
+---
+
+## Token reference
+
+The full set, as CSS custom properties in `src/app/brand-v10.css`.
+
+```css
+:root {
+  /* Brand */
+  --signal: #0943B0;
+  --signal-fill: #0943B0;
+  --signal-strong: #072F80;
+  --signal-soft: #EEF3FD;
+  --signal-tint: rgb(9 67 176 / 0.045);
+  --signal-ring: rgb(9 67 176 / 0.15);
+  --sky: #4F7FE0;
+  --spark: #F5B70A;
+
+  /* Neutrals */
+  --ink: #171717;
+  --ink-2: #3F4250;
+  --muted: #5E6270;
+  --faint: #8B8F9C;
+  --border-strong: #D5D8E0;
+  --border: #E7E9EE;
+  --soft: #F6F7F9;
+  --canvas: #FBFBFC;
+  --card: #FFFFFF;
+
+  /* Status */
+  --success: #15803D;  --success-soft: #EAF6EE;
+  --warning: #B45309;  --warning-soft: #FDF3E2;
+  --danger:  #B91C1C;  --danger-soft:  #FCECEC;
+
+  /* Data */
+  --data-you: #0943B0;
+  --data-1: #1F2937;
+  --data-2: #6B7280;
+  --data-3: #A3A8B3;
+  --data-rest: #E5E7EB;
+  --rank-top3: #15803D;
+  --rank-top10: #B45309;
+  --rank-top20: #C2410C;
+  --rank-out: #B91C1C;
+
+  /* Type */
+  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Radius */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  /* Elevation */
+  --shadow-xs: 0 1px 2px rgb(16 24 40 / 0.04);
+  --shadow-sm: 0 1px 2px rgb(16 24 40 / 0.05), 0 1px 3px rgb(16 24 40 / 0.06);
+  --shadow-md: 0 4px 12px -2px rgb(16 24 40 / 0.08), 0 2px 4px -2px rgb(16 24 40 / 0.04);
+  --shadow-lg: 0 18px 36px -18px rgb(16 24 40 / 0.22), 0 1px 2px rgb(16 24 40 / 0.04);
+  --shadow-xl: 0 24px 48px -12px rgb(16 24 40 / 0.18);
+  --ring-signal: 0 0 0 4px rgb(9 67 176 / 0.15);
+
+  /* Motion */
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur-fast: 120ms;
+  --dur-base: 180ms;
+  --dur-move: 200ms;
+  --dur-slow: 500ms;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --canvas: #0E1015; --card: #151821; --soft: #1B1F29;
+    --border: #262B37; --border-strong: #343A48;
+    --ink: #EDEEF2; --ink-2: #C9CCD5; --muted: #A3A7B3; --faint: #6B7080;
+    --signal: #5B87EA; --signal-fill: #3D6FE0; --signal-strong: #7EA2F2;
+    --signal-soft: rgb(91 135 234 / 0.14);
+    --shadow-xs: none; --shadow-sm: none;
+    color-scheme: dark;
+  }
+}
+```
+
+### Tailwind mapping
+
+| Tailwind | Token |
+|---|---|
+| `bg-signal`, `text-signal`, `border-signal` | `--signal` |
+| `bg-signal-soft` | `--signal-soft` |
+| `text-ink`, `text-ink-2`, `text-muted`, `text-faint` | neutrals |
+| `bg-soft`, `bg-canvas`, `bg-card` | surfaces |
+| `border-line`, `border-line-strong` | `--border`, `--border-strong` |
+| `rounded-md`, `rounded-lg`, `rounded-xl`, `rounded-2xl`, `rounded-full` | 10, 12, 16, 24, pill |
+| `shadow-xs` to `shadow-xl`, `shadow-ring` | elevation |
+
+Never write a hex value in a component. Use a token.
+
+---
+
+## Moving the app to v10
+
+The app keeps its class names; the look changes underneath.
+
+1. **One stylesheet.** Add `src/app/brand-v10.css` with the tokens above and the component classes (`aw-btn`, `aw-frame`, `aw-input`, `aw-status`, `aw-table`, `aw-chip`, `aw-tabs`). Load it last in `globals.css`, then delete the eight older layers one at a time, checking screens after each.
+2. **Fonts.** Swap Inter and Funnel Display for Geist in `layout.tsx` via `next/font/google`. Keep Geist Mono.
+3. **Shared parts.** Update `Card`, `Seg`, `StatStrip` (becomes a stat row), `Delta`, `Tag` and `Select` in `src/components/ui.tsx` to match the Components section.
+4. **Screens.** Check the 10 busiest screens at 1440px and 400px in light and dark: Prompts, Competitors, Keyword Research, Local Research, Backlinks, Site Audit, Content Map, Editorial Calendar, Reports, Settings.
+5. **Emails, PDF and website.** Update `src/lib/emailKit.ts`, `src/lib/pdf/design.ts` and `public/brand/arrowsterr-brand.css` to the same tokens.
+6. **Tests.** Extend `tests/ui-rules.test.ts` (or add one) to fail on raw hex values in components, on `<select>`, and on more than one `aw-btn--primary` per screen file where practical.
+
+---
+
+## Running cost
+
+v10 adds nothing to the monthly bill. Geist and Geist Mono are free (SIL Open Font License) and served from the app's own domain by `next/font`; the stylesheet is a static file. Beta (50 teams): $0. Growth (500 teams): $0.
