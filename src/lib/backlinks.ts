@@ -162,3 +162,95 @@ export function weekAgo<T extends { day: string }>(snaps: T[], today: string): T
   const cut = new Date(Date.parse(`${today}T00:00:00Z`) - 6 * 864e5).toISOString().slice(0, 10);
   return snaps.find((s) => s.day <= cut) ?? null;
 }
+
+// ---- Any site or page (not only the brand's own) ----
+
+/** What to read links for: a whole domain with its subdomains, one subdomain, or one exact page. */
+export type BlScope = "domain" | "subdomain" | "url";
+export type BlTarget = { scope: BlScope; target: string; label: string; host: string; id: string };
+export const BL_SCOPES: { id: BlScope; label: string; hint: string }[] = [
+  { id: "domain", label: "Root domain", hint: "competitor.com" },
+  { id: "subdomain", label: "Subdomain", hint: "blog.competitor.com" },
+  { id: "url", label: "Exact URL", hint: "competitor.com/pricing" },
+];
+export const BULK_MAX = 200;
+
+const HOST = /^[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}$/;
+
+/**
+ * A typed site or page as a DataForSEO Backlinks target. Domains and subdomains go bare; a page goes as its full link.
+ * A page needs a path; a typed path on Root domain or Subdomain is dropped. id is the cache key part, and a plain
+ * domain keeps its old key so saved answers still count.
+ */
+export function blTarget(input: string, scope: BlScope): BlTarget | null {
+  let s = input.trim();
+  if (!s) return null;
+  if (!/^https?:\/\//i.test(s)) s = "https://" + s;
+  let u: URL;
+  try {
+    u = new URL(s);
+  } catch {
+    return null;
+  }
+  const host = u.hostname.toLowerCase().replace(/\.$/, "");
+  if (!HOST.test(host)) return null;
+  if (scope === "domain") {
+    const d = host.replace(/^www\./, "");
+    return { scope, target: d, label: d, host: d, id: d };
+  }
+  if (scope === "subdomain") return { scope, target: host, label: host, host, id: `sub:${host}` };
+  const path = u.pathname === "/" ? "" : u.pathname;
+  if (!path && !u.search) return null;
+  const target = `https://${host}${path}${u.search}`;
+  return { scope, target, label: `${host}${path}${u.search}`, host, id: `url:${target}` };
+}
+
+/** The scope a typed address most likely means. A folder counts as its exact page. */
+export function guessScope(input: string, guess: (s: string) => string | null): BlScope | null {
+  const g = guess(input);
+  if (!g) return null;
+  return g === "subfolder" || g === "url" ? "url" : (g as BlScope);
+}
+
+/** Pasted sites or pages, one per line or comma, as targets: cleaned, duplicates dropped, in order. */
+export function bulkTargets(text: string | string[]): { targets: BlTarget[]; skipped: number } {
+  const lines = (Array.isArray(text) ? text : text.split(/[\n,]+/)).map((x) => x.trim()).filter(Boolean);
+  const seen = new Map<string, BlTarget>();
+  let skipped = 0;
+  for (const l of lines) {
+    const t = blTarget(l, "url") ?? blTarget(l, "domain");
+    if (!t) skipped++;
+    else if (!seen.has(t.target)) seen.set(t.target, t);
+  }
+  return { targets: [...seen.values()], skipped };
+}
+
+export type BulkRow = { target: string; rank: number; backlinks: number; domains: number; nofollowDomains: number; spam: number | null };
+
+/** DataForSEO's four bulk answers joined by target, in the order asked, biggest link profile first. */
+export function parseBulk(targets: string[], parts: { ranks?: unknown[]; backlinks?: unknown[]; domains?: unknown[]; spam?: unknown[] | null }): BulkRow[] {
+  const by = (items: unknown[] | null | undefined) => {
+    const m = new Map<string, Record<string, unknown>>();
+    for (const it of (items ?? []) as Record<string, unknown>[]) if (it && typeof it.target === "string") m.set(norm(it.target), it);
+    return m;
+  };
+  const norm = (t: string) => t.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/$/, "");
+  const ranks = by(parts.ranks);
+  const links = by(parts.backlinks);
+  const doms = by(parts.domains);
+  const spam = parts.spam ? by(parts.spam) : null;
+  return targets
+    .map((t) => {
+      const k = norm(t);
+      const sp = spam?.get(k);
+      return {
+        target: t,
+        rank: Math.round(num(ranks.get(k)?.rank)),
+        backlinks: num(links.get(k)?.backlinks),
+        domains: num(doms.get(k)?.referring_domains),
+        nofollowDomains: num(doms.get(k)?.referring_domains_nofollow),
+        spam: sp ? Math.round(num(sp.spam_score)) : null,
+      };
+    })
+    .sort((a, b) => b.domains - a.domains || b.rank - a.rank);
+}
