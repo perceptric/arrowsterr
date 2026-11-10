@@ -23,6 +23,17 @@ Local Research (Organic Research, Local Research, at `/local-research`) shows wh
 - **When it runs:** weekly for every location with scheduled scans, and on Read now (editors). Details land in about a minute; posts come from DataForSEO's queue a little later and are collected for up to about 45 minutes. Posts that never arrive stay unknown and are never counted as zero.
 - Each read costs 5 plan tasks. Tests: `tests/localProfile.test.ts`.
 
+## Reviews (phase 3 of `docs/local-research-plan.md`)
+
+- **The Reviews tab** pulls the Google reviews of the business and of the 3 businesses that hold the most top 3 spots: the newest 200 each the first time, then the newest 50 each week (and on Read now, editors).
+- **Saved by Google's review id** (`local_reviews`), so a pull never doubles a review. An edited review is updated and its themes read again. A review missing from a pull is marked removed and stays in history, but only when the pull covered its date (or returned every review the business has).
+- **Numbers:** new reviews in 90 days and their rating, the share answered and the median reply time over 12 months, each against the leaders, and reviews per month for 6 months.
+- **What people say:** Haiku tags each review with up to 5 themes from a fixed list of 14 (wait time, billing, staff and so on), each praise or complaint, with a quote copied from the review. Code keeps a theme only when the quote is really in the review. Shares are shown when a side has 5 read reviews or more. Up to 100 unread reviews per business are read per pull.
+- **Keywords in reviews:** "'emergency' appears in 62 of Bright Smile's reviews and 12 of yours", for the words of the tracked keywords.
+- **Reviews to answer:** the business's reviews from the last 12 months with no reply, 1 to 3 stars first, then oldest first. **Draft reply** has Sonnet write a short reply in the brand's voice (Brand page, Tone of voice); the person edits it, copies it and posts it on Google. Arrowsterr never posts. Drafts never offer money, never confirm someone is a customer or patient beyond what they wrote, and only reply to the business's own reviews.
+- **Ask for reviews:** Google's write-a-review link from the place id, with Copy link and a QR code to download (the `qrcode` package, in the browser).
+- A pull costs 3 plan tasks; a draft reply costs 1. Tests: `tests/localReviews.test.ts`.
+
 ## What it shows
 
 - **Setup:** search the business by name and city (one Google Maps request, 1 task), then pick it. Its Google ids, address, phone, category and position are saved on `brands.profile.location`.
@@ -79,7 +90,8 @@ Request and response fields follow DataForSEO's docs: `cid`, `place_id`, `rating
 - `supabase/066_local.sql` adds `local_scans`: tasks, raw points and the summed-up result per scan. Viewers may read.
 - `supabase/071_local_locations.sql` adds `local_locations` (viewers may read), and `location_id`, `size`, `shape`, `center_lat` and `center_lng` on `local_scans`. It copies each brand's one location from `brands.profile.location` and points its scans at it.
 - `supabase/072_local_profiles.sql` adds `local_profiles`: one row per business per read (`you` marks the location's own business, `confirm` marks a confirm read). Viewers may read. The `local_profile` job reads and collects posts (`src/lib/localProfileServer.ts`).
-- `/api/local` takes `limits`, `find`, `set` (a new location, or a new business for one), `remove`, `settings`, `scan`, `prompts` and `profile` (Read now), each with a `locationId`.
+- `supabase/073_local_reviews.sql` adds `local_reviews` (one row per review, unique on location, business and review id; viewers may read), and `reviews_at` and `reviews_from` on `local_locations` (when reviews were last pulled, and from which businesses). The `local_reviews` job posts the pulls, collects them and reads themes (`src/lib/localReviewsServer.ts`).
+- `/api/local` takes `limits`, `find`, `set` (a new location, or a new business for one), `remove`, `settings`, `scan`, `prompts`, `profile` (Read now on Profile), `reviews` (Read now on Reviews) and `reply` (a draft reply), each with a `locationId`.
 - Zippie reads it with `get_local_research`. Two skills use it: "Local audit" and "Review response plan."
 
 ## Running cost
@@ -116,6 +128,18 @@ Assume 20% of teams track a local business (10 at Beta, 100 at Growth), each wit
 | Collecting posts (worker) | $0 | $0 |
 | **Added by phase 2** | **~$1.20** | **~$12** |
 | **Local Research monthly total** | **~$8.70** | **~$88** |
+
+**Phase 3, reviews.** DataForSEO Google Reviews on the standard queue, about $0.00075 per 10 reviews (check). The first pull is 200 reviews for each of 4 businesses (about $0.06 once per location), then 50 each a week (about $0.06 a location a month). Themes: Haiku reads about 20 new reviews per business a week after the first pull, 20 to a call (about 2.5K tokens in, 1.5K out), about $0.04 a location a month at $1 and $5 per million tokens (check); the first pull reads up to 400 reviews once, about $0.20 a location. Draft replies: Sonnet on click, about 1.5K tokens in and 200 out, about $0.008 each at $3 and $15 per million (check); assume 10 a location a month.
+
+| Line | Beta (15 locations) | Growth (150 locations) |
+|---|---|---|
+| Review pulls (DataForSEO Google Reviews, check) | ~$0.90 | ~$9 |
+| Themes (Claude Haiku, check) | ~$0.60 | ~$6 |
+| Draft replies (Claude Sonnet, check) | ~$1.20 | ~$12 |
+| First pulls, spread over new locations | ~$0.40 | ~$4 |
+| QR codes and review links | $0 | $0 |
+| **Added by phase 3** | **~$3.10** | **~$31** |
+| **Local Research monthly total** | **~$11.80** | **~$119** |
 
 ## Example data
 

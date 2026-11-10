@@ -3,6 +3,7 @@ import { entitlement, requireTrack, take } from "@/lib/entitlements";
 import { cityOf, gridOf, localLimits, localPrompts, scanTasks, SCHEDULES, SIZES, SPACINGS, type Location, type Place, type Schedule } from "@/lib/local";
 import { findPlaces, locationOf, locationsOf, startScan, type SavedLocation } from "@/lib/localServer";
 import { queueProfileRead } from "@/lib/localProfileServer";
+import { draftReply, queueReviewPull } from "@/lib/localReviewsServer";
 import { TOOLS as MCP_TOOLS } from "@/lib/mcp/tools";
 import { meteredRoute } from "@/lib/meter";
 import { TASK_COST } from "@/lib/plans";
@@ -23,6 +24,8 @@ const err = (error: string, status = 400) => Response.json({ error }, { status }
 //   scan:     { brandId, locationId, keyword }     editors: a grid scan now, on the priority queue (tasks by points)
 //   prompts:  { brandId, locationId }              editors: track local prompts in AI Visibility (plan limits apply)
 //   profile:  { brandId, locationId }              editors: read the Google profiles now (the business and its 3 leaders)
+//   reviews:  { brandId, locationId }              editors: pull the Google reviews now (the business and its 3 leaders)
+//   reply:    { brandId, locationId, reviewId }    editors: a draft reply to one of the business's reviews (1 task)
 async function handle(request: Request) {
   const body = await request.json().catch(() => ({}));
   const auth = await requireRole(request, body.workspaceId, "editor");
@@ -148,6 +151,26 @@ async function handle(request: Request) {
       if (!took.ok) return took.response;
       await queueProfileRead(loc.id, ws);
       return Response.json({ queued: true });
+    }
+
+    if (body.action === "reviews") {
+      const locked = await requireTrack(ws, "seo");
+      if (locked) return locked;
+      const took = await take(ws, "tasks", TASK_COST.localreviews, { refundIfFree: false });
+      if (!took.ok) return took.response;
+      await queueReviewPull(loc.id, ws);
+      return Response.json({ queued: true });
+    }
+
+    if (body.action === "reply") {
+      const locked = await requireTrack(ws, "seo");
+      if (locked) return locked;
+      const reviewId = str(body.reviewId, 60);
+      if (!reviewId) return err("Pick a review.");
+      const took = await take(ws, "tasks", TASK_COST.localreply, { refundIfFree: false });
+      if (!took.ok) return took.response;
+      // The metered route hands the task back on its own when the answer is an error.
+      return Response.json({ text: await draftReply(db, brand.id, loc, reviewId) });
     }
 
     if (body.action === "prompts") {

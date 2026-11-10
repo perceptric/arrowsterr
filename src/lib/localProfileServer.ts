@@ -15,10 +15,10 @@ import { marketOf } from "./research";
 // differently from last time, it's read again a day later, so a change is only shown once two reads agree.
 
 const MIGRATION = "Run supabase/072_local_profiles.sql on the VPS database.";
-type Target = { cid: string | null; placeId: string | null; title: string; you: boolean };
+export type Target = { cid: string | null; placeId: string | null; title: string; you: boolean };
 type PostTask = { rowId: string; id: string };
 
-const keywordFor = (t: Target) => (t.cid ? `cid:${t.cid}` : t.placeId ? `place_id:${t.placeId}` : t.title);
+export const keywordFor = (t: Target) => (t.cid ? `cid:${t.cid}` : t.placeId ? `place_id:${t.placeId}` : t.title);
 
 async function info(t: Target, m: { location: number; language: string }): Promise<Profile | null> {
   const [task] = await call("business_data/google/my_business_info/live", [{ keyword: keywordFor(t), location_code: m.location, language_code: m.language }]);
@@ -45,7 +45,7 @@ async function postTask(t: Target, m: { location: number; language: string }): P
 }
 
 /** The location and the businesses to read: itself, and (unless only confirming) the 3 leaders from its latest scans. */
-async function targets(db: SupabaseClient, locationId: string, youOnly: boolean) {
+export async function targets(db: SupabaseClient, locationId: string, youOnly: boolean) {
   const { data: row, error } = await db.from("local_locations").select("id, workspace_id, brand_id, data").eq("id", locationId).maybeSingle();
   if (error) throw new Error(/local_/.test(error.message) ? MIGRATION : error.message);
   if (!row) return null;
