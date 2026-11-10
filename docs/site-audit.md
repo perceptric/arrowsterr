@@ -4,6 +4,8 @@ The Site Audit screen (Technical SEO, Site Audit, at `/site-audit`) shows a bran
 
 The crawler already existed for Zippie (`src/lib/audit.ts`). This adds the screen, history per brand, a weekly crawl, an email when the score drops, and Fix buttons that prepare changes in the brand's CMS.
 
+With Search Console and the Chrome UX Report connected (`docs/indexing-speed.md`), crawls add 9 Google checks and each issue carries the search clicks on its pages.
+
 ## What it shows
 
 - **Score:** a half dial, the change since the last full crawl, and the scores of the last 8 full crawls.

@@ -25,7 +25,7 @@ export function SiteAuditIntro() {
   return (
     <ToolIntro
       title="Find what's holding your site back"
-      lead="Arrowsterr reads up to 200 pages the way Google and AI crawlers read them, scores the site from 0 to 100 and lists every issue with the pages it hits, so you fix the biggest problems first."
+      lead="Arrowsterr reads every page up to your plan's limit the way Google and AI crawlers read them, scores the site from 0 to 100 and lists every issue with the pages it hits, so you fix the biggest problems first."
       features={[
         { title: "Health score", text: "A score from 0 to 100 and the change since the last full crawl.", visual: <SampleRing value={82} label="Good" higherIsBetter /> },
         { title: "Facts from the crawl", text: "Pages read, broken links and AI crawlers your robots.txt blocks.", visual: <SampleStats items={[["Pages", "200"], ["Broken", "7"], ["Blocked", "1"]]} /> },
@@ -182,6 +182,40 @@ export function LocalIntro() {
           visual: <SampleChecks items={[["Name matches", true], ["Phone matches", false], ["LocalBusiness schema", true]]} />,
         },
         { title: "Keywords and settings", text: "Up to 5 keywords, grid spacing and a weekly scan.", visual: <SampleTags items={[["dentist"], ["emergency dentist"], ["teeth whitening"], ["1 mi"], ["Weekly"]]} /> },
+      ]}
+    />
+  );
+}
+
+export function IndexingIntro() {
+  return (
+    <ToolIntro
+      title="See which pages Google indexed, and why the rest aren't"
+      lead="Connect Google Search Console and Arrowsterr inspects your pages every day, tracks clicks by page and template, and ties each indexing problem to the pages and clicks it costs you."
+      features={[
+        { title: "Index status for every page", text: "Up to 1,500 pages inspected a day, pages with clicks first, so a 5,000-page site is fully checked in about 4 days.", visual: <SampleStats items={[["Indexed", "1,318"], ["Not indexed", "322"], ["Inspected", "1,640"]]} /> },
+        { title: "Why pages aren't indexed", text: "Crawled or found but not indexed, noindex, duplicates, Google picking another canonical, soft 404s.", visual: <SampleRows rows={[["Crawled, not indexed", 100, "118"], ["noindex", 70, "82"], ["Discovered, not indexed", 54, "64"]]} /> },
+        { title: "Clicks over 16 months", text: "Your site's clicks and impressions by day, from Search Console.", visual: <SampleLine values={[410, 430, 470, 455, 520, 560, 610, 640]} total="640" delta="+5%" /> },
+        { title: "Pages losing clicks", text: "The last 28 days against the 28 before, page by page.", visual: <SampleRows rows={[["/products/tracker", 82, "−840"], ["/features/ai", 40, "−220"], ["/blog/2024-guide", 20, "−140"]]} /> },
+        { title: "Sitemaps", text: "Each sitemap's submitted and indexed pages, and the errors Google found.", visual: <SampleChecks items={[["sitemap_index.xml", true], ["product-sitemap.xml", false], ["post-sitemap.xml", true]]} /> },
+        { title: "Better Site Audit priorities", text: "Site Audit ranks issues by the search clicks on the pages they hit.", visual: <SampleChips items={[["Not indexed", "#E5484D"], ["Other canonical", "#FEF3C7"], ["Rich result errors", "#FEF3C7"]]} /> },
+      ]}
+    />
+  );
+}
+
+export function SpeedIntro() {
+  return (
+    <ToolIntro
+      title="See how fast your site is for real visitors"
+      lead="Core Web Vitals from the Chrome UX Report: how real Chrome users on phones and computers experience your site and your most visited pages, with 6 months of history and lab tests that name the fixes."
+      features={[
+        { title: "Pass or fail", text: "Largest Contentful Paint, Interaction to Next Paint and Cumulative Layout Shift at the 75th percentile, Google's measure.", visual: <SampleStats items={[["LCP", "3.1 s"], ["INP", "180 ms"], ["CLS", "0.04"]]} /> },
+        { title: "6 months of history", text: "Each metric week by week, with the line for good.", visual: <SampleLine values={[2.6, 2.7, 2.9, 3.0, 2.9, 3.1, 3.2, 3.1]} total="3.1 s" delta="+0.5" /> },
+        { title: "By template", text: "Which kinds of pages are slow: blog posts, products, docs.", visual: <SampleRows rows={[["Blog post", 48, "48% good"], ["Docs", 71, "71% good"], ["Product", 82, "82% good"]]} /> },
+        { title: "Slowest pages", text: "Your most visited pages with their real-visitor numbers.", visual: <SampleRows rows={[["/blog/geo-guide", 92, "4.6 s"], ["/blog/ai-search", 82, "4.1 s"], ["/docs/api", 68, "3.4 s"]]} /> },
+        { title: "Lab tests with fixes", text: "Run PageSpeed Insights on any page of your site and see the biggest savings.", visual: <SampleChecks items={[["Hero image 1.8 MB", false], ["Render-blocking CSS", false], ["Text compression", true]]} /> },
+        { title: "In Site Audit", text: "A site that fails Core Web Vitals, and slow pages, show up as issues there.", visual: <SampleChips items={[["Fails on phones", "#E5484D"], ["Slow LCP", "#FEF3C7"]]} /> },
       ]}
     />
   );

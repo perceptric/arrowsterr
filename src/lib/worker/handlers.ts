@@ -20,6 +20,8 @@ import { articleResearchJob } from "../articleResearchServer";
 import { writerBriefJob, writerDraftJob } from "../writerServer";
 import { wpPublishJob } from "../wpSyncServer";
 import { queueWeeklyAudits, runAudit } from "../audit";
+import { queueCwvSyncs, syncCwv } from "../cwv";
+import { queueGscSyncs, syncGsc } from "../gsc";
 import { runOnpage } from "../onpageServer";
 import { checkLink, queueLinkChecks } from "../linkBuildingServer";
 import { runMap } from "../contentMapServer";
@@ -55,6 +57,9 @@ export async function schedule(db: SupabaseClient, job: Job) {
   await queueWeeklyAudits(db).catch((e) => console.error("Weekly site audits failed:", e instanceof Error ? e.message : e));
   // Won links get checked once a week (docs/link-building.md).
   await queueLinkChecks(db).catch((e) => console.error("Link checks failed:", e instanceof Error ? e.message : e));
+  // Technical SEO: Search Console and Chrome UX Report syncs, once a day per brand (docs/technical-seo-plan.md).
+  await queueGscSyncs(db).catch((e) => console.error("Search Console syncs failed:", e instanceof Error ? e.message : e));
+  await queueCwvSyncs(db).catch((e) => console.error("Core Web Vitals syncs failed:", e instanceof Error ? e.message : e));
   // Local Research: each keyword's weekly Google Maps grid scan (docs/local-research.md).
   await queueWeeklyScans(db).catch((e) => console.error("Weekly local scans failed:", e instanceof Error ? e.message : e));
   const engines = availableEngines();
@@ -428,5 +433,18 @@ export async function clean_brands(db: SupabaseClient, job: Job) {
   }
   console.log(`Brand check for ${brandId}: ${names.size} names, ${drop.size} weren't brands.`);
   await db.from("brands").update({ brands_checked: BRAND_CHECK_VERSION }).eq("id", brandId);
+  await finish(job.id);
+}
+
+// ─────────────── Technical SEO: Search Console and Chrome UX Report ───────────────
+export async function gsc_sync(db: SupabaseClient, job: Job) {
+  const { brandId, part } = job.payload as { brandId: string; part?: number };
+  await syncGsc(db, brandId, part ?? 0);
+  await finish(job.id);
+}
+
+export async function cwv_sync(db: SupabaseClient, job: Job) {
+  const { brandId } = job.payload as { brandId: string };
+  await syncCwv(db, brandId);
   await finish(job.id);
 }
