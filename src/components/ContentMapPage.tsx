@@ -6,7 +6,7 @@ import { layout, mapStats, type ContentMap, type Topic, type TopicStatus } from 
 import type { RunAuth } from "@/lib/runner";
 import { demoMap } from "@/lib/demo";
 import { ToolStart, TsDomain } from "./ToolStart";
-import { Card, SidePanel, Thinking } from "./ui";
+import { Card, SidePanel, StatStrip, Thinking } from "./ui";
 import { ChangeSetCard, useApi } from "./ZippiePage";
 
 // Content Map (docs/content-map.md): the brand's topics as bubbles around their pillars. Green is covered, blue in
@@ -20,7 +20,7 @@ type Filter = "all" | "missing" | "overlap" | "ai" | "unlinked";
 
 const COLORS: Record<TopicStatus, [string, string]> = {
   covered: ["var(--aw-pos-bg)", "var(--aw-pos)"],
-  progress: ["var(--aw-brand-bg)", "var(--aw-brand)"],
+  progress: ["var(--signal-soft)", "var(--signal)"],
   missing: ["var(--aw-neg-bg)", "var(--aw-neg)"],
   overlap: ["var(--aw-warn-bg)", "var(--aw-warn)"],
 };
@@ -163,16 +163,24 @@ export function ContentMapPage({ brand, sb, auth, canEdit, onConnect }: { brand:
 
       {m && geo && stats ? (
         <>
-          <div data-tour="1" className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-            <Stat label="Topics" value={stats.topics} />
-            <Stat label="Covered" value={stats.covered} color="var(--aw-pos)" />
-            <Stat label="Missing" value={stats.missing} color="var(--aw-neg)" />
-            <Stat label="Pages competing" value={stats.overlap} color="var(--aw-warn)" />
-            <Stat label="In progress" value={stats.progress} color="var(--aw-brand)" />
-          </div>
+          <StatStrip
+            tour={1}
+            extra={
+              <span className="aw-strip__bar" role="img" aria-label={`${stats.covered} covered, ${stats.progress} in progress, ${stats.overlap} competing, ${stats.missing} missing`}>
+                {([["covered", "var(--aw-pos)"], ["progress", "var(--signal)"], ["overlap", "var(--aw-warn)"], ["missing", "var(--aw-neg)"]] as const).map(([k, c]) => (stats[k] ? <i key={k} style={{ flexGrow: stats[k], background: c }} /> : null))}
+              </span>
+            }
+            stats={[
+              { label: "Topics", value: stats.topics },
+              { label: "Covered", value: stats.covered, tone: "pos" },
+              { label: "Missing", value: stats.missing, tone: "neg" },
+              { label: "Pages competing", value: stats.overlap, tone: "warn" },
+              { label: "In progress", value: stats.progress, tone: "brand" },
+            ]}
+          />
           <div data-tour="2" className="flex flex-wrap gap-2">
             {([["all", "All"], ["missing", "Missing"], ["overlap", "Competing"], ["ai", "Named by AI"], ["unlinked", "Link missing"]] as [Filter, string][]).map(([k, l]) => (
-              <button key={k} type="button" aria-pressed={filter === k} onClick={() => setFilter(k)} className={`aw-btn aw-btn--sm ${filter === k ? "aw-btn--primary" : "aw-btn--secondary"}`}>
+              <button key={k} type="button" aria-pressed={filter === k} onClick={() => setFilter(k)} className="aw-chip aw-chip--btn">
                 {l}
               </button>
             ))}
@@ -201,7 +209,7 @@ export function ContentMapPage({ brand, sb, auth, canEdit, onConnect }: { brand:
                     return (
                       <g key={x.id} className="cursor-pointer" opacity={show(t) ? 1 : 0.18} onClick={() => setSel(x.id)} role="button" tabIndex={0} aria-label={`${t.name}, ${LABEL[t.status]}`} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setSel(x.id)}>
                         <circle cx={x.x} cy={x.y} r={x.r} fill={fill} stroke={stroke} strokeWidth={sel === x.id ? 3 : 1.5} strokeDasharray={t.status === "missing" ? "4 3" : undefined} />
-                        {t.ai ? <path transform={`translate(${x.x + x.r * 0.7},${x.y - x.r * 0.7}) scale(.5)`} d={STAR} fill="var(--aw-brand)" /> : null}
+                        {t.ai ? <path transform={`translate(${x.x + x.r * 0.7},${x.y - x.r * 0.7}) scale(.5)`} d={STAR} fill="var(--signal)" /> : null}
                         <title>{`${t.name}: ${LABEL[t.status]}, ${n(t.volume)} searches`}</title>
                         <text x={x.x} y={x.y + x.r + 12} textAnchor="middle" fill="var(--aw-body)" style={{ font: "10.5px Inter, system-ui, sans-serif" }}>
                           {t.name.length > 26 ? `${t.name.slice(0, 25)}…` : t.name}
@@ -220,7 +228,7 @@ export function ContentMapPage({ brand, sb, auth, canEdit, onConnect }: { brand:
                 ))}
                 <span className="flex items-center gap-1.5">
                   <svg width="12" height="12" viewBox="-12 -12 24 24" aria-hidden="true">
-                    <path d={STAR} fill="var(--aw-brand)" />
+                    <path d={STAR} fill="var(--signal)" />
                   </svg>
                   Named by AI
                 </span>
@@ -273,19 +281,6 @@ export function ContentMapPage({ brand, sb, auth, canEdit, onConnect }: { brand:
   return page;
 }
 
-function Stat({ label, value, color }: { label: string; value: number; color?: string }) {
-  return (
-    <Card>
-      <div className="flex flex-col gap-1 px-4 py-3.5">
-        <span className="text-[12px] font-medium text-muted">{label}</span>
-        <span className="aw-num text-[22px] font-semibold" style={{ color: color ?? "var(--aw-ink)" }}>
-          {value}
-        </span>
-      </div>
-    </Card>
-  );
-}
-
 function Detail({ m, sel, canEdit, busy, planned, onPlan, onLinks }: { m: ContentMap; sel: string | null; canEdit: boolean; busy: string; planned: Set<string>; onPlan: (t: Topic) => void; onLinks: (hub: string) => void }) {
   if (sel?.startsWith("p:")) {
     const name = sel.slice(2);
@@ -300,7 +295,7 @@ function Detail({ m, sel, canEdit, busy, planned, onPlan, onLinks }: { m: Conten
           {list.length} topics, {gaps.length} missing
         </p>
         {p?.hub ? (
-          <a href={p.hub} target="_blank" rel="noreferrer" className="text-[13px] text-brand wrap-anywhere hover:underline">
+          <a href={p.hub} target="_blank" rel="noreferrer" className="text-[13px] text-[var(--signal-ink)] wrap-anywhere hover:underline">
             {p.hub}
           </a>
         ) : (
@@ -366,7 +361,7 @@ function Detail({ m, sel, canEdit, busy, planned, onPlan, onLinks }: { m: Conten
         <div className="flex flex-col gap-1">
           <span className="text-[12px] text-muted">{t.urls.length > 1 ? "Your pages that compete" : "Your page"}</span>
           {t.urls.map((u) => (
-            <a key={u} href={u} target="_blank" rel="noreferrer" className="text-[13px] text-brand wrap-anywhere hover:underline">
+            <a key={u} href={u} target="_blank" rel="noreferrer" className="text-[13px] text-[var(--signal-ink)] wrap-anywhere hover:underline">
               {u}
             </a>
           ))}

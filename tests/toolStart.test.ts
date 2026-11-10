@@ -31,3 +31,12 @@ test("each drawing is plain SVG with real numbers", () => {
     assert.doesNotMatch(svg, /NaN|undefined|<script/i, `${k} is clean`);
   }
 });
+
+test("tool screens show their numbers in a stat strip, never a row of equal boxes", async () => {
+  const { readFileSync } = await import("node:fs");
+  for (const f of ["BacklinksPage", "LinkBuildingPage", "ContentMapPage", "LocalResearchPage"]) {
+    const src = readFileSync(new URL(`../src/components/${f}.tsx`, import.meta.url), "utf8");
+    assert.match(src, /<StatStrip/, `${f} uses StatStrip`);
+    assert.doesNotMatch(src, /function (Kpi|Stat)\(/, `${f} has no local stat box`);
+  }
+});

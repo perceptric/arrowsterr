@@ -1,0 +1,103 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   ARROWSTERR PRODUCT UI · v13, keys and strips
+   Loaded after calm-ui.css. The calm look stays; this layer makes the
+   working screens match the tool start pages (tool-start.css) and the
+   brand guide: Signal Blue key buttons with 8px corners in place of dark
+   pills, 16px cards, firmer titles, and one stat strip in place of rows of
+   equal boxes (StatStrip in src/components/ui.tsx).
+   ═══════════════════════════════════════════════════════════════════════ */
+
+:root, [data-theme="light"] {
+  --on-signal: #FFFFFF; --signal-hover: #073693;
+  --shadow-key: 0 0 0 1px rgb(4 30 84 / .9), 0 1px 3px rgb(9 67 176 / .4), 1px 4px 8px rgb(9 67 176 / .14), inset 0 1px 0 rgb(255 255 255 / .16);
+}
+[data-theme="dark"] {
+  --on-signal: #0B1530; --signal-hover: #8FAEF0;
+  --shadow-key: 0 0 0 1px rgb(255 255 255 / .22), 0 1px 3px rgb(0 0 0 / .5), inset 0 1px 0 rgb(255 255 255 / .22);
+}
+
+/* ─────────────── 1. Buttons: keys ───────────────
+   8px corners. The main action is Signal Blue with a dark ring and a top highlight. aw-btn--dark stays charcoal. */
+:root :is(.aw, #calm) :is(.aw-btn, .tw-btn),
+:root :is(.aw, #calm) :is(.aw-btn--secondary, .aw-ctl, .aw-try, .aw-viewbtn) { border-radius: 8px !important; }
+:root :is(.aw, #calm) :is(.aw-btn--sm, .tw-btn--sm) { border-radius: 7px !important; }
+:root :is(.aw, #calm) :is(.aw-btn--primary, .aw-btn--accent, .aw-btn--brand):not(:disabled):not([aria-disabled="true"]),
+:root :is(.aw, #calm) a:is(.aw-btn--primary, .aw-btn--accent, .aw-btn--brand):is(:link, :visited) {
+  background: var(--signal) !important; color: var(--on-signal) !important; box-shadow: var(--shadow-key) !important;
+}
+:root :is(.aw, #calm) :is(.aw-btn--primary, .aw-btn--accent, .aw-btn--brand):not(:disabled):not([aria-disabled="true"]):hover { background: var(--signal-hover) !important; }
+:root :is(.aw, #calm) :is(.aw-btn--primary, .aw-btn--accent, .aw-btn--brand):focus-visible { box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 4px var(--signal) !important; }
+:root :is(.aw, #calm) :is(.aw-iconbtn, .aw-icon-btn, .zp-icon-btn) { border-radius: 8px !important; }
+
+/* ─────────────── 2. Type: firmer titles ─────────────── */
+:root :is(.aw, #calm) h1.aw-h2 { font-size: 28px !important; line-height: 34px !important; font-weight: 600 !important; letter-spacing: -0.03em !important; color: var(--text-strong) !important; }
+:root :is(.aw, #calm) .aw-frame__head, :root :is(.aw, #calm) .aw-frame__head :is(.aw-h4, h2, h3) { font-weight: 600 !important; font-size: 14.5px !important; }
+:root :is(.aw, #calm) .aw-page-title { font-weight: 600 !important; }
+:root :is(.aw, #calm) .aw-page-title__group { font-weight: 450 !important; }
+
+/* ─────────────── 3. Cards: 16px corners ─────────────── */
+:root :is(.aw, #calm) :is(.aw-frame, .aw-table-wrap, .aw-kpi, .aw-card-stat, .aw-card, .aw-tile, .aw-module, .aw-run, .aw-stats, .aw-cost) { border-radius: 16px !important; }
+:root :is(.aw, #calm) .aw-frame__head { border-radius: 16px 16px 0 0 !important; }
+:root :is(.aw, #calm) .aw-stats > :first-child { border-top-left-radius: 16px !important; border-bottom-left-radius: 16px !important; }
+:root :is(.aw, #calm) .aw-stats > :last-child { border-top-right-radius: 16px !important; border-bottom-right-radius: 16px !important; }
+:root :is(.aw, #calm) :is(.aw-frame, .aw-card, .aw-module) :is(.aw-frame, .aw-table-wrap, .aw-card, .aw-tile) { border-radius: 12px !important; }
+:root :is(.aw, #calm) .aw-frame__body--flush .aw-table-wrap, :root :is(.aw, #calm) .aw-frame > .aw-table-wrap { border-radius: 0 !important; }
+@media (min-width: 768px) {
+  :root :is(.aw, #calm) div:has(> .aw-page-body) { border-radius: 16px !important; }
+  :root :is(.aw, #calm) div:has(> .aw-page-body) > .aw-page-head { border-radius: 16px 16px 0 0 !important; }
+}
+
+/* ─────────────── 4. Switches: a tray with a white key ─────────────── */
+:root :is(.aw, #calm) :is(.aw-seg, .aw-pick) { border-radius: 10px !important; padding: 3px !important; }
+:root :is(.aw, #calm) :is(.aw-seg, .aw-pick) > button, :root :is(.aw, #calm) .aw-seg button { border-radius: 8px !important; }
+:root :is(.aw, #calm) .aw-tabs { gap: 2px !important; padding: 3px !important; border-radius: 10px !important; background: var(--bg-quaternary) !important; width: fit-content; max-width: 100%; flex-wrap: wrap; }
+:root :is(.aw, #calm) .aw-tabs > button { background: transparent !important; box-shadow: none !important; color: var(--text-secondary) !important; border-radius: 8px !important; }
+:root :is(.aw, #calm) .aw-tabs > button:hover { background: transparent !important; color: var(--text-strong) !important; }
+:root :is(.aw, #calm) .aw-tabs > :is(button.is-on, button[aria-selected="true"], button[aria-checked="true"]) {
+  background: var(--bg-primary) !important; color: var(--text-strong) !important; box-shadow: var(--shadow-chip) !important;
+}
+/* Filter chips: the picked one is Signal Blue on its soft fill. */
+:root :is(.aw, #calm) .aw-chip.aw-chip--btn { height: 28px; padding: 0 11px !important; font-size: 13px !important; cursor: pointer; transition: background-color var(--t-fast) var(--ease-calm), box-shadow var(--t-fast) var(--ease-calm); }
+
+/* ─────────────── 5. The stat strip ───────────────
+   One card for a screen's numbers. The lead cell is wider and tinted; the rest are split by hairlines. */
+:root :is(.aw, #calm) .aw-strip { display: grid; grid-template-columns: minmax(0, 1.5fr) repeat(var(--aw-strip-n, 3), minmax(0, 1fr)); border-radius: 16px; background: var(--bg-primary); box-shadow: var(--shadow-rest); }
+:root :is(.aw, #calm) .aw-strip__cell { position: relative; display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 16px 18px; border-left: 1px solid var(--border-medium); }
+:root :is(.aw, #calm) .aw-strip__lead { border-left: 0; border-radius: 16px 0 0 16px; background: var(--signal-soft); overflow: hidden; }
+:root :is(.aw, #calm) .aw-strip__label { font-size: 12.5px; font-weight: 500; color: var(--text-secondary); }
+:root :is(.aw, #calm) .aw-strip__lead .aw-strip__label { color: var(--signal-ink); }
+:root :is(.aw, #calm) .aw-strip__row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
+:root :is(.aw, #calm) .aw-strip__num { font-size: 24px; line-height: 30px; font-weight: 600; letter-spacing: -0.025em; color: var(--text-strong); }
+:root :is(.aw, #calm) .aw-strip__lead .aw-strip__num { font-size: 36px; line-height: 40px; letter-spacing: -0.035em; }
+:root :is(.aw, #calm) .aw-strip__num.is-pos { color: var(--green-11); }
+:root :is(.aw, #calm) .aw-strip__num.is-neg { color: var(--red-11); }
+:root :is(.aw, #calm) .aw-strip__num.is-warn { color: var(--orange-11); }
+:root :is(.aw, #calm) .aw-strip__num.is-brand { color: var(--signal-ink); }
+:root :is(.aw, #calm) .aw-strip__sub { font-size: 12px; color: var(--text-secondary); }
+:root :is(.aw, #calm) .aw-strip__spark { position: absolute; right: 0; bottom: 0; width: 58%; height: 46px; pointer-events: none; }
+:root :is(.aw, #calm) .aw-strip__bar { display: flex; gap: 2px; height: 6px; margin-top: 8px; border-radius: 3px; overflow: hidden; }
+:root :is(.aw, #calm) .aw-strip__bar > i { display: block; min-width: 4px; border-radius: 2px; }
+@media (max-width: 900px) {
+  :root :is(.aw, #calm) .aw-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  :root :is(.aw, #calm) .aw-strip__lead { grid-column: 1 / -1; border-radius: 16px 16px 0 0; }
+  :root :is(.aw, #calm) .aw-strip__cell:not(.aw-strip__lead) { border-top: 1px solid var(--border-medium); }
+  :root :is(.aw, #calm) .aw-strip__cell:nth-child(even) { border-left: 0; }
+}
+
+/* The lead cell of the Prompts summary: the same tint, with your visibility trend behind the number. */
+:root :is(.aw, #calm) .aw-lead { background: var(--signal-soft); overflow: hidden; }
+:root :is(.aw, #calm) .aw-lead__spark { position: absolute; right: 0; top: 18px; width: 46%; height: 64px; pointer-events: none; }
+@media (min-width: 640px) { :root :is(.aw, #calm) .aw-lead { border-bottom-left-radius: 16px; } }
+
+/* Usage meters as one card of rows: label, bar, count. */
+:root :is(.aw, #calm) .aw-meters { display: flex; flex-direction: column; border-radius: 16px; background: var(--bg-primary); box-shadow: var(--shadow-rest); }
+:root :is(.aw, #calm) .aw-meters > .aw-card-stat {
+  display: grid !important; grid-template-columns: minmax(120px, 180px) minmax(0, 1fr) auto; align-items: center; gap: 4px 16px !important; padding: 14px 18px !important;
+  border-radius: 0 !important; box-shadow: none !important; background: transparent !important; border-top: 1px solid var(--border-medium) !important;
+}
+:root :is(.aw, #calm) .aw-meters > .aw-card-stat:first-child { border-top: 0 !important; }
+:root :is(.aw, #calm) .aw-meters > .aw-card-stat > :nth-child(1) { order: 1; font-size: 13.5px !important; font-weight: 500; color: var(--text-strong) !important; }
+:root :is(.aw, #calm) .aw-meters > .aw-card-stat > [role="meter"] { order: 2; }
+:root :is(.aw, #calm) .aw-meters > .aw-card-stat > :nth-child(2) { order: 3; font-size: 15px !important; text-align: right; }
+:root :is(.aw, #calm) .aw-meters > .aw-card-stat > :nth-child(4) { order: 4; grid-column: 1 / -1; }
+:root :is(.aw, #calm) [role="meter"] > div:not(.bg-neg) { background: var(--signal) !important; }

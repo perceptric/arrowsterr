@@ -411,7 +411,7 @@ function IssueRow(p: {
             <ul className="flex flex-col gap-1 text-[13px]">
               {i.pages.map((u) => (
                 <li key={u}>
-                  <a href={u} target="_blank" rel="noreferrer" className="text-brand wrap-anywhere hover:underline">
+                  <a href={u} target="_blank" rel="noreferrer" className="text-[var(--signal-ink)] wrap-anywhere hover:underline">
                     {u}
                   </a>
                 </li>

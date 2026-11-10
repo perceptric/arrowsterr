@@ -5,7 +5,7 @@ import { LINK_KINDS, spamLevel, type GapRow, type LinkKind, type LinkRow, type O
 import type { RunAuth } from "@/lib/runner";
 import { demoBacklinks } from "@/lib/demo";
 import { ToolStart, TsDomain } from "./ToolStart";
-import { Card, Delta, Seg, Thinking } from "./ui";
+import { Card, Delta, Seg, StatStrip, Thinking } from "./ui";
 import { useApi } from "./ZippiePage";
 
 // Backlinks (docs/backlinks.md): who links to the brand, new and lost by week, anchors and most linked pages, every
@@ -164,13 +164,17 @@ function OverviewTab({ demo, call, canEdit, onError, loadReq, onState }: { demo:
   return (
     <div className="flex flex-col gap-4">
       {head}
-      <div data-tour="1" className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-        <Kpi label="Linking sites" value={n(s.domains)} delta={<Delta now={s.domains} before={before?.domains ?? null} digits={0} />} />
-        <Kpi label="Backlinks" value={n(s.backlinks)} delta={<Delta now={s.backlinks} before={before?.backlinks ?? null} digits={0} />} />
-        <Kpi label="New sites, 4 weeks" value={n(newDomains)} tone="pos" />
-        <Kpi label="Lost sites, 4 weeks" value={n(lostDomains)} tone={lostDomains > newDomains ? "neg" : undefined} />
-        <Kpi label="Authority" value={String(s.rank)} delta={<span className={`aw-status ${SPAM_CLASS[level]}`}>{level === "low" ? "Low spam" : level === "medium" ? "Some spam" : "High spam"}</span>} />
-      </div>
+      <StatStrip
+        tour={1}
+        spark={sitesTrend(s.domains, o.weeks)}
+        stats={[
+          { label: "Linking sites", value: n(s.domains), delta: <Delta now={s.domains} before={before?.domains ?? null} digits={0} /> },
+          { label: "Backlinks", value: n(s.backlinks), delta: <Delta now={s.backlinks} before={before?.backlinks ?? null} digits={0} /> },
+          { label: "New sites, 4 weeks", value: n(newDomains), tone: "pos" },
+          { label: "Lost sites, 4 weeks", value: n(lostDomains), tone: lostDomains > newDomains ? "neg" : undefined },
+          { label: "Authority", value: String(s.rank), delta: <span className={`aw-status ${SPAM_CLASS[level]}`}>{level === "low" ? "Low spam" : level === "medium" ? "Some spam" : "High spam"}</span> },
+        ]}
+      />
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <Card tour={2} title="New and lost linking sites" action={<span className="flex gap-3 text-[12px] text-body"><Key color="var(--aw-pos)" label="New" /><Key color="var(--aw-neg)" label="Lost" /></span>}>
           <div className="px-5 pb-5">{o.weeks.length ? <Bars weeks={o.weeks} /> : <p className="text-[13px] text-muted">No weekly history yet.</p>}</div>
@@ -182,7 +186,7 @@ function OverviewTab({ demo, call, canEdit, onError, loadReq, onState }: { demo:
                 <div key={a.anchor} className="grid grid-cols-[minmax(0,1fr)_minmax(60px,120px)_40px] items-center gap-3 text-[13px]">
                   <span className="text-body wrap-break-word">{a.anchor}</span>
                   <span className="block h-2 rounded-full bg-[var(--aw-surface-2)]">
-                    <span className="block h-full rounded-full bg-[var(--aw-brand)]" style={{ width: `${Math.max(2, a.share)}%` }} />
+                    <span className="block h-full rounded-full bg-[var(--signal)]" style={{ width: `${Math.max(2, a.share)}%` }} />
                   </span>
                   <span className="aw-num text-right font-medium text-ink">{a.share}%</span>
                 </div>
@@ -209,18 +213,11 @@ function OverviewTab({ demo, call, canEdit, onError, loadReq, onState }: { demo:
   );
 }
 
-function Kpi({ label, value, delta, tone }: { label: string; value: string; delta?: React.ReactNode; tone?: "pos" | "neg" }) {
-  return (
-    <Card>
-      <div className="flex flex-col gap-1 px-4 py-3.5">
-        <span className="text-[12px] font-medium text-muted">{label}</span>
-        <span className="flex flex-wrap items-baseline gap-2">
-          <span className={`aw-num text-[22px] font-semibold ${tone === "pos" ? "text-pos" : tone === "neg" ? "text-neg" : "text-ink"}`}>{value}</span>
-          {delta}
-        </span>
-      </div>
-    </Card>
-  );
+/** Linking sites week by week, worked back from today's count and each week's new and lost sites. */
+function sitesTrend(now: number, weeks: Week[]): number[] {
+  const out = [now];
+  for (let i = weeks.length - 1; i >= 0; i--) out.unshift(out[0] - weeks[i].newDomains + weeks[i].lostDomains);
+  return out;
 }
 
 const Key = ({ color, label }: { color: string; label: string }) => (
@@ -323,7 +320,7 @@ function LinksTab({ demo, call, canEdit, onError }: { demo: Demo; call: Call; ca
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap gap-2">
         {LINK_KINDS.map((k) => (
-          <button key={k.id} type="button" onClick={() => { setKind(k.id); setShown(1); }} aria-pressed={kind === k.id} className={`aw-btn aw-btn--sm ${kind === k.id ? "aw-btn--primary" : "aw-btn--secondary"}`}>
+          <button key={k.id} type="button" onClick={() => { setKind(k.id); setShown(1); }} aria-pressed={kind === k.id} className="aw-chip aw-chip--btn">
             {k.label}
           </button>
         ))}
@@ -525,7 +522,7 @@ function GapTab({ brand, demo, call, canEdit, onError }: { brand: Brand; demo: D
             <span className="flex flex-wrap items-center gap-3">
               {isDemo ? <ExampleTag /> : null}
               <label className="flex cursor-pointer items-center gap-2 text-[13px] text-body">
-                <input type="checkbox" checked={onlyAi} onChange={(e) => setOnlyAi(e.target.checked)} className="h-4 w-4 accent-[var(--aw-brand)]" />
+                <input type="checkbox" checked={onlyAi} onChange={(e) => setOnlyAi(e.target.checked)} className="h-4 w-4 accent-[var(--signal)]" />
                 Only sites AI cites
               </label>
               {canEdit && notAdded.length ? (
