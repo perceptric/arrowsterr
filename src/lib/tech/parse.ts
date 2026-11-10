@@ -41,6 +41,12 @@ export type PageFacts = {
   metaRefresh: string | null;
   shell: boolean;
   bytes: number;
+  /** Words in the main content's first paragraph, for "answers first" (missing on crawls before phase 4). */
+  firstWords?: number;
+  /** H2 to H4 headings that ask a question. */
+  questions?: number;
+  /** noai or noimageai in robots meta or X-Robots-Tag. */
+  noai?: boolean;
 };
 
 /** A short stable hash of text, for spotting pages with the same main content. */
@@ -148,6 +154,13 @@ export function readPage(url: string, html: string, headers: Record<string, stri
   let headingSkip = false;
   for (let i = 1; i < levels.length; i++) if (levels[i] > levels[i - 1] + 1) headingSkip = true;
   const text = mainText($);
+  const scope = $("main, article, [role=main]").first();
+  const firstPara = (scope.length ? scope : $("body"))
+    .find("p")
+    .map((_, el) => $(el).text().replace(/\s+/g, " ").trim())
+    .get()
+    .find((t) => t.split(" ").length >= 8) ?? "";
+  const questions = $("h2, h3, h4").filter((_, el) => /\?\s*$/.test($(el).text().trim())).length;
   const words = text ? text.split(" ").length : 0;
   const https = url.startsWith("https://");
   const mixed = https ? $('img[src^="http:"], script[src^="http:"], link[rel="stylesheet" i][href^="http:"], iframe[src^="http:"], video[src^="http:"], audio[src^="http:"], source[src^="http:"]').length : 0;
@@ -194,6 +207,9 @@ export function readPage(url: string, html: string, headers: Record<string, stri
     // Almost no text and almost nothing in the body but a root element: the page is built by JavaScript.
     shell: words < 50 && bodyKids <= 2 && $("body script").length > 0,
     bytes: html.length,
+    firstWords: firstPara ? firstPara.split(" ").length : undefined,
+    questions,
+    noai: /\b(noai|noimageai)\b/.test(`${$('meta[name]').filter((_, el) => /^(robots|googlebot|[a-z-]*bot)$/i.test($(el).attr("name") ?? "")).map((_, el) => $(el).attr("content") ?? "").get().join(" ")} ${xRobots}`.toLowerCase()),
   };
 }
 

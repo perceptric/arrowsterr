@@ -18,6 +18,10 @@ With Search Console and the Chrome UX Report connected (`docs/indexing-speed.md`
 
 After the fetch, the worker's Chromium renders pages the way Google does (phone, JavaScript on) and the crawl compares them with the raw HTML: the Rendering tab in a page's panel, Raw text and Link score columns in Pages, and 11 rendering checks (most text only after JavaScript, robots or canonical changed by JavaScript, links only after JavaScript, failed requests, JavaScript errors, robots.txt blocking scripts or styles, and more). Each page also gets a link score from 0 to 10 from the site's own links. See `docs/site-structure.md`.
 
+## AI access
+
+Each crawl also checks 16 search and AI crawlers against robots.txt, the firewall and robots meta tags, reads llms.txt and the brand's pages AI cites, and adds 10 AI checks. See `docs/ai-access.md`.
+
 ## Reliability
 
 A false "healthy" costs more than no score, so:

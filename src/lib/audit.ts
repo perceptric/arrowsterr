@@ -1,4 +1,5 @@
 import "server-only";
+import type { BotAccess } from "./tech/ai";
 import { after } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { entitlement } from "./entitlements";
@@ -48,6 +49,8 @@ export type AuditResult = {
   brokenLinks: { url: string; status: number; from: string }[];
   redirectLinks?: { from: string; to: string }[];
   rendered?: { pages: number; skipped: number };
+  /** AI access (phase 4): each bot's answers, llms.txt, IndexNow and cited pages that broke. */
+  ai?: { bots: BotAccess[]; llms: { valid: boolean; links: number; broken: string[] } | null; indexNow: boolean | null; cited: number; citedBroken: { url: string; why: string }[] };
   /** Why this crawl got no score (most pages didn't load, or the crawl stopped early). Missing on a full crawl. */
   partial?: string;
   /** Crawler v2 only. */

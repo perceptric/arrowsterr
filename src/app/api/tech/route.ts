@@ -5,6 +5,7 @@ import { accessToken, googleReady } from "@/lib/google";
 import { INSPECT_PER_DAY, inspectUrl, listSites, queueGscSync } from "@/lib/gsc";
 import { enqueue } from "@/lib/jobs";
 import { adminClient, isEditor, requireRole } from "@/lib/serverAuth";
+import { aiAccess, llmsDraft, publishLlms, rivals, setIndexNow, shotOf } from "@/lib/aiAccess";
 import { inspectLink } from "@/lib/tech/google";
 import { byUrl } from "@/lib/tech/checks";
 import { anchorFor, folders, suggestLinks, weakPages, type StructPage } from "@/lib/tech/structure";
@@ -28,6 +29,12 @@ const SETUP = "Run supabase/068_google_tech.sql on the VPS database.";
 //   lab:        { brandId, url, device } editors: a PageSpeed Insights lab test of one of the brand's pages
 //   structure:  { brandId }              the latest crawl by folder and depth, weak pages, orphans, redirects
 //   suggest:    { brandId, url }         pages that should link to this one, with the anchor to use
+//   ai:         { brandId }              AI crawler access, JavaScript dependence, pages AI cites, llms.txt, IndexNow
+//   shot:       { brandId, url }         the phone screenshot of one page in the latest crawl
+//   rivals:     { brandId, fresh? }      how the competitor pages AI cites are built, next to yours (cached a day)
+//   llms:       { brandId }              an llms.txt drafted from the latest crawl
+//   llmsPublish:{ brandId, text }        editors: save llms.txt on the brand's WordPress site through the plugin
+//   indexnow:   { brandId, on }          editors: turn IndexNow on or off through the plugin
 export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
   const auth = await requireRole(request, body.workspaceId, "viewer");
@@ -245,6 +252,23 @@ export async function POST(request: Request) {
     const { data: linking } = first.length ? await db.from("crawl_pages").select("url").eq("audit_id", a.id).in("url", first.map((f) => f.from)).contains("facts", { links: [{ u: url }] }) : { data: [] };
     const already = new Set((linking ?? []).map((l) => l.url as string));
     return Response.json({ anchor: anchorFor(t), suggestions: first.filter((f) => !already.has(f.from)).slice(0, 5) });
+  }
+
+  if (body.action === "ai" || body.action === "shot" || body.action === "rivals" || body.action === "llms" || body.action === "llmsPublish" || body.action === "indexnow") {
+    const { data: full } = await db.from("brands").select("id, name, domain").eq("id", brand.id).maybeSingle();
+    const b = { id: brand.id, name: (full?.name as string) || brand.domain, domain: brand.domain };
+    try {
+      if (body.action === "ai") return Response.json({ ...(await aiAccess(db, b)), canEdit: editor });
+      if (body.action === "shot") return Response.json({ shot: await shotOf(db, b.id, str(body.url, 2000)) });
+      if (body.action === "rivals") return Response.json(await rivals(db, b, Boolean(body.fresh) && editor));
+      if (body.action === "llms") return Response.json({ text: await llmsDraft(db, b) });
+      const denied = await needEditor();
+      if (denied) return denied;
+      if (body.action === "llmsPublish") return Response.json(await publishLlms(db, b.id, String(body.text ?? "").slice(0, 200_000)));
+      return Response.json(await setIndexNow(db, b.id, Boolean(body.on)));
+    } catch (e) {
+      return err(e instanceof Error ? e.message : String(e));
+    }
   }
 
   return err("Unknown action.");
