@@ -11,9 +11,6 @@ import { claudeModel } from "./claude";
 import { capsOf, EDITABLE, faqsIn, imagesWithoutAlt, linksIn, listItems } from "./cmsEdit";
 import type { CmsKind } from "./cmsTypes";
 import { requireWriter } from "./entitlements";
-import type { Profile } from "./db";
-import { suppressed } from "./linkBuilding";
-import { addProspects, findAiCites, linkList, suppression } from "./linkBuildingServer";
 import { enqueue, queueReady } from "./jobs";
 import { ToolError } from "./mcp/protocol";
 import { TOOLS as MCP_TOOLS } from "./mcp/tools";
@@ -43,16 +40,6 @@ const str = (v: unknown, n = 300) => (typeof v === "string" ? v.trim().slice(0, 
 async function brandDomain(ctx: AskCtx) {
   const { data } = await ctx.db.from("brands").select("domain").eq("workspace_id", ctx.ws).order("created_at").limit(1).maybeSingle();
   return (data?.domain as string | undefined) ?? "";
-}
-
-/** The brand a tool means: by name or domain, else the one on screen, else the first. */
-async function pickBrand(ctx: AskCtx, arg: unknown) {
-  const { data } = await ctx.db.from("brands").select("id, name, domain, profile").eq("workspace_id", ctx.ws).order("created_at");
-  const list = (data ?? []) as { id: string; name: string; domain: string; profile: Profile | null }[];
-  const want = str(arg, 200).toLowerCase();
-  const b = (want && list.find((x) => x.name.toLowerCase() === want || cleanDomain(x.domain) === cleanDomain(want))) || list.find((x) => x.name === ctx.where?.brand) || list[0];
-  if (!b) throw new ToolError("Add a brand first.");
-  return b;
 }
 
 async function connections(ctx: AskCtx) {
@@ -175,22 +162,6 @@ const LOCAL: LocalTool[] = [
         top_10_median_words: r.medianWords,
         suggested: r.suggest,
       };
-    },
-  },
-  {
-    name: "find_link_prospects",
-    label: "Finding link prospects",
-    description: "Add sites to the brand's Link Building board that its AI answers of the last 30 days cite when they name a competitor and not the brand. Free. Needs competitors with websites on the brand profile.",
-    input_schema: { type: "object", properties: { brand: { type: "string" } } },
-    async run(ctx, args) {
-      if (!ctx.canEdit) throw new ToolError("Only editors and admins can add prospects.");
-      const b = await pickBrand(ctx, args.brand);
-      const list = await linkList(ctx.db, ctx.ws, b.id, true);
-      if (!list) throw new ToolError("Link Building isn't set up in this workspace yet.");
-      const found = await findAiCites(ctx.db, { ...b, profile: b.profile });
-      const dnc = await suppression(ctx.db, ctx.ws);
-      const added = await addProspects(ctx.db, ctx.ws, list, found.filter((p) => !suppressed(p, dnc)));
-      return { brand: b.name, found: found.length, added, top: found.slice(0, 10).map((p) => ({ site: p.domain, page: p.url, why: p.note })) };
     },
   },
   {

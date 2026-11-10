@@ -23,7 +23,6 @@ import { queueWeeklyAudits, runAudit } from "../audit";
 import { queueCwvSyncs, syncCwv } from "../cwv";
 import { queueGscSyncs, syncGsc } from "../gsc";
 import { runOnpage } from "../onpageServer";
-import { checkLink, queueLinkChecks } from "../linkBuildingServer";
 import { runMap } from "../contentMapServer";
 import { collectScan, queueWeeklyScans } from "../localServer";
 import { queueReportSends } from "../scheduleServer";
@@ -55,8 +54,6 @@ export async function schedule(db: SupabaseClient, job: Job) {
   await queueReportSends(db).catch((e) => console.error("Report schedules failed:", e instanceof Error ? e.message : e));
   // Weekly site audits (docs/site-audit.md), for brands that already ran one. A failure here never holds up the daily checks.
   await queueWeeklyAudits(db).catch((e) => console.error("Weekly site audits failed:", e instanceof Error ? e.message : e));
-  // Won links get checked once a week (docs/link-building.md).
-  await queueLinkChecks(db).catch((e) => console.error("Link checks failed:", e instanceof Error ? e.message : e));
   // Technical SEO: Search Console and Chrome UX Report syncs, once a day per brand (docs/technical-seo-plan.md).
   await queueGscSyncs(db).catch((e) => console.error("Search Console syncs failed:", e instanceof Error ? e.message : e));
   await queueCwvSyncs(db).catch((e) => console.error("Core Web Vitals syncs failed:", e instanceof Error ? e.message : e));
@@ -320,10 +317,8 @@ export async function content_map(db: SupabaseClient, job: Job) {
   await finish(job.id);
 }
 
-// Link Building (docs/link-building.md): is a won link still on its page?
-export async function link_check(db: SupabaseClient, job: Job) {
-  const { id } = job.payload as { id: string };
-  await checkLink(db, id);
+// Link Building was removed: link checks still in the queue just finish.
+export async function link_check(_db: SupabaseClient, job: Job) {
   await finish(job.id);
 }
 

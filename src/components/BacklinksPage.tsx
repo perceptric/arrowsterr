@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { BL_SCOPES, guessScope, type BlScope } from "@/lib/backlinks";
 import type { RunAuth } from "@/lib/runner";
-import { domainHref, setUrl, urlParams } from "@/lib/researchUrl";
+import { setUrl, urlParams } from "@/lib/researchUrl";
 import { scopeOf } from "@/lib/scope";
 import { Dropdown } from "./Pickers";
 import { SearchBar, SearchButton } from "./SearchBar";
@@ -146,22 +146,7 @@ export function BacklinksPage({ brand, auth, canEdit }: { brand: Brand; auth: Ru
         </div>
       ) : null}
       {error ? <p className="aw-error">{error}</p> : null}
-      {tab !== "compare" ? (
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={favicon(hostOf(active.q))} alt="" width={28} height={28} className="h-7 w-7 rounded-[6px]" />
-            <h2 className="aw-h3 mb-0! min-w-0 wrap-anywhere">
-              {label}
-              {active.scope !== "domain" ? <span className="aw-tag ml-2 align-middle">{BL_SCOPES.find((x) => x.id === active.scope)?.label}</span> : null}
-            </h2>
-          </div>
-          <a className="aw-btn aw-btn--secondary aw-btn--sm" href={domainHref(label, active.scope)}>
-            Open in Domain Research
-          </a>
-        </div>
-      ) : null}
-      <div role="tablist" aria-label="Backlinks view" className="-mt-2 flex gap-1 overflow-x-auto border-b border-[var(--aw-rule)]">
+      <div role="tablist" aria-label="Backlinks view" className="flex gap-1 overflow-x-auto border-b border-[var(--aw-rule)]">
         {TABS.map((t) => (
           <button
             key={t.id}

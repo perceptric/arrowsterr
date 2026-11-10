@@ -254,7 +254,6 @@ export function NetworkTab(p: TabProps) {
   const { data, busy, load } = useDomains(p);
   const [near, setNear] = useState<Near | null>(() => (p.memo.get("near") as Near) ?? null);
   const [finding, setFinding] = useState(false);
-  const [added, setAdded] = useState<Set<string>>(new Set());
   if (data === null) return <Loading />;
   if (data === "none") return <NotLoaded canEdit={p.canEdit} busy={busy} label="Load linking sites" onLoad={() => load(true)} />;
   const own = data.list.rows;
@@ -272,15 +271,6 @@ export function NetworkTab(p: TabProps) {
       p.onError(msg(e));
     } finally {
       setFinding(false);
-    }
-  }
-  async function add(domains: string[]) {
-    p.onError("");
-    try {
-      const r = await p.call<{ added: string[] }>("add", { domains });
-      setAdded((s) => new Set([...s, ...r.added]));
-    } catch (e) {
-      p.onError(msg(e));
     }
   }
 
@@ -367,16 +357,7 @@ export function NetworkTab(p: TabProps) {
           </div>
         </div>
       </Card>
-      <Card
-        title="Second-tier prospects"
-        action={
-          near && prospects.length && p.canEdit ? (
-            <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => add(prospects.slice(0, 50).map((x) => x.domain))}>
-              Add {Math.min(50, prospects.length)} to Link building
-            </button>
-          ) : undefined
-        }
-      >
+      <Card title="Second-tier prospects">
         <div className="flex flex-col gap-3 px-5 pb-5">
           {!near ? (
             <>
@@ -395,11 +376,6 @@ export function NetworkTab(p: TabProps) {
                     <SiteLink domain={s.domain} sub={`Links to ${s.via.slice(0, 3).join(", ")}`} onOpen={p.onOpen} />
                   </span>
                   <span className="aw-num text-[13px] text-body">{s.rank}</span>
-                  {p.canEdit ? (
-                    <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => add([s.domain])} disabled={added.has(s.domain)}>
-                      {added.has(s.domain) ? "Added" : "Add"}
-                    </button>
-                  ) : null}
                 </li>
               ))}
             </ul>

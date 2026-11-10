@@ -4,7 +4,6 @@ import type { Profile } from "@/lib/db";
 import { requireTrack, take } from "@/lib/entitlements";
 import { meteredRoute } from "@/lib/meter";
 import { TASK_COST } from "@/lib/plans";
-import { linkList } from "@/lib/linkBuildingServer";
 import { adminClient, isEditor, requireRole } from "@/lib/serverAuth";
 
 export const maxDuration = 120;
@@ -26,7 +25,6 @@ const err = (error: string, status = 400) => Response.json({ error }, { status }
 //   near:     { brandId, sites }                                   the strongest sites linking to up to 8 of the target's linking sites
 //   peers:    { brandId }                                          the brand's domain and its competitors, for quick picks
 //   bulk:     { brandId, targets, refresh? }                       up to 200 sites or pages side by side
-//   add:      { brandId, domains }                                 editors: put gap sites on the brand's Link building list
 async function handle(request: Request) {
   const body = await request.json().catch(() => ({}));
   const auth = await requireRole(request, body.workspaceId, "viewer");
@@ -150,13 +148,7 @@ async function handle(request: Request) {
     if (!cited.length) return Response.json({ ai: null, empty: true, canRefresh: editor });
     const r = await get(keys.ai(t.id, cited.map((c) => c.domain), rivals), TASK_COST.blai, () => loadAi(t, cited, rivals));
     if (r instanceof Response) return r;
-    const list = await linkList(db, ws, brand.id);
-    let added: string[] = [];
-    if (list) {
-      const { data: rows } = await db.from("outreach_targets").select("domain").eq("list_id", list);
-      added = (rows ?? []).map((x) => String(x.domain));
-    }
-    return Response.json({ ai: r.data, rivals, added, canRefresh: editor });
+    return Response.json({ ai: r.data, rivals, canRefresh: editor });
   }
 
   if (body.action === "overview") {
@@ -188,28 +180,8 @@ async function handle(request: Request) {
     const r = await get(keys.gap(target, rivals), TASK_COST.linkgap(rivals.length), () => loadGap(target, rivals));
     if (r instanceof Response) return r;
     const raw = r.data as { perRival: { rival: string; items: unknown[] }[]; at: string };
-    const [cited, list] = await Promise.all([aiCited(db, brand.id), linkList(db, ws, brand.id)]);
-    let added: string[] = [];
-    if (list) {
-      const { data: t } = await db.from("outreach_targets").select("domain").eq("list_id", list);
-      added = (t ?? []).map((x) => String(x.domain));
-    }
-    return Response.json({ gap: { rows: gapRows(raw.perRival, target, cited), at: raw.at }, rivals, added, canRefresh: editor });
-  }
-
-  if (body.action === "add") {
-    if (!editor) return err("Ask an editor to add these.", 403);
-    const domains = (Array.isArray(body.domains) ? (body.domains as unknown[]) : []).map((d) => bareDomain(str(d, 200))).filter((d) => /\.[a-z]{2,}$/.test(d)).slice(0, 300);
-    if (!domains.length) return err("Pick at least one site.");
-    const list = await linkList(db, ws, brand.id, true);
-    if (!list) return err("Run supabase/040_outreach.sql with psql on the VPS database.", 500);
-    // Before 064_link_building.sql there's no source column; the cards still land on the list.
-    const withSource = !(await db.from("outreach_targets").select("source").limit(1)).error;
-    const { error } = await db
-      .from("outreach_targets")
-      .upsert(domains.map((d) => ({ list_id: list, workspace_id: ws, kind: "website", name: d, domain: d, url: `https://${d}`, added_from: "link_gap", ...(withSource ? { source: "link_gap", note: "Links to your competitors and not to you" } : {}) })), { onConflict: "list_id,kind,name", ignoreDuplicates: true });
-    if (error) return err(error.message, 500);
-    return Response.json({ added: domains });
+    const cited = await aiCited(db, brand.id);
+    return Response.json({ gap: { rows: gapRows(raw.perRival, target, cited), at: raw.at }, rivals, canRefresh: editor });
   }
 
   return err("Unknown action.");

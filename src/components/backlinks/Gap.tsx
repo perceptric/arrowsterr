@@ -16,7 +16,6 @@ export function GapTab(p: TabProps) {
   const [suggested, setSuggested] = useState<string[]>([]);
   const [input, setInput] = useState("");
   const [gap, setGap] = useState<Gap | null | "none">(null);
-  const [added, setAdded] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState("");
   const [f, setF] = useState({ two: false, ai: false, strong: false });
   const { call, onError } = p;
@@ -26,10 +25,9 @@ export function GapTab(p: TabProps) {
       if (fresh) setBusy("load");
       onError("");
       try {
-        const r = await call<{ gap?: Gap | null; rivals?: string[]; suggested?: string[]; added?: string[]; notSaved?: boolean }>("gap", { ...(list ? { rivals: list } : {}), ...(fresh ? { refresh: true } : { peek: true }) });
+        const r = await call<{ gap?: Gap | null; rivals?: string[]; suggested?: string[]; notSaved?: boolean }>("gap", { ...(list ? { rivals: list } : {}), ...(fresh ? { refresh: true } : { peek: true }) });
         if (r.rivals) setRivals(r.rivals);
         if (r.suggested) setSuggested(r.suggested);
-        if (r.added) setAdded(new Set(r.added));
         setGap(r.notSaved || !r.gap ? "none" : r.gap);
       } catch (e) {
         onError(msg(e));
@@ -45,18 +43,6 @@ export function GapTab(p: TabProps) {
     load(false);
   }, [load]);
 
-  async function add(domains: string[]) {
-    setBusy(domains.length > 1 ? "all" : domains[0]);
-    onError("");
-    try {
-      const r = await call<{ added: string[] }>("add", { domains });
-      setAdded((s) => new Set([...s, ...r.added]));
-    } catch (e) {
-      onError(msg(e));
-    } finally {
-      setBusy("");
-    }
-  }
   const addRival = (raw: string) => {
     const d = raw.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/.*$/, "");
     if (d && /\.[a-z]{2,}$/.test(d) && !rivals.includes(d) && rivals.length < MAX) setRivals([...rivals, d]);
@@ -65,7 +51,6 @@ export function GapTab(p: TabProps) {
 
   const all = gap && gap !== "none" ? gap.rows : [];
   const rows = all.filter((r) => (!f.two || r.rivals.length >= 2) && (!f.ai || r.aiCited > 0) && (!f.strong || r.rank >= 60));
-  const notAdded = rows.filter((r) => !added.has(r.domain)).map((r) => r.domain);
   const spread = gapSpread(all);
   const cols = gap && gap !== "none" ? [...new Set(all.flatMap((r) => r.rivals))].sort((a, b) => rivals.indexOf(a) - rivals.indexOf(b)) : rivals;
   const you = p.isOwn ? "you" : p.label.replace(/[/?#].*$/, "");
@@ -139,11 +124,6 @@ export function GapTab(p: TabProps) {
             title={`${num(rows.length)} sites link to ${cols.length === 1 ? "your competitor" : "your competitors"} and not to ${you}`}
             action={
               <span className="flex flex-wrap items-center gap-3">
-                {p.canEdit && notAdded.length ? (
-                  <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => add(notAdded.slice(0, 300))} disabled={busy === "all"}>
-                    {busy === "all" ? "Adding" : `Add ${Math.min(300, notAdded.length)} to Link building`}
-                  </button>
-                ) : null}
                 <CsvButton name={fileName(p.label, "link-gap")} head={["site", "authority", ...cols, "ai cites"]} rows={rows.map((g) => [g.domain, g.rank, ...cols.map((r) => (g.rivals.includes(r) ? "yes" : "")), g.aiCited])} />
                 <Updated at={gap.at} busy={busy === "load"} canRefresh={p.canEdit} onRefresh={() => load(true, rivals)} />
               </span>
@@ -171,7 +151,6 @@ export function GapTab(p: TabProps) {
                         </th>
                       ))}
                       <th>AI cites it</th>
-                      <th />
                     </tr>
                   </thead>
                   <tbody>
@@ -188,13 +167,6 @@ export function GapTab(p: TabProps) {
                           </td>
                         ))}
                         <td>{g.aiCited ? <span className="aw-badge">{g.aiCited}×</span> : <span className="text-muted">–</span>}</td>
-                        <td className="text-right">
-                          {p.canEdit ? (
-                            <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => add([g.domain])} disabled={added.has(g.domain) || busy === g.domain}>
-                              {added.has(g.domain) ? "Added" : "Add"}
-                            </button>
-                          ) : null}
-                        </td>
                       </tr>
                     ))}
                   </tbody>

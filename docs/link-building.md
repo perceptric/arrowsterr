@@ -1,5 +1,8 @@
 # Link Building
 
+**Removed in November 2026.** The screen, its API, the Zippie tools and skill, the weekly link checks and the "Add to Link building" buttons in Backlinks are gone. The `outreach_lists` and `outreach_targets` rows stay in the database, unused. The rest of this page is history.
+
+
 The Link Building board (Links, Link Building, at `/link-building`) takes a brand from link prospects to won links and keeps checking the links it won. It is step 4 of the new tools plan, after Backlinks (`docs/backlinks.md`).
 
 ## What it shows

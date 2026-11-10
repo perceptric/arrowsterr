@@ -39,16 +39,15 @@ function spanOf(start: string, end: string, tz: string | null): Span {
 /** The SEO block's saved results (src/lib/reportSeo.ts). Tables from 061 to 066 that don't exist yet just add nothing. */
 async function seoFor(db: SupabaseClient, brand: { id: string; workspace_id: string }, start: string, end: string): Promise<SeoSnapshot | null> {
   const rows = async <T>(q: PromiseLike<{ data: T[] | null; error: unknown }>): Promise<T[]> => ((await q).data ?? []) as T[];
-  const { data: list } = await db.from("outreach_lists").select("id").eq("workspace_id", brand.workspace_id).eq("brand_id", brand.id).eq("name", "Link building").limit(1).maybeSingle();
-  const [audits, onpage, snaps, cards, maps, scans] = await Promise.all([
+  const [audits, onpage, snaps, maps, scans] = await Promise.all([
     rows<SeoRaw["audits"][number]>(db.from("site_audits").select("status, score, created_at, pages, result").eq("brand_id", brand.id).eq("status", "done").order("created_at", { ascending: false }).limit(20)),
     rows<SeoRaw["onpage"][number]>(db.from("onpage_audits").select("url, keyword, score, top_score, created_at, status").eq("brand_id", brand.id).order("created_at", { ascending: false }).limit(200)),
     rows<SeoRaw["snaps"][number]>(db.from("backlink_snapshots").select("day, domains, backlinks, rank").eq("brand_id", brand.id).order("day", { ascending: false }).limit(60)),
-    list ? rows<NonNullable<SeoRaw["cards"]>[number]>(db.from("outreach_targets").select("stage, stage_at, link_live").eq("list_id", list.id).limit(2000)) : Promise.resolve(null),
     rows<SeoRaw["maps"][number]>(db.from("content_maps").select("created_at, result").eq("brand_id", brand.id).eq("status", "done").order("created_at", { ascending: false }).limit(3)),
     rows<SeoRaw["scans"][number]>(db.from("local_scans").select("keyword, created_at, result").eq("brand_id", brand.id).eq("status", "done").order("created_at", { ascending: false }).limit(60)),
   ]);
-  return seoSnapshot({ start, end, audits, onpage, snaps, cards, maps, scans });
+  // Link Building was removed, so reports have no link board section.
+  return seoSnapshot({ start, end, audits, onpage, snaps, cards: null, maps, scans });
 }
 
 /** Saved runs for a brand between two moments, oldest first, with tidy sources. */
