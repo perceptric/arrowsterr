@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { bareDomain, blTarget, bulkTargets, citedDomains, gapRivals, guessScope, parseBulk, linksQuery, parseAnchors, parseGap, parseLinks, parsePages, parseSummary, parseWeeks, spamLevel, weekAgo } from "../src/lib/backlinks.ts";
+import { aiLinkRows, anchorGroup, anchorMix, andAll, authorityBands, bareDomain, blTarget, brandWords, brokenPages, bulkTargets, citedDetail, citedDomains, disavowFile, gapRivals, gapSpread, guessScope, parseBulk, parseHistory, parseProfile, parseRefDomains, riskOf, suggestRedirect, linksQuery, parseAnchors, parseGap, parseLinks, parsePages, parseSummary, parseWeeks, spamLevel, weekAgo } from "../src/lib/backlinks.ts";
 
 test("a site with zero links has no summary, empty lists and no gap", () => {
   assert.equal(parseSummary({ backlinks: 0, referring_domains: 0, rank: 0 }), null);
@@ -35,8 +35,8 @@ test("weeks are sorted and capped at 12, anchors merge case and get their share 
 });
 
 test("link rows read the fields, and each list asks for the right links", () => {
-  const [r] = parseLinks([{ url_from: "https://www.g2.com/x", domain_from: "www.g2.com", url_to: "https://acme.com/", anchor: " Acme  CRM ", dofollow: false, first_seen: "2026-10-04 10:00:00 +00:00", is_new: true, backlink_spam_score: 2, domain_from_rank: 77.4, item_type: "anchor" }]);
-  assert.deepEqual(r, { from: "https://www.g2.com/x", domain: "g2.com", to: "https://acme.com/", anchor: "Acme CRM", follow: false, type: "anchor", firstSeen: "2026-10-04", isNew: true, isLost: false, spam: 2, rank: 77 });
+  const [r] = parseLinks([{ url_from: "https://www.g2.com/x", domain_from: "www.g2.com", url_to: "https://acme.com/", anchor: " Acme  CRM ", dofollow: false, first_seen: "2026-10-04 10:00:00 +00:00", is_new: true, backlink_spam_score: 2, domain_from_rank: 77.4, item_type: "anchor", text_pre: "We compared every tool and picked", text_post: "for small teams", semantic_location: "article", attributes: ["nofollow", "noopener"], page_from_title: "Best CRMs" }]);
+  assert.deepEqual(r, { from: "https://www.g2.com/x", domain: "g2.com", to: "https://acme.com/", anchor: "Acme CRM", follow: false, type: "anchor", firstSeen: "2026-10-04", isNew: true, isLost: false, spam: 2, rank: 77, pre: "We compared every tool and picked", post: "for small teams", place: "article", attrs: ["nofollow"], title: "Best CRMs" });
   assert.equal(linksQuery("lost").backlinks_status_type, "lost");
   assert.deepEqual(linksQuery("new", new Date("2026-11-09T00:00:00Z")).filters, ["first_seen", ">", "2026-10-10 00:00:00 +00:00"]);
   assert.deepEqual(linksQuery("follow").filters, ["dofollow", "=", true]);
@@ -119,4 +119,125 @@ test("bulk answers join by target, biggest profile first, spam left empty when i
     { target: "https://rival.io/pricing", rank: 20, backlinks: 12, domains: 900, nofollowDomains: 0, spam: null },
     { target: "acme.com", rank: 41, backlinks: 3960, domains: 412, nofollowDomains: 100, spam: null },
   ]);
+});
+
+test("the summary's lists become the profile charts, unknown and empty keys dropped", () => {
+  const p = parseProfile({
+    backlinks: 1000,
+    referring_ips: 388,
+    referring_subnets: 351,
+    referring_links_attributes: { nofollow: 210, ugc: 50, sponsored: 30, noopener: 400 },
+    referring_links_tld: { com: 700, org: 100, edu: 4, xyz: 0 },
+    referring_links_types: { anchor: 900, image: 80, redirect: 20, weird: 5 },
+    referring_links_platform_types: { blogs: 400, unknown: 300, "message-boards": 100 },
+    referring_links_semantic_locations: { article: 600, footer: 50, "": 300 },
+    referring_links_countries: { US: 500, gb: 40, "": 10 },
+  });
+  assert.ok(p);
+  assert.equal(p.followLinks, 790);
+  assert.equal(p.nofollowLinks, 210);
+  assert.deepEqual(p.tlds.map((t) => t.label), [".com", ".org", ".edu"]);
+  assert.deepEqual(p.types.map((t) => t.label), ["Text", "Image", "Redirect"]);
+  assert.deepEqual(p.platforms.map((t) => t.label), ["Blogs", "Forums"]);
+  assert.deepEqual(p.places.map((t) => t.label), ["In the article", "Footer"]);
+  assert.deepEqual(p.countries.map((t) => t.label), ["US", "GB"]);
+  assert.equal(parseProfile({ backlinks: 0 }), null);
+});
+
+test("monthly history is sorted and keeps one point a month", () => {
+  const h = parseHistory([
+    { date: "2026-03-01 00:00:00 +00:00", referring_domains: 30, backlinks: 300, rank: 40.6 },
+    { date: "2026-01-01 00:00:00 +00:00", referring_domains: 10, backlinks: 100, rank: 38 },
+    { date: "2026-02-01 00:00:00 +00:00", referring_domains: 20, backlinks: 200, rank: 39 },
+    { date: "2026-02-15 00:00:00 +00:00", referring_domains: 22, backlinks: 210, rank: 39 },
+  ]);
+  assert.deepEqual(h.map((m) => m.domains), [10, 22, 30]);
+  assert.equal(h[2].rank, 41);
+});
+
+test("linking sites are cleaned, strongest first, and banded by authority", () => {
+  const rows = parseRefDomains([
+    { domain: "www.weak.xyz", rank: 3, backlinks: 80, referring_pages: 80, referring_pages_nofollow: 0, backlinks_spam_score: 75 },
+    { domain: "g2.com", rank: 91, backlinks: 4, referring_pages: 4, referring_pages_nofollow: 4, first_seen: "2026-10-02 10:00:00 +00:00" },
+    { domain: "", rank: 50 },
+  ]);
+  assert.deepEqual(rows.map((r) => r.domain), ["g2.com", "weak.xyz"]);
+  assert.equal(rows[0].follow, false);
+  assert.equal(rows[0].nofollowShare, 100);
+  assert.equal(rows[0].firstSeen, "2026-10-02");
+  assert.deepEqual(authorityBands([{ rank: 0 }, { rank: 9 }, { rank: 55 }, { rank: 100 }]), [2, 0, 0, 0, 0, 1, 0, 0, 0, 1]);
+});
+
+test("anchors are sorted into brand, URL, generic and keyword", () => {
+  const words = brandWords("Perceptric", "perceptric.com");
+  assert.equal(anchorGroup("Perceptric agency", words), "brand");
+  assert.equal(anchorGroup("perceptric.com", words), "brand");
+  assert.equal(anchorGroup("https://perceptric.com/blog/ai-search", words), "url");
+  assert.equal(anchorGroup("example.org/page", words), "url");
+  assert.equal(anchorGroup("Click here", words), "generic");
+  assert.equal(anchorGroup("read more.", words), "generic");
+  assert.equal(anchorGroup("ai search agency", words), "keyword");
+  assert.equal(anchorGroup("", words), "empty");
+  const mix = anchorMix([{ anchor: "perceptric", domains: 60, backlinks: 0, share: 0 }, { anchor: "click here", domains: 20, backlinks: 0, share: 0 }, { anchor: "geo agency", domains: 20, backlinks: 0, share: 0 }], words);
+  assert.deepEqual(mix.map((g) => [g.id, g.share]), [["brand", 60], ["generic", 20], ["keyword", 20]]);
+});
+
+test("Backlinks filters join with and, and the new link lists ask DataForSEO the right way", () => {
+  assert.equal(andAll([[], []]), undefined);
+  assert.deepEqual(andAll([["a", "=", 1]]), ["a", "=", 1]);
+  assert.deepEqual(andAll([["a", "=", 1], [], ["b", "=", 2]]), [["a", "=", 1], "and", ["b", "=", 2]]);
+  assert.deepEqual(linksQuery("ugc").filters, ["attributes", "has", "ugc"]);
+  const q = linksQuery("follow", new Date("2026-11-10T00:00:00Z"), { article: true, anchor: "50%_off" });
+  assert.deepEqual(q.filters, [["dofollow", "=", true], "and", ["semantic_location", "=", "article"], "and", ["anchor", "like", "%50  off%"]]);
+  assert.equal(linksQuery("lost").backlinks_status_type, "lost");
+});
+
+test("broken links are grouped by dead page with a live page to send each to", () => {
+  const pages = brokenPages(
+    [
+      { url_to: "https://acme.com/old-webinar", url_to_status_code: 404, domain_from: "a.com", url_from: "https://a.com/x", domain_from_rank: 50, anchor: "webinar" },
+      { url_to: "https://acme.com/old-webinar", domain_from: "a.com", url_from: "https://a.com/y", domain_from_rank: 50 },
+      { url_to: "https://acme.com/old-webinar", domain_from: "b.com", url_from: "https://b.com/z", domain_from_rank: 80 },
+      { url_to: "https://acme.com/blog/ai-search-2024", url_to_status_code: 410, domain_from: "c.com", url_from: "https://c.com/q", domain_from_rank: 30 },
+    ],
+    ["https://acme.com/", "https://acme.com/blog/ai-search", "https://acme.com/events/webinars"],
+  );
+  assert.equal(pages.length, 2);
+  assert.equal(pages[0].page, "https://acme.com/old-webinar");
+  assert.equal(pages[0].sites, 2);
+  assert.equal(pages[0].links, 3);
+  assert.equal(pages[0].from[0].domain, "b.com");
+  assert.equal(pages[0].redirect, "/events/webinars");
+  assert.equal(pages[1].status, 410);
+  assert.equal(pages[1].redirect, "/blog/ai-search");
+  assert.equal(suggestRedirect("/nothing-alike", ["https://acme.com/pricing"]), "/");
+});
+
+test("toxic links put spam first and the disavow file is in Google's format", () => {
+  const base = { firstSeen: null, follow: true, nofollowShare: 0 };
+  assert.equal(riskOf({ ...base, domain: "g2.com", rank: 91, backlinks: 4, spam: 2 }).level, "low");
+  const bad = riskOf({ ...base, domain: "links.xyz", rank: 2, backlinks: 120, spam: 70 });
+  assert.equal(bad.level, "high");
+  assert.deepEqual(bad.reasons, ["Spam score 70", "Very low authority", ".xyz ending", "120 links from a weak site"]);
+  assert.equal(riskOf({ ...base, domain: "mid.com", rank: 30, backlinks: 2, spam: 35 }).level, "check");
+  assert.equal(disavowFile(["www.b.xyz", "a.top", "a.top"], "acme.com", "2026-11-10"), "# Disavow file for acme.com\n# Made in Arrowsterr on 2026-11-10\ndomain:a.top\ndomain:b.xyz\n");
+});
+
+test("AI-cited sites: who links, which models cite them, and the order to go after them", () => {
+  const cited = citedDetail([
+    { chats: [{ engine: "ChatGPT", sources: [{ domain: "reddit.com" }, { domain: "g2.com" }] }, { engine: "Gemini", sources: [{ url: "https://www.reddit.com/r/x" }] }] },
+    { chats: [{ engine: "Perplexity", sources: [{ domain: "gartner.com" }, { domain: "reddit.com" }] }] },
+  ]);
+  assert.deepEqual(cited[0], { domain: "reddit.com", cites: 3, engines: ["ChatGPT", "Gemini", "Perplexity"] });
+  const rows = aiLinkRows(cited, ["g2.com"], { "rival.com": ["gartner.com", "reddit.com"], "two.io": ["reddit.com"] }, { "reddit.com": 96, "gartner.com": 92, "g2.com": 91 });
+  assert.deepEqual(rows.map((r) => r.domain), ["reddit.com", "gartner.com", "g2.com"]);
+  assert.deepEqual(rows[0].competitors, ["rival.com", "two.io"]);
+  assert.ok(rows[0].priority >= rows[1].priority);
+  assert.equal(rows[2].linksYou, true);
+  assert.equal(rows[2].priority, 1);
+});
+
+test("the link gap takes up to 10 competitors and splits sites by how many they link to", () => {
+  assert.equal(gapRivals(Array.from({ length: 12 }, (_, i) => `r${i}.com`), "acme.com", 10).length, 10);
+  assert.deepEqual(gapSpread([{ domain: "a", rank: 1, rivals: ["x"], aiCited: 0 }, { domain: "b", rank: 1, rivals: ["x", "y"], aiCited: 0 }, { domain: "c", rank: 1, rivals: ["x", "y", "z", "w"], aiCited: 0 }]), [1, 1, 1]);
 });
