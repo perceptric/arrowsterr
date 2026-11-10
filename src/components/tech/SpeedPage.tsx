@@ -58,6 +58,8 @@ export function SpeedPage({ brand, auth, canEdit }: { brand: Brand; auth: RunAut
   async function test(url: string) {
     setBusy(url);
     setError("");
+    // The first test also starts the real-visitor fetch, so the page needs no second button.
+    if (canEdit && data && !data.origin.length) call("sync").catch(() => {});
     try {
       setLab((await call<{ lab: Lab }>("lab", { url, device: device === "desktop" ? "desktop" : "mobile" })).lab);
     } catch (e) {
@@ -104,7 +106,7 @@ export function SpeedPage({ brand, auth, canEdit }: { brand: Brand; auth: RunAut
     >
       <input className="aw-input h-11! min-w-56 flex-1 py-0!" value={testUrl} onChange={(e) => setTestUrl(e.target.value)} placeholder={`${brand.domain}/pricing`} aria-label="Page to test" />
       <button type="submit" className="aw-btn aw-btn--primary" disabled={Boolean(busy) || !testUrl.trim()}>
-        {busy && busy !== "sync" ? "Testing" : "Run a lab test"}
+        {busy && busy !== "sync" ? "Running" : "Run"}
       </button>
     </form>
   ) : null;
@@ -121,12 +123,6 @@ export function SpeedPage({ brand, auth, canEdit }: { brand: Brand; auth: RunAut
           <p className="aw-callout">The Chrome UX Report isn&apos;t set up on the server. Add CRUX_API_KEY (a Google Cloud key with the Chrome UX Report API turned on).</p>
         ) : data.origin.length ? (
           <p className="aw-callout">Google has too few Chrome visits to {brand.domain} on {device === "phone" ? "phones" : "computers"} to report real-visitor speed. Lab tests still work.</p>
-        ) : canEdit ? (
-          <div>
-            <button type="button" className="aw-btn aw-btn--primary" onClick={sync} disabled={busy === "sync"}>
-              {busy === "sync" ? "Starting" : "Get speed data"}
-            </button>
-          </div>
         ) : null}
         {tester}
         <SpeedIntro />

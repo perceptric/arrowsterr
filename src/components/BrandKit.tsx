@@ -439,7 +439,6 @@ export function BrandKitPanel({ sb, auth, canEdit, brand }: { sb: SupabaseClient
   if (!row)
     return (
       <ToolIntro
-        title={`${brand.name}'s brand, learned from its website`}
         lead="Zippie reads every stylesheet on the site and saves the logo, colors, fonts, type scale, buttons and voice."
         action={
           <div className="flex flex-col gap-3">

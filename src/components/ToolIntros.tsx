@@ -22,7 +22,6 @@ import {
 export function SiteAuditIntro() {
   return (
     <ToolIntro
-      title="Find what's holding your site back"
       lead="Arrowsterr reads every page up to your plan's limit the way Google and AI crawlers read them, scores the site from 0 to 100 and lists every issue with the pages it hits, so you fix the biggest problems first."
       features={[
         { title: "Health score", text: "A score from 0 to 100 and the change since the last full crawl.", visual: <SampleRing value={82} label="Good" higherIsBetter /> },
@@ -51,7 +50,6 @@ export function SiteAuditIntro() {
 export function OnpageIntro() {
   return (
     <ToolIntro
-      title="Score any page against Google's top 10"
       lead="Enter a page and the keyword it should rank for. Arrowsterr reads the page and the top 10 results, scores them all with the same rules, and shows what to fix to close the gap."
       features={[
         { title: "Score against the top 10", text: "A score from 0 to 100 next to the top 10 average, split into 5 areas.", visual: <SampleRing value={64} label="Top 10: 79" higherIsBetter /> },
@@ -80,7 +78,6 @@ export function OnpageIntro() {
 export function BacklinksIntro() {
   return (
     <ToolIntro
-      title="See every site that links to you"
       lead="Linking sites, new and lost links by week, the anchors people use, and the sites that link to your competitors but skip you. Links are the strongest signal Google has for trust, and AI answers lean on the same sites."
       features={[
         { title: "Five numbers", text: "Linking sites and backlinks with the change since last week, new and lost sites, authority and spam.", visual: <SampleStats items={[["Sites", "412"], ["Links", "3,960"], ["Authority", "41"]]} /> },
@@ -113,7 +110,6 @@ export function BacklinksIntro() {
 export function ContentMapIntro() {
   return (
     <ToolIntro
-      title="See every topic you cover and every one you miss"
       lead="Arrowsterr groups your rankings into topics around pillars and adds the topics your competitors win. You see where you're strong, where you're missing, and which of your pages compete with each other."
       features={[
         { title: "Five numbers", text: "Topics, covered, missing, pages competing and in progress.", visual: <SampleStats items={[["Topics", "60"], ["Covered", "31"], ["Missing", "18"]]} /> },
@@ -138,7 +134,6 @@ export function ContentMapIntro() {
 export function LocalIntro() {
   return (
     <ToolIntro
-      title="See where you rank on Google Maps, block by block"
       lead="Arrowsterr checks the map from 49 points around the business and shows who holds the top 3 at each one, how your reviews compare with competitors, and whether your website agrees with your Google listing."
       features={[
         { title: "A 7 by 7 rank grid", text: "49 points, each coloured by your rank there. Click one to see its map pack.", visual: <SampleGrid /> },
@@ -163,7 +158,6 @@ export function LocalIntro() {
 export function IndexingIntro() {
   return (
     <ToolIntro
-      title="See which pages Google indexed, and why the rest aren't"
       lead="Connect Google Search Console and Arrowsterr inspects your pages every day, tracks clicks by page and template, and ties each indexing problem to the pages and clicks it costs you."
       features={[
         { title: "Index status for every page", text: "Up to 1,500 pages inspected a day, pages with clicks first, so a 5,000-page site is fully checked in about 4 days.", visual: <SampleStats items={[["Indexed", "1,318"], ["Not indexed", "322"], ["Inspected", "1,640"]]} /> },
@@ -180,7 +174,6 @@ export function IndexingIntro() {
 export function SpeedIntro() {
   return (
     <ToolIntro
-      title="See how fast your site is for real visitors"
       lead="Core Web Vitals from the Chrome UX Report: how real Chrome users on phones and computers experience your site and your most visited pages, with 6 months of history and lab tests that name the fixes."
       features={[
         { title: "Pass or fail", text: "Largest Contentful Paint, Interaction to Next Paint and Cumulative Layout Shift at the 75th percentile, Google's measure.", visual: <SampleStats items={[["LCP", "3.1 s"], ["INP", "180 ms"], ["CLS", "0.04"]]} /> },
@@ -197,12 +190,9 @@ export function SpeedIntro() {
 export function StructureIntro() {
   return (
     <ToolIntro
-      title="See how your pages link together"
-      lead="A map of your site from the latest Site Audit: how many clicks each page sits from the home page, which pages earn search clicks but get few internal links, and which pages should link to them."
+      lead="From the latest Site Audit: how many clicks each page sits from the home page, which pages need more internal links, and which pages should link to them."
       features={[
-        { title: "Crawl map", text: "Every page by folder and click depth, colored by its internal link score.", visual: <SampleStats items={[["Pages", "1,566"], ["Avg depth", "2.8"], ["4+ deep", "212"]]} /> },
-        { title: "Click depth", text: "How deep your pages sit, with the ones that earn search clicks marked.", visual: <SampleRows rows={[["1 click", 30, "48"], ["2 clicks", 100, "640"], ["4+ clicks", 34, "212"]]} /> },
-        { title: "Internal link score", text: "A 0 to 10 score from how your own pages link to each page, like PageRank.", visual: <SampleRows rows={[["/", 100, "10.0"], ["/pricing", 82, "8.2"], ["/blog/geo-guide", 21, "2.1"]]} /> },
+        { title: "Clicks from the home page", text: "How many clicks each page sits from the home page, with the ones that earn search clicks marked.", visual: <SampleRows rows={[["1 click", 30, "48"], ["2 clicks", 100, "640"], ["4+ clicks", 34, "212"]]} /> },
         { title: "Pages that need links", text: "Pages with search clicks that sit deep or have few links in.", visual: <SampleChecks items={[["/blog/geo-guide, 5 clicks deep", false], ["/docs/api, 1 link in", false], ["/pricing", true]]} /> },
         { title: "Link suggestions", text: "Pages on the same topic that should link there, with the anchor text to use.", visual: <SampleChips items={[["geo", "#E0E7FF"], ["search", "#E0E7FF"], ["guide", "#E0E7FF"]]} /> },
         { title: "Orphans and redirects", text: "Pages in your sitemaps with no links, redirect chains and links that point to redirects.", visual: <SampleChips items={[["14 orphans", "#E5484D"], ["6 chains", "#FEF3C7"]]} /> },
@@ -214,7 +204,6 @@ export function StructureIntro() {
 export function AiAccessIntro() {
   return (
     <ToolIntro
-      title="Check that AI tools can reach and read your site"
       lead="From the latest Site Audit: which AI crawlers your robots.txt and firewall let in, how much of each page needs JavaScript (AI crawlers don't run it), your pages AI cites, and how the competitor pages AI cites are built."
       features={[
         { title: "Every AI crawler", text: "GPTBot, OAI-SearchBot, ClaudeBot, PerplexityBot and more, against robots.txt, your firewall and robots meta tags.", visual: <SampleChecks items={[["OAI-SearchBot allowed", true], ["PerplexityBot challenge page", false], ["Bingbot allowed", true]]} /> },

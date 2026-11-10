@@ -166,7 +166,6 @@ export function ContentPage({ sb: given, view, auth, canEdit }: { sb?: SupabaseC
         <Sheet<Article> id={`content:${site.id}`} label="Content" rows={list} cols={cols} rowKey={(a) => a.id} sort={{ key: "date", desc: true }} onOpen={(a) => setOpenId(a.id)} height="calc(100vh - 210px)" tools={false} />
       ) : (
         <ToolIntro
-          title="Content"
           lead={`Every researched draft for ${brand.name} lands here. Edit it by hand, export it, or publish it to ${brand.name}'s own site.`}
           action={
             canEdit ? (

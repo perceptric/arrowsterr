@@ -3,21 +3,19 @@
 import { BrandLogo } from "./BrandLogo";
 import { favicon } from "./ui";
 
-// The empty state of a tool before the first search: a title, one lead, example searches, then what the tool
+// The empty state of a tool before the first search: one lead, example searches, then what the tool
 // shows, each as a small piece of the real product in a white card set in a grey shell.
 // Callers may still pass steps and FAQs; they are not shown.
 
 export type Feature = { title: string; text: string; visual?: React.ReactNode };
 
 export function ToolIntro({
-  title,
   lead,
   examples,
   onExample,
   action,
   features,
 }: {
-  title: string;
   lead?: string;
   examples?: string[];
   onExample?: (x: string) => void;
@@ -28,10 +26,11 @@ export function ToolIntro({
 }) {
   return (
     <section className="aw-intro">
-      <div className="aw-intro__head">
-        <h2 className="aw-intro__title">{title}</h2>
-        {lead ? <p className="aw-intro__lead">{lead}</p> : null}
-      </div>
+      {lead ? (
+        <div className="aw-intro__head">
+          <p className="aw-intro__lead">{lead}</p>
+        </div>
+      ) : null}
       {action ? <div className="flex flex-wrap gap-2">{action}</div> : null}
       {examples?.length ? (
         <div className="aw-intro__try">

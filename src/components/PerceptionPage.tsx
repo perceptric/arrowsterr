@@ -248,7 +248,6 @@ function SeenPanel({ brands, categories, expected, seenOf, min, logoOf, onClose 
 function Intro({ brand }: { brand: string }) {
   return (
     <ToolIntro
-      title="See the words AI uses for you"
       lead={`Arrowsterr reads every answer that names ${brand} and scores it on 10 words. The first numbers show after the next check.`}
       features={[{ title: "Words, with proof", text: "Every score links to the quotes behind it.", visual: <SampleChips items={[["Affordable", "48%"], ["Simple", "30%"], ["Expensive", "18%"]]} /> }]}
     />
