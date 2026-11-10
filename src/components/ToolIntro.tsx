@@ -74,10 +74,12 @@ function Dot({ color }: { color: string }) {
 }
 
 /** A difficulty gauge: a half ring, the score and a word. */
-export function SampleRing({ value = 43, label = "Possible" }: { value?: number; label?: string }) {
+export function SampleRing({ value = 43, label = "Possible", higherIsBetter = false }: { value?: number; label?: string; higherIsBetter?: boolean }) {
   const r = 46;
   const half = Math.PI * r;
-  const color = value < 30 ? "#2BAA5E" : value < 50 ? "#F5A70A" : value < 70 ? "#E5484D" : "#B4232C";
+  const color = higherIsBetter
+    ? value >= 80 ? "#2BAA5E" : value >= 50 ? "#F5A70A" : "#E5484D"
+    : value < 30 ? "#2BAA5E" : value < 50 ? "#F5A70A" : value < 70 ? "#E5484D" : "#B4232C";
   return (
     <span className="relative flex flex-col items-center" aria-hidden="true">
       <svg width="120" height="66" viewBox="0 0 120 66">
@@ -216,6 +218,144 @@ export function SampleStats({ items }: { items: [string, string][] }) {
           <span className="text-[18px] leading-none font-semibold tracking-tight text-ink tabular-nums">{v}</span>
         </span>
       ))}
+    </span>
+  );
+}
+
+const GOOD = "#2BAA5E";
+const WARN = "#F5A70A";
+const BAD = "#E5484D";
+
+/** A rank grid around a pin, each cell coloured by rank, like a Google Maps scan. */
+export function SampleGrid({ size = 7 }: { size?: number }) {
+  const mid = (size - 1) / 2;
+  const cells = Array.from({ length: size * size }, (_, i) => {
+    const d = Math.hypot((i % size) - mid, Math.floor(i / size) - mid) + ((i * 7) % 5) / 6;
+    return d < 1.8 ? GOOD : d < 3.4 ? WARN : BAD;
+  });
+  return (
+    <span className="grid gap-1" style={{ gridTemplateColumns: `repeat(${size}, 12px)` }} aria-hidden="true">
+      {cells.map((c, i) => (
+        <i key={i} className="h-3 w-3 rounded-full" style={{ background: i === Math.floor((size * size) / 2) ? "var(--aw-ink, #111)" : `color-mix(in oklab, ${c} 75%, white)` }} />
+      ))}
+    </span>
+  );
+}
+
+/** One Google result: the address, the title and the description, with the title's length. */
+export function SampleSerp({ url, title, text, tag }: { url: string; title: string; text: string; tag?: string }) {
+  return (
+    <span className="flex w-full flex-col gap-1 rounded-[10px] border border-[var(--card-border,#E5E5E5)] bg-white px-3.5 py-3" aria-hidden="true">
+      <span className="text-[11px] text-muted">{url}</span>
+      <span className="flex items-start justify-between gap-2">
+        <span className="text-[14px] leading-snug font-medium" style={{ color: "#1A0DAB" }}>
+          {title}
+        </span>
+        {tag ? (
+          <span className="shrink-0 rounded-md px-1.5 py-0.5 text-[11px] font-medium" style={{ background: `color-mix(in oklab, ${GOOD} 12%, transparent)`, color: "#1D7A43" }}>
+            {tag}
+          </span>
+        ) : null}
+      </span>
+      <span className="text-[11px] leading-snug text-body">{text}</span>
+    </span>
+  );
+}
+
+/** A small board: columns with their counts and cards. */
+export function SampleBoard({ columns }: { columns: [string, number][] }) {
+  return (
+    <span className="grid w-full gap-1.5" style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))` }} aria-hidden="true">
+      {columns.map(([name, n], c) => (
+        <span key={name} className="flex flex-col gap-1 rounded-[8px] bg-[var(--bg-tertiary,#F5F5F5)] p-1.5">
+          <span className="flex items-center justify-between gap-1 text-[10px] font-semibold text-ink">
+            <span className="min-w-0 wrap-break-word">{name}</span>
+            <span className="text-muted tabular-nums">{n}</span>
+          </span>
+          {Array.from({ length: Math.min(3, n) }, (_, i) => (
+            <i key={i} className="block h-3.5 rounded-[4px] border border-[var(--card-border,#E5E5E5)] bg-white" style={c === columns.length - 1 ? { borderColor: GOOD } : undefined} />
+          ))}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+/** Topic bubbles around pillars: filled when covered, dashed when missing, amber when two pages compete. */
+export function SampleBubbles() {
+  const dots: [number, number, number, string, boolean?][] = [
+    [40, 34, 14, GOOD], [70, 22, 9, GOOD], [22, 60, 10, BAD, true], [62, 58, 12, GOOD], [92, 44, 8, WARN], [118, 26, 11, BAD, true],
+    [140, 54, 15, GOOD], [168, 30, 9, BRAND], [180, 62, 10, BAD, true], [110, 70, 7, GOOD],
+  ];
+  return (
+    <svg viewBox="0 0 200 84" className="h-20 w-full" aria-hidden="true">
+      {dots.map(([x, y, r, c, dash], i) => (
+        <circle key={i} cx={x} cy={y} r={r} fill={dash ? "white" : `color-mix(in oklab, ${c} 30%, white)`} stroke={c} strokeWidth="1.5" strokeDasharray={dash ? "3 2" : undefined} />
+      ))}
+    </svg>
+  );
+}
+
+/** Terms as tags, each with a count. */
+export function SampleTags({ items }: { items: [string, string?][] }) {
+  return (
+    <span className="flex w-full flex-wrap justify-center gap-1.5" aria-hidden="true">
+      {items.map(([t, n]) => (
+        <span key={t} className="inline-flex items-center gap-1.5 rounded-md border border-[var(--card-border,#E5E5E5)] bg-white px-2 py-1 text-[12px] font-medium text-ink">
+          {t}
+          {n ? <span className="text-muted tabular-nums">{n}</span> : null}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+/** Checks that pass or fail. */
+export function SampleChecks({ items }: { items: [string, boolean][] }) {
+  return (
+    <span className="flex w-full flex-col gap-1.5" aria-hidden="true">
+      {items.map(([t, ok]) => (
+        <span key={t} className="flex items-center gap-2 text-[12px] font-medium text-ink">
+          <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white" style={{ background: ok ? GOOD : BAD }}>
+            {ok ? "✓" : "×"}
+          </span>
+          {t}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+/** A change waiting for approval: the old text, the new text and the two buttons. */
+export function SampleChange({ before, after }: { before: string; after: string }) {
+  return (
+    <span className="flex w-full flex-col gap-1.5 text-[12px]" aria-hidden="true">
+      <span className="rounded-[6px] px-2 py-1 text-body line-through" style={{ background: `color-mix(in oklab, ${BAD} 10%, transparent)` }}>
+        {before}
+      </span>
+      <span className="rounded-[6px] px-2 py-1 font-medium text-ink" style={{ background: `color-mix(in oklab, ${GOOD} 12%, transparent)` }}>
+        {after}
+      </span>
+      <span className="flex gap-1.5">
+        <span className="rounded-md px-2 py-0.5 text-[11px] font-medium text-white" style={{ background: BRAND }}>
+          Apply
+        </span>
+        <span className="rounded-md border border-[var(--card-border,#E5E5E5)] bg-white px-2 py-0.5 text-[11px] font-medium text-ink">Undo</span>
+      </span>
+    </span>
+  );
+}
+
+/** An email draft: who it goes to, the subject and the first lines. */
+export function SampleMail({ to, subject }: { to: string; subject: string }) {
+  return (
+    <span className="flex w-full flex-col gap-1.5 rounded-[10px] border border-[var(--card-border,#E5E5E5)] bg-white px-3.5 py-3 text-[12px]" aria-hidden="true">
+      <span className="text-muted">
+        To <span className="font-medium text-ink">{to}</span>
+      </span>
+      <span className="font-semibold text-ink">{subject}</span>
+      <i className="block h-1.5 w-full rounded-full bg-[var(--bg-tertiary,#F0F0F0)]" />
+      <i className="block h-1.5 w-4/5 rounded-full bg-[var(--bg-tertiary,#F0F0F0)]" />
     </span>
   );
 }

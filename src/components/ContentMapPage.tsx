@@ -299,7 +299,7 @@ function Detail({ m, sel, canEdit, busy, planned, onPlan, onLinks }: { m: Conten
             </div>
           ))}
         </dl>
-        {m.rivals.length ? <p className="text-[12px] text-muted wrap-anywhere">Rivals: {m.rivals.join(", ")}</p> : null}
+        {m.rivals.length ? <p className="text-[12px] text-muted wrap-anywhere">Competitors: {m.rivals.join(", ")}</p> : null}
       </>
     );
   }

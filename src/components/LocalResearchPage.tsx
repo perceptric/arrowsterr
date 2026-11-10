@@ -283,7 +283,7 @@ function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote }: { bra
             </div>
           </div>
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-            <Card title="Local rivals">
+            <Card title="Local competitors">
               <div className="overflow-x-auto">
                 <table className="aw-table">
                   <thead>

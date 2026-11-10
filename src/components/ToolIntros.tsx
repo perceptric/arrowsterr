@@ -1,9 +1,25 @@
 "use client";
 
-import { SampleBars, SampleChips, SampleLine, SampleRing, SampleRows, SampleStats, ToolIntro } from "./ToolIntro";
+import {
+  SampleBars,
+  SampleBoard,
+  SampleBubbles,
+  SampleChange,
+  SampleChecks,
+  SampleChips,
+  SampleGrid,
+  SampleLine,
+  SampleMail,
+  SampleRing,
+  SampleRows,
+  SampleSerp,
+  SampleStats,
+  SampleTags,
+  ToolIntro,
+} from "./ToolIntro";
 
 // What each SEO tool shows, under its search bar until it has a first result, the same as Keyword Research.
-// Every fact comes from the tool's own doc (docs/site-audit.md and the others).
+// Every fact comes from the tool's own doc (docs/site-audit.md and the others). Every card has a picture.
 
 export function SiteAuditIntro() {
   return (
@@ -11,12 +27,12 @@ export function SiteAuditIntro() {
       title="Find what's holding your site back"
       lead="Arrowsterr reads up to 200 pages the way Google and AI crawlers read them, scores the site from 0 to 100 and lists every issue with the pages it hits, so you fix the biggest problems first."
       features={[
-        { title: "Health score", text: "A score from 0 to 100, the change since the last full crawl and the scores of the last 8 crawls.", visual: <SampleRing value={82} label="Good" /> },
+        { title: "Health score", text: "A score from 0 to 100 and the change since the last full crawl.", visual: <SampleRing value={82} label="Good" higherIsBetter /> },
         { title: "Facts from the crawl", text: "Pages read, broken links and AI crawlers your robots.txt blocks.", visual: <SampleStats items={[["Pages", "200"], ["Broken", "7"], ["Blocked", "1"]]} /> },
         {
           title: "Issues by priority",
           text: "High, medium and low, each with the share of pages it hits and how it changed since the last crawl.",
-          visual: <SampleChips items={[["High", "#FEF3C7"], ["Medium", "#DBEAFE"], ["Low", "#DCFCE7"]]} />,
+          visual: <SampleChips items={[["High", "#E5484D"], ["Medium", "#FEF3C7"], ["Low", "#DCFCE7"]]} />,
         },
         { title: "Score history", text: "The scores of the last 8 full crawls. A drop of 5 points or more sends you an email.", visual: <SampleLine values={[61, 64, 63, 68, 71, 74, 79, 82]} total="82" delta="+5" /> },
         {
@@ -24,7 +40,11 @@ export function SiteAuditIntro() {
           text: "Open an issue to see why it matters and every page it hits.",
           visual: <SampleRows rows={[["Missing meta description", 42, "42"], ["Images without alt text", 18, "18"], ["Broken internal link", 7, "7"]]} />,
         },
-        { title: "Fixes in your CMS", text: "Titles, meta descriptions, alt text and structured data go to your connected site as a change you approve or undo." },
+        {
+          title: "Fixes in your CMS",
+          text: "Titles, meta descriptions, alt text and structured data go to your connected site as a change you approve or undo.",
+          visual: <SampleChange before="Home" after="AI search visibility for B2B brands" />,
+        },
       ]}
     />
   );
@@ -36,16 +56,24 @@ export function OnpageIntro() {
       title="Score any page against Google's top 10"
       lead="Enter a page and the keyword it should rank for. Arrowsterr reads the page and the top 10 results, scores them all with the same rules, and shows what to fix to close the gap."
       features={[
-        { title: "Score against the top 10", text: "A score from 0 to 100 next to the top 10 average, split into 5 areas.", visual: <SampleRing value={64} label="Top 10: 79" /> },
+        { title: "Score against the top 10", text: "A score from 0 to 100 next to the top 10 average, split into 5 areas.", visual: <SampleRing value={64} label="Top 10: 79" higherIsBetter /> },
         {
           title: "Five areas",
           text: "Keyword use, content, technical, AI answer-ready and links, 100 points in all.",
           visual: <SampleRows rows={[["Keyword use", 21, "21/25"], ["Technical", 16, "16/20"], ["AI answer-ready", 8, "8/15"]]} />,
         },
-        { title: "Google preview", text: "Your title and description now and a suggested version, with their lengths." },
+        {
+          title: "Google preview",
+          text: "Your title and description now and a suggested version, with their lengths.",
+          visual: <SampleSerp url="yoursite.com/guide" title="The complete guide to AI search" text="How AI answers pick the brands they name, and what to change on your pages." tag="52 chars" />,
+        },
         { title: "Fixes with points", text: "Each fix shows the points it adds. A connected CMS can apply it for you.", visual: <SampleStats items={[["Title", "+6"], ["FAQ", "+4"], ["Alt text", "+2"]]} /> },
-        { title: "Terms to add", text: "Phrases most top pages share, with how often your page uses each one." },
-        { title: "All pages", text: "Your pages with the keyword each one ranks for, ready to audit in one click." },
+        { title: "Terms to add", text: "Phrases most top pages share, with how often your page uses each one.", visual: <SampleTags items={[["ai overview", "0"], ["llm", "2"], ["citations", "1"], ["schema", "0"], ["chatgpt", "3"]]} /> },
+        {
+          title: "AI answer-ready",
+          text: "A direct answer early on, stats with a source, an author and a date.",
+          visual: <SampleChecks items={[["Direct answer in the first 100 words", true], ["Stats with a source", false], ["Author and date", true]]} />,
+        },
       ]}
     />
   );
@@ -55,7 +83,7 @@ export function BacklinksIntro() {
   return (
     <ToolIntro
       title="See every site that links to you"
-      lead="Linking sites, new and lost links by week, the anchors people use, and the sites that link to your rivals but skip you. Links are the strongest signal Google has for trust, and AI answers lean on the same sites."
+      lead="Linking sites, new and lost links by week, the anchors people use, and the sites that link to your competitors but skip you. Links are the strongest signal Google has for trust, and AI answers lean on the same sites."
       features={[
         { title: "Five numbers", text: "Linking sites and backlinks with the change since last week, new and lost sites, authority and spam.", visual: <SampleStats items={[["Sites", "412"], ["Links", "3,960"], ["Authority", "41"]]} /> },
         { title: "New and lost links", text: "New and lost linking sites for each of the last 12 weeks.", visual: <SampleBars values={[380, 384, 386, 390, 389, 395, 398, 401, 404, 406, 409, 412]} total="412" delta="+8" /> },
@@ -64,9 +92,21 @@ export function BacklinksIntro() {
           text: "The text people use to link to you, with each anchor's share of linking sites.",
           visual: <SampleRows rows={[["your brand", 34, "34%"], ["this guide", 12, "12%"], ["click here", 6, "6%"]]} />,
         },
-        { title: "Most linked pages", text: "The pages on your site that other sites link to most." },
-        { title: "Every linking site", text: "All, new, lost, follow, nofollow and spam, with each site's authority." },
-        { title: "Link gap", text: "Sites that link to up to 3 rivals and not to you. Sites AI answers cite come first, and each one goes to Link Building in a click." },
+        {
+          title: "Most linked pages",
+          text: "The pages on your site that other sites link to most.",
+          visual: <SampleRows rows={[["/blog/ai-search", 96, "96"], ["/pricing", 41, "41"], ["/", 38, "38"]]} />,
+        },
+        {
+          title: "Every linking site",
+          text: "All, new, lost, follow, nofollow and spam, with each site's authority.",
+          visual: <SampleChips items={[["Follow", "#DCFCE7"], ["Nofollow", "#DBEAFE"], ["Spam", "#E5484D"]]} />,
+        },
+        {
+          title: "Link gap",
+          text: "Sites that link to up to 3 competitors and not to you. Sites AI answers cite come first, and each one goes to Link Building in a click.",
+          visual: <SampleRows rows={[["searchengineland.com", 92, "92"], ["g2.com", 88, "88"], ["zapier.com", 81, "81"]]} />,
+        },
       ]}
     />
   );
@@ -76,18 +116,22 @@ export function LinkBuildingIntro() {
   return (
     <ToolIntro
       title="Turn link prospects into won links"
-      lead="A board from prospect to won. Prospects come from the link gap, sites AI cites, dead rival pages and unlinked mentions. Pitches are drafted here and sent from your own email."
+      lead="A board from prospect to won. Prospects come from the link gap, sites AI cites, dead competitor pages and unlinked mentions. Pitches are drafted here and sent from your own email."
       features={[
         { title: "Five numbers", text: "Prospects, contacted, reply rate, links won and links gone.", visual: <SampleStats items={[["Prospects", "24"], ["Replies", "50%"], ["Won", "6"]]} /> },
         {
           title: "Find prospects",
-          text: "Link gap, sites AI cites, dead rival pages, unlinked mentions or sites you add. Each site is added once.",
-          visual: <SampleChips items={[["Sites AI cites", "#FEF3C7"], ["Dead rival pages", "#DBEAFE"], ["Unlinked mentions", "#DCFCE7"]]} />,
+          text: "Link gap, sites AI cites, dead competitor pages, unlinked mentions or sites you add. Each site is added once.",
+          visual: <SampleChips items={[["Sites AI cites", "#FEF3C7"], ["Dead competitor pages", "#DBEAFE"], ["Unlinked mentions", "#DCFCE7"]]} />,
         },
-        { title: "One board for every site", text: "Prospects, Contacted, Replied, Won and Lost. Drag a card or press its arrow." },
-        { title: "Pitches", text: "Each pitch fits why the site is on the board. Send it from your own email, then mark it as sent." },
-        { title: "Won links checked weekly", text: "A link counts as gone only after 2 failed checks in a row." },
-        { title: "Do not contact", text: "Block an email, its domain or a whole site from every finder." },
+        { title: "One board for every site", text: "Prospects, Contacted, Replied, Won and Lost. Drag a card or press its arrow.", visual: <SampleBoard columns={[["Prospects", 9], ["Contacted", 5], ["Replied", 3], ["Won", 2]]} /> },
+        { title: "Pitches", text: "Each pitch fits why the site is on the board. Send it from your own email, then mark it as sent.", visual: <SampleMail to="editor@site.com" subject="A source for your AI search guide" /> },
+        {
+          title: "Won links checked weekly",
+          text: "A link counts as gone only after 2 failed checks in a row.",
+          visual: <SampleChecks items={[["searchengineland.com", true], ["g2.com", true], ["oldblog.net", false]]} />,
+        },
+        { title: "Do not contact", text: "Block an email, its domain or a whole site from every finder.", visual: <SampleTags items={[["spam-links.biz"], ["noreply@site.com"], ["paid-posts.net"]]} /> },
       ]}
     />
   );
@@ -97,22 +141,22 @@ export function ContentMapIntro() {
   return (
     <ToolIntro
       title="See every topic you cover and every one you miss"
-      lead="Arrowsterr groups your rankings into topics around pillars and adds the topics your rivals win. You see where you're strong, where you're missing, and which of your pages compete with each other."
+      lead="Arrowsterr groups your rankings into topics around pillars and adds the topics your competitors win. You see where you're strong, where you're missing, and which of your pages compete with each other."
       features={[
         { title: "Five numbers", text: "Topics, covered, missing, pages competing and in progress.", visual: <SampleStats items={[["Topics", "60"], ["Covered", "31"], ["Missing", "18"]]} /> },
         {
           title: "Topic status",
           text: "Covered, in progress, competing or missing, with a star where AI names you.",
-          visual: <SampleChips items={[["Covered", "#DCFCE7"], ["Missing", "#FEF3C7"], ["In progress", "#DBEAFE"]]} />,
+          visual: <SampleChips items={[["Covered", "#DCFCE7"], ["Missing", "#E5484D"], ["In progress", "#DBEAFE"]]} />,
         },
-        { title: "The map", text: "Each bubble is a topic sized by searches, grouped under 3 to 8 pillars. Dashed means missing." },
+        { title: "The map", text: "Each bubble is a topic sized by searches, grouped under 3 to 8 pillars. Dashed means missing.", visual: <SampleBubbles /> },
         {
           title: "Biggest gaps",
-          text: "Topics a rival ranks top 10 for while you have no page in the top 20, by searches.",
+          text: "Topics a competitor ranks top 10 for while you have no page in the top 20, by searches.",
           visual: <SampleRows rows={[["ai search tools", 5400, "5.4K"], ["llm seo", 2900, "2.9K"], ["geo vs seo", 1300, "1.3K"]]} />,
         },
-        { title: "Topic and pillar panel", text: "Searches, your page, which rivals rank, and Add to Content Plan or Add internal links." },
-        { title: "Internal links", text: "Missing links from each pillar's main page go to your connected site as a change you approve." },
+        { title: "Pillars", text: "Your main themes, each with the topics under it and how many are missing.", visual: <SampleTags items={[["AI search", "14"], ["Technical SEO", "11"], ["Content", "9"], ["Links", "6"]]} /> },
+        { title: "Internal links", text: "Missing links from each pillar's main page go to your connected site as a change you approve.", visual: <SampleChange before="No link to /llm-seo" after="Link added from /ai-search" /> },
       ]}
     />
   );
@@ -122,18 +166,22 @@ export function LocalIntro() {
   return (
     <ToolIntro
       title="See where you rank on Google Maps, block by block"
-      lead="Arrowsterr checks the map from 49 points around the business and shows who holds the top 3 at each one, how your reviews compare with rivals, and whether your website agrees with your Google listing."
+      lead="Arrowsterr checks the map from 49 points around the business and shows who holds the top 3 at each one, how your reviews compare with competitors, and whether your website agrees with your Google listing."
       features={[
-        { title: "A 7 by 7 rank grid", text: "49 points, each coloured by your rank there. Click one to see its map pack.", visual: <SampleStats items={[["Top 3", "21"], ["4 to 10", "19"], ["Average", "4.2"]]} /> },
-        { title: "Keywords and settings", text: "Up to 5 keywords, grid spacing, a weekly scan and Scan now." },
+        { title: "A 7 by 7 rank grid", text: "49 points, each coloured by your rank there. Click one to see its map pack.", visual: <SampleGrid /> },
+        { title: "Your numbers", text: "Points in the top 3, points in the top 10 and your average rank, for each keyword.", visual: <SampleStats items={[["Top 3", "21"], ["4 to 10", "19"], ["Average", "4.2"]]} /> },
         {
-          title: "Local rivals",
+          title: "Local competitors",
           text: "The businesses that hold the top 3 most, with ratings and reviews.",
-          visual: <SampleRows rows={[["Rival dental", 31, "31"], ["City smiles", 24, "24"], ["Bright care", 12, "12"]]} />,
+          visual: <SampleRows rows={[["Smile Studio", 31, "31"], ["City Dental", 24, "24"], ["Bright Care", 12, "12"]]} />,
         },
-        { title: "Reviews over time", text: "Your review count against your rivals', scan by scan.", visual: <SampleLine values={[120, 124, 129, 131, 138, 142, 149, 155]} total="155" delta="+35" /> },
-        { title: "Listing check", text: "Name, phone and address on your site against Google, plus LocalBusiness schema and your category." },
-        { title: "Local prompts", text: "Track the questions people ask AI about businesses like yours, under the topic Local in AI Visibility." },
+        { title: "Reviews over time", text: "Your review count against your competitors', scan by scan.", visual: <SampleLine values={[120, 124, 129, 131, 138, 142, 149, 155]} total="155" delta="+35" /> },
+        {
+          title: "Listing check",
+          text: "Name, phone and address on your site against Google, plus LocalBusiness schema and your category.",
+          visual: <SampleChecks items={[["Name matches", true], ["Phone matches", false], ["LocalBusiness schema", true]]} />,
+        },
+        { title: "Keywords and settings", text: "Up to 5 keywords, grid spacing and a weekly scan.", visual: <SampleTags items={[["dentist"], ["emergency dentist"], ["teeth whitening"], ["1 mi"], ["Weekly"]]} /> },
       ]}
     />
   );

@@ -96,7 +96,7 @@ async function handle(request: Request) {
     const withSource = !(await db.from("outreach_targets").select("source").limit(1)).error;
     const { error } = await db
       .from("outreach_targets")
-      .upsert(domains.map((d) => ({ list_id: list, workspace_id: ws, kind: "website", name: d, domain: d, url: `https://${d}`, added_from: "link_gap", ...(withSource ? { source: "link_gap", note: "Links to your rivals and not to you" } : {}) })), { onConflict: "list_id,kind,name", ignoreDuplicates: true });
+      .upsert(domains.map((d) => ({ list_id: list, workspace_id: ws, kind: "website", name: d, domain: d, url: `https://${d}`, added_from: "link_gap", ...(withSource ? { source: "link_gap", note: "Links to your competitors and not to you" } : {}) })), { onConflict: "list_id,kind,name", ignoreDuplicates: true });
     if (error) return err(error.message, 500);
     return Response.json({ added: domains });
   }

@@ -427,7 +427,7 @@ export function DomainResearch({ sb, auth, site, canEdit, start, onStarted }: { 
             { title: "Organic overview", text: "Total keywords on Google, estimated monthly visits, and how many rank in the top 3 and top 10.", visual: <SampleStats items={[["Keywords", "1.2K"], ["Visits", "3.8K"], ["Top 10", "160"]]} /> },
             { title: "Top keywords", text: "Every keyword the site ranks for, with its position, volume and the visits it brings.", visual: <SampleRows rows={[["seo agency", 900, "#2"], ["geo services", 640, "#4"], ["ai seo", 420, "#7"]]} /> },
             { title: "Best pages", text: "The pages that pull the most traffic, and the keyword that drives each one.", visual: <SampleRows rows={[["/services/seo", 1200, "1.2K"], ["/blog/geo-guide", 700, "700"], ["/pricing", 300, "300"]]} /> },
-            { title: "Competitors", text: "The sites Google sees as your real rivals, based on the keywords you share. Some are names you never thought of as competitors.", visual: <SampleRows rows={[["rival.com", 120], ["agency.io", 90], ["seofirm.co", 60]]} /> },
+            { title: "Competitors", text: "The sites Google sees as your real competitors, based on the keywords you share. Some are names you never thought of as competitors.", visual: <SampleRows rows={[["competitor.com", 120], ["agency.io", 90], ["seofirm.co", 60]]} /> },
             { title: "Traffic over time", text: "Visits and keywords for each of the last 12 months, and where every keyword ranks now.", visual: <SampleLine /> },
             { title: "Your next moves", text: "A competitor's best keywords become new pages for you. Keywords your own pages almost win become updates that pay off fast." },
           ]}

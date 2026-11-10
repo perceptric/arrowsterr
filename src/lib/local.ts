@@ -167,7 +167,7 @@ export function listingCheck(loc: Pick<Location, "title" | "phone" | "address" |
   out.push(
     !top || mine.includes(clean(top))
       ? { id: "category", label: "Category", status: "pass", detail: loc.category ?? "No category" }
-      : { id: "category", label: `Rivals use ${top}`, status: "warn", detail: `Your main category is ${loc.category ?? "not set"}. The rivals holding the top 3 most use ${top}.` },
+      : { id: "category", label: `Competitors use ${top}`, status: "warn", detail: `Your main category is ${loc.category ?? "not set"}. The competitors holding the top 3 most use ${top}.` },
   );
   return out;
 }

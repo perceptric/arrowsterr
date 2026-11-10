@@ -16,9 +16,9 @@ const Stat = ({ lab, v, d }: { lab: string; v: string; d?: string }) => (
 function VisibilityDemo() {
   const rivals: [string, number, string][] = [
     ["You", 46, "#0943B0"],
-    ["Rival A", 38, "#111111"],
-    ["Rival B", 27, "#2B3242"],
-    ["Rival C", 19, "#A6AEBB"],
+    ["Competitor A", 38, "#111111"],
+    ["Competitor B", 27, "#2B3242"],
+    ["Competitor C", 19, "#A6AEBB"],
   ];
   const prompts: [string, string, string][] = [
     ["best crm for small business", "#2", "71%"],

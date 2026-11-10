@@ -60,14 +60,14 @@ export async function runMap(db: SupabaseClient, mapId: string) {
     const domain = bare(String(b.domain));
     const rivals = (profile.competitors ?? []).map((c) => bare(c.domain)).filter((d) => d && d !== domain).slice(0, 2);
 
-    await step("Reading what you and your rivals rank for");
+    await step("Reading what you and your competitors rank for");
     const spend = new Spend();
     const [mine, ...theirs] = await Promise.all([research("ranked", domain, m, spend, 300), ...rivals.map((r) => research("ranked", r, m, spend, 200).catch(() => []))]);
 
     const { data: site } = await db.from("sites").select("id").eq("brand_id", b.id).maybeSingle();
     const { data: items } = site ? await db.from("calendar_items").select("keyword, status, url, volume").eq("site_id", site.id).limit(500) : { data: [] };
     const topics = buildTopics(mine, rivals.map((r, i) => ({ rival: r, kws: theirs[i] ?? [] })), (items ?? []) as PlanItem[]);
-    if (!topics.length) throw new Error(`Google shows no rankings for ${domain} or its rivals yet, and the Content Plan is empty.`);
+    if (!topics.length) throw new Error(`Google shows no rankings for ${domain} or its competitors yet, and the Content Plan is empty.`);
 
     await step("Grouping topics");
     let claude: { pillars?: { name?: unknown; topics?: unknown }[] } | null = null;
