@@ -4,13 +4,13 @@ import { useState } from "react";
 import { aiLinkRows } from "@/lib/backlinks";
 import { Card, Seg, StatStrip } from "../ui";
 import { C, Priority, Stack } from "./charts";
-import { CsvButton, Fav, fileName, Loading, msg, NotLoaded, num, SiteLink, Updated, useAnswer, type TabProps } from "./shared";
+import { CsvButton, Fav, fileName, Loading, NotLoaded, num, SiteLink, Updated, useAnswer, type TabProps } from "./shared";
 
 // Sites the brand's AI answers cite in the last 30 days, which of them link to the target, which link only to
 // competitors, and the order to go after them.
 
 type Raw = { cited: { domain: string; cites: number; engines: string[] }[]; mine: string[]; byRival: Record<string, string[]>; ranks: Record<string, number>; at: string };
-type AiData = { empty: true } | { empty: false; raw: Raw; rivals: string[]; added: string[] };
+type AiData = { empty: true } | { empty: false; raw: Raw; rivals: string[] };
 
 const ENGINE: Record<string, { letter: string; color: string }> = {
   ChatGPT: { letter: "G", color: "var(--aw-e-chatgpt, #10A37F)" },
@@ -22,9 +22,8 @@ const ENGINE: Record<string, { letter: string; color: string }> = {
 };
 
 export function AiTab(p: TabProps) {
-  const { data, busy, load } = useAnswer<AiData>(p.call, p.memo, "ai", (r) => (r.empty ? { empty: true } : r.ai ? { empty: false, raw: r.ai as Raw, rivals: (r.rivals as string[]) ?? [], added: (r.added as string[]) ?? [] } : null), p.armed, p.onError);
+  const { data, busy, load } = useAnswer<AiData>(p.call, p.memo, "ai", (r) => (r.empty ? { empty: true } : r.ai ? { empty: false, raw: r.ai as Raw, rivals: (r.rivals as string[]) ?? [] } : null), p.armed, p.onError);
   const [view, setView] = useState<"gap" | "all" | "linked">("gap");
-  const [added, setAdded] = useState<Set<string>>(new Set());
   if (data === null) return <Loading />;
   if (data === "none") return <NotLoaded canEdit={p.canEdit} busy={busy} label="Check AI-cited sites" onLoad={() => load(true)} />;
   if (data.empty)
@@ -40,16 +39,6 @@ export function AiTab(p: TabProps) {
   const total = rows.reduce((a, r) => a + r.cites, 0) || 1;
   const fromLinked = Math.round((linked.reduce((a, r) => a + r.cites, 0) / total) * 100);
   const shown = view === "gap" ? gap : view === "linked" ? linked : rows;
-  const isAdded = (d: string) => added.has(d) || data.added.includes(d);
-  async function add(domains: string[]) {
-    p.onError("");
-    try {
-      const r = await p.call<{ added: string[] }>("add", { domains });
-      setAdded((s) => new Set([...s, ...r.added]));
-    } catch (e) {
-      p.onError(msg(e));
-    }
-  }
   const you = p.isOwn ? "you" : p.label.replace(/[/?#].*$/, "");
 
   return (
@@ -71,11 +60,6 @@ export function AiTab(p: TabProps) {
         action={
           <span className="flex flex-wrap items-center gap-3">
             <Seg label="Show" value={view} onChange={setView} options={[{ id: "gap", label: `Competitors only ${gap.length}` }, { id: "all", label: `All ${rows.length}` }, { id: "linked", label: `Linking to ${you === "you" ? "you" : "it"} ${linked.length}` }]} />
-            {p.canEdit && view === "gap" && gap.some((r) => !isAdded(r.domain)) ? (
-              <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => add(gap.filter((r) => !isAdded(r.domain)).map((r) => r.domain))}>
-                Add {gap.filter((r) => !isAdded(r.domain)).length} to Link building
-              </button>
-            ) : null}
             <CsvButton name={fileName(p.label, "ai-cited-links")} head={["site", "times cited", "cited by", "authority", "links to target", "competitors linking", "priority"]} rows={shown.map((r) => [r.domain, r.cites, r.engines.join(" "), r.rank, r.linksYou ? "yes" : "no", r.competitors.join(" "), r.priority])} />
           </span>
         }
@@ -92,7 +76,6 @@ export function AiTab(p: TabProps) {
                   <th>Links to {you}</th>
                   <th>Competitors it links to</th>
                   <th>Priority</th>
-                  <th />
                 </tr>
               </thead>
               <tbody>
@@ -128,13 +111,6 @@ export function AiTab(p: TabProps) {
                       )}
                     </td>
                     <td>{r.linksYou ? <span className="text-muted">–</span> : <Priority value={r.priority} />}</td>
-                    <td className="text-right">
-                      {p.canEdit && !r.linksYou ? (
-                        <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => add([r.domain])} disabled={isAdded(r.domain)}>
-                          {isAdded(r.domain) ? "Added" : "Add"}
-                        </button>
-                      ) : null}
-                    </td>
                   </tr>
                 ))}
               </tbody>

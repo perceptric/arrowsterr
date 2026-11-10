@@ -1,6 +1,6 @@
 # Backlinks
 
-The Backlinks screen (Links, Backlinks, at `/backlinks`) shows who links to any site, subdomain or page, which sites link to competitors but not to it, and up to 200 sites side by side. It is step 3 of the new tools plan, after Site Audit and On-page Audit. Step 4, Link Building, works the sites added here.
+The Backlinks screen (Technical SEO, Backlinks, at `/backlinks`) shows who links to any site, subdomain or page, which sites link to competitors but not to it, and up to 200 sites side by side. It is step 3 of the new tools plan, after Site Audit and On-page Audit.
 
 ## Search
 
@@ -36,13 +36,13 @@ The screen is the search bar, the target's name and eleven tabs under it. The co
 
 **Broken:** links to the target's pages that are gone (`is_broken`), grouped by dead page with its status, the strongest linking sites, and a live page to redirect it to (`suggestRedirect`: the most linked page that shares the most words with the dead address, or the home page). The redirects copy as `old new 301` lines.
 
-**AI-cited links:** the sites the brand's AI answers cited in the last 30 days (up to 100), how often and by which models, their authority, whether each links to the target, and which of up to 3 profile competitors it links to. Priority 1 to 5 (`aiLinkRows`) is highest for a much-cited, strong site that links to competitors and not to the target. Sites go to Link building one at a time or all at once.
+**AI-cited links:** the sites the brand's AI answers cited in the last 30 days (up to 100), how often and by which models, their authority, whether each links to the target, and which of up to 3 profile competitors it links to. Priority 1 to 5 (`aiLinkRows`) is highest for a much-cited, strong site that links to competitors and not to the target.
 
 **Link gap:** up to 10 competitors. KPIs for the gap, sites linking to 2 or more competitors and sites AI cites; filters for 2+ competitors, AI cites it and authority 60+.
 
 **Compare:** up to 200 sites or pages side by side (four bulk requests), and a year of linking sites and authority for up to 5 of them: growth with the first month set to 100, linking sites, or authority.
 
-**Network:** the 18 strongest linking sites around the target. "Find second-tier sites" reads the strongest sites linking to the top 8 (40 each, authority 40+) and shows the ones that don't link to the target yet, most connected first, ready for Link building.
+**Network:** the 18 strongest linking sites around the target. "Find second-tier sites" reads the strongest sites linking to the top 8 (40 each, authority 40+) and shows the ones that don't link to the target yet, most connected first.
 
 **Toxic links:** each linking site's risk (`riskOf`): its spam score, plus very low authority, a spam-prone ending and many links from a weak site. High (60+) and check (30 to 59) lists, and a disavow file in Google's format (`domain:` lines) that fills as sites are ticked, kept in the browser per brand and target, to copy or download.
 

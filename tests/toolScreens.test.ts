@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 
-const PAGES = ["SiteAuditPage", "OnpageAuditPage", "BacklinksPage", "LinkBuildingPage", "ContentMapPage", "LocalResearchPage"];
+const PAGES = ["SiteAuditPage", "OnpageAuditPage", "BacklinksPage", "ContentMapPage", "LocalResearchPage"];
 // Backlinks keeps its tabs in src/components/backlinks/, so its screen is the page plus that folder.
 const read = (f: string) => {
   const page = readFileSync(new URL(`../src/components/${f}.tsx`, import.meta.url), "utf8");
@@ -12,7 +12,7 @@ const read = (f: string) => {
 };
 
 test("tool screens show their numbers in a stat strip, never a row of equal boxes", () => {
-  for (const f of ["BacklinksPage", "LinkBuildingPage", "ContentMapPage"]) {
+  for (const f of ["BacklinksPage", "ContentMapPage"]) {
     const src = read(f);
     assert.match(src, /<StatStrip/, `${f} uses StatStrip`);
     assert.doesNotMatch(src, /function (Kpi|Stat)\(/, `${f} has no local stat box`);

@@ -2,14 +2,12 @@
 
 import {
   SampleBars,
-  SampleBoard,
   SampleBubbles,
   SampleChange,
   SampleChecks,
   SampleChips,
   SampleGrid,
   SampleLine,
-  SampleMail,
   SampleRing,
   SampleRows,
   SampleSerp,
@@ -104,34 +102,9 @@ export function BacklinksIntro() {
         },
         {
           title: "Link gap",
-          text: "Sites that link to up to 3 competitors and not to you. Sites AI answers cite come first, and each one goes to Link Building in a click.",
+          text: "Sites that link to up to 3 competitors and not to you. Sites AI answers cite come first.",
           visual: <SampleRows rows={[["searchengineland.com", 92, "92"], ["g2.com", 88, "88"], ["zapier.com", 81, "81"]]} />,
         },
-      ]}
-    />
-  );
-}
-
-export function LinkBuildingIntro() {
-  return (
-    <ToolIntro
-      title="Turn link prospects into won links"
-      lead="A board from prospect to won. Prospects come from the link gap, sites AI cites, dead competitor pages and unlinked mentions. Pitches are drafted here and sent from your own email."
-      features={[
-        { title: "Five numbers", text: "Prospects, contacted, reply rate, links won and links gone.", visual: <SampleStats items={[["Prospects", "24"], ["Replies", "50%"], ["Won", "6"]]} /> },
-        {
-          title: "Find prospects",
-          text: "Link gap, sites AI cites, dead competitor pages, unlinked mentions or sites you add. Each site is added once.",
-          visual: <SampleChips items={[["Sites AI cites", "#FEF3C7"], ["Dead competitor pages", "#DBEAFE"], ["Unlinked mentions", "#DCFCE7"]]} />,
-        },
-        { title: "One board for every site", text: "Prospects, Contacted, Replied, Won and Lost. Drag a card or press its arrow.", visual: <SampleBoard columns={[["Prospects", 9], ["Contacted", 5], ["Replied", 3], ["Won", 2]]} /> },
-        { title: "Pitches", text: "Each pitch fits why the site is on the board. Send it from your own email, then mark it as sent.", visual: <SampleMail to="editor@site.com" subject="A source for your AI search guide" /> },
-        {
-          title: "Won links checked weekly",
-          text: "A link counts as gone only after 2 failed checks in a row.",
-          visual: <SampleChecks items={[["searchengineland.com", true], ["g2.com", true], ["oldblog.net", false]]} />,
-        },
-        { title: "Do not contact", text: "Block an email, its domain or a whole site from every finder.", visual: <SampleTags items={[["spam-links.biz"], ["noreply@site.com"], ["paid-posts.net"]]} /> },
       ]}
     />
   );

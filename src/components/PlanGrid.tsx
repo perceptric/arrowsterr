@@ -54,7 +54,7 @@ function organic(p: Plan): Group {
       { text: "Keyword & Domain Research", on: true },
       { text: "Competitive Analysis", on: true },
       { text: "Site & On-page Audit", on: true },
-      { text: "Backlinks & Link Building", on: true },
+      { text: "Backlinks", on: true },
       { text: "Content Map", on: true },
       { text: "Local Research on Google Maps", on: true },
       { text: "Revenue-driven Content Plan", ...on(plan, "On Starter"), tip: plan ? TIPS.bank : undefined },

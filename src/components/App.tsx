@@ -68,7 +68,6 @@ import { StructurePage } from "./tech/StructurePage";
 import { AiAccessPage } from "./tech/AiAccessPage";
 import { OnpageAuditPage } from "./OnpageAuditPage";
 import { BacklinksPage } from "./BacklinksPage";
-import { LinkBuildingPage } from "./LinkBuildingPage";
 import { ContentMapPage } from "./ContentMapPage";
 import { LocalResearchPage } from "./LocalResearchPage";
 import { PromptsPage } from "./PromptsPage";
@@ -84,7 +83,7 @@ import { BrandPage } from "./BrandPage";
 import { CONTENT_ALIASES, CONTENT_SLUGS, type ContentPage } from "@/lib/contentRoutes";
 
 export type { Brand } from "@/lib/db";
-type Page = "prompts" | "competitors" | "perception" | "domains" | "urls" | "traffic" | "visitors" | "keywords" | "domain" | "gap" | "siteaudit" | "indexing" | "speed" | "structure" | "aiaccess" | "onpage" | "backlinks" | "linkbuilding" | "contentmap" | "local" | ContentPage | "summary" | SettingsTab;
+type Page = "prompts" | "competitors" | "perception" | "domains" | "urls" | "traffic" | "visitors" | "keywords" | "domain" | "gap" | "siteaudit" | "indexing" | "speed" | "structure" | "aiaccess" | "onpage" | "backlinks" | "contentmap" | "local" | ContentPage | "summary" | SettingsTab;
 const RESEARCH: Page[] = ["keywords", "domain", "gap", "calendar"];
 const VISIBILITY: Page[] = ["prompts", "competitors", "perception", "domains", "urls"];
 /** Pages with their own PDF (docs/reports.md, section 32.3). */
@@ -111,7 +110,6 @@ const SLUGS: Record<Page, string> = {
   aiaccess: "/ai-access",
   onpage: "/onpage-audit",
   backlinks: "/backlinks",
-  linkbuilding: "/link-building",
   contentmap: "/content-map",
   local: "/local-research",
   ...CONTENT_SLUGS,
@@ -977,8 +975,6 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
             <LocalResearchPage key={view.brand.id} brand={{ id: view.brand.id, name: view.brand.name, domain: view.brand.domain }} sb={sb} auth={auth} canEdit={canEdit} />
           ) : page === "contentmap" ? (
             <ContentMapPage key={view.brand.id} brand={{ id: view.brand.id, name: view.brand.name, domain: view.brand.domain }} sb={sb} auth={auth} canEdit={canEdit} onConnect={() => go("publishing")} />
-          ) : page === "linkbuilding" ? (
-            <LinkBuildingPage key={view.brand.id} brand={{ id: view.brand.id, name: view.brand.name, domain: view.brand.domain }} auth={auth} onBacklinks={() => go("backlinks")} />
           ) : page === "backlinks" ? (
             <BacklinksPage key={view.brand.id} brand={{ id: view.brand.id, name: view.brand.name, domain: view.brand.domain }} auth={auth} canEdit={canEdit} />
           ) : page === "onpage" ? (
@@ -1089,7 +1085,7 @@ function NavIcon({ name }: { name: string }) {
 
 /** The toolset a page belongs to. Starter opens one of them. */
 const trackOf = (page: Page): Track | null =>
-  ["prompts", "competitors", "perception", "domains", "urls"].includes(page) ? "visibility" : ["keywords", "domain", "gap", "calendar", "library", "siteaudit", "indexing", "speed", "structure", "aiaccess", "onpage", "backlinks", "linkbuilding", "contentmap", "local"].includes(page) ? "seo" : null;
+  ["prompts", "competitors", "perception", "domains", "urls"].includes(page) ? "visibility" : ["keywords", "domain", "gap", "calendar", "library", "siteaudit", "indexing", "speed", "structure", "aiaccess", "onpage", "backlinks", "contentmap", "local"].includes(page) ? "seo" : null;
 
 /** The big modules of the app. Each opens to its own pages. */
 const NAV: { group: string; icon: string; items: { id: Page; label: string; icon: string; also?: Page[] }[] }[] = [
@@ -1121,13 +1117,6 @@ const NAV: { group: string; icon: string; items: { id: Page; label: string; icon
       { id: "contentmap", label: "Content Map", icon: "map" },
       { id: "library", label: "Library", icon: "book" },
       { id: "brand", label: "Brand", icon: "palette" },
-    ],
-  },
-  {
-    group: "Links",
-    icon: "chain",
-    items: [
-      { id: "linkbuilding", label: "Link Building", icon: "board" },
     ],
   },
   {

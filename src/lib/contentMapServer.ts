@@ -7,9 +7,11 @@ import { aiNamed, buildTopics, hubOf, linkedFrom, pillarsFrom, type ContentMap, 
 import type { Profile } from "./db";
 import { enqueue, queueReady } from "./jobs";
 import { research, Spend } from "./keywords";
-import { bare } from "./linkBuilding";
 import { marketOf } from "./research";
 import { safeFetch } from "./safeFetch";
+
+/** A bare host: no scheme, www, path or port. */
+const bare = (raw: string) => raw.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/[/?#:].*$/, "").replace(/\.$/, "");
 
 // Content Map builds (docs/content-map.md), on the worker (job kind "content_map"). Reads what the brand ranks for and
 // what up to 2 rivals rank for (DataForSEO Labs), the Content Plan, and the brand's AI answers; groups topics into

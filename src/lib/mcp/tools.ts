@@ -17,8 +17,6 @@ import { bareDomain, gapRivals, parseGap, type Overview } from "../backlinks";
 import { aiCited, keys as blKeys, saved as savedBacklinks } from "../backlinksServer";
 import { mapStats, type ContentMap } from "../contentMap";
 import type { Profile } from "../db";
-import { boardStats, type Stage as LbStage } from "../linkBuilding";
-import { linkList } from "../linkBuildingServer";
 import type { ScanResult } from "../local";
 import type { OnpageResult } from "../onpage";
 import { previousFull, type AuditRow } from "../siteAudit";
@@ -642,7 +640,7 @@ export const TOOLS: Tool[] = [
       );
     },
   },
-  // ─────────────── SEO tools (docs/site-audit.md, onpage-audit.md, backlinks.md, link-building.md, content-map.md, local-research.md) ───────────────
+  // ─────────────── SEO tools (docs/site-audit.md, onpage-audit.md, backlinks.md, content-map.md, local-research.md) ───────────────
   // Read-only: saved results only, so asking never spends tasks.
   {
     name: "get_site_health",
@@ -710,24 +708,8 @@ export const TOOLS: Tool[] = [
       const rivals = gapRivals(((brand.profile as Profile | null)?.competitors ?? []).map((c) => c.domain), target);
       const raw = rivals.length ? await savedBacklinks<{ perRival: { rival: string; items: unknown[] }[]; at: string }>(blKeys.gap(target, rivals)) : undefined;
       const gap = raw?.perRival ? parseGap(raw.perRival, target, await aiCited(ctx.db, brand.id)).slice(0, 50) : null;
-      if (!overview && !gap) return textResult({ brand: { name: brand.name, domain: brand.domain }, backlinks: null }, "Backlinks haven't been loaded for this brand in the last 7 days. An editor loads them on Links, Backlinks.");
+      if (!overview && !gap) return textResult({ brand: { name: brand.name, domain: brand.domain }, backlinks: null }, "Backlinks haven't been loaded for this brand in the last 7 days. An editor loads them on Technical SEO, Backlinks.");
       return textResult({ brand: { name: brand.name, domain: brand.domain }, updated: overview?.at ?? null, summary: overview?.summary ?? null, weeks: overview?.weeks ?? [], anchors: overview?.anchors.slice(0, 10) ?? [], most_linked_pages: overview?.pages.slice(0, 5) ?? [], rivals, link_gap: gap });
-    },
-  },
-  {
-    name: "get_link_building",
-    title: "Link Building",
-    description: "The brand's Link Building board: every site by stage (prospect, contacted, replied, won, lost), where it came from (AI cites, link gap, broken page, unlinked mention), why, its authority, whether a pitch is drafted, and for won links the page and whether the link is still live.",
-    inputSchema: { type: "object", properties: { brand: brandArg } },
-    annotations: { readOnlyHint: true, openWorldHint: false },
-    async run(ctx, args) {
-      const brand = await pickBrand(ctx, args.brand);
-      const list = await linkList(ctx.db, ctx.ws, brand.id);
-      if (!list) return textResult({ brand: { name: brand.name, domain: brand.domain }, cards: [] }, "The board is empty. Prospects come from Links, Link Building.");
-      const { data, error } = await ctx.db.from("outreach_targets").select("domain, url, stage, source, note, authority, email, draft_subject, link_page, link_live, link_checked_at").eq("list_id", list).order("created_at", { ascending: false }).limit(300);
-      if (error) throw new Error(error.message);
-      const cards = (data ?? []) as { stage: LbStage; link_live: boolean | null }[];
-      return textResult({ brand: { name: brand.name, domain: brand.domain }, stats: boardStats(cards), cards });
     },
   },
   {
