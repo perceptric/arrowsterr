@@ -12,36 +12,46 @@ The Backlinks screen (Links, Backlinks, at `/backlinks`) shows who links to any 
 - **Snapshots** and week-on-week arrows are for the brand's own domain only.
 - **CSV export** on anchors, most linked pages, links, the link gap and Compare.
 
-## Compare
+## Tabs
 
-Up to 200 sites or pages, one per line (it starts with the brand and its competitors): authority, linking sites with a bar, backlinks, nofollow share and spam, biggest first, the brand's row marked You. One click on a row opens its overview. Four DataForSEO bulk requests (`bulk_ranks`, `bulk_backlinks`, `bulk_referring_domains`, `bulk_spam_score`). If spam fails, that column is empty and nothing is saved.
+The screen is the search bar, the target's name and eleven tabs under it. The code is `src/components/BacklinksPage.tsx` (search, tabs, address bar) and one file per group of tabs in `src/components/backlinks/`.
 
-## What it shows
+**Overview** (one saved answer, 6 requests)
+- **Six numbers:** linking sites (with a year's trend and the change since last week's snapshot), backlinks, authority (with its change over the year), follow share, referring IPs and subnets, spam level.
+- **Growth:** linking sites, backlinks or authority by month for the last year (`timeseries_summary`).
+- **New and lost linking sites by week:** the last 12 weeks.
+- **Authority of linking sites:** the 1,000 strongest linking sites by authority band of 10.
+- **Anchor mix:** anchors sorted into brand, URL, generic and keyword (`anchorGroup`), flagged when keyword anchors pass 30%.
+- **Link attributes:** follow and nofollow backlinks, with UGC and sponsored counts.
+- **Top-level domains, site types, where links sit on the page, link types:** from the summary's own lists (`internal_list_limit: 20`), so they cost nothing extra.
+- **Top anchors and most linked pages,** each opening its full tab.
 
-**Overview**
-- **Five numbers:** linking sites and backlinks, each with the change since the snapshot a week or more ago; new and lost sites over the last 4 weeks; authority (0 to 100) with a spam level.
-- **New and lost linking sites by week:** the last 12 weeks, new above the line in green, lost below in red.
-- **Anchors:** same text in any case counted once, with each anchor's share of linking sites.
-- **Most linked pages.**
+**Referring domains:** the 1,000 strongest linking sites, saved with the overview. Filters run in the browser at no cost: authority (any, 30+, 60+, 80+), follow only, new in 30 days, AI cites it, .edu and .gov, hide spam, and a search box.
 
-**Links**
-- One row per linking site, strongest first, 100 at a time.
-- **Lists:** All, New (first seen in the last 30 days), Lost, Follow, Nofollow and Spam (spam score over 60).
-- Each row shows authority, anchor, target page, follow or nofollow, spam, new or lost, and when it was first seen.
+**Backlinks:** one row per linking site, 100 a page, with the words before and after each anchor, the page title, follow, UGC, sponsored, spam, new or lost, and where the link sits. Lists: All, New, Lost, Follow, Nofollow, UGC, Sponsored, Spam, plus "In the article" and "Anchor contains".
 
-**Link gap**
-- Up to 3 rivals, picked from the brand profile's competitors or typed in.
-- Every site that links to at least one rival and not to the brand. Sites linking to more rivals come first, then sites the brand's AI answers cited in the last 30 days (tagged "AI cites it", with how often), then the strongest.
-- **Only sites AI cites:** a filter for just those.
-- **Add, or Add all:** puts sites on the brand's "Link building" outreach list (`outreach_targets`, `added_from` = `link_gap`), where Step 4's board will pick them up.
+**Anchors:** up to 100 anchors with their group, linking sites, share and backlinks, filtered by group.
 
-Zippie reads it with `get_backlinks`, and the built-in "Link gap outreach" skill drafts pitches from it.
+**Linked pages:** up to 100 pages by linking sites. A page's name opens its own backlinks.
+
+**Broken:** links to the target's pages that are gone (`is_broken`), grouped by dead page with its status, the strongest linking sites, and a live page to redirect it to (`suggestRedirect`: the most linked page that shares the most words with the dead address, or the home page). The redirects copy as `old new 301` lines.
+
+**AI-cited links:** the sites the brand's AI answers cited in the last 30 days (up to 100), how often and by which models, their authority, whether each links to the target, and which of up to 3 profile competitors it links to. Priority 1 to 5 (`aiLinkRows`) is highest for a much-cited, strong site that links to competitors and not to the target. Sites go to Link building one at a time or all at once.
+
+**Link gap:** up to 10 competitors. KPIs for the gap, sites linking to 2 or more competitors and sites AI cites; filters for 2+ competitors, AI cites it and authority 60+.
+
+**Compare:** up to 200 sites or pages side by side (four bulk requests), and a year of linking sites and authority for up to 5 of them: growth with the first month set to 100, linking sites, or authority.
+
+**Network:** the 18 strongest linking sites around the target. "Find second-tier sites" reads the strongest sites linking to the top 8 (40 each, authority 40+) and shows the ones that don't link to the target yet, most connected first, ready for Link building.
+
+**Toxic links:** each linking site's risk (`riskOf`): its spam score, plus very low authority, a spam-prone ending and many links from a weak site. High (60+) and check (30 to 59) lists, and a disavow file in Google's format (`domain:` lines) that fills as sites are ticked, kept in the browser per brand and target, to copy or download.
 
 ## Costs and saved answers
 
 - Every DataForSEO answer is kept 7 days in `keyword_cache`. Opening the page asks for saved answers only (`peek`), so nobody spends tasks by opening it. Viewers see saved answers. Editors load or refresh.
 - Opening the page or following a shared link reads saved answers only. A search, a quick pick or a tab someone picks loads fresh answers for editors when none are saved.
-- **Tasks:** overview 20, each page of 100 links 6, link gap 25, Compare 20 plus 1 for every 10 sites. At about $0.005 a task, each covers its DataForSEO cost. The route is metered, so a failed request hands its tasks back on its own.
+- **Tasks:** overview 40, linking sites on their own 15, each page of 100 links 6, broken links 10, AI-cited links 25, link gap 1 plus 8 per competitor, Compare 20 plus 1 for every 10 sites, each site's year of history 6, each site read for the network 6.
+- Overviews saved before the profile and history were added (key `bl:ov:`) aren't reused; the first open after this change loads a fresh one (`bl:ov3:`). At about $0.005 a task, each covers its DataForSEO cost. The route is metered, so a failed request hands its tasks back on its own.
 - **Snapshots:** each fresh overview saves the day's numbers to `backlink_snapshots` for the week-on-week arrows.
 
 ## Reliability
@@ -62,23 +72,25 @@ These DataForSEO response shapes come from the docs and couldn't be called from 
 
 ## Running cost
 
-DataForSEO Backlinks API: $0.024 a request plus $0.000036 a row, pay as you go, no monthly minimum listed (checked on the vendor's pricing page, November 2026).
+DataForSEO Backlinks API: $0.024 a request plus $0.000036 a row, pay as you go, no monthly minimum listed (checked on the vendor's pricing page, November 2026). The per-row price on bulk requests, the `in` filter on `referring_domains` and the `referring_links_countries` list are "check": they come from the docs and couldn't be called from the build sandbox.
 
-- **Overview:** 4 requests and about 60 rows, about $0.10.
+- **Overview:** 6 requests and about 1,250 rows (1,000 of them linking sites), about $0.19.
 - **Page of links:** 1 request and 100 rows, about $0.028.
-- **Link gap:** 1 request and up to 300 rows per rival, about $0.035 a rival, about $0.10 for 3.
+- **Broken links:** 1 request and up to 500 rows, up to $0.04.
+- **AI-cited links:** 5 requests and up to 400 rows, about $0.13.
+- **Link gap:** about $0.035 a competitor, about $0.11 for 3.
+- **Compare:** 4 requests, about $0.10 for 10 sites, plus about $0.025 a site for its year of history (up to 5).
+- **Network:** about $0.026 for each of 8 sites, about $0.21.
 
-- **Compare:** 4 requests and 1 row per site each, about $0.10 for 10 sites (the per-row price on bulk requests is "check").
-
-Typical use per team a month, with saved answers covering repeat opens: 8 overviews (own site and competitors), 8 pages of links, 2 gaps and 2 comparisons of about 10 sites, about $1.45. Saved answers are shared across workspaces, so a competitor many teams look up is paid for once a week.
+Typical use per team a month, with saved answers covering repeat opens: 8 overviews (own site and competitors), 8 pages of links, 2 broken-link checks, 2 AI-cited checks, 2 gaps of 3 competitors, 2 comparisons with history and 1 network, about $2.90. Saved answers are shared across workspaces, so a competitor many teams look up is paid for once a week.
 
 | Line | Beta (50 teams) | Growth (500 teams) |
 |---|---|---|
-| DataForSEO Backlinks API | ~$73 | ~$725 |
+| DataForSEO Backlinks API | ~$145 | ~$1,450 |
 | Snapshots and cache rows (inside the VPS database) | $0 | $0 |
-| **Monthly total** | **~$73** | **~$725** |
+| **Monthly total** | **~$145** | **~$1,450** |
 
-Searching other sites and Compare add about $36 at Beta and $360 at Growth to the earlier ~$37 and ~$365. Tasks cover each request, so heavy use is paid for by the team's plan.
+This change adds about $72 at Beta and $725 at Growth to the earlier ~$73 and ~$725. Tasks cover each request, so heavy use is paid for by the team's plan.
 
 ## Example data
 

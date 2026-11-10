@@ -1,9 +1,15 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 
 const PAGES = ["SiteAuditPage", "OnpageAuditPage", "BacklinksPage", "LinkBuildingPage", "ContentMapPage", "LocalResearchPage"];
-const read = (f: string) => readFileSync(new URL(`../src/components/${f}.tsx`, import.meta.url), "utf8");
+// Backlinks keeps its tabs in src/components/backlinks/, so its screen is the page plus that folder.
+const read = (f: string) => {
+  const page = readFileSync(new URL(`../src/components/${f}.tsx`, import.meta.url), "utf8");
+  if (f !== "BacklinksPage") return page;
+  const dir = new URL("../src/components/backlinks/", import.meta.url);
+  return [page, ...readdirSync(dir).filter((x) => x.endsWith(".tsx")).map((x) => readFileSync(new URL(x, dir), "utf8"))].join("\n");
+};
 
 test("tool screens show their numbers in a stat strip, never a row of equal boxes", () => {
   for (const f of ["BacklinksPage", "LinkBuildingPage", "ContentMapPage"]) {

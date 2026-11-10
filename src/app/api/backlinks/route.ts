@@ -1,5 +1,5 @@
-import { bareDomain, BL_SCOPES, blTarget, BULK_MAX, bulkTargets, gapRivals, LINK_KINDS, weekAgo, type BlScope, type LinkKind, type Overview } from "@/lib/backlinks";
-import { aiCited, gapRows, keys, loadBulk, loadGap, loadLinks, loadOverview, saved, snapshot } from "@/lib/backlinksServer";
+import { bareDomain, BL_SCOPES, blTarget, BULK_MAX, bulkTargets, gapRivals, LINK_KINDS, weekAgo, type BlScope, type LinkKind, type Month, type Overview, type RefDomain } from "@/lib/backlinks";
+import { aiCited, aiCitedDetail, gapRows, keys, loadAi, loadBroken, loadBulk, loadDomains, loadGap, loadHistory, loadLinks, loadNear, loadOverview, saved, snapshot } from "@/lib/backlinksServer";
 import type { Profile } from "@/lib/db";
 import { requireTrack, take } from "@/lib/entitlements";
 import { meteredRoute } from "@/lib/meter";
@@ -17,8 +17,13 @@ const err = (error: string, status = 400) => Response.json({ error }, { status }
 // overview, links and gap read any site or page: target and scope (domain, subdomain or url), the brand's own domain
 // when left out.
 //   overview: { brandId, target?, scope?, refresh? }               totals, new and lost by week, anchors, most linked pages
-//   links:    { brandId, target?, scope?, kind, page?, refresh? }  100 linking sites per page: all, new, lost, follow, nofollow or spam
-//   gap:      { brandId, target?, scope?, rivals?, refresh? }      sites linking to up to 3 competitors but not the target
+//   links:    { brandId, target?, scope?, kind, page?, article?, anchor?, refresh? }  100 linking sites per page
+//   gap:      { brandId, target?, scope?, rivals?, refresh? }      sites linking to up to 10 competitors but not the target
+//   domains:  { brandId, target?, scope?, refresh? }               the 1,000 strongest linking sites (saved with the overview)
+//   broken:   { brandId, target?, scope?, refresh? }               links to pages that are gone, grouped by page
+//   ai:       { brandId, target?, scope?, refresh? }               sites the brand's AI answers cite, and who they link to
+//   history:  { brandId, targets }                                 monthly linking sites and authority for up to 5 sites
+//   near:     { brandId, sites }                                   the strongest sites linking to up to 8 of the target's linking sites
 //   peers:    { brandId }                                          the brand's domain and its competitors, for quick picks
 //   bulk:     { brandId, targets, refresh? }                       up to 200 sites or pages side by side
 //   add:      { brandId, domains }                                 editors: put gap sites on the brand's Link building list
@@ -36,7 +41,7 @@ async function handle(request: Request) {
   const scope: BlScope = BL_SCOPES.some((x) => x.id === body.scope) ? body.scope : "domain";
   const typed = str(body.target, 500);
   const t = typed ? blTarget(typed, scope) : blTarget(own, "domain");
-  if (!t && ["overview", "links", "gap"].includes(body.action)) return err(scope === "url" ? "Enter a page, like acme.com/pricing." : scope === "subdomain" ? "Enter a subdomain, like blog.acme.com." : "Enter a domain, like acme.com.");
+  if (!t && ["overview", "links", "gap", "domains", "broken", "ai"].includes(body.action)) return err(scope === "url" ? "Enter a page, like acme.com/pricing." : scope === "subdomain" ? "Enter a subdomain, like blog.acme.com." : "Enter a domain, like acme.com.");
   // Week-on-week snapshots belong to the brand's own domain only.
   const mine = t?.scope === "domain" && t.target === own;
   const editor = await isEditor(auth.sb, ws);
@@ -76,7 +81,83 @@ async function handle(request: Request) {
     return Response.json({ bulk: r.data, skipped, own, canRefresh: editor });
   }
 
+  /** Saved answers for many keys; the missing ones loaded together and paid for once. */
+  async function many<T>(list: string[], key: (x: string) => string, each: number, load: (x: string) => Promise<T>): Promise<Response | Record<string, T | null>> {
+    const out: Record<string, T | null> = {};
+    const missing: string[] = [];
+    for (const x of list) {
+      const hit = refresh ? undefined : await saved<T>(key(x));
+      if (hit !== undefined) out[x] = hit;
+      else missing.push(x);
+    }
+    if (!missing.length || !editor || body.peek === true) {
+      for (const x of missing) out[x] = null;
+      return out;
+    }
+    const locked = await requireTrack(ws, "seo");
+    if (locked) return locked;
+    const took = await take(ws, "tasks", each * missing.length, { refundIfFree: false });
+    if (!took.ok) return took.response;
+    // One site failing leaves its line out; the rest still show.
+    await Promise.all(missing.map(async (x) => (out[x] = await load(x).catch(() => null))));
+    return out;
+  }
+
+  if (body.action === "history") {
+    const list = bulkTargets(Array.isArray(body.targets) ? (body.targets as unknown[]).map((x) => str(x, 500)) : []).targets.slice(0, 5).map((x) => (x.scope === "url" ? x.host.replace(/^www\./, "") : x.target));
+    if (!list.length) return err("Pick at least one site.");
+    const r = await many<{ months: Month[]; at: string }>([...new Set(list)], keys.history, TASK_COST.blhistory, loadHistory);
+    if (r instanceof Response) return r;
+    return Response.json({ history: Object.fromEntries(Object.entries(r).map(([k, v]) => [k, v?.months ?? null])), canRefresh: editor });
+  }
+
+  if (body.action === "near") {
+    const sites = (Array.isArray(body.sites) ? (body.sites as unknown[]) : []).map((x) => bareDomain(str(x, 200))).filter((d) => /\.[a-z]{2,}$/.test(d)).slice(0, 8);
+    if (!sites.length) return err("Pick at least one site.");
+    const r = await many<{ rows: RefDomain[]; at: string }>(sites, keys.near, TASK_COST.blnear, loadNear);
+    if (r instanceof Response) return r;
+    return Response.json({ near: Object.fromEntries(Object.entries(r).map(([k, v]) => [k, v?.rows ?? null])), canRefresh: editor });
+  }
+
   if (!t) return err("Unknown action.");
+
+  if (body.action === "domains") {
+    const r = await get(keys.domains(t.id), TASK_COST.bldomains, () => loadDomains(t));
+    if (r instanceof Response) return r;
+    const cited = await aiCited(db, brand.id);
+    const rows = (r.data as { rows: RefDomain[]; at: string }).rows;
+    const ai: Record<string, number> = {};
+    for (const x of rows) {
+      let n = 0;
+      for (const [d, c] of cited) if (d === x.domain || d.endsWith(`.${x.domain}`) || x.domain.endsWith(`.${d}`)) n += c;
+      if (n) ai[x.domain] = n;
+    }
+    return Response.json({ domains: r.data, ai, canRefresh: editor });
+  }
+
+  if (body.action === "broken") {
+    // Live pages to send dead links to: the most linked pages from the saved overview, when there is one.
+    const ov = await saved<Overview>(keys.overview(t.id));
+    const live = (ov?.pages ?? []).map((p) => p.url);
+    const r = await get(keys.broken(t.id), TASK_COST.blbroken, () => loadBroken(t, live));
+    if (r instanceof Response) return r;
+    return Response.json({ broken: r.data, canRefresh: editor });
+  }
+
+  if (body.action === "ai") {
+    const cited = (await aiCitedDetail(db, brand.id)).slice(0, 100);
+    const rivals = gapRivals((profile.competitors ?? []).map((c) => c.domain), t.scope === "url" ? t.host : t.target, 3);
+    if (!cited.length) return Response.json({ ai: null, empty: true, canRefresh: editor });
+    const r = await get(keys.ai(t.id, cited.map((c) => c.domain), rivals), TASK_COST.blai, () => loadAi(t, cited, rivals));
+    if (r instanceof Response) return r;
+    const list = await linkList(db, ws, brand.id);
+    let added: string[] = [];
+    if (list) {
+      const { data: rows } = await db.from("outreach_targets").select("domain").eq("list_id", list);
+      added = (rows ?? []).map((x) => String(x.domain));
+    }
+    return Response.json({ ai: r.data, rivals, added, canRefresh: editor });
+  }
 
   if (body.action === "overview") {
     const r = await get(keys.overview(t.id), TASK_COST.backlinks, () => loadOverview(t));
@@ -92,7 +173,8 @@ async function handle(request: Request) {
   if (body.action === "links") {
     const kind = (LINK_KINDS.some((k) => k.id === body.kind) ? body.kind : "all") as LinkKind;
     const page = Math.max(0, Math.min(9, Number(body.page) || 0));
-    const r = await get(keys.links(t.id, kind, page), TASK_COST.links, () => loadLinks(t, kind, page));
+    const extra = { article: body.article === true, anchor: str(body.anchor, 60) || undefined };
+    const r = await get(keys.links(t.id, kind, page, extra), TASK_COST.links, () => loadLinks(t, kind, page, extra));
     if (r instanceof Response) return r;
     return Response.json({ links: r.data, canRefresh: editor });
   }
@@ -101,9 +183,9 @@ async function handle(request: Request) {
     // A page's gap is its site's gap: competitors' links are counted per site.
     const target = t.scope === "url" ? t.host.replace(/^www\./, "") : t.target;
     const asked = Array.isArray(body.rivals) ? (body.rivals as unknown[]).map((x) => str(x, 200)) : (profile.competitors ?? []).map((c) => c.domain);
-    const rivals = gapRivals(asked, target);
+    const rivals = gapRivals(asked, target, 10);
     if (!rivals.length) return Response.json({ gap: null, rivals: [], suggested: (profile.competitors ?? []).map((c) => bareDomain(c.domain)).filter(Boolean) });
-    const r = await get(keys.gap(target, rivals), TASK_COST.linkgap, () => loadGap(target, rivals));
+    const r = await get(keys.gap(target, rivals), TASK_COST.linkgap(rivals.length), () => loadGap(target, rivals));
     if (r instanceof Response) return r;
     const raw = r.data as { perRival: { rival: string; items: unknown[] }[]; at: string };
     const [cited, list] = await Promise.all([aiCited(db, brand.id), linkList(db, ws, brand.id)]);
