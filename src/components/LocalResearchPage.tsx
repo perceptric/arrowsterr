@@ -1,17 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { GRID, reviewHistory, SPACINGS, type ListingCheck, type Location, type Place, type ScanResult } from "@/lib/local";
 import type { RunAuth } from "@/lib/runner";
-import { demoLocal } from "@/lib/demo";
-import { ToolStart } from "./ToolStart";
+import { BAR_INPUT } from "./research/shared";
+import { SearchBar, SearchButton } from "./SearchBar";
 import { Card, Delta, Seg, StatStrip, Thinking } from "./ui";
 import { useApi } from "./ZippiePage";
 
 // Local Research (docs/local-research.md): where the business ranks in Google Maps from 49 points around it, who holds
 // the map pack, reviews against rivals over time, and whether the website agrees with the Google listing. Until a
-// business is picked, the screen shows an example business under the Find form.
+// business is picked, the screen is the Find bar.
 
 type Brand = { id: string; name: string; domain: string };
 type Scan = { id: string; keyword: string; status: "running" | "done" | "failed"; step: string; error: string | null; created_at: string; result: (ScanResult & { listing?: ListingCheck[] }) | null };
@@ -28,10 +28,6 @@ export function LocalResearchPage({ brand, sb, auth, canEdit }: { brand: Brand; 
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState("");
   const call = useCallback(<T,>(action: string, extra: Record<string, unknown> = {}) => api<T>("/api/local", { action, brandId: brand.id, ...extra }), [api, brand.id]);
-  const demo = useMemo(() => demoLocal({ name: brand.name, domain: brand.domain }), [brand.name, brand.domain]);
-  // With no business picked, the tool's start page (ToolStart) explains Local Research, with an example business
-  // inside it. Its search box finds the real one.
-  const [showExample, setShowExample] = useState(false);
 
   useEffect(() => {
     let live = true;
@@ -63,18 +59,10 @@ export function LocalResearchPage({ brand, sb, auth, canEdit }: { brand: Brand; 
     if (r) setLoc(r.location);
   };
 
-  const page = (
+  return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <div className="mr-auto flex flex-wrap items-center gap-3">
-          <h1 className="aw-h2 mb-0!">Local Research</h1>
-          {loc === null ? <span className="aw-status aw-status--pending">Example data</span> : null}
-          {loc === null ? (
-            <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setShowExample(false)}>
-              {canEdit ? "Find your business" : "About Local Research"}
-            </button>
-          ) : null}
-        </div>
+        <h1 className="aw-h2 mb-0!">Local Research</h1>
         {loc ? (
           <div className="flex flex-wrap items-center gap-3 text-[13px]">
             <span className="text-body wrap-break-word">
@@ -89,29 +77,27 @@ export function LocalResearchPage({ brand, sb, auth, canEdit }: { brand: Brand; 
           </div>
         ) : null}
       </div>
+      {loc === null ? <Find brand={brand} call={call} canEdit={canEdit} onSet={setLoc} onError={setError} /> : null}
       {error ? <p className="aw-error">{error}</p> : null}
       {note ? <p className="aw-callout">{note}</p> : null}
       {loc === undefined ? (
         <Thinking text="Loading" />
-      ) : loc === null ? (
-        <Scans brand={brand} loc={demo.loc} sb={sb} canEdit={false} busy={busy} call={call} run={run} save={save} onNote={setNote} demoScans={demo.scans} />
-      ) : (
+      ) : loc ? (
         <Scans key={loc.cid ?? loc.title} brand={brand} loc={loc} sb={sb} canEdit={canEdit} busy={busy} call={call} run={run} save={save} onNote={setNote} />
-      )}
+      ) : null}
     </div>
   );
-
-  if (loc === null && !showExample) return <LocalStart brand={brand} call={call} canEdit={canEdit} error={error} onSet={setLoc} onError={setError} example={page} onOpenExample={() => setShowExample(true)} />;
-  return page;
 }
 
 type Call = <T>(action: string, extra?: Record<string, unknown>) => Promise<T>;
 
-function LocalStart({ brand, call, canEdit, error, onSet, onError, example, onOpenExample }: { brand: Brand; call: Call; canEdit: boolean; error: string; onSet: (l: Location) => void; onError: (e: string) => void; example: React.ReactNode; onOpenExample: () => void }) {
+/** The business search: a name and city, then the matching Google Maps listings to pick from. */
+function Find({ brand, call, canEdit, onSet, onError }: { brand: Brand; call: Call; canEdit: boolean; onSet: (l: Location) => void; onError: (e: string) => void }) {
   const [query, setQuery] = useState(`${brand.name} `);
   const [places, setPlaces] = useState<Place[] | null>(null);
   const [busy, setBusy] = useState("");
   async function find() {
+    if (query.trim().length < 3) return;
     setBusy("find");
     onError("");
     try {
@@ -133,83 +119,47 @@ function LocalStart({ brand, call, canEdit, error, onSet, onError, example, onOp
     }
   }
   return (
-    <ToolStart
-      tool="local"
-      error={error}
-      example={example}
-      onOpenExample={onOpenExample}
-      onCta={
-        canEdit
-          ? () => {
-              window.scrollTo({ top: 0, behavior: "smooth" });
-              document.getElementById("ts-local-query")?.focus();
-            }
-          : undefined
-      }
-      form={
-        canEdit ? (
-          <form
-            className="ts-q"
-            onSubmit={(e) => {
-              e.preventDefault();
-              find();
-            }}
-          >
-            <input id="ts-local-query" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Business name and city" aria-label="Business name and city" />
-            <button type="submit" className="ts-btn ts-btn--primary ts-btn--lg" disabled={query.trim().length < 3 || busy === "find"}>
-              {busy === "find" ? "Finding" : "Find"} <span className="ts-arr">→</span>
-            </button>
-          </form>
-        ) : (
-          <div className="ts-q">
-            <span className="ts-domain">{brand.name}</span>
-          </div>
-        )
-      }
-      below={
-        places ? (
-          <div className="ts-places">
-            {places.length ? (
-              places.map((p) => (
-                <div key={p.cid ?? `${p.title}${p.address}`} className="ts-place">
-                  <span>
-                    <b>{p.title}</b>
-                    <small>{[p.category, p.address, p.rating !== null ? `★ ${p.rating} (${p.reviews ?? 0})` : null].filter(Boolean).join(", ")}</small>
+    <>
+      <SearchBar onSubmit={find}>
+        <input id="local-query" className={BAR_INPUT} value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Business name and city" aria-label="Business name and city" disabled={!canEdit} />
+        {canEdit ? <SearchButton label="Find" busyLabel="Finding" busy={busy === "find"} disabled={query.trim().length < 3} /> : null}
+      </SearchBar>
+      {places ? (
+        <Card>
+          {places.length ? (
+            <ul className="flex flex-col px-5 py-2">
+              {places.map((p) => (
+                <li key={p.cid ?? `${p.title}${p.address}`} className="flex flex-wrap items-center gap-3 border-t border-[var(--aw-rule)] py-3 first:border-t-0">
+                  <span className="flex min-w-0 flex-1 flex-col">
+                    <span className="text-[14px] font-medium text-ink wrap-break-word">{p.title}</span>
+                    <span className="text-[12px] text-muted wrap-break-word">{[p.category, p.address, p.rating !== null ? `★ ${p.rating} (${p.reviews ?? 0})` : null].filter(Boolean).join(", ")}</span>
                   </span>
-                  <button type="button" className="ts-btn ts-btn--quiet ts-btn--sm" onClick={() => pick(p)} disabled={Boolean(busy) || p.lat === null}>
+                  <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => pick(p)} disabled={Boolean(busy) || p.lat === null}>
                     {busy === (p.cid ?? p.title) ? "Saving" : "This is us"}
                   </button>
-                </div>
-              ))
-            ) : (
-              <div className="ts-place">
-                <span>
-                  <b>No business found.</b>
-                </span>
-              </div>
-            )}
-          </div>
-        ) : null
-      }
-    />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="px-5 py-5 text-[13px] text-muted">No business found.</p>
+          )}
+        </Card>
+      ) : null}
+    </>
   );
 }
 
-function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote, demoScans }: { brand: Brand; loc: Location; sb: SupabaseClient; canEdit: boolean; busy: string; call: Call; run: <T>(k: string, fn: () => Promise<T>) => Promise<T | null>; save: (x: Record<string, unknown>) => Promise<void>; onNote: (s: string) => void; demoScans?: Scan[] }) {
+function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote }: { brand: Brand; loc: Location; sb: SupabaseClient; canEdit: boolean; busy: string; call: Call; run: <T>(k: string, fn: () => Promise<T>) => Promise<T | null>; save: (x: Record<string, unknown>) => Promise<void>; onNote: (s: string) => void }) {
   const [kw, setKw] = useState(loc.keywords[0] ?? "");
-  const [saved, setScans] = useState<Scan[] | null>(null);
-  const scans = demoScans ? demoScans.filter((s) => s.keyword === kw) : saved;
-  // Example data: the controls show, and only the keyword switch and the map work.
-  const lock = Boolean(demoScans);
-  const controls = canEdit || lock;
+  const [scans, setScans] = useState<Scan[] | null>(null);
+  const controls = canEdit;
   const [pt, setPt] = useState<number | null>(null);
   const [newKw, setNewKw] = useState("");
   const load = useCallback(async () => {
-    if (demoScans) return;
     if (!kw) return setScans([]);
     const { data } = await sb.from("local_scans").select("id, keyword, status, step, error, created_at, result").eq("brand_id", brand.id).eq("keyword", kw).order("created_at", { ascending: false }).limit(12);
     setScans((data ?? []) as Scan[]);
-  }, [sb, brand.id, kw, demoScans]);
+  }, [sb, brand.id, kw]);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
@@ -228,7 +178,7 @@ function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote, demoSca
 
   return (
     <div className="flex flex-col gap-4">
-      <Card tour={1}>
+      <Card>
         <div className="flex flex-col gap-3 px-5 py-4">
           <div className="flex flex-wrap items-center gap-2">
             {loc.keywords.map((k) => (
@@ -237,7 +187,7 @@ function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote, demoSca
                   {k}
                 </button>
                 {controls ? (
-                  <button type="button" className="aw-iconbtn h-6! w-6!" aria-label={`Remove ${k}`} disabled={lock} onClick={() => save({ keywords: loc.keywords.filter((x) => x !== k) })}>
+                  <button type="button" className="aw-iconbtn h-6! w-6!" aria-label={`Remove ${k}`} onClick={() => save({ keywords: loc.keywords.filter((x) => x !== k) })}>
                     ×
                   </button>
                 ) : null}
@@ -256,7 +206,7 @@ function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote, demoSca
                 }}
               >
                 <input id="local-kw" className="aw-input py-1.5! text-[13px]!" value={newKw} onChange={(e) => setNewKw(e.target.value)} placeholder="emergency dentist" aria-label="Add a keyword" />
-                <button type="submit" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={lock || !newKw.trim()}>
+                <button type="submit" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={!newKw.trim()}>
                   Add
                 </button>
               </form>
@@ -264,16 +214,16 @@ function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote, demoSca
           </div>
           {controls ? (
             <div className="flex flex-wrap items-center gap-3">
-              <Seg label="Grid spacing" value={String(loc.spacing)} onChange={(v) => !lock && save({ spacing: Number(v) })} options={SPACINGS.map((s) => ({ id: String(s), label: `${s} mi` }))} />
+              <Seg label="Grid spacing" value={String(loc.spacing)} onChange={(v) => save({ spacing: Number(v) })} options={SPACINGS.map((s) => ({ id: String(s), label: `${s} mi` }))} />
               <label className="flex cursor-pointer items-center gap-2 text-[13px] text-body">
-                <button type="button" role="switch" aria-checked={loc.weekly} aria-label="Weekly scan" className={`aw-toggle ${loc.weekly ? "is-on" : ""}`} disabled={lock} onClick={() => save({ weekly: !loc.weekly })} />
+                <button type="button" role="switch" aria-checked={loc.weekly} aria-label="Weekly scan" className={`aw-toggle ${loc.weekly ? "is-on" : ""}`} onClick={() => save({ weekly: !loc.weekly })} />
                 Weekly scan
               </label>
-              <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" disabled={lock || !kw || Boolean(running) || busy === "scan"} onClick={async () => (await run("scan", () => call("scan", { keyword: kw }))) && load()}>
+              <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" disabled={!kw || Boolean(running) || busy === "scan"} onClick={async () => (await run("scan", () => call("scan", { keyword: kw }))) && load()}>
                 {running ? "Scanning" : busy === "scan" ? "Starting" : "Scan now"}
               </button>
               {loc.city ? (
-                <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={lock || busy === "prompts"} onClick={async () => { const r = await run("prompts", () => call<{ added: string[] }>("prompts")); if (r) onNote(`Tracking ${r.added.length} local prompts in AI Visibility, under the topic Local.`); }}>
+                <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={busy === "prompts"} onClick={async () => { const r = await run("prompts", () => call<{ added: string[] }>("prompts")); if (r) onNote(`Tracking ${r.added.length} local prompts in AI Visibility, under the topic Local.`); }}>
                   Track in AI answers
                 </button>
               ) : null}
@@ -296,7 +246,7 @@ function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote, demoSca
             ]}
           />
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-            <Card tour={2} title={`“${cur.keyword}”, ${cur.spacing} mi apart, ${when(done[0].created_at)}`}>
+            <Card title={`“${cur.keyword}”, ${cur.spacing} mi apart, ${when(done[0].created_at)}`}>
               <div className="px-4 pb-4">
                 <Grid scan={cur} sel={pt} onSel={setPt} />
                 <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-muted">
@@ -312,7 +262,7 @@ function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote, demoSca
                 <PackAt scan={cur} i={pt ?? Math.floor((GRID * GRID) / 2)} you={loc.title} />
               </Card>
               {cur.listing ? (
-                <Card tour={3} title="Listing check">
+                <Card title="Listing check">
                   <ul className="flex flex-col px-5 pb-4">
                     {cur.listing.map((c) => (
                       <li key={c.id} className="flex items-start gap-3 border-t border-[var(--aw-rule)] py-2.5 first:border-t-0">
@@ -331,7 +281,7 @@ function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote, demoSca
             </div>
           </div>
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-            <Card tour={4} title="Local rivals">
+            <Card title="Local rivals">
               <div className="overflow-x-auto">
                 <table className="aw-table">
                   <thead>

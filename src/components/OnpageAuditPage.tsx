@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { AREAS, fixGain, type Check, type FixPlay, type MainKeyword, type OnpageResult } from "@/lib/onpage";
-import { demoOnpage } from "@/lib/demo";
 import type { RunAuth } from "@/lib/runner";
-import { ToolStart } from "./ToolStart";
+import { BAR_INPUT } from "./research/shared";
+import { SearchBar, SearchButton } from "./SearchBar";
 import { Card, Seg, SidePanel, Thinking } from "./ui";
 import { ChangeSetCard, useApi } from "./ZippiePage";
 
@@ -25,12 +25,7 @@ const msg = (e: unknown) => (e instanceof Error ? e.message : String(e));
 export function OnpageAuditPage({ brand, sb, auth, canEdit, onConnect }: { brand: Brand; sb: SupabaseClient; auth: RunAuth; canEdit: boolean; onConnect: () => void }) {
   const api = useApi(auth);
   const [tab, setTab] = useState<Tab>("page");
-  const [rowsState, setRows] = useState<Row[] | null>(null);
-  // No audit yet: the tool's start page (ToolStart) explains it, with this screen on example audits inside it.
-  const isDemo = rowsState !== null && rowsState.length === 0;
-  const [showExample, setShowExample] = useState(false);
-  const demoRows = useMemo(() => demoOnpage({ name: brand.name, domain: brand.domain }) as unknown as Row[], [brand.name, brand.domain]);
-  const rows = isDemo ? demoRows : rowsState;
+  const [rows, setRows] = useState<Row[] | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [url, setUrl] = useState("");
   const [keyword, setKeyword] = useState("");
@@ -131,45 +126,23 @@ export function OnpageAuditPage({ brand, sb, auth, canEdit, onConnect }: { brand
   }
 
   const form = canEdit ? (
-    <form
-      className="flex flex-wrap items-end gap-3"
-      onSubmit={(e) => {
-        e.preventDefault();
-        start();
-      }}
-    >
-      <label className="flex min-w-60 flex-[2] flex-col gap-1">
-        <span className="text-[12px] text-muted">Page</span>
-        <input id="onpage-url" className="aw-input" value={url} onChange={(e) => setUrl(e.target.value)} placeholder={`https://${brand.domain}/page`} />
-      </label>
-      <label className="flex min-w-48 flex-1 flex-col gap-1">
-        <span className="text-[12px] text-muted">Keyword</span>
-        <input id="onpage-keyword" className="aw-input" value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="best crm for startups" />
-      </label>
-      <button type="submit" className="aw-btn aw-btn--primary" disabled={busy === "start" || !url.trim() || !keyword.trim()}>
-        {busy === "start" ? "Starting" : "Audit"}
-      </button>
-    </form>
+    <SearchBar onSubmit={() => start()}>
+      <input id="onpage-url" className={BAR_INPUT} value={url} onChange={(e) => setUrl(e.target.value)} placeholder={`https://${brand.domain}/page`} aria-label="Page" />
+      <input id="onpage-keyword" className={BAR_INPUT} value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="Keyword" aria-label="Keyword" />
+      <SearchButton label="Audit" busyLabel="Starting" busy={busy === "start"} disabled={!url.trim() || !keyword.trim()} />
+    </SearchBar>
   ) : null;
 
   const head = (
     <div className="flex flex-wrap items-end justify-between gap-3">
       <h1 className="aw-h2 mb-0!">On-page Audit</h1>
-      {isDemo ? (
-        <span className="mr-auto flex flex-wrap items-center gap-2">
-          <span className="aw-status aw-status--pending">Example data</span>
-          <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setShowExample(false)}>
-            About On-page Audit
-          </button>
-        </span>
-      ) : null}
-      {rows?.length || tab === "all" ? <Seg label="On-page Audit view" value={tab} onChange={setTab} options={[{ id: "page", label: "This page" }, { id: "all", label: "All pages" }]} /> : null}
+      {rows ? <Seg label="On-page Audit view" value={tab} onChange={setTab} options={[{ id: "page", label: "This page" }, { id: "all", label: "All pages" }]} /> : null}
     </div>
   );
 
   if (rows === null) return <div className="flex flex-col gap-6">{head}{error ? <p className="aw-error">{error}</p> : <Thinking text="Loading" />}</div>;
 
-  const page = (
+  return (
     <div className="flex flex-col gap-6">
       {head}
       {error ? <p className="aw-error">{error}</p> : null}
@@ -186,8 +159,8 @@ export function OnpageAuditPage({ brand, sb, auth, canEdit, onConnect }: { brand
         <AllPages rows={rows} pages={pages} canEdit={canEdit} busy={busy} onFind={findPages} onOpen={(id) => { setOpenId(id); setTab("page"); }} onAudit={(u, k) => start(u, k)} />
       ) : (
         <>
-          {form ? <Card><div className="px-5 py-4">{form}</div></Card> : null}
-          {detail ? <Detail row={detail} history={rows.filter((r) => r.url === detail.url && r.keyword === detail.keyword && r.status === "done")} canEdit={canEdit} demo={isDemo} busy={busy} proposed={proposed} onFix={fix} onAgain={() => start(detail.url, detail.keyword)} /> : null}
+          {form}
+          {detail ? <Detail row={detail} history={rows.filter((r) => r.url === detail.url && r.keyword === detail.keyword && r.status === "done")} canEdit={canEdit} busy={busy} proposed={proposed} onFix={fix} onAgain={() => start(detail.url, detail.keyword)} /> : null}
         </>
       )}
 
@@ -198,39 +171,6 @@ export function OnpageAuditPage({ brand, sb, auth, canEdit, onConnect }: { brand
       ) : null}
     </div>
   );
-
-  if (isDemo && !showExample)
-    return (
-      <ToolStart
-        tool="onpage"
-        error={error}
-        example={page}
-        onOpenExample={() => setShowExample(true)}
-        onCta={canEdit ? () => { window.scrollTo({ top: 0, behavior: "smooth" }); document.getElementById("ts-onpage-url")?.focus(); } : undefined}
-        form={
-          canEdit ? (
-            <form
-              className="ts-q"
-              onSubmit={(e) => {
-                e.preventDefault();
-                start();
-              }}
-            >
-              <input id="ts-onpage-url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder={`${brand.domain}/page`} aria-label="Page" />
-              <input id="ts-onpage-keyword" value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="Keyword" aria-label="Keyword" />
-              <button type="submit" className="ts-btn ts-btn--primary ts-btn--lg" disabled={busy === "start" || !url.trim() || !keyword.trim()}>
-                {busy === "start" ? "Starting" : "Audit"} <span className="ts-arr">→</span>
-              </button>
-            </form>
-          ) : (
-            <div className="ts-q">
-              <span className="ts-domain">{brand.domain}</span>
-            </div>
-          )
-        }
-      />
-    );
-  return page;
 }
 
 function Ring({ value, size = 120, stroke = 11, label }: { value: number | null; size?: number; stroke?: number; label?: React.ReactNode }) {
@@ -254,7 +194,7 @@ const STATUS_ICON: Record<Check["status"], { text: string; cls: string }> = {
   unknown: { text: "–", cls: "bg-[var(--aw-surface-2)] text-muted" },
 };
 
-function Detail({ row, history, canEdit, demo = false, busy, proposed, onFix, onAgain }: { row: Row; history: Row[]; canEdit: boolean; demo?: boolean; busy: string; proposed: Set<string>; onFix: (p: FixPlay) => void; onAgain: () => void }) {
+function Detail({ row, history, canEdit, busy, proposed, onFix, onAgain }: { row: Row; history: Row[]; canEdit: boolean; busy: string; proposed: Set<string>; onFix: (p: FixPlay) => void; onAgain: () => void }) {
   const [view, setView] = useState<"now" | "suggested">("now");
   const [copied, setCopied] = useState("");
   if (row.status === "running") return <Thinking text={`${row.step || "Working"}: ${row.url}`} />;
@@ -292,7 +232,7 @@ function Detail({ row, history, canEdit, demo = false, busy, proposed, onFix, on
   return (
     <div className="flex flex-col gap-4">
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-        <Card tour={1}>
+        <Card>
           <div className="flex flex-wrap items-center gap-6 px-5 py-5">
             <Ring value={r.score} size={128} label={<div><div className="aw-num text-[32px] leading-none font-semibold text-ink">{r.score}</div><div className="mt-1 text-[12px] text-muted">of 100</div></div>} />
             <div className="flex min-w-0 flex-1 flex-col gap-2.5">
@@ -314,7 +254,7 @@ function Detail({ row, history, canEdit, demo = false, busy, proposed, onFix, on
             </div>
           </div>
         </Card>
-        <Card tour={2}
+        <Card
           title="Google preview"
           action={s ? <Seg label="Preview" value={view} onChange={setView} options={[{ id: "now", label: "Now" }, { id: "suggested", label: "Suggested" }]} /> : null}
         >
@@ -338,7 +278,7 @@ function Detail({ row, history, canEdit, demo = false, busy, proposed, onFix, on
       </div>
 
       {canEdit && plays.length ? (
-        <Card tour={3} title="Fixes">
+        <Card title="Fixes">
           <ul className="flex flex-col">
             {plays.map((p) => {
               const key = `${row.id}:${p}`;
@@ -348,7 +288,7 @@ function Detail({ row, history, canEdit, demo = false, busy, proposed, onFix, on
                   <span className="text-[14px] font-medium text-ink">{FIX_LABEL[p]}</span>
                   <span className="flex items-center gap-2">
                     {gain ? <span className="text-[12px] font-medium text-pos">+{gain} points</span> : null}
-                    <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => onFix(p)} disabled={demo || busy === p || proposed.has(key)}>
+                    <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => onFix(p)} disabled={busy === p || proposed.has(key)}>
                       {proposed.has(key) ? "Proposed" : busy === p ? "Preparing" : "Fix"}
                     </button>
                   </span>
@@ -395,7 +335,7 @@ function Detail({ row, history, canEdit, demo = false, busy, proposed, onFix, on
               <p className="px-5 pb-5 text-[13.5px] leading-relaxed text-body">{s.answer}</p>
             </Card>
           ) : null}
-          <Card tour={4} title="Terms the top pages share">
+          <Card title="Terms the top pages share">
             <div className="flex flex-col gap-2 px-5 pb-5">
               {r.terms.length ? (
                 <div className="flex flex-wrap gap-1.5">
