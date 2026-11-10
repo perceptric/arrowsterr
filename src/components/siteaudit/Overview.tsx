@@ -33,9 +33,10 @@ export function Overview(p: {
   const count = (s: "high" | "medium" | "low") => issues.filter((i) => i.severity === s).length;
   const pagesHit = (s: "high" | "medium" | "low") => issues.filter((i) => i.severity === s).reduce((a, i) => a + i.count, 0);
   const history = p.audits.filter(isFull).slice(0, 12).reverse();
-  // Errors first, then warnings, then notices; inside each, the one that hits the biggest share of the site.
+  // Errors first, then warnings, then notices; inside each, the one on pages with the most search clicks (when Search
+  // Console is connected), then the one that hits the biggest share of the site.
   const rankOf = { high: 0, medium: 1, low: 2 };
-  const top = [...issues].sort((a, b) => rankOf[a.severity] - rankOf[b.severity] || impact(b, shown.pages) - impact(a, shown.pages)).slice(0, 5);
+  const top = [...issues].sort((a, b) => rankOf[a.severity] - rankOf[b.severity] || (b.clicks ?? 0) - (a.clicks ?? 0) || impact(b, shown.pages) - impact(a, shown.pages)).slice(0, 5);
   const st = result.stats;
   const idx = st?.indexability;
   const totalIdx = idx ? idx.indexable + idx.noindex + idx.canonical + idx.redirect + idx.error : 0;
@@ -87,6 +88,7 @@ export function Overview(p: {
                     <span className="block text-[13.5px] font-medium text-ink hover:underline">{i.title}</span>
                     <span className="block text-[12px] text-muted">
                       {i.pages.length ? `${num(i.count)} ${i.count === 1 ? "page" : "pages"}` : "Whole site"}
+                      {i.clicks ? `, ${num(i.clicks)} search clicks at stake` : ""}
                       {areaOf(i) ? `, ${AREAS.find((a) => a.id === areaOf(i))?.label}` : ""}
                     </span>
                   </button>

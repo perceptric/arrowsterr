@@ -217,3 +217,30 @@ test("a long crawl that keeps reporting progress isn't stuck; one that goes quie
   assert.equal(isStuck({ status: "running", created_at: "2026-11-10T11:00:00Z", heartbeat_at: "2026-11-10T11:35:00Z" }, now), true);
   assert.equal(isStuck({ status: "running", created_at: "2026-11-10T11:00:00Z" }, now), true);
 });
+
+test("with Search Console and Chrome UX Report data, the Google checks run and issues carry their clicks", () => {
+  const pages = [page("https://acme.com/", { depth: 0 }), page("https://acme.com/a"), page("https://acme.com/b/"), page("https://acme.com/c")];
+  const issues = runChecks(pages, site({
+    sitemapPaths: ["https://acme.com/sitemap.xml", "https://acme.com/news.xml"],
+    google: {
+      clicks: { "https://acme.com/a": 40, "https://acme.com/b": 10 },
+      inspections: { "https://acme.com/a": { coverage: "Crawled - currently not indexed", otherCanonical: false, richErrors: 0 }, "https://acme.com/b": { coverage: "Submitted and indexed", otherCanonical: true, richErrors: 2 } },
+      gscSitemaps: ["https://acme.com/sitemap.xml"],
+      gscSitemapErrors: [],
+      originPass: false,
+      vitals: { "https://www.acme.com/c": { lcp: 5200, inp: 120, cls: 0.3 } },
+    },
+  }));
+  const got = (id: string) => issues.find((i) => i.id === id);
+  assert.deepEqual(got("not_indexed_valuable")?.pages, ["https://acme.com/a"]);
+  // Google and the crawl may differ by a trailing slash or www.
+  assert.deepEqual(got("google_other_canonical")?.pages, ["https://acme.com/b/"]);
+  assert.equal(got("rich_result_errors")?.count, 1);
+  assert.deepEqual(got("sitemap_not_submitted")?.pages, ["https://acme.com/news.xml"]);
+  assert.ok(got("cwv_fail_origin"));
+  assert.deepEqual(got("lcp_poor")?.pages, ["https://acme.com/c"]);
+  assert.ok(got("cls_poor") && !got("inp_poor"));
+  assert.equal(got("not_indexed_valuable")?.clicks, 40);
+  // Without Google data, none of these run.
+  assert.ok(!runChecks(pages, site()).some((i) => ["not_indexed_valuable", "cwv_fail_origin", "sitemap_not_submitted"].includes(i.id)));
+});

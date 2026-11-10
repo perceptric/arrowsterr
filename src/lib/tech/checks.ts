@@ -21,7 +21,17 @@ export const AREAS: { id: Area; label: string }[] = [
 ];
 export const SEVERITY_NAME = { high: "Errors", medium: "Warnings", low: "Notices" } as const;
 
-export type Issue = { id: string; severity: Severity; area: Area; title: string; why: string; how?: string; count: number; pages: string[]; play?: string; siteWide?: boolean; /** Every page it hits, kept off the saved summary. */ all?: string[] };
+export type Issue = { id: string; severity: Severity; area: Area; title: string; why: string; how?: string; count: number; pages: string[]; play?: string; siteWide?: boolean; /** Search clicks in 28 days on the pages it hits. */ clicks?: number; /** Every page it hits, kept off the saved summary. */ all?: string[] };
+
+/** What Search Console and the Chrome UX Report add to a crawl, when the brand has them (phase 2). */
+export type GoogleFacts = {
+  clicks: Record<string, number>;
+  inspections: Record<string, { coverage: string; otherCanonical: boolean; richErrors: number }>;
+  gscSitemaps: string[] | null;
+  gscSitemapErrors: string[];
+  originPass: boolean | null;
+  vitals: Record<string, { lcp?: number; inp?: number; cls?: number }>;
+};
 
 /** A crawled page as the checks see it: the parsed facts without the full link lists. */
 export type CheckPage = {
@@ -43,14 +53,26 @@ export type CheckPage = {
 export type SiteFacts = {
   home: string;
   robots: { status: number; sitemaps: number; blockedSearch: string[]; blockedTraining: string[]; disallowedSitemapUrls: string[] };
-  sitemaps: { found: number; urls: number; bad: string[]; tooBig: string[] };
+  sitemaps: { found: number; urls: number; bad: string[]; tooBig: string[]; paths?: string[] };
   hosts: { httpLive: boolean; otherHostLive: boolean; hsts: boolean };
   llmsTxt: boolean;
   infinite: string[];
   links: { broken: { from: string; to: string; status: number }[]; brokenCount: number; external: { from: string; to: string; status: number }[]; externalCount: number; toRedirect: { from: string; to: string }[]; toRedirectCount: number };
   /** Every crawled or checked URL's status, for canonical and hreflang targets. */
   statusOf: Record<string, number>;
+  /** The sitemaps the crawl read, for comparing with Search Console. */
+  sitemapPaths?: string[];
+  google?: GoogleFacts | null;
 };
+
+/** A value by URL, matching with or without a trailing slash and www, since Google and the crawl may differ. */
+export function byUrl<T>(map: Record<string, T>, url: string): T | undefined {
+  if (url in map) return map[url];
+  const alt = url.endsWith("/") ? url.slice(0, -1) : `${url}/`;
+  if (alt in map) return map[alt];
+  const www = url.replace(/^(https?:\/\/)(www\.)?/, (_, p, w) => (w ? p : `${p}www.`));
+  return map[www] ?? map[www.endsWith("/") ? www.slice(0, -1) : `${www}/`];
+}
 
 type Def = { severity: Severity; area: Area; title: string; why: string; how?: string; play?: string };
 
@@ -124,6 +146,15 @@ export const CHECKS: Record<string, Def> = {
   hreflang_no_xdefault: { severity: "low", area: "intl", title: "hreflang sets without x-default", why: "x-default tells Google which version to show everyone else." },
   mixed_content: { severity: "high", area: "security", title: "Secure pages that load insecure files", why: "Browsers block or warn about http:// images and scripts on https:// pages.", how: "Load every file over https://." },
   no_hsts: { severity: "low", area: "security", title: "No HSTS header", why: "HSTS makes browsers always use https:// for your site.", how: "Send Strict-Transport-Security from the server or CDN." },
+  not_indexed_valuable: { severity: "high", area: "index", title: "Pages Google crawled or found but didn't index", why: "Search Console says \"currently not indexed\" for pages you want in Google. They can't get clicks.", how: "Improve the page (more useful content, fewer near copies) and link to it from strong pages, then request indexing in Search Console." },
+  google_other_canonical: { severity: "medium", area: "index", title: "Google chose a different canonical", why: "Google ignores your canonical on these pages and indexes another URL.", how: "Make internal links, the sitemap and the canonical all point at the same URL." },
+  rich_result_errors: { severity: "medium", area: "schema", title: "Structured data errors Google reports", why: "Pages with rich result errors lose stars, prices or FAQs in Google results.", how: "Fix the errors Search Console lists for each page." },
+  sitemap_not_submitted: { severity: "low", area: "crawl", title: "Sitemaps not submitted in Search Console", why: "Submitting a sitemap lets you see how many of its pages Google indexed.", how: "Add it under Sitemaps in Search Console." },
+  sitemap_google_errors: { severity: "medium", area: "crawl", title: "Sitemaps with errors in Search Console", why: "Google couldn't read part of these sitemaps.", how: "Open the sitemap in Search Console to see each error." },
+  cwv_fail_origin: { severity: "high", area: "speed", title: "The site fails Core Web Vitals on phones", why: "Real visitors on phones get a slow or jumpy page. Google uses this as a ranking signal.", how: "Open Speed to see which metric fails and the slowest pages." },
+  lcp_poor: { severity: "medium", area: "speed", title: "Pages whose main content takes over 4 seconds", why: "Visitors on phones wait over 4 seconds for the biggest image or text block.", how: "Make the hero image smaller, preload it, and cut render-blocking scripts." },
+  inp_poor: { severity: "medium", area: "speed", title: "Pages slow to respond to taps", why: "The page takes over half a second to react when visitors tap or type.", how: "Break up long scripts and remove heavy third-party widgets." },
+  cls_poor: { severity: "medium", area: "speed", title: "Pages that jump while loading", why: "Content moves as the page loads, so visitors tap the wrong thing.", how: "Give images, ads and embeds a fixed size." },
   ai_bots_blocked: { severity: "high", area: "ai", title: "robots.txt blocks AI search crawlers", why: "These crawlers fetch pages for ChatGPT, Claude and Perplexity answers, so blocked pages can't be cited.", how: "Remove the Disallow rule for these bots." },
   ai_training_blocked: { severity: "low", area: "ai", title: "robots.txt blocks AI training crawlers", why: "Blocking training is a fair choice and doesn't stop AI search. Listed so it's on purpose." },
   no_llms_txt: { severity: "low", area: "ai", title: "No llms.txt file", why: "llms.txt gives AI tools a short map of your most useful pages. It's optional, but cheap to add." },
@@ -278,13 +309,13 @@ export function runChecks(pages: CheckPage[], site: SiteFacts): Issue[] {
   if (home && !home.facts!.schema.some((t) => /^(Organization|Corporation|LocalBusiness|NGO|EducationalOrganization|OnlineBusiness|OnlineStore)$/.test(t))) add("org_missing", [home.url]);
 
   // International
-  const byUrl = new Map(html.map((p) => [p.url, p]));
+  const pageAt = new Map(html.map((p) => [p.url, p]));
   add("hreflang_bad_code", where(html, (_, x) => x.hreflang.some((h) => !validHreflang(h.lang))));
   add("hreflang_no_self", where(html, (p, x) => x.hreflang.length > 0 && !x.hreflang.some((h) => h.url === p.url || h.url === p.final)));
   add("hreflang_no_xdefault", where(html, (_, x) => x.hreflang.length > 1 && !x.hreflang.some((h) => h.lang.toLowerCase() === "x-default")));
   add("hreflang_no_return", where(html, (p, x) => x.hreflang.some((h) => {
     if (h.url === p.url || h.url === p.final) return false;
-    const other = byUrl.get(h.url);
+    const other = pageAt.get(h.url);
     return Boolean(other?.facts) && !other!.facts!.hreflang.some((b) => b.url === p.url || b.url === p.final);
   })));
 
@@ -296,6 +327,27 @@ export function runChecks(pages: CheckPage[], site: SiteFacts): Issue[] {
   if (site.robots.blockedSearch.length) siteWide("ai_bots_blocked", site.robots.blockedSearch.length, { title: `robots.txt blocks ${site.robots.blockedSearch.join(", ")}` });
   if (site.robots.blockedTraining.length) siteWide("ai_training_blocked", site.robots.blockedTraining.length, { title: `robots.txt blocks ${site.robots.blockedTraining.join(", ")} (AI training)` });
   if (!site.llmsTxt) siteWide("no_llms_txt");
+
+  // Search Console and Chrome UX Report, when the brand has them.
+  const g = site.google;
+  if (g) {
+    const insp = (p: CheckPage) => byUrl(g.inspections, p.url) ?? byUrl(g.inspections, p.final);
+    add("not_indexed_valuable", idx.filter((p) => /currently not indexed/i.test(insp(p)?.coverage ?? "")).map((p) => p.url));
+    add("google_other_canonical", idx.filter((p) => insp(p)?.otherCanonical).map((p) => p.url));
+    add("rich_result_errors", html.filter((p) => (insp(p)?.richErrors ?? 0) > 0).map((p) => p.url));
+    if (g.gscSitemaps) {
+      const inGsc = new Set(g.gscSitemaps.map((x) => x.replace(/\/+$/, "")));
+      const missing = (site.sitemapPaths ?? []).filter((x) => !inGsc.has(x.replace(/\/+$/, "")));
+      if (missing.length) siteWide("sitemap_not_submitted", missing.length, { pages: missing.slice(0, 100) });
+    }
+    if (g.gscSitemapErrors.length) siteWide("sitemap_google_errors", g.gscSitemapErrors.length, { pages: g.gscSitemapErrors.slice(0, 100) });
+    if (g.originPass === false) siteWide("cwv_fail_origin");
+    const v = (p: CheckPage) => byUrl(g.vitals, p.url);
+    add("lcp_poor", idx.filter((p) => (v(p)?.lcp ?? 0) > 4000).map((p) => p.url));
+    add("inp_poor", idx.filter((p) => (v(p)?.inp ?? 0) > 500).map((p) => p.url));
+    add("cls_poor", idx.filter((p) => (v(p)?.cls ?? 0) > 0.25).map((p) => p.url));
+    for (const i of out) i.clicks = (i.all ?? i.pages).reduce((a, u) => a + (byUrl(g.clicks, u) ?? 0), 0);
+  }
 
   const rank = { high: 0, medium: 1, low: 2 };
   return out.sort((a, b) => rank[a.severity] - rank[b.severity] || b.count - a.count);

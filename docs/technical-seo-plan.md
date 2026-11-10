@@ -607,7 +607,9 @@ Shipped: the crawler as a chain of jobs in the web worker (the Chromium renderer
 - Migration: new crawls write to the new tables; `site_audits` keeps old crawls; Zippie's `start_site_audit` and `get_site_audit` read the new tables.
 - **Done when:** a 10,000-page test site crawls in under 30 minutes on one worker; the crawler test site gives the exact expected results; old Site Audit tests still pass.
 
-### Phase 2: Google connections (3 weeks)
+### Phase 2: Google connections (3 weeks) — built November 2026
+
+Shipped: Search Console sign-in (its own connection, read only), property match, the daily sync (days, pages, sitemaps, URL Inspection within 1,500 a day), the Indexing screen, the Chrome UX Report sync (origin with history, top pages), the Speed screen with PageSpeed lab tests, 9 Google checks in Site Audit and "What to fix first" ranked by search clicks. Not yet: the Claude summary above the issue list, redirect fixes, and the full page value formula (clicks only for now). See `docs/indexing-speed.md`.
 
 - Search Console sign-in, property match, Search Analytics nightly sync and backfill, URL Inspection scheduler, Sitemaps.
 - Indexing screen (5.3).

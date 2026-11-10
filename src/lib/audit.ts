@@ -37,7 +37,7 @@ export type AuditPage = {
 };
 
 export type Severity = "high" | "medium" | "low";
-export type AuditIssue = { id: string; severity: Severity; title: string; why: string; count: number; pages: string[]; play?: string; area?: Area; how?: string; siteWide?: boolean };
+export type AuditIssue = { id: string; severity: Severity; title: string; why: string; count: number; pages: string[]; play?: string; area?: Area; how?: string; siteWide?: boolean; clicks?: number };
 export type AuditResult = {
   pages: AuditPage[];
   issues: AuditIssue[];

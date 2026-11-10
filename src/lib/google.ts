@@ -6,6 +6,8 @@ import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes, 
 // or a key made from SUPABASE_SECRET_KEY when that is not set.
 
 const SCOPES = ["openid", "email", "https://www.googleapis.com/auth/analytics.readonly"];
+/** Search Console, read only (Technical SEO, Indexing). Asked for only when someone connects Search Console. */
+const GSC_SCOPES = ["openid", "email", "https://www.googleapis.com/auth/webmasters.readonly"];
 
 export const googleReady = () => Boolean(process.env.GOOGLE_CLIENT_ID?.trim() && process.env.GOOGLE_CLIENT_SECRET?.trim() && secret());
 
@@ -29,7 +31,7 @@ export function unseal(sealed: string) {
 }
 
 /** A signed, short-lived note that rides through Google's sign-in and comes back to the callback. */
-export type State = { brandId: string; workspaceId: string; userId: string; back: string; exp: number };
+export type State = { brandId: string; workspaceId: string; userId: string; back: string; exp: number; kind?: "ga4" | "gsc" };
 export function signState(s: Omit<State, "exp">) {
   const body = Buffer.from(JSON.stringify({ ...s, exp: Date.now() + 15 * 60_000 })).toString("base64url");
   return `${body}.${createHmac("sha256", secret()!).update(body).digest("base64url")}`;
@@ -46,15 +48,16 @@ export function readState(raw: string): State | null {
 
 export const redirectUri = (origin: string) => `${origin}/api/google/callback`;
 
-export function authUrl(origin: string, state: string) {
+export function authUrl(origin: string, state: string, kind: "ga4" | "gsc" = "ga4") {
   const q = new URLSearchParams({
     client_id: process.env.GOOGLE_CLIENT_ID!.trim(),
     redirect_uri: redirectUri(origin),
     response_type: "code",
-    scope: SCOPES.join(" "),
+    scope: (kind === "gsc" ? GSC_SCOPES : SCOPES).join(" "),
     access_type: "offline",
     prompt: "consent", // always returns a refresh token, even on a second connect
-    include_granted_scopes: "true",
+    // Each connection asks only for its own access, so a Search Console token never reads Analytics.
+    include_granted_scopes: "false",
     state,
   });
   return `https://accounts.google.com/o/oauth2/v2/auth?${q}`;
@@ -93,14 +96,14 @@ export async function accessToken(sealedRefresh: string) {
   return t.access_token;
 }
 
-async function api<T>(url: string, accessTok: string, body?: unknown): Promise<T> {
+export async function api<T>(url: string, accessTok: string, body?: unknown, label = "Google Analytics"): Promise<T> {
   const res = await fetch(url, {
     method: body ? "POST" : "GET",
     headers: { Authorization: `Bearer ${accessTok}`, ...(body ? { "Content-Type": "application/json" } : {}) },
     body: body ? JSON.stringify(body) : undefined,
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(`Google Analytics: ${data.error?.message ?? res.status}`);
+  if (!res.ok) throw Object.assign(new Error(`${label}: ${data.error?.message ?? res.status}`), { status: res.status });
   return data as T;
 }
 

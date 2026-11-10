@@ -37,14 +37,14 @@ function niceStep(raw: number) {
 export type Series = { name: string; color: string; values: number[]; width?: number };
 
 /** Lines over time on one scale, the first one filled when area is on, each line's last point marked. */
-export function LineChart({ series, labels, area = false, height = 240, width = 720, fmt = short, every = 1, zero = false, label }: { series: Series[]; labels: string[]; area?: boolean; height?: number; width?: number; fmt?: (v: number) => string; every?: number; zero?: boolean; label: string }) {
+export function LineChart({ series, labels, area = false, height = 240, width = 720, fmt = short, every = 1, zero = false, label, line }: { series: Series[]; labels: string[]; area?: boolean; height?: number; width?: number; fmt?: (v: number) => string; every?: number; zero?: boolean; label: string; /** A dashed line at a target value, like "good". */ line?: { value: number; label: string; color?: string } }) {
   const W = width;
   const H = height;
   const L = 48;
   const R = 14;
   const T = 12;
   const B = 24;
-  const all = series.flatMap((s) => s.values).filter((v) => Number.isFinite(v));
+  const all = [...series.flatMap((s) => s.values), ...(line ? [line.value] : [])].filter((v) => Number.isFinite(v));
   if (!all.length || labels.length < 2) return null;
   let lo = zero ? 0 : Math.min(...all);
   let hi = Math.max(...all);
@@ -75,6 +75,14 @@ export function LineChart({ series, labels, area = false, height = 240, width = 
           </text>
         ) : null,
       )}
+      {line ? (
+        <g>
+          <line x1={L} x2={W - R} y1={y(line.value)} y2={y(line.value)} stroke={line.color ?? C.pos} strokeDasharray="4 4" />
+          <text x={W - R} y={y(line.value) - 5} textAnchor="end" fill={line.color ?? C.pos} style={AXIS}>
+            {line.label}
+          </text>
+        </g>
+      ) : null}
       {series.map((s, si) => {
         const pts = s.values.map((v, i) => `${x(i)},${y(v)}`).join(" ");
         const last = s.values.length - 1;

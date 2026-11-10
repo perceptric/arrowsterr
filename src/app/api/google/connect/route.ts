@@ -1,7 +1,8 @@
 import { authUrl, googleReady, signState } from "@/lib/google";
 import { requireRole } from "@/lib/serverAuth";
 
-// Start connecting Google Analytics for one brand: returns Google's sign-in link. Editors only.
+// Start connecting Google Analytics, or Search Console (kind "gsc"), for one brand: returns Google's sign-in link.
+// Editors only.
 export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
   const auth = await requireRole(request, body.workspaceId, "editor");
@@ -12,6 +13,7 @@ export async function POST(request: Request) {
   if (!brand || !user?.user) return Response.json({ error: "Brand not found." }, { status: 404 });
   const host = request.headers.get("x-forwarded-host");
   const base = host ? `https://${host}` : new URL(request.url).origin;
-  const back = typeof body.back === "string" && body.back.startsWith("/") && !body.back.startsWith("//") ? body.back : "/traffic";
-  return Response.json({ url: authUrl(base, signState({ brandId: brand.id, workspaceId: body.workspaceId, userId: user.user.id, back })) });
+  const kind = body.kind === "gsc" ? "gsc" : "ga4";
+  const back = typeof body.back === "string" && body.back.startsWith("/") && !body.back.startsWith("//") ? body.back : kind === "gsc" ? "/indexing" : "/traffic";
+  return Response.json({ url: authUrl(base, signState({ brandId: brand.id, workspaceId: body.workspaceId, userId: user.user.id, back, kind }), kind) });
 }

@@ -4,7 +4,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { entitlement } from "./entitlements";
 import { parseRobots, robotsAllows, type ParsedRobots } from "./robotsTest";
 import { partialReason, scoreToSave } from "./siteAudit";
-import type { CheckPage, Issue, SiteFacts } from "./tech/checks";
+import type { CheckPage, GoogleFacts, Issue, SiteFacts } from "./tech/checks";
+import { otherCanonical, passes, type Vitals } from "./tech/google";
 import { cleanSettings, passesRules, type CrawlSettings } from "./tech/limits";
 import { readPage, refreshTarget, type Link, type PageFacts } from "./tech/parse";
 import { parseSitemap, robotsSitemaps } from "./tech/sitemaps";
@@ -213,7 +214,7 @@ async function seed(db: SupabaseClient, auditId: string, domain: string, state: 
       blockedTraining: AI_TRAINING_BOTS.filter(blocked),
       disallowedSitemapUrls: robots.status === 200 ? sitemapUrls.filter((u) => !robotsAllows(parsed, "Googlebot", pathQuery(u)).allowed).slice(0, 200) : [],
     },
-    sitemaps: { found, urls: sitemapUrls.length, bad, tooBig },
+    sitemaps: { found, urls: sitemapUrls.length, bad, tooBig, paths: [...seen].filter((x) => !bad.includes(x)).slice(0, 60) },
     hosts: {
       httpLive: httpV.status >= 200 && httpV.status < 300 && new URL(httpV.final).protocol === "http:",
       otherHostLive: otherV.status >= 200 && otherV.status < 300 && new URL(otherV.final).hostname === other,
@@ -330,7 +331,7 @@ async function* pagesOf(db: SupabaseClient, auditId: string, columns: string) {
 }
 
 /** Last job: count links, check outbound links, run the checks, write each page's issues and save the summary. */
-async function finish(db: SupabaseClient, auditId: string, workspaceId: string, state: State) {
+async function finish(db: SupabaseClient, auditId: string, workspaceId: string, state: State, brandId: string | null) {
   await setState(db, auditId, state, { step: "Counting links and running checks" });
   const tally = new LinkTally();
   const pages: CheckPage[] = [];
@@ -373,7 +374,8 @@ async function finish(db: SupabaseClient, auditId: string, workspaceId: string, 
     if (end === 404 || end === 410 || end >= 500) external.push({ from: ext.get(u)!, to: u, status: end });
   });
 
-  const site: SiteFacts = { ...state.site, infinite: state.infinite, statusOf, links: { broken: tally.broken, brokenCount: tally.brokenCount, external, externalCount: external.length, toRedirect: tally.toRedirect, toRedirectCount: tally.toRedirectCount } };
+  const google = brandId ? await googleFacts(db, brandId).catch(() => null) : null;
+  const site: SiteFacts = { ...state.site, infinite: state.infinite, statusOf, google, sitemapPaths: state.site.sitemaps.paths, links: { broken: tally.broken, brokenCount: tally.brokenCount, external, externalCount: external.length, toRedirect: tally.toRedirect, toRedirectCount: tally.toRedirectCount } };
   const s = summarize(pages, site);
 
   // Each page's links in, depth, template, indexability and issues, for the Pages table.
@@ -412,6 +414,34 @@ async function finish(db: SupabaseClient, auditId: string, workspaceId: string, 
   await db.from("crawl_queue").delete().eq("audit_id", auditId);
 }
 
+/** Search Console and Chrome UX Report data the brand already has, for the checks that use them. */
+async function googleFacts(db: SupabaseClient, brandId: string): Promise<GoogleFacts | null> {
+  const [pages, insp, sm, origin, urls] = await Promise.all([
+    db.from("gsc_pages").select("page, clicks").eq("brand_id", brandId).gt("clicks", 0).limit(50_000),
+    db.from("gsc_inspections").select("url, coverage, google_canonical, user_canonical, rich").eq("brand_id", brandId).limit(50_000),
+    db.from("gsc_sitemaps").select("path, errors").eq("brand_id", brandId),
+    db.from("cwv_origin").select("vitals").eq("brand_id", brandId).eq("form_factor", "phone").maybeSingle(),
+    db.from("cwv_urls").select("url, vitals").eq("brand_id", brandId).eq("form_factor", "phone").limit(5000),
+  ]);
+  if (pages.error && insp.error && origin.error) return null; // before 068_google_tech.sql
+  const { data: conn } = await db.from("gsc_connections").select("synced_at").eq("brand_id", brandId).maybeSingle();
+  const vit = (v: Vitals) => ({ lcp: v.lcp?.p75, inp: v.inp?.p75, cls: v.cls?.p75 });
+  return {
+    clicks: Object.fromEntries((pages.data ?? []).map((p) => [p.page as string, Number(p.clicks) || 0])),
+    inspections: Object.fromEntries(
+      ((insp.data ?? []) as { url: string; coverage: string | null; google_canonical: string | null; user_canonical: string | null; rich: { errors: number }[] | null }[]).map((i) => [
+        i.url,
+        { coverage: i.coverage ?? "", otherCanonical: otherCanonical({ url: i.url, googleCanonical: i.google_canonical, userCanonical: i.user_canonical }), richErrors: (i.rich ?? []).reduce((a, r) => a + (r.errors || 0), 0) },
+      ]),
+    ),
+    // Without a synced Search Console, "not submitted" can't be judged.
+    gscSitemaps: conn?.synced_at ? (sm.data ?? []).map((s) => s.path as string) : null,
+    gscSitemapErrors: (sm.data ?? []).filter((s) => Number(s.errors) > 0).map((s) => s.path as string),
+    originPass: origin.data?.vitals ? passes(origin.data.vitals as Vitals) : null,
+    vitals: Object.fromEntries(((urls.data ?? []) as { url: string; vitals: Vitals }[]).map((u) => [u.url, vit(u.vitals)])),
+  };
+}
+
 /** What a finished v2 crawl saves on site_audits.result. */
 export type CrawlResult = {
   version: 2;
@@ -435,7 +465,7 @@ export type CrawlResult = {
  */
 export async function crawlStep(db: SupabaseClient, auditId: string, budgetMs = BUDGET_MS): Promise<"done" | "more"> {
   const until = Date.now() + budgetMs;
-  const { data: audit } = await db.from("site_audits").select("id, workspace_id, domain, status, crawl, settings").eq("id", auditId).maybeSingle();
+  const { data: audit } = await db.from("site_audits").select("id, workspace_id, brand_id, domain, status, crawl, settings").eq("id", auditId).maybeSingle();
   if (!audit || audit.status !== "running") return "done";
   let state = audit.crawl as State | null;
   try {
@@ -463,7 +493,7 @@ export async function crawlStep(db: SupabaseClient, auditId: string, budgetMs = 
       // Counting and checking need time of their own: start them in a fresh job when this one is nearly out.
       if (Date.now() > until - Math.min(60_000, budgetMs / 3)) return "more";
     }
-    await finish(db, auditId, audit.workspace_id, state);
+    await finish(db, auditId, audit.workspace_id, state, audit.brand_id ?? null);
     return "done";
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
