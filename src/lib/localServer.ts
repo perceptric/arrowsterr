@@ -5,9 +5,8 @@ import { call } from "./dataforseo";
 import type { Profile } from "./db";
 import { entitlement, take } from "./entitlements";
 import { enqueue } from "./jobs";
-import { grid, listingCheck, parsePlaces, summarize, zoomFor, type Location, type Place, type ScanResult } from "./local";
+import { grid, gridOf, listingCheck, parsePlaces, scanDue, scanTasks, scheduleOf, summarize, zoomFor, type Location, type Place, type ScanResult, type Shape } from "./local";
 import { schemaTypes } from "./pageFacts";
-import { TASK_COST } from "./plans";
 import { marketOf } from "./research";
 import { safeFetch } from "./safeFetch";
 
@@ -27,11 +26,32 @@ export async function findPlaces(query: string, country: string | undefined): Pr
   return parsePlaces(t.result?.[0]?.items).slice(0, 8);
 }
 
-/** Start a scan: post one task per grid point, then collect on the queue. */
-export async function startScan(db: SupabaseClient, ws: string, userId: string | null, brandId: string, loc: Location, keyword: string, opts: { fast: boolean; charge: Charge | null; language: string }) {
-  const points = grid(loc.lat, loc.lng, loc.spacing);
-  const { data: row, error } = await db.from("local_scans").insert({ workspace_id: ws, brand_id: brandId, keyword, spacing: loc.spacing, created_by: userId, charge: opts.charge, step: "Asking Google Maps" }).select("id").single();
-  if (error || !row) throw new Error(/local_scans/.test(error?.message ?? "") ? "Run supabase/066_local.sql with psql on the VPS database." : (error?.message ?? "Could not start the scan."));
+export type SavedLocation = Location & { id: string };
+const MIGRATION = "Run supabase/071_local_locations.sql on the VPS database.";
+
+/** A brand's locations, in order. */
+export async function locationsOf(db: SupabaseClient, brandId: string): Promise<SavedLocation[]> {
+  const { data, error } = await db.from("local_locations").select("id, data").eq("brand_id", brandId).order("position").order("created_at");
+  if (error) throw new Error(/local_locations/.test(error.message) ? MIGRATION : error.message);
+  return (data ?? []).map((r) => ({ ...(r.data as Location), id: r.id as string }));
+}
+
+/** One location of a brand, or null. */
+export async function locationOf(db: SupabaseClient, brandId: string, id: string): Promise<SavedLocation | null> {
+  const { data } = await db.from("local_locations").select("id, data").eq("brand_id", brandId).eq("id", id).maybeSingle();
+  return data ? { ...(data.data as Location), id: data.id as string } : null;
+}
+
+/** Start a scan: post one task per grid point, then collect on the queue. The scan keeps the grid it used. */
+export async function startScan(db: SupabaseClient, ws: string, userId: string | null, brandId: string, loc: SavedLocation, keyword: string, opts: { fast: boolean; charge: Charge | null; language: string }) {
+  const g = gridOf(loc);
+  const points = g.points;
+  const { data: row, error } = await db
+    .from("local_scans")
+    .insert({ workspace_id: ws, brand_id: brandId, location_id: loc.id, keyword, spacing: loc.spacing, size: g.size, shape: g.shape, center_lat: g.center.lat, center_lng: g.center.lng, created_by: userId, charge: opts.charge, step: "Asking Google Maps" })
+    .select("id")
+    .single();
+  if (error || !row) throw new Error(/local_scans|location_id|center_lat/.test(error?.message ?? "") ? MIGRATION : (error?.message ?? "Could not start the scan."));
   try {
     const zoom = zoomFor(loc.spacing);
     const tasks = await call(
@@ -59,7 +79,7 @@ async function fail(db: SupabaseClient, scanId: string, error: string, refund = 
 
 /** Collect what's ready. Called by the job until every point is in, or 3 hours have passed. */
 export async function collectScan(db: SupabaseClient, scanId: string, round: number) {
-  const { data: s } = await db.from("local_scans").select("id, workspace_id, brand_id, keyword, spacing, status, tasks, points, created_at").eq("id", scanId).maybeSingle();
+  const { data: s } = await db.from("local_scans").select("id, workspace_id, brand_id, location_id, keyword, spacing, size, shape, center_lat, center_lng, status, tasks, points, created_at").eq("id", scanId).maybeSingle();
   if (!s || s.status !== "running") return;
   const tasks = (s.tasks ?? []) as { i: number; id: string }[];
   const points = { ...((s.points ?? {}) as Record<string, Place[] | null>) };
@@ -84,10 +104,15 @@ export async function collectScan(db: SupabaseClient, scanId: string, round: num
   }
   for (const t of tasks) if (!(String(t.i) in points)) points[String(t.i)] = null;
   const { data: b } = await db.from("brands").select("domain, profile").eq("id", s.brand_id).maybeSingle();
-  const loc = (b?.profile as Profile | null)?.location;
+  // The location the scan was for; scans from before 071 have none and use the brand's first.
+  const loc = s.location_id ? await locationOf(db, s.brand_id, s.location_id) : ((await locationsOf(db, s.brand_id).catch(() => []))[0] ?? (b?.profile as Profile | null)?.location ?? null);
   if (!b || !loc) return fail(db, scanId, "The business location was removed.");
-  const per = grid(loc.lat, loc.lng, Number(s.spacing)).map((p) => ({ i: p.i, results: points[String(p.i)] ?? null }));
-  const result: ScanResult & { listing?: ReturnType<typeof listingCheck> } = summarize(s.keyword, Number(s.spacing), per, { ...loc, domain: String(b.domain) });
+  // The grid the scan was posted with, whatever the settings are now.
+  const size = Number(s.size) || 7;
+  const shape: Shape = s.shape === "circle" ? "circle" : "square";
+  const center = s.center_lat !== null && s.center_lat !== undefined ? { lat: Number(s.center_lat), lng: Number(s.center_lng) } : { lat: loc.lat, lng: loc.lng };
+  const per = grid(center.lat, center.lng, Number(s.spacing), size, shape).map((p) => ({ i: p.i, results: points[String(p.i)] ?? null }));
+  const result: ScanResult & { listing?: ReturnType<typeof listingCheck> } = summarize(s.keyword, Number(s.spacing), per, { ...loc, domain: String(b.domain) }, { size, shape, center });
   if (!result.read) return fail(db, scanId, "Google Maps didn't answer for any point. Try again in a few minutes.");
   result.listing = await siteListing(String(b.domain), loc, result).catch(() => undefined);
   await db.from("local_scans").update({ status: "done", step: "Done", points, result, error: null, finished_at: new Date().toISOString() }).eq("id", scanId);
@@ -109,27 +134,40 @@ async function siteListing(domain: string, loc: Location, scan: ScanResult) {
   return listingCheck(loc, { text: $("body").text(), phones: phones.slice(0, 20), schemaTypes: schemaTypes(r.body), schemaPhone }, scan.rivals);
 }
 
-/** The daily tick: each keyword of each brand with weekly scans on, a week after its last scan. Standard queue. */
+/**
+ * The daily tick: each keyword of each location whose schedule (weekly, every 2 weeks or monthly) says it's due.
+ * Standard queue, charged by the grid's points. A workspace that runs out of tasks waits for next month.
+ */
 export async function queueWeeklyScans(db: SupabaseClient) {
-  const { data: brands } = await db.from("brands").select("id, workspace_id, profile");
-  const due = (brands ?? []).filter((b) => (b.profile as Profile | null)?.location?.weekly && (b.profile as Profile).location!.keywords.length);
+  const { data: rows, error } = await db.from("local_locations").select("id, workspace_id, brand_id, data");
+  if (error) return; // before 071_local_locations.sql
+  const due = (rows ?? []).map((r) => ({ ...r, loc: { ...(r.data as Location), id: r.id as string } as SavedLocation })).filter((r) => scheduleOf(r.loc) !== "off" && r.loc.keywords?.length);
   if (!due.length) return;
-  const { data: recent, error } = await db.from("local_scans").select("brand_id, keyword, created_at").in("brand_id", due.map((b) => b.id)).gte("created_at", new Date(Date.now() - 7 * 864e5 + 3 * 3600_000).toISOString());
-  if (error) return; // before 066_local.sql
-  const fresh = new Set((recent ?? []).map((r) => `${r.brand_id}|${r.keyword}`));
-  for (const b of due) {
-    const loc = (b.profile as Profile).location!;
-    const e = await entitlement(b.workspace_id);
-    if (e.readOnly || !e.open.seo) continue;
-    for (const k of loc.keywords) {
-      if (fresh.has(`${b.id}|${k}`)) continue;
-      const took = await take(b.workspace_id, "tasks", TASK_COST.localscan, { refundIfFree: false });
-      if (!took.ok) break; // out of tasks: the rest wait for next month
+  const { data: recent } = await db.from("local_scans").select("location_id, keyword, created_at").in("location_id", due.map((r) => r.id)).gte("created_at", new Date(Date.now() - 31 * 864e5).toISOString()).order("created_at", { ascending: false });
+  const last = new Map<string, string>();
+  for (const r of recent ?? []) if (!last.has(`${r.location_id}|${r.keyword}`)) last.set(`${r.location_id}|${r.keyword}`, r.created_at as string);
+  const { data: brands } = await db.from("brands").select("id, profile").in("id", [...new Set(due.map((r) => r.brand_id))]);
+  const country = new Map((brands ?? []).map((b) => [b.id as string, (b.profile as Profile | null)?.country]));
+  const open = new Map<string, boolean>();
+  for (const r of due) {
+    if (!open.has(r.workspace_id)) {
+      const e = await entitlement(r.workspace_id);
+      open.set(r.workspace_id, !e.readOnly && e.open.seo);
+    }
+    if (!open.get(r.workspace_id)) continue;
+    const cost = scanTasks(gridOf(r.loc).points.length, false);
+    for (const k of r.loc.keywords) {
+      if (!scanDue(scheduleOf(r.loc), last.get(`${r.id}|${k}`) ?? null)) continue;
+      const took = await take(r.workspace_id, "tasks", cost, { refundIfFree: false });
+      if (!took.ok) {
+        open.set(r.workspace_id, false); // out of tasks: the rest wait for next month
+        break;
+      }
       const pack = took.fromPack ?? 0;
-      const lang = marketOf((b.profile as Profile).country).language;
-      await startScan(db, b.workspace_id, null, b.id, loc, k, { fast: false, language: lang, charge: took.period ? { period: took.period, plan: TASK_COST.localscan - pack, pack } : null }).catch(async (err) => {
+      const lang = marketOf(country.get(r.brand_id)).language;
+      await startScan(db, r.workspace_id, null, r.brand_id, r.loc, k, { fast: false, language: lang, charge: took.period ? { period: took.period, plan: cost - pack, pack } : null }).catch(async (err) => {
         await took.giveBack();
-        console.error(`Weekly local scan for ${k} failed:`, err instanceof Error ? err.message : err);
+        console.error(`Scheduled local scan for ${k} failed:`, err instanceof Error ? err.message : err);
       });
     }
   }

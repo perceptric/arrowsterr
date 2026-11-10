@@ -182,3 +182,49 @@ test("moves between scans, head to head and the keyword table", () => {
   assert.equal(t[1].change, null);
   assert.equal(t[2].last, null);
 });
+
+test("grids of any size and shape keep point numbers from the full square", async () => {
+  const { grid, gridOf, inCircle, scanTasks } = await import("../src/lib/local.ts");
+  assert.equal(grid(30.27, -97.74, 1, 5).length, 25);
+  assert.equal(grid(30.27, -97.74, 1, 13).length, 169);
+  const round = grid(30.27, -97.74, 1, 7, "circle");
+  assert.equal(round.length, 37); // the 3 cells nearest each corner drop
+  assert.ok(!round.some((p) => p.i === 0 || p.i === 6 || p.i === 42 || p.i === 48), "corners are out");
+  assert.ok(round.some((p) => p.i === 24), "the centre stays");
+  assert.equal(inCircle(3, 0, 7), true);
+  // A moved centre (a service-area business) puts the middle point there, not on the pin.
+  const g = gridOf({ lat: 30.27, lng: -97.74, spacing: 2, size: 9, shape: "square", center: { lat: 30.5, lng: -97.6 } });
+  assert.deepEqual([g.points[40].lat, g.points[40].lng], [30.5, -97.6]);
+  assert.equal(g.size, 9);
+  // Unknown sizes fall back to 7.
+  assert.equal(gridOf({ lat: 30, lng: -97, spacing: 1, size: 8 }).size, 7);
+  // Costs follow the points: 49 points cost 6 scheduled and 12 now, as before.
+  assert.equal(scanTasks(49, false), 6);
+  assert.equal(scanTasks(49, true), 12);
+  assert.equal(scanTasks(169, false), 21);
+  assert.equal(scanTasks(9, false), 2);
+  assert.equal(scanTasks(1, false), 1);
+});
+
+test("schedules, plan limits and keyword suggestions", async () => {
+  const { scanDue, scheduleOf, localLimits, keywordSuggestions } = await import("../src/lib/local.ts");
+  const now = Date.parse("2026-11-10T12:00:00Z");
+  assert.equal(scanDue("weekly", null, now), true);
+  assert.equal(scanDue("weekly", "2026-11-04T12:00:00Z", now), false);
+  assert.equal(scanDue("weekly", "2026-11-03T14:00:00Z", now), true); // within 3 hours of a week
+  assert.equal(scanDue("biweekly", "2026-11-03T12:00:00Z", now), false);
+  assert.equal(scanDue("monthly", "2026-10-10T12:00:00Z", now), true);
+  assert.equal(scanDue("off", null, now), false);
+  assert.equal(scheduleOf({ weekly: true }), "weekly");
+  assert.equal(scheduleOf({ weekly: false }), "off");
+  assert.equal(scheduleOf({ weekly: true, schedule: "monthly" }), "monthly");
+  assert.deepEqual(localLimits("agency"), { locations: 25, keywords: 30 });
+  assert.deepEqual(localLimits("foundation"), { locations: 1, keywords: 5 });
+  const s = keywordSuggestions(
+    { keywords: ["dentist"], category: "Dentist", categories: ["Dentist", "Cosmetic dentist"] },
+    [{ category: "Emergency dental service", top3: 20 }, { category: "Dentist", top3: 30 }, { category: "Emergency dental service", top3: 4 }, { category: null, top3: 9 }],
+  );
+  assert.equal(s[0], "emergency dental service");
+  assert.ok(s.includes("dentist near me") && s.includes("cosmetic dentist"));
+  assert.ok(!s.includes("dentist"), "keywords already tracked aren't suggested");
+});

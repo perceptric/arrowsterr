@@ -2,6 +2,17 @@
 
 Local Research (Organic Research, Local Research, at `/local-research`) shows where a business ranks in Google Maps from 49 points around it, who holds the map pack, how reviews compare over time, and whether the website agrees with the Google listing. It is step 6 of the new tools plan.
 
+## Locations and grids (phase 1 of `docs/local-research-plan.md`)
+
+- **Many locations per brand,** each with its own business, keywords, grid, schedule and history (`local_locations`). A location has a short name, like "Mueller". With more than one, the screen opens on **All locations**: every location's keywords with their latest average rank and the change since the scan before, average rank, top 3 share, rating, reviews and the last scan. Click one to open it. Change business and Remove location (which deletes its scans; the button asks twice) are on each location.
+- **Plan limits:** Free 1 location and 3 keywords; Trial and Starter 1 and 5; Pro (and Thrive, Legacy) 3 and 15; Agency 25 and 30; Enterprise 100 and 50 (`localLimits`).
+- **Grids:** 3 × 3, 5 × 5, 7 × 7 (default), 9 × 9 or 13 × 13; square or round (a round grid drops the corners, 37 points on a 7 × 7); 0.25, 0.5, 1, 2, 3 or 5 miles apart. Point numbers stay those of the full square, so a round grid lines up with a square one.
+- **Moving the centre:** Move centre, then click the map. Service-area businesses (no storefront) centre the grid on the area they serve; the business pin stays where Google has it. Centre on the business puts it back.
+- **Each scan keeps the grid it used** (size, shape, spacing, centre on `local_scans`), so a later change never redraws an old scan, and Change only compares scans drawn on the same grid. The Change view can compare the latest scan with any earlier one on that grid.
+- **Schedules:** weekly, every 2 weeks, monthly or off, per location.
+- **Suggested keywords:** the categories of the businesses that hold the most top 3 spots, the business's own categories, and "{main keyword} near me", leaving out keywords already tracked.
+- **Tasks follow the points:** a scan takes 6 tasks per 49 points on the standard queue (scheduled scans) and 12 per 49 on the priority queue (Scan now), at least 1. A 13 × 13 grid scheduled is 21 tasks; a 3 × 3 is 2.
+
 ## What it shows
 
 - **Setup:** search the business by name and city (one Google Maps request, 1 task), then pick it. Its Google ids, address, phone, category and position are saved on `brands.profile.location`.
@@ -56,7 +67,8 @@ Request and response fields follow DataForSEO's docs: `cid`, `place_id`, `rating
 ## Data
 
 - `supabase/066_local.sql` adds `local_scans`: tasks, raw points and the summed-up result per scan. Viewers may read.
-- `/api/local` takes `find`, `set`, `clear`, `settings`, `scan` and `prompts`.
+- `supabase/071_local_locations.sql` adds `local_locations` (viewers may read), and `location_id`, `size`, `shape`, `center_lat` and `center_lng` on `local_scans`. It copies each brand's one location from `brands.profile.location` and points its scans at it.
+- `/api/local` takes `limits`, `find`, `set` (a new location, or a new business for one), `remove`, `settings`, `scan` and `prompts`, each with a `locationId`.
 - Zippie reads it with `get_local_research`. Two skills use it: "Local audit" and "Review response plan."
 
 ## Running cost
@@ -75,14 +87,15 @@ Checked on the vendor's pricing page, November 2026.
 - **Finding the business:** one live request, $0.002, charged as 1 task.
 - **The listing check** is a plain page load.
 
-Assume 20% of teams track a local business (10 at Beta, 100 at Growth), each with 3 keywords scanned weekly plus 2 scans now a month: about $0.50 a business a month.
+Assume 20% of teams track a local business (10 at Beta, 100 at Growth), each with 3 keywords scanned weekly plus 2 scans now a month: about $0.50 a location a month on a 7 × 7 grid. Phase 1 lets teams track more locations (assume 1.5 each: 15 at Beta, 150 at Growth) and bigger grids; DataForSEO's price per point doesn't change, and bigger grids take more plan tasks, so they pay their way.
 
 | Line | Beta (50 teams) | Growth (500 teams) |
 |---|---|---|
-| Google Maps grid scans (DataForSEO) | ~$5 | ~$50 |
+| Google Maps grid scans (DataForSEO, 1.5 locations per team) | ~$7.50 | ~$75 |
 | Finding businesses (DataForSEO, live) | ~$0 | ~$1 |
 | Listing checks and collecting results (worker) | $0 | $0 |
-| **Monthly total added** | **~$5** | **~$51** |
+| **Monthly total** | **~$7.50** | **~$76** |
+| Added by phase 1 (more locations) | ~$2.50 | ~$25 |
 
 ## Example data
 

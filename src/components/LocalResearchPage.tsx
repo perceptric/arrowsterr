@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { businesses, GRID, headToHead, isBusiness, keywordTable, localInsights, mapOwners, placeKey, placeText, rankBands, rankMoves, reviewHistory, SPACINGS, type Business, type Duel, type KeywordRun, type ListingCheck, type Location, type MapOwner, type Move, type Place, type ScanResult } from "@/lib/local";
+import { businesses, GRID, gridOf, headToHead, isBusiness, keywordSuggestions, keywordTable, localInsights, mapOwners, placeKey, placeText, rankBands, rankMoves, reviewHistory, scanTasks, scheduleOf, SCHEDULES, SIZES, SPACINGS, type Business, type Duel, type KeywordRun, type ListingCheck, type Location, type MapOwner, type Move, type Place, type ScanResult } from "@/lib/local";
 import { LocalMap, rankDot, type MapDot } from "./LocalMap";
 import type { RunAuth } from "@/lib/runner";
+import { Dropdown } from "./Pickers";
 import { BAR_INPUT } from "./research/shared";
 import { SearchBar, SearchButton } from "./SearchBar";
 import { Card, Delta, Seg, Thinking } from "./ui";
@@ -20,9 +21,17 @@ type Scan = { id: string; keyword: string; status: "running" | "done" | "failed"
 
 const msg = (e: unknown) => (e instanceof Error ? e.message : String(e));
 const when = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+type SavedLoc = Location & { id: string };
+type Limits = { locations: number; keywords: number };
+
 export function LocalResearchPage({ brand, sb, auth, canEdit }: { brand: Brand; sb: SupabaseClient; auth: RunAuth; canEdit: boolean }) {
   const api = useApi(auth);
-  const [loc, setLoc] = useState<Location | null | undefined>(undefined);
+  const [locs, setLocs] = useState<SavedLoc[] | undefined>(undefined);
+  const [sel, setSel] = useState("");
+  const [adding, setAdding] = useState(false);
+  const [replacing, setReplacing] = useState(false);
+  const [removing, setRemoving] = useState(false);
+  const [limits, setLimits] = useState<Limits | null>(null);
   const [error, setError] = useState("");
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState("");
@@ -30,15 +39,30 @@ export function LocalResearchPage({ brand, sb, auth, canEdit }: { brand: Brand; 
 
   useEffect(() => {
     let live = true;
-    sb.from("brands")
-      .select("profile")
-      .eq("id", brand.id)
-      .maybeSingle()
-      .then(({ data }) => live && setLoc(((data?.profile as { location?: Location } | null)?.location as Location | undefined) ?? null));
+    sb.from("local_locations")
+      .select("id, data")
+      .eq("brand_id", brand.id)
+      .order("position")
+      .order("created_at")
+      .then(({ data, error: e }) => {
+        if (!live) return;
+        if (e) {
+          setError(/local_locations/.test(e.message) ? "Run supabase/071_local_locations.sql on the VPS database." : e.message);
+          setLocs([]);
+          return;
+        }
+        const list = ((data ?? []) as { id: string; data: Location }[]).map((r) => ({ ...r.data, id: r.id }));
+        setLocs(list);
+        setSel(list.length > 1 ? "all" : (list[0]?.id ?? ""));
+      });
     return () => {
       live = false;
     };
   }, [sb, brand.id]);
+  useEffect(() => {
+    if (!canEdit) return;
+    call<{ limits: Limits }>("limits").then((r) => setLimits(r.limits)).catch(() => undefined);
+  }, [canEdit, call]);
 
   async function run<T>(key: string, fn: () => Promise<T>) {
     setBusy(key);
@@ -53,36 +77,110 @@ export function LocalResearchPage({ brand, sb, auth, canEdit }: { brand: Brand; 
       setBusy("");
     }
   }
+  const put = (l: SavedLoc) => setLocs((all) => (all ?? []).some((x) => x.id === l.id) ? (all ?? []).map((x) => (x.id === l.id ? l : x)) : [...(all ?? []), l]);
+  const loc = locs?.find((l) => l.id === sel) ?? null;
   const save = async (extra: Record<string, unknown>) => {
-    const r = await run("settings", () => call<{ location: Location }>("settings", extra));
-    if (r) setLoc(r.location);
+    if (!loc) return;
+    const r = await run("settings", () => call<{ location: SavedLoc }>("settings", { locationId: loc.id, ...extra }));
+    if (r) put(r.location);
   };
+  const canAdd = canEdit && (locs?.length ?? 0) < (limits?.locations ?? 1);
+  const finding = locs !== undefined && (locs.length === 0 || adding || replacing);
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <h1 className="aw-h2 mb-0!">Local Research</h1>
-        {loc ? (
+        {loc && !finding ? (
           <div className="flex flex-wrap items-center gap-3 text-[13px]">
             <span className="text-body wrap-break-word">
               <b className="font-semibold text-ink">{loc.title}</b>
               {loc.address ? `, ${loc.address}` : ""}
             </span>
             {canEdit ? (
-              <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={async () => (await run("clear", () => call("clear"))) && setLoc(null)} disabled={busy === "clear"}>
-                Change business
-              </button>
+              <>
+                <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setReplacing(true)}>
+                  Change business
+                </button>
+                <button
+                  type="button"
+                  className={`aw-btn aw-btn--sm ${removing ? "aw-btn--danger" : "aw-btn--ghost"}`}
+                  disabled={busy === "remove"}
+                  onClick={async () => {
+                    if (!removing) return setRemoving(true);
+                    const r = await run("remove", () => call<{ removed: string }>("remove", { locationId: loc.id }));
+                    setRemoving(false);
+                    if (!r) return;
+                    const rest = (locs ?? []).filter((x) => x.id !== loc.id);
+                    setLocs(rest);
+                    setSel(rest.length > 1 ? "all" : (rest[0]?.id ?? ""));
+                  }}
+                  onBlur={() => setRemoving(false)}
+                >
+                  {removing ? "Delete it and its scans" : "Remove location"}
+                </button>
+              </>
             ) : null}
           </div>
         ) : null}
       </div>
-      {loc === null ? <Find brand={brand} call={call} canEdit={canEdit} onSet={setLoc} onError={setError} /> : null}
+
+      {locs && locs.length && !finding ? (
+        <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Locations">
+          {locs.length > 1 ? (
+            <button type="button" aria-pressed={sel === "all"} onClick={() => setSel("all")} className="aw-chip aw-chip--btn">
+              All locations
+            </button>
+          ) : null}
+          {locs.map((l) => (
+            <button key={l.id} type="button" aria-pressed={sel === l.id} onClick={() => setSel(l.id)} className="aw-chip aw-chip--btn">
+              {l.name || l.city || l.title}
+            </button>
+          ))}
+          {canEdit ? (
+            canAdd ? (
+              <button type="button" className="aw-chip aw-chip--btn aw-chip--quiet" onClick={() => setAdding(true)}>
+                + Add location
+              </button>
+            ) : limits ? (
+              <span className="text-[12px] text-muted">{limits.locations} of {limits.locations} locations on your plan</span>
+            ) : null
+          ) : null}
+        </div>
+      ) : null}
+
+      {finding ? (
+        <>
+          <Find
+            brand={brand}
+            call={call}
+            canEdit={canEdit}
+            locationId={replacing ? loc?.id : undefined}
+            onSet={(l) => {
+              put(l as SavedLoc);
+              setSel((l as SavedLoc).id);
+              setAdding(false);
+              setReplacing(false);
+            }}
+            onError={setError}
+          />
+          {locs && locs.length ? (
+            <div>
+              <button type="button" className="aw-btn aw-btn--ghost aw-btn--sm" onClick={() => { setAdding(false); setReplacing(false); }}>
+                Cancel
+              </button>
+            </div>
+          ) : null}
+        </>
+      ) : null}
       {error ? <p className="aw-error">{error}</p> : null}
       {note ? <p className="aw-callout">{note}</p> : null}
-      {loc === undefined ? (
+      {locs === undefined ? (
         <Thinking text="Loading" />
+      ) : finding ? null : sel === "all" && locs.length > 1 ? (
+        <Overview brand={brand} sb={sb} locs={locs} onPick={setSel} />
       ) : loc ? (
-        <Scans key={loc.cid ?? loc.title} brand={brand} loc={loc} sb={sb} canEdit={canEdit} busy={busy} call={call} run={run} save={save} onNote={setNote} />
+        <Scans key={loc.id} brand={brand} loc={loc} sb={sb} canEdit={canEdit} busy={busy} call={call} run={run} save={save} onNote={setNote} maxKeywords={limits?.keywords ?? 5} />
       ) : null}
     </div>
   );
@@ -91,7 +189,7 @@ export function LocalResearchPage({ brand, sb, auth, canEdit }: { brand: Brand; 
 type Call = <T>(action: string, extra?: Record<string, unknown>) => Promise<T>;
 
 /** The business search: a name and city, then the matching Google Maps listings to pick from. */
-function Find({ brand, call, canEdit, onSet, onError }: { brand: Brand; call: Call; canEdit: boolean; onSet: (l: Location) => void; onError: (e: string) => void }) {
+function Find({ brand, call, canEdit, locationId, onSet, onError }: { brand: Brand; call: Call; canEdit: boolean; locationId?: string; onSet: (l: Location) => void; onError: (e: string) => void }) {
   const [query, setQuery] = useState(`${brand.name} `);
   const [places, setPlaces] = useState<Place[] | null>(null);
   const [busy, setBusy] = useState("");
@@ -111,7 +209,7 @@ function Find({ brand, call, canEdit, onSet, onError }: { brand: Brand; call: Ca
     setBusy(p.cid ?? p.title);
     onError("");
     try {
-      onSet((await call<{ location: Location }>("set", { place: p })).location);
+      onSet((await call<{ location: Location }>("set", { place: p, ...(locationId ? { locationId } : {}) })).location);
     } catch (e) {
       onError(msg(e));
       setBusy("");
@@ -144,22 +242,114 @@ function Find({ brand, call, canEdit, onSet, onError }: { brand: Brand; call: Ca
           )}
         </Card>
       ) : null}
-      <LocalIntro />
+      {locationId ? null : <LocalIntro />}
     </>
   );
 }
 
-function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote }: { brand: Brand; loc: Location; sb: SupabaseClient; canEdit: boolean; busy: string; call: Call; run: <T>(k: string, fn: () => Promise<T>) => Promise<T | null>; save: (x: Record<string, unknown>) => Promise<void>; onNote: (s: string) => void }) {
+/** Every location at a glance: the latest average rank for each keyword, the change since the scan before, top 3 share and reviews. */
+function Overview({ brand, sb, locs, onPick }: { brand: Brand; sb: SupabaseClient; locs: SavedLoc[]; onPick: (id: string) => void }) {
+  type Run = { location_id: string | null; keyword: string; created_at: string; avg: number | null; top3: number | null; read: number | null; you: { rating: number | null; reviews: number | null } | null };
+  const [runs, setRuns] = useState<Run[] | null>(null);
+  useEffect(() => {
+    let live = true;
+    sb.from("local_scans")
+      .select("location_id, keyword, created_at, avg:result->avg, top3:result->top3, read:result->read, you:result->you")
+      .eq("brand_id", brand.id)
+      .eq("status", "done")
+      .order("created_at", { ascending: false })
+      .limit(1000)
+      .then(({ data }) => live && setRuns((data ?? []) as unknown as Run[]));
+    return () => {
+      live = false;
+    };
+  }, [sb, brand.id]);
+  if (!runs) return <Thinking text="Loading" />;
+  const rows = locs.map((l) => {
+    const mine = runs.filter((r) => r.location_id === l.id);
+    const kws = l.keywords.map((k) => {
+      const list = mine.filter((r) => r.keyword === k);
+      return { k, now: list[0] ?? null, before: list[1] ?? null };
+    });
+    const latest = kws.map((x) => x.now).filter((x): x is Run => Boolean(x));
+    const avgOf = (xs: (number | null | undefined)[]) => {
+      const v = xs.filter((x): x is number => typeof x === "number");
+      return v.length ? Math.round((v.reduce((a, b) => a + b, 0) / v.length) * 10) / 10 : null;
+    };
+    const read = latest.reduce((a, r) => a + (r.read ?? 0), 0);
+    const top3 = latest.reduce((a, r) => a + (r.top3 ?? 0), 0);
+    const you = latest.find((r) => r.you)?.you ?? null;
+    const last = latest.map((r) => r.created_at).sort().pop() ?? null;
+    return { l, kws, avg: avgOf(latest.map((r) => r.avg)), top3: read ? Math.round((top3 / read) * 100) : null, you, last };
+  });
+  const fill = (v: number | null) => (v === null ? "var(--aw-surface-2)" : v <= 3 ? MAP.top3 : v <= 10 ? MAP.top10 : v <= 20 ? MAP.top20 : "#E5484D");
+  return (
+    <Card title={`${locs.length} locations`}>
+      <div className="overflow-x-auto">
+        <table className="aw-table">
+          <thead>
+            <tr>
+              <th>Location</th>
+              <th>Keywords, latest average rank</th>
+              <th className="text-right">Avg rank</th>
+              <th className="text-right">Top 3</th>
+              <th className="text-right">Rating</th>
+              <th className="text-right">Reviews</th>
+              <th className="text-right">Last scan</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.l.id} className="cursor-pointer" onClick={() => onPick(r.l.id)}>
+                <td className="min-w-48">
+                  <button type="button" className="text-left font-medium text-ink hover:underline" onClick={() => onPick(r.l.id)}>
+                    {r.l.name || r.l.city || r.l.title}
+                  </button>
+                  <span className="block text-[12px] text-muted wrap-break-word">{r.l.address ?? r.l.title}</span>
+                </td>
+                <td>
+                  <span className="flex flex-wrap gap-1.5">
+                    {r.kws.map((x) => {
+                      const d = x.now?.avg != null && x.before?.avg != null ? Math.round((x.before.avg - x.now.avg) * 10) / 10 : null;
+                      return (
+                        <span key={x.k} className="inline-flex items-center gap-1.5 text-[12.5px] text-body">
+                          {x.k}
+                          <span className="aw-num grid h-5 min-w-8 place-items-center rounded-full px-1.5 text-[11.5px] font-semibold text-white" style={{ background: fill(x.now?.avg ?? null), color: x.now ? "#fff" : "var(--aw-muted)" }}>
+                            {x.now?.avg ?? "–"}
+                          </span>
+                          {d ? <span className={`aw-num text-[11.5px] font-medium ${d > 0 ? "text-pos" : "text-neg"}`}>{d > 0 ? `+${d}` : d}</span> : null}
+                        </span>
+                      );
+                    })}
+                  </span>
+                </td>
+                <td className="aw-num text-right font-medium text-ink">{r.avg ?? "–"}</td>
+                <td className="aw-num text-right">{r.top3 === null ? "–" : `${r.top3}%`}</td>
+                <td className="aw-num text-right">{r.you?.rating ?? "–"}</td>
+                <td className="aw-num text-right">{r.you?.reviews?.toLocaleString("en-US") ?? "–"}</td>
+                <td className="text-right text-muted">{r.last ? when(r.last) : "Not yet"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Card>
+  );
+}
+
+function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote, maxKeywords }: { brand: Brand; loc: SavedLoc; sb: SupabaseClient; canEdit: boolean; busy: string; call: Call; run: <T>(k: string, fn: () => Promise<T>) => Promise<T | null>; save: (x: Record<string, unknown>) => Promise<void>; onNote: (s: string) => void; maxKeywords: number }) {
   const [kw, setKw] = useState(loc.keywords[0] ?? "");
   const [scans, setScans] = useState<Scan[] | null>(null);
   const controls = canEdit;
   const [pt, setPt] = useState<number | null>(null);
   const [newKw, setNewKw] = useState("");
+  const [picking, setPicking] = useState(false);
+  const [name, setName] = useState(loc.name ?? "");
   const load = useCallback(async () => {
     if (!kw) return setScans([]);
-    const { data } = await sb.from("local_scans").select("id, keyword, status, step, error, created_at, result").eq("brand_id", brand.id).eq("keyword", kw).order("created_at", { ascending: false }).limit(12);
+    const { data } = await sb.from("local_scans").select("id, keyword, status, step, error, created_at, result").eq("location_id", loc.id).eq("keyword", kw).order("created_at", { ascending: false }).limit(12);
     setScans((data ?? []) as Scan[]);
-  }, [sb, brand.id, kw]);
+  }, [sb, loc.id, kw]);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
@@ -173,13 +363,17 @@ function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote }: { bra
 
   const done = (scans ?? []).filter((s) => s.status === "done" && s.result);
   const cur = done[0]?.result ?? null;
-  // The saved Google Maps results of the latest scan and the one before, so every business's rank at every point,
-  // and how it moved, can go on the map.
+  // Earlier scans drawn on the same grid can be compared with the latest one, point by point.
+  const same = (r: ScanResult | null) => Boolean(cur && r && r.size === cur.size && (r.shape ?? "square") === (cur.shape ?? "square") && r.spacing === cur.spacing && (r.center?.lat ?? null) === (cur.center?.lat ?? null) && (r.center?.lng ?? null) === (cur.center?.lng ?? null));
+  const comparable = done.slice(1).filter((d) => same(d.result));
+  const [compareId, setCompareId] = useState<string | null>(null);
+  const prevScan = comparable.find((d) => d.id === compareId) ?? comparable[0] ?? null;
+  // The saved Google Maps results of the latest scan and the one it's compared with, so every business's rank at every
+  // point, and how it moved, can go on the map.
   const curId = done[0]?.id ?? null;
-  const prevId = done[1]?.id ?? null;
   const raw = useRaw(sb, curId);
-  const prevRaw = useRaw(sb, prevId);
-  const prev = done[1]?.result ?? null;
+  const prevRaw = useRaw(sb, prevScan?.id ?? null);
+  const prev = prevScan?.result ?? null;
   // Every keyword's numbers from each finished scan, for the keyword table and the history chart.
   const [history, setHistory] = useState<KeywordRun[]>([]);
   const lastDone = done[0]?.id ?? "";
@@ -187,7 +381,7 @@ function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote }: { bra
     let live = true;
     sb.from("local_scans")
       .select("keyword, created_at, avg:result->avg, top3:result->top3, found:result->found, read:result->read")
-      .eq("brand_id", brand.id)
+      .eq("location_id", loc.id)
       .eq("status", "done")
       .order("created_at", { ascending: false })
       .limit(200)
@@ -199,8 +393,20 @@ function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote }: { bra
     return () => {
       live = false;
     };
-  }, [sb, brand.id, lastDone]);
+  }, [sb, loc.id, lastDone]);
   const failed = scans?.[0]?.status === "failed" ? scans[0] : null;
+  const g = gridOf(loc);
+  const suggestions = keywordSuggestions(loc, cur?.rivals ?? []).slice(0, Math.max(0, Math.min(5, maxKeywords - loc.keywords.length)));
+  const addKeyword = async (k: string) => {
+    await save({ keywords: [...loc.keywords, k] });
+    setKw(k);
+    setPt(null);
+  };
+  const pickCenter = async (p: { lat: number; lng: number }) => {
+    setPicking(false);
+    await save({ center: p });
+    onNote("The grid's centre moved. The next scan uses it.");
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -219,16 +425,15 @@ function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote }: { bra
                 ) : null}
               </span>
             ))}
-            {controls && loc.keywords.length < 5 ? (
+            {controls && loc.keywords.length < maxKeywords ? (
               <form
                 className="flex items-center gap-2"
                 onSubmit={async (e) => {
                   e.preventDefault();
                   const k = newKw.trim().toLowerCase();
                   if (!k) return;
-                  await save({ keywords: [...loc.keywords, k] });
+                  await addKeyword(k);
                   setNewKw("");
-                  setKw(k);
                 }}
               >
                 <input id="local-kw" className="aw-input py-1.5! text-[13px]!" value={newKw} onChange={(e) => setNewKw(e.target.value)} placeholder="emergency dentist" aria-label="Add a keyword" />
@@ -238,21 +443,47 @@ function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote }: { bra
               </form>
             ) : null}
           </div>
+          {controls && suggestions.length ? (
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-[12.5px] text-muted">Suggested</span>
+              {suggestions.map((k) => (
+                <button key={k} type="button" className="aw-chip aw-chip--btn aw-chip--brand" onClick={() => addKeyword(k)} disabled={busy === "settings"}>
+                  + {k}
+                </button>
+              ))}
+            </div>
+          ) : null}
           {controls ? (
             <div className="flex flex-wrap items-center gap-3">
-              <Seg label="Grid spacing" value={String(loc.spacing)} onChange={(v) => save({ spacing: Number(v) })} options={SPACINGS.map((s) => ({ id: String(s), label: `${s} mi` }))} />
-              <label className="flex cursor-pointer items-center gap-2 text-[13px] text-body">
-                <button type="button" role="switch" aria-checked={loc.weekly} aria-label="Weekly scan" className={`aw-toggle ${loc.weekly ? "is-on" : ""}`} onClick={() => save({ weekly: !loc.weekly })} />
-                Weekly scan
-              </label>
-              <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" disabled={!kw || Boolean(running) || busy === "scan"} onClick={async () => (await run("scan", () => call("scan", { keyword: kw }))) && load()}>
+              <Seg label="Grid size" value={String(g.size)} onChange={(v) => save({ size: Number(v) })} options={SIZES.map((n) => ({ id: String(n), label: `${n} × ${n}` }))} />
+              <Seg label="Grid shape" value={g.shape} onChange={(v) => save({ shape: v })} options={[{ id: "square", label: "Square" }, { id: "circle", label: "Round" }]} />
+              <Dropdown<number> label="Spacing" value={loc.spacing} onChange={(v) => save({ spacing: v })} options={SPACINGS.map((n) => ({ id: n, label: `${n} mi apart` }))} />
+              <Dropdown<string> label="Schedule" value={scheduleOf(loc)} onChange={(v) => save({ schedule: v })} options={SCHEDULES.map((x) => ({ id: x.id, label: x.id === "off" ? "No scheduled scans" : `${x.label} scan` }))} />
+            </div>
+          ) : null}
+          {controls ? (
+            <div className="flex flex-wrap items-center gap-3">
+              <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" title={`${scanTasks(g.points.length, true)} tasks`} disabled={!kw || Boolean(running) || busy === "scan"} onClick={async () => (await run("scan", () => call("scan", { locationId: loc.id, keyword: kw }))) && load()}>
                 {running ? "Scanning" : busy === "scan" ? "Starting" : "Scan now"}
               </button>
+              <span className="text-[12.5px] text-muted">{g.points.length} points</span>
+              <button type="button" className={`aw-btn aw-btn--sm ${picking ? "aw-btn--primary" : "aw-btn--secondary"}`} aria-pressed={picking} onClick={() => setPicking(!picking)}>
+                {picking ? "Click the map" : "Move centre"}
+              </button>
+              {loc.center ? (
+                <button type="button" className="aw-btn aw-btn--ghost aw-btn--sm" onClick={() => save({ center: null })}>
+                  Centre on the business
+                </button>
+              ) : null}
               {loc.city ? (
-                <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={busy === "prompts"} onClick={async () => { const r = await run("prompts", () => call<{ added: string[] }>("prompts")); if (r) onNote(`Tracking ${r.added.length} local prompts in AI Visibility, under the topic Local.`); }}>
+                <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={busy === "prompts"} onClick={async () => { const r = await run("prompts", () => call<{ added: string[] }>("prompts", { locationId: loc.id })); if (r) onNote(`Tracking ${r.added.length} local prompts in AI Visibility, under the topic Local.`); }}>
                   Track in AI answers
                 </button>
               ) : null}
+              <form className="ml-auto flex items-center gap-2" onSubmit={(e) => { e.preventDefault(); if (name.trim() && name.trim() !== loc.name) save({ name: name.trim() }); }}>
+                <label htmlFor="local-name" className="text-[12.5px] text-muted">Name</label>
+                <input id="local-name" className="aw-input w-40 py-1.5! text-[13px]!" value={name} onChange={(e) => setName(e.target.value)} onBlur={() => name.trim() && name.trim() !== loc.name && save({ name: name.trim() })} />
+              </form>
             </div>
           ) : null}
         </div>
@@ -261,8 +492,14 @@ function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote }: { bra
       {running ? <Thinking text={running.step || "Scanning"} /> : failed ? <p className="aw-error">The last scan failed: {failed.error}</p> : null}
       {kw && scans && !done.length && !running && !failed ? <p className="aw-small">No scan for “{kw}”.</p> : null}
 
-      {cur ? (
-        <Results cur={cur} prev={prev} done={done} loc={loc} domain={brand.domain} raw={raw} prevRaw={prevRaw} history={history} keyword={kw} onKeyword={(k) => { setKw(k); setPt(null); }} pt={pt} onPt={setPt} />
+      {cur && !picking ? (
+        <Results cur={cur} prev={prev} prevAt={prevScan?.created_at ?? null} compare={comparable.map((d) => ({ id: d.id, at: d.created_at }))} compareId={prevScan?.id ?? null} onCompare={setCompareId} done={done} loc={loc} domain={brand.domain} raw={raw} prevRaw={prevRaw} history={history} keyword={kw} onKeyword={(k) => { setKw(k); setPt(null); }} pt={pt} onPt={setPt} />
+      ) : scans && (picking || !done.length) ? (
+        <Card title={picking ? "Click where the grid's centre should be" : `The grid, ${g.points.length} points`}>
+          <div className="p-3">
+            <LocalMap lat={g.center.lat} lng={g.center.lng} spacing={g.spacing} size={g.size} shape={g.shape} pin={{ lat: loc.lat, lng: loc.lng }} dots={[]} sel={-1} onSel={() => undefined} onFail={() => undefined} onPick={picking ? pickCenter : undefined} />
+          </div>
+        </Card>
       ) : null}
     </div>
   );
@@ -272,21 +509,24 @@ type Sort = "rank" | "reviews" | "rating";
 
 type Mode = "ranks" | "change" | "duel";
 
-function Results({ cur, prev, done, loc, domain, raw, prevRaw, history, keyword, onKeyword, pt, onPt }: { cur: ScanResult & { listing?: ListingCheck[] }; prev: ScanResult | null; done: Scan[]; loc: Location; domain: string; raw: Record<string, Place[] | null> | null; prevRaw: Record<string, Place[] | null> | null; history: KeywordRun[]; keyword: string; onKeyword: (k: string) => void; pt: number | null; onPt: (i: number | null) => void }) {
+function Results({ cur, prev, prevAt, compare, compareId, onCompare, done, loc, domain, raw, prevRaw, history, keyword, onKeyword, pt, onPt }: { cur: ScanResult & { listing?: ListingCheck[] }; prev: ScanResult | null; prevAt: string | null; compare: { id: string; at: string }[]; compareId: string | null; onCompare: (id: string) => void; done: Scan[]; loc: Location; domain: string; raw: Record<string, Place[] | null> | null; prevRaw: Record<string, Place[] | null> | null; history: KeywordRun[]; keyword: string; onKeyword: (k: string) => void; pt: number | null; onPt: (i: number | null) => void }) {
   const owners = useMemo(() => mapOwners(cur, loc), [cur, loc]);
   const { headline, insights } = useMemo(() => localInsights(cur, prev, loc), [cur, prev, loc]);
   const fixes = (cur.listing ?? []).filter((c) => c.status !== "pass").length;
-  const centre = Math.floor((GRID * GRID) / 2);
+  const size = cur.size ?? GRID;
+  const centre = Math.floor((size * size) / 2);
   const at = pt ?? centre;
+  const center = cur.center ?? { lat: loc.lat, lng: loc.lng };
+  const inGrid = useMemo(() => new Set(cur.points.map((p) => p.i)), [cur]);
   // Every business with its rank at each point. Until the saved results load, the business itself from the summary.
   const list = useMemo<Business[]>(() => {
-    if (raw) return businesses(Object.entries(raw).map(([i, results]) => ({ i: Number(i), results })), { ...loc, domain });
-    const ranks = Array.from({ length: GRID * GRID }, (_, i) => {
+    if (raw) return businesses(Object.entries(raw).map(([i, results]) => ({ i: Number(i), results })), { ...loc, domain }, size);
+    const ranks = Array.from({ length: size * size }, (_, i) => {
       const p = cur.points.find((x) => x.i === i);
       return !p || p.error ? undefined : p.rank;
     });
     return [{ key: "__you", title: loc.title, you: true, address: loc.address, category: loc.category, rating: cur.you?.rating ?? null, reviews: cur.you?.reviews ?? null, ranks, avg: cur.avg, top3: cur.top3, found: cur.found, voice: cur.read ? cur.top3 / (cur.read * 3) : 0 }];
-  }, [raw, cur, loc, domain]);
+  }, [raw, cur, loc, domain, size]);
   const [pick, setPick] = useState("__you");
   const [sort, setSort] = useState<Sort>("rank");
   const [mapFailed, setMapFailed] = useState(false);
@@ -295,14 +535,14 @@ function Results({ cur, prev, done, loc, domain, raw, prevRaw, history, keyword,
   const you = list.find((b) => b.you)!;
   // The same businesses in the scan before, for the change view.
   const prevList = useMemo<Business[] | null>(() => {
-    if (prevRaw) return businesses(Object.entries(prevRaw).map(([i, results]) => ({ i: Number(i), results })), { ...loc, domain });
+    if (prevRaw) return businesses(Object.entries(prevRaw).map(([i, results]) => ({ i: Number(i), results })), { ...loc, domain }, size);
     if (!prev) return null;
-    const ranks = Array.from({ length: GRID * GRID }, (_, i) => {
+    const ranks = Array.from({ length: size * size }, (_, i) => {
       const p = prev.points.find((x) => x.i === i);
       return !p || p.error ? undefined : p.rank;
     });
     return [{ key: "__you", title: loc.title, you: true, address: null, category: null, rating: null, reviews: null, ranks, avg: prev.avg, top3: prev.top3, found: prev.found, voice: 0 }];
-  }, [prevRaw, prev, loc, domain]);
+  }, [prevRaw, prev, loc, domain, size]);
   const [mode, setMode] = useState<Mode>("ranks");
   const before = prevList?.find((b) => b.key === picked.key) ?? null;
   const view: Mode = mode === "duel" && picked.you ? "ranks" : mode === "change" && !before ? "ranks" : mode;
@@ -316,7 +556,7 @@ function Results({ cur, prev, done, loc, domain, raw, prevRaw, history, keyword,
   const legend = view === "change" ? CHANGE_KEY : view === "duel" ? [{ label: "You rank higher", dot: "var(--signal)" }, { label: `${picked.title} ranks higher`, dot: "#111111" }, { label: "Same rank", dot: "#9CA3AF" }, { label: "Neither in the top 20", dot: "#E5E7EB" }] : TONES;
   const summary =
     view === "change" && moves
-      ? `Since ${when(done[1].created_at)}: better at ${moves.filter((m) => m.kind === "up" || m.kind === "new").length} points, worse at ${moves.filter((m) => m.kind === "down" || m.kind === "lost").length}.`
+      ? `Since ${prevAt ? when(prevAt) : "the scan before"}: better at ${moves.filter((m) => m.kind === "up" || m.kind === "new").length} points, worse at ${moves.filter((m) => m.kind === "down" || m.kind === "lost").length}.`
       : view === "duel" && duel
         ? `You rank higher at ${duel.you} points, ${picked.title} at ${duel.them}${duel.tie ? `, the same at ${duel.tie}` : ""}.`
         : null;
@@ -382,7 +622,7 @@ function Results({ cur, prev, done, loc, domain, raw, prevRaw, history, keyword,
         </Tile>
         <Tile label="Top 3 coverage">
           <div className="flex items-center gap-4">
-            <Matrix ranks={picked.ranks} />
+            <Matrix ranks={picked.ranks} size={size} inGrid={inGrid} />
             <div className="flex min-w-0 flex-col gap-1">
               <span className="aw-num text-[30px] leading-none font-semibold text-ink">
                 {bands.good}
@@ -440,18 +680,21 @@ function Results({ cur, prev, done, loc, domain, raw, prevRaw, history, keyword,
                   ...(!picked.you ? [{ id: "duel" as const, label: "Head to head" }] : []),
                 ]}
               />
+              {view === "change" && compare.length > 1 && compareId ? (
+                <Dropdown<string> label="Compare with" value={compareId} onChange={onCompare} options={compare.map((c) => ({ id: c.id, label: `Against ${when(c.at)}` }))} />
+              ) : null}
               <span className="text-[12.5px] text-body wrap-break-word">{summary ?? (picked.you ? "Pick a competitor in the list to compare head to head." : `Showing ${picked.title}'s ranks.`)}</span>
             </div>
             {mapFailed ? (
-              <Heat ranks={picked.ranks} spacing={cur.spacing} sel={at} onSel={onPt} />
+              <Heat ranks={picked.ranks} spacing={cur.spacing} size={size} inGrid={inGrid} sel={at} onSel={onPt} />
             ) : (
-              <LocalMap lat={loc.lat} lng={loc.lng} spacing={cur.spacing} dots={dots} sel={at} onSel={onPt} onFail={onFail} />
+              <LocalMap lat={center.lat} lng={center.lng} spacing={cur.spacing} size={size} shape={cur.shape ?? "square"} pin={{ lat: loc.lat, lng: loc.lng }} dots={dots} sel={at} onSel={onPt} onFail={onFail} />
             )}
             {pt !== null ? (
               <div className="pointer-events-none absolute top-[72px] left-6 z-10 w-[min(300px,calc(100%-48px))]">
                 <div className="pointer-events-auto rounded-[12px] bg-[var(--aw-surface)] shadow-[0_2px_12px_rgb(0_0_0_/_0.14)]">
                   <div className="flex items-center justify-between gap-2 py-1.5 pr-1.5 pl-4">
-                    <span className="text-[12px] font-semibold text-ink">{at === centre ? "Map pack at the business" : `Map pack ${placeText(at, cur.spacing)}`}</span>
+                    <span className="text-[12px] font-semibold text-ink">{at === centre ? (cur.center ? "Map pack at the centre" : "Map pack at the business") : `Map pack ${placeText(at, cur.spacing, size)}`}</span>
                     <button type="button" className="aw-iconbtn h-7! w-7!" aria-label="Close" onClick={() => onPt(null)}>
                       ×
                     </button>
@@ -468,7 +711,7 @@ function Results({ cur, prev, done, loc, domain, raw, prevRaw, history, keyword,
                 </span>
               ))}
               <span className="ml-auto text-muted">
-                {cur.spacing} mi between points, {when(done[0].created_at)}
+                {size} × {size}{cur.shape === "circle" ? " round" : ""}, {cur.spacing} mi between points, {when(done[0].created_at)}
               </span>
             </div>
           </div>
@@ -496,7 +739,7 @@ function Results({ cur, prev, done, loc, domain, raw, prevRaw, history, keyword,
                 </li>
               ))}
             </ul>
-            <Sides ranks={picked.ranks} />
+            <Sides ranks={picked.ranks} size={size} />
           </div>
         </Card>
         <Card title="Listing check" className="h-full" action={checks ? <span className={`aw-status ${fixes ? "aw-status--warn" : "aw-status--ranked"}`}>{fixes ? `${fixes} to fix` : "All good"}</span> : null}>
@@ -535,10 +778,10 @@ function Results({ cur, prev, done, loc, domain, raw, prevRaw, history, keyword,
 }
 
 /** Average rank on each side of the grid, as a compass: where the business is strong and where it fades. */
-function Sides({ ranks }: { ranks: (number | null | undefined)[] }) {
-  const h = Math.floor(GRID / 2);
+function Sides({ ranks, size }: { ranks: (number | null | undefined)[]; size: number }) {
+  const h = Math.floor(size / 2);
   const side = (test: (r: number, c: number) => boolean) => {
-    const vals = ranks.map((v, i) => ({ v, r: Math.floor(i / GRID), c: i % GRID })).filter((x) => x.v !== undefined && test(x.r, x.c)).map((x) => Math.min(x.v ?? 21, 21));
+    const vals = ranks.map((v, i) => ({ v, r: Math.floor(i / size), c: i % size })).filter((x) => x.v !== undefined && test(x.r, x.c)).map((x) => Math.min(x.v ?? 21, 21));
     return vals.length ? Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10 : null;
   };
   const cells = [
@@ -826,13 +1069,14 @@ function Donut({ parts, centre, size = 76 }: { parts: { label: string; value: nu
   );
 }
 
-/** The grid in small: a 7 by 7 matrix of the picked business's ranks. */
-function Matrix({ ranks }: { ranks: (number | null | undefined)[] }) {
+/** The grid in small: the picked business's rank at each point. Points outside a round grid stay blank. */
+function Matrix({ ranks, size, inGrid }: { ranks: (number | null | undefined)[]; size: number; inGrid: Set<number> }) {
+  const px = size >= 13 ? 4 : size >= 9 ? 5 : 7;
   return (
-    <span className="grid shrink-0 gap-[3px]" style={{ gridTemplateColumns: `repeat(${GRID}, 7px)` }} aria-hidden="true">
-      {Array.from({ length: GRID * GRID }, (_, i) => {
+    <span className="grid shrink-0" style={{ gridTemplateColumns: `repeat(${size}, ${px}px)`, gap: size >= 13 ? 2 : 3 }} aria-hidden="true">
+      {Array.from({ length: size * size }, (_, i) => {
         const r = ranks[i];
-        return <i key={i} className="block h-[7px] w-[7px] rounded-[2px]" style={{ background: r === undefined ? "var(--aw-surface-2)" : r === null ? "#F3B5B7" : r <= 3 ? MAP.top3 : r <= 10 ? MAP.top10 : MAP.top20 }} />;
+        return <i key={i} className="block rounded-[2px]" style={{ width: px, height: px, background: !inGrid.has(i) ? "transparent" : r === undefined ? "var(--aw-surface-2)" : r === null ? "#F3B5B7" : r <= 3 ? MAP.top3 : r <= 10 ? MAP.top10 : MAP.top20 }} />;
       })}
     </span>
   );
@@ -897,11 +1141,13 @@ function tone(rank: number | null, error?: boolean): { dot: string; heat: string
 }
 
 /** The 49 points as a heat map: a soft colour field under the dots, the business in the middle. */
-function Heat({ ranks, spacing, sel, onSel }: { ranks: (number | null | undefined)[]; spacing: number; sel: number; onSel: (i: number) => void }) {
-  const points = ranks.map((r, i) => ({ i, rank: r ?? null, error: r === undefined }));
+function Heat({ ranks, spacing, size, inGrid, sel, onSel }: { ranks: (number | null | undefined)[]; spacing: number; size: number; inGrid: Set<number>; sel: number; onSel: (i: number) => void }) {
+  const points = ranks.map((r, i) => ({ i, rank: r ?? null, error: r === undefined })).filter((p) => inGrid.has(p.i));
   const W = 560;
+  const GRID = size;
   const cell = W / GRID;
   const mid = Math.floor((GRID * GRID) / 2);
+  const dot = Math.min(16, cell * 0.36);
   const c = (i: number) => [cell * (i % GRID) + cell / 2, cell * Math.floor(i / GRID) + cell / 2] as const;
   return (
     <svg viewBox={`0 0 ${W} ${W}`} className="block h-auto w-full" role="img" aria-label="Google Maps rank at each point">
@@ -935,11 +1181,11 @@ function Heat({ ranks, spacing, sel, onSel }: { ranks: (number | null | undefine
         const t = tone(p.rank, p.error);
         const open = p.rank === null;
         return (
-          <g key={p.i} className="cursor-pointer" onClick={() => onSel(p.i)} role="button" tabIndex={0} aria-label={`${placeText(p.i, spacing)}: ${p.error ? "no answer" : p.rank === null ? "not in the top 20" : `rank ${p.rank}`}`} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onSel(p.i)}>
-            {sel === p.i ? <circle cx={x} cy={y} r="23" fill="none" stroke="var(--aw-ink)" strokeWidth="2.5" /> : null}
-            {p.i === mid ? <circle cx={x} cy={y} r="21" fill="none" stroke="var(--signal)" strokeWidth="3" /> : null}
-            <circle cx={x} cy={y} r="16" fill={t.dot} stroke={open ? "var(--aw-faint)" : "var(--aw-surface)"} strokeWidth={open ? 1.25 : 2} strokeDasharray={p.error ? "3 3" : undefined} />
-            <text x={x} y={y + 4.5} textAnchor="middle" fill={t.text} style={{ font: "600 13px Inter, system-ui, sans-serif", fontVariantNumeric: "tabular-nums" }}>
+          <g key={p.i} className="cursor-pointer" onClick={() => onSel(p.i)} role="button" tabIndex={0} aria-label={`${placeText(p.i, spacing, size)}: ${p.error ? "no answer" : p.rank === null ? "not in the top 20" : `rank ${p.rank}`}`} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onSel(p.i)}>
+            {sel === p.i ? <circle cx={x} cy={y} r={dot + 7} fill="none" stroke="var(--aw-ink)" strokeWidth="2.5" /> : null}
+            {p.i === mid ? <circle cx={x} cy={y} r={dot + 5} fill="none" stroke="var(--signal)" strokeWidth="3" /> : null}
+            <circle cx={x} cy={y} r={dot} fill={t.dot} stroke={open ? "var(--aw-faint)" : "var(--aw-surface)"} strokeWidth={open ? 1.25 : 2} strokeDasharray={p.error ? "3 3" : undefined} />
+            <text x={x} y={y + 4.5} textAnchor="middle" fill={t.text} style={{ font: `600 ${size >= 13 ? 9 : size >= 9 ? 11 : 13}px Geist, Inter, system-ui, sans-serif`, fontVariantNumeric: "tabular-nums" }}>
               {p.error ? "?" : p.rank === null ? "–" : p.rank}
             </text>
           </g>

@@ -202,6 +202,9 @@ The same rules as the rest of the product: a wrong signal costs more than a miss
 
 ## 8. Phases
 
+**Phase 1 built, November 2026:** many locations per brand with an all-locations table, grids from 3 × 3 to 13 × 13, square or round, 0.25 to 5 miles apart, a centre moved by clicking the map, keyword suggestions, weekly, every 2 weeks or monthly scans, comparing the latest scan with any earlier one on the same grid, and plan limits. Not yet: the pin map of all locations, and skipping points outside a service area (needs the profile data of phase 2). See `docs/local-research.md`.
+
+
 | Phase | Weeks | What ships | Done when |
 |---|---|---|---|
 | 1. Locations and grids | 2 | Many locations (4.1), grid sizes, shapes and service areas (4.2), keyword suggestions, schedules and any two scans (4.3), the v10 pass (4.10) | A 3-location brand sees all three on the overview; a service-area business scans a circle around a center it picked |
