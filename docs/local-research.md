@@ -72,4 +72,4 @@ Assume 20% of teams track a local business (10 at Beta, 100 at Growth), each wit
 
 ## Example data
 
-Before the first result, the screen is the title and the tool's search bar (`src/components/SearchBar.tsx`), the same as Keyword Research. There is no example data. This adds $0 a month at Beta and at Growth.
+Before the first result, the screen is the title, the tool's search bar (`src/components/SearchBar.tsx`) and what the tool shows (`src/components/ToolIntros.tsx`), the same as Keyword Research. There is no example report. This adds $0 a month at Beta and at Growth.

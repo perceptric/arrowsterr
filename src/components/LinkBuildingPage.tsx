@@ -6,6 +6,7 @@ import type { RunAuth } from "@/lib/runner";
 import { BAR_INPUT } from "./research/shared";
 import { SearchBar, SearchButton } from "./SearchBar";
 import { SidePanel, StatStrip, Thinking } from "./ui";
+import { LinkBuildingIntro } from "./ToolIntros";
 import { useApi } from "./ZippiePage";
 
 // Link Building (docs/link-building.md): a board from prospect to won. Prospects come from the Backlinks link gap,
@@ -176,7 +177,10 @@ export function LinkBuildingPage({ brand, auth, onBacklinks }: { brand: Brand; a
       {note ? <p className="aw-callout">{note}</p> : null}
 
       {!cards.length ? (
-        addBar
+        <>
+          {addBar}
+          <LinkBuildingIntro />
+        </>
       ) : (
         <>
           <StatStrip
