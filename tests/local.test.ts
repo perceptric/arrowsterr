@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { cityOf, parsePlaces, grid, isBusiness, listingCheck, localPrompts, phoneDigits, rankAt, reviewHistory, summarize, zoomFor, type Place } from "../src/lib/local.ts";
+import { cityOf, localInsights, mapOwners, parsePlaces, placeText, grid, isBusiness, listingCheck, localPrompts, phoneDigits, rankAt, reviewHistory, summarize, zoomFor, type Place } from "../src/lib/local.ts";
 
 const place = (o: Partial<Place> & { title: string; rank: number }): Place => ({ cid: null, placeId: null, domain: null, address: null, phone: null, category: null, categories: [], rating: null, reviews: null, lat: null, lng: null, ...o });
 const loc = { title: "Brightpath Dental", cid: "111", placeId: "ChIJ-a", domain: "brightpathdental.com" };
@@ -72,7 +72,8 @@ test("the listing check compares name, phone, street, schema and the rivals' cat
   assert.match(good[4].detail, /Emergency dental service/);
   const bad = listingCheck(l, { text: "Welcome", phones: ["512-555-0142"], schemaTypes: [], schemaPhone: null }, []);
   assert.equal(bad.find((c) => c.id === "phone")!.status, "fail");
-  assert.match(bad.find((c) => c.id === "phone")!.detail, /5125550142/);
+  assert.match(bad.find((c) => c.id === "phone")!.detail, /\(512\) 555-0142/);
+  assert.equal(bad.find((c) => c.id === "name")!.label, "Name not on the website");
   assert.equal(bad.find((c) => c.id === "schema")!.status, "fail");
   assert.equal(bad.find((c) => c.id === "category")!.status, "pass", "no rival data, nothing to compare");
 });
@@ -91,4 +92,48 @@ test("Google Maps items read as places, and the city comes from the address", ()
   assert.equal(cityOf("1200 Lamar Blvd, Austin, TX 78703"), "Austin");
   assert.equal(cityOf("221B Baker St, London NW1 6XE, United Kingdom"), "London");
   assert.equal(cityOf("Somewhere"), null);
+});
+
+test("a date or zip code on the page is not read as a different phone number", () => {
+  const l = { title: "Burger Place", phone: "+1 212-582-0238", address: "327 W 42nd St, New York, NY 10036", category: "Restaurant", categories: [] };
+  const c = listingCheck(l, { text: "Burger Place since 2024120 NY 10036", phones: ["2024120"], schemaTypes: [], schemaPhone: null }, []);
+  const phone = c.find((x) => x.id === "phone")!;
+  assert.equal(phone.status, "warn");
+  assert.equal(phone.label, "Phone not on the website");
+});
+
+test("places read as miles and a compass direction from the business", () => {
+  assert.equal(placeText(24, 2), "at the business");
+  assert.equal(placeText(17, 1), "1 mi north");
+  assert.equal(placeText(31, 2), "2 mi south");
+  assert.equal(placeText(30, 2), "2.8 mi south-west");
+  assert.equal(placeText(0, 0.5), "2.1 mi north-west");
+});
+
+test("the map's owners and the scan's findings come from the points", () => {
+  const top = (...t: string[]) => t.map((title) => ({ title, cid: null }));
+  const points = Array.from({ length: 49 }, (_, i) => ({ i, rank: null as number | null, top: top("Holy Burger", "Canes", "McDonald's") }));
+  points[30] = { i: 30, rank: 7, top: top("Holy Burger", "Canes", "McDonald's") };
+  points[31] = { i: 31, rank: 16, top: top("Canes", "Holy Burger", "McDonald's") };
+  const scan = {
+    keyword: "fast food restaurant", size: 7, spacing: 2, points,
+    rivals: [
+      { title: "Holy Burger", cid: null, domain: null, category: null, rating: 4.8, reviews: 2140, top3: 49, seen: 49 },
+      { title: "Canes", cid: null, domain: null, category: null, rating: 4.5, reviews: 900, top3: 49, seen: 49 },
+    ],
+    you: { rating: 4.1, reviews: 380 }, avg: 20.6, top3: 0, found: 2, read: 49,
+  };
+  const owners = mapOwners(scan, { title: "Burger King", cid: null });
+  assert.equal(owners[0].title, "Holy Burger");
+  assert.equal(owners[0].first, 48);
+  assert.equal(owners[1].first, 1);
+  assert.equal(owners.at(-1)!.you, true);
+  const { headline, insights } = localInsights(scan, null, { title: "Burger King", cid: null });
+  assert.match(headline, /Holy Burger holds the top 3 for “fast food restaurant” at 49 of 49 points\. You hold it at 0\./);
+  const text = insights.map((x) => x.text).join(" | ");
+  assert.match(text, /At your own address you're not in the top 20/);
+  assert.match(text, /Your best spot is #7, 2\.8 mi south-west/);
+  assert.match(text, /top 10 as far as 2\.8 mi out/);
+  assert.match(text, /Holy Burger has 2,140 reviews to your 380/);
+  assert.match(text, /Your rating is 4\.1, Holy Burger's is 4\.8/);
 });

@@ -137,6 +137,11 @@ export function phoneDigits(raw: string | null | undefined): string {
   return d.length === 11 && d.startsWith("1") ? d.slice(1) : d;
 }
 
+/** A 10-digit number as (512) 555-0142; anything else as it is. */
+export function showPhone(d: string): string {
+  return d.length === 10 ? `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}` : d;
+}
+
 export type ListingCheck = { id: "name" | "phone" | "address" | "schema" | "category"; label: string; status: "pass" | "warn" | "fail"; detail: string };
 
 /**
@@ -146,15 +151,20 @@ export type ListingCheck = { id: "name" | "phone" | "address" | "schema" | "cate
 export function listingCheck(loc: Pick<Location, "title" | "phone" | "address" | "category" | "categories">, site: { text: string; phones: string[]; schemaTypes: string[]; schemaPhone: string | null }, rivals: Pick<Rival, "category" | "top3">[]): ListingCheck[] {
   const text = clean(site.text);
   const out: ListingCheck[] = [];
-  out.push({ id: "name", label: "Name matches", status: text.includes(clean(loc.title)) ? "pass" : "warn", detail: `Google: ${loc.title}` });
+  const named = text.includes(clean(loc.title));
+  out.push({ id: "name", label: named ? "Name matches" : "Name not on the website", status: named ? "pass" : "warn", detail: `Google: ${loc.title}` });
   const want = phoneDigits(loc.phone);
   const onSite = [...site.phones, site.schemaPhone ?? ""].map(phoneDigits).filter((d) => d.length >= 7);
+  // Only a number as long as Google's counts as a different phone: dates, zip codes and order numbers in the page text don't.
+  const other = onSite.find((d) => d.length === want.length && d !== want);
   out.push(
     !want
       ? { id: "phone", label: "Phone on Google", status: "warn", detail: "The Google listing has no phone number." }
       : onSite.includes(want)
         ? { id: "phone", label: "Phone matches", status: "pass", detail: loc.phone ?? "" }
-        : { id: "phone", label: "Phone differs", status: "fail", detail: onSite.length ? `Google ${loc.phone}, website ${onSite[0]}` : `Google ${loc.phone}, not found on the website` },
+        : other
+          ? { id: "phone", label: "Phone differs", status: "fail", detail: `Google ${loc.phone}, website ${showPhone(other)}` }
+          : { id: "phone", label: "Phone not on the website", status: "warn", detail: `Google ${loc.phone}` },
   );
   const street = clean((loc.address ?? "").split(",")[0]);
   out.push({ id: "address", label: street ? (street && text.includes(street) ? "Address matches" : "Address not on the website") : "Address on Google", status: street ? (text.includes(street) ? "pass" : "warn") : "warn", detail: loc.address ?? "The Google listing has no address." });
@@ -218,4 +228,108 @@ export function cityOf(address: string | null | undefined): string | null {
   const last = parts[parts.length - 1];
   const city = /\d/.test(last) || /^[A-Z]{2}$/.test(last) || parts.length > 2 ? parts[parts.length - 2] : last;
   return city.replace(/\s+[A-Z]{2}\s*\d.*$/, "").trim() || null;
+}
+
+const DIRS = ["north", "north-east", "east", "south-east", "south", "south-west", "west", "north-west"];
+
+/** Where a grid point sits from the business: compass direction and straight-line miles. The centre is "". */
+export function whereIs(i: number, spacing: number, size = GRID): { dir: string; miles: number } {
+  const half = Math.floor(size / 2);
+  const dx = (i % size) - half;
+  const dy = half - Math.floor(i / size);
+  if (!dx && !dy) return { dir: "", miles: 0 };
+  const deg = ((Math.atan2(dx, dy) * 180) / Math.PI + 360) % 360;
+  return { dir: DIRS[Math.round(deg / 45) % 8], miles: Math.round(Math.hypot(dx, dy) * spacing * 10) / 10 };
+}
+
+/** "2 mi south-west", or "at the business" for the centre. */
+export function placeText(i: number, spacing: number, size = GRID): string {
+  const w = whereIs(i, spacing, size);
+  return w.dir ? `${w.miles} mi ${w.dir}` : "at the business";
+}
+
+export type MapOwner = { title: string; you: boolean; top3: number; first: number; rating: number | null; reviews: number | null; category: string | null };
+
+/** Who holds the map: the business and its competitors, with top 3 points and #1 spots, most top 3 points first. */
+export function mapOwners(scan: ScanResult, you: Pick<Location, "title" | "cid">): MapOwner[] {
+  const same = (t: { title: string; cid: string | null }, o: { title: string; cid: string | null }) => (t.cid && o.cid ? t.cid === o.cid : clean(t.title) === clean(o.title));
+  const ok = scan.points.filter((p) => !p.error);
+  const firsts = (o: { title: string; cid: string | null }) => ok.filter((p) => p.top[0] && same(p.top[0], o)).length;
+  const me: MapOwner = { title: you.title, you: true, top3: scan.top3, first: ok.filter((p) => p.rank === 1).length, rating: scan.you?.rating ?? null, reviews: scan.you?.reviews ?? null, category: null };
+  const others = scan.rivals.map((r) => ({ title: r.title, you: false, top3: r.top3, first: firsts(r), rating: r.rating, reviews: r.reviews, category: r.category }));
+  return [me, ...others].sort((a, b) => b.top3 - a.top3 || b.first - a.first || Number(b.you) - Number(a.you));
+}
+
+/** "Raising Cane's" stays as it is, "Smiles" gets "'", anything else "'s". */
+const poss = (name: string) => (/'s$/i.test(name) ? name : /s$/i.test(name) ? `${name}'` : `${name}'s`);
+
+export type Insight = { tone: "good" | "warn" | "bad" | "info"; text: string };
+
+/** What a scan says in plain words: one headline, then findings on reach, direction, change and reviews. */
+export function localInsights(scan: ScanResult, prev: ScanResult | null, you: Pick<Location, "title" | "cid">): { headline: string; insights: Insight[] } {
+  const ok = scan.points.filter((p) => !p.error);
+  const n = (x: number) => x.toLocaleString("en-US");
+  const owners = mapOwners(scan, you);
+  const leader = owners.find((o) => !o.you && o.top3 > 0) ?? null;
+  const share = scan.read ? scan.top3 / scan.read : 0;
+  const kw = `“${scan.keyword}”`;
+  const headline =
+    !scan.read
+      ? `No point answered for ${kw}.`
+      : share >= 0.6
+        ? `You hold the map pack for ${kw} at ${scan.top3} of ${scan.read} points.`
+        : !scan.found
+          ? `You're not in the top 20 for ${kw} anywhere on the grid${leader ? `. ${leader.title} holds the top 3 at ${leader.top3} of ${scan.read} points.` : "."}`
+          : leader && leader.top3 > scan.top3
+            ? `${leader.title} holds the top 3 for ${kw} at ${leader.top3} of ${scan.read} points. You hold it at ${scan.top3}.`
+            : `You're in the top 3 for ${kw} at ${scan.top3} of ${scan.read} points.`;
+
+  const out: Insight[] = [];
+  const centre = ok.find((p) => p.i === Math.floor((GRID * GRID) / 2));
+  if (centre) out.push(centre.rank === null ? { tone: "bad", text: "At your own address you're not in the top 20." } : { tone: centre.rank <= 3 ? "good" : "warn", text: `At your own address you rank #${centre.rank}.` });
+
+  const found = ok.filter((p) => p.rank !== null).sort((a, b) => a.rank! - b.rank! || whereIs(a.i, scan.spacing).miles - whereIs(b.i, scan.spacing).miles);
+  if (found.length) {
+    const best = found[0];
+    if (best.i !== centre?.i) out.push({ tone: best.rank! <= 3 ? "good" : "info", text: `Your best spot is #${best.rank}, ${placeText(best.i, scan.spacing)}.` });
+    const top10 = ok.filter((p) => p.rank !== null && p.rank <= 10).map((p) => whereIs(p.i, scan.spacing).miles);
+    const edge = Math.max(...ok.map((p) => whereIs(p.i, scan.spacing).miles));
+    if (top10.length) {
+      const reach = Math.max(...top10);
+      out.push(reach >= edge ? { tone: "good", text: `You stay in the top 10 out to the edge of the grid, ${reach} mi away.` } : { tone: "info", text: `You reach the top 10 as far as ${reach} mi out. Past that, competitors take over.` });
+    }
+  }
+
+  // Strongest and weakest side: the average rank of the points on each half of the grid.
+  if (found.length >= 3) {
+    const score = (p: PointResult) => Math.min(p.rank ?? MAX_DEPTH + 1, MAX_DEPTH + 1);
+    const sides = (["north", "south", "east", "west"] as const).map((side) => {
+      const pts = ok.filter((p) => {
+        const r = Math.floor(p.i / GRID), c = p.i % GRID, h = Math.floor(GRID / 2);
+        return side === "north" ? r < h : side === "south" ? r > h : side === "east" ? c > h : c < h;
+      });
+      return { side, avg: pts.length ? pts.reduce((s, p) => s + score(p), 0) / pts.length : MAX_DEPTH + 1 };
+    }).sort((a, b) => a.avg - b.avg);
+    if (sides[3].avg - sides[0].avg >= 2) out.push({ tone: "info", text: `You're strongest to the ${sides[0].side} and weakest to the ${sides[3].side}.` });
+  }
+
+  if (prev && prev.read) {
+    const d3 = scan.top3 - prev.top3;
+    const d20 = scan.found - prev.found;
+    if (d3 || d20) {
+      const part = (d: number, what: string) => (d ? `${d > 0 ? "+" : ""}${d} ${Math.abs(d) === 1 ? "point" : "points"} ${what}` : null);
+      out.push({ tone: d3 > 0 || (!d3 && d20 > 0) ? "good" : "bad", text: `Since the last scan: ${[part(d3, "in the top 3"), part(d20, "in the top 20")].filter(Boolean).join(", ")}.` });
+    } else out.push({ tone: "info", text: "No change in the top 3 or top 20 since the last scan." });
+  }
+
+  const mine = scan.you?.reviews ?? null;
+  if (leader && leader.reviews !== null && mine !== null && leader.reviews > mine * 1.5) {
+    out.push({ tone: "warn", text: `${leader.title} has ${n(leader.reviews)} reviews to your ${n(mine)}. Reviews are one of the strongest map pack signals.` });
+  } else if (leader && leader.reviews !== null && mine !== null && mine >= leader.reviews) {
+    out.push({ tone: "good", text: `You have more reviews than ${leader.title} (${n(mine)} to ${n(leader.reviews)}).` });
+  }
+  if (leader && leader.rating !== null && scan.you?.rating != null && leader.rating - scan.you.rating >= 0.3) {
+    out.push({ tone: "warn", text: `Your rating is ${scan.you.rating}, ${poss(leader.title)} is ${leader.rating}.` });
+  }
+  return { headline, insights: out };
 }
