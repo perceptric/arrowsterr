@@ -152,7 +152,7 @@ export function BacklinksPage({ brand, auth, canEdit }: { brand: Brand; auth: Ru
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={favicon(hostOf(active.q))} alt="" width={28} height={28} className="h-7 w-7 rounded-[6px]" />
             <h2 className="aw-h3 mb-0! min-w-0 wrap-anywhere">
-              {label} {isOwn ? <span className="aw-badge align-middle">You</span> : null}
+              {label}
               {active.scope !== "domain" ? <span className="aw-tag ml-2 align-middle">{BL_SCOPES.find((x) => x.id === active.scope)?.label}</span> : null}
             </h2>
           </div>

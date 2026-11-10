@@ -1127,7 +1127,6 @@ const NAV: { group: string; icon: string; items: { id: Page; label: string; icon
     group: "Links",
     icon: "chain",
     items: [
-      { id: "backlinks", label: "Backlinks", icon: "chain" },
       { id: "linkbuilding", label: "Link Building", icon: "board" },
     ],
   },
@@ -1141,6 +1140,7 @@ const NAV: { group: string; icon: string; items: { id: Page; label: string; icon
       { id: "structure", label: "Site structure", icon: "tree" },
       { id: "aiaccess", label: "AI access", icon: "bot" },
       { id: "onpage", label: "On-page Audit", icon: "check" },
+      { id: "backlinks", label: "Backlinks", icon: "chain" },
     ],
   },
   {
