@@ -1,22 +1,20 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { LINK_KINDS, spamLevel, type GapRow, type LinkKind, type LinkRow, type Overview, type Week } from "@/lib/backlinks";
 import type { RunAuth } from "@/lib/runner";
-import { demoBacklinks } from "@/lib/demo";
-import { ToolStart, TsDomain } from "./ToolStart";
+import { DomainField, SearchBar, SearchButton } from "./SearchBar";
 import { Card, Delta, Seg, StatStrip, Thinking } from "./ui";
 import { useApi } from "./ZippiePage";
 
 // Backlinks (docs/backlinks.md): who links to the brand, new and lost by week, anchors and most linked pages, every
 // linking site by type, and the link gap against up to 3 rivals with sites AI cites flagged. Opening the page shows
-// saved answers only; editors load fresh ones, which cost tasks. Before anything is loaded, each tab shows example data.
+// saved answers only; editors load fresh ones, which cost tasks.
 
 type Brand = { id: string; name: string; domain: string };
 type Tab = "overview" | "links" | "gap";
 type Snap = { day: string; rank: number; backlinks: number; domains: number; spam: number } | null;
 type Ov = Overview & { at: string };
-type Demo = ReturnType<typeof demoBacklinks>;
 
 const n = (x: number) => x.toLocaleString("en-US");
 const when = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
@@ -28,57 +26,20 @@ export function BacklinksPage({ brand, auth, canEdit }: { brand: Brand; auth: Ru
   const [tab, setTab] = useState<Tab>("overview");
   const [error, setError] = useState("");
   const call = useCallback(<T,>(action: string, extra: Record<string, unknown> = {}) => api<T>("/api/backlinks", { action, brandId: brand.id, ...extra }), [api, brand.id]);
-  const demo = useMemo(() => demoBacklinks({ name: brand.name, domain: brand.domain }), [brand.name, brand.domain]);
-  // Before the first overview, the tool's start page (ToolStart) explains Backlinks, with this screen on example data
-  // inside it. Its button asks the Overview tab to load (loadReq), and the tab reports back (ov).
-  const [ov, setOv] = useState<{ demo: boolean; busy: boolean }>({ demo: false, busy: false });
-  const [loadReq, setLoadReq] = useState(0);
-  const [showExample, setShowExample] = useState(false);
 
-  const page = (
+  return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <h1 className="aw-h2 mb-0!">Backlinks</h1>
-        {ov.demo && showExample ? (
-          <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm mr-auto" onClick={() => setShowExample(false)}>
-            About Backlinks
-          </button>
-        ) : null}
-        <span data-tour="4">
-          <Seg label="Backlinks view" value={tab} onChange={setTab} options={[{ id: "overview", label: "Overview" }, { id: "links", label: "Links" }, { id: "gap", label: "Link gap" }]} />
-        </span>
+        <Seg label="Backlinks view" value={tab} onChange={setTab} options={[{ id: "overview", label: "Overview" }, { id: "links", label: "Links" }, { id: "gap", label: "Link gap" }]} />
       </div>
       {error ? <p className="aw-error">{error}</p> : null}
-      {tab === "overview" ? <OverviewTab demo={demo} call={call} canEdit={canEdit} onError={setError} loadReq={loadReq} onState={setOv} /> : tab === "links" ? <LinksTab demo={demo} call={call} canEdit={canEdit} onError={setError} /> : <GapTab brand={brand} demo={demo} call={call} canEdit={canEdit} onError={setError} />}
+      {tab === "overview" ? <OverviewTab brand={brand} call={call} canEdit={canEdit} onError={setError} /> : tab === "links" ? <LinksTab call={call} canEdit={canEdit} onError={setError} /> : <GapTab brand={brand} call={call} canEdit={canEdit} onError={setError} />}
     </div>
   );
-
-  if (tab === "overview" && ov.demo && !showExample)
-    return (
-      <ToolStart
-        tool="backlinks"
-        error={error}
-        example={page}
-        onOpenExample={() => setShowExample(true)}
-        onCta={canEdit ? () => setLoadReq((n) => n + 1) : undefined}
-        form={
-          <div className="ts-q">
-            <TsDomain domain={brand.domain} />
-            {canEdit ? (
-              <button type="button" className="ts-btn ts-btn--primary ts-btn--lg" onClick={() => setLoadReq((n) => n + 1)} disabled={ov.busy}>
-                {ov.busy ? "Loading" : "Load backlinks"} <span className="ts-arr">→</span>
-              </button>
-            ) : null}
-          </div>
-        }
-      />
-    );
-  return page;
 }
 
 type Call = <T>(action: string, extra?: Record<string, unknown>) => Promise<T>;
-
-const ExampleTag = () => <span className="aw-status aw-status--pending">Example data</span>;
 
 function Updated({ at, busy, canRefresh, onRefresh }: { at: string; busy: boolean; canRefresh: boolean; onRefresh: () => void }) {
   return (
@@ -93,7 +54,7 @@ function Updated({ at, busy, canRefresh, onRefresh }: { at: string; busy: boolea
   );
 }
 
-function OverviewTab({ demo, call, canEdit, onError, loadReq, onState }: { demo: Demo; call: Call; canEdit: boolean; onError: (e: string) => void; loadReq: number; onState: (s: { demo: boolean; busy: boolean }) => void }) {
+function OverviewTab({ brand, call, canEdit, onError }: { brand: Brand; call: Call; canEdit: boolean; onError: (e: string) => void }) {
   const [data, setData] = useState<{ overview: Ov; before: Snap; canRefresh: boolean } | null | "none">(null);
   const [busy, setBusy] = useState(false);
   const load = useCallback(
@@ -116,37 +77,18 @@ function OverviewTab({ demo, call, canEdit, onError, loadReq, onState }: { demo:
     // eslint-disable-next-line react-hooks/set-state-in-effect
     load(false);
   }, [load]);
-  // A Load from the start page. A tab mounted after that request (the full screen) must not load again.
-  const handled = useRef(loadReq);
-  useEffect(() => {
-    if (loadReq === handled.current) return;
-    handled.current = loadReq;
-    load(true);
-  }, [loadReq, load]);
-  // Report only once the tab knows. The page swaps this tab between the start page and the full screen on what it
-  // reports, and each swap mounts the tab again: a "not example" report while still loading would swap it straight
-  // back, and the two would trade places forever.
-  useEffect(() => {
-    if (data !== null) onState({ demo: data === "none", busy });
-  }, [data, busy, onState]);
 
   if (data === null) return <Thinking text="Loading" />;
-  const isDemo = data === "none";
-  const shown = isDemo ? { overview: demo.overview, before: demo.before as Snap, canRefresh: false } : data;
-  const head = isDemo ? (
-    <div className="flex flex-wrap items-center gap-3">
-      <ExampleTag />
-      {canEdit ? (
-        <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => load(true)} disabled={busy}>
-          {busy ? "Loading" : "Load backlinks"}
-        </button>
-      ) : null}
-    </div>
-  ) : (
-    <Updated at={shown.overview.at} busy={busy} canRefresh={shown.canRefresh} onRefresh={() => load(true)} />
-  );
+  if (data === "none")
+    return (
+      <SearchBar onSubmit={() => load(true)}>
+        <DomainField domain={brand.domain} />
+        {canEdit ? <SearchButton label="Load backlinks" busyLabel="Loading" busy={busy} /> : null}
+      </SearchBar>
+    );
+  const head = <Updated at={data.overview.at} busy={busy} canRefresh={data.canRefresh} onRefresh={() => load(true)} />;
 
-  const { overview: o, before } = shown;
+  const { overview: o, before } = data;
   const s = o.summary;
   if (!s)
     return (
@@ -165,7 +107,6 @@ function OverviewTab({ demo, call, canEdit, onError, loadReq, onState }: { demo:
     <div className="flex flex-col gap-4">
       {head}
       <StatStrip
-        tour={1}
         spark={sitesTrend(s.domains, o.weeks)}
         stats={[
           { label: "Linking sites", value: n(s.domains), delta: <Delta now={s.domains} before={before?.domains ?? null} digits={0} /> },
@@ -176,10 +117,10 @@ function OverviewTab({ demo, call, canEdit, onError, loadReq, onState }: { demo:
         ]}
       />
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
-        <Card tour={2} title="New and lost linking sites" action={<span className="flex gap-3 text-[12px] text-body"><Key color="var(--aw-pos)" label="New" /><Key color="var(--aw-neg)" label="Lost" /></span>}>
+        <Card title="New and lost linking sites" action={<span className="flex gap-3 text-[12px] text-body"><Key color="var(--aw-pos)" label="New" /><Key color="var(--aw-neg)" label="Lost" /></span>}>
           <div className="px-5 pb-5">{o.weeks.length ? <Bars weeks={o.weeks} /> : <p className="text-[13px] text-muted">No weekly history yet.</p>}</div>
         </Card>
-        <Card tour={3} title="Anchors">
+        <Card title="Anchors">
           <div className="flex flex-col gap-2 px-5 pb-5">
             {o.anchors.length ? (
               o.anchors.slice(0, 8).map((a) => (
@@ -269,16 +210,7 @@ function Bars({ weeks }: { weeks: Week[] }) {
   );
 }
 
-const KIND_TEST: Record<LinkKind, (l: LinkRow) => boolean> = {
-  all: () => true,
-  new: (l) => l.isNew,
-  lost: (l) => l.isLost,
-  follow: (l) => l.follow,
-  nofollow: (l) => !l.follow,
-  spam: (l) => l.spam > 60,
-};
-
-function LinksTab({ demo, call, canEdit, onError }: { demo: Demo; call: Call; canEdit: boolean; onError: (e: string) => void }) {
+function LinksTab({ call, canEdit, onError }: { call: Call; canEdit: boolean; onError: (e: string) => void }) {
   const [kind, setKind] = useState<LinkKind>("all");
   const [pages, setPages] = useState<Record<string, { rows: LinkRow[]; total: number; at: string } | "none">>({});
   const [shown, setShown] = useState(1);
@@ -304,16 +236,13 @@ function LinksTab({ demo, call, canEdit, onError }: { demo: Demo; call: Call; ca
     fetchPage(kind, 0, false);
   }, [kind, pages, fetchPage]);
 
-  const saved = pages[`${kind}:0`];
-  const isDemo = saved === "none";
-  const demoRows = demo.links.filter(KIND_TEST[kind]);
-  const first = isDemo ? { rows: demoRows, total: demoRows.length, at: demo.overview.at } : saved;
-  const rows: LinkRow[] = isDemo ? demoRows : [];
-  for (let p = 0; !isDemo && p < shown; p++) {
+  const first = pages[`${kind}:0`];
+  const rows: LinkRow[] = [];
+  for (let p = 0; p < shown; p++) {
     const pg = pages[`${kind}:${p}`];
     if (pg && pg !== "none") rows.push(...pg.rows);
   }
-  const total = first ? first.total : 0;
+  const total = first && first !== "none" ? first.total : 0;
   const nextMissing = pages[`${kind}:${shown}`] === undefined || pages[`${kind}:${shown}`] === "none";
 
   return (
@@ -327,23 +256,21 @@ function LinksTab({ demo, call, canEdit, onError }: { demo: Demo; call: Call; ca
       </div>
       {first === undefined ? (
         <Thinking text="Loading" />
+      ) : first === "none" ? (
+        <Card>
+          <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+            <span className="text-[14px] text-body">Not loaded yet.</span>
+            {canEdit ? (
+              <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => fetchPage(kind, 0, true)} disabled={busy}>
+                {busy ? "Loading" : "Load links"}
+              </button>
+            ) : null}
+          </div>
+        </Card>
       ) : (
         <Card
           title={`${n(total)} linking ${total === 1 ? "site" : "sites"}`}
-          action={
-            isDemo ? (
-              <span className="flex flex-wrap items-center gap-3">
-                <ExampleTag />
-                {canEdit ? (
-                  <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => fetchPage(kind, 0, true)} disabled={busy}>
-                    {busy ? "Loading" : "Load links"}
-                  </button>
-                ) : null}
-              </span>
-            ) : (
-              <Updated at={first.at} busy={busy} canRefresh={canEdit} onRefresh={() => { setShown(1); setPages((m) => Object.fromEntries(Object.entries(m).filter(([k]) => !k.startsWith(`${kind}:`)))); fetchPage(kind, 0, true); }} />
-            )
-          }
+          action={<Updated at={first.at} busy={busy} canRefresh={canEdit} onRefresh={() => { setShown(1); setPages((m) => Object.fromEntries(Object.entries(m).filter(([k]) => !k.startsWith(`${kind}:`)))); fetchPage(kind, 0, true); }} />}
         >
           {rows.length ? (
             <div className="overflow-x-auto">
@@ -386,7 +313,7 @@ function LinksTab({ demo, call, canEdit, onError }: { demo: Demo; call: Call; ca
           ) : (
             <p className="px-5 pb-5 text-[13px] text-muted">No links of this kind.</p>
           )}
-          {!isDemo && rows.length < total && shown < 10 ? (
+          {rows.length < total && shown < 10 ? (
             <div className="px-5 py-4">
               <button
                 type="button"
@@ -407,7 +334,7 @@ function LinksTab({ demo, call, canEdit, onError }: { demo: Demo; call: Call; ca
   );
 }
 
-function GapTab({ brand, demo, call, canEdit, onError }: { brand: Brand; demo: Demo; call: Call; canEdit: boolean; onError: (e: string) => void }) {
+function GapTab({ brand, call, canEdit, onError }: { brand: Brand; call: Call; canEdit: boolean; onError: (e: string) => void }) {
   const [rivals, setRivals] = useState<string[]>([]);
   const [suggested, setSuggested] = useState<string[]>([]);
   const [input, setInput] = useState("");
@@ -458,11 +385,8 @@ function GapTab({ brand, demo, call, canEdit, onError }: { brand: Brand; demo: D
     setInput("");
   };
 
-  const isDemo = gap === "none";
-  const view = isDemo ? { rows: demo.gap, at: demo.overview.at } : gap;
-  const cols = isDemo ? demo.rivals : rivals;
-  const rows = view ? view.rows.filter((r) => !onlyAi || r.aiCited > 0) : [];
-  const notAdded = isDemo ? [] : rows.filter((r) => !added.has(r.domain)).map((r) => r.domain);
+  const rows = gap && gap !== "none" ? gap.rows.filter((r) => !onlyAi || r.aiCited > 0) : [];
+  const notAdded = rows.filter((r) => !added.has(r.domain)).map((r) => r.domain);
 
   return (
     <div className="flex flex-col gap-4">
@@ -513,14 +437,13 @@ function GapTab({ brand, demo, call, canEdit, onError }: { brand: Brand; demo: D
         </div>
       </Card>
 
-      {view === null ? (
+      {gap === null ? (
         <Thinking text="Loading" />
-      ) : (
+      ) : gap === "none" ? null : (
         <Card
-          title={`${n(rows.length)} sites link to ${cols.length === 1 ? "your rival" : "your rivals"} and not to ${brand.name}`}
+          title={`${n(rows.length)} sites link to ${rivals.length === 1 ? "your rival" : "your rivals"} and not to ${brand.name}`}
           action={
             <span className="flex flex-wrap items-center gap-3">
-              {isDemo ? <ExampleTag /> : null}
               <label className="flex cursor-pointer items-center gap-2 text-[13px] text-body">
                 <input type="checkbox" checked={onlyAi} onChange={(e) => setOnlyAi(e.target.checked)} className="h-4 w-4 accent-[var(--signal)]" />
                 Only sites AI cites
@@ -540,7 +463,7 @@ function GapTab({ brand, demo, call, canEdit, onError }: { brand: Brand; demo: D
                   <tr>
                     <th>Site</th>
                     <th className="text-right">Authority</th>
-                    {cols.map((r) => (
+                    {rivals.map((r) => (
                       <th key={r} className="text-center wrap-anywhere">
                         {r}
                       </th>
@@ -560,14 +483,14 @@ function GapTab({ brand, demo, call, canEdit, onError }: { brand: Brand; demo: D
                         </span>
                       </td>
                       <td className="aw-num text-right">{g.rank}</td>
-                      {cols.map((r) => (
+                      {rivals.map((r) => (
                         <td key={r} className="text-center">
                           {g.rivals.includes(r) ? <span className="font-bold text-pos" aria-label="Links">✓</span> : <span className="text-muted" aria-label="No link">–</span>}
                         </td>
                       ))}
                       <td className="text-right">
                         {canEdit ? (
-                          <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => add([g.domain])} disabled={isDemo || added.has(g.domain) || busy === g.domain}>
+                          <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => add([g.domain])} disabled={added.has(g.domain) || busy === g.domain}>
                             {added.has(g.domain) ? "Added" : "Add"}
                           </button>
                         ) : null}
@@ -580,7 +503,7 @@ function GapTab({ brand, demo, call, canEdit, onError }: { brand: Brand; demo: D
           ) : (
             <p className="px-5 pb-5 text-[13px] text-muted">{onlyAi ? "No sites AI cites." : "No gap found."}</p>
           )}
-          {isDemo ? null : <p className="px-5 pb-4 text-[12px] text-muted">Updated {when(view.at)}</p>}
+          <p className="px-5 pb-4 text-[12px] text-muted">Updated {when(gap.at)}</p>
         </Card>
       )}
     </div>

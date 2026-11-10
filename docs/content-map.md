@@ -56,4 +56,4 @@ That's about $0.11, charged as 40 tasks (about $0.20 of plan value). Add interna
 
 ## Example data
 
-Before the first real result, the tool opens on its start page (`docs/tool-start.md`): what it shows, the example report with numbered parts, how it works, a glossary and common questions, with the tool's real action at the top. "Open the example report" shows this screen on example data from `src/lib/demo.ts`, tagged "Example data", where tabs, filters, panels and the map all work. Buttons that would change real records are off there. It runs in the browser, so it adds $0 a month at Beta and at Growth.
+Before the first result, the screen is the title and the tool's search bar (`src/components/SearchBar.tsx`), the same as Keyword Research. There is no example data. This adds $0 a month at Beta and at Growth.

@@ -3,14 +3,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { boardStats, SOURCES, STAGES, type Source, type Stage } from "@/lib/linkBuilding";
 import type { RunAuth } from "@/lib/runner";
-import { demoCards } from "@/lib/demo";
-import { ToolStart, TsDomain } from "./ToolStart";
+import { BAR_INPUT } from "./research/shared";
+import { SearchBar, SearchButton } from "./SearchBar";
 import { SidePanel, StatStrip, Thinking } from "./ui";
 import { useApi } from "./ZippiePage";
 
 // Link Building (docs/link-building.md): a board from prospect to won. Prospects come from the Backlinks link gap,
 // sites AI cites for rivals, dead rival pages and unlinked mentions. Pitches are drafted here and sent from the
-// person's own email. Won links are checked every week. An empty board shows example cards that move on screen only.
+// person's own email. Won links are checked every week.
 
 type CardRow = {
   id: string;
@@ -54,7 +54,6 @@ export function LinkBuildingPage({ brand, auth, onBacklinks }: { brand: Brand; a
   const [addUrl, setAddUrl] = useState("");
   const [drag, setDrag] = useState<string | null>(null);
   const [over, setOver] = useState<Stage | null>(null);
-  const [demoState, setDemo] = useState<CardRow[]>(() => demoCards({ name: brand.name, domain: brand.domain }) as CardRow[]);
 
   const call = useCallback(<T,>(action: string, extra: Record<string, unknown> = {}) => api<T>("/api/link-building", { action, brandId: brand.id, ...extra }), [api, brand.id]);
   const load = useCallback(async () => {
@@ -74,23 +73,9 @@ export function LinkBuildingPage({ brand, auth, onBacklinks }: { brand: Brand; a
     load();
   }, [load]);
 
-  const isDemo = cards !== null && cards.length === 0;
-  // An empty board opens on the tool's start page (ToolStart), with the example board inside it.
-  const [showExample, setShowExample] = useState(false);
-  const board = isDemo ? demoState : cards;
-  const replace = (c: CardRow) => {
-    const swap = (list: CardRow[] | null) => (list ?? []).map((x) => (x.id === c.id ? c : x));
-    if (isDemo) setDemo(swap);
-    else setCards(swap);
-  };
+  const board = cards;
+  const replace = (c: CardRow) => setCards((list) => (list ?? []).map((x) => (x.id === c.id ? c : x)));
   async function act(action: string, id: string, extra: Record<string, unknown> = {}) {
-    if (isDemo) {
-      // Example cards only move on screen.
-      const c = demoState.find((x) => x.id === id);
-      if (c && action === "move") replace({ ...c, stage: extra.stage as Stage, link_page: (extra.linkPage as string) ?? c.link_page, stage_at: new Date().toISOString() });
-      if (action === "move") setWantStage(null);
-      return action === "move";
-    }
     setBusy(`${action}:${id}`);
     setError("");
     try {
@@ -117,7 +102,6 @@ export function LinkBuildingPage({ brand, auth, onBacklinks }: { brand: Brand; a
     }
     // Move on screen at once; put it back if the server says no.
     const before = c.stage;
-    if (isDemo) return void act("move", c.id, { stage });
     replace({ ...c, stage });
     if (!(await act("move", c.id, { stage }))) replace({ ...c, stage: before });
   }
@@ -152,7 +136,7 @@ export function LinkBuildingPage({ brand, auth, onBacklinks }: { brand: Brand; a
   const shown = useMemo(() => (board ?? []).filter((c) => filter === "all" || c.source === filter), [board, filter]);
   const stats = boardStats(board ?? []);
   const open = board?.find((c) => c.id === openId) ?? null;
-  const canMove = canEdit || isDemo;
+  const canMove = canEdit;
 
   const finders = canEdit ? (
     <div className="flex flex-wrap gap-2">
@@ -173,26 +157,29 @@ export function LinkBuildingPage({ brand, auth, onBacklinks }: { brand: Brand; a
 
   if (cards === null) return <div className="flex flex-col gap-6"><h1 className="aw-h2 mb-0!">Link Building</h1><Thinking text="Loading" /></div>;
 
-  const page = (
+  const addBar = canEdit ? (
+    <SearchBar onSubmit={addSite}>
+      <input id="lb-add" className={BAR_INPUT} value={addUrl} onChange={(e) => setAddUrl(e.target.value)} placeholder="site.com" aria-label="Add a site" />
+      <SearchButton label="Add" busyLabel="Adding" busy={busy === "add"} disabled={!addUrl.trim()} />
+    </SearchBar>
+  ) : null;
+
+  return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="mr-auto flex flex-wrap items-center gap-3">
           <h1 className="aw-h2 mb-0!">Link Building</h1>
-          {isDemo ? <span className="aw-status aw-status--pending">Example data</span> : null}
-          {isDemo ? (
-            <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setShowExample(false)}>
-              About Link Building
-            </button>
-          ) : null}
         </div>
         {finders}
       </div>
       {error ? <p className="aw-error">{error}</p> : null}
       {note ? <p className="aw-callout">{note}</p> : null}
 
-      <>
+      {!cards.length ? (
+        addBar
+      ) : (
+        <>
           <StatStrip
-            tour={1}
             stats={[
               { label: "Links won", value: stats.won, tone: "pos" },
               { label: "Prospects", value: stats.prospects },
@@ -202,7 +189,7 @@ export function LinkBuildingPage({ brand, auth, onBacklinks }: { brand: Brand; a
             ]}
           />
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div data-tour="2" className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2">
               {[{ id: "all" as const, label: "All" }, ...SOURCES].map((s) => (
                 <button key={s.id} type="button" aria-pressed={filter === s.id} onClick={() => setFilter(s.id)} className="aw-chip aw-chip--btn">
                   {s.label}
@@ -224,14 +211,13 @@ export function LinkBuildingPage({ brand, auth, onBacklinks }: { brand: Brand; a
               </form>
             ) : null}
           </div>
-          <div data-tour="3" className="grid auto-cols-[minmax(240px,1fr)] grid-flow-col gap-3 overflow-x-auto pb-2">
+          <div className="grid auto-cols-[minmax(240px,1fr)] grid-flow-col gap-3 overflow-x-auto pb-2">
             {STAGES.map((st) => {
               const list = shown.filter((c) => c.stage === st.id);
               return (
                 <section
                   key={st.id}
                   aria-label={st.label}
-                  data-tour={st.id === "won" ? "4" : undefined}
                   className={`flex min-h-72 flex-col gap-2 rounded-[12px] bg-[var(--aw-surface-2)] p-2.5 transition-shadow ${over === st.id ? "shadow-[inset_0_0_0_2px_var(--signal)]" : ""}`}
                   onDragOver={(e) => {
                     if (!drag || !canMove) return;
@@ -269,55 +255,16 @@ export function LinkBuildingPage({ brand, auth, onBacklinks }: { brand: Brand; a
               );
             })}
           </div>
-      </>
+        </>
+      )}
 
       {open ? (
         <SidePanel title={open.domain ?? open.name} kicker={sourceLabel(open.source)} onClose={() => { setOpenId(null); setWantStage(null); }}>
-          <Detail key={open.id} c={open} blocked={blocked.has(open.id)} canEdit={canMove} demo={isDemo} busy={busy} wantStage={wantStage} onAct={act} onMove={(s) => move(open, s)} />
+          <Detail key={open.id} c={open} blocked={blocked.has(open.id)} canEdit={canMove} busy={busy} wantStage={wantStage} onAct={act} onMove={(s) => move(open, s)} />
         </SidePanel>
       ) : null}
     </div>
   );
-
-  if (isDemo && !showExample)
-    return (
-      <ToolStart
-        tool="linkbuilding"
-        error={error}
-        example={page}
-        onOpenExample={() => setShowExample(true)}
-        onCta={canEdit && rivals ? () => find("ai_cites") : undefined}
-        below={note ? <p className="ts-err" style={{ background: "#e6f6ee", color: "#0b7a52" }}>{note}</p> : null}
-        form={
-          <>
-            <div className="ts-q">
-              <TsDomain domain={brand.domain} />
-              {canEdit ? (
-                <button type="button" className="ts-btn ts-btn--primary ts-btn--lg" onClick={() => find("ai_cites")} disabled={Boolean(busy) || !rivals}>
-                  {busy === "find:ai_cites" ? "Finding" : "Sites AI cites"} <span className="ts-arr">→</span>
-                </button>
-              ) : null}
-            </div>
-            {canEdit ? (
-              <div className="ts-qfoot">
-                <span>Or find</span>
-                <button type="button" onClick={() => find("broken_page")} disabled={Boolean(busy) || !rivals}>
-                  {busy === "find:broken_page" ? "Finding" : "Dead rival pages"}
-                </button>
-                <button type="button" onClick={() => find("unlinked_mention")} disabled={Boolean(busy)}>
-                  {busy === "find:unlinked_mention" ? "Searching" : "Unlinked mentions"}
-                </button>
-                <button type="button" onClick={onBacklinks}>
-                  Link gap
-                </button>
-                {!rivals ? <span>Sites AI cites and dead rival pages need competitors on the brand.</span> : null}
-              </div>
-            ) : null}
-          </>
-        }
-      />
-    );
-  return page;
 }
 
 function BoardCard({ c, blocked, canEdit, onOpen, onNext, onDrag }: { c: CardRow; blocked: boolean; canEdit: boolean; onOpen: () => void; onNext: () => void; onDrag: (id: string | null) => void }) {
@@ -354,7 +301,7 @@ function BoardCard({ c, blocked, canEdit, onOpen, onNext, onDrag }: { c: CardRow
   );
 }
 
-function Detail({ c, blocked, canEdit, demo = false, busy, wantStage, onAct, onMove }: { c: CardRow; blocked: boolean; canEdit: boolean; demo?: boolean; busy: string; wantStage: Stage | null; onAct: (a: string, id: string, extra?: Record<string, unknown>) => Promise<boolean>; onMove: (s: Stage) => void }) {
+function Detail({ c, blocked, canEdit, busy, wantStage, onAct, onMove }: { c: CardRow; blocked: boolean; canEdit: boolean; busy: string; wantStage: Stage | null; onAct: (a: string, id: string, extra?: Record<string, unknown>) => Promise<boolean>; onMove: (s: Stage) => void }) {
   const [email, setEmail] = useState(c.email ?? "");
   const [subject, setSubject] = useState(c.draft_subject ?? "");
   const [body, setBody] = useState(c.draft_body ?? "");
@@ -406,10 +353,10 @@ function Detail({ c, blocked, canEdit, demo = false, busy, wantStage, onAct, onM
                 </button>
               ) : (
                 <>
-                  <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={demo || linkPage === (c.link_page ?? "") || is("save")} onClick={() => onAct("save", c.id, { linkPage })}>
+                  <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={linkPage === (c.link_page ?? "") || is("save")} onClick={() => onAct("save", c.id, { linkPage })}>
                     Save
                   </button>
-                  <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={demo || !c.link_page || is("check")} onClick={() => onAct("check", c.id)}>
+                  <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={!c.link_page || is("check")} onClick={() => onAct("check", c.id)}>
                     {is("check") ? "Checking" : "Check now"}
                   </button>
                 </>
@@ -431,7 +378,7 @@ function Detail({ c, blocked, canEdit, demo = false, busy, wantStage, onAct, onM
             <span className="flex gap-2">
               <input id="lb-email" className="aw-input min-w-0 flex-1" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={c.email_status === "not_found" ? "No email found on the site" : "editor@site.com"} disabled={!canEdit} />
               {canEdit && email !== (c.email ?? "") ? (
-                <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => onAct("save", c.id, { email })} disabled={demo || is("save")}>
+                <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => onAct("save", c.id, { email })} disabled={is("save")}>
                   Save
                 </button>
               ) : null}
@@ -451,11 +398,11 @@ function Detail({ c, blocked, canEdit, demo = false, busy, wantStage, onAct, onM
           ) : null}
           {canEdit ? (
             <div className="flex flex-wrap gap-2">
-              <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => onAct("draft", c.id)} disabled={demo || blocked || is("draft")}>
+              <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => onAct("draft", c.id)} disabled={blocked || is("draft")}>
                 {is("draft") ? "Writing" : c.draft_body ? "Write again" : "Draft pitch"}
               </button>
               {subject !== (c.draft_subject ?? "") || body !== (c.draft_body ?? "") ? (
-                <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => onAct("save", c.id, { subject, body })} disabled={demo || is("save")}>
+                <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => onAct("save", c.id, { subject, body })} disabled={is("save")}>
                   Save pitch
                 </button>
               ) : null}
@@ -482,7 +429,7 @@ function Detail({ c, blocked, canEdit, demo = false, busy, wantStage, onAct, onM
                 </a>
               ) : null}
               {body && !blocked && c.stage === "prospect" ? (
-                <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => (demo ? onMove("contacted") : onAct("sent", c.id))} disabled={is("sent")}>
+                <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => onAct("sent", c.id)} disabled={is("sent")}>
                   Mark as sent
                 </button>
               ) : null}
@@ -494,11 +441,11 @@ function Detail({ c, blocked, canEdit, demo = false, busy, wantStage, onAct, onM
       {canEdit ? (
         <div className="flex flex-wrap gap-2 border-t border-[var(--aw-rule)] pt-4">
           {!blocked ? (
-            <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => onAct("dnc", c.id)} disabled={demo || is("dnc")}>
+            <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => onAct("dnc", c.id)} disabled={is("dnc")}>
               Do not contact
             </button>
           ) : null}
-          <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => (sure ? onAct("delete", c.id) : setSure(true))} disabled={demo || is("delete")}>
+          <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => (sure ? onAct("delete", c.id) : setSure(true))} disabled={is("delete")}>
             {sure ? "Delete for good" : "Delete"}
           </button>
         </div>

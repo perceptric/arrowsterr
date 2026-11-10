@@ -1,6 +1,6 @@
 # Arrowsterr brand (v5)
 
-> **v9, 10 November 2026: keys and strips.** The calm look stays, and the working screens now match the tool start pages (`docs/tool-start.md`). Where v9 and the notes below disagree, v9 wins.
+> **v9, 10 November 2026: keys and strips.** The calm look stays, and the working screens get key buttons and stat strips. Where v9 and the notes below disagree, v9 wins.
 >
 > - **Buttons are keys.** 8px corners in place of pills. The main action is Signal Blue with a dark ring and a top highlight (`aw-btn--primary`). `aw-btn--dark` stays charcoal for a second strong action.
 > - **Cards have 16px corners.** A card inside a card keeps 12px.

@@ -4,8 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { layout, mapStats, type ContentMap, type Topic, type TopicStatus } from "@/lib/contentMap";
 import type { RunAuth } from "@/lib/runner";
-import { demoMap } from "@/lib/demo";
-import { ToolStart, TsDomain } from "./ToolStart";
+import { DomainField, SearchBar, SearchButton } from "./SearchBar";
 import { Card, SidePanel, StatStrip, Thinking } from "./ui";
 import { ChangeSetCard, useApi } from "./ZippiePage";
 
@@ -104,11 +103,7 @@ export function ContentMapPage({ brand, sb, auth, canEdit, onConnect }: { brand:
     }
   }
 
-  const demo = useMemo(() => demoMap({ name: brand.name, domain: brand.domain }), [brand.name, brand.domain]);
-  const isDemo = !map && rows !== null && !running;
-  // Before the first build, the tool's start page (ToolStart) explains the map, with the example map inside it.
-  const [showExample, setShowExample] = useState(false);
-  const m = map?.m ?? (isDemo ? demo : null);
+  const m = map?.m ?? null;
   const geo = useMemo(() => (m ? layout(m) : null), [m]);
   const byId = useMemo(() => new Map((m?.topics ?? []).map((t) => [t.id, t])), [m]);
   const show = (t: Topic) => filter === "all" || (filter === "missing" && (t.status === "missing" || t.status === "progress")) || (filter === "overlap" && t.status === "overlap") || (filter === "ai" && t.ai) || (filter === "unlinked" && t.linked === false);
@@ -117,22 +112,8 @@ export function ContentMapPage({ brand, sb, auth, canEdit, onConnect }: { brand:
 
   const head = (
     <div className="flex flex-wrap items-end justify-between gap-3">
-      <div className="mr-auto flex flex-wrap items-center gap-3">
-        <h1 className="aw-h2 mb-0!">Content Map</h1>
-        {isDemo ? <span className="aw-status aw-status--pending">Example data</span> : null}
-        {isDemo ? (
-          <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setShowExample(false)}>
-            About Content Map
-          </button>
-        ) : null}
-      </div>
-      {isDemo ? (
-        canEdit ? (
-          <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={build} disabled={busy === "build"}>
-            {busy === "build" ? "Starting" : "Build the map"}
-          </button>
-        ) : null
-      ) : m ? (
+      <h1 className="aw-h2 mb-0!">Content Map</h1>
+      {m ? (
         <div className="flex flex-wrap items-center gap-3 text-[12px] text-muted">
           <span>Updated {when(m.at)}</span>
           {canEdit ? (
@@ -147,7 +128,7 @@ export function ContentMapPage({ brand, sb, auth, canEdit, onConnect }: { brand:
 
   if (rows === null) return <div className="flex flex-col gap-6">{head}{error ? <p className="aw-error">{error}</p> : <Thinking text="Loading" />}</div>;
 
-  const page = (
+  return (
     <div className="flex flex-col gap-6">
       {head}
       {error ? <p className="aw-error">{error}</p> : null}
@@ -159,12 +140,17 @@ export function ContentMapPage({ brand, sb, auth, canEdit, onConnect }: { brand:
           </button>
         </div>
       ) : null}
+      {!m && !running ? (
+        <SearchBar onSubmit={build}>
+          <DomainField domain={brand.domain} />
+          {canEdit ? <SearchButton label="Build the map" busyLabel="Starting" busy={busy === "build"} /> : null}
+        </SearchBar>
+      ) : null}
       {running ? <Thinking text={running.step || "Building"} /> : lastFailed ? <p className="aw-error">The last build failed: {lastFailed.error}</p> : null}
 
       {m && geo && stats ? (
         <>
           <StatStrip
-            tour={1}
             extra={
               <span className="aw-strip__bar" role="img" aria-label={`${stats.covered} covered, ${stats.progress} in progress, ${stats.overlap} competing, ${stats.missing} missing`}>
                 {([["covered", "var(--aw-pos)"], ["progress", "var(--signal)"], ["overlap", "var(--aw-warn)"], ["missing", "var(--aw-neg)"]] as const).map(([k, c]) => (stats[k] ? <i key={k} style={{ flexGrow: stats[k], background: c }} /> : null))}
@@ -178,7 +164,7 @@ export function ContentMapPage({ brand, sb, auth, canEdit, onConnect }: { brand:
               { label: "In progress", value: stats.progress, tone: "brand" },
             ]}
           />
-          <div data-tour="2" className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2">
             {([["all", "All"], ["missing", "Missing"], ["overlap", "Competing"], ["ai", "Named by AI"], ["unlinked", "Link missing"]] as [Filter, string][]).map(([k, l]) => (
               <button key={k} type="button" aria-pressed={filter === k} onClick={() => setFilter(k)} className="aw-chip aw-chip--btn">
                 {l}
@@ -186,7 +172,7 @@ export function ContentMapPage({ brand, sb, auth, canEdit, onConnect }: { brand:
             ))}
           </div>
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
-            <Card tour={3}>
+            <Card>
               <div className="overflow-x-auto p-3">
                 <svg viewBox={`0 0 ${geo.w} ${geo.h}`} className="block h-auto w-full" style={{ minWidth: Math.min(geo.w, 720) }} role="img" aria-label="Content map">
                   {geo.nodes.filter((x) => !x.pillar).map((x) => {
@@ -240,9 +226,9 @@ export function ContentMapPage({ brand, sb, auth, canEdit, onConnect }: { brand:
                 </span>
               </div>
             </Card>
-            <Card tour={4}>
+            <Card>
               <div className="flex flex-col gap-3 px-5 py-4">
-                <Detail m={m} sel={sel} canEdit={canEdit && !isDemo} busy={busy} planned={planned} onPlan={addToPlan} onLinks={addLinks} />
+                <Detail m={m} sel={sel} canEdit={canEdit} busy={busy} planned={planned} onPlan={addToPlan} onLinks={addLinks} />
               </div>
             </Card>
           </div>
@@ -256,29 +242,6 @@ export function ContentMapPage({ brand, sb, auth, canEdit, onConnect }: { brand:
       ) : null}
     </div>
   );
-
-  if (isDemo && !showExample)
-    return (
-      <ToolStart
-        tool="contentmap"
-        error={error}
-        example={page}
-        onOpenExample={() => setShowExample(true)}
-        onCta={canEdit ? build : undefined}
-        below={lastFailed ? <p className="ts-err">The last build failed: {lastFailed.error}</p> : null}
-        form={
-          <div className="ts-q">
-            <TsDomain domain={brand.domain} />
-            {canEdit ? (
-              <button type="button" className="ts-btn ts-btn--primary ts-btn--lg" onClick={build} disabled={busy === "build"}>
-                {busy === "build" ? "Starting" : "Build the map"} <span className="ts-arr">→</span>
-              </button>
-            ) : null}
-          </div>
-        }
-      />
-    );
-  return page;
 }
 
 function Detail({ m, sel, canEdit, busy, planned, onPlan, onLinks }: { m: ContentMap; sel: string | null; canEdit: boolean; busy: string; planned: Set<string>; onPlan: (t: Topic) => void; onLinks: (hub: string) => void }) {

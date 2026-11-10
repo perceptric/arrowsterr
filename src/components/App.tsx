@@ -264,22 +264,10 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
   const [navHidden, setNavHidden] = useState(() => readLocal(NAV_HIDDEN) === "1");
   // Ask Zippie's panel, open or closed, is remembered on this device.
   const [zippie, setZippie] = useState(() => onZippiePath() || readLocal(ZIPPIE_OPEN) === "1");
-  // A tool's start page can open Ask Zippie with a question already sent (askZippie in ToolStart).
-  const [zippieAsk, setZippieAsk] = useState<{ text: string; n: number } | null>(null);
   const openZippie = useCallback((open: boolean) => {
     setZippie(open);
     writeLocal(ZIPPIE_OPEN, open ? "1" : null);
   }, []);
-  useEffect(() => {
-    const onAsk = (e: Event) => {
-      const text = String((e as CustomEvent).detail ?? "").trim();
-      if (!text) return;
-      openZippie(true);
-      setZippieAsk((a) => ({ text, n: (a?.n ?? 0) + 1 }));
-    };
-    window.addEventListener("arrowsterr:ask", onAsk);
-    return () => window.removeEventListener("arrowsterr:ask", onAsk);
-  }, [openZippie]);
   const toggleNav = useCallback(() => {
     setNavHidden((h) => {
       writeLocal(NAV_HIDDEN, h ? null : "1");
@@ -1037,7 +1025,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
           )}
         </main>
       </div>
-      <ZippieWidget key={ws.id} auth={auth} canEdit={canEdit} where={{ brand: active?.name ?? null, page: pageTitle(page).label }} open={zippie} onOpen={openZippie} ask={zippieAsk} />
+      <ZippieWidget key={ws.id} auth={auth} canEdit={canEdit} where={{ brand: active?.name ?? null, page: pageTitle(page).label }} open={zippie} onOpen={openZippie} />
     </div>
   );
 }

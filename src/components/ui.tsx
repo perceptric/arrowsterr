@@ -15,9 +15,9 @@ export const YOU_COLOR = "#0943B0";
 export const RIVAL_COLOR = "#111111"; // the competitor in any one-on-one view
 export const OTHER_COLORS = ["#111111", "#5C6B89", "#A6AEBB", "#2B3242", "#7C8697", "#3A3A3A", "#8A8A8A", "#C9CED8"];
 
-export function Card({ title, action, children, className = "", tour }: { title?: React.ReactNode; action?: React.ReactNode; children: React.ReactNode; className?: string; tour?: number }) {
+export function Card({ title, action, children, className = "" }: { title?: React.ReactNode; action?: React.ReactNode; children: React.ReactNode; className?: string }) {
   return (
-    <section className={`aw-frame flex min-w-0 flex-col ${className}`} data-tour={tour}>
+    <section className={`aw-frame flex min-w-0 flex-col ${className}`}>
       {title || action ? (
         <div className="aw-frame__head justify-between">
           {title ? <h2 className="aw-h4">{title}</h2> : null}
@@ -74,9 +74,9 @@ export type StripStat = { label: string; value: React.ReactNode; delta?: React.R
  * A screen's numbers as one strip: the first is the lead (wider, tinted, with an optional trend line or extra part),
  * the rest follow in cells split by hairlines. Use this for KPI rows; never a row of equal boxes.
  */
-export function StatStrip({ stats, spark, extra, tour }: { stats: StripStat[]; spark?: number[]; extra?: React.ReactNode; tour?: number }) {
+export function StatStrip({ stats, spark, extra }: { stats: StripStat[]; spark?: number[]; extra?: React.ReactNode }) {
   return (
-    <section className="aw-strip" data-tour={tour} style={{ "--aw-strip-n": Math.max(1, stats.length - 1) } as React.CSSProperties}>
+    <section className="aw-strip" style={{ "--aw-strip-n": Math.max(1, stats.length - 1) } as React.CSSProperties}>
       {stats.map((s, i) => (
         <div key={s.label} className={`aw-strip__cell ${i === 0 ? "aw-strip__lead" : ""}`}>
           <span className="aw-strip__label">{s.label}</span>
