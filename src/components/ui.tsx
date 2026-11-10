@@ -95,7 +95,7 @@ export function StatStrip({ stats, spark, extra }: { stats: StripStat[]; spark?:
 
 export function Seg<T extends string>({ value, options, onChange, label }: { value: T; options: { id: T; label: React.ReactNode }[]; onChange: (v: T) => void; label: string }) {
   return (
-    <div role="tablist" aria-label={label} className="aw-tabs">
+    <div role="tablist" aria-label={label} className="aw-seg inline-flex max-w-full flex-wrap">
       {options.map((o) => (
         <button
           key={o.id}

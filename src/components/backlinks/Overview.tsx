@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { ANCHOR_GROUPS, anchorGroup, anchorMix, brandWords, spamLevel, type AnchorGroup, type Overview, type Week } from "@/lib/backlinks";
 import { Card, Delta, Seg, StatStrip } from "../ui";
 import { BacklinksIntro } from "../ToolIntros";
-import { Bands, C, Donut, HBars, LineChart, NewLostBars, Stack, short, type Part } from "./charts";
+import { C, Donut, HBars, LineChart, NewLostBars, Stack, short } from "./charts";
 import { CsvButton, fileName, Loading, monthOf, num, Toggle, Updated, useAnswer, type TabProps } from "./shared";
 
 // Overview, Anchors and Linked pages: all three read the one saved overview.
@@ -109,15 +109,7 @@ export function OverviewTab(p: TabProps & { brandName: string; onTab: (t: "ancho
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {o.bands && o.listed ? (
           <Card title="Authority of linking sites" action={<button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => p.onTab("domains")}>All sites</button>}>
-            <div className="flex flex-col gap-3 px-5 pb-5">
-              <Bands bands={o.bands} />
-              <span className="flex flex-wrap gap-3 text-[12px] text-body">
-                <Key color={C.signal} label={`Strong 60+: ${num(o.bands.slice(6).reduce((a, b) => a + b, 0))}`} />
-                <Key color={C.sky} label={`Middle: ${num(o.bands.slice(3, 6).reduce((a, b) => a + b, 0))}`} />
-                <Key color={C.faint} label={`Weak: ${num(o.bands.slice(0, 3).reduce((a, b) => a + b, 0))}`} />
-              </span>
-              {o.listed >= 1000 && s.domains > o.listed ? <span className="text-[12px] text-muted">The 1,000 strongest of {num(s.domains)} linking sites</span> : null}
-            </div>
+            <AuthorityBands bands={o.bands} note={o.listed >= 1000 && s.domains > o.listed ? `The 1,000 strongest of ${num(s.domains)} linking sites` : null} />
           </Card>
         ) : null}
         {mix.length ? (
@@ -142,56 +134,169 @@ export function OverviewTab(p: TabProps & { brandName: string; onTab: (t: "ancho
         ) : null}
       </div>
 
-      {prof ? (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {prof.tlds.length ? (
-            <Card title="Top-level domains">
-              <div className="px-5 pb-5">
-                <HBars rows={prof.tlds.map((t) => ({ key: t.key, label: t.label, value: t.value, color: t.key === "edu" || t.key === "gov" ? C.pos : undefined }))} fmt={short} />
-              </div>
+      {o.anchors.length || o.pages.length ? (
+        <div className="grid gap-4 lg:grid-cols-2">
+          {o.anchors.length ? (
+            <Card title="Top anchors" action={<button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => p.onTab("anchors")}>All anchors</button>}>
+              <TopAnchors anchors={o.anchors.slice(0, 7)} />
             </Card>
           ) : null}
-          {prof.platforms.length ? (
-            <Card title="Site types">
-              <div className="px-5 pb-5">
-                <HBars rows={prof.platforms.map((t) => ({ key: t.key, label: t.label, value: t.value }))} color={C.sky} fmt={short} />
-              </div>
-            </Card>
-          ) : null}
-          {prof.places.length ? (
-            <Card title="Where links sit on the page">
-              <div className="px-5 pb-5">
-                <HBars rows={prof.places.map((t) => ({ key: t.key, label: t.label, value: t.value, color: t.key === "article" || t.key === "main" ? C.signal : C.light }))} fmt={short} />
-              </div>
+          {o.pages.length ? (
+            <Card title="Most linked pages" action={<button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => p.onTab("pages")}>All pages</button>}>
+              <TopPages pages={o.pages} onOpen={(u) => p.onOpen(u, "url")} />
             </Card>
           ) : null}
         </div>
       ) : null}
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {prof && prof.types.length ? (
-          <Card title="Link types">
-            <div className="px-5 pb-5">
-              <Donut label="Link types" parts={prof.types.map((t, i): Part => ({ label: t.label, value: t.value, color: [C.signal, C.sky, C.light, C.faint, C.grey][i] ?? C.faint }))} />
-            </div>
-          </Card>
-        ) : null}
-        {o.anchors.length ? (
-          <Card title="Top anchors" action={<button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => p.onTab("anchors")}>All anchors</button>}>
-            <div className="px-5 pb-5">
-              <HBars rows={o.anchors.slice(0, 6).map((a) => ({ key: a.anchor, label: a.anchor, value: a.domains }))} />
-            </div>
-          </Card>
-        ) : null}
-        {o.pages.length ? (
-          <Card title="Most linked pages" action={<button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => p.onTab("pages")}>All pages</button>}>
-            <div className="px-5 pb-5">
-              <HBars rows={o.pages.slice(0, 6).map((pg) => ({ key: pg.url, label: pathOf(pg.url), value: pg.domains, color: C.ink, onClick: () => p.onOpen(pg.url, "url") }))} />
-            </div>
-          </Card>
-        ) : null}
-      </div>
+      {prof && (prof.platforms.length || prof.tlds.length || prof.places.length || prof.types.length) ? <Sources prof={prof} /> : null}
     </div>
+  );
+}
+
+/** Linking sites in three authority bands: one bar and the three counts. */
+function AuthorityBands({ bands, note }: { bands: number[]; note: string | null }) {
+  const sum = (a: number, b: number) => a + b;
+  const rows = [
+    { label: "Strong, 60 and up", value: bands.slice(6).reduce(sum, 0), color: "var(--signal-strong)" },
+    { label: "Middle, 30 to 59", value: bands.slice(3, 6).reduce(sum, 0), color: C.signal },
+    { label: "Weak, under 30", value: bands.slice(0, 3).reduce(sum, 0), color: "var(--border-strong)" },
+  ];
+  return (
+    <div className="flex flex-col gap-3 px-5 pb-5">
+      <div className="flex h-3 gap-0.5" role="img" aria-label={rows.map((r) => `${r.label}: ${r.value}`).join(", ")}>
+        {rows.filter((r) => r.value > 0).map((r) => (
+          <span key={r.label} className="min-w-1.5 rounded-[4px]" style={{ flex: `${r.value} 1 0`, background: r.color }} />
+        ))}
+      </div>
+      <dl className="flex flex-col">
+        {rows.map((r) => (
+          <div key={r.label} className="flex min-h-9 items-center gap-2.5 border-t border-[var(--border-medium)] text-[14px]">
+            <span className="h-2 w-2 shrink-0 rounded-[2px]" style={{ background: r.color }} />
+            <dt className="flex-1 text-body">{r.label}</dt>
+            <dd className="aw-num font-medium text-ink">{num(r.value)}</dd>
+          </div>
+        ))}
+      </dl>
+      {note ? <span className="text-[12px] text-muted">{note}</span> : null}
+    </div>
+  );
+}
+
+/** Anchors that read like a paid-link listing: several sales words in one long anchor. */
+const SPAM_WORDS = /\b(dofollow|backlinks?|pbn|da ?\d+|pa ?\d+|buy|cheap|premium|rank first|link building|seo service|guest post)\b/gi;
+export const spammyAnchor = (a: string) => a.length > 40 && (a.match(SPAM_WORDS) ?? []).length >= 2;
+
+function TopAnchors({ anchors }: { anchors: Overview["anchors"] }) {
+  const max = Math.max(1, ...anchors.map((a) => a.domains));
+  return (
+    <ul className="flex flex-col">
+      {anchors.map((a) => {
+        const spam = spammyAnchor(a.anchor);
+        const empty = !a.anchor.trim();
+        return (
+          <li key={a.anchor} className="flex items-start gap-4 border-t border-[var(--border-medium)] px-5 py-3 first:border-t-0">
+            <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+              <span className={empty ? "text-muted italic" : spam ? "max-w-[52ch] text-[13px] leading-relaxed text-body wrap-anywhere" : "text-ink wrap-anywhere"}>{empty ? "No anchor text" : a.anchor}</span>
+              {spam ? <span className="aw-status aw-status--missed self-start">Looks like paid links</span> : null}
+              <span className="block h-1 max-w-80 rounded-full bg-[var(--bg-tertiary)]">
+                <span className="block h-full rounded-full" style={{ width: `${Math.max(2, (a.domains / max) * 100)}%`, background: spam ? "var(--red-11)" : empty ? C.light : C.signal }} />
+              </span>
+            </div>
+            <span className="aw-num shrink-0 pt-px text-right font-medium text-ink">{num(a.domains)}</span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+/** One page with all the addresses that reach it: http and https, with and without www, a trailing slash or a ?ref tag. */
+export function pageGroups(pages: Overview["pages"]) {
+  const key = (u: string) => {
+    try {
+      const x = new URL(u);
+      return x.hostname.replace(/^www\./, "") + (x.pathname.replace(/\/+$/, "") || "/");
+    } catch {
+      return u;
+    }
+  };
+  const by = new Map<string, Overview["pages"]>();
+  for (const pg of pages) by.set(key(pg.url), [...(by.get(key(pg.url)) ?? []), pg]);
+  return [...by.values()]
+    .map((list) => ({ url: list[0].url, domains: list.reduce((a, x) => a + x.domains, 0), variants: list.length > 1 ? list : [] }))
+    .sort((a, b) => b.domains - a.domains);
+}
+
+function TopPages({ pages, onOpen }: { pages: Overview["pages"]; onOpen: (u: string) => void }) {
+  const groups = pageGroups(pages).slice(0, 6);
+  const max = Math.max(1, ...groups.map((g) => g.domains));
+  const label = (u: string) => {
+    const p = pathOf(u);
+    return p === "/" ? "Home page" : p;
+  };
+  return (
+    <ul className="flex flex-col">
+      {groups.map((g) => (
+        <li key={g.url} className="flex items-start gap-4 border-t border-[var(--border-medium)] px-5 py-3 first:border-t-0">
+          <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+            <button type="button" onClick={() => onOpen(g.url)} className="self-start text-left font-medium text-ink wrap-anywhere hover:underline">
+              {label(g.url)}
+            </button>
+            {g.variants.length ? (
+              <>
+                <span className="flex flex-wrap gap-1.5">
+                  {g.variants.map((v) => (
+                    <span key={v.url} className="aw-tag">
+                      {v.url.replace(/^https:\/\//, "")} <b className="aw-num font-semibold text-ink">{num(v.domains)}</b>
+                    </span>
+                  ))}
+                </span>
+                <span className="aw-status aw-status--warn self-start">{g.variants.length} addresses for one page</span>
+              </>
+            ) : null}
+            <span className="block h-1 max-w-80 rounded-full bg-[var(--bg-tertiary)]">
+              <span className="block h-full rounded-full" style={{ width: `${Math.max(2, (g.domains / max) * 100)}%`, background: C.signal }} />
+            </span>
+          </div>
+          <span className="aw-num shrink-0 pt-px text-right font-medium text-ink">{num(g.domains)}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+type Profile = NonNullable<Overview["profile"]>;
+type SourceView = "platforms" | "tlds" | "places" | "types";
+const SOURCE_VIEWS: { id: SourceView; label: string }[] = [
+  { id: "platforms", label: "Site type" },
+  { id: "tlds", label: "Domain ending" },
+  { id: "places", label: "Place on page" },
+  { id: "types", label: "Link type" },
+];
+
+/** Where the backlinks come from, one view at a time: full counts and each one's share. */
+function Sources({ prof }: { prof: Profile }) {
+  const views = SOURCE_VIEWS.filter((v) => prof[v.id].length);
+  const [view, setView] = useState<SourceView>(views[0]?.id ?? "platforms");
+  const rows = prof[view] ?? [];
+  const total = rows.reduce((a, r) => a + r.value, 0) || 1;
+  const max = Math.max(1, ...rows.map((r) => r.value));
+  return (
+    <Card title="Where the backlinks come from" action={<Seg label="Group backlinks by" value={view} onChange={setView} options={views} />}>
+      <div className="grid gap-x-10 px-5 pb-4 md:grid-cols-2">
+        {rows.map((r) => (
+          <div key={r.key} className="grid min-h-10 grid-cols-[minmax(100px,1fr)_minmax(70px,1.3fr)_72px_44px] items-center gap-3 border-t border-[var(--border-medium)] text-[14px]">
+            <span className="min-w-0 text-body wrap-anywhere">{r.label}</span>
+            <span className="block h-1.5 rounded-full bg-[var(--bg-tertiary)]">
+              <span className="block h-full rounded-full" style={{ width: `${Math.max(1.5, (r.value / max) * 100)}%`, background: C.signal }} />
+            </span>
+            <span className="aw-num text-right font-medium text-ink">{num(r.value)}</span>
+            <span className="aw-num text-right text-[13px] text-muted">{Math.round((r.value / total) * 100)}%</span>
+          </div>
+        ))}
+      </div>
+    </Card>
   );
 }
 

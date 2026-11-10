@@ -791,6 +791,8 @@ Never write a hex value in a component. Use a token.
 
 The app keeps its class names; the look changes underneath.
 
+**Status, 10 November 2026:** step 1 is in, as a last layer. `src/app/brand-v10.css` loads after every older stylesheet, resets the tokens they all read (the calm layer's `--bg-*`, `--text-*`, `--border-*`, `--shadow-*` and the `--aw-*` tokens behind the Tailwind colors) to v10, and restyles the shared parts with the same selectors so it wins: Geist type, 10px buttons, 1px-line inputs, dot tags, white 16px cards with a border and soft shadow, underline page tabs, pill view switches (`Seg`), the stat row, the sidebar and the page panel. The older layers stay for now and only hold rules for rare parts; delete them one at a time after checking the screens. The Backlinks overview was rebuilt to the guide: one "Most linked pages" row per page with all its addresses, paid-link anchors flagged, and one switchable "Where the backlinks come from" card with full counts and shares.
+
 1. **One stylesheet.** Add `src/app/brand-v10.css` with the tokens above and the component classes (`aw-btn`, `aw-frame`, `aw-input`, `aw-status`, `aw-table`, `aw-chip`, `aw-tabs`). Load it last in `globals.css`, then delete the eight older layers one at a time, checking screens after each.
 2. **Fonts.** Swap Inter and Funnel Display for Geist in `layout.tsx` via `next/font/google`. Keep Geist Mono.
 3. **Shared parts.** Update `Card`, `Seg`, `StatStrip` (becomes a stat row), `Delta`, `Tag` and `Select` in `src/components/ui.tsx` to match the Components section.
