@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { businesses, cityOf, localInsights, rankBands, mapOwners, parsePlaces, placeText, grid, isBusiness, listingCheck, localPrompts, phoneDigits, rankAt, reviewHistory, summarize, zoomFor, type Place } from "../src/lib/local.ts";
+import { businesses, cityOf, headToHead, keywordTable, localInsights, rankBands, rankMoves, mapOwners, parsePlaces, placeText, grid, isBusiness, listingCheck, localPrompts, phoneDigits, rankAt, reviewHistory, summarize, zoomFor, type Place } from "../src/lib/local.ts";
 
 const place = (o: Partial<Place> & { title: string; rank: number }): Place => ({ cid: null, placeId: null, domain: null, address: null, phone: null, category: null, categories: [], rating: null, reviews: null, lat: null, lng: null, ...o });
 const loc = { title: "Brightpath Dental", cid: "111", placeId: "ChIJ-a", domain: "brightpathdental.com" };
@@ -160,4 +160,25 @@ test("every business gets its rank at each point, the business itself always lis
   const total = list.reduce((s, x) => s + x.voice, 0);
   assert.ok(Math.abs(total - 1) < 1e-9, "map pack shares add up to 100%");
   assert.deepEqual(rankBands(you.ranks), { good: 1, average: 1, poor: 0, out: 1, read: 3 });
+});
+
+test("moves between scans, head to head and the keyword table", () => {
+  assert.deepEqual(rankMoves([2, 9, null, null, 5, undefined], [5, 4, 3, null, 5, 1]).map((m) => `${m.kind}${m.by || ""}`), ["up3", "down5", "lost", "out", "same", "none"]);
+  assert.deepEqual(rankMoves([7], [null])[0], { kind: "new", by: 0 });
+  const d = headToHead([1, 5, null, 3, null, undefined], [2, 3, 4, 3, null, 1]);
+  assert.deepEqual(d.points, ["you", "them", "them", "tie", "neither", "none"]);
+  assert.deepEqual([d.you, d.them, d.tie], [1, 2, 1]);
+  assert.deepEqual(headToHead([8], [null]).points, ["you"]);
+  const t = keywordTable(
+    [
+      { keyword: "dentist", at: "2026-11-03", avg: 9.4, top3: 5, found: 30, read: 49 },
+      { keyword: "dentist", at: "2026-11-10", avg: 7.1, top3: 9, found: 33, read: 49 },
+      { keyword: "emergency dentist", at: "2026-11-10", avg: 12, top3: 2, found: 20, read: 49 },
+    ],
+    ["dentist", "emergency dentist", "teeth whitening"],
+  );
+  assert.equal(t[0].last!.avg, 7.1);
+  assert.equal(t[0].change, -2.3);
+  assert.equal(t[1].change, null);
+  assert.equal(t[2].last, null);
 });

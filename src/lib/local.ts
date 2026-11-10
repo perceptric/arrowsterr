@@ -399,3 +399,46 @@ export function rankBands(ranks: (number | null | undefined)[]): { good: number;
     read: ok.length,
   };
 }
+
+export type Move = { kind: "up" | "down" | "same" | "new" | "lost" | "out" | "none"; by: number };
+
+/**
+ * How the rank at each point moved between two scans. "up" means a better (lower) rank. "new" entered the top 20,
+ * "lost" left it, "out" stayed out, and "none" means one of the two scans has no answer for that point.
+ */
+export function rankMoves(now: (number | null | undefined)[], before: (number | null | undefined)[]): Move[] {
+  return now.map((r, i) => {
+    const b = before[i];
+    if (r === undefined || b === undefined) return { kind: "none", by: 0 };
+    if (r === null && b === null) return { kind: "out", by: 0 };
+    if (r === null) return { kind: "lost", by: 0 };
+    if (b === null) return { kind: "new", by: 0 };
+    return r < b ? { kind: "up", by: b - r } : r > b ? { kind: "down", by: r - b } : { kind: "same", by: 0 };
+  });
+}
+
+export type Duel = "you" | "them" | "tie" | "neither" | "none";
+
+/** Who ranks better at each point, the business or one competitor, with the counts. */
+export function headToHead(you: (number | null | undefined)[], them: (number | null | undefined)[]): { points: Duel[]; you: number; them: number; tie: number } {
+  const points = you.map((a, i): Duel => {
+    const b = them[i];
+    if (a === undefined || b === undefined) return "none";
+    if (a === null && b === null) return "neither";
+    if (b === null || (a !== null && a < b)) return "you";
+    if (a === null || b < a) return "them";
+    return "tie";
+  });
+  return { points, you: points.filter((p) => p === "you").length, them: points.filter((p) => p === "them").length, tie: points.filter((p) => p === "tie").length };
+}
+
+export type KeywordRun = { keyword: string; at: string; avg: number | null; top3: number; found: number; read: number };
+
+/** Each keyword's scans, newest first, with its latest numbers and the change since the scan before. */
+export function keywordTable(runs: KeywordRun[], keywords: string[]): { keyword: string; runs: KeywordRun[]; last: KeywordRun | null; change: number | null }[] {
+  return keywords.map((k) => {
+    const mine = runs.filter((r) => r.keyword === k).sort((a, b) => b.at.localeCompare(a.at));
+    const [last, before] = mine;
+    return { keyword: k, runs: mine, last: last ?? null, change: last?.avg != null && before?.avg != null ? Math.round((last.avg - before.avg) * 10) / 10 : null };
+  });
+}
