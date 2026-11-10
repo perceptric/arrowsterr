@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { cityOf, localInsights, mapOwners, parsePlaces, placeText, grid, isBusiness, listingCheck, localPrompts, phoneDigits, rankAt, reviewHistory, summarize, zoomFor, type Place } from "../src/lib/local.ts";
+import { businesses, cityOf, localInsights, rankBands, mapOwners, parsePlaces, placeText, grid, isBusiness, listingCheck, localPrompts, phoneDigits, rankAt, reviewHistory, summarize, zoomFor, type Place } from "../src/lib/local.ts";
 
 const place = (o: Partial<Place> & { title: string; rank: number }): Place => ({ cid: null, placeId: null, domain: null, address: null, phone: null, category: null, categories: [], rating: null, reviews: null, lat: null, lng: null, ...o });
 const loc = { title: "Brightpath Dental", cid: "111", placeId: "ChIJ-a", domain: "brightpathdental.com" };
@@ -136,4 +136,28 @@ test("the map's owners and the scan's findings come from the points", () => {
   assert.match(text, /top 10 as far as 2\.8 mi out/);
   assert.match(text, /Holy Burger has 2,140 reviews to your 380/);
   assert.match(text, /Your rating is 4\.1, Holy Burger's is 4\.8/);
+});
+
+test("every business gets its rank at each point, the business itself always listed, map pack shares add up", () => {
+  const me = place({ title: "Brightpath Dental", cid: "111", rank: 4, reviews: 80, rating: 4.6 });
+  const a = place({ title: "Smile Co", cid: "222", rank: 1, reviews: 300, rating: 4.9, address: "1 Main St" });
+  const b = place({ title: "Tooth Hub", cid: "333", rank: 2 });
+  const c = place({ title: "Dent Plus", cid: "444", rank: 3 });
+  const per = [
+    { i: 0, results: [a, b, c, me] },
+    { i: 1, results: [{ ...me, rank: 1 }, { ...a, rank: 2 }, { ...b, rank: 3 }, { ...a, rank: 5 }] },
+    { i: 2, results: null },
+    { i: 3, results: [a, b, c] },
+  ];
+  const list = businesses(per, { ...loc, address: "1200 Lamar Blvd" }, 2);
+  const you = list.find((x) => x.you)!;
+  assert.deepEqual(you.ranks, [4, 1, undefined, null]);
+  assert.equal(you.avg, Math.round(((4 + 1 + 21) / 3) * 10) / 10);
+  assert.equal(you.address, "1200 Lamar Blvd");
+  const smile = list.find((x) => x.title === "Smile Co")!;
+  assert.deepEqual(smile.ranks, [1, 2, undefined, 1], "listed twice at point 1, counted once at its best rank");
+  assert.equal(list[0].title, "Smile Co");
+  const total = list.reduce((s, x) => s + x.voice, 0);
+  assert.ok(Math.abs(total - 1) < 1e-9, "map pack shares add up to 100%");
+  assert.deepEqual(rankBands(you.ranks), { good: 1, average: 1, poor: 0, out: 1, read: 3 });
 });
