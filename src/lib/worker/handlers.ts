@@ -296,8 +296,8 @@ export async function plan(db: SupabaseClient, job: Job) {
 
 // ─────────────── Zippie: site audits and change sets ───────────────
 export async function audit(db: SupabaseClient, job: Job) {
-  const { auditId, domain } = job.payload as { auditId: string; domain: string };
-  await runAudit(db, auditId, domain);
+  const { auditId, domain, part } = job.payload as { auditId: string; domain: string; part?: number };
+  await runAudit(db, auditId, domain, part ?? 0);
   await finish(job.id);
 }
 
