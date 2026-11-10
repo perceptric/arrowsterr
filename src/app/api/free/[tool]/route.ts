@@ -111,8 +111,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ too
       const domain = cleanDomain(body.domain);
       const rival = cleanDomain(body.rival);
       const country = countryOf(body.country);
-      if (!domain || !rival) return reply(request, { error: "Enter your website and a rival's, like acme.com." }, 400);
-      if (domain === rival) return reply(request, { error: "Pick a rival with a different website from yours." }, 400);
+      if (!domain || !rival) return reply(request, { error: "Enter your website and a competitor's, like acme.com." }, 400);
+      if (domain === rival) return reply(request, { error: "Pick a competitor with a different website from yours." }, 400);
       if (!country) return reply(request, { error: "Pick a country." }, 400);
       if (!dfsReady()) return resting(request);
       // The order matters: the rival's keywords you're missing.

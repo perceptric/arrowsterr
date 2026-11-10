@@ -145,7 +145,7 @@ export function LinkBuildingPage({ brand, auth, onBacklinks }: { brand: Brand; a
         {busy === "find:ai_cites" ? "Finding" : "Sites AI cites"}
       </button>
       <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => find("broken_page")} disabled={Boolean(busy) || !rivals}>
-        {busy === "find:broken_page" ? "Finding" : "Dead rival pages"}
+        {busy === "find:broken_page" ? "Finding" : "Dead competitor pages"}
       </button>
       <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => find("unlinked_mention")} disabled={Boolean(busy)}>
         {busy === "find:unlinked_mention" ? "Searching" : "Unlinked mentions"}

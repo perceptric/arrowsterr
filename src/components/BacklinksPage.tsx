@@ -394,7 +394,7 @@ function GapTab({ brand, call, canEdit, onError }: { brand: Brand; call: Call; c
 
   return (
     <div className="flex flex-col gap-4">
-      <Card title="Rivals">
+      <Card title="Competitors">
         <div className="flex flex-col gap-3 px-5 pb-5">
           <div className="flex flex-wrap items-center gap-2">
             {rivals.map((r) => (
@@ -415,7 +415,7 @@ function GapTab({ brand, call, canEdit, onError }: { brand: Brand; call: Call; c
                   addRival();
                 }}
               >
-                <input id="gap-rival" className="aw-input py-1.5! text-[13px]!" value={input} onChange={(e) => setInput(e.target.value)} placeholder="rival.com" aria-label="Add a rival" />
+                <input id="gap-rival" className="aw-input py-1.5! text-[13px]!" value={input} onChange={(e) => setInput(e.target.value)} placeholder="competitor.com" aria-label="Add a competitor" />
                 <button type="submit" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={!input.trim()}>
                   Add
                 </button>
@@ -445,7 +445,7 @@ function GapTab({ brand, call, canEdit, onError }: { brand: Brand; call: Call; c
         <Thinking text="Loading" />
       ) : gap === "none" ? null : (
         <Card
-          title={`${n(rows.length)} sites link to ${rivals.length === 1 ? "your rival" : "your rivals"} and not to ${brand.name}`}
+          title={`${n(rows.length)} sites link to ${rivals.length === 1 ? "your competitor" : "your competitors"} and not to ${brand.name}`}
           action={
             <span className="flex flex-wrap items-center gap-3">
               <label className="flex cursor-pointer items-center gap-2 text-[13px] text-body">

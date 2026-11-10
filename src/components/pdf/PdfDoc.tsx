@@ -884,7 +884,7 @@ function GapBody({ d }: { d: GapPdf }) {
         ]}
       />
       {d.rivals.length ? (
-        <Section title="Rivals in AI answers">
+        <Section title="Competitors in AI answers">
           <table className="pdf-table">
             <thead>
               <tr>

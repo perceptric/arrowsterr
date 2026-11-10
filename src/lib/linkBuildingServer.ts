@@ -113,7 +113,7 @@ export async function draftPitch(b: Brand, card: { domain: string; url: string |
     card.source === "broken_page" ? "Their page links to a dead page. Point it out kindly and offer the brand's page as the replacement."
     : card.source === "unlinked_mention" ? "They already mention the brand. Thank them and ask if they'd add a link so readers can find it."
     : card.source === "ai_cites" ? "AI tools quote their page on this topic. Offer something that makes their page more useful: data, a quote, a correction or an example from the brand."
-    : "They link to the brand's rivals. Offer something that makes their page more useful to their readers.";
+    : "They link to the brand's competitors. Offer something that makes their page more useful to their readers.";
   const out = await askJson<{ subject: string; body: string }>(
     `Write a short outreach email from ${b.name} (${b.domain}) to the editor of ${card.domain}.
 Their page: ${card.url ?? `https://${card.domain}`}

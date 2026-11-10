@@ -180,7 +180,7 @@ const LOCAL: LocalTool[] = [
   {
     name: "find_link_prospects",
     label: "Finding link prospects",
-    description: "Add sites to the brand's Link Building board that its AI answers of the last 30 days cite when they name a rival and not the brand. Free. Needs competitors with websites on the brand profile.",
+    description: "Add sites to the brand's Link Building board that its AI answers of the last 30 days cite when they name a competitor and not the brand. Free. Needs competitors with websites on the brand profile.",
     input_schema: { type: "object", properties: { brand: { type: "string" } } },
     async run(ctx, args) {
       if (!ctx.canEdit) throw new ToolError("Only editors and admins can add prospects.");

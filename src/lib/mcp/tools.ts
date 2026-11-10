@@ -700,7 +700,7 @@ export const TOOLS: Tool[] = [
   {
     name: "get_backlinks",
     title: "Backlinks",
-    description: "Who links to the brand's site, from the last saved load (refreshed by an editor on Links, Backlinks): linking sites, backlinks, authority 0 to 100, spam score, new and lost linking sites by week, top anchors, most linked pages, and the link gap against its rivals with the sites its AI answers cite flagged.",
+    description: "Who links to the brand's site, from the last saved load (refreshed by an editor on Links, Backlinks): linking sites, backlinks, authority 0 to 100, spam score, new and lost linking sites by week, top anchors, most linked pages, and the link gap against its competitors with the sites its AI answers cite flagged.",
     inputSchema: { type: "object", properties: { brand: brandArg } },
     annotations: { readOnlyHint: true, openWorldHint: false },
     async run(ctx, args) {
@@ -733,7 +733,7 @@ export const TOOLS: Tool[] = [
   {
     name: "get_content_map",
     title: "Content Map",
-    description: "The brand's latest Content Map: topics grouped into pillars, each covered (a page ranks top 20), missing (rivals rank top 10 and the brand doesn't, or planned and not started), in progress, or two pages competing; with searches, visits, rivals, whether it's planned, whether AI names the brand for it, and whether the pillar's main page links to it.",
+    description: "The brand's latest Content Map: topics grouped into pillars, each covered (a page ranks top 20), missing (competitors rank top 10 and the brand doesn't, or planned and not started), in progress, or two pages competing; with searches, visits, competitors, whether it's planned, whether AI names the brand for it, and whether the pillar's main page links to it.",
     inputSchema: { type: "object", properties: { brand: brandArg } },
     annotations: { readOnlyHint: true, openWorldHint: false },
     async run(ctx, args) {
@@ -753,7 +753,7 @@ export const TOOLS: Tool[] = [
   {
     name: "get_local_research",
     title: "Local Research",
-    description: "The brand's Google Maps rankings: the business, and for each tracked keyword the latest 7 by 7 grid scan: average rank (not found counts as 21), points in the top 3 and top 20, rating and reviews, the local rivals holding the top 3, and the listing check (name, phone, address, LocalBusiness schema, category against rivals).",
+    description: "The brand's Google Maps rankings: the business, and for each tracked keyword the latest 7 by 7 grid scan: average rank (not found counts as 21), points in the top 3 and top 20, rating and reviews, the local competitors holding the top 3, and the listing check (name, phone, address, LocalBusiness schema, category against competitors).",
     inputSchema: { type: "object", properties: { brand: brandArg } },
     annotations: { readOnlyHint: true, openWorldHint: false },
     async run(ctx, args) {
