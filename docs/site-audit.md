@@ -14,6 +14,10 @@ With Search Console and the Chrome UX Report connected (`docs/indexing-speed.md`
 - **Issues:** grouped by High, Medium and Low priority. Each row has a bar for the share of pages it hits, its change since the last crawl (New, more or fewer), and a page count. Opening a row shows why it matters and every page it hits, or every broken link with the page it was found on.
 - **Fix:** meta descriptions and titles, alt text and structured data. Fix starts a change set (`plays.ts`) for exactly the pages the issue lists, in the brand's own connected site, and opens it in a side panel to approve, apply and undo. A brand without a connected site gets a Connect website button.
 
+## Rendering and link score
+
+After the fetch, the worker's Chromium renders pages the way Google does (phone, JavaScript on) and the crawl compares them with the raw HTML: the Rendering tab in a page's panel, Raw text and Link score columns in Pages, and 11 rendering checks (most text only after JavaScript, robots or canonical changed by JavaScript, links only after JavaScript, failed requests, JavaScript errors, robots.txt blocking scripts or styles, and more). Each page also gets a link score from 0 to 10 from the site's own links. See `docs/site-structure.md`.
+
 ## Reliability
 
 A false "healthy" costs more than no score, so:

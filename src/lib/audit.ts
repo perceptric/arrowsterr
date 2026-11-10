@@ -46,6 +46,8 @@ export type AuditResult = {
   blockedBots: string[];
   llmsTxt: boolean;
   brokenLinks: { url: string; status: number; from: string }[];
+  redirectLinks?: { from: string; to: string }[];
+  rendered?: { pages: number; skipped: number };
   /** Why this crawl got no score (most pages didn't load, or the crawl stopped early). Missing on a full crawl. */
   partial?: string;
   /** Crawler v2 only. */
@@ -58,9 +60,12 @@ export type AuditResult = {
 
 /** One job's share of a crawl; when the crawl is done, the drop alert and old page rows are handled here. */
 export async function runAudit(db: SupabaseClient, auditId: string, domain: string, part = 0) {
-  const next = await crawlStep(db, auditId);
-  if (next === "more") {
-    if (await queueReady()) await enqueue("audit", { auditId, domain, part: part + 1 }, { key: `audit:${auditId}:${part + 1}`, maxAttempts: 2 });
+  const ready = await queueReady();
+  // Without the job queue there's no worker to render pages, so the crawl skips rendering.
+  const next = await crawlStep(db, auditId, undefined, ready);
+  if (next !== "done") {
+    // While Chromium renders pages, check back every 30 seconds.
+    if (ready) await enqueue("audit", { auditId, domain, part: part + 1 }, { key: `audit:${auditId}:${part + 1}`, maxAttempts: 2, ...(next === "wait" ? { runAt: new Date(Date.now() + 30_000) } : {}) });
     else await runAudit(db, auditId, domain, part + 1);
     return;
   }

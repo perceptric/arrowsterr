@@ -64,6 +64,7 @@ import { PerceptionPage } from "./PerceptionPage";
 import { SiteAuditPage } from "./SiteAuditPage";
 import { IndexingPage } from "./tech/IndexingPage";
 import { SpeedPage } from "./tech/SpeedPage";
+import { StructurePage } from "./tech/StructurePage";
 import { OnpageAuditPage } from "./OnpageAuditPage";
 import { BacklinksPage } from "./BacklinksPage";
 import { LinkBuildingPage } from "./LinkBuildingPage";
@@ -82,7 +83,7 @@ import { BrandPage } from "./BrandPage";
 import { CONTENT_ALIASES, CONTENT_SLUGS, type ContentPage } from "@/lib/contentRoutes";
 
 export type { Brand } from "@/lib/db";
-type Page = "prompts" | "competitors" | "perception" | "domains" | "urls" | "traffic" | "visitors" | "keywords" | "domain" | "gap" | "siteaudit" | "indexing" | "speed" | "onpage" | "backlinks" | "linkbuilding" | "contentmap" | "local" | ContentPage | "summary" | SettingsTab;
+type Page = "prompts" | "competitors" | "perception" | "domains" | "urls" | "traffic" | "visitors" | "keywords" | "domain" | "gap" | "siteaudit" | "indexing" | "speed" | "structure" | "onpage" | "backlinks" | "linkbuilding" | "contentmap" | "local" | ContentPage | "summary" | SettingsTab;
 const RESEARCH: Page[] = ["keywords", "domain", "gap", "calendar"];
 const VISIBILITY: Page[] = ["prompts", "competitors", "perception", "domains", "urls"];
 /** Pages with their own PDF (docs/reports.md, section 32.3). */
@@ -105,6 +106,7 @@ const SLUGS: Record<Page, string> = {
   siteaudit: "/site-audit",
   indexing: "/indexing",
   speed: "/speed",
+  structure: "/site-structure",
   onpage: "/onpage-audit",
   backlinks: "/backlinks",
   linkbuilding: "/link-building",
@@ -981,6 +983,8 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
             <OnpageAuditPage key={view.brand.id} brand={{ id: view.brand.id, name: view.brand.name, domain: view.brand.domain }} sb={sb} auth={auth} canEdit={canEdit} onConnect={() => go("publishing")} />
           ) : page === "indexing" ? (
             <IndexingPage key={view.brand.id} brand={{ id: view.brand.id, name: view.brand.name, domain: view.brand.domain }} auth={auth} canEdit={canEdit} />
+          ) : page === "structure" ? (
+            <StructurePage key={view.brand.id} brand={{ id: view.brand.id, name: view.brand.name, domain: view.brand.domain }} auth={auth} />
           ) : page === "speed" ? (
             <SpeedPage key={view.brand.id} brand={{ id: view.brand.id, name: view.brand.name, domain: view.brand.domain }} auth={auth} canEdit={canEdit} />
           ) : page === "siteaudit" ? (
@@ -1071,6 +1075,7 @@ const ICONS: Record<string, string> = {
   radar: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><path d="M12 12l6-6"/><circle cx="12" cy="12" r="1"/>',
   card: '<rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6.5 15h4"/>',
   index: '<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="M9 13l2 2 4-4"/>',
+  tree: '<rect x="9" y="3" width="6" height="5" rx="1"/><rect x="3" y="16" width="6" height="5" rx="1"/><rect x="15" y="16" width="6" height="5" rx="1"/><path d="M12 8v4M6 16v-4h12v4"/>',
   gauge: '<path d="M4 17a8 8 0 1 1 16 0"/><path d="M12 17l4-5"/><circle cx="12" cy="17" r="1"/>',
 };
 function NavIcon({ name }: { name: string }) {
@@ -1079,7 +1084,7 @@ function NavIcon({ name }: { name: string }) {
 
 /** The toolset a page belongs to. Starter opens one of them. */
 const trackOf = (page: Page): Track | null =>
-  ["prompts", "competitors", "perception", "domains", "urls"].includes(page) ? "visibility" : ["keywords", "domain", "gap", "calendar", "library", "siteaudit", "indexing", "speed", "onpage", "backlinks", "linkbuilding", "contentmap", "local"].includes(page) ? "seo" : null;
+  ["prompts", "competitors", "perception", "domains", "urls"].includes(page) ? "visibility" : ["keywords", "domain", "gap", "calendar", "library", "siteaudit", "indexing", "speed", "structure", "onpage", "backlinks", "linkbuilding", "contentmap", "local"].includes(page) ? "seo" : null;
 
 /** The big modules of the app. Each opens to its own pages. */
 const NAV: { group: string; icon: string; items: { id: Page; label: string; icon: string; also?: Page[] }[] }[] = [
@@ -1128,6 +1133,7 @@ const NAV: { group: string; icon: string; items: { id: Page; label: string; icon
       { id: "siteaudit", label: "Site Audit", icon: "pulse" },
       { id: "indexing", label: "Indexing", icon: "index" },
       { id: "speed", label: "Speed", icon: "gauge" },
+      { id: "structure", label: "Site structure", icon: "tree" },
       { id: "onpage", label: "On-page Audit", icon: "check" },
     ],
   },

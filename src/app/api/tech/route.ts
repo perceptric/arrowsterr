@@ -6,6 +6,8 @@ import { INSPECT_PER_DAY, inspectUrl, listSites, queueGscSync } from "@/lib/gsc"
 import { enqueue } from "@/lib/jobs";
 import { adminClient, isEditor, requireRole } from "@/lib/serverAuth";
 import { inspectLink } from "@/lib/tech/google";
+import { byUrl } from "@/lib/tech/checks";
+import { anchorFor, folders, suggestLinks, weakPages, type StructPage } from "@/lib/tech/structure";
 import { templateName } from "@/lib/tech/url";
 
 export const maxDuration = 90;
@@ -24,6 +26,8 @@ const SETUP = "Run supabase/068_google_tech.sql on the VPS database.";
 //   inspect:    { brandId, url }         editors: inspect one URL now (counts toward today's 1,500)
 //   speed:      { brandId }              Core Web Vitals for the site and its pages, with templates
 //   lab:        { brandId, url, device } editors: a PageSpeed Insights lab test of one of the brand's pages
+//   structure:  { brandId }              the latest crawl by folder and depth, weak pages, orphans, redirects
+//   suggest:    { brandId, url }         pages that should link to this one, with the anchor to use
 export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
   const auth = await requireRole(request, body.workspaceId, "viewer");
@@ -179,6 +183,68 @@ export async function POST(request: Request) {
     } catch (e) {
       return err(e instanceof Error ? e.message : String(e), 502);
     }
+  }
+
+  /** The latest finished crawl of the brand. */
+  async function latestCrawl() {
+    const { data } = await db!.from("site_audits").select("id, created_at, pages, result").eq("brand_id", brand!.id).eq("status", "done").order("created_at", { ascending: false }).limit(1).maybeSingle();
+    return data;
+  }
+
+  if (body.action === "structure") {
+    const a = await latestCrawl();
+    if (!a || (a.result as { version?: number })?.version !== 2) return Response.json({ crawl: null });
+    type Row = { url: string; depth: number | null; links_in: number; internal_rank: number | null; status: number; indexable: boolean; in_sitemap: boolean; title: string | null; template: string | null };
+    const rows: Row[] = [];
+    for (let from = 0; from < 50_000; from += 1000) {
+      const { data } = await db.from("crawl_pages").select("url, depth, links_in, internal_rank, status, indexable, in_sitemap, title, template").eq("audit_id", a.id).order("url").range(from, from + 999);
+      rows.push(...((data ?? []) as Row[]));
+      if (!data || data.length < 1000) break;
+    }
+    const { data: g } = await db.from("gsc_pages").select("page, clicks").eq("brand_id", brand.id).gt("clicks", 0).limit(50_000);
+    const clicks: Record<string, number> = Object.fromEntries((g ?? []).map((x) => [x.page as string, Number(x.clicks) || 0]));
+    const pages: StructPage[] = rows.map((r) => ({ url: r.url, depth: r.depth, linksIn: r.links_in, rank: r.internal_rank, status: r.status, indexable: r.indexable, clicks: byUrl(clicks, r.url) ?? 0 }));
+    const { data: chains } = await db.from("crawl_pages").select("url, status, facts->chain").eq("audit_id", a.id).gte("status", 300).lt("status", 400).limit(2000);
+    const depth = Array.from({ length: 7 }, () => ({ pages: 0, valuable: 0 }));
+    for (const p of pages) if (p.depth !== null && p.indexable) {
+      depth[Math.min(6, p.depth)].pages++;
+      if (p.clicks > 0) depth[Math.min(6, p.depth)].valuable++;
+    }
+    const titleOf = new Map(rows.map((r) => [r.url, r.title ?? ""]));
+    const result = a.result as { root?: string; redirectLinks?: { from: string; to: string }[] };
+    return Response.json({
+      crawl: { id: a.id, at: a.created_at, pages: a.pages, root: result.root ?? null, gsc: Boolean(g?.length) },
+      folders: folders(pages).slice(0, 40),
+      depth,
+      weak: weakPages(pages, 40).map((p) => ({ ...p, title: titleOf.get(p.url) ?? "" })),
+      orphans: rows.filter((r) => r.in_sitemap && r.links_in === 0 && r.indexable).slice(0, 200).map((r) => ({ url: r.url, title: r.title, clicks: byUrl(clicks, r.url) ?? 0 })),
+      lowRank: [...pages].filter((p) => p.indexable && p.rank !== null).sort((x, y) => (x.rank ?? 0) - (y.rank ?? 0)).slice(0, 30).map((p) => ({ ...p, title: titleOf.get(p.url) ?? "" })),
+      topRank: [...pages].filter((p) => p.rank !== null).sort((x, y) => (y.rank ?? 0) - (x.rank ?? 0)).slice(0, 12).map((p) => ({ url: p.url, rank: p.rank, linksIn: p.linksIn })),
+      chains: ((chains ?? []) as unknown as { url: string; chain?: { url: string; status: number }[] }[]).filter((c) => (c.chain?.length ?? 0) >= 3).slice(0, 100).map((c) => ({ url: c.url, chain: c.chain })),
+      redirectLinks: (result.redirectLinks ?? []).slice(0, 100),
+      sample: rows.filter((r) => r.status >= 200 && r.status < 400).slice(0, 1500).map((r) => ({ url: r.url, depth: r.depth, rank: r.internal_rank, indexable: r.indexable })),
+    });
+  }
+
+  if (body.action === "suggest") {
+    const a = await latestCrawl();
+    const url = str(body.url, 2000);
+    if (!a) return err("Crawl the site first.");
+    type Row = { url: string; title: string | null; h1?: string[] | null; internal_rank: number | null };
+    const rows: Row[] = [];
+    for (let from = 0; from < 50_000; from += 1000) {
+      const { data } = await db.from("crawl_pages").select("url, title, internal_rank, facts->page->h1").eq("audit_id", a.id).eq("indexable", true).order("url").range(from, from + 999);
+      rows.push(...((data ?? []) as unknown as Row[]));
+      if (!data || data.length < 1000) break;
+    }
+    const target = rows.find((r) => r.url === url);
+    if (!target) return err("That page isn't in the latest crawl.");
+    const t = { url, title: target.title ?? "", h1: target.h1?.[0] ?? "" };
+    // Topic matches first, then drop the pages that already link here.
+    const first = suggestLinks(t, rows.map((r) => ({ url: r.url, title: r.title ?? "", h1: r.h1?.[0] ?? "", rank: r.internal_rank, links: [] })), 20);
+    const { data: linking } = first.length ? await db.from("crawl_pages").select("url").eq("audit_id", a.id).in("url", first.map((f) => f.from)).contains("facts", { links: [{ u: url }] }) : { data: [] };
+    const already = new Set((linking ?? []).map((l) => l.url as string));
+    return Response.json({ anchor: anchorFor(t), suggestions: first.filter((f) => !already.has(f.from)).slice(0, 5) });
   }
 
   return err("Unknown action.");

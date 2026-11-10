@@ -244,3 +244,64 @@ test("with Search Console and Chrome UX Report data, the Google checks run and i
   // Without Google data, none of these run.
   assert.ok(!runChecks(pages, site()).some((i) => ["not_indexed_valuable", "cwv_fail_origin", "sitemap_not_submitted"].includes(i.id)));
 });
+
+test("rendering checks compare the raw HTML with what Chromium saw", async () => {
+  const { renderedFacts, rawShare } = await import("../src/lib/tech/render.ts");
+  const raw = readPage("https://acme.com/p", "<html><head><title>Pricing</title><link rel=canonical href=https://acme.com/p></head><body><main><p>Plans below.</p></main></body></html>", {}, { root: ROOT });
+  const r = renderedFacts(
+    "https://acme.com/p",
+    `<html><head><title>Pricing</title><meta name=description content="Plans"><link rel=canonical href=https://acme.com/other><script type="application/ld+json">{"@type":"Product"}</script></head><body><main><h1>Plans</h1><p>${"word ".repeat(300)}</p>${Array.from({ length: 6 }, (_, i) => `<a href="/plan/${i}">P${i}</a>`).join("")}</main></body></html>`,
+    raw.internal.map((l) => l.url),
+    { status: 200, final: "https://acme.com/p", timeout: false, errors: ["TypeError: x is undefined"], failed: [{ url: "https://acme.com/api/plans", type: "fetch", reason: "net::ERR_FAILED" }, { url: "https://acme.com/i.png", type: "image", reason: "x" }], resources: ["https://acme.com/assets/app.js"] },
+    { root: ROOT },
+  );
+  assert.equal(r.onlyRendered.length, 6);
+  assert.equal(r.failed.length, 1); // images don't count
+  assert.equal(rawShare(raw.words, r), 1);
+  const p = page("https://acme.com/p", {}, { ...raw, canonical: "https://acme.com/p" });
+  p.rendered = r;
+  const issues = runChecks([page("https://acme.com/", { depth: 0 }), p], site({ robotsAllowsGoogle: (u) => !u.includes("/assets/") }));
+  const ids = issues.map((i) => i.id);
+  for (const id of ["js_most_content", "js_canonical_changed", "js_title_meta", "js_links_only", "js_schema_only", "render_failed_requests", "robots_blocks_resources", "render_errors"]) assert.ok(ids.includes(id), id);
+  assert.ok(!ids.includes("js_main_content") && !ids.includes("js_robots_changed") && !ids.includes("render_timeout"));
+  // A page that rendered the same as its HTML has no rendering issues.
+  const same = page("https://acme.com/s");
+  same.rendered = { ...r, words: same.facts!.words, onlyRendered: [], schema: same.facts!.schema, canonical: same.facts!.canonical, failed: [], errors: 0, resources: [], description: same.facts!.description, h1: same.facts!.h1, title: same.facts!.title, noindex: false };
+  assert.deepEqual(runChecks([page("https://acme.com/", { depth: 0 }), same], site()).filter((i) => i.area === "render").map((i) => i.id), []);
+});
+
+test("internal link score: the home page leads, a page nobody links to is lowest", () => {
+  const t = new LinkTally();
+  const urls = ["https://acme.com/", "https://acme.com/a", "https://acme.com/b", "https://acme.com/c", "https://acme.com/lonely"];
+  for (const u of urls) t.page(u, 200);
+  t.links("https://acme.com/", ["https://acme.com/a", "https://acme.com/b", "https://acme.com/c"]);
+  t.links("https://acme.com/a", ["https://acme.com/", "https://acme.com/b"]);
+  t.links("https://acme.com/b", ["https://acme.com/"]);
+  t.links("https://acme.com/c", ["https://acme.com/"]);
+  const r = t.rank();
+  assert.equal(r.get("https://acme.com/"), 10);
+  assert.equal(r.get("https://acme.com/lonely"), 0);
+  assert.ok(r.get("https://acme.com/b")! > r.get("https://acme.com/c")!);
+});
+
+test("site structure: folders, weak pages and link suggestions", async () => {
+  const { folders, weakPages, suggestLinks, anchorFor, topicWords } = await import("../src/lib/tech/structure.ts");
+  const sp = (url: string, over = {}) => ({ url, depth: 2, linksIn: 5, rank: 5, status: 200, indexable: true, clicks: 0, ...over });
+  const f = folders([sp("https://acme.com/"), sp("https://acme.com/blog/a", { depth: 3 }), sp("https://acme.com/blog/b", { depth: 5, clicks: 40 }), sp("https://acme.com/pricing")]);
+  assert.deepEqual(f.map((x) => [x.folder, x.pages]), [["/", 2], ["/blog", 2]]);
+  assert.equal(f.find((x) => x.folder === "/blog")?.depth, 4);
+  const weak = weakPages([sp("https://acme.com/x", { clicks: 90, rank: 1.2 }), sp("https://acme.com/y", { clicks: 10, depth: 5 }), sp("https://acme.com/z", { clicks: 300 }), sp("https://acme.com/n", { clicks: 0, rank: 0.1 })]);
+  assert.deepEqual(weak.map((p) => p.url), ["https://acme.com/x", "https://acme.com/y"]);
+  assert.deepEqual([...topicWords("The best AI search tools for agencies")], ["search", "tool", "agencie"]);
+  const s = suggestLinks(
+    { url: "https://acme.com/geo", title: "Generative engine optimization guide | Acme", h1: "Generative engine optimization" },
+    [
+      { url: "https://acme.com/a", title: "Engine optimization for AI answers", h1: "", rank: 6, links: [] },
+      { url: "https://acme.com/b", title: "Generative engine optimization tips", h1: "", rank: 2, links: ["https://acme.com/geo"] },
+      { url: "https://acme.com/c", title: "Pricing", h1: "", rank: 9, links: [] },
+      { url: "https://acme.com/d", title: "Generative engine optimization checklist", h1: "", rank: 3, links: [] },
+    ],
+  );
+  assert.deepEqual(s.map((x) => x.from), ["https://acme.com/d", "https://acme.com/a"]);
+  assert.equal(anchorFor({ title: "GEO guide | Acme", h1: "" }), "GEO guide");
+});
