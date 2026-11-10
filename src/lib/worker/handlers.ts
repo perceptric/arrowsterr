@@ -27,6 +27,7 @@ import { runMap } from "../contentMapServer";
 import { collectScan, queueWeeklyScans } from "../localServer";
 import { queueProfileReads, runProfileRead } from "../localProfileServer";
 import { queueReviewPulls, runReviewPull } from "../localReviewsServer";
+import { collectAiScan, queueAiScans } from "../localAiServer";
 import { queueReportSends } from "../scheduleServer";
 import { applySet, preparePlay, undoSet } from "../plays";
 import { checkDue, promptAllowance } from "../plans";
@@ -63,6 +64,7 @@ export async function schedule(db: SupabaseClient, job: Job) {
   await queueWeeklyScans(db).catch((e) => console.error("Weekly local scans failed:", e instanceof Error ? e.message : e));
   await queueProfileReads(db).catch((e) => console.error("Weekly local profile reads failed:", e instanceof Error ? e.message : e));
   await queueReviewPulls(db).catch((e) => console.error("Weekly local review pulls failed:", e instanceof Error ? e.message : e));
+  await queueAiScans(db).catch((e) => console.error("Monthly local AI grids failed:", e instanceof Error ? e.message : e));
   const engines = availableEngines();
   if (!engines.length) return finish(job.id);
   const now = new Date();
@@ -323,6 +325,13 @@ export async function local_profile(db: SupabaseClient, job: Job) {
 // Local Research reviews (docs/local-research-plan.md, 4.5): post the pulls, collect them, then read themes.
 export async function local_reviews(db: SupabaseClient, job: Job) {
   await runReviewPull(db, job.payload as Parameters<typeof runReviewPull>[1]);
+  await finish(job.id);
+}
+
+// Local Research AI answers (docs/local-research-plan.md, 4.6): collect an AI grid's answers until all are in.
+export async function local_ai(db: SupabaseClient, job: Job) {
+  const { scanId, round } = job.payload as { scanId: string; round?: number };
+  await collectAiScan(db, scanId, round ?? 0);
   await finish(job.id);
 }
 

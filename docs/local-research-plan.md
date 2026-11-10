@@ -208,6 +208,8 @@ The same rules as the rest of the product: a wrong signal costs more than a miss
 
 **Phase 3 built, November 2026:** the Reviews tab on each location. Reviews of the business and its 3 leaders are pulled weekly (and on Read now), saved by review id, with removed ones marked. It shows reviews per month, rating and answered share against the leaders, median reply time, themes with quotes (Haiku picks, code proves), keyword words in reviews, the reviews to answer with Draft reply, and the review link with a QR code. See `docs/local-research.md`.
 
+**Phase 4 built, November 2026:** the AI answers tab on each location. Google's AI Mode is asked "best {keyword}" from a 5 × 5 grid over the same area as the Maps grid, and ChatGPT and Gemini once for the city, monthly and on Scan now. It shows the share of points where AI Mode names the business, its average place in the answer, ChatGPT and Gemini, the AI map, the businesses AI names (matched by Maps link, website, then name, marked "By name"), the sites AI cites, and where AI Mode and the Maps top 3 disagree. See `docs/local-research.md`.
+
 
 | Phase | Weeks | What ships | Done when |
 |---|---|---|---|

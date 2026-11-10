@@ -6,6 +6,7 @@ import { businesses, GRID, gridOf, headToHead, isBusiness, keywordSuggestions, k
 import { LocalMap, rankDot, type MapDot } from "./LocalMap";
 import { ProfileTab } from "./local/ProfileTab";
 import { ReviewsTab } from "./local/ReviewsTab";
+import { AiTab } from "./local/AiTab";
 import type { RunAuth } from "@/lib/runner";
 import { Dropdown } from "./Pickers";
 import { BAR_INPUT } from "./research/shared";
@@ -33,7 +34,7 @@ export function LocalResearchPage({ brand, sb, auth, canEdit }: { brand: Brand; 
   const [adding, setAdding] = useState(false);
   const [replacing, setReplacing] = useState(false);
   const [removing, setRemoving] = useState(false);
-  const [tab, setTab] = useState<"rankings" | "profile" | "reviews">("rankings");
+  const [tab, setTab] = useState<"rankings" | "profile" | "reviews" | "ai">("rankings");
   const [limits, setLimits] = useState<Limits | null>(null);
   const [error, setError] = useState("");
   const [note, setNote] = useState("");
@@ -185,14 +186,16 @@ export function LocalResearchPage({ brand, sb, auth, canEdit }: { brand: Brand; 
       ) : loc ? (
         <>
           <div role="tablist" aria-label="Location view" className="aw-tabs flex">
-            {(["rankings", "profile", "reviews"] as const).map((t) => (
+            {(["rankings", "ai", "profile", "reviews"] as const).map((t) => (
               <button key={t} type="button" role="tab" aria-selected={tab === t} onClick={() => setTab(t)}>
-                {t === "rankings" ? "Rankings" : t === "profile" ? "Profile" : "Reviews"}
+                {t === "rankings" ? "Rankings" : t === "ai" ? "AI answers" : t === "profile" ? "Profile" : "Reviews"}
               </button>
             ))}
           </div>
           {tab === "profile" ? (
             <ProfileTab key={loc.id} sb={sb} locationId={loc.id} canEdit={canEdit} call={call} onError={setError} />
+          ) : tab === "ai" ? (
+            <AiTab key={loc.id} sb={sb} loc={loc} canEdit={canEdit} call={call} onError={setError} />
           ) : tab === "reviews" ? (
             <ReviewsTab key={loc.id} sb={sb} locationId={loc.id} placeId={loc.placeId} keywords={loc.keywords} city={loc.city ?? null} canEdit={canEdit} call={call} onError={setError} />
           ) : (

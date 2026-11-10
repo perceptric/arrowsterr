@@ -34,6 +34,17 @@ Local Research (Organic Research, Local Research, at `/local-research`) shows wh
 - **Ask for reviews:** Google's write-a-review link from the place id, with Copy link and a QR code to download (the `qrcode` package, in the browser).
 - A pull costs 3 plan tasks; a draft reply costs 1. Tests: `tests/localReviews.test.ts`.
 
+## AI answers (phase 4 of `docs/local-research-plan.md`)
+
+- **The AI answers tab** asks Google's AI Mode "best {keyword}" from every point of a 5 × 5 grid (smaller when the Maps grid is 3 × 3) laid over the same area as the Maps grid, so corners and centre line up. DataForSEO takes each point's coordinates. ChatGPT and Gemini are asked "best {keyword} in {city}" once each.
+- **When it runs:** monthly for every keyword of a location with scheduled scans, and on Scan now (editors). Standard queue; the job collects answers for up to 2 hours, and an engine that never answers is left out.
+- **Matching:** the businesses looked for are the location's business and every business its latest Maps scan for that keyword saw. A business counts as named when the answer links its Maps listing (its cid) or its own website, or else says its full name as whole words. Sites many businesses share (Facebook, Yelp, Wix and others) never count as a business's site, a site two businesses share proves neither, and one-word names under 8 letters are never matched by name. Businesses matched only by name carry a "By name" tag.
+- **Numbers:** the share of answered points where AI Mode names the business, its average place in the answer, whether ChatGPT and Gemini name it and where, and how many businesses AI names more often. Points that failed are left out; a point where Google showed no AI answer counts as answered and names nobody. Shares are over the whole grid, never one point.
+- **The AI map:** each point shows the business's place in the answer (green 1st to 3rd, orange 4th or later, red not named). A click shows who that answer names and the start of its text.
+- **Next to Maps:** each AI point against the nearest Maps point: "At 6 points you're in the Maps top 3 but AI Mode doesn't name you."
+- **Sites AI cites:** the sites the answers cite most, marked Your site or Competitor site, each linking to Backlinks.
+- A scan takes 12 tasks on a 5 × 5 grid (about 2 per 5 points, plus 2). Tests: `tests/localAi.test.ts`.
+
 ## What it shows
 
 - **Setup:** search the business by name and city (one Google Maps request, 1 task), then pick it. Its Google ids, address, phone, category and position are saved on `brands.profile.location`.
@@ -91,7 +102,8 @@ Request and response fields follow DataForSEO's docs: `cid`, `place_id`, `rating
 - `supabase/071_local_locations.sql` adds `local_locations` (viewers may read), and `location_id`, `size`, `shape`, `center_lat` and `center_lng` on `local_scans`. It copies each brand's one location from `brands.profile.location` and points its scans at it.
 - `supabase/072_local_profiles.sql` adds `local_profiles`: one row per business per read (`you` marks the location's own business, `confirm` marks a confirm read). Viewers may read. The `local_profile` job reads and collects posts (`src/lib/localProfileServer.ts`).
 - `supabase/073_local_reviews.sql` adds `local_reviews` (one row per review, unique on location, business and review id; viewers may read), and `reviews_at` and `reviews_from` on `local_locations` (when reviews were last pulled, and from which businesses). The `local_reviews` job posts the pulls, collects them and reads themes (`src/lib/localReviewsServer.ts`).
-- `/api/local` takes `limits`, `find`, `set` (a new location, or a new business for one), `remove`, `settings`, `scan`, `prompts`, `profile` (Read now on Profile), `reviews` (Read now on Reviews) and `reply` (a draft reply), each with a `locationId`.
+- `supabase/074_local_ai_scans.sql` adds `local_ai_scans`: one row per keyword per AI grid, with the businesses looked for, each answer as saved (who it names, the sites it cites, the start of its text) and the summary. Viewers may read. The `local_ai` job collects the answers (`src/lib/localAiServer.ts`).
+- `/api/local` takes `limits`, `find`, `set` (a new location, or a new business for one), `remove`, `settings`, `scan`, `prompts`, `profile` (Read now on Profile), `reviews` (Read now on Reviews), `reply` (a draft reply) and `aiscan` (Scan now on AI answers), each with a `locationId`.
 - Zippie reads it with `get_local_research`. Two skills use it: "Local audit" and "Review response plan."
 
 ## Running cost
@@ -140,6 +152,16 @@ Assume 20% of teams track a local business (10 at Beta, 100 at Growth), each wit
 | QR codes and review links | $0 | $0 |
 | **Added by phase 3** | **~$3.10** | **~$31** |
 | **Local Research monthly total** | **~$11.80** | **~$119** |
+
+**Phase 4, AI answers.** DataForSEO Google AI Mode on the standard queue, $0.0024 per answer (vendor pricing page, November 2026). ChatGPT and Gemini through DataForSEO's LLM scraper, about $0.003 each (check). Each location: 3 keywords a month, each 25 AI Mode answers plus 2 city answers, about $0.20, plus about 1 Scan now a month (about $0.07). About $0.27 a location a month. No Claude calls: matching is code.
+
+| Line | Beta (15 locations) | Growth (150 locations) |
+|---|---|---|
+| AI Mode on the grid (DataForSEO) | ~$3.60 | ~$36 |
+| ChatGPT and Gemini for the city (DataForSEO, check) | ~$0.40 | ~$4 |
+| Collecting and matching (worker) | $0 | $0 |
+| **Added by phase 4** | **~$4.00** | **~$40** |
+| **Local Research monthly total** | **~$15.80** | **~$159** |
 
 ## Example data
 

@@ -4,6 +4,8 @@ import { cityOf, gridOf, localLimits, localPrompts, scanTasks, SCHEDULES, SIZES,
 import { findPlaces, locationOf, locationsOf, startScan, type SavedLocation } from "@/lib/localServer";
 import { queueProfileRead } from "@/lib/localProfileServer";
 import { draftReply, queueReviewPull } from "@/lib/localReviewsServer";
+import { aiGridOf, aiTasks } from "@/lib/localAi";
+import { startAiScan } from "@/lib/localAiServer";
 import { TOOLS as MCP_TOOLS } from "@/lib/mcp/tools";
 import { meteredRoute } from "@/lib/meter";
 import { TASK_COST } from "@/lib/plans";
@@ -26,6 +28,7 @@ const err = (error: string, status = 400) => Response.json({ error }, { status }
 //   profile:  { brandId, locationId }              editors: read the Google profiles now (the business and its 3 leaders)
 //   reviews:  { brandId, locationId }              editors: pull the Google reviews now (the business and its 3 leaders)
 //   reply:    { brandId, locationId, reviewId }    editors: a draft reply to one of the business's reviews (1 task)
+//   aiscan:   { brandId, locationId, keyword }     editors: ask AI Mode from the AI grid, and ChatGPT and Gemini for the city
 async function handle(request: Request) {
   const body = await request.json().catch(() => ({}));
   const auth = await requireRole(request, body.workspaceId, "editor");
@@ -171,6 +174,23 @@ async function handle(request: Request) {
       if (!took.ok) return took.response;
       // The metered route hands the task back on its own when the answer is an error.
       return Response.json({ text: await draftReply(db, brand.id, loc, reviewId) });
+    }
+
+    if (body.action === "aiscan") {
+      const locked = await requireTrack(ws, "seo");
+      if (locked) return locked;
+      const keyword = str(body.keyword, 80).toLowerCase();
+      if (!keyword) return err("Pick a keyword.");
+      const since = new Date(Date.now() - 15 * 60_000).toISOString();
+      const { data: running } = await db.from("local_ai_scans").select("id").eq("location_id", loc.id).eq("keyword", keyword).eq("status", "running").gte("created_at", since).limit(1);
+      if (running?.length) return Response.json({ scanId: running[0].id });
+      const cost = aiTasks(aiGridOf(loc).points.length);
+      const took = await take(ws, "tasks", cost, { refundIfFree: false });
+      if (!took.ok) return took.response;
+      const pack = took.fromPack ?? 0;
+      // The metered route hands the tasks back on its own when the answer is an error.
+      const scanId = await startAiScan(db, ws, me.user?.id ?? null, brand.id, loc, keyword, { country: profile.country, charge: took.period ? { period: took.period, plan: cost - pack, pack } : null });
+      return Response.json({ scanId });
     }
 
     if (body.action === "prompts") {
