@@ -17,7 +17,7 @@ import { bareDomain, gapRivals, parseGap, type Overview } from "../backlinks";
 import { aiCited, keys as blKeys, saved as savedBacklinks } from "../backlinksServer";
 import { mapStats, type ContentMap } from "../contentMap";
 import type { Profile } from "../db";
-import type { ScanResult } from "../local";
+import { scheduleOf, type Location, type ScanResult } from "../local";
 import type { OnpageResult } from "../onpage";
 import { previousFull, type AuditRow } from "../siteAudit";
 import { ToolError, textResult, type Schema, type ToolResult } from "./protocol";
@@ -735,22 +735,35 @@ export const TOOLS: Tool[] = [
   {
     name: "get_local_research",
     title: "Local Research",
-    description: "The brand's Google Maps rankings: the business, and for each tracked keyword the latest 7 by 7 grid scan: average rank (not found counts as 21), points in the top 3 and top 20, rating and reviews, the local competitors holding the top 3, and the listing check (name, phone, address, LocalBusiness schema, category against competitors).",
+    description: "The brand's Google Maps rankings for each of its locations: the business, and for each tracked keyword the latest grid scan (its size and spacing): average rank (not found counts as 21), points in the top 3 and top 20, rating and reviews, the local competitors holding the top 3, and the listing check (name, phone, address, LocalBusiness schema, category against competitors).",
     inputSchema: { type: "object", properties: { brand: brandArg } },
     annotations: { readOnlyHint: true, openWorldHint: false },
     async run(ctx, args) {
       const brand = await pickBrand(ctx, args.brand);
-      const loc = (brand.profile as Profile | null)?.location;
-      if (!loc) return textResult({ brand: { name: brand.name, domain: brand.domain }, location: null }, "No business location yet. An editor adds it on Organic Research, Local Research.");
-      const { data } = await ctx.db.from("local_scans").select("keyword, created_at, result").eq("brand_id", brand.id).eq("status", "done").order("created_at", { ascending: false }).limit(30);
+      const { data: rows } = await ctx.db.from("local_locations").select("id, data").eq("brand_id", brand.id).order("position");
+      const locs = ((rows ?? []) as { id: string; data: Location }[]).map((r) => ({ ...r.data, id: r.id }));
+      const legacy = (brand.profile as Profile | null)?.location;
+      if (!locs.length && legacy) locs.push({ ...legacy, id: "" });
+      if (!locs.length) return textResult({ brand: { name: brand.name, domain: brand.domain }, locations: [] }, "No business location yet. An editor adds it on Organic Research, Local Research.");
+      const { data } = await ctx.db.from("local_scans").select("location_id, keyword, created_at, result").eq("brand_id", brand.id).eq("status", "done").order("created_at", { ascending: false }).limit(200);
       const latest = new Map<string, { created_at: string; result: ScanResult & { listing?: unknown } }>();
-      for (const r of (data ?? []) as { keyword: string; created_at: string; result: ScanResult & { listing?: unknown } }[]) if (!latest.has(r.keyword)) latest.set(r.keyword, r);
+      for (const r of (data ?? []) as { location_id: string | null; keyword: string; created_at: string; result: ScanResult & { listing?: unknown } }[]) {
+        const k = `${r.location_id ?? ""}|${r.keyword}`;
+        if (!latest.has(k)) latest.set(k, r);
+      }
       return textResult({
         brand: { name: brand.name, domain: brand.domain },
-        business: { name: loc.title, address: loc.address, category: loc.category, phone: loc.phone },
-        keywords: loc.keywords,
-        weekly: loc.weekly,
-        scans: [...latest.entries()].map(([k, r]) => ({ keyword: k, scanned: r.created_at, average_rank: r.result.avg, top3_points: r.result.top3, top20_points: r.result.found, points_read: r.result.read, you: r.result.you, rivals: r.result.rivals.slice(0, 5), listing: r.result.listing ?? null })),
+        locations: locs.map((loc) => ({
+          name: loc.name ?? loc.city ?? loc.title,
+          business: { name: loc.title, address: loc.address, category: loc.category, phone: loc.phone },
+          keywords: loc.keywords,
+          schedule: scheduleOf(loc),
+          grid: { size: loc.size ?? 7, shape: loc.shape ?? "square", spacing_miles: loc.spacing, moved_center: Boolean(loc.center) },
+          scans: loc.keywords
+            .map((k) => [k, latest.get(`${loc.id}|${k}`) ?? (locs.length === 1 ? latest.get(`|${k}`) : undefined)] as const)
+            .filter((x): x is readonly [string, { created_at: string; result: ScanResult & { listing?: unknown } }] => Boolean(x[1]))
+            .map(([k, r]) => ({ keyword: k, scanned: r.created_at, grid: `${r.result.size} x ${r.result.size}`, average_rank: r.result.avg, top3_points: r.result.top3, top20_points: r.result.found, points_read: r.result.read, you: r.result.you, rivals: r.result.rivals.slice(0, 5), listing: r.result.listing ?? null })),
+        })),
       });
     },
   },

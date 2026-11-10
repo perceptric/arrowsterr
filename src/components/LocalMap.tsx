@@ -1,9 +1,9 @@
 "use client";
 
 import "maplibre-gl/dist/maplibre-gl.css";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Map as MlMap, Marker } from "maplibre-gl";
-import { grid, GRID } from "@/lib/local";
+import { grid, GRID, type Shape } from "@/lib/local";
 
 // The rank grid on a real street map (MapLibre with OpenFreeMap's free tiles, docs/local-research.md). Each dot is a
 // grid point coloured by the picked business's rank there. When the map can't load (no WebGL, tiles blocked), the
@@ -28,15 +28,22 @@ export function rankDot(r: number | null | undefined): MapDot {
   return { label: r === undefined ? "?" : r === null ? "20+" : String(r), ...f, dashed: r === undefined, aria: r === undefined ? "No answer" : r === null ? "Not in the top 20" : `Rank ${r}` };
 }
 
-export function LocalMap({ lat, lng, spacing, dots, sel, onSel, onFail }: { lat: number; lng: number; spacing: number; dots: MapDot[]; sel: number; onSel: (i: number) => void; onFail: () => void }) {
+/**
+ * The grid on the map. `lat`, `lng` is the grid's centre; `pin` is where the business is (they differ when the centre was
+ * moved, for a service-area business). With `onPick`, a click on the map picks a new centre.
+ */
+export function LocalMap({ lat, lng, spacing, size = GRID, shape = "square", pin, dots, sel, onSel, onFail, onPick }: { lat: number; lng: number; spacing: number; size?: number; shape?: Shape; pin?: { lat: number; lng: number }; dots: MapDot[]; sel: number; onSel: (i: number) => void; onFail: () => void; onPick?: (p: { lat: number; lng: number }) => void }) {
   const box = useRef<HTMLDivElement>(null);
   const map = useRef<MlMap | null>(null);
   const markers = useRef<Marker[]>([]);
   const [ready, setReady] = useState(false);
+  const pinAt = useMemo(() => (pin ? { lat: pin.lat, lng: pin.lng } : null), [pin?.lat, pin?.lng]); // eslint-disable-line react-hooks/exhaustive-deps
   const onSelRef = useRef(onSel);
+  const onPickRef = useRef(onPick);
   useEffect(() => {
     onSelRef.current = onSel;
-  }, [onSel]);
+    onPickRef.current = onPick;
+  }, [onSel, onPick]);
 
   // The map itself: made once per business and spacing, fitted to the grid.
   useEffect(() => {
@@ -45,7 +52,7 @@ export function LocalMap({ lat, lng, spacing, dots, sel, onSel, onFail }: { lat:
       try {
         const ml = (await import("maplibre-gl")).default;
         if (gone || !box.current) return;
-        const pts = grid(lat, lng, spacing);
+        const pts = grid(lat, lng, spacing, size);
         const lats = pts.map((p) => p.lat);
         const lngs = pts.map((p) => p.lng);
         const m = new ml.Map({
@@ -65,6 +72,7 @@ export function LocalMap({ lat, lng, spacing, dots, sel, onSel, onFail }: { lat:
           if (!m.isStyleLoaded() && /style/i.test(String(e.error?.message ?? ""))) onFail();
         });
         m.on("load", () => !gone && setReady(true));
+        m.on("click", (e) => onPickRef.current?.({ lat: e.lngLat.lat, lng: e.lngLat.lng }));
         map.current = m;
       } catch {
         if (!gone) onFail();
@@ -78,7 +86,7 @@ export function LocalMap({ lat, lng, spacing, dots, sel, onSel, onFail }: { lat:
       map.current = null;
       setReady(false);
     };
-  }, [lat, lng, spacing, onFail]);
+  }, [lat, lng, spacing, size, onFail]);
 
   // The dots: redrawn when the picked business or the picked point changes.
   useEffect(() => {
@@ -89,8 +97,9 @@ export function LocalMap({ lat, lng, spacing, dots, sel, onSel, onFail }: { lat:
       const ml = (await import("maplibre-gl")).default;
       if (gone) return;
       markers.current.forEach((x) => x.remove());
-      const pts = grid(lat, lng, spacing);
-      const centre = Math.floor((GRID * GRID) / 2);
+      const pts = grid(lat, lng, spacing, size, shape);
+      // Bigger grids get smaller dots so they don't overlap.
+      const px = size >= 13 ? 20 : size >= 9 ? 25 : 30;
       markers.current = pts.map((p) => {
         const f = dots[p.i] ?? rankDot(undefined);
         const el = document.createElement("button");
@@ -104,6 +113,9 @@ export function LocalMap({ lat, lng, spacing, dots, sel, onSel, onFail }: { lat:
           borderColor: p.i === sel ? "#111111" : f.border,
           borderWidth: p.i === sel ? "3px" : "2px",
           borderStyle: f.dashed ? "dashed" : "solid",
+          width: `${px}px`,
+          height: `${px}px`,
+          fontSize: px < 30 ? "9.5px" : "",
         });
         el.addEventListener("click", (e) => {
           e.stopPropagation();
@@ -114,12 +126,13 @@ export function LocalMap({ lat, lng, spacing, dots, sel, onSel, onFail }: { lat:
       const pin = document.createElement("span");
       pin.className = "lr-pin";
       pin.setAttribute("aria-hidden", "true");
-      markers.current.push(new ml.Marker({ element: pin, offset: [0, -24] }).setLngLat([pts[centre].lng, pts[centre].lat]).addTo(m));
+      const at = pinAt ?? { lat, lng };
+      markers.current.push(new ml.Marker({ element: pin, offset: [0, -24] }).setLngLat([at.lng, at.lat]).addTo(m));
     })();
     return () => {
       gone = true;
     };
-  }, [ready, dots, sel, lat, lng, spacing]);
+  }, [ready, dots, sel, lat, lng, spacing, size, shape, pinAt]);
 
-  return <div ref={box} className="lr-map h-[560px] w-full overflow-hidden rounded-[12px] bg-[var(--aw-surface-2)]" role="region" aria-label="Rank grid on the map" />;
+  return <div ref={box} className={`lr-map h-[560px] w-full overflow-hidden rounded-[12px] bg-[var(--aw-surface-2)] ${onPick ? "cursor-crosshair [&_canvas]:cursor-crosshair!" : ""}`} role="region" aria-label={onPick ? "Click the map to put the grid's centre there" : "Rank grid on the map"} />;
 }

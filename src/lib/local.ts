@@ -32,29 +32,112 @@ export type Location = {
   keywords: string[];
   spacing: number; // miles between grid points
   weekly: boolean;
+  /** The row in local_locations (phase 1 of docs/local-research-plan.md). */
+  id?: string;
+  /** A short name for the location, like "Mueller". */
+  name?: string;
+  /** Points per side: 3, 5, 7 (default), 9 or 13. */
+  size?: number;
+  shape?: Shape;
+  /** Where the grid is centred, when not on the business pin (service-area businesses). */
+  center?: { lat: number; lng: number } | null;
+  schedule?: Schedule;
 };
+export type Shape = "square" | "circle";
+export type Schedule = "weekly" | "biweekly" | "monthly" | "off";
 export type Point = { i: number; lat: number; lng: number };
 export type PointResult = { i: number; rank: number | null; top: { title: string; cid: string | null }[]; error?: boolean };
 export type Rival = { title: string; cid: string | null; domain: string | null; category: string | null; rating: number | null; reviews: number | null; top3: number; seen: number };
-export type ScanResult = { keyword: string; size: number; spacing: number; points: PointResult[]; rivals: Rival[]; you: { rating: number | null; reviews: number | null } | null; avg: number | null; top3: number; found: number; read: number };
+export type ScanResult = { keyword: string; size: number; spacing: number; shape?: Shape; center?: { lat: number; lng: number }; points: PointResult[]; rivals: Rival[]; you: { rating: number | null; reviews: number | null } | null; avg: number | null; top3: number; found: number; read: number };
 
 export const GRID = 7;
 export const MAX_DEPTH = 20;
-export const SPACINGS = [0.5, 1, 2];
+export const SIZES = [3, 5, 7, 9, 13];
+export const SPACINGS = [0.25, 0.5, 1, 2, 3, 5];
+export const SCHEDULES: { id: Schedule; label: string; days: number }[] = [
+  { id: "weekly", label: "Weekly", days: 7 },
+  { id: "biweekly", label: "Every 2 weeks", days: 14 },
+  { id: "monthly", label: "Monthly", days: 30 },
+  { id: "off", label: "Off", days: 0 },
+];
 
-/** A 7 by 7 grid centred on the business, `spacing` miles apart, row by row from the north-west corner. */
-export function grid(lat: number, lng: number, spacing: number, size = GRID): Point[] {
+/** A point is in a round grid when it sits within half the grid's width of the centre (corners drop). */
+export const inCircle = (r: number, c: number, size: number) => {
+  const half = Math.floor(size / 2);
+  return Math.hypot(r - half, c - half) <= half + 0.5;
+};
+
+/**
+ * A size by size grid centred on (lat, lng), `spacing` miles apart, row by row from the north-west corner. A point's
+ * number is its place in the full square (row * size + column), so a round grid keeps the same numbers with the
+ * corners left out.
+ */
+export function grid(lat: number, lng: number, spacing: number, size = GRID, shape: Shape = "square"): Point[] {
   const half = Math.floor(size / 2);
   const dLat = spacing / 69.0;
   const dLng = spacing / (69.172 * Math.cos((lat * Math.PI) / 180));
   const out: Point[] = [];
-  for (let r = 0; r < size; r++) for (let c = 0; c < size; c++) out.push({ i: r * size + c, lat: round(lat + (half - r) * dLat), lng: round(lng + (c - half) * dLng) });
+  for (let r = 0; r < size; r++)
+    for (let c = 0; c < size; c++) if (shape === "square" || inCircle(r, c, size)) out.push({ i: r * size + c, lat: round(lat + (half - r) * dLat), lng: round(lng + (c - half) * dLng) });
   return out;
 }
 const round = (x: number) => Math.round(x * 1e6) / 1e6;
 
+/** The grid a location scans with: its size, shape, spacing and centre (the business pin unless moved). */
+export function gridOf(loc: Pick<Location, "lat" | "lng" | "spacing" | "size" | "shape" | "center">): { center: { lat: number; lng: number }; size: number; shape: Shape; spacing: number; points: Point[] } {
+  const center = loc.center ?? { lat: loc.lat, lng: loc.lng };
+  const size = SIZES.includes(loc.size ?? GRID) ? (loc.size ?? GRID) : GRID;
+  const shape: Shape = loc.shape === "circle" ? "circle" : "square";
+  return { center, size, shape, spacing: loc.spacing, points: grid(center.lat, center.lng, loc.spacing, size, shape) };
+}
+
+/**
+ * Plan tasks a scan takes, in proportion to its points: 49 points cost 6 on the standard queue (a scheduled scan) and
+ * 12 on the priority queue (Scan now), as before. At least 1.
+ */
+export const scanTasks = (points: number, fast: boolean) => Math.max(1, Math.ceil((points * (fast ? 12 : 6)) / 49));
+
 /** Google Maps zoom that fits the grid: closer points, closer zoom. */
-export const zoomFor = (spacing: number) => (spacing <= 0.5 ? 15 : spacing <= 1 ? 14 : 13);
+export const zoomFor = (spacing: number) => (spacing <= 0.25 ? 16 : spacing <= 0.5 ? 15 : spacing <= 1 ? 14 : spacing <= 2 ? 13 : spacing <= 3 ? 12 : 11);
+
+/** A location's schedule. Locations saved before schedules had only "weekly" on or off. */
+export const scheduleOf = (loc: Pick<Location, "schedule" | "weekly">): Schedule => loc.schedule ?? (loc.weekly ? "weekly" : "off");
+
+/** True when a keyword is due a scheduled scan: its last scan is at least the schedule's days old (minus 3 hours of slack). */
+export function scanDue(schedule: Schedule, lastAt: string | null, now = Date.now()): boolean {
+  const days = SCHEDULES.find((x) => x.id === schedule)?.days ?? 0;
+  if (!days) return false;
+  return !lastAt || now - Date.parse(lastAt) >= days * 864e5 - 3 * 3600_000;
+}
+
+/** Locations and keywords per location, by plan. */
+export function localLimits(plan: string): { locations: number; keywords: number } {
+  if (plan === "agency") return { locations: 25, keywords: 30 };
+  if (plan === "enterprise") return { locations: 100, keywords: 50 };
+  if (plan === "scale" || plan === "thrive" || plan === "legacy") return { locations: 3, keywords: 15 };
+  if (plan === "free") return { locations: 1, keywords: 3 };
+  return { locations: 1, keywords: 5 };
+}
+
+/**
+ * Keywords worth tracking that aren't yet: the categories of the businesses that hold the most top 3 spots, the
+ * business's own categories, and "{main keyword} near me". Most common first, at most `n`.
+ */
+export function keywordSuggestions(loc: Pick<Location, "keywords" | "category" | "categories">, rivals: Pick<Rival, "category" | "top3">[], n = 6): string[] {
+  const have = new Set(loc.keywords.map((k) => k.toLowerCase().trim()));
+  const score = new Map<string, number>();
+  const add = (k: string | null | undefined, w: number) => {
+    const key = (k ?? "").toLowerCase().trim();
+    if (key.length < 3 || have.has(key)) return;
+    score.set(key, (score.get(key) ?? 0) + w);
+  };
+  for (const r of rivals) add(r.category, 1 + r.top3);
+  add(loc.category, 2);
+  for (const c of loc.categories) add(c, 2);
+  const main = loc.keywords[0] ?? loc.category?.toLowerCase();
+  if (main && !/near me$/.test(main)) add(`${main} near me`, 3);
+  return [...score.entries()].sort((a, b) => b[1] - a[1]).slice(0, n).map(([k]) => k);
+}
 
 const clean = (s: string | null | undefined) => (s ?? "").toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, " ").trim();
 const bareHost = (d: string | null | undefined) => (d ?? "").trim().toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/[/?#].*$/, "");
@@ -81,7 +164,7 @@ export const placeKey = keyOf;
  * Sum up a scan: average rank (not found counts as 21, so a gap pulls the average down instead of hiding),
  * top 3 share, and the rivals that held the top 3 most often. Points that failed to load are left out of every number.
  */
-export function summarize(keyword: string, spacing: number, perPoint: { i: number; results: Place[] | null }[], loc: Parameters<typeof isBusiness>[1]): ScanResult {
+export function summarize(keyword: string, spacing: number, perPoint: { i: number; results: Place[] | null }[], loc: Parameters<typeof isBusiness>[1], shape?: { size: number; shape: Shape; center: { lat: number; lng: number } }): ScanResult {
   const points: PointResult[] = [];
   const rivals = new Map<string, Rival>();
   let you: ScanResult["you"] = null;
@@ -121,8 +204,9 @@ export function summarize(keyword: string, spacing: number, perPoint: { i: numbe
   const avg = ok.length ? Math.round((ok.reduce((s, p) => s + Math.min(p.rank ?? MAX_DEPTH + 1, MAX_DEPTH + 1), 0) / ok.length) * 10) / 10 : null;
   return {
     keyword,
-    size: GRID,
+    size: shape?.size ?? GRID,
     spacing,
+    ...(shape ? { shape: shape.shape, center: shape.center } : {}),
     points: points.sort((a, b) => a.i - b.i),
     rivals: [...rivals.values()].sort((a, b) => b.top3 - a.top3 || b.seen - a.seen || (b.reviews ?? 0) - (a.reviews ?? 0)).slice(0, 8),
     you,
@@ -287,15 +371,17 @@ export function localInsights(scan: ScanResult, prev: ScanResult | null, you: Pi
             : `You're in the top 3 for ${kw} at ${scan.top3} of ${scan.read} points.`;
 
   const out: Insight[] = [];
-  const centre = ok.find((p) => p.i === Math.floor((GRID * GRID) / 2));
-  if (centre) out.push(centre.rank === null ? { tone: "bad", text: "At your own address you're not in the top 20." } : { tone: centre.rank <= 3 ? "good" : "warn", text: `At your own address you rank #${centre.rank}.` });
+  const N = scan.size || GRID;
+  const centre = ok.find((p) => p.i === Math.floor((N * N) / 2));
+  // A grid whose centre was moved (a service-area business) has no point at the business's address.
+  if (centre && !scan.center) out.push(centre.rank === null ? { tone: "bad", text: "At your own address you're not in the top 20." } : { tone: centre.rank <= 3 ? "good" : "warn", text: `At your own address you rank #${centre.rank}.` });
 
-  const found = ok.filter((p) => p.rank !== null).sort((a, b) => a.rank! - b.rank! || whereIs(a.i, scan.spacing).miles - whereIs(b.i, scan.spacing).miles);
+  const found = ok.filter((p) => p.rank !== null).sort((a, b) => a.rank! - b.rank! || whereIs(a.i, scan.spacing, N).miles - whereIs(b.i, scan.spacing, N).miles);
   if (found.length) {
     const best = found[0];
-    if (best.i !== centre?.i) out.push({ tone: best.rank! <= 3 ? "good" : "info", text: `Your best spot is #${best.rank}, ${placeText(best.i, scan.spacing)}.` });
-    const top10 = ok.filter((p) => p.rank !== null && p.rank <= 10).map((p) => whereIs(p.i, scan.spacing).miles);
-    const edge = Math.max(...ok.map((p) => whereIs(p.i, scan.spacing).miles));
+    if (best.i !== centre?.i) out.push({ tone: best.rank! <= 3 ? "good" : "info", text: `Your best spot is #${best.rank}, ${placeText(best.i, scan.spacing, N)}${scan.center ? " from the centre" : ""}.` });
+    const top10 = ok.filter((p) => p.rank !== null && p.rank <= 10).map((p) => whereIs(p.i, scan.spacing, N).miles);
+    const edge = Math.max(...ok.map((p) => whereIs(p.i, scan.spacing, N).miles));
     if (top10.length) {
       const reach = Math.max(...top10);
       out.push(reach >= edge ? { tone: "good", text: `You stay in the top 10 out to the edge of the grid, ${reach} mi away.` } : { tone: "info", text: `You reach the top 10 as far as ${reach} mi out. Past that, competitors take over.` });
@@ -307,7 +393,7 @@ export function localInsights(scan: ScanResult, prev: ScanResult | null, you: Pi
     const score = (p: PointResult) => Math.min(p.rank ?? MAX_DEPTH + 1, MAX_DEPTH + 1);
     const sides = (["north", "south", "east", "west"] as const).map((side) => {
       const pts = ok.filter((p) => {
-        const r = Math.floor(p.i / GRID), c = p.i % GRID, h = Math.floor(GRID / 2);
+        const r = Math.floor(p.i / N), c = p.i % N, h = Math.floor(N / 2);
         return side === "north" ? r < h : side === "south" ? r > h : side === "east" ? c > h : c < h;
       });
       return { side, avg: pts.length ? pts.reduce((s, p) => s + score(p), 0) / pts.length : MAX_DEPTH + 1 };
