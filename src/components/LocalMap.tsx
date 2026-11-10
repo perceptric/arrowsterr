@@ -20,7 +20,15 @@ export function rankFill(r: number | null | undefined): { bg: string; fg: string
   return { bg: MAP_COLORS.top20, fg: "#FFFFFF", border: "#FFFFFF" };
 }
 
-export function LocalMap({ lat, lng, spacing, ranks, sel, onSel, onFail }: { lat: number; lng: number; spacing: number; ranks: (number | null | undefined)[]; sel: number; onSel: (i: number) => void; onFail: () => void }) {
+export type MapDot = { label: string; bg: string; fg: string; border: string; dashed?: boolean; aria: string };
+
+/** A rank as a dot: the number in the colour of its band. */
+export function rankDot(r: number | null | undefined): MapDot {
+  const f = rankFill(r);
+  return { label: r === undefined ? "?" : r === null ? "20+" : String(r), ...f, dashed: r === undefined, aria: r === undefined ? "No answer" : r === null ? "Not in the top 20" : `Rank ${r}` };
+}
+
+export function LocalMap({ lat, lng, spacing, dots, sel, onSel, onFail }: { lat: number; lng: number; spacing: number; dots: MapDot[]; sel: number; onSel: (i: number) => void; onFail: () => void }) {
   const box = useRef<HTMLDivElement>(null);
   const map = useRef<MlMap | null>(null);
   const markers = useRef<Marker[]>([]);
@@ -84,19 +92,18 @@ export function LocalMap({ lat, lng, spacing, ranks, sel, onSel, onFail }: { lat
       const pts = grid(lat, lng, spacing);
       const centre = Math.floor((GRID * GRID) / 2);
       markers.current = pts.map((p) => {
-        const r = ranks[p.i];
-        const f = rankFill(r);
+        const f = dots[p.i] ?? rankDot(undefined);
         const el = document.createElement("button");
         el.type = "button";
         el.className = "lr-dot";
-        el.setAttribute("aria-label", r === undefined ? "No answer" : r === null ? "Not in the top 20" : `Rank ${r}`);
-        el.textContent = r === undefined ? "?" : r === null ? "20+" : String(r);
+        el.setAttribute("aria-label", f.aria);
+        el.textContent = f.label;
         Object.assign(el.style, {
           background: f.bg,
           color: f.fg,
           borderColor: p.i === sel ? "#111111" : f.border,
           borderWidth: p.i === sel ? "3px" : "2px",
-          borderStyle: r === undefined ? "dashed" : "solid",
+          borderStyle: f.dashed ? "dashed" : "solid",
         });
         el.addEventListener("click", (e) => {
           e.stopPropagation();
@@ -112,7 +119,7 @@ export function LocalMap({ lat, lng, spacing, ranks, sel, onSel, onFail }: { lat
     return () => {
       gone = true;
     };
-  }, [ready, ranks, sel, lat, lng, spacing]);
+  }, [ready, dots, sel, lat, lng, spacing]);
 
   return <div ref={box} className="lr-map h-[560px] w-full overflow-hidden rounded-[12px] bg-[var(--aw-surface-2)]" role="region" aria-label="Rank grid on the map" />;
 }

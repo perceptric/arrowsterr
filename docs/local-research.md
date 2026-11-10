@@ -16,6 +16,12 @@ Local Research (Organic Research, Local Research, at `/local-research`) shows wh
   - Rank distribution as one stacked bar: 1 to 3, 4 to 10, 11 to 20 and not in the top 20.
   - Top 3 coverage: the grid in small and the points in the map pack, with #1 spots.
 - **The map:** the 7 by 7 grid on a real street map (MapLibre with OpenFreeMap's free tiles, attribution shown). Each dot is coloured by the picked business's rank: green 1 to 3, amber 4 to 10, orange 11 to 20, red not in the top 20, a dashed "?" for a point that didn't answer. A pin marks the business. Click a dot to see the top 5 there. If the map can't load (no WebGL, tiles blocked), the drawn grid shows instead.
+- **Map views:** a switch above the map.
+  - Ranks: the picked business's rank at each point.
+  - Change: how each point moved since the scan before (arrows and spots gained or lost, In and Out for the top 20), with a count of points better and worse (`rankMoves`). Shown when there are two scans.
+  - Head to head: when a competitor is picked, which of the two ranks higher at each point, with the counts (`headToHead`).
+- **All keywords:** every keyword's latest average rank, the change since its last scan, top 3 share and a trend line, plus the strongest keyword and the one that needs the most work. Click one to open it (`keywordTable`).
+- **Rank over time:** average rank (#1 at the top) and top 3 share for the open keyword, scan by scan, up to 12 scans.
 - **Businesses:** every business in the scan, sortable by average rank, reviews or rating, with address, rating, reviews and top 3 points. Click one to see its ranks on the map. The ranks come from the scan's saved Google Maps results (`businesses` in `src/lib/local.ts`), so older scans work too.
 - **What this scan says:** one headline and short findings worked out from the scan (`localInsights` in `src/lib/local.ts`): the rank at the business's own address, its best spot and where, how far out it stays in the top 10, its strongest and weakest side, the change since the last scan, reviews and rating against the leader, and how many listing checks need a fix. No AI call.
 - **Listing check:**

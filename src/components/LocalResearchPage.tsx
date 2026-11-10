@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { businesses, GRID, isBusiness, localInsights, mapOwners, placeKey, placeText, rankBands, reviewHistory, SPACINGS, type Business, type ListingCheck, type Location, type MapOwner, type Place, type ScanResult } from "@/lib/local";
-import { LocalMap } from "./LocalMap";
+import { businesses, GRID, headToHead, isBusiness, keywordTable, localInsights, mapOwners, placeKey, placeText, rankBands, rankMoves, reviewHistory, SPACINGS, type Business, type Duel, type KeywordRun, type ListingCheck, type Location, type MapOwner, type Move, type Place, type ScanResult } from "@/lib/local";
+import { LocalMap, rankDot, type MapDot } from "./LocalMap";
 import type { RunAuth } from "@/lib/runner";
 import { BAR_INPUT } from "./research/shared";
 import { SearchBar, SearchButton } from "./SearchBar";
@@ -173,22 +173,33 @@ function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote }: { bra
 
   const done = (scans ?? []).filter((s) => s.status === "done" && s.result);
   const cur = done[0]?.result ?? null;
-  // The latest scan's saved Google Maps results, so every business's rank at every point can go on the map.
+  // The saved Google Maps results of the latest scan and the one before, so every business's rank at every point,
+  // and how it moved, can go on the map.
   const curId = done[0]?.id ?? null;
-  const [raw, setRaw] = useState<{ id: string; points: Record<string, Place[] | null> } | null>(null);
+  const prevId = done[1]?.id ?? null;
+  const raw = useRaw(sb, curId);
+  const prevRaw = useRaw(sb, prevId);
+  const prev = done[1]?.result ?? null;
+  // Every keyword's numbers from each finished scan, for the keyword table and the history chart.
+  const [history, setHistory] = useState<KeywordRun[]>([]);
+  const lastDone = done[0]?.id ?? "";
   useEffect(() => {
-    if (!curId) return;
     let live = true;
     sb.from("local_scans")
-      .select("points")
-      .eq("id", curId)
-      .maybeSingle()
-      .then(({ data }) => live && setRaw({ id: curId, points: (data?.points ?? {}) as Record<string, Place[] | null> }));
+      .select("keyword, created_at, avg:result->avg, top3:result->top3, found:result->found, read:result->read")
+      .eq("brand_id", brand.id)
+      .eq("status", "done")
+      .order("created_at", { ascending: false })
+      .limit(200)
+      .then(({ data }) => {
+        if (!live) return;
+        const num = (v: unknown) => (typeof v === "number" ? v : null);
+        setHistory(((data ?? []) as Record<string, unknown>[]).map((r) => ({ keyword: String(r.keyword), at: String(r.created_at), avg: num(r.avg), top3: num(r.top3) ?? 0, found: num(r.found) ?? 0, read: num(r.read) ?? 0 })));
+      });
     return () => {
       live = false;
     };
-  }, [sb, curId]);
-  const prev = done[1]?.result ?? null;
+  }, [sb, brand.id, lastDone]);
   const failed = scans?.[0]?.status === "failed" ? scans[0] : null;
 
   return (
@@ -251,7 +262,7 @@ function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote }: { bra
       {kw && scans && !done.length && !running && !failed ? <p className="aw-small">No scan for “{kw}”.</p> : null}
 
       {cur ? (
-        <Results cur={cur} prev={prev} done={done} loc={loc} domain={brand.domain} raw={raw?.id === curId ? raw.points : null} pt={pt} onPt={setPt} />
+        <Results cur={cur} prev={prev} done={done} loc={loc} domain={brand.domain} raw={raw} prevRaw={prevRaw} history={history} keyword={kw} onKeyword={(k) => { setKw(k); setPt(null); }} pt={pt} onPt={setPt} />
       ) : null}
     </div>
   );
@@ -259,7 +270,9 @@ function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote }: { bra
 
 type Sort = "rank" | "reviews" | "rating";
 
-function Results({ cur, prev, done, loc, domain, raw, pt, onPt }: { cur: ScanResult & { listing?: ListingCheck[] }; prev: ScanResult | null; done: Scan[]; loc: Location; domain: string; raw: Record<string, Place[] | null> | null; pt: number | null; onPt: (i: number | null) => void }) {
+type Mode = "ranks" | "change" | "duel";
+
+function Results({ cur, prev, done, loc, domain, raw, prevRaw, history, keyword, onKeyword, pt, onPt }: { cur: ScanResult & { listing?: ListingCheck[] }; prev: ScanResult | null; done: Scan[]; loc: Location; domain: string; raw: Record<string, Place[] | null> | null; prevRaw: Record<string, Place[] | null> | null; history: KeywordRun[]; keyword: string; onKeyword: (k: string) => void; pt: number | null; onPt: (i: number | null) => void }) {
   const owners = useMemo(() => mapOwners(cur, loc), [cur, loc]);
   const { headline, insights } = useMemo(() => localInsights(cur, prev, loc), [cur, prev, loc]);
   const fixes = (cur.listing ?? []).filter((c) => c.status !== "pass").length;
@@ -279,6 +292,34 @@ function Results({ cur, prev, done, loc, domain, raw, pt, onPt }: { cur: ScanRes
   const [mapFailed, setMapFailed] = useState(false);
   const onFail = useCallback(() => setMapFailed(true), []);
   const picked = list.find((b) => b.key === pick) ?? list.find((b) => b.you)!;
+  const you = list.find((b) => b.you)!;
+  // The same businesses in the scan before, for the change view.
+  const prevList = useMemo<Business[] | null>(() => {
+    if (prevRaw) return businesses(Object.entries(prevRaw).map(([i, results]) => ({ i: Number(i), results })), { ...loc, domain });
+    if (!prev) return null;
+    const ranks = Array.from({ length: GRID * GRID }, (_, i) => {
+      const p = prev.points.find((x) => x.i === i);
+      return !p || p.error ? undefined : p.rank;
+    });
+    return [{ key: "__you", title: loc.title, you: true, address: null, category: null, rating: null, reviews: null, ranks, avg: prev.avg, top3: prev.top3, found: prev.found, voice: 0 }];
+  }, [prevRaw, prev, loc, domain]);
+  const [mode, setMode] = useState<Mode>("ranks");
+  const before = prevList?.find((b) => b.key === picked.key) ?? null;
+  const view: Mode = mode === "duel" && picked.you ? "ranks" : mode === "change" && !before ? "ranks" : mode;
+  const moves = useMemo(() => (before ? rankMoves(picked.ranks, before.ranks) : null), [picked, before]);
+  const duel = useMemo(() => (picked.you ? null : headToHead(you.ranks, picked.ranks)), [picked, you]);
+  const dots = useMemo<MapDot[]>(() => {
+    if (view === "change" && moves) return moves.map(moveDot);
+    if (view === "duel" && duel) return duel.points.map((d, i) => duelDot(d, you.ranks[i], picked.ranks[i], picked.title));
+    return picked.ranks.map(rankDot);
+  }, [view, moves, duel, picked, you]);
+  const legend = view === "change" ? CHANGE_KEY : view === "duel" ? [{ label: "You rank higher", dot: "var(--signal)" }, { label: `${picked.title} ranks higher`, dot: "#111111" }, { label: "Same rank", dot: "#9CA3AF" }, { label: "Neither in the top 20", dot: "#E5E7EB" }] : TONES;
+  const summary =
+    view === "change" && moves
+      ? `Since ${when(done[1].created_at)}: better at ${moves.filter((m) => m.kind === "up" || m.kind === "new").length} points, worse at ${moves.filter((m) => m.kind === "down" || m.kind === "lost").length}.`
+      : view === "duel" && duel
+        ? `You rank higher at ${duel.you} points, ${picked.title} at ${duel.them}${duel.tie ? `, the same at ${duel.tie}` : ""}.`
+        : null;
   const bands = rankBands(picked.ranks);
   const shown = [...list].sort((a, b) => (sort === "reviews" ? (b.reviews ?? -1) - (a.reviews ?? -1) : sort === "rating" ? (b.rating ?? -1) - (a.rating ?? -1) : (a.avg ?? 99) - (b.avg ?? 99))).slice(0, 20);
   const pct = (n: number) => (bands.read ? Math.round((n / bands.read) * 100) : 0);
@@ -355,12 +396,13 @@ function Results({ cur, prev, done, loc, domain, raw, pt, onPt }: { cur: ScanRes
 
       <Card>
         <div className="grid lg:grid-cols-[320px_minmax(0,1fr)]">
-          <div className="flex min-w-0 flex-col border-b border-[var(--aw-rule)] lg:h-[620px] lg:border-r lg:border-b-0">
+          <div className="flex min-w-0 flex-col border-b border-[var(--aw-rule)] lg:border-r lg:border-b-0">
             <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-3">
               <span className="text-[13px] font-semibold text-ink">“{cur.keyword}”</span>
               <Seg label="Sort businesses" value={sort} onChange={setSort} options={[{ id: "rank", label: "Rank" }, { id: "reviews", label: "Reviews" }, { id: "rating", label: "Rating" }]} />
             </div>
-            <ul className="flex max-h-[520px] min-h-0 flex-1 flex-col overflow-y-auto px-2 pb-2 lg:max-h-none">
+            <div className="relative min-h-0 flex-1">
+            <ul className="flex max-h-[520px] flex-col overflow-y-auto px-2 pb-2 lg:absolute lg:inset-0 lg:max-h-none">
               {shown.map((b) => {
                 const on = b.key === picked.key;
                 return (
@@ -384,15 +426,29 @@ function Results({ cur, prev, done, loc, domain, raw, pt, onPt }: { cur: ScanRes
                 );
               })}
             </ul>
+            </div>
           </div>
           <div className="relative min-w-0 p-3">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-3 px-1">
+              <Seg
+                label="Map view"
+                value={view}
+                onChange={setMode}
+                options={[
+                  { id: "ranks", label: "Ranks" },
+                  ...(before ? [{ id: "change" as const, label: "Change" }] : []),
+                  ...(!picked.you ? [{ id: "duel" as const, label: "Head to head" }] : []),
+                ]}
+              />
+              <span className="text-[12.5px] text-body wrap-break-word">{summary ?? (picked.you ? "Pick a competitor in the list to compare head to head." : `Showing ${picked.title}'s ranks.`)}</span>
+            </div>
             {mapFailed ? (
               <Heat ranks={picked.ranks} spacing={cur.spacing} sel={at} onSel={onPt} />
             ) : (
-              <LocalMap lat={loc.lat} lng={loc.lng} spacing={cur.spacing} ranks={picked.ranks} sel={at} onSel={onPt} onFail={onFail} />
+              <LocalMap lat={loc.lat} lng={loc.lng} spacing={cur.spacing} dots={dots} sel={at} onSel={onPt} onFail={onFail} />
             )}
             {pt !== null ? (
-              <div className="pointer-events-none absolute top-6 left-6 z-10 w-[min(300px,calc(100%-48px))]">
+              <div className="pointer-events-none absolute top-[72px] left-6 z-10 w-[min(300px,calc(100%-48px))]">
                 <div className="pointer-events-auto rounded-[12px] bg-[var(--aw-surface)] shadow-[0_2px_12px_rgb(0_0_0_/_0.14)]">
                   <div className="flex items-center justify-between gap-2 py-1.5 pr-1.5 pl-4">
                     <span className="text-[12px] font-semibold text-ink">{at === centre ? "Map pack at the business" : `Map pack ${placeText(at, cur.spacing)}`}</span>
@@ -405,7 +461,7 @@ function Results({ cur, prev, done, loc, domain, raw, pt, onPt }: { cur: ScanRes
               </div>
             ) : null}
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 px-1 text-[12px] text-body">
-              {TONES.map((t) => (
+              {legend.map((t) => (
                 <span key={t.label} className="flex items-center gap-1.5">
                   <i className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: t.dot }} />
                   {t.label}
@@ -418,6 +474,15 @@ function Results({ cur, prev, done, loc, domain, raw, pt, onPt }: { cur: ScanRes
           </div>
         </div>
       </Card>
+
+      <div className="grid gap-4 xl:grid-cols-2">
+        <Card title="All keywords" className="h-full">
+          <Keywords rows={keywordTable(history, loc.keywords)} current={keyword} onPick={onKeyword} />
+        </Card>
+        <Card title={`Rank over time, “${keyword}”`} className="h-full">
+          <History runs={keywordTable(history, [keyword])[0].runs} />
+        </Card>
+      </div>
 
       <div className="grid gap-4 xl:grid-cols-3">
         <Card title="What this scan says" className="h-full">
@@ -498,6 +563,226 @@ function Sides({ ranks }: { ranks: (number | null | undefined)[] }) {
       <span className="text-[12px] leading-snug text-body">Average rank on each side of the business. A lower number means stronger.</span>
     </div>
   );
+}
+
+/** A move between two scans as a dot: arrows and spots gained or lost. */
+function moveDot(m: Move): MapDot {
+  switch (m.kind) {
+    case "up":
+      return { label: `↑${m.by}`, bg: MAP.top3, fg: "#fff", border: "#fff", aria: `Up ${m.by}` };
+    case "down":
+      return { label: `↓${m.by}`, bg: "#E5484D", fg: "#fff", border: "#fff", aria: `Down ${m.by}` };
+    case "new":
+      return { label: "In", bg: MAP.top3, fg: "#fff", border: "#fff", aria: "Entered the top 20" };
+    case "lost":
+      return { label: "Out", bg: "#E5484D", fg: "#fff", border: "#fff", aria: "Left the top 20" };
+    case "same":
+      return { label: "=", bg: "#9CA3AF", fg: "#fff", border: "#fff", aria: "No change" };
+    case "out":
+      return { label: "–", bg: "#E5E7EB", fg: "#6B7280", border: "#fff", aria: "Out of the top 20 both times" };
+    default:
+      return { label: "?", bg: "#fff", fg: "#9A9A9A", border: "#C8C8C8", dashed: true, aria: "No answer in one of the scans" };
+  }
+}
+
+/** Who ranks higher at a point: the winner's rank in its colour. */
+function duelDot(d: Duel, mine: number | null | undefined, theirs: number | null | undefined, name: string): MapDot {
+  if (d === "you") return { label: String(mine), bg: "var(--signal)", fg: "#fff", border: "#fff", aria: `You rank higher, #${mine}` };
+  if (d === "them") return { label: String(theirs), bg: "#111111", fg: "#fff", border: "#fff", aria: `${name} ranks higher, #${theirs}` };
+  if (d === "tie") return { label: "=", bg: "#9CA3AF", fg: "#fff", border: "#fff", aria: "Same rank" };
+  if (d === "neither") return { label: "–", bg: "#E5E7EB", fg: "#6B7280", border: "#fff", aria: "Neither in the top 20" };
+  return { label: "?", bg: "#fff", fg: "#9A9A9A", border: "#C8C8C8", dashed: true, aria: "No answer" };
+}
+
+const bandColor = (v: number | null) => (v === null || v > 20 ? "#E5484D" : v <= 3 ? MAP.top3 : v <= 10 ? MAP.top10 : MAP.top20);
+
+/** Every keyword's latest numbers in one table: click a row to open it. */
+function Keywords({ rows, current, onPick }: { rows: ReturnType<typeof keywordTable>; current: string; onPick: (k: string) => void }) {
+  const scanned = rows.filter((r) => r.last?.avg != null).sort((a, b) => a.last!.avg! - b.last!.avg!);
+  const best = scanned[0] ?? null;
+  const worst = scanned.length > 1 ? scanned[scanned.length - 1] : null;
+  return (
+    <div className="flex h-full flex-col gap-3 pb-4">
+    <div className="overflow-x-auto px-2">
+      <table className="aw-table">
+        <thead>
+          <tr>
+            <th>Keyword</th>
+            <th className="text-right">Average rank</th>
+            <th className="text-right">Top 3</th>
+            <th>Trend</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => {
+            const on = r.keyword === current;
+            const l = r.last;
+            return (
+              <tr key={r.keyword} onClick={() => onPick(r.keyword)} className={`cursor-pointer ${on ? "bg-[var(--signal-soft)]" : ""}`}>
+                <td className={`min-w-36 wrap-break-word ${on ? "font-semibold text-[var(--signal-ink)]" : "text-ink"}`}>
+                  <button type="button" onClick={() => onPick(r.keyword)} className="text-left">
+                    {r.keyword}
+                  </button>
+                </td>
+                <td className="text-right whitespace-nowrap">
+                  {l ? (
+                    <span className="inline-flex items-center gap-2">
+                      {r.change !== null && r.change !== 0 ? <span className={`text-[12px] ${r.change < 0 ? "text-pos" : "text-neg"}`}>{r.change < 0 ? `↑${-r.change}` : `↓${r.change}`}</span> : null}
+                      <span className="aw-num inline-grid h-6 min-w-10 place-items-center rounded-[6px] px-1 text-[12px] font-semibold text-white" style={{ background: bandColor(l.avg) }}>
+                        {l.avg ?? "–"}
+                      </span>
+                    </span>
+                  ) : (
+                    <span className="text-[12px] text-muted">No scan yet</span>
+                  )}
+                </td>
+                <td className="aw-num text-right">{l && l.read ? `${Math.round((l.top3 / l.read) * 100)}%` : "–"}</td>
+                <td className="w-28">{r.runs.length > 1 ? <Trend values={r.runs.map((x) => x.avg ?? 21).reverse()} /> : <span className="text-[12px] text-muted">–</span>}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+      {best ? (
+        <div className="mt-auto grid grid-cols-2 gap-2 px-5">
+          {[["Strongest keyword", best], ["Needs the most work", worst]].map(([label, r]) => {
+            const row = r as (typeof rows)[number] | null;
+            return (
+              <button key={label as string} type="button" disabled={!row} onClick={() => row && onPick(row.keyword)} className="flex flex-col items-start gap-1 rounded-[10px] bg-[var(--aw-surface-2)] px-3.5 py-3 text-left disabled:cursor-default">
+                <span className="text-[11px] font-medium text-muted">{label as string}</span>
+                {row ? (
+                  <span className="flex flex-wrap items-center gap-2">
+                    <span className="aw-num inline-grid h-6 min-w-10 place-items-center rounded-[6px] px-1 text-[12px] font-semibold text-white" style={{ background: bandColor(row.last!.avg) }}>
+                      {row.last!.avg}
+                    </span>
+                    <span className="text-[13px] font-semibold text-ink wrap-break-word">{row.keyword}</span>
+                  </span>
+                ) : (
+                  <span className="text-[13px] text-muted">Scan another keyword to compare</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/** A small line of average rank, scans oldest first, drawn with #1 at the top. */
+function Trend({ values }: { values: number[] }) {
+  const w = 96;
+  const h = 26;
+  const max = Math.max(...values, 2);
+  const min = Math.min(...values, 1);
+  const pts = values.map((v, i) => `${((i / (values.length - 1)) * w).toFixed(1)},${(3 + ((v - min) / (max - min || 1)) * (h - 6)).toFixed(1)}`).join(" ");
+  const better = values[values.length - 1] <= values[0];
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} className="block h-[26px] w-24" aria-hidden="true">
+      <polyline points={pts} fill="none" stroke={better ? MAP.top3 : "#E5484D"} strokeWidth="2" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+    </svg>
+  );
+}
+
+/** Average rank (line, #1 at the top) and top 3 share (bars) for one keyword, scan by scan. */
+function History({ runs }: { runs: KeywordRun[] }) {
+  const pts = [...runs].reverse().slice(-12);
+  if (pts.length < 2) {
+    const l = pts[0];
+    return (
+      <div className="flex h-full flex-col justify-center gap-3 px-5 pt-4 pb-5">
+        {l ? (
+          <div className="grid grid-cols-2 gap-2">
+            <span className="flex flex-col gap-1 rounded-[10px] bg-[var(--aw-surface-2)] px-3.5 py-3">
+              <span className="text-[11px] font-medium text-muted">Average rank, {when(l.at)}</span>
+              <span className="aw-num text-[20px] leading-none font-semibold text-ink">{l.avg ?? "–"}</span>
+            </span>
+            <span className="flex flex-col gap-1 rounded-[10px] bg-[var(--aw-surface-2)] px-3.5 py-3">
+              <span className="text-[11px] font-medium text-muted">Top 3 share</span>
+              <span className="aw-num text-[20px] leading-none font-semibold text-ink">{l.read ? Math.round((l.top3 / l.read) * 100) : 0}%</span>
+            </span>
+          </div>
+        ) : null}
+        <p className="text-[12px] text-muted">The chart fills in as more scans run. Weekly scans add one point a week.</p>
+      </div>
+    );
+  }
+  const W = 560;
+  const H = 210;
+  const L = 34;
+  const R = 12;
+  const T = 14;
+  const B = 28;
+  const max = Math.max(21, ...pts.map((p) => p.avg ?? 21));
+  const x = (k: number) => L + (k / (pts.length - 1)) * (W - L - R);
+  const y = (v: number) => T + ((v - 1) / (max - 1)) * (H - T - B);
+  const bw = Math.min(28, ((W - L - R) / pts.length) * 0.5);
+  const line = pts.map((p, k) => `${x(k)},${y(p.avg ?? 21)}`).join(" ");
+  return (
+    <div className="flex flex-col gap-2 px-5 pt-4 pb-5">
+      <svg viewBox={`0 0 ${W} ${H}`} className="block h-auto w-full" role="img" aria-label="Average rank and top 3 share over time">
+        {[1, 10, 20].map((v) => (
+          <g key={v}>
+            <line x1={L} x2={W - R} y1={y(v)} y2={y(v)} stroke="var(--aw-rule)" strokeDasharray="3 4" />
+            <text x={L - 8} y={y(v) + 4} textAnchor="end" fill="var(--aw-muted)" style={{ font: "10px Inter, system-ui, sans-serif" }}>
+              #{v}
+            </text>
+          </g>
+        ))}
+        {pts.map((p, k) => {
+          const share = p.read ? p.top3 / p.read : 0;
+          const bh = share * (H - T - B);
+          return <rect key={`b${k}`} x={x(k) - bw / 2} y={H - B - bh} width={bw} height={bh} rx="3" fill={MAP.top3} opacity="0.22" />;
+        })}
+        <polyline points={line} fill="none" stroke="var(--signal)" strokeWidth="2.5" strokeLinejoin="round" />
+        {pts.map((p, k) => (
+          <g key={`d${k}`}>
+            <circle cx={x(k)} cy={y(p.avg ?? 21)} r="4" fill="#fff" stroke="var(--signal)" strokeWidth="2" />
+            {k === pts.length - 1 || k === 0 ? (
+              <text x={x(k) + (k === 0 ? 8 : -8)} y={y(p.avg ?? 21) + 18} textAnchor={k === 0 ? "start" : "end"} fill="var(--aw-ink)" style={{ font: "600 11px Inter, system-ui, sans-serif" }}>
+                {p.avg ?? "–"}
+              </text>
+            ) : null}
+          </g>
+        ))}
+        <text x={x(0)} y={H - 8} fill="var(--aw-muted)" style={{ font: "10px Inter, system-ui, sans-serif" }}>
+          {when(pts[0].at)}
+        </text>
+        <text x={x(pts.length - 1)} y={H - 8} textAnchor="end" fill="var(--aw-muted)" style={{ font: "10px Inter, system-ui, sans-serif" }}>
+          {when(pts[pts.length - 1].at)}
+        </text>
+      </svg>
+      <div className="flex flex-wrap gap-4 text-[12px] text-body">
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-[3px] w-3.5 rounded bg-[var(--signal)]" />
+          Average rank
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-2.5 w-2.5 rounded-[2px]" style={{ background: MAP.top3, opacity: 0.35 }} />
+          Top 3 share
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/** A scan's saved Google Maps results, by point. */
+function useRaw(sb: SupabaseClient, id: string | null): Record<string, Place[] | null> | null {
+  const [raw, setRaw] = useState<{ id: string; points: Record<string, Place[] | null> } | null>(null);
+  useEffect(() => {
+    if (!id) return;
+    let live = true;
+    sb.from("local_scans")
+      .select("points")
+      .eq("id", id)
+      .maybeSingle()
+      .then(({ data }) => live && setRaw({ id, points: (data?.points ?? {}) as Record<string, Place[] | null> }));
+    return () => {
+      live = false;
+    };
+  }, [sb, id]);
+  return raw && raw.id === id ? raw.points : null;
 }
 
 /** A card of the top row: a label and one visual with its number. All four are the same height. */
@@ -591,6 +876,13 @@ const TONES = [
   { label: "4 to 10", dot: MAP.top10 },
   { label: "11 to 20", dot: MAP.top20 },
   { label: "Not in the top 20", dot: "#E5484D" },
+];
+
+const CHANGE_KEY = [
+  { label: "Better", dot: MAP.top3 },
+  { label: "Worse", dot: "#E5484D" },
+  { label: "No change", dot: "#9CA3AF" },
+  { label: "Out of the top 20 both times", dot: "#E5E7EB" },
 ];
 
 const ORDER = { fail: 0, warn: 1, pass: 2 } as const;
@@ -749,15 +1041,15 @@ function ReviewLines({ h, series }: { h: { at: string }[]; series: { name: strin
   const all = series.flatMap((s) => s.vals).filter((v): v is number => v !== null);
   const min = Math.min(...all);
   const max = Math.max(...all, min + 1);
-  const W = 560;
-  const H = 200;
-  const x = (k: number) => 40 + (k / (h.length - 1)) * (W - 50);
+  const W = 340;
+  const H = 150;
+  const x = (k: number) => 34 + (k / (h.length - 1)) * (W - 44);
   const y = (v: number) => 10 + (1 - (v - min) / (max - min)) * (H - 34);
   return (
     <div className="flex flex-col gap-2">
       <svg viewBox={`0 0 ${W} ${H}`} className="block h-auto w-full" role="img" aria-label="Review counts over time">
         {[min, max].map((v) => (
-          <text key={v} x={34} y={y(v) + 4} textAnchor="end" fill="var(--aw-muted)" style={{ font: "10px Inter, system-ui, sans-serif" }}>
+          <text key={v} x={28} y={y(v) + 4} textAnchor="end" fill="var(--aw-muted)" style={{ font: "10px Inter, system-ui, sans-serif" }}>
             {v}
           </text>
         ))}
