@@ -10,17 +10,20 @@ Local Research (Organic Research, Local Research, at `/local-research`) shows wh
   - Weekly scan on or off.
   - **Scan now.**
   - **Track in AI answers:** adds "best {category} in {city}"-style prompts under a Local topic in AI Visibility. It goes through the same add-prompts tool as Zippie, so plan limits apply.
-- **Three numbers:**
+- **Four numbers:**
   - Average rank, with the change since the last scan. A point where the business isn't in the top 20 counts as 21, so gaps pull the average down instead of hiding.
   - Share of points in the top 3.
   - Points in the top 20, and how many points didn't load.
-- **The grid:** 7 by 7 circles on a plain street pattern, colored by rank: top 3, 4 to 10, 11 to 20, not in the top 20. A dashed "?" marks a point that didn't answer. The business pin sits in the middle. Click a point to see its map pack.
+  - Points where the business is #1.
+- **The heat map:** 7 by 7 dots over a soft colour field: green for the top 3, amber for 4 to 10, orange for 11 to 20, a pale red wash where the business isn't in the top 20. A dashed "?" marks a point that didn't answer. The business is the ringed dot in the middle. Click a point to see its map pack, with each business's rating and reviews.
+- **What this scan says:** one headline and short findings worked out from the scan (`localInsights` in `src/lib/local.ts`): the rank at the business's own address, its best spot and where, how far out it stays in the top 10, its strongest and weakest side, the change since the last scan, reviews and rating against the leader, and how many listing checks need a fix. No AI call.
+- **Who holds the map:** the business and up to 8 competitors by share of top 3 points, with #1 spots, rating, reviews and category (`mapOwners`). The business's row is highlighted.
 - **Listing check:**
-  - Name, phone and street address on the homepage. Phone numbers match across formats.
+  - Name, phone and street address on the homepage. Phone numbers match across formats, and only a number as long as Google's counts as a different phone, so dates and zip codes in the page text don't.
   - LocalBusiness schema.
-  - The main category against the category the rivals holding the top 3 use most.
-- **Local rivals:** the business, then up to 8 rivals by share of top 3 points, with rating, reviews and category.
-- **Reviews over time:** review counts for the business and the two strongest rivals, from each scan.
+  - The main category against the category the competitors holding the top 3 use most.
+  - Problems first, with a count of what to fix.
+- **Reviews against the map's leaders:** reviews and rating for the business and the top 3 competitors as bars, and review counts over time once there are two scans.
 
 ## How a scan runs
 
@@ -33,7 +36,7 @@ Local Research (Organic Research, Local Research, at `/local-research`) shows wh
 ## Reliability
 
 - **The business is matched by Google's ids** (cid, then place id). A result with a different cid is a different business, whatever its name. Without ids, the website and name must both match.
-- **A business listed twice at one point counts once,** at its best rank. That holds for the business and for rivals.
+- **A business listed twice at one point counts once,** at its best rank. That holds for the business and for competitors.
 - **Failed points are left out of every number** and shown as "?". A scan where no point answered fails and hands its tasks back.
 - **Refunds:** a failed post hands the tasks back exactly once, through the metered route for Scan now and the weekly queue for weekly scans. No duplicate scans within 15 minutes for the same keyword.
 - **Weekly scans** only run on plans with Organic Research, and stop for the month when tasks run out.
