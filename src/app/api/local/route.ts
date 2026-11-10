@@ -2,6 +2,7 @@ import type { Profile } from "@/lib/db";
 import { entitlement, requireTrack, take } from "@/lib/entitlements";
 import { cityOf, gridOf, localLimits, localPrompts, scanTasks, SCHEDULES, SIZES, SPACINGS, type Location, type Place, type Schedule } from "@/lib/local";
 import { findPlaces, locationOf, locationsOf, startScan, type SavedLocation } from "@/lib/localServer";
+import { queueProfileRead } from "@/lib/localProfileServer";
 import { TOOLS as MCP_TOOLS } from "@/lib/mcp/tools";
 import { meteredRoute } from "@/lib/meter";
 import { TASK_COST } from "@/lib/plans";
@@ -21,6 +22,7 @@ const err = (error: string, status = 400) => Response.json({ error }, { status }
 //   settings: { brandId, locationId, name?, keywords?, spacing?, size?, shape?, center?, schedule? }
 //   scan:     { brandId, locationId, keyword }     editors: a grid scan now, on the priority queue (tasks by points)
 //   prompts:  { brandId, locationId }              editors: track local prompts in AI Visibility (plan limits apply)
+//   profile:  { brandId, locationId }              editors: read the Google profiles now (the business and its 3 leaders)
 async function handle(request: Request) {
   const body = await request.json().catch(() => ({}));
   const auth = await requireRole(request, body.workspaceId, "editor");
@@ -137,6 +139,15 @@ async function handle(request: Request) {
       // The metered route hands the tasks back on its own when the answer is an error.
       const scanId = await startScan(db, ws, me.user?.id ?? null, brand.id, loc, keyword, { fast: true, language: marketOf(profile.country).language, charge: took.period ? { period: took.period, plan: cost - pack, pack } : null });
       return Response.json({ scanId });
+    }
+
+    if (body.action === "profile") {
+      const locked = await requireTrack(ws, "seo");
+      if (locked) return locked;
+      const took = await take(ws, "tasks", TASK_COST.localprofile, { refundIfFree: false });
+      if (!took.ok) return took.response;
+      await queueProfileRead(loc.id, ws);
+      return Response.json({ queued: true });
     }
 
     if (body.action === "prompts") {

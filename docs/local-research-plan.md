@@ -204,6 +204,8 @@ The same rules as the rest of the product: a wrong signal costs more than a miss
 
 **Phase 1 built, November 2026:** many locations per brand with an all-locations table, grids from 3 × 3 to 13 × 13, square or round, 0.25 to 5 miles apart, a centre moved by clicking the map, keyword suggestions, weekly, every 2 weeks or monthly scans, comparing the latest scan with any earlier one on the same grid, and plan limits. Not yet: the pin map of all locations, and skipping points outside a service area (needs the profile data of phase 2). See `docs/local-research.md`.
 
+**Phase 2 built, November 2026:** the Profile tab on each location. It reads the Google profile of the business and of the 3 businesses with the most top 3 spots every week (and on Read now), shows them side by side with the gaps in red, lists what to fix first, gives a profile score of 100, and shows "Changed on Google" for name, categories, phone, website, address and hours only once two reads a day apart agree. See `docs/local-research.md`.
+
 
 | Phase | Weeks | What ships | Done when |
 |---|---|---|---|

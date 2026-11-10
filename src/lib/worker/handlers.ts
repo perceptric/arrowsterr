@@ -25,6 +25,7 @@ import { queueGscSyncs, syncGsc } from "../gsc";
 import { runOnpage } from "../onpageServer";
 import { runMap } from "../contentMapServer";
 import { collectScan, queueWeeklyScans } from "../localServer";
+import { queueProfileReads, runProfileRead } from "../localProfileServer";
 import { queueReportSends } from "../scheduleServer";
 import { applySet, preparePlay, undoSet } from "../plays";
 import { checkDue, promptAllowance } from "../plans";
@@ -59,6 +60,7 @@ export async function schedule(db: SupabaseClient, job: Job) {
   await queueCwvSyncs(db).catch((e) => console.error("Core Web Vitals syncs failed:", e instanceof Error ? e.message : e));
   // Local Research: each keyword's weekly Google Maps grid scan (docs/local-research.md).
   await queueWeeklyScans(db).catch((e) => console.error("Weekly local scans failed:", e instanceof Error ? e.message : e));
+  await queueProfileReads(db).catch((e) => console.error("Weekly local profile reads failed:", e instanceof Error ? e.message : e));
   const engines = availableEngines();
   if (!engines.length) return finish(job.id);
   const now = new Date();
@@ -307,6 +309,12 @@ export async function audit(db: SupabaseClient, job: Job) {
 export async function local_fetch(db: SupabaseClient, job: Job) {
   const { scanId, round } = job.payload as { scanId: string; round?: number };
   await collectScan(db, scanId, round ?? 0);
+  await finish(job.id);
+}
+
+// Local Research profiles (docs/local-research-plan.md, 4.4): read now, then collect posts in later rounds.
+export async function local_profile(db: SupabaseClient, job: Job) {
+  await runProfileRead(db, job.payload as Parameters<typeof runProfileRead>[1]);
   await finish(job.id);
 }
 
