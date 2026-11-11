@@ -61,6 +61,14 @@ Local Research (Organic Research, Local Research, at `/local-research`) shows wh
 - **CSV:** Export CSV on Rankings (every business with its rank at each point), Reviews (every review with its reply and themes) and AI answers (every business AI names). Cells that start like a formula are saved as text.
 - Tests: `tests/localAlerts.test.ts`.
 
+## The screen (November 2026 cleanup)
+
+- **Header:** the business (address, Google rating, category) with a location switcher beside its name, one primary Scan now for the open keyword, and a ⋯ menu for Change business, Rename location, Track these keywords in AI answers and Remove location (which asks first). Share and Download PDF sit in the top bar.
+- **Tabs** show what needs attention: profile gaps, reviews to answer, open alerts.
+- **Keywords** are chips with their latest average rank and change; "not ranked" when the business is in no point's top 20. "+ Keyword" opens the add box, suggestions and removing.
+- **Grid settings** (size, shape, distance, centre, schedule, name, with points and tasks) live in a side panel behind the "Grid …" button. Results from a grid that isn't the current one say so, with Scan now on the new grid.
+- **Results:** first the verdict in words (or, when the business ranks nowhere, a warning with one click to swap the keyword), then the map beside average rank with rank bands in points, share of the map pack and the top 3 at the picked point. Businesses on the grid follow in a table with their address (so same-name chains are told apart), Compare on map and Export CSV; then rank over time, the listing check and reviews against the leaders.
+
 ## What it shows
 
 - **Setup:** search the business by name and city (one Google Maps request, 1 task), then pick it. Its Google ids, address, phone, category and position are saved on `brands.profile.location`.
