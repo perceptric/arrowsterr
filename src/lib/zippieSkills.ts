@@ -24,27 +24,6 @@ export const BUILTIN_SKILLS: Omit<Skill, "builtin" | "enabled">[] = [
 - To change real pages, use get_site_content, then propose_changes with play "meta". Tell the person the changes wait for their approval.`,
   },
   {
-    key: "onpage-fix",
-    name: "On-page fix",
-    description: "Scores a page against Google's top 10 for its keyword, then prepares the fixes.",
-    instructions: `1. Ask for the page and its keyword if the person didn't say. If they only gave a page, ask which search it should win.
-2. Call start_onpage_audit, wait about a minute, then call get_onpage_audit with its id. If it's still running, call it again.
-3. Report the score next to the top 10 average, where the page ranks, and the 3 biggest gaps, most points first.
-4. For fixes a play can make (fix_play meta, schema, faq, alt, links), offer propose_changes for that page. Tell the person the changes wait for their approval.
-5. For content gaps, list the missing terms and the length gap, and give the suggested opening paragraph and title from the audit. Never invent facts the page doesn't state.`,
-  },
-  {
-    key: "link-gap-outreach",
-    name: "Link gap outreach",
-    description: "Finds sites that link to your competitors but not to you, starting with the ones AI cites, and drafts the pitch.",
-    instructions: `1. Call get_backlinks. Report linking sites, authority and the last 4 weeks of new and lost sites in one or two lines.
-2. If there is no link gap yet, say the competitors it needs, or point to Backlinks, Link gap, in one line.
-3. Pick 5 to 10 gap sites: first ones AI cites, then ones that link to more than one competitor, then the strongest.
-4. For each, say why it fits in one line, and what the brand could offer them: data, a quote, a guide, a tool, a correction.
-5. Draft one short pitch per site the person can edit and send. Lead with what helps their readers. No link begging, no flattery.
-6. Never send anything yourself.`,
-  },
-  {
     key: "fill-content-map",
     name: "Fill the content map",
     description: "Finds the missing topics worth writing first and adds them to the Content Plan.",
@@ -99,7 +78,7 @@ export const BUILTIN_SKILLS: Omit<Skill, "builtin" | "enabled">[] = [
     name: "llms.txt writer",
     description: "Writes an llms.txt file that tells AI tools what your site is and where the best pages are.",
     instructions: `- Follow the llms.txt format: an H1 with the site name, a one-paragraph summary in a blockquote, then H2 sections with lists of links in the form "- [Title](url): one line on what it covers".
-- Use get_site_content (or the site audit) to find the most useful pages: product, pricing, docs, comparisons, top guides.
+- Use get_site_content to find the most useful pages: product, pricing, docs, comparisons, top guides.
 - Keep it under 60 links. Plain, factual words.
 - Give the file in a code block and say where it goes: the root of the site, at /llms.txt.`,
   },

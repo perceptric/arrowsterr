@@ -37,19 +37,15 @@ function spanOf(start: string, end: string, tz: string | null): Span {
   return { start, end, startAt: Date.parse(dayStart(start, tz)), endAt: Date.parse(dayStart(addDays(end, 1), tz)) };
 }
 
-/** The SEO block's saved results (src/lib/reportSeo.ts). Tables from 061 to 066 that don't exist yet just add nothing. */
+/** The SEO block's saved results (src/lib/reportSeo.ts). Tables that don't exist yet just add nothing. */
 async function seoFor(db: SupabaseClient, brand: { id: string; workspace_id: string }, start: string, end: string): Promise<SeoSnapshot | null> {
   const rows = async <T>(q: PromiseLike<{ data: T[] | null; error: unknown }>): Promise<T[]> => ((await q).data ?? []) as T[];
-  const [audits, onpage, snaps, maps, scans] = await Promise.all([
-    rows<SeoRaw["audits"][number]>(db.from("site_audits").select("status, score, created_at, pages, result").eq("brand_id", brand.id).eq("status", "done").order("created_at", { ascending: false }).limit(20)),
-    rows<SeoRaw["onpage"][number]>(db.from("onpage_audits").select("url, keyword, score, top_score, created_at, status").eq("brand_id", brand.id).order("created_at", { ascending: false }).limit(200)),
-    rows<SeoRaw["snaps"][number]>(db.from("backlink_snapshots").select("day, domains, backlinks, rank").eq("brand_id", brand.id).order("day", { ascending: false }).limit(60)),
+  const [maps, scans] = await Promise.all([
     rows<SeoRaw["maps"][number]>(db.from("content_maps").select("created_at, result").eq("brand_id", brand.id).eq("status", "done").order("created_at", { ascending: false }).limit(3)),
     rows<SeoRaw["scans"][number]>(db.from("local_scans").select("keyword, created_at, result").eq("brand_id", brand.id).eq("status", "done").order("created_at", { ascending: false }).limit(60)),
   ]);
   const locations = await loadLocal(db, brand.id, start, end).catch(() => []);
-  // Link Building was removed, so reports have no link board section.
-  return seoSnapshot({ start, end, audits, onpage, snaps, cards: null, maps, scans, locations });
+  return seoSnapshot({ start, end, maps, scans, locations });
 }
 
 /** Saved runs for a brand between two moments, oldest first, with tidy sources. */

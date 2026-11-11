@@ -2,7 +2,6 @@
 
 import { askConfirm, askText } from "@/components/Dialogs";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { AuditIssue, AuditResult } from "@/lib/audit";
 import type { RunAuth } from "@/lib/runner";
 import { CMS, type CmsKind } from "@/lib/cmsTypes";
 import { ConnectWizard } from "./ConnectWizard";
@@ -15,7 +14,7 @@ import { Zippie } from "./Zippie";
 
 type View = "chat" | "knowledge" | "skills" | "project";
 type Thread = { id: string; title: string; updated_at: string; project_id: string | null; created_by?: string | null };
-type Card = { kind: "changeset" | "audit" | "setup"; id: string };
+type Card = { kind: "changeset" | "setup"; id: string };
 type Msg = { id: number | string; role: "user" | "assistant"; text: string; tools: string[]; cards: Card[]; working?: string; skill?: string };
 type Project = { id: string; name: string; instructions: string; updated_at: string };
 type Knowledge = { id: string; kind: "file" | "url" | "note"; name: string; source: string; chars: number; project_id: string | null; created_at: string };
@@ -23,14 +22,12 @@ type Skill = { key: string; name: string; description: string; instructions: str
 type Library = { projects: Project[]; knowledge: Knowledge[]; skills: Skill[]; setup?: string };
 
 const ACTIONS: { verb: string; rest: string; prompt: string }[] = [
-  { verb: "Audit", rest: "my website for SEO and AI readiness", prompt: "Audit my website for SEO and AI readiness." },
+  { verb: "Fix", rest: "missing alt text on my site", prompt: "Find the images on my site with no alt text and write it." },
   { verb: "Write", rest: "meta descriptions for pages missing one", prompt: "Find the pages on my site with no meta description and write them." },
   { verb: "Add", rest: "FAQ sections to my top blog posts", prompt: "Add FAQ sections to my top blog posts, based on what buyers ask AI." },
   { verb: "Find", rest: "why AI picks my competitors over me", prompt: "How visible is my brand in AI answers this month, why do competitors beat me, and what should I fix first?" },
 ];
 const TOOL_LABEL: Record<string, string> = {
-  start_site_audit: "Started a site audit",
-  get_site_audit: "Read the site audit",
   list_cms_connections: "Checked your CMS",
   get_site_content: "Read your posts and pages",
   propose_changes: "Prepared changes",
@@ -230,7 +227,6 @@ export function ZippiePage({ auth, canEdit, compact = false, where = null, onClo
           else if (e.type === "tool") patch((m) => ({ ...m, working: e.label, text: m.text && !m.text.endsWith("\n\n") ? m.text + "\n\n" : m.text }));
           else if (e.type === "tool_done") patch((m) => ({ ...m, tools: [...m.tools, e.name], working: "Thinking" }));
           else if (e.type === "changeset") patch((m) => ({ ...m, cards: [...m.cards, { kind: "changeset", id: e.id }] }));
-          else if (e.type === "audit") patch((m) => ({ ...m, cards: [...m.cards, { kind: "audit", id: e.id }] }));
           else if (e.type === "setup") patch((m) => ({ ...m, cards: [...m.cards, { kind: "setup", id: e.id }] }));
           else if (e.type === "error") setError(e.error);
         }
@@ -465,7 +461,7 @@ function ChatView(p: {
         <div className="zp-empty">
           <Zippie size={96} mood="happy" />
           <h1 className="zp-hello">{p.project ? `What should we do in ${p.project.name}?` : "What should Zippie do?"}</h1>
-          <p className="max-w-md text-center text-[14px] text-muted">He reads your Arrowsterr data, audits your site and prepares fixes for your CMS. You approve every change.</p>
+          <p className="max-w-md text-center text-[14px] text-muted">He reads your Arrowsterr data and prepares fixes for your CMS. You approve every change.</p>
           <div className="w-full">
             <Composer {...p} big />
           </div>
@@ -544,10 +540,8 @@ function Reply({ m, api, auth, canEdit, onSend }: { m: Msg; api: ReturnType<type
         {m.cards.map((c) =>
           c.kind === "changeset" ? (
             <ChangeSetCard key={c.id} id={c.id} api={api} canEdit={canEdit} />
-          ) : c.kind === "setup" ? (
-            <SetupCard key={c.id} id={c.id} auth={auth} canEdit={canEdit} onSend={onSend} />
           ) : (
-            <AuditCard key={c.id} id={c.id} api={api} />
+            <SetupCard key={c.id} id={c.id} auth={auth} canEdit={canEdit} onSend={onSend} />
           ),
         )}
         {m.working ? (
@@ -983,83 +977,6 @@ function Diff({ c }: { c: Change }) {
     );
   }
   return <p className="text-[13px] text-body">{c.note}</p>;
-}
-
-type Audit = { id: string; domain: string; status: "running" | "done" | "failed"; step: string; pages: number; score: number | null; error: string | null; result?: AuditResult };
-const SEVERITY = { high: "aw-status--missed", medium: "aw-status--warn", low: "aw-status--pending" } as const;
-
-/** A site audit Zippie started: progress while it runs, then the score and the top issues. */
-function AuditCard({ id, api }: { id: string; api: ReturnType<typeof useApi> }) {
-  const [audit, setAudit] = useState<Audit | null>(null);
-  const [all, setAll] = useState(false);
-  const load = useCallback(() => {
-    api<{ audit: Audit }>("/api/ask", { action: "audit", auditId: id })
-      .then((r) => setAudit(r.audit))
-      .catch(() => {});
-  }, [api, id]);
-  useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
-  useEffect(() => {
-    if (audit && audit.status !== "running") return;
-    const t = setInterval(load, 4000);
-    return () => clearInterval(t);
-  }, [audit, load]);
-  if (!audit) return <div className="zp-card text-[13px] text-muted">Loading the audit...</div>;
-  const r = audit.result;
-  const issues: AuditIssue[] = r?.issues ?? [];
-  const score = audit.score ?? 0;
-  const tone = score >= 80 ? "#05690D" : score >= 60 ? "#8A4B00" : "#B3093C";
-  return (
-    <div className="zp-card">
-      <div className="flex items-center gap-3">
-        {audit.status === "done" && audit.score !== null && !r?.partial ? (
-          <div className="zp-score" style={{ background: `conic-gradient(${tone} ${score * 3.6}deg, #E6EAF2 0deg)` }}>
-            <span style={{ color: tone }}>{score}</span>
-          </div>
-        ) : (
-          <span className="zp-card__icon">
-            <Spark size={13} />
-          </span>
-        )}
-        <div className="min-w-0">
-          <p className="truncate text-[14px] font-medium text-ink">Site audit of {audit.domain}</p>
-          <p className="text-[12px] text-muted">
-            {audit.status === "running" ? (
-              <span className="aw-agent-working">
-                {audit.step || "Crawling"}... {audit.pages ? `${audit.pages} pages so far` : ""}
-              </span>
-            ) : audit.status === "failed" ? (
-              `Failed: ${audit.error}`
-            ) : r?.partial ? (
-              `Partial crawl, no score: ${r.partial}`
-            ) : (
-              `Score ${score} of 100 · ${audit.pages} pages checked · ${issues.length} issue${issues.length === 1 ? "" : "s"}${r?.blockedBots.length ? ` · blocks ${r.blockedBots.join(", ")}` : ""}`
-            )}
-          </p>
-        </div>
-      </div>
-      {issues.length ? (
-        <ul className="flex flex-col gap-1.5">
-          {(all ? issues : issues.slice(0, 5)).map((i) => (
-            <li key={i.id} className="flex items-center gap-2 text-[13px]">
-              <span className={`aw-status ${SEVERITY[i.severity]}`}>{i.severity}</span>
-              <span className="min-w-0 flex-1 truncate text-ink" title={i.why}>
-                {i.title}
-              </span>
-              <span className="font-mono text-[12px] text-muted">{i.count}</span>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-      {issues.length > 5 ? (
-        <button type="button" className="aw-text-link self-start text-[13px]" onClick={() => setAll(!all)}>
-          {all ? "Show less" : `Show all ${issues.length} issues`}
-        </button>
-      ) : null}
-    </div>
-  );
 }
 
 // ─────────────── Right panel: chats and projects ───────────────

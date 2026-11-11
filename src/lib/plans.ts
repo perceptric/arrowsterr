@@ -89,19 +89,6 @@ export const TASK_COST = {
   widget: 25, // an interactive element
   ai: 3, // a small AI job: ideas, a summary, prompt suggestions
   guideline: 10, // reading a site for its brand guideline
-  onpage: 25, // an on-page audit: Google's top 10 read, every page scored, suggestions written
-  backlinks: 40, // a site's link overview: totals, profile, monthly and weekly history, anchors, pages, its 1,000 strongest linking sites
-  links: 6, // one page of 100 linking sites
-  linkgap: (n: number) => 1 + 8 * n, // sites that link to up to 10 rivals but not you: one request per rival
-  bldomains: 15, // a site's 1,000 strongest linking sites, when no overview saved them
-  blbroken: 10, // links to a site's dead pages
-  blai: 25, // sites AI cites and which of them link to you and to up to 3 competitors
-  blhistory: 6, // one site's linking sites and authority by month for a year
-  blnear: 6, // the strongest sites linking to one of your linking sites
-  blbulk: (n: number) => 20 + Math.ceil(n / 10), // up to 200 sites' link numbers side by side: four bulk requests
-  broken: 20, // sites linking to dead pages on up to 3 rivals
-  mentions: 20, // pages that name you without a link: a web search, then each page read
-  pitch: 3, // one outreach email draft
   localscan: 6, // the weekly Google Maps rank grid: 49 points for one keyword, standard queue
   localnow: 12, // a Google Maps rank grid now: 49 points, priority queue
   localfind: 1, // finding the business on Google Maps

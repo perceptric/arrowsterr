@@ -5,7 +5,7 @@ import { capsOf } from "./cmsEdit";
 import type { CmsKind } from "./cmsTypes";
 import { PLAYS, type Play } from "./plays";
 
-// Fix buttons on Site Audit and On-page Audit: prepare a change set in the brand's own connected site for exactly
+// Fix buttons (Content Map): prepare a change set in the brand's own connected site for exactly
 // the pages listed. Nothing goes live until someone approves and applies it.
 
 export class FixError extends Error {

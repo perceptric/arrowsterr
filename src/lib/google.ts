@@ -6,8 +6,6 @@ import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes, 
 // or a key made from SUPABASE_SECRET_KEY when that is not set.
 
 const SCOPES = ["openid", "email", "https://www.googleapis.com/auth/analytics.readonly"];
-/** Search Console, read only (Technical SEO, Indexing). Asked for only when someone connects Search Console. */
-const GSC_SCOPES = ["openid", "email", "https://www.googleapis.com/auth/webmasters.readonly"];
 
 export const googleReady = () => Boolean(process.env.GOOGLE_CLIENT_ID?.trim() && process.env.GOOGLE_CLIENT_SECRET?.trim() && secret());
 
@@ -31,7 +29,7 @@ export function unseal(sealed: string) {
 }
 
 /** A signed, short-lived note that rides through Google's sign-in and comes back to the callback. */
-export type State = { brandId: string; workspaceId: string; userId: string; back: string; exp: number; kind?: "ga4" | "gsc" };
+export type State = { brandId: string; workspaceId: string; userId: string; back: string; exp: number; kind?: "ga4" };
 export function signState(s: Omit<State, "exp">) {
   const body = Buffer.from(JSON.stringify({ ...s, exp: Date.now() + 15 * 60_000 })).toString("base64url");
   return `${body}.${createHmac("sha256", secret()!).update(body).digest("base64url")}`;
@@ -48,15 +46,14 @@ export function readState(raw: string): State | null {
 
 export const redirectUri = (origin: string) => `${origin}/api/google/callback`;
 
-export function authUrl(origin: string, state: string, kind: "ga4" | "gsc" = "ga4") {
+export function authUrl(origin: string, state: string) {
   const q = new URLSearchParams({
     client_id: process.env.GOOGLE_CLIENT_ID!.trim(),
     redirect_uri: redirectUri(origin),
     response_type: "code",
-    scope: (kind === "gsc" ? GSC_SCOPES : SCOPES).join(" "),
+    scope: SCOPES.join(" "),
     access_type: "offline",
     prompt: "consent", // always returns a refresh token, even on a second connect
-    // Each connection asks only for its own access, so a Search Console token never reads Analytics.
     include_granted_scopes: "false",
     state,
   });

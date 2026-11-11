@@ -1,3 +1,5 @@
+> **Removed, November 2026.** Technical SEO (Site Audit, Indexing, Speed, Site structure, AI access, On-page Audit) and Backlinks were taken out of the app. Their screens, routes, jobs and Zippie and MCP tools are gone; their tables stay in the database, unused. Kept here for history.
+
 # Technical SEO: the plan
 
 How Arrowsterr grows its Site Audit into a full Technical SEO toolset. The toolset should cover what Semrush, Ahrefs, Screaming Frog and Sitebulb check. It should add Google's own index and speed data, and lead on what no one else does well: whether AI crawlers can read a site and cite it.

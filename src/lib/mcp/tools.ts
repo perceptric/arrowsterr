@@ -12,14 +12,9 @@ import { MAX_TOPICS } from "../onboarding";
 import { enough, headlineGap, isBase, scoresFromSummary, seenAs, unknownInSummary, verdict, type PerceptionRead, type PerceptionSetup, type SummaryRow } from "../perception";
 import { TASK_COST } from "../plans";
 import { marketOf, type Keyword } from "../research";
-import type { AuditResult } from "../audit";
-import { bareDomain, gapRivals, parseGap, type Overview } from "../backlinks";
-import { aiCited, keys as blKeys, saved as savedBacklinks } from "../backlinksServer";
 import { mapStats, type ContentMap } from "../contentMap";
 import type { Profile } from "../db";
 import { scheduleOf, type Location, type ScanResult } from "../local";
-import type { OnpageResult } from "../onpage";
-import { previousFull, type AuditRow } from "../siteAudit";
 import { ToolError, textResult, type Schema, type ToolResult } from "./protocol";
 
 /** Who is calling: the workspace the API key belongs to. */
@@ -640,78 +635,8 @@ export const TOOLS: Tool[] = [
       );
     },
   },
-  // ─────────────── SEO tools (docs/site-audit.md, onpage-audit.md, backlinks.md, content-map.md, local-research.md) ───────────────
+  // ─────────────── SEO tools (docs/content-map.md, local-research.md) ───────────────
   // Read-only: saved results only, so asking never spends tasks.
-  {
-    name: "get_site_health",
-    title: "Site health",
-    description: "The brand's latest full site crawl: health score out of 100, the score of the full crawl before, pages read, AI crawlers blocked, broken links, and every issue (most serious first) with how many pages it hits and sample pages. Partial crawls have no score.",
-    inputSchema: { type: "object", properties: { brand: brandArg } },
-    annotations: { readOnlyHint: true, openWorldHint: false },
-    async run(ctx, args) {
-      const brand = await pickBrand(ctx, args.brand);
-      const { data, error } = await ctx.db.from("site_audits").select("id, status, score, pages, created_at, result").eq("brand_id", brand.id).eq("status", "done").order("created_at", { ascending: false }).limit(12);
-      if (error) throw new Error(/brand_id/.test(error.message) ? "Site Audit isn't set up in this workspace yet." : error.message);
-      const rows = (data ?? []) as (AuditRow & { pages: number; result: AuditResult })[];
-      if (!rows.length) return textResult({ brand: { name: brand.name, domain: brand.domain }, crawl: null }, "No site crawl yet. Run one on Technical SEO, Site Audit.");
-      const now = rows[0];
-      const before = previousFull(rows, now);
-      return textResult({
-        brand: { name: brand.name, domain: brand.domain },
-        crawled: now.created_at,
-        score: now.result?.partial ? null : now.score,
-        partial: now.result?.partial ?? null,
-        score_before: before?.score ?? null,
-        pages_read: now.pages,
-        ai_crawlers_blocked: now.result?.blockedBots ?? [],
-        broken_links: now.result?.brokenLinks?.length ?? 0,
-        issues: (now.result?.issues ?? []).map((i) => ({ issue: i.title, severity: i.severity, pages: i.count, examples: i.pages.slice(0, 5), fixable_with: i.play ?? null })),
-      });
-    },
-  },
-  {
-    name: "get_onpage_audits",
-    title: "On-page audits",
-    description: "Every page audited against Google's top 10 for its keyword: the latest score, the top 10 average, where it ranks, and for the lowest-scoring pages the checks that failed or need work, missing terms and the suggested title and description.",
-    inputSchema: { type: "object", properties: { brand: brandArg } },
-    annotations: { readOnlyHint: true, openWorldHint: false },
-    async run(ctx, args) {
-      const brand = await pickBrand(ctx, args.brand);
-      const { data, error } = await ctx.db.from("onpage_audits").select("url, keyword, score, top_score, created_at, result").eq("brand_id", brand.id).eq("status", "done").order("created_at", { ascending: false }).limit(100);
-      if (error) throw new Error(/onpage_audits/.test(error.message) ? "On-page Audit isn't set up in this workspace yet." : error.message);
-      const seen = new Set<string>();
-      const latest = ((data ?? []) as { url: string; keyword: string; score: number; top_score: number | null; created_at: string; result: OnpageResult }[]).filter((r) => (seen.has(`${r.url}|${r.keyword}`) ? false : (seen.add(`${r.url}|${r.keyword}`), true))).sort((a, b) => a.score - b.score);
-      return textResult({
-        brand: { name: brand.name, domain: brand.domain },
-        pages: latest.map((r, i) => ({
-          url: r.url,
-          keyword: r.keyword,
-          score: r.score,
-          top_10_average: r.top_score,
-          rank: r.result?.rank ?? null,
-          audited: r.created_at,
-          ...(i < 5 ? { to_fix: r.result.checks.filter((c) => c.status === "fail" || c.status === "warn").map((c) => ({ check: c.label, detail: c.detail, fix_play: c.fix })), missing_terms: r.result.terms.filter((t) => !t.page).map((t) => t.term), suggested: r.result.suggest } : {}),
-        })),
-      });
-    },
-  },
-  {
-    name: "get_backlinks",
-    title: "Backlinks",
-    description: "Who links to the brand's site, from the last saved load (refreshed by an editor on Links, Backlinks): linking sites, backlinks, authority 0 to 100, spam score, new and lost linking sites by week, top anchors, most linked pages, and the link gap against its competitors with the sites its AI answers cite flagged.",
-    inputSchema: { type: "object", properties: { brand: brandArg } },
-    annotations: { readOnlyHint: true, openWorldHint: false },
-    async run(ctx, args) {
-      const brand = await pickBrand(ctx, args.brand);
-      const target = bareDomain(brand.domain);
-      const overview = await savedBacklinks<Overview & { at: string }>(blKeys.overview(target));
-      const rivals = gapRivals(((brand.profile as Profile | null)?.competitors ?? []).map((c) => c.domain), target);
-      const raw = rivals.length ? await savedBacklinks<{ perRival: { rival: string; items: unknown[] }[]; at: string }>(blKeys.gap(target, rivals)) : undefined;
-      const gap = raw?.perRival ? parseGap(raw.perRival, target, await aiCited(ctx.db, brand.id)).slice(0, 50) : null;
-      if (!overview && !gap) return textResult({ brand: { name: brand.name, domain: brand.domain }, backlinks: null }, "Backlinks haven't been loaded for this brand in the last 7 days. An editor loads them on Technical SEO, Backlinks.");
-      return textResult({ brand: { name: brand.name, domain: brand.domain }, updated: overview?.at ?? null, summary: overview?.summary ?? null, weeks: overview?.weeks ?? [], anchors: overview?.anchors.slice(0, 10) ?? [], most_linked_pages: overview?.pages.slice(0, 5) ?? [], rivals, link_gap: gap });
-    },
-  },
   {
     name: "get_content_map",
     title: "Content Map",

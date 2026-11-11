@@ -62,13 +62,6 @@ import { ExportsSettings, JobsSettings } from "./JobsSettings";
 import { BillingPage, choosePlan } from "./BillingPage";
 import { Onboarding, type Checking, type NewBrand, type Welcome } from "./Onboarding";
 import { PerceptionPage } from "./PerceptionPage";
-import { SiteAuditPage } from "./SiteAuditPage";
-import { IndexingPage } from "./tech/IndexingPage";
-import { SpeedPage } from "./tech/SpeedPage";
-import { StructurePage } from "./tech/StructurePage";
-import { AiAccessPage } from "./tech/AiAccessPage";
-import { OnpageAuditPage } from "./OnpageAuditPage";
-import { BacklinksPage } from "./BacklinksPage";
 import { ContentMapPage } from "./ContentMapPage";
 import { LocalResearchPage } from "./LocalResearchPage";
 import { PromptsPage } from "./PromptsPage";
@@ -84,7 +77,7 @@ import { BrandPage } from "./BrandPage";
 import { CONTENT_ALIASES, CONTENT_SLUGS, type ContentPage } from "@/lib/contentRoutes";
 
 export type { Brand } from "@/lib/db";
-type Page = "prompts" | "competitors" | "perception" | "domains" | "urls" | "traffic" | "visitors" | "keywords" | "domain" | "gap" | "siteaudit" | "indexing" | "speed" | "structure" | "aiaccess" | "onpage" | "backlinks" | "contentmap" | "local" | ContentPage | "summary" | SettingsTab;
+type Page = "prompts" | "competitors" | "perception" | "domains" | "urls" | "traffic" | "visitors" | "keywords" | "domain" | "gap" | "contentmap" | "local" | ContentPage | "summary" | SettingsTab;
 const RESEARCH: Page[] = ["keywords", "domain", "gap", "calendar"];
 const VISIBILITY: Page[] = ["prompts", "competitors", "perception", "domains", "urls"];
 /** Pages with their own PDF (docs/reports.md, section 32.3). */
@@ -104,13 +97,6 @@ const SLUGS: Record<Page, string> = {
   keywords: "/keywords",
   domain: "/domain-research",
   gap: "/competitive-analysis",
-  siteaudit: "/site-audit",
-  indexing: "/indexing",
-  speed: "/speed",
-  structure: "/site-structure",
-  aiaccess: "/ai-access",
-  onpage: "/onpage-audit",
-  backlinks: "/backlinks",
   contentmap: "/content-map",
   local: "/local-research",
   ...CONTENT_SLUGS,
@@ -980,20 +966,6 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
             <LocalResearchPage key={view.brand.id} brand={{ id: view.brand.id, name: view.brand.name, domain: view.brand.domain }} sb={sb} auth={auth} canEdit={canEdit} secure={plan ? reportLimits(plan.plan).secure : false} />
           ) : page === "contentmap" ? (
             <ContentMapPage key={view.brand.id} brand={{ id: view.brand.id, name: view.brand.name, domain: view.brand.domain }} sb={sb} auth={auth} canEdit={canEdit} onConnect={() => go("publishing")} />
-          ) : page === "backlinks" ? (
-            <BacklinksPage key={view.brand.id} brand={{ id: view.brand.id, name: view.brand.name, domain: view.brand.domain }} auth={auth} canEdit={canEdit} />
-          ) : page === "onpage" ? (
-            <OnpageAuditPage key={view.brand.id} brand={{ id: view.brand.id, name: view.brand.name, domain: view.brand.domain }} sb={sb} auth={auth} canEdit={canEdit} onConnect={() => go("publishing")} />
-          ) : page === "indexing" ? (
-            <IndexingPage key={view.brand.id} brand={{ id: view.brand.id, name: view.brand.name, domain: view.brand.domain }} auth={auth} canEdit={canEdit} />
-          ) : page === "aiaccess" ? (
-            <AiAccessPage key={view.brand.id} brand={{ id: view.brand.id, name: view.brand.name, domain: view.brand.domain }} auth={auth} />
-          ) : page === "structure" ? (
-            <StructurePage key={view.brand.id} brand={{ id: view.brand.id, name: view.brand.name, domain: view.brand.domain }} auth={auth} />
-          ) : page === "speed" ? (
-            <SpeedPage key={view.brand.id} brand={{ id: view.brand.id, name: view.brand.name, domain: view.brand.domain }} auth={auth} canEdit={canEdit} />
-          ) : page === "siteaudit" ? (
-            <SiteAuditPage key={view.brand.id} brand={{ id: view.brand.id, name: view.brand.name, domain: view.brand.domain }} sb={sb} auth={auth} canEdit={canEdit} onConnect={() => go("publishing")} />
           ) : page === "perception" ? (
             <PerceptionPage key={view.brand.id} view={view} sb={sb} auth={auth} canEdit={canEdit} />
           ) : page === "summary" ? (
@@ -1090,7 +1062,7 @@ function NavIcon({ name }: { name: string }) {
 
 /** The toolset a page belongs to. Starter opens one of them. */
 const trackOf = (page: Page): Track | null =>
-  ["prompts", "competitors", "perception", "domains", "urls"].includes(page) ? "visibility" : ["keywords", "domain", "gap", "calendar", "library", "siteaudit", "indexing", "speed", "structure", "aiaccess", "onpage", "backlinks", "contentmap", "local"].includes(page) ? "seo" : null;
+  ["prompts", "competitors", "perception", "domains", "urls"].includes(page) ? "visibility" : ["keywords", "domain", "gap", "calendar", "library", "contentmap", "local"].includes(page) ? "seo" : null;
 
 /** The big modules of the app. Each opens to its own pages. */
 const NAV: { group: string; icon: string; items: { id: Page; label: string; icon: string; also?: Page[] }[] }[] = [
@@ -1122,19 +1094,6 @@ const NAV: { group: string; icon: string; items: { id: Page; label: string; icon
       { id: "contentmap", label: "Content Map", icon: "map" },
       { id: "library", label: "Library", icon: "book" },
       { id: "brand", label: "Brand", icon: "palette" },
-    ],
-  },
-  {
-    group: "Technical SEO",
-    icon: "pulse",
-    items: [
-      { id: "siteaudit", label: "Site Audit", icon: "pulse" },
-      { id: "indexing", label: "Indexing", icon: "index" },
-      { id: "speed", label: "Speed", icon: "gauge" },
-      { id: "structure", label: "Site structure", icon: "tree" },
-      { id: "aiaccess", label: "AI access", icon: "bot" },
-      { id: "onpage", label: "On-page Audit", icon: "check" },
-      { id: "backlinks", label: "Backlinks", icon: "chain" },
     ],
   },
   {

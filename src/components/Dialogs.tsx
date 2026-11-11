@@ -36,7 +36,8 @@ export function DialogHost() {
     open = (a) => {
       setAsk((cur) => {
         // A new question cancels one still open.
-        if (cur) (cur.kind === "confirm" ? cur.resolve(false) : cur.resolve(null));
+        if (cur?.kind === "confirm") cur.resolve(false);
+        else if (cur) cur.resolve(null);
         return a;
       });
       setValue(a.kind === "text" ? a.value : "");

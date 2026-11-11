@@ -5,7 +5,6 @@ import { askJson, claudeModel, parseJson } from "./claude";
 import { addLink, capsOf, faqHtml, faqsIn, getItem, imagesWithoutAlt, linksIn, listItems, setAlts, snapshot, textOf, writeItem, type Caps, type Fields, type Item, type ItemType } from "./cmsEdit";
 import type { CmsKind } from "./cmsTypes";
 import { take } from "./entitlements";
-import { matchesPages } from "./siteAudit";
 import { charge, claudeCost } from "./meter";
 
 // Plays: Zippie's site-wide fixes. Each one reads the CMS, proposes a change per page,
@@ -19,6 +18,16 @@ export const PLAYS: Record<Play, { label: string; cap: keyof Omit<Caps, "note">;
   faq: { label: "FAQ sections", cap: "faq", limit: 5, cost: (pages) => pages * 5, what: "Adds 3 to 5 questions buyers really ask, with answers from the page, to the end of each post." },
   links: { label: "Internal links", cap: "links", limit: 10, cost: (pages) => pages * 3, what: "Links each post to up to 3 related pages on your site, using words already in the text." },
 };
+
+/** A page address without scheme, www, fragment or trailing slash, for matching pages by address. */
+const pageKey = (url: string) => url.trim().replace(/#.*$/, "").replace(/^https?:\/\/(www\.)?/i, "").replace(/\/+(\?|$)/, "$1").toLowerCase();
+
+/** Does a CMS item match one of the pages asked for, by id or by address? */
+export function matchesPages(item: { id: string; url: string }, ids: string[]): boolean {
+  if (ids.includes(item.id)) return true;
+  const keys = new Set(ids.map(pageKey));
+  return keys.has(pageKey(item.url));
+}
 
 type Conn = { id: string; kind: CmsKind; name: string; config: Record<string, string> };
 type Proposal = { item: Item; after: Record<string, unknown>; note: string; images?: number };
