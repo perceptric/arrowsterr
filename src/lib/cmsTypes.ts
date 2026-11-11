@@ -1,6 +1,6 @@
 // CMS publishing, shared by the server and the browser. Secrets never come back to the browser.
 
-export type CmsKind = "wordpress" | "webflow" | "shopify" | "hubspot" | "ghost";
+export type CmsKind = "wordpress" | "webflow" | "framer" | "shopify" | "hubspot" | "ghost";
 /** brand_id is the brand that publishes to it. backfilled: given to the first brand by 048_brand_integrations.sql, not moved yet. */
 export type CmsConnection = { id: string; kind: CmsKind; name: string; created_at: string; brand_id?: string | null; backfilled?: boolean };
 
@@ -30,13 +30,23 @@ export const CMS: { id: CmsKind; label: string; help: string; fields: CmsField[]
   {
     id: "webflow",
     label: "Webflow",
-    help: "In Webflow, open Site settings → Apps & integrations → API access and make a token with CMS read and write. The collection ID is in the CMS collection's settings.",
+    help: "Sign in with Webflow, or open Site settings → Apps & integrations → API access, make a token with CMS read and write and paste it with the blog collection's ID.",
     fields: [
       { id: "token", label: "API token", placeholder: "", secret: true },
       { id: "collectionId", label: "Blog collection ID", placeholder: "64f1c2..." },
       { id: "bodyField", label: "Rich text field slug", placeholder: "post-body", optional: true },
       { id: "summaryField", label: "Summary field slug", placeholder: "post-summary", optional: true },
       { id: "imageField", label: "Image field slug", placeholder: "main-image", optional: true },
+    ],
+  },
+  {
+    id: "framer",
+    label: "Framer",
+    help: "In Framer, open your project's Site Settings → General → API Keys, create a key and paste it with the project's link.",
+    fields: [
+      { id: "projectUrl", label: "Project link", placeholder: "https://framer.com/projects/Website--abc123" },
+      { id: "apiKey", label: "API key", placeholder: "", secret: true },
+      { id: "collection", label: "Blog collection", placeholder: "Blog", optional: true },
     ],
   },
   {

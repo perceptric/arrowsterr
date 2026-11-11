@@ -10,6 +10,12 @@ import { PublishError, publishToWp, scheduleKey, statusFor, syncPub, versionAtLe
 import { mirrorMeta, PUB_COLS, pubStore, pubView, SYNC_SETUP, wpClient } from "@/lib/wpSyncServer";
 import { docToHtml } from "@/lib/docHtml";
 import { framedModules } from "@/lib/wpModules";
+import { cmsScheduleKey, publishPlan } from "@/lib/cmsSchedule";
+import { signState, stateReady } from "@/lib/google";
+import { webflowAuthUrl, webflowReady } from "@/lib/webflowAuth";
+
+/** Which sites connect with a sign-in instead of pasted keys, on this server. */
+const oauth = () => ({ webflow: webflowReady() && stateReady() });
 
 const str = (v: unknown, n: number) => String(v ?? "").trim().slice(0, n);
 const err = (error: string, status = 400) => Response.json({ error }, { status });
@@ -34,8 +40,10 @@ async function draftBrand(
 //   move: { id, brandId }                      admins: give a site to another brand
 //   dismiss: {}                                admins: hide the one-time notice to move sites
 //   remove: { id }                             admins
-//   publish: { docId, connectionId, live, title, html, slug, description, image, schema }   editors, only to the draft's own brand's sites
-//            WordPress also takes { mode: draft|publish|schedule, scheduleAt, categoryId, tags, metaTitle, asNew }
+//   publish: { docId, connectionId, mode: draft|publish|schedule, scheduleAt, title, html, slug, description, image, schema }
+//            editors, only to the draft's own brand's sites. WordPress also takes { categoryId, tags, metaTitle, asNew }.
+//            Other sites schedule by going up as a draft now; a cms_publish job puts them live at the time.
+//   webflow_start: { brandId }                 admins: Webflow's sign-in link (webflowAuth.ts); the callback saves the site
 //   publish_info: { docId }                    the draft's brand's sites, where the draft went (WordPress), and defaults from its plan
 //   wp_site: { docId, connectionId }           a WordPress site's categories and whether the Arrowsterr plugin is on it
 //   sync: { docId }                            read each WordPress post back: status, address, last edit, or deleted
@@ -77,9 +85,25 @@ export async function POST(request: Request) {
     if (missing(error)) return Response.json({ connections: [], setup: "Run supabase/021_doc_meta.sql in Supabase to connect a CMS." });
     if (error) return err(error.message, 500);
     const all = data ?? [];
-    if (!brandId) return Response.json({ connections: all });
+    if (!brandId) return Response.json({ connections: all, oauth: oauth() });
     const { count } = await auth.sb.from("brands").select("id", { count: "exact", head: true }).eq("workspace_id", ws);
-    return Response.json({ connections: all.filter((c) => c.brand_id === brandId), notice: showMoveNotice(count ?? 0, all) });
+    return Response.json({ connections: all.filter((c) => c.brand_id === brandId), notice: showMoveNotice(count ?? 0, all), oauth: oauth() });
+  }
+
+  if (body.action === "webflow_start") {
+    if (!oauth().webflow) return err("Webflow sign-in is not set up on this server. Paste a site token instead.", 500);
+    let brandId = await brandIn(body.brandId);
+    if (body.brandId && !brandId) return err("That brand is not in this workspace.", 404);
+    if (!brandId) {
+      const { data: first } = await auth.sb.from("brands").select("id").eq("workspace_id", ws).order("created_at").limit(1).maybeSingle();
+      brandId = (first?.id as string | undefined) ?? null;
+    }
+    if (!brandId) return err("Add a brand first.");
+    const { data: me } = await auth.sb.auth.getUser();
+    if (!me.user) return err("Sign in again.", 401);
+    const host = request.headers.get("x-forwarded-host");
+    const base = host ? `https://${host}` : new URL(request.url).origin;
+    return Response.json({ url: webflowAuthUrl(base, signState({ brandId, workspaceId: ws, userId: me.user.id, back: "/settings/publishing", kind: "webflow" })) });
   }
 
   if (body.action === "connect") {
@@ -307,17 +331,28 @@ export async function POST(request: Request) {
       description: str(body.description, 400),
       image: /^https?:\/\//.test(str(body.image, 1000)) ? str(body.image, 1000) : "",
       schema: str(body.schema, 50_000),
-      live: Boolean(body.live),
+      live: Boolean(body.live) || body.mode === "publish",
     };
     if (conn.kind === "wordpress") return publishWordPress(db, auth.sb, ws, doc, conn as { id: string; config: Record<string, string> }, input, body);
     const before = meta.published?.find((p) => p.connectionId === conn.id);
+    // Draft, Publish now or Schedule. A time already gone publishes now.
+    const plan = body.mode ? publishPlan(body.mode, body.scheduleAt, new Date()) : { live: input.live, at: null };
+    if ("error" in plan) return err(plan.error);
+    // A live post stays live: sending it back as a draft would take it off the site.
+    if (before?.live && !plan.live) return err("This post is live. Publish now updates it.", 409);
+    input.live = plan.live;
     try {
       // Only WordPress reads the module contract; other sites get each module as a self-contained frame.
       const out = await CMS_API[conn.kind as CmsKind].publish(conn.config as Record<string, string>, { ...input, html: framedModules(input.html) }, before?.id);
-      const rec: Published = { connectionId: conn.id, kind: conn.kind as CmsKind, id: out.id, url: out.url, live: input.live, at: new Date().toISOString() };
+      const rec: Published = { connectionId: conn.id, kind: conn.kind as CmsKind, id: out.id, url: out.url ?? (before?.id === out.id ? before.url : null), live: input.live, at: new Date().toISOString(), ...(plan.at ? { scheduledFor: plan.at } : {}) };
       const next = { ...meta, title: input.title, slug: input.slug, description: input.description, image: input.image, schema: input.schema, published: [...(meta.published ?? []).filter((p) => p.connectionId !== conn.id), rec] };
       await auth.sb.from("docs").update({ meta: next }).eq("id", doc.id);
-      if (input.live && doc.calendar_item_id) await auth.sb.from("calendar_items").update({ status: "published", ...(out.url ? { url: out.url } : {}) }).eq("id", doc.calendar_item_id);
+      // On the date, a job puts it live with the article as it is then (cmsSchedule.ts).
+      if (plan.at)
+        await enqueue("cms_publish", { docId: doc.id, connectionId: conn.id, at: plan.at }, { workspaceId: ws, key: cmsScheduleKey(doc.id, conn.id, plan.at), runAt: new Date(plan.at), maxAttempts: 8 }).catch((e) =>
+          console.error("Scheduling the publish job failed:", e instanceof Error ? e.message : e),
+        );
+      if (input.live && doc.calendar_item_id) await auth.sb.from("calendar_items").update({ status: "published", ...(rec.url ? { url: rec.url } : {}) }).eq("id", doc.calendar_item_id);
       if (input.live) await dispatch(db, ws, "post.published", { title: input.title, url: out.url, cms: conn.kind }).catch(() => {});
       return Response.json({ published: rec });
     } catch (e) {

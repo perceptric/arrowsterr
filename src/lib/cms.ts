@@ -1,5 +1,6 @@
 import "server-only";
 import { createHmac } from "node:crypto";
+import { framerItem, mapFields, pickCollection } from "./cmsMap";
 import type { CmsKind, PublishInput } from "./cmsTypes";
 import { wpClient } from "./wpSyncServer";
 
@@ -169,4 +170,53 @@ const ghost = {
   },
 };
 
-export const CMS_API: Record<CmsKind, { test: (c: Config) => Promise<string>; publish: (c: Config, p: PublishInput, id?: string) => Promise<Result> }> = { wordpress, webflow, shopify, hubspot, ghost };
+// ─────────────── Framer ───────────────
+// The Framer Server API (framer-api): one connection per call, closed when done. Items go into the blog collection
+// with their fields picked by cmsMap.ts; a live item publishes the site and deploys it to the custom domain.
+
+type FramerConn = Awaited<ReturnType<typeof import("framer-api")["connect"]>>;
+async function withFramer<T>(c: Config, fn: (f: FramerConn) => Promise<T>): Promise<T> {
+  const { connect } = await import("framer-api");
+  const f = await connect(c.projectUrl.trim(), c.apiKey.trim());
+  try {
+    return await fn(f);
+  } finally {
+    await f.disconnect().catch(() => {});
+  }
+}
+async function framerCollection(f: FramerConn, c: Config) {
+  const all = await f.getCollections();
+  const col = pickCollection(all.map((x) => ({ id: x.id, name: x.name, x })), c.collection ?? "");
+  if (!col) throw new Error(c.collection ? `No collection named ${c.collection} in this project.` : "This project has no CMS collection. Add a blog collection in Framer first.");
+  const fields = (await col.x.getFields()).map((x) => ({ id: x.id, name: x.name, type: x.type }));
+  const map = mapFields(fields);
+  if (!map) throw new Error(`The ${col.name} collection needs a formatted text field for the article.`);
+  return { col: col.x, name: col.name, map };
+}
+const framer = {
+  test: (c: Config) =>
+    withFramer(c, async (f) => {
+      const { name, map } = await framerCollection(f, c);
+      return `Collection: ${name}${map.title ? "" : " (no title field: the slug names each post)"}`;
+    }),
+  publish: (c: Config, p: PublishInput, id?: string): Promise<Result> =>
+    withFramer(c, async (f) => {
+      const { col, map } = await framerCollection(f, c);
+      const item = framerItem(map, { ...p, html: withSchema(p) }, new Date(), id);
+      // An item deleted in Framer is made again, so Update never fails on a missing id.
+      const items = await col.getItems();
+      const have = id ? items.find((x) => x.id === id) : undefined;
+      await col.addItems([have ? item : { ...item, id: undefined }] as Parameters<typeof col.addItems>[0]);
+      const saved = have ?? (await col.getItems()).find((x) => x.slug === item.slug);
+      if (!saved) throw new Error("Framer didn't save the item. Try again.");
+      if (p.live) {
+        // Publish, then point the custom domain at it (nothing happens without one). The post's own address depends
+        // on the site's collection page, which the API doesn't give, so no link is guessed.
+        const out = await f.publish();
+        await f.deploy(out.deployment.id).catch(() => []);
+      }
+      return { id: saved.id, url: null };
+    }),
+};
+
+export const CMS_API: Record<CmsKind, { test: (c: Config) => Promise<string>; publish: (c: Config, p: PublishInput, id?: string) => Promise<Result> }> = { wordpress, webflow, framer, shopify, hubspot, ghost };
