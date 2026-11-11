@@ -50,8 +50,6 @@ const ROWS: { group: string; rows: { label: React.ReactNode; value: (p: Plan) =>
       { label: "Tasks a month", value: (p) => (starter(p) ? "3,000 on Organic Research" : n(p.tasksPerMonth)) },
       { label: "Task packs to top up", value: () => "✓" },
       { label: "Keyword, Domain & Competitive Analysis", value: () => "✓" },
-      { label: "Content Map", value: () => "✓" },
-      { label: "Local Research on Google Maps", value: () => "✓" },
       { label: "Revenue-driven Content Plan & briefs", value: (p) => yes(p.plansPerMonth > 0) },
       { label: "Agentic Writer & publishing", value: (p) => yes(p.writer === "full") },
     ],

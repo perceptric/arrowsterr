@@ -1,6 +1,4 @@
 import "server-only";
-import { loadLocal } from "./localReportServer";
-import { seoSnapshot, type SeoRaw, type SeoSnapshot } from "./reportSeo";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Run } from "./chats";
 import { listCalendar, type CalendarItem } from "./db";
@@ -35,17 +33,6 @@ const sectionsOf = (doc: ReportDocument): ReportSection[] => {
 
 function spanOf(start: string, end: string, tz: string | null): Span {
   return { start, end, startAt: Date.parse(dayStart(start, tz)), endAt: Date.parse(dayStart(addDays(end, 1), tz)) };
-}
-
-/** The SEO block's saved results (src/lib/reportSeo.ts). Tables that don't exist yet just add nothing. */
-async function seoFor(db: SupabaseClient, brand: { id: string; workspace_id: string }, start: string, end: string): Promise<SeoSnapshot | null> {
-  const rows = async <T>(q: PromiseLike<{ data: T[] | null; error: unknown }>): Promise<T[]> => ((await q).data ?? []) as T[];
-  const [maps, scans] = await Promise.all([
-    rows<SeoRaw["maps"][number]>(db.from("content_maps").select("created_at, result").eq("brand_id", brand.id).eq("status", "done").order("created_at", { ascending: false }).limit(3)),
-    rows<SeoRaw["scans"][number]>(db.from("local_scans").select("keyword, created_at, result").eq("brand_id", brand.id).eq("status", "done").order("created_at", { ascending: false }).limit(60)),
-  ]);
-  const locations = await loadLocal(db, brand.id, start, end).catch(() => []);
-  return seoSnapshot({ start, end, maps, scans, locations });
 }
 
 /** Saved runs for a brand between two moments, oldest first, with tidy sources. */
@@ -92,7 +79,8 @@ export async function buildClientReport(input: BuildInput): Promise<Built> {
     on.has("visitors") || on.has("content") ? soft(brandVisitors(db, brand.id, cur)) : Promise.resolve(null),
     on.has("content") ? soft(calendarFor(db, brand)) : Promise.resolve(null),
   ]);
-  const seo = on.has("seo") ? await soft(seoFor(db, brand, range.start, range.end)) : null;
+  // Content Map and Local Research were removed: new reports have no SEO block.
+  const seo = null;
   const t = Date.parse;
   const current = runs.filter((r) => t(r.at) >= cur.startAt);
   const previous = prev ? [...prevRuns, ...runs].filter((r) => t(r.at) >= prev.startAt && t(r.at) < prev.endAt) : [];

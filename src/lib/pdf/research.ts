@@ -3,12 +3,11 @@
 // feeds it saved reports; tests feed it fixtures.
 import { bare, nameFromDomain, splitShared, type Gap, type GapRow } from "../gap.ts";
 import type { BrandStat } from "../metrics.ts";
-import type { LocalReportLoc } from "../localReport.ts";
 import { kdWord, MARKETS, type DomainBulkRow, type DomainReport, type KeywordReport, type KwSummary } from "../research.ts";
 
 /** The research pages with a PDF. They are download-only: schedules never send them. */
-export type ResearchPage = "keywords" | "domain" | "gap" | "local";
-export const RESEARCH_PAGES: ResearchPage[] = ["keywords", "domain", "gap", "local"];
+export type ResearchPage = "keywords" | "domain" | "gap";
+export const RESEARCH_PAGES: ResearchPage[] = ["keywords", "domain", "gap"];
 export const isResearchPage = (v: unknown): v is ResearchPage => RESEARCH_PAGES.includes(v as ResearchPage);
 
 /** What a research PDF was made from, cleaned from a request. */
@@ -17,8 +16,7 @@ export type ResearchParams =
   | { tool: "keyword-bulk"; bulk: string }
   | { tool: "domain"; domain: string; scope: "domain" | "subdomain" | "subfolder" | "url"; country: string }
   | { tool: "domain-bulk"; bulk: string }
-  | { tool: "gap"; siteId: string; competitor: string; days: number }
-  | { tool: "local"; locationId: string; days: number };
+  | { tool: "gap"; siteId: string; competitor: string; days: number };
 
 const SCOPES = ["domain", "subdomain", "subfolder", "url"] as const;
 
@@ -29,11 +27,6 @@ export function cleanResearch(page: ResearchPage, x: unknown): ResearchParams | 
   const country = MARKETS[text(o.country)] ? text(o.country) : "United States";
   const bulk = text(o.bulk, 40);
   if ((page === "keywords" || page === "domain") && bulk) return /^[a-z0-9]{4,40}$/.test(bulk) ? { tool: page === "keywords" ? "keyword-bulk" : "domain-bulk", bulk } : null;
-  if (page === "local") {
-    const locationId = text(o.locationId, 60);
-    const days = Math.min(365, Math.max(7, Math.round(Number(o.days) || 30)));
-    return /^[0-9a-f-]{36}$/i.test(locationId) ? { tool: "local", locationId, days } : null;
-  }
   if (page === "keywords") {
     const keyword = text(o.keyword, 80).toLowerCase();
     return keyword ? { tool: "keyword", keyword, country, device: o.device === "mobile" ? "mobile" : "desktop" } : null;
@@ -207,11 +200,7 @@ export function gapPdf(gap: Gap, you: { name: string; domain: string }, themDoma
   };
 }
 
-// ─────────────── Local Research → "Local Research: [location]" ───────────────
-
-export type LocalPdf = { page: "local"; brand: string; location: LocalReportLoc };
-
-export type ResearchPdf = KeywordPdf | KeywordBulkPdf | DomainPdf | DomainBulkPdf | GapPdf | LocalPdf;
+export type ResearchPdf = KeywordPdf | KeywordBulkPdf | DomainPdf | DomainBulkPdf | GapPdf;
 
 /** The PDF's title, from what it holds. */
 export function researchTitle(d: ResearchPdf): string {
@@ -220,6 +209,5 @@ export function researchTitle(d: ResearchPdf): string {
   if (d.page === "keywords-bulk") return `Keyword Report: ${d.tiles.keywords.toLocaleString("en-US")} keywords`;
   if (d.page === "domain") return cut(`Domain Report: ${d.domain}`);
   if (d.page === "domain-bulk") return `Domain Report: ${d.tiles.sites.toLocaleString("en-US")} sites`;
-  if (d.page === "local") return cut(`Local Research: ${d.location.name === d.location.title ? d.location.title : `${d.location.title}, ${d.location.name}`}`);
   return cut(`Keyword Gap: ${d.you.name} vs ${d.them.name}`);
 }

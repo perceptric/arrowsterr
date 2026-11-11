@@ -53,8 +53,6 @@ function organic(p: Plan): Group {
       { text: `${n(p.tasksPerMonth)} tasks a month`, on: true, tip: TIPS.tasks },
       { text: "Keyword & Domain Research", on: true },
       { text: "Competitive Analysis", on: true },
-      { text: "Content Map", on: true },
-      { text: "Local Research on Google Maps", on: true },
       { text: "Revenue-driven Content Plan", ...on(plan, "On Starter"), tip: plan ? TIPS.bank : undefined },
       { text: "Content Briefs & calendar", ...on(plan, "On Starter") },
       { text: "Agentic Writer & publishing", ...on(writer, "On Pro") },

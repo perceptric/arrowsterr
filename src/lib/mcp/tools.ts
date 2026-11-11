@@ -9,12 +9,8 @@ import { research, Spend } from "../keywords";
 import { broaderSeed } from "../kwReport";
 import { answered, brandStats, competitorDomains, domainRows, promptDetail, promptRows, rankOf, splitPeriods, topicGrid, topicRows, trend, typeShares, urlRows, type BrandStat, type Filter } from "../metrics";
 import { MAX_TOPICS } from "../onboarding";
-import { enough, headlineGap, isBase, scoresFromSummary, seenAs, unknownInSummary, verdict, type PerceptionRead, type PerceptionSetup, type SummaryRow } from "../perception";
 import { TASK_COST } from "../plans";
 import { marketOf, type Keyword } from "../research";
-import { mapStats, type ContentMap } from "../contentMap";
-import type { Profile } from "../db";
-import { scheduleOf, type Location, type ScanResult } from "../local";
 import { ToolError, textResult, type Schema, type ToolResult } from "./protocol";
 
 /** Who is calling: the workspace the API key belongs to. */
@@ -247,70 +243,6 @@ export const TOOLS: Tool[] = [
         brands: shown.map((s) => ({ ...statRow(s), quadrant: quadrantOf(s, mid) })),
         mostFavorable: warmest ? { name: warmest.name, sentiment: round(warmest.sentiment, 0) } : null,
         topicLeaders: leaders.map((t) => ({ topic: t.topic, leader: t.leader, youVisibility: round(t.values[brand.name] ?? null) })),
-      });
-    },
-  },
-  {
-    name: "get_brand_perception",
-    title: "Words AI uses for the brand",
-    description:
-      "How AI describes the brand on its perception words (7 good, 3 bad, the same list for every brand in the market): the share of answers that support each word, for the brand and the brands AI names most next to it, with quotes as proof. source buyer reads the answers to tracked prompts; direct reads the weekly questions asked about the brand itself.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        brand: brandArg,
-        days: daysArg,
-        engine: engineArg,
-        source: { type: "string", enum: ["buyer", "direct"], description: "buyer (default): answers to tracked prompts. direct: the weekly questions about the brand." },
-        rivals: { type: "number", description: "How many other brands to compare. Default 3, max 8." },
-      },
-    },
-    annotations: { readOnlyHint: true, openWorldHint: false },
-    async run(ctx, args) {
-      const brand = await pickBrand(ctx, args.brand);
-      const { data: b } = await ctx.db.from("brands").select("perception").eq("id", brand.id).maybeSingle();
-      const words = (b?.perception as PerceptionSetup | null)?.words;
-      if (!words?.length) throw new ToolError(`${brand.name} has no perception words yet. Open the Perception page in Arrowsterr once to make them.`);
-      const days = daysOf(args.days);
-      const source = args.source === "direct" ? "direct" : "buyer";
-      const engine = str(args.engine, 40);
-      const since = new Date(Date.now() - days * 864e5).toISOString();
-      const { data, error } = await ctx.db.rpc("perception_summary", { p_brand: brand.id, p_since: since });
-      if (error) throw new Error(error.message);
-      const rows = (data ?? []) as SummaryRow[];
-      const keep = (r: SummaryRow) => r.source === source && (!engine || same(r.engine, engine));
-      const you = scoresFromSummary(rows, brand.name, words, keep);
-      if (!you.n && !rows.length) throw noData(brand, days);
-      const reach = new Map<string, number>();
-      for (const r of rows) if (keep(r) && isBase(r) && r.named !== brand.name) reach.set(r.named, (reach.get(r.named) ?? 0) + r.n);
-      const take = Math.min(8, Math.max(0, Math.round(Number(args.rivals) || 3)));
-      const rivals = [...reach.entries()].sort((x, y) => y[1] - x[1]).slice(0, take).map(([name]) => ({ brand: name, scores: scoresFromSummary(rows, name, words, keep) }));
-      const { data: recent } = await ctx.db.from("perception_reads").select("engine, words, source").eq("brand_id", brand.id).eq("named", brand.name).eq("source", source).gte("at", since).order("at", { ascending: false }).limit(300);
-      const quotes = (word: string) => ((recent ?? []) as Pick<PerceptionRead, "engine" | "words">[]).filter((r) => !engine || same(r.engine, engine)).flatMap((r) => r.words.filter((w) => w.word === word).map((w) => ({ model: r.engine, quote: w.quote }))).slice(0, 3);
-      const share = (s: typeof you, w: string) => (enough(s) ? round(s.share[w] * 100, 0) : null);
-      const [first, second] = verdict(brand.name, you, rivals, words, unknownInSummary(rows, brand.name));
-      const gap = headlineGap(you, rivals, words);
-      return textResult({
-        brand: { name: brand.name, domain: brand.domain },
-        days,
-        source,
-        model: engine || "all",
-        answers: you.n,
-        verdict: [first, second].filter(Boolean).join(" "),
-        notKnownWhenAsked: unknownInSummary(rows, brand.name),
-        seenAs: (() => {
-          const seen = seenAs(rows, brand.name, (r) => keep(r) && (r.source === "buyer" || r.kind === "describe"));
-          return seen.n ? { answers: seen.n, top: seen.shares[0].category, expected: (b?.perception as PerceptionSetup | null)?.expected ?? null, shares: seen.shares.slice(0, 5).map((x) => ({ category: x.category, share: round(x.share * 100, 0) })) } : null;
-        })(),
-        biggestGap: gap ? { word: gap.word, leader: gap.brand, leaderShare: round(gap.them * 100, 0), yourShare: round(gap.you * 100, 0) } : null,
-        words: words.map((w) => ({
-          word: w.word,
-          good: w.good,
-          share: share(you, w.word),
-          rivals: Object.fromEntries(rivals.map((r) => [r.brand, share(r.scores, w.word)])),
-          quotes: quotes(w.word),
-        })),
-        note: "share is the percent of answers naming the brand that support the word. null means fewer than 3 answers.",
       });
     },
   },
@@ -633,63 +565,6 @@ export const TOOLS: Tool[] = [
         { brand: { name: brand.name, domain: brand.domain }, topic: t?.name ?? topicName, added: adding, notAdded: fresh.slice(adding.length) },
         `Now tracking ${adding.length} more prompt${adding.length === 1 ? "" : "s"}. They are checked in the next daily run.${left ? ` ${left} did not fit in the plan's limit.` : ""}`,
       );
-    },
-  },
-  // ─────────────── SEO tools (docs/content-map.md, local-research.md) ───────────────
-  // Read-only: saved results only, so asking never spends tasks.
-  {
-    name: "get_content_map",
-    title: "Content Map",
-    description: "The brand's latest Content Map: topics grouped into pillars, each covered (a page ranks top 20), missing (competitors rank top 10 and the brand doesn't, or planned and not started), in progress, or two pages competing; with searches, visits, competitors, whether it's planned, whether AI names the brand for it, and whether the pillar's main page links to it.",
-    inputSchema: { type: "object", properties: { brand: brandArg } },
-    annotations: { readOnlyHint: true, openWorldHint: false },
-    async run(ctx, args) {
-      const brand = await pickBrand(ctx, args.brand);
-      const { data } = await ctx.db.from("content_maps").select("result, created_at").eq("brand_id", brand.id).eq("status", "done").order("created_at", { ascending: false }).limit(1).maybeSingle();
-      if (!data?.result) return textResult({ brand: { name: brand.name, domain: brand.domain }, map: null }, "No content map yet. An editor builds it on Content, Content Map.");
-      const m = data.result as ContentMap;
-      return textResult({
-        brand: { name: brand.name, domain: brand.domain },
-        built: data.created_at,
-        stats: mapStats(m.topics),
-        rivals: m.rivals,
-        pillars: m.pillars.map((p) => ({ name: p.name, main_page: p.hub, topics: m.topics.filter((t) => t.pillar === p.name).map((t) => ({ topic: t.name, status: t.status, searches: t.volume, visits: t.traffic, pages: t.urls, rivals: t.rivals, planned: t.planned, ai_names_brand: t.ai, linked_from_main_page: t.linked })) })),
-      });
-    },
-  },
-  {
-    name: "get_local_research",
-    title: "Local Research",
-    description: "The brand's Google Maps rankings for each of its locations: the business, and for each tracked keyword the latest grid scan (its size and spacing): average rank (not found counts as 21), points in the top 3 and top 20, rating and reviews, the local competitors holding the top 3, and the listing check (name, phone, address, LocalBusiness schema, category against competitors).",
-    inputSchema: { type: "object", properties: { brand: brandArg } },
-    annotations: { readOnlyHint: true, openWorldHint: false },
-    async run(ctx, args) {
-      const brand = await pickBrand(ctx, args.brand);
-      const { data: rows } = await ctx.db.from("local_locations").select("id, data").eq("brand_id", brand.id).order("position");
-      const locs = ((rows ?? []) as { id: string; data: Location }[]).map((r) => ({ ...r.data, id: r.id }));
-      const legacy = (brand.profile as Profile | null)?.location;
-      if (!locs.length && legacy) locs.push({ ...legacy, id: "" });
-      if (!locs.length) return textResult({ brand: { name: brand.name, domain: brand.domain }, locations: [] }, "No business location yet. An editor adds it on Organic Research, Local Research.");
-      const { data } = await ctx.db.from("local_scans").select("location_id, keyword, created_at, result").eq("brand_id", brand.id).eq("status", "done").order("created_at", { ascending: false }).limit(200);
-      const latest = new Map<string, { created_at: string; result: ScanResult & { listing?: unknown } }>();
-      for (const r of (data ?? []) as { location_id: string | null; keyword: string; created_at: string; result: ScanResult & { listing?: unknown } }[]) {
-        const k = `${r.location_id ?? ""}|${r.keyword}`;
-        if (!latest.has(k)) latest.set(k, r);
-      }
-      return textResult({
-        brand: { name: brand.name, domain: brand.domain },
-        locations: locs.map((loc) => ({
-          name: loc.name ?? loc.city ?? loc.title,
-          business: { name: loc.title, address: loc.address, category: loc.category, phone: loc.phone },
-          keywords: loc.keywords,
-          schedule: scheduleOf(loc),
-          grid: { size: loc.size ?? 7, shape: loc.shape ?? "square", spacing_miles: loc.spacing, moved_center: Boolean(loc.center) },
-          scans: loc.keywords
-            .map((k) => [k, latest.get(`${loc.id}|${k}`) ?? (locs.length === 1 ? latest.get(`|${k}`) : undefined)] as const)
-            .filter((x): x is readonly [string, { created_at: string; result: ScanResult & { listing?: unknown } }] => Boolean(x[1]))
-            .map(([k, r]) => ({ keyword: k, scanned: r.created_at, grid: `${r.result.size} x ${r.result.size}`, average_rank: r.result.avg, top3_points: r.result.top3, top20_points: r.result.found, points_read: r.result.read, you: r.result.you, rivals: r.result.rivals.slice(0, 5), listing: r.result.listing ?? null })),
-        })),
-      });
     },
   },
 ];

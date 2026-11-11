@@ -80,7 +80,7 @@ export default async function SharedReport({ params }: { params: Promise<{ token
   if (!data || typeof data !== "object") return <Note text="This report link is not valid or was removed." />;
 
   const kind = (data as { kind?: string }).kind;
-  // A page's PDF shared as a link (Local Research): drawn the same way as the file.
+  // A page's PDF shared as a link: drawn the same way as the file.
   if (kind === "pdf") {
     const snap = (data as { snapshot: PdfSnapshot }).snapshot;
     return (

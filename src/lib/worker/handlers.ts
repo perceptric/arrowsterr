@@ -19,16 +19,9 @@ import type { AgentResult } from "../research";
 import { articleResearchJob } from "../articleResearchServer";
 import { writerBriefJob, writerDraftJob } from "../writerServer";
 import { wpPublishJob } from "../wpSyncServer";
-import { runMap } from "../contentMapServer";
-import { collectScan, queueWeeklyScans } from "../localServer";
-import { queueProfileReads, runProfileRead } from "../localProfileServer";
-import { queueReviewPulls, runReviewPull } from "../localReviewsServer";
-import { collectAiScan, queueAiScans } from "../localAiServer";
-import { collectRecheck } from "../localAlertsServer";
 import { queueReportSends } from "../scheduleServer";
 import { applySet, preparePlay, undoSet } from "../plays";
 import { checkDue, promptAllowance } from "../plans";
-import { PERCEPTION_VERSION } from "../perception";
 import type { PlanBrief } from "../research";
 
 // What each kind of job does. A handler either finishes its job, or puts it back with retry().
@@ -52,11 +45,6 @@ export const slotOf = (brandId: string) => seed(brandId) % WINDOW_MIN;
 export async function schedule(db: SupabaseClient, job: Job) {
   // Scheduled reports due this tick (docs/reports.md, section 32.4). A failure here never holds up the daily checks.
   await queueReportSends(db).catch((e) => console.error("Report schedules failed:", e instanceof Error ? e.message : e));
-  // Local Research: each keyword's weekly Google Maps grid scan (docs/local-research.md).
-  await queueWeeklyScans(db).catch((e) => console.error("Weekly local scans failed:", e instanceof Error ? e.message : e));
-  await queueProfileReads(db).catch((e) => console.error("Weekly local profile reads failed:", e instanceof Error ? e.message : e));
-  await queueReviewPulls(db).catch((e) => console.error("Weekly local review pulls failed:", e instanceof Error ? e.message : e));
-  await queueAiScans(db).catch((e) => console.error("Monthly local AI grids failed:", e instanceof Error ? e.message : e));
   const engines = availableEngines();
   if (!engines.length) return finish(job.id);
   const now = new Date();
@@ -102,17 +90,6 @@ export async function schedule(db: SupabaseClient, job: Job) {
       ),
     );
   }
-  // Perception (docs/perception.md): read each finished run's answers once, and ask the direct questions once a week
-  // per brand, on the brand's own day. Before 059_perception.sql these queries fail, and nothing is queued.
-  // The last 30 days are read once, newest first, so the page fills right away instead of waiting for new checks.
-  const recent = new Date(Date.now() - 30 * 864e5).toISOString();
-  const settled = new Date(Date.now() - 60 * 60_000).toISOString(); // a browser run saves its answers when it ends, within the hour
-  const { data: unread } = await db.from("runs").select("id, workspace_id, source, status, at").lt("perception_read", PERCEPTION_VERSION).gte("at", recent).order("at", { ascending: false }).limit(40);
-  const readable = (unread ?? []).filter((r) => (r.source === "daily" ? r.status !== "running" : r.at < settled));
-  if (readable.length) await enqueueMany(readable.map((r) => ({ kind: "perception" as const, workspace_id: r.workspace_id, key: `perception:${PERCEPTION_VERSION}:${r.id}`, payload: { runId: r.id } })));
-  const askable = (brands ?? []).filter((b) => b.daily && b.prompts?.length && checkDue(seed(b.id), 7) && slotOf(b.id) <= minute);
-  if (askable.length) await enqueueMany(askable.map((b) => ({ kind: "perception_probe" as const, workspace_id: b.workspace_id, key: `perception_probe:${b.id}:${today()}`, payload: { brandId: b.id } })));
-
   // Brands whose saved answers predate the current brand check get one cleanup. Before the migration this does nothing.
   const { data: unchecked } = await db.from("brands").select("id, workspace_id").lt("brands_checked", BRAND_CHECK_VERSION).limit(50);
   if (unchecked?.length) {
@@ -300,45 +277,16 @@ export async function audit(_db: SupabaseClient, job: Job) {
   await finish(job.id);
 }
 
-// Local Research (docs/local-research.md): collect a grid scan's Google Maps answers, again until all are in.
-export async function local_fetch(db: SupabaseClient, job: Job) {
-  const { scanId, round } = job.payload as { scanId: string; round?: number };
-  await collectScan(db, scanId, round ?? 0);
-  await finish(job.id);
-}
-
-// Local Research profiles (docs/local-research-plan.md, 4.4): read now, then collect posts in later rounds.
-export async function local_profile(db: SupabaseClient, job: Job) {
-  await runProfileRead(db, job.payload as Parameters<typeof runProfileRead>[1]);
-  await finish(job.id);
-}
-
-// Local Research reviews (docs/local-research-plan.md, 4.5): post the pulls, collect them, then read themes.
-export async function local_reviews(db: SupabaseClient, job: Job) {
-  await runReviewPull(db, job.payload as Parameters<typeof runReviewPull>[1]);
-  await finish(job.id);
-}
-
-// Local Research AI answers (docs/local-research-plan.md, 4.6): collect an AI grid's answers until all are in.
-export async function local_ai(db: SupabaseClient, job: Job) {
-  const { scanId, round } = job.payload as { scanId: string; round?: number };
-  await collectAiScan(db, scanId, round ?? 0);
-  await finish(job.id);
-}
-
-// Local Research alerts (docs/local-research-plan.md, 4.8): the second read of a rank drop.
-export async function local_alert(db: SupabaseClient, job: Job) {
-  const { alertId, round } = job.payload as { alertId: string; round?: number };
-  await collectRecheck(db, alertId, round ?? 0);
-  await finish(job.id);
-}
-
-// Content Map (docs/content-map.md). A failed build saves its error and hands its tasks back itself.
-export async function content_map(db: SupabaseClient, job: Job) {
-  const { mapId } = job.payload as { mapId: string };
-  await runMap(db, mapId);
-  await finish(job.id);
-}
+// Local Research, Perception and Content Map were removed: their jobs still in the queue just finish.
+const retired = async (_db: SupabaseClient, job: Job) => finish(job.id);
+export const local_fetch = retired;
+export const local_profile = retired;
+export const local_reviews = retired;
+export const local_ai = retired;
+export const local_alert = retired;
+export const content_map = retired;
+export const perception = retired;
+export const perception_probe = retired;
 
 // Link Building was removed: link checks still in the queue just finish.
 export async function link_check(_db: SupabaseClient, job: Job) {

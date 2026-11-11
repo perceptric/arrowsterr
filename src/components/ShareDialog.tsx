@@ -45,7 +45,7 @@ export function ShareButton({
   /** The plan allows a password and an expiry date on links. */
   secure: boolean;
   snapshot?: () => Promise<PromptsSnapshot | CompetitorsSnapshot> | PromptsSnapshot | CompetitorsSnapshot;
-  /** Makes the link on the server instead (Local Research), returning it as the share route does. */
+  /** Makes the link on the server instead, returning it as the share route does. */
   make?: () => Promise<{ url: string; id: string }>;
 }) {
   const [state, setState] = useState<State>(null);

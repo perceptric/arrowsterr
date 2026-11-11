@@ -1,22 +1,20 @@
 import { randomUUID } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { allowed } from "@/lib/cronAuth";
-import { sendLocalAlerts } from "@/lib/localAlertsServer";
 import { claim, enqueue, prune, queueReady, retry, type Job, type WebJobKind } from "@/lib/jobs";
 import { metered } from "@/lib/meter";
 import { sendNudges } from "@/lib/nudges";
 import { sendWeekly } from "@/lib/notify";
 import { adminClient } from "@/lib/serverAuth";
 import { reportSend } from "@/lib/scheduleServer";
-import { perceptionProbe, perceptionRun } from "@/lib/perceptionServer";
-import { apply, article_research, audit, brief, check, clean_brands, content_map, cwv_sync, gsc_sync, link_check, local_ai, local_alert, local_fetch, local_profile, local_reviews, onpage, plan, play, rollup, schedule, writer_brief, writer_draft, wp_publish } from "@/lib/worker/handlers";
+import { apply, article_research, audit, brief, check, clean_brands, content_map, cwv_sync, gsc_sync, link_check, local_ai, local_alert, local_fetch, local_profile, local_reviews, onpage, perception, perception_probe, plan, play, rollup, schedule, writer_brief, writer_draft, wp_publish } from "@/lib/worker/handlers";
 
 // One worker tick. scripts/worker.mjs calls this over and over.
 // Each tick queues the scheduler for this 10-minute window, then claims a batch of jobs and runs them a few at a time.
 
 export const maxDuration = 300;
 
-const HANDLERS: Record<WebJobKind, (db: SupabaseClient, job: Job) => Promise<void>> = { schedule, check, brief, plan, rollup, audit, play, apply, report_send: reportSend, article_research, writer_brief, writer_draft, wp_publish, clean_brands, perception: perceptionRun, perception_probe: perceptionProbe, onpage, link_check, content_map, local_fetch, local_profile, local_reviews, local_ai, local_alert, gsc_sync, cwv_sync };
+const HANDLERS: Record<WebJobKind, (db: SupabaseClient, job: Job) => Promise<void>> = { schedule, check, brief, plan, rollup, audit, play, apply, report_send: reportSend, article_research, writer_brief, writer_draft, wp_publish, clean_brands, perception, perception_probe, onpage, link_check, content_map, local_fetch, local_profile, local_reviews, local_ai, local_alert, gsc_sync, cwv_sync };
 const ACTION: Record<WebJobKind, string> = { schedule: "daily check", check: "daily check", brief: "content brief", plan: "content plan", rollup: "daily numbers", audit: "site audit", play: "ask arrowsterr", apply: "ask arrowsterr apply", report_send: "scheduled report", article_research: "article research", writer_brief: "writer brief", writer_draft: "writer draft", wp_publish: "publish to wordpress", clean_brands: "brand check", perception: "perception", perception_probe: "perception questions", onpage: "on-page audit", link_check: "link check", content_map: "content map", local_fetch: "local research", local_profile: "local profiles", local_reviews: "local reviews", local_ai: "local ai answers", local_alert: "local alerts", gsc_sync: "search console", cwv_sync: "core web vitals" };
 const WORKER = `web-${randomUUID().slice(0, 8)}`;
 const KINDS = Object.keys(HANDLERS) as WebJobKind[];
@@ -45,7 +43,6 @@ export async function POST(request: Request) {
     if (window % 6 === 0) {
       await sendNudges(db).catch((e) => console.error("Nudges failed:", e instanceof Error ? e.message : e));
       await sendWeekly(db).catch((e) => console.error("Weekly emails failed:", e instanceof Error ? e.message : e));
-      await sendLocalAlerts(db).catch((e) => console.error("Local alert emails failed:", e instanceof Error ? e.message : e));
     }
 
     // A 15-minute lease: a brief or a plan can take several minutes, and must not be picked up twice.
