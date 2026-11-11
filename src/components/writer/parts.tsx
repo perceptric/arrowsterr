@@ -7,7 +7,7 @@ import { siteForBrand } from "@/lib/db";
 import type { RunAuth } from "@/lib/runner";
 import { putStash } from "@/lib/stash";
 import type { FullBrief, FullDraft } from "@/lib/writerLibrary";
-import { researchProgress, statusLabel } from "@/lib/writerLibrary";
+import { statusLabel } from "@/lib/writerLibrary";
 import { useStash } from "@/lib/stash";
 import { Confirm, Modal } from "../reports/Dialog";
 import { post } from "../research/shared";
@@ -56,30 +56,13 @@ export function usePoll(on: boolean, ms: number, fn: () => void) {
 }
 
 export const libraryKey = (brandId: string) => `library:${brandId}:open`;
-export type LibraryOpen = { kind: "brief" | "draft" | "doc"; id: string } | null;
+export type LibraryOpen = { kind: "draft" | "doc"; id: string } | null;
 
-/** Go to the Library with one brief or draft open. */
+/** Go to Drafts with one draft open. */
 export function openInLibrary(brandId: string, open: LibraryOpen) {
   putStash(libraryKey(brandId), open);
-  window.history.pushState(null, "", `/library${window.location.search}`);
+  window.history.pushState(null, "", `/drafts${window.location.search}`);
   window.dispatchEvent(new PopStateEvent("popstate"));
-}
-
-const RUN_STEP: Record<string, string> = { queued: "Starting research", searching: "Reading Google and the AI answers", reading: "Reading the top pages", waiting: "Waiting to read more pages", done: "Research done" };
-
-/** Where a brief stands while it's made: the research, then the writing. */
-export function BriefProgress({ sb, brief }: { sb: SupabaseClient; brief: Pick<FullBrief, "step" | "research_run_id" | "status"> }) {
-  const [run, setRun] = useState<{ status: string; read: number; total: number } | null>(null);
-  const load = () => {
-    if (brief.research_run_id) researchProgress(sb, brief.research_run_id).then(setRun).catch(() => {});
-  };
-  useEffect(load, [sb, brief.research_run_id]);
-  usePoll(brief.status === "generating", 4000, load);
-  const steps = [
-    { label: run ? RUN_STEP[run.status] ?? "Research" : "Starting research", note: run && run.total ? `${run.read} of ${run.total} pages read` : "", done: brief.step !== "research", on: brief.step === "research" },
-    { label: "Writing the brief", note: "", done: brief.step === "done", on: brief.step === "writing" },
-  ];
-  return <Steps steps={steps} />;
 }
 
 /** Where a draft stands: sections written, the check, the modules, the doc. */
@@ -117,16 +100,12 @@ function Steps({ steps }: { steps: { label: string; note: string; done: boolean;
 /** Regenerate with a one-line note. A draft edited by hand asks before its edits are replaced. */
 export function RegenerateDialog({
   auth,
-  kind,
   briefId,
-  itemId,
   onStarted,
   onClose,
 }: {
   auth: RunAuth;
-  kind: "brief" | "draft";
   briefId: string;
-  itemId: string;
   onStarted: () => void;
   onClose: () => void;
 }) {
@@ -138,11 +117,11 @@ export function RegenerateDialog({
     setBusy(true);
     setError("");
     try {
-      await post(auth, "/api/agentic-writer", kind === "brief" ? { action: "brief", itemId, note } : { action: "draft", briefId, note, confirm });
+      await post(auth, "/api/agentic-writer", { action: "draft", briefId, note, confirm });
       onStarted();
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
-      if (kind === "draft" && /edited by hand/i.test(message)) setEdited(true);
+      if (/edited by hand/i.test(message)) setEdited(true);
       else setError(message);
     } finally {
       setBusy(false);
@@ -151,7 +130,7 @@ export function RegenerateDialog({
   if (edited)
     return <Confirm title="Replace your edits?" text="This draft was edited by hand. Regenerating writes a new draft over those edits." action="Regenerate" busy={busy} error={error} onConfirm={() => go(true)} onClose={onClose} />;
   return (
-    <Modal title={kind === "brief" ? "Regenerate brief" : "Regenerate draft"} onClose={onClose} width="max-w-md">
+    <Modal title="Regenerate draft" onClose={onClose} width="max-w-md">
       <form
         className="flex flex-col gap-4"
         onSubmit={(e) => {
@@ -161,7 +140,7 @@ export function RegenerateDialog({
       >
         <label className="flex flex-col gap-1.5 text-[13px] text-body">
           Note
-          <input autoFocus value={note} maxLength={300} onChange={(e) => setNote(e.target.value)} className="aw-input" placeholder={kind === "brief" ? "More on pricing" : "Shorter intro"} />
+          <input autoFocus value={note} maxLength={300} onChange={(e) => setNote(e.target.value)} className="aw-input" placeholder="Shorter intro" />
         </label>
         {error ? <p className="aw-error">{error}</p> : null}
         <div className="flex justify-end gap-2">

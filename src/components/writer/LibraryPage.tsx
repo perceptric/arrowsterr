@@ -23,13 +23,13 @@ import { brandTables } from "../research/Writer";
 import { exportClean } from "../research/writerNodes";
 import { EmptyScreen } from "../Drawing";
 import { Seg, Thinking } from "../ui";
-import { BriefEditor } from "./BriefEditor";
 import { ContentGrid } from "./ContentGrid";
 import { DraftProgress, libraryKey, RegenerateDialog, StateTag, useBrandSite, usePoll, type LibraryOpen } from "./parts";
 
-// The Library: every keyword imported from the Editorial Calendar, as a grid of articles (ContentGrid).
-// Generate starts there. A finished brief opens editable; an article opens in the plain editor with its
-// interactive modules running in sandboxed frames, its HTML, Markdown and Text views, Export and Publish.
+// Drafts (docs/drafts-plan.md): every keyword from the Editorial Calendar, as a grid of articles (ContentGrid).
+// Write drafts starts there: the research and outline run in the background, then the draft. An article opens in the
+// plain editor with its interactive modules running in sandboxed frames, its HTML, Markdown and Text views, Export
+// and Publish.
 
 const making = (t: Topic) => t.brief?.status === "generating" || t.draft?.status === "generating";
 
@@ -69,28 +69,27 @@ export function LibraryPage({ view, auth, canEdit, onCalendar }: { view: View; a
     window.history.replaceState(null, "", window.location.pathname + (params.size ? `?${params}` : ""));
   }, [setOpen]);
 
-  if (site === undefined || (site && rows === null)) return <Thinking text="Opening the Library..." />;
+  if (site === undefined || (site && rows === null)) return <Thinking text="Opening Drafts..." />;
   if (!site) return <p className="aw-error">{siteError || "This brand has no website yet."}</p>;
 
   const back = () => {
     setOpen(null);
     load();
   };
-  if (open?.kind === "brief") return <BriefEditor key={open.id} sb={sb} auth={auth} id={open.id} canEdit={canEdit} onBack={back} onDraft={(id) => setOpen({ kind: "draft", id })} />;
   if (open?.kind === "draft") return <DraftView key={open.id} sb={sb} auth={auth} site={site} brandId={brand.id} id={open.id} canEdit={canEdit} onBack={back} />;
   if (open?.kind === "doc") return <DocView key={open.id} sb={sb} auth={auth} site={site} brandId={brand.id} id={open.id} canEdit={canEdit} onBack={back} />;
 
   const list = rows ?? [];
   return (
     <div className="flex flex-col gap-5">
-      {list.length ? null : <h1 className="aw-h2">Library</h1>}
+      {list.length ? null : <h1 className="aw-h2">Drafts</h1>}
       {error ? <p className="aw-error">{error}</p> : null}
       {list.length ? (
         <ContentGrid sb={sb} auth={auth} site={site} brandId={brand.id} canEdit={canEdit} onOpen={setOpen} />
       ) : (
         <EmptyScreen
           drawing="library"
-          title="Write articles that rank and get cited"
+          title="Write drafts that rank and get cited"
           action={
             onCalendar ? (
               <button type="button" className="aw-btn aw-btn--primary" onClick={onCalendar}>
@@ -99,7 +98,7 @@ export function LibraryPage({ view, auth, canEdit, onCalendar }: { view: View; a
             ) : undefined
           }
         >
-          Import keywords from the Editorial Calendar. Arrowsterr writes each brief in {brand.name}&apos;s voice.
+          Add keywords from the Editorial Calendar. Arrowsterr writes each draft in {brand.name}&apos;s voice.
         </EmptyScreen>
       )}
     </div>
@@ -111,7 +110,7 @@ function Back({ onBack, title, children }: { onBack: () => void; title: string; 
     <div className="flex flex-wrap items-center justify-between gap-3">
       <span className="flex min-w-0 items-center gap-3">
         <button type="button" className="aw-text-link shrink-0 text-[13px]" onClick={onBack}>
-          ← Library
+          ← Drafts
         </button>
         <span className="truncate text-[15px] font-medium text-ink">{title}</span>
       </span>
@@ -162,9 +161,7 @@ function DraftView({ sb, auth, site, brandId, id, canEdit, onBack }: { sb: Supab
     regen && brief ? (
       <RegenerateDialog
         auth={auth}
-        kind="draft"
         briefId={brief.id}
-        itemId={draft.item_id}
         onClose={() => setRegen(false)}
         onStarted={() => {
           setRegen(false);
@@ -217,7 +214,7 @@ function DraftView({ sb, auth, site, brandId, id, canEdit, onBack }: { sb: Supab
   );
 }
 
-/** An article's doc by its id: the one a writer started from the brief in the grid (Full view). */
+/** An article's doc by its id: the one a writer started in the grid (Full view). */
 function DocView({ sb, auth, site, brandId, id, canEdit, onBack }: { sb: SupabaseClient; auth: RunAuth; site: Site; brandId: string; id: string; canEdit: boolean; onBack: () => void }) {
   const [doc, setDoc] = useState<Doc | null | undefined>(undefined);
   const [error, setError] = useState("");

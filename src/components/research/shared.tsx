@@ -21,17 +21,27 @@ export function byStage<T extends { stage: Stage | null; due_date?: string | nul
   );
 }
 
-/** A piece with no date is still an idea. It turns Planned once it is on the calendar. */
+/** A piece with no date is still an idea. It turns Planned once it is on the calendar. Brief ready, from before Drafts, reads as Planned. */
 export function statusLabel(i: { status: "planned" | "brief" | "writing" | "review" | "published"; due_date: string | null }) {
-  if (i.status === "planned") return i.due_date ? "Planned" : "Idea";
-  return i.status === "brief" ? "Brief ready" : i.status === "writing" ? "Writing" : i.status === "review" ? "In review" : "Published";
+  if (i.status === "planned" || i.status === "brief") return i.due_date ? "Planned" : "Idea";
+  return i.status === "writing" ? "Writing" : i.status === "review" ? "In review" : "Published";
 }
+
+/** A piece's statuses, for Set status. */
+export const STATUSES: { id: "planned" | "writing" | "review" | "published"; label: string }[] = [
+  { id: "planned", label: "Planned" },
+  { id: "writing", label: "Writing" },
+  { id: "review", label: "In review" },
+  { id: "published", label: "Published" },
+];
+
+/** Whether this workspace has the Agentic Writer, and how to get it. */
+export type WriterAccess = { open: boolean; onUpgrade?: () => void };
 
 /** Status choices for a piece. Idea means planned with no day yet. */
 export const STATUS_PICK = [
   { id: "idea", label: "Idea", tone: "aw-status--pending" },
   { id: "planned", label: "Planned", tone: "aw-status--warn" },
-  { id: "brief", label: "Brief ready", tone: "aw-status--warn", aliases: ["Brief"] },
   { id: "writing", label: "Writing", tone: "aw-status--warn" },
   { id: "review", label: "In review", tone: "aw-status--warn", aliases: ["Review"] },
   { id: "published", label: "Published", tone: "aw-status--ranked" },

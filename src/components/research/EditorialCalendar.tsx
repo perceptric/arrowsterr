@@ -16,10 +16,9 @@ import { Sheet, type Col, type Edit } from "../Sheet";
 import { Confirm } from "../reports/Dialog";
 import { SidePanel, Thinking } from "../ui";
 import { CalendarGrid, TopicSidebar } from "./CalendarGrid";
-import { STATUSES, type WriterAccess } from "./ContentPiece";
 import { KeywordDeepDive } from "./KeywordDeepDive";
 import { DayPanel } from "./DayPanel";
-import { byStage, CalendarViewIcon, Difficulty, downloadCsv, FIELD, ListViewIcon, post, slugify, slugOf, STAGE_LABEL, StageTag, STATUS_PICK, statusLabel, ViewSwitch } from "./shared";
+import { byStage, CalendarViewIcon, Difficulty, downloadCsv, FIELD, ListViewIcon, post, slugify, slugOf, STAGE_LABEL, StageTag, STATUS_PICK, STATUSES, statusLabel, ViewSwitch, type WriterAccess } from "./shared";
 import { PlanProgress, planRows } from "./AgenticResearch";
 import { PlanIntro, PlanSample } from "./PlanIntro";
 import { usePlan } from "./usePlan";
@@ -541,11 +540,8 @@ export function EditorialCalendar({
         <section className="aw-frame flex min-w-0 flex-col">
           {picked.size && canEdit ? (
             <div className="flex flex-wrap items-center gap-3 border-b border-rule-faint bg-brand-pale px-5 py-2.5">
-              <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => void actions.actMany(pickedPieces(), "outline")}>
-                Write outline
-              </button>
-              <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => void actions.actMany(pickedPieces(), "draft")}>
-                Write draft
+              <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => void actions.actMany(pickedPieces())}>
+                Write drafts
               </button>
               <Dropdown<CalendarStatus | ""> label="Set status" value="" placeholder="Set status" onChange={(st) => st && [...picked].forEach((id) => patch(id, { status: st }))} className={FIELD} options={STATUSES.map((s) => ({ id: s.id, label: s.label }))} />
               <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => remove([...picked])}>

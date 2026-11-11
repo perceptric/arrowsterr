@@ -602,3 +602,36 @@ export async function requestDraft(store: QuotaStore, ask: DraftAsk): Promise<Dr
   }
   return { ok: false, status: 409, error: "This topic's draft changed while starting. Try again." };
 }
+
+// ─────────────── drafts only ───────────────
+/** What the outline-to-draft step reads and writes (docs/drafts-plan.md, 3.1). */
+export type ChainStore = {
+  brief(id: string): Promise<(BriefRow & { created_by?: string | null }) | null>;
+  /** Approve a ready outline. True only for the call that moved it, so two runs never start two drafts. */
+  approve(id: string): Promise<boolean>;
+  /** Keep why the draft didn't start on the outline, for the Write button to show with Try again. */
+  note(id: string, error: string): Promise<void>;
+  /** Queue the draft's job. */
+  queue(draftId: string, version: number): Promise<void>;
+};
+export type ChainOut = { state: "started"; draftId: string } | { state: "skipped"; why: string } | { state: "stopped"; error: string };
+
+/**
+ * There's no brief to review: once the outline is written, the draft starts on its own. A topic that already has a
+ * draft is left alone, so an outline written again never replaces someone's draft. A draft the plan has no room for
+ * leaves the outline approved with the reason, and Write draft tries again.
+ */
+export async function chainDraft(store: ChainStore, quota: QuotaStore, briefId: string, plan: { limit: number; period: string }): Promise<ChainOut> {
+  const b = await store.brief(briefId);
+  if (!b) return { state: "skipped", why: "gone" };
+  if (b.status !== "ready" || !b.brief) return { state: "skipped", why: b.status };
+  if (await quota.draftFor(b.item_id)) return { state: "skipped", why: "has a draft" };
+  if (!(await store.approve(b.id))) return { state: "skipped", why: "moved" };
+  const out = await requestDraft(quota, { brief: { ...b, status: "approved" }, limit: plan.limit, period: plan.period, userId: b.created_by ?? null });
+  if (!out.ok) {
+    await store.note(b.id, out.error);
+    return { state: "stopped", error: out.error };
+  }
+  if (out.started) await store.queue(out.draftId, out.version);
+  return { state: "started", draftId: out.draftId };
+}

@@ -275,7 +275,7 @@ export const TOOLS: Tool[] = [
     description: "The brand's Content Plan: each planned piece with its keyword, funnel stage, search volume, difficulty, status, due date and live URL.",
     inputSchema: {
       type: "object",
-      properties: { brand: brandArg, status: { type: "string", enum: ["planned", "brief", "writing", "review", "published"], description: "Only pieces with this status." } },
+      properties: { brand: brandArg, status: { type: "string", enum: ["planned", "writing", "review", "published"], description: "Only pieces with this status." } },
     },
     annotations: { readOnlyHint: true, openWorldHint: false },
     async run(ctx, args) {
@@ -434,7 +434,7 @@ export const TOOLS: Tool[] = [
               id: { type: "string", description: "The piece's id from get_content_plan." },
               keyword: { type: "string", description: "The piece's keyword, when there is no id." },
               new_keyword: { type: "string" },
-              status: { type: "string", enum: ["planned", "brief", "writing", "review", "published"] },
+              status: { type: "string", enum: ["planned", "writing", "review", "published"] },
               stage: { type: "string", enum: ["bofu", "mofu", "tofu"], description: "Funnel stage: bofu ready to buy, mofu comparing, tofu learning." },
               due_date: { type: "string", description: "YYYY-MM-DD, or an empty string to clear it." },
               notes: { type: "string", description: "Angle or instructions for the writer. Replaces the old notes." },
@@ -464,7 +464,7 @@ export const TOOLS: Tool[] = [
           continue;
         }
         const patch: Record<string, unknown> = {};
-        const status = (["planned", "brief", "writing", "review", "published"] as const).find((v) => v === x.status);
+        const status = (["planned", "writing", "review", "published"] as const).find((v) => v === x.status);
         if (status) patch.status = status;
         const stage = (["bofu", "mofu", "tofu"] as const).find((v) => v === x.stage);
         if (stage) patch.stage = stage;
@@ -500,7 +500,7 @@ export const TOOLS: Tool[] = [
   {
     name: "remove_from_content_plan",
     title: "Remove from Content Plan",
-    description: "Delete pieces from the brand's Content Plan, by id or keyword from get_content_plan. Their briefs go with them; drafts in the writer stay. Confirm with the person first.",
+    description: "Delete pieces from the brand's Content Plan, by id or keyword from get_content_plan. Their drafts in the writer stay. Confirm with the person first.",
     inputSchema: {
       type: "object",
       properties: {

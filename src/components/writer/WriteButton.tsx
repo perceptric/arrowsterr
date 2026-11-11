@@ -12,11 +12,11 @@ import { PublishPanel } from "../research/PublishPanel";
 import { post } from "../research/shared";
 import { brandTables } from "../research/Writer";
 import { exportClean } from "../research/writerNodes";
-import { OutlinePanel } from "./OutlinePanel";
 
-// The Write cell (docs/agentic-writing.md, section 1): Write outline, Write draft, Publish content and View post,
-// with the open button beside it. The button is plain; useWriteActions runs what it does and draws the sidebar,
-// Publish and the confirm outside any grid, so typing in them never reaches the grid's keys.
+// The Write cell (docs/agentic-writing.md, section 1, and docs/drafts-plan.md): Write draft, Publish content and View
+// post, with the open button beside it. Write draft researches and outlines in the background, then writes the draft;
+// there is no brief to review. useWriteActions runs what the button does and draws Publish and the confirm outside
+// any grid, so typing in them never reaches the grid's keys.
 
 const OpenIcon = () => (
   <svg className="aw-icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -49,16 +49,14 @@ export function WriteButton({ state, busy, canEdit, onAct, onOpen }: { state: Wr
         main("View post", false)
       ) : !canEdit ? (
         <span className="text-muted">–</span>
-      ) : s.kind === "outline" ? (
-        main("Write outline")
-      ) : s.kind === "draft" ? (
+      ) : s.kind === "outline" || s.kind === "draft" ? (
         main("Write draft")
       ) : s.kind === "publish" ? (
         main("Publish content")
       ) : (
         main("Try again", true, s.error)
       )}
-      {s.kind === "draft" ? open("Open outline") : s.kind === "publish" || (s.kind === "view" && s.docId) ? open("Open draft") : null}
+      {s.kind === "publish" || (s.kind === "view" && s.docId) ? open("Open draft") : null}
     </span>
   );
 }
@@ -67,8 +65,8 @@ type Piece = { id: string; keyword: string };
 
 /**
  * What the Write buttons do, for one screen. act(piece, state) runs a piece's main button; open(piece, state) its
- * open button. overlays holds the outline sidebar, Publish and the confirm; render it outside the grid.
- * onChanged reloads the screen's rows. beforeOutline puts a piece in the Library first.
+ * open button. overlays holds Publish and the confirm; render it outside the grid.
+ * onChanged reloads the screen's rows. beforeOutline puts a piece in Drafts first.
  */
 export function useWriteActions({
   sb,
@@ -92,7 +90,6 @@ export function useWriteActions({
 }) {
   const [busy, setBusy] = useState<Set<string>>(new Set());
   const [error, setError] = useState("");
-  const [outline, setOutline] = useState<{ itemId: string; briefId: string } | null>(null);
   const [publishing, setPublishing] = useState<{ docId: string; title: string; html: string } | null>(null);
   const [replace, setReplace] = useState<{ itemId: string; briefId: string } | null>(null);
   const [replacing, setReplacing] = useState(false);
@@ -145,17 +142,17 @@ export function useWriteActions({
     }
   }
 
-  /** Run one action for several pieces: Write outline or Write draft from the bulk bar. */
-  async function actMany(list: { piece: Piece; state: WriteState }[], kind: "outline" | "draft") {
+  /** Write draft for several pieces from the bulk bar. Pieces already written or being written are left alone. */
+  async function actMany(list: { piece: Piece; state: WriteState }[]) {
     if (!canEdit) return;
     if (onUpgrade) return onUpgrade();
     setError("");
-    const todo = list.filter(({ state: s }) => (kind === "outline" ? s.kind === "outline" || (s.kind === "retry" && s.target === "outline") : s.kind === "draft" || (s.kind === "retry" && s.target === "draft")));
+    const todo = list.filter(({ state: s }) => s.kind === "outline" || s.kind === "draft" || s.kind === "retry");
     const errors: string[] = [];
     for (const { piece } of todo) mark(piece.id, true);
     for (const { piece, state: s } of todo) {
       try {
-        if (kind === "outline") await writeOutline(piece);
+        if (s.kind === "outline" || (s.kind === "retry" && s.target === "outline")) await writeOutline(piece);
         else if ((s.kind === "draft" || s.kind === "retry") && s.briefId) await post(auth, "/api/agentic-writer", { action: "draft", briefId: s.briefId });
       } catch (e) {
         errors.push(`${piece.keyword}: ${e instanceof Error ? e.message : String(e)}`);
@@ -167,42 +164,13 @@ export function useWriteActions({
     onChanged();
   }
 
-  function open(p: Piece, s: WriteState) {
-    if (s.kind === "draft") return setOutline({ itemId: p.id, briefId: s.briefId });
+  function open(_p: Piece, s: WriteState) {
     const docId = s.kind === "publish" ? s.docId : s.kind === "view" ? s.docId : null;
-    if (docId) window.open(`/library?doc=${encodeURIComponent(docId)}${brandId ? `&brand=${encodeURIComponent(brandId)}` : ""}`, "_blank", "noopener");
+    if (docId) window.open(`/drafts?doc=${encodeURIComponent(docId)}${brandId ? `&brand=${encodeURIComponent(brandId)}` : ""}`, "_blank", "noopener");
   }
 
-  const piece = outline ? { id: outline.itemId, keyword: "" } : null;
   const overlays = (
     <>
-      {outline && piece ? (
-        <OutlinePanel
-          sb={sb}
-          auth={auth}
-          briefId={outline.briefId}
-          brandId={brandId}
-          canEdit={canEdit}
-          onClose={() => {
-            setOutline(null);
-            onChanged();
-          }}
-          onWriteDraft={async () => {
-            if (onUpgrade) {
-              onUpgrade();
-              return false;
-            }
-            try {
-              const started = await writeDraft(piece, outline.briefId);
-              if (started) onChanged();
-              return started;
-            } catch (e) {
-              setError(e instanceof Error ? e.message : String(e));
-              return false;
-            }
-          }}
-        />
-      ) : null}
       {publishing ? (
         <PublishPanel
           sb={sb}
@@ -229,7 +197,6 @@ export function useWriteActions({
             try {
               await post(auth, "/api/agentic-writer", { action: "draft", briefId: replace.briefId, confirm: true });
               setReplace(null);
-              setOutline(null);
               onChanged();
             } catch (e) {
               setError(e instanceof Error ? e.message : String(e));

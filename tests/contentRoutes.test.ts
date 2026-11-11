@@ -4,19 +4,19 @@ import { CONTENT_ALIASES, CONTENT_SLUGS, contentPageFromPath } from "../src/lib/
 
 test("content: each page opens at its own address", () => {
   assert.equal(contentPageFromPath("/editorial-calendar"), "calendar");
-  assert.equal(contentPageFromPath("/library/"), "library");
-  assert.equal(contentPageFromPath("/brand"), "brand");
+  assert.equal(contentPageFromPath("/drafts/"), "library");
 });
 
 test("content: old Opportunities, Calendar and Content Plan addresses open the Editorial Calendar", () => {
   for (const p of ["/opportunities", "/calendar", "/content-plan", "/content-calendar", "/topic-bank", "/agentic-research", "/content-intelligence"]) assert.equal(contentPageFromPath(p), "calendar", p);
 });
 
-test("content: /content and the old Agentic Writer open the Library, the old Brand Voice setting opens Brand", () => {
+test("content: /content, the Library and the old Agentic Writer open Drafts; Brand is in Settings now", () => {
+  assert.equal(contentPageFromPath("/library"), "library");
   assert.equal(contentPageFromPath("/content"), "library");
   assert.equal(contentPageFromPath("/agentic-writer"), "library");
   assert.equal(contentPageFromPath("/writer"), "library");
-  assert.equal(contentPageFromPath("/settings/brand-voice"), "brand");
+  assert.equal(contentPageFromPath("/brand"), null);
 });
 
 test("content: an alias never hides a page's own address, and other paths are not ours", () => {

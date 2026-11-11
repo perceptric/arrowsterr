@@ -5,10 +5,12 @@ import { loadBrandContext } from "./brandContext";
 import { askJson, claudeModel } from "./claude";
 import { domainOf } from "./sources";
 import { enqueue, finish, retry, type Job } from "./jobs";
-import { BRIEF_SCHEMA, drive, runBrief, type BriefDeps, type BriefRow, type BriefStore, type ResearchPack, type WriterContext } from "./writerBrief";
-import { CHECK_SCHEMA, requestDraft, runDraft, SECTION_SCHEMA, type DraftAsk, type DraftDeps, type DraftRow, type DraftStore, type QuotaStore } from "./writerDraft";
+import { BRIEF_SCHEMA, drive, runBrief, type BriefDeps, type BriefRow, type BriefStore, type Outcome, type ResearchPack, type WriterContext } from "./writerBrief";
+import { chainDraft, CHECK_SCHEMA, requestDraft, runDraft, SECTION_SCHEMA, type DraftAsk, type DraftDeps, type DraftRow, type DraftStore, type QuotaStore, type ChainStore } from "./writerDraft";
 import { MODULE_SCHEMA } from "./writerModules";
 import { ensureBrandSetup } from "./brandSetupServer";
+import { entitlement } from "./entitlements";
+import { periodOf } from "./plans";
 import { DEFAULT_SAMPLE } from "./houseRules";
 import { pageText } from "./pageText";
 import { safeFetch } from "./safeFetch";
@@ -28,14 +30,13 @@ const must = <T>(r: { data: T; error: { message: string } | null }) => {
 const stamp = () => new Date().toISOString();
 
 /**
- * Keep the Editorial Calendar's status in step with the writer: a finished brief moves a planned piece to Brief ready,
- * a finished draft moves it to Writing. Never moves a piece back, and never past Writing on its own.
+ * Keep the Editorial Calendar's status in step with the writer: a finished outline (the draft starts right after it)
+ * or a finished draft moves a planned piece to Writing. Never moves a piece back, and never past Writing on its own.
  */
 async function advanceItem(db: SupabaseClient, table: "writer_briefs" | "writer_drafts", id: string) {
   const row = must(await db.from(table).select("item_id").eq("id", id).maybeSingle()) as { item_id: string } | null;
   if (!row) return;
-  const [to, from] = table === "writer_briefs" ? ["brief", ["planned"]] : ["writing", ["planned", "brief"]];
-  await db.from("calendar_items").update({ status: to }).eq("id", row.item_id).in("status", from);
+  await db.from("calendar_items").update({ status: "writing" }).eq("id", row.item_id).in("status", ["planned", "brief"]);
 }
 
 // ─────────────── stores ───────────────
@@ -221,7 +222,7 @@ export async function startBrief(
   opts: { workspaceId: string; item: { id: string; site_id: string; keyword: string }; userId: string | null; note?: string | null },
 ): Promise<{ ok: true; briefId: string } | { ok: false; status: number; error: string }> {
   const have = must(await db.from("writer_briefs").select("id, status, version").eq("item_id", opts.item.id).maybeSingle()) as { id: string; status: string; version: number } | null;
-  if (have?.status === "approved") return { ok: false, status: 409, error: "This brief is approved. Regenerate the draft instead." };
+  if (have?.status === "approved") return { ok: false, status: 409, error: "This piece already has an outline. Write the draft instead." };
   if (have?.status === "generating") {
     await queue(db, "writer_brief", { id: have.id, version: have.version }, opts.workspaceId);
     return { ok: true, briefId: have.id };
@@ -257,10 +258,42 @@ export async function startDraft(db: SupabaseClient, ask: DraftAsk) {
 const Q = { finish, retry: (id: number, why: string, seconds: number, opts: { count: boolean }) => retry(id, why, seconds, opts) };
 const payloadOf = (job: Job) => job.payload as { id?: string; version?: number };
 
-/** writer_brief: wait for the article research without using up attempts, then write the brief. */
+/** The outline-to-draft step's database side (chainDraft in writerDraft.ts). */
+function chainStore(db: SupabaseClient): ChainStore {
+  return {
+    brief: async (id) => must(await db.from("writer_briefs").select("*").eq("id", id).maybeSingle()) as (BriefRow & { created_by: string | null }) | null,
+    async approve(id) {
+      const rows = must(await db.from("writer_briefs").update({ status: "approved", approved_at: stamp(), error: null, updated_at: stamp() }).eq("id", id).eq("status", "ready").select("id")) as { id: string }[] | null;
+      return Boolean(rows?.length);
+    },
+    note: async (id, error) => void must(await db.from("writer_briefs").update({ error: error.slice(0, 1000), updated_at: stamp() }).eq("id", id)),
+    queue: async (draftId, version) => {
+      const row = must(await db.from("writer_drafts").select("workspace_id").eq("id", draftId).single()) as { workspace_id: string };
+      await queue(db, "writer_draft", { id: draftId, version }, row.workspace_id);
+    },
+  };
+}
+
+/** Start the draft for a finished outline, counted against the brand's month like Write draft. */
+export async function draftFromOutline(db: SupabaseClient, briefId: string) {
+  const row = must(await db.from("writer_briefs").select("workspace_id").eq("id", briefId).maybeSingle()) as { workspace_id: string } | null;
+  if (!row) return { state: "skipped" as const, why: "gone" };
+  const e = await entitlement(row.workspace_id);
+  return chainDraft(chainStore(db), quotaStore(db), briefId, { limit: e.limits.draftsPerBrand ?? 0, period: periodOf("tasks", new Date(), e.anchor) });
+}
+
+/**
+ * writer_brief: wait for the article research without using up attempts, then write the outline. There's no brief to
+ * review (docs/drafts-plan.md): once the outline is written, the draft starts in the same turn.
+ */
 export async function writerBriefJob(db: SupabaseClient, job: Job) {
   const { id = "", version } = payloadOf(job);
-  await drive(job, Q, () => runBrief(briefStore(db), briefDeps(db), id, version), async (error) => {
+  const step = async (): Promise<Outcome> => {
+    const out = await runBrief(briefStore(db), briefDeps(db), id, version);
+    if (out.state === "done") await draftFromOutline(db, id);
+    return out;
+  };
+  await drive(job, Q, step, async (error) => {
     await db.from("writer_briefs").update({ status: "failed", error: error.slice(0, 1000), updated_at: stamp() }).eq("id", id).eq("status", "generating");
   });
 }

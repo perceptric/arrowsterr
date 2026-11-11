@@ -15,7 +15,7 @@ import { Thinking } from "../ui";
 
 // Generate content, one section or all of them (docs/content-grid.md). The screen shows what each section will be
 // written from: the brief's points (edit them), the interactive module to build (or none) and a note for all.
-// Nothing runs until the brand's voice, guidelines and kit are on the Brand page. Sections run one at a time and
+// Nothing runs until the brand's voice, guidelines and kit are in Settings › Brand. Sections run one at a time and
 // each lands in the doc as it finishes.
 
 type Row = { pair: number; heading: string; on: boolean; points: string; module: string; hasText: boolean };
@@ -120,7 +120,7 @@ export function GenerateDialog({
         <Thinking text="Checking the brand..." />
       ) : missing.length ? (
         <div className="flex flex-col gap-4">
-          <p className="text-[13px] text-ink">Fill these in on the Brand page first:</p>
+          <p className="text-[13px] text-ink">Fill these in under Settings first:</p>
           <ul className="flex flex-col gap-1.5">
             {missing.map((m) => (
               <li key={m} className="flex items-center gap-2 text-[13px]">
@@ -133,8 +133,8 @@ export function GenerateDialog({
             <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={onClose}>
               Close
             </button>
-            <Link href="/brand" className="aw-btn aw-btn--primary aw-btn--sm">
-              Open Brand page
+            <Link href="/settings/tone-of-voice" className="aw-btn aw-btn--primary aw-btn--sm">
+              Open brand settings
             </Link>
           </div>
         </div>

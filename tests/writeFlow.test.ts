@@ -6,7 +6,7 @@ const item = { status: "planned", url: null };
 const brief = (status: "generating" | "ready" | "approved" | "failed", step = "done", error: string | null = null) => ({ id: "b1", status, step, error });
 const draft = (status: "generating" | "ready" | "failed", step = "done", doc_id: string | null = "d1", error: string | null = null) => ({ id: "dr1", brief_id: "b1", doc_id, status, step, error });
 
-test("a piece with nothing yet offers Write outline", () => {
+test("a piece with nothing yet offers Write draft (the outline runs first, in the background)", () => {
   assert.deepEqual(writeState({ item, brief: null, draft: null }), { kind: "outline" });
 });
 
@@ -77,4 +77,13 @@ test("the Library filter groups each state", () => {
   assert.equal(libraryGroup({ kind: "retry", target: "draft", error: "e", briefId: "b" }), "drafts");
   assert.equal(libraryGroup({ kind: "retry", target: "outline", error: "e", briefId: "b" }), "outlines");
   assert.equal(libraryGroup({ kind: "view", url: "u", docId: null }), "published");
+});
+
+test("an outline whose draft didn't start shows why, and Try again starts the draft", () => {
+  assert.deepEqual(writeState({ item, brief: brief("approved", "done", "This brand used this month's 10 drafts."), draft: null }), {
+    kind: "retry",
+    target: "draft",
+    error: "This brand used this month's 10 drafts.",
+    briefId: "b1",
+  });
 });

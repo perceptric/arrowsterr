@@ -12,9 +12,9 @@ import { meteredRoute } from "@/lib/meter";
 import { TASK_COST } from "@/lib/plans";
 
 // The Library grid's actions (docs/content-grid.md).
-//   { action: "generate", itemIds }   Generate brief for each row. A row whose brief is ready or being written is
-//                                     left alone; a failed one is tried again.
-//   { action: "brand", itemId }       what the Brand page still needs before content can be generated: { missing }
+//   { action: "generate", itemIds }   Write drafts: research and outline each row, then its draft starts on its own
+//                                     (docs/drafts-plan.md). A row being written is left alone; a failed one is tried again.
+//   { action: "brand", itemId }       what Settings › Brand still needs before content can be generated: { missing }
 //   { action: "section", itemId, part: "intro" | "section", h2, index, points, note, current, module }
 //                                     generate one section's content (and its module); returns { nodes, moduleError }.
 //                                     The brand's voice, guidelines and kit are filled in first when missing.
@@ -84,7 +84,7 @@ async function handle(request: Request) {
     await ensureBrandSetup(db, b.brand_id);
     const missing = brandMissing(await brandOf(db, b));
     if (action === "brand") return Response.json({ missing });
-    if (missing.length) return Response.json({ error: `Fill in ${missing.join(", ")} on the Brand page first.`, missing }, { status: 409 });
+    if (missing.length) return Response.json({ error: `Fill in ${missing.join(", ")} in Settings first.`, missing }, { status: 409 });
     if (!process.env.ANTHROPIC_API_KEY) return fail("ANTHROPIC_API_KEY is not set on the server.", 500);
 
     // action === "section"

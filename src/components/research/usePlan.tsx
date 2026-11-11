@@ -140,19 +140,19 @@ export function usePlan({ sb, auth, site }: { sb: SupabaseClient; auth: RunAuth;
   async function importToWriter(ids: string[]) {
     const todo = (items ?? []).filter((i) => ids.includes(i.id) && canImport(i));
     if (!todo.length) {
-      setFlash("Already in the Library");
+      setFlash("Already in Drafts");
       return;
     }
     const at = new Date().toISOString();
     const before = new Map(todo.map((i) => [i.id, i.extra ?? {}]));
     const send = () => Promise.all(todo.map((i) => patch(i.id, importPatch({ extra: before.get(i.id) }, at))));
     recordUndo({
-      label: todo.length === 1 ? `importing "${todo[0].keyword}"` : "importing to the Library",
+      label: todo.length === 1 ? `importing "${todo[0].keyword}"` : "adding to Drafts",
       undo: () => Promise.all(todo.map((i) => patch(i.id, { extra: before.get(i.id)! }))),
       redo: send,
     });
     await quietly(send);
-    setFlash(todo.length === 1 ? `Imported "${todo[0].keyword}" to the Library` : "Imported to the Library");
+    setFlash(todo.length === 1 ? `Added "${todo[0].keyword}" to Drafts` : "Added to Drafts");
   }
 
   const toast = undo ? (

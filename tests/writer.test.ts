@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { drive, runBrief, type BriefDeps, type BriefRow, type BriefStore, type Outcome, type ResearchPack, type WriterBrief, type WriterContext } from "../src/lib/writerBrief.ts";
-import { applyCheck, buildDoc, planSections, requestDraft, runDraft, type DraftDeps, type DraftRef, type DraftRow, type DraftStore, type QuotaStore, type Section } from "../src/lib/writerDraft.ts";
+import { applyCheck, buildDoc, chainDraft, planSections, requestDraft, runDraft, type ChainStore, type DraftDeps, type DraftRef, type DraftRow, type DraftStore, type QuotaStore, type Section } from "../src/lib/writerDraft.ts";
 import { validateModule, wrapModule } from "../src/lib/writerModules.ts";
 
 // ─────────────── fixtures ───────────────
@@ -358,4 +358,64 @@ test("Regenerate asks before replacing hand edits, and a draft needs an approved
   assert.ok(!unapproved.ok && unapproved.status === 409);
   const noPlan = await requestDraft(quotaMemory().store, { brief, limit: 0, period: "2026-10" });
   assert.ok(!noPlan.ok && noPlan.status === 429);
+});
+
+// ─────────────── drafts only: the outline starts the draft ───────────────
+function chainMemory(brief: BriefRow) {
+  const row = { ...brief, status: "ready" as BriefRow["status"], created_by: "u1" };
+  const queued: string[] = [];
+  const notes: string[] = [];
+  let approvals = 0;
+  const store: ChainStore = {
+    brief: async (id) => (id === row.id ? { ...row } : null),
+    approve: async () => {
+      if (row.status !== "ready") return false;
+      row.status = "approved";
+      approvals++;
+      return true;
+    },
+    note: async (_id, error) => void notes.push(error),
+    queue: async (id) => void queued.push(id),
+  };
+  return { row, store, queued, notes, approvals: () => approvals };
+}
+
+test("a finished outline starts its draft once, even when the job runs twice", async () => {
+  const brief = await approvedBrief();
+  const m = chainMemory(brief);
+  const q = quotaMemory();
+  const [a, b] = await Promise.all([chainDraft(m.store, q.store, brief.id, { limit: 10, period: "2026-11" }), chainDraft(m.store, q.store, brief.id, { limit: 10, period: "2026-11" })]);
+  assert.equal([a, b].filter((o) => o.state === "started").length, 1);
+  assert.equal(m.queued.length, 1);
+  assert.equal(q.db.drafts.length, 1);
+  assert.equal(m.approvals(), 1);
+  // A third run, after the draft exists, does nothing.
+  assert.equal((await chainDraft(m.store, q.store, brief.id, { limit: 10, period: "2026-11" })).state, "skipped");
+  assert.equal(m.queued.length, 1);
+});
+
+test("an outline written again never replaces an existing draft", async () => {
+  const brief = await approvedBrief();
+  const m = chainMemory(brief);
+  const q = quotaMemory();
+  q.db.drafts.push({ id: "old", item_id: brief.item_id, brand_id: brief.brand_id, period: "2026-10", status: "ready", doc_id: "doc1", ready_at: null, version: 3 });
+  const out = await chainDraft(m.store, q.store, brief.id, { limit: 10, period: "2026-11" });
+  assert.equal(out.state, "skipped");
+  assert.equal(q.db.drafts[0].version, 3);
+  assert.equal(m.row.status, "ready", "the outline stays as it was");
+});
+
+test("a full month keeps the outline with the reason, and failed or missing outlines start nothing", async () => {
+  const brief = await approvedBrief();
+  const m = chainMemory(brief);
+  const out = await chainDraft(m.store, quotaMemory().store, brief.id, { limit: 0, period: "2026-11" });
+  assert.equal(out.state, "stopped");
+  assert.equal(m.notes.length, 1);
+  assert.equal(m.queued.length, 0);
+  assert.equal(m.row.status, "approved", "Write draft can try again later");
+
+  const failed = chainMemory(brief);
+  failed.row.status = "failed";
+  assert.equal((await chainDraft(failed.store, quotaMemory().store, brief.id, { limit: 10, period: "2026-11" })).state, "skipped");
+  assert.equal((await chainDraft(failed.store, quotaMemory().store, "nope", { limit: 10, period: "2026-11" })).state, "skipped");
 });

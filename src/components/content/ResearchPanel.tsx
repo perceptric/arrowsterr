@@ -5,11 +5,10 @@ import { useEffect, useState } from "react";
 import type { Brief, Serp } from "@/lib/briefTypes";
 import { getBrief, getSerp } from "@/lib/db";
 import { BrandLogo } from "../BrandLogo";
-import { BriefView } from "../research/BriefView";
 import { SerpView } from "../research/SerpView";
 import { Empty, favicon, Seg, Thinking } from "../ui";
 
-type Tab = "serp" | "sources" | "brief";
+type Tab = "serp" | "sources";
 type Research = { keyword: string; serp: Serp | null; serpAt: string | null; brief: Brief | null };
 
 const host = (u: string) => {
@@ -20,7 +19,7 @@ const host = (u: string) => {
   }
 };
 
-/** The research behind an article, read-only: Google's top 10, the sources, and the brief. Empty before any research. */
+/** The research behind an article, read-only: Google's top 10 and the sources. Empty before any research. */
 export function ResearchPanel({ sb, itemId, country }: { sb: SupabaseClient; itemId: string | null; country: string }) {
   const [r, setR] = useState<Research | null | undefined>(itemId ? undefined : null);
   const [tab, setTab] = useState<Tab | null>(null);
@@ -43,7 +42,6 @@ export function ResearchPanel({ sb, itemId, country }: { sb: SupabaseClient; ite
   const tabs = [
     ...(r?.serp?.pages.length ? [{ id: "serp" as const, label: "Top 10" }] : []),
     ...(sources.length ? [{ id: "sources" as const, label: `Sources (${sources.length})` }] : []),
-    ...(r?.brief ? [{ id: "brief" as const, label: "Brief" }] : []),
   ];
   if (!r || !tabs.length) return <Empty>No research yet.</Empty>;
   const on = tab && tabs.some((t) => t.id === tab) ? tab : tabs[0].id;
@@ -65,8 +63,6 @@ export function ResearchPanel({ sb, itemId, country }: { sb: SupabaseClient; ite
             </li>
           ))}
         </ul>
-      ) : r.brief ? (
-        <BriefView brief={r.brief} keyword={r.keyword} compact />
       ) : null}
     </div>
   );

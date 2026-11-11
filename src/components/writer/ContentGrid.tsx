@@ -25,13 +25,13 @@ import { useWriteActions, WriteButton } from "./WriteButton";
 // Metadata: Status (the same Content status as the Keyword Deep Dive), Meta title, Meta description, Slug.
 // Write (docs/agentic-writing.md): the same button as the Editorial Calendar, after the keyword. A filter at the top
 // shows all pieces, outlines, drafts or published posts.
-// Content: H1 and Section 1, H2 and Section 2, up to H20 and Section 20, and more with +. Generate brief fills the
-// headings and metadata. Writers fill the sections: each opens in the side panel with the brief's notes for it,
-// and Full view opens the whole article, with Publish.
+// Content: H1 and Section 1, H2 and Section 2, up to H20 and Section 20, and more with +. Write drafts researches,
+// outlines and writes each article (docs/drafts-plan.md); there's no brief to review. Each section opens in the side
+// panel to edit or write again, and Full view opens the whole article, with Publish.
 
 const W = { check: 36, keyword: 220, write: 200, status: 190, title: 220, description: 280, slug: 170, heading: 200, section: 260, add: 44 };
 const ADDED = (siteId: string) => `arrowsterr.grid.pairs.${siteId}`;
-const STEP: Record<string, string> = { research: "Researching", writing: "Planning", sections: "Writing", check: "Checking", modules: "Building modules", save: "Saving" };
+const STEP: Record<string, string> = { research: "Researching", writing: "Outlining", sections: "Writing", check: "Checking", modules: "Building modules", save: "Saving" };
 const isoDay = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
 type Filter = "all" | "outlines" | "drafts" | "published";
@@ -43,7 +43,7 @@ const making = (r: GridRow) => r.topic.brief?.status === "generating" || r.topic
 function jobOf(r: GridRow): { label: string; tone: string; error?: string } | null {
   const { brief, draft } = r.topic;
   if (draft?.status === "generating") return { label: STEP[draft.step] ?? "Writing", tone: "tw-tag--orange" };
-  if (brief?.status === "generating") return { label: STEP[brief.step] ?? "Planning", tone: "tw-tag--orange" };
+  if (brief?.status === "generating") return { label: STEP[brief.step] ?? "Outlining", tone: "tw-tag--orange" };
   if (draft?.status === "failed") return { label: "Failed", tone: "tw-tag--red", error: draft.error ?? undefined };
   if (brief?.status === "failed" || (brief?.error && !r.doc)) return { label: "Failed", tone: "tw-tag--red", error: brief.error ?? undefined };
   return null;
@@ -134,7 +134,7 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
     try {
       const out = await post<{ results: { itemId: string; ok: boolean; error?: string }[] }>(auth, "/api/agentic-writer/grid", { action: "generate", itemIds: ids });
       const failed = out.results.filter((x) => !x.ok);
-      track("brief_generated", { rows: ids.length, failed: failed.length });
+      track("drafts_started", { rows: ids.length, failed: failed.length });
       if (failed.length) setError(failed.map((f) => `${rowOf(f.itemId)?.topic.keyword ?? "A row"}: ${f.error}`).join(" "));
       setSelected(new Set());
       await load();
@@ -167,12 +167,12 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
 
   const fullView = (r: GridRow) => (r.doc ? onOpen({ kind: "doc", id: r.doc.id }) : undefined);
 
-  /** The article's doc: the one there, or a new one from the brief, which moves the piece to Writing. */
+  /** The article's doc: the one there, or a new one from the outline, which moves the piece to Writing. */
   async function ensureDoc(itemId: string) {
     const r = rowOf(itemId);
-    if (!r) throw new Error("This row is gone. Reload the Library.");
+    if (!r) throw new Error("This row is gone. Reload Drafts.");
     if (r.doc) return r.doc;
-    if (!r.plan) throw new Error("Generate the brief first.");
+    if (!r.plan) throw new Error("Write the draft first.");
     const doc = await startDoc(sb, { workspaceId: auth.workspaceId, siteId: site.id, itemId, plan: r.plan });
     track("writing_started", { sections: r.plan.outline.length });
     patchRow(itemId, (x) => ({ ...x, doc }));
@@ -180,7 +180,7 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
     return doc;
   }
 
-  /** Open a section in the side panel, making the doc from the brief the first time. */
+  /** Open a section in the side panel, making the doc from the outline the first time. */
   async function write(r: GridRow, pair: number) {
     if (r.doc) return setPanel({ itemId: r.topic.id, pair });
     if (!r.plan || !canEdit) return;
@@ -205,7 +205,7 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
     patchRow(itemId, (x) => (x.doc ? { ...x, doc: { ...x.doc, words } } : x));
   }
 
-  if (!rows) return <Thinking text="Opening the Library..." />;
+  if (!rows) return <Thinking text="Opening Drafts..." />;
 
   // Letters: A Keyword, B to E Metadata, then the content pairs.
   const metaCols = [
@@ -247,7 +247,7 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
               options={STATUS_PICK.map((x) => ({ id: x.id as string, label: x.label, tone: x.tone }))}
             />
               {canEdit && !making(r) && (!r.topic.brief || r.topic.brief.status === "failed") ? (
-              <button type="button" className="aw-iconbtn shrink-0" disabled={busy.has(r.topic.id)} title="Generate brief" aria-label="Generate brief" onClick={() => void generate([r.topic.id])}>
+              <button type="button" className="aw-iconbtn shrink-0" disabled={busy.has(r.topic.id)} title="Write draft" aria-label="Write draft" onClick={() => void generate([r.topic.id])}>
                 <svg className="aw-icon" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M7 5v14l11-7z" />
                 </svg>
@@ -299,7 +299,7 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
-        <h1 className="aw-h2">Library</h1>
+        <h1 className="aw-h2">Drafts</h1>
         <span className="mr-auto pl-2">
           <Seg
             label="Show"
@@ -307,7 +307,7 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
             onChange={setFilter}
             options={[
               { id: "all", label: "All" },
-              { id: "outlines", label: "Outlines" },
+              { id: "outlines", label: "In progress" },
               { id: "drafts", label: "Drafts" },
               { id: "published", label: "Published" },
             ]}
@@ -321,7 +321,7 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
         ) : null}
         {canEdit ? (
           <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" disabled={!picked.length || picked.every((id) => busy.has(id))} onClick={() => void generate(picked)}>
-            Generate brief
+            Write drafts
           </button>
         ) : null}
       </div>
@@ -409,10 +409,6 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
                       {r.doc ? (
                         <button type="button" className="aw-text-link text-[12px]" onClick={() => fullView(r)}>
                           Full view
-                        </button>
-                      ) : r.plan ? (
-                        <button type="button" className="aw-text-link text-[12px]" onClick={() => onOpen({ kind: "brief", id: r.topic.brief!.id })}>
-                          View brief
                         </button>
                       ) : null}
                       {canEdit && r.plan ? (

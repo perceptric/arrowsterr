@@ -23,7 +23,7 @@ export type Feature = { text: string; on: boolean; logos?: boolean; tag?: string
 export type Group = { title: string; items: Feature[] };
 
 const TIPS = {
-  tasks: "Tasks pay for Organic Research and briefs. A keyword lookup uses 10, a Google Maps grid 6 and a content brief 100. Run out? Top up with a task pack.",
+  tasks: "Tasks pay for Organic Research. A keyword lookup uses 10 and a domain report 10. Run out? Top up with a task pack.",
   bank: "An AI agent studies your business and builds your list of keywords with the most revenue potential, once per brand.",
 };
 const history = (d: number) => (d >= 365 ? `${Math.round(d / 365)} ${d >= 730 ? "years" : "year"} of history` : `${d} days of history`);
@@ -54,7 +54,7 @@ function organic(p: Plan): Group {
       { text: "Keyword & Domain Research", on: true },
       { text: "Competitive Analysis", on: true },
       { text: "Revenue-driven Content Plan", ...on(plan, "On Starter"), tip: plan ? TIPS.bank : undefined },
-      { text: "Content Briefs & calendar", ...on(plan, "On Starter") },
+      { text: "Content Plan & Editorial Calendar", ...on(plan, "On Starter") },
       { text: "Agentic Writer & publishing", ...on(writer, "On Pro") },
     ],
   };

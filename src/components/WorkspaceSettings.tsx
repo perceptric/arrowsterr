@@ -184,11 +184,11 @@ export function AiSettingsPage({ sb, ws }: { sb: SupabaseClient; ws: Workspace }
       className="flex max-w-2xl flex-col gap-6"
       onSubmit={(e) => {
         e.preventDefault();
-        if (draft && s) save(draft, s.ai_settings, "AI notes saved. Briefs and the writer use them from now on.");
+        if (draft && s) save(draft, s.ai_settings, "AI notes saved. The writer uses them from now on.");
       }}
     >
       <p className="text-[15px] text-body">
-        The AI reads these notes before it writes a content brief or helps you in the writer. They add to each website&apos;s brand guideline, and win when the two disagree.
+        The AI reads these notes before it writes a draft or helps you in the writer. They add to each website&apos;s brand guideline, and win when the two disagree.
       </p>
       <Status error={error} saved={saved} />
       {AI_FIELDS.map((f) => (
@@ -334,7 +334,7 @@ export function RetentionSettings({ plan }: { plan: PlanUsage | null }) {
         : "Charts reach back as far as your plan allows. Older results stay saved.",
     ],
     ["Prompts, topics and competitors", "Kept until you remove them or the brand."],
-    ["Content Plan, briefs and drafts", "Kept until you delete them."],
+    ["Content Plan and drafts", "Kept until you delete them."],
     ["Keyword research and bulk analyses", "Saved runs are kept until you delete them."],
     ["Members and invites", "Kept while the person is in the workspace. Removing someone ends their access right away."],
   ];

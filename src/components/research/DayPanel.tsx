@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { CalendarItem } from "@/lib/db";
 import type { Stage } from "@/lib/research";
-import { STATUSES } from "./ContentPiece";
+import { STATUSES } from "./shared";
 import { STAGE_COLORS } from "./shared";
 
 export type NewPiece = {
@@ -46,7 +46,6 @@ export function DayPanel({
                   <span className="truncate text-[15px] font-medium text-ink">{i.keyword}</span>
                   <span className="text-[12px] text-muted">
                     {STATUSES.find((s) => s.id === i.status)?.label}
-                    {i.brief_status === "done" && i.status === "planned" ? " · Brief ready" : i.brief_status === "running" ? " · Brief writing" : ""}
                     {i.volume ? ` · ${i.volume.toLocaleString()}/mo` : ""}
                   </span>
                 </span>

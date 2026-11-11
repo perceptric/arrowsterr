@@ -418,7 +418,7 @@ type Prefs = { weekly: boolean; alerts: boolean; jobs: boolean };
 const NOTIFY: { id: keyof Prefs; label: string; hint: string }[] = [
   { id: "weekly", label: "Weekly summary", hint: "Monday morning: each brand's AI visibility for the week, against the week before, and the brands AI named most." },
   { id: "alerts", label: "Visibility alerts", hint: "When a brand's AI visibility moves by your alert size, or a competitor overtakes it. Checked after each daily run." },
-  { id: "jobs", label: "Content Plan and briefs", hint: "When a Content Plan or a brief you started is ready, or didn't finish." },
+  { id: "jobs", label: "Content Plan and drafts", hint: "When a Content Plan or a draft you started is ready, or didn't finish." },
 ];
 
 /** Which emails you get from this workspace. */
