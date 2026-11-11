@@ -1,4 +1,4 @@
-import { answer, startAudit, type AskEvent } from "@/lib/ask";
+import { answer, type AskEvent } from "@/lib/ask";
 import { take } from "@/lib/entitlements";
 import { meteredRoute, streamed } from "@/lib/meter";
 import { TASK_COST } from "@/lib/plans";
@@ -8,22 +8,21 @@ export const maxDuration = 300;
 
 const str = (v: unknown, n: number) => String(v ?? "").trim().slice(0, n);
 const err = (error: string, status = 400) => Response.json({ error }, { status });
-const missing = (e: { message: string } | null) => e && /ask_threads|ask_messages|site_audits|change_sets/.test(e.message);
+const missing = (e: { message: string } | null) => e && /ask_threads|ask_messages|change_sets/.test(e.message);
 const SETUP = "Run supabase/036_ask.sql in Supabase to turn on Zippie.";
 
 type Block = { type: string; text?: string; name?: string; content?: unknown };
-type Card = { kind: "changeset" | "audit" | "setup"; id: string };
+type Card = { kind: "changeset" | "setup"; id: string };
 
-// Zippie. Everyone in the workspace can chat and read; only editors start audits or prepare changes.
+// Zippie. Everyone in the workspace can chat and read; only editors prepare changes.
 //   threads: {}                       the workspace's chats, newest first
 //   thread: { threadId }              one chat's messages
 //   send: { threadId?, message, where? }  answer one message, streamed as one JSON event per line.
 //                                     where is the brand and page the person asks from
 //   rename: { threadId, title }       delete: { threadId }
-//   audits: {}                        audit: { auditId }        audit_start: { domain }
 async function handle(request: Request) {
   const body = await request.json().catch(() => ({}));
-  const auth = await requireRole(request, body.workspaceId, body.action === "audit_start" ? "editor" : "viewer");
+  const auth = await requireRole(request, body.workspaceId, "viewer");
   if ("denied" in auth) return auth.denied;
   const db = adminClient();
   if (!db) return err("Add SUPABASE_SECRET_KEY to the server's settings to use Zippie.", 500);
@@ -49,7 +48,7 @@ async function handle(request: Request) {
     const { data, error } = await db.from("ask_messages").select("id, role, content, text, created_at").eq("thread_id", t.id).order("id").limit(400);
     if (error) return err(error.message, 500);
     // Show people the words and which tools ran. Tool results stay on the server, except the change sets
-    // and audits they started, which show as cards under the reply that started them.
+    // they started, which show as cards under the reply that started them.
     type Out = { id: number; role: string; text: string; tools: string[]; cards: Card[]; created_at: string };
     const messages: Out[] = [];
     for (const m of data ?? []) {
@@ -60,9 +59,7 @@ async function handle(request: Request) {
         for (const r of results) {
           const raw = typeof r.content === "string" ? r.content : "";
           const set = raw.match(/"change_set_id":"([0-9a-f-]{36})"/)?.[1];
-          const audit = raw.match(/"audit_id":"([0-9a-f-]{36})"/)?.[1];
           if (owner && set) owner.cards.push({ kind: "changeset", id: set });
-          if (owner && audit) owner.cards.push({ kind: "audit", id: audit });
           const setup = raw.match(/"setup":"((?:cms|traffic)(?::[a-z]+)?)"/)?.[1];
           if (owner && setup) owner.cards.push({ kind: "setup", id: setup });
         }
@@ -102,35 +99,6 @@ async function handle(request: Request) {
     const { error } = await q.eq("id", t.id);
     if (error) return err(error.message, 500);
     return Response.json({ ok: true });
-  }
-
-  if (body.action === "audits") {
-    const { data, error } = await db.from("site_audits").select("id, domain, status, step, pages, score, error, created_at, finished_at").eq("workspace_id", ws).order("created_at", { ascending: false }).limit(20);
-    if (missing(error)) return Response.json({ audits: [], setup: SETUP });
-    if (error) return err(error.message, 500);
-    return Response.json({ audits: data });
-  }
-
-  if (body.action === "audit") {
-    const { data, error } = await db.from("site_audits").select("*").eq("id", str(body.auditId, 60)).eq("workspace_id", ws).maybeSingle();
-    if (error) return err(error.message, 500);
-    if (!data) return err("Audit not found.", 404);
-    return Response.json({ audit: data });
-  }
-
-  if (body.action === "audit_start") {
-    const { data: running } = await db.from("site_audits").select("id").eq("workspace_id", ws).eq("status", "running").gte("created_at", new Date(Date.now() - 30 * 60_000).toISOString()).limit(1);
-    if (running?.length) return err("An audit is already running. It takes a few minutes.", 409);
-    try {
-      let domain = str(body.domain, 200);
-      if (!domain) {
-        const { data: b } = await db.from("brands").select("domain").eq("workspace_id", ws).order("created_at").limit(1).maybeSingle();
-        domain = (b?.domain as string) ?? "";
-      }
-      return Response.json({ audit: await startAudit(db, ws, userId, domain) });
-    } catch (e) {
-      return err(e instanceof Error ? e.message : String(e), missing(e as { message: string }) ? 500 : 400);
-    }
   }
 
   if (body.action === "send") {

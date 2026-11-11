@@ -42,7 +42,7 @@ Local Research (Organic Research, Local Research, at `/local-research`) shows wh
 - **Numbers:** the share of answered points where AI Mode names the business, its average place in the answer, whether ChatGPT and Gemini name it and where, and how many businesses AI names more often. Points that failed are left out; a point where Google showed no AI answer counts as answered and names nobody. Shares are over the whole grid, never one point.
 - **The AI map:** each point shows the business's place in the answer (green 1st to 3rd, orange 4th or later, red not named). A click shows who that answer names and the start of its text.
 - **Next to Maps:** each AI point against the nearest Maps point: "At 6 points you're in the Maps top 3 but AI Mode doesn't name you."
-- **Sites AI cites:** the sites the answers cite most, marked Your site or Competitor site, each linking to Backlinks.
+- **Sites AI cites:** the sites the answers cite most, marked Your site or Competitor site.
 - A scan takes 12 tasks on a 5 × 5 grid (about 2 per 5 points, plus 2). Tests: `tests/localAi.test.ts`.
 
 ## Alerts and reports (phase 6 of `docs/local-research-plan.md`)

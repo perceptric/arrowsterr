@@ -1,5 +1,6 @@
 "use client";
 
+import { askConfirm } from "@/components/Dialogs";
 import { Dropdown } from "./Pickers";
 import { recordUndo } from "@/lib/undo";
 import { IntegrationsSettings } from "./IntegrationsSettings";
@@ -271,8 +272,8 @@ export function MembersPage({
                         <button
                           type="button"
                           className="aw-btn aw-btn--secondary aw-btn--sm"
-                          onClick={() => {
-                            if (confirm(`Leave ${ws.name}?`)) act(async () => {
+                          onClick={async () => {
+                            if (await askConfirm({ title: `Leave ${ws.name}?`, action: "Leave" })) act(async () => {
                               await removeMember(sb, ws.id, userId);
                               await onChanged();
                             });
@@ -284,8 +285,8 @@ export function MembersPage({
                         <button
                           type="button"
                           className="aw-btn aw-btn--secondary aw-btn--sm"
-                          onClick={() => {
-                            if (confirm(`Remove ${m.email ?? "this member"}?`)) act(() => removeMember(sb, ws.id, m.user_id), "Member removed.");
+                          onClick={async () => {
+                            if (await askConfirm({ title: `Remove ${m.email ?? "this member"}?`, action: "Remove" })) act(() => removeMember(sb, ws.id, m.user_id), "Member removed.");
                           }}
                         >
                           Remove

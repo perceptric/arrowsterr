@@ -1,20 +1,17 @@
 // The job worker: node scripts/worker.mjs
-// Runs on Fly.io as arrowsterr-worker (fly.worker.toml). It does four things at once:
+// Runs on Fly.io as arrowsterr-worker (fly.worker.toml). It does these at once:
 //   jobs: calls the app's /api/worker forever.
 //   PDFs: asks /api/pdf/next for a report to print, opens its print page in Chromium, and sends the PDF back.
 //   pages: asks /api/research/render-next for a page an article's research needs, reads it in Chromium,
 //          and sends its headings, text, tables and date to /api/research/render-done (docs/content-v2.md).
 //   images: asks /api/writer/image-next for an image a draft needs, takes a screenshot of a page or pictures a
 //          drawn image in Chromium, and sends it to /api/writer/image-done (docs/agentic-writing.md, section 5).
-//   renders: asks /api/crawl/render-next for a crawled page, loads it in Chromium as a phone, and sends the rendered
-//          HTML, console errors and failed requests to /api/crawl/render-done (docs/technical-seo-plan.md, phase 3).
 // Needs APP_URL (like https://app.arrowsterr.com) and CRON_SECRET (the same value as the app's).
 // Optional: LIMIT (jobs per tick, default 20), IDLE_MS (wait when there is nothing to do, default 20000),
 // PDF_IDLE_MS (wait when no PDF is queued, default 4000), READ_IDLE_MS (wait when no page is queued, default 5000),
 // READERS (pages read at once, default 2; 0 turns reading off), IMAGERS (images made at once, default 1; 0 turns
-// images off), IMAGE_IDLE_MS (wait when no image is queued, default 5000), RENDERERS (crawled pages rendered at once,
-// default 2; 0 turns rendering off), RENDER_IDLE_MS (wait when no page is queued, default 8000). Without playwright-core, PDFs, pages and
-// images stay off.
+// images off), IMAGE_IDLE_MS (wait when no image is queued, default 5000). Without playwright-core,
+// PDFs, pages and images stay off.
 import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
 
@@ -31,8 +28,6 @@ const readIdle = Number(process.env.READ_IDLE_MS) || 5_000;
 const readers = Math.max(0, Math.min(6, Number(process.env.READERS ?? 2) || 0));
 const imagers = Math.max(0, Math.min(4, Number(process.env.IMAGERS ?? 1) || 0));
 const imageIdle = Number(process.env.IMAGE_IDLE_MS) || 5_000;
-const renderers = Math.max(0, Math.min(6, Number(process.env.RENDERERS ?? 2) || 0));
-const renderIdle = Number(process.env.RENDER_IDLE_MS) || 8_000;
 const machine = (process.env.FLY_MACHINE_ID ?? "local").slice(0, 20);
 const auth = { Authorization: `Bearer ${secret}` };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -525,112 +520,10 @@ async function images(chromium, n) {
   }
 }
 
-// ─────────────── rendering crawled pages for Site Audit ───────────────
-// The page loads as a phone (Google indexes the mobile page). Pictures, video and fonts are skipped unless a screenshot
-// is wanted. Every request must go to a public address; redirects are followed one at a time.
-const RENDER_UA = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36 (compatible; ArrowsterrBot/2.0; +https://arrowsterr.com/bot)";
-const RENDER_MS = 15_000;
-const SETTLE_MS = 10_000;
-
-async function renderPage(chromium, task) {
-  const context = await (await shared(chromium)).newContext({ userAgent: RENDER_UA, viewport: { width: 412, height: 915 }, isMobile: true, hasTouch: true, acceptDownloads: false, serviceWorkers: "block" });
-  const errors = [];
-  const failed = [];
-  const resources = new Set();
-  const host = new URL(task.url).hostname;
-  try {
-    await context.route("**/*", async (route) => {
-      const req = route.request();
-      try {
-        const type = req.resourceType();
-        if (["media", "font"].includes(type) || (type === "image" && !task.shot)) return await route.abort();
-        if (!(await publicUrl(req.url()))) return await route.abort("blockedbyclient");
-        if (!req.isNavigationRequest()) return await route.continue();
-        const res = await route.fetch({ maxRedirects: 0, timeout: RENDER_MS });
-        const to = res.headers().location;
-        if (res.status() >= 300 && res.status() < 400 && to && !(await publicUrl(new URL(to, req.url()).toString()))) return await route.abort("blockedbyclient");
-        return await route.fulfill({ response: res });
-      } catch {
-        await route.abort().catch(() => {});
-      }
-    });
-    const page = await context.newPage();
-    page.on("dialog", (d) => d.dismiss().catch(() => {}));
-    page.on("console", (m) => m.type() === "error" && errors.length < 20 && errors.push(m.text().slice(0, 300)));
-    page.on("pageerror", (e) => errors.length < 20 && errors.push(String(e.message ?? e).slice(0, 300)));
-    page.on("request", (r) => {
-      const t = r.resourceType();
-      if ((t === "script" || t === "stylesheet") && resources.size < 50) {
-        try {
-          if (new URL(r.url()).hostname === host) resources.add(r.url());
-        } catch {}
-      }
-    });
-    page.on("requestfailed", (r) => failed.length < 30 && !/ERR_ABORTED|blockedbyclient/i.test(r.failure()?.errorText ?? "") && failed.push({ url: r.url().slice(0, 500), type: r.resourceType(), reason: (r.failure()?.errorText ?? "failed").slice(0, 100) }));
-    page.on("response", (r) => {
-      const t = r.request().resourceType();
-      if (r.status() >= 400 && ["script", "stylesheet", "xhr", "fetch"].includes(t) && failed.length < 30) failed.push({ url: r.url().slice(0, 500), type: t, reason: `HTTP ${r.status()}` });
-    });
-    const res = await page.goto(task.url, { waitUntil: "domcontentloaded", timeout: RENDER_MS });
-    const status = res?.status() ?? 0;
-    let timeout = false;
-    await page.waitForLoadState("networkidle", { timeout: SETTLE_MS }).catch(() => (timeout = true));
-    const final = page.url();
-    if (!(await publicUrl(final))) return { ok: false, status, final, timeout, errors, failed, resources: [], error: "The page went to a private network." };
-    const html = (await page.content()).slice(0, 3_000_000);
-    let shot;
-    if (task.shot) shot = (await page.screenshot({ type: "jpeg", quality: 55, clip: { x: 0, y: 0, width: 412, height: 915 } }).catch(() => null))?.toString("base64");
-    return { ok: true, status, final, timeout, html, errors, failed, resources: [...resources], ...(shot ? { shot } : {}) };
-  } finally {
-    await context.close().catch(() => {});
-  }
-}
-
-async function renders(chromium, n) {
-  const worker = `render-${machine}-${n}`;
-  let failures = 0;
-  while (!stop) {
-    let task = null;
-    try {
-      const res = await fetch(`${url}/api/crawl/render-next?worker=${worker}`, { method: "POST", headers: auth, signal: AbortSignal.timeout(30_000) });
-      if (res.status === 401) {
-        console.error("Wrong CRON_SECRET.");
-        process.exit(1);
-      }
-      task = await res.json().catch(() => null);
-    } catch (e) {
-      task = { error: e instanceof Error ? e.message : String(e) };
-    }
-    if (!task || task.error) {
-      failures++;
-      console.error("render poll failed:", JSON.stringify(task));
-      await sleep(Math.min(120_000, 5_000 * 2 ** Math.min(failures, 5)));
-      continue;
-    }
-    failures = 0;
-    if (task.idle) {
-      await sleep(renderIdle);
-      continue;
-    }
-    const started = Date.now();
-    let out;
-    try {
-      const late = sleep(RENDER_MS + SETTLE_MS + 15_000).then(() => ({ ok: false, status: 0, final: task.url, timeout: true, errors: [], failed: [], resources: [], error: "Rendering took too long." }));
-      out = await Promise.race([renderPage(chromium, task), late]);
-    } catch (e) {
-      out = { ok: false, status: 0, final: task.url, timeout: false, errors: [], failed: [], resources: [], error: (e instanceof Error ? e.message : String(e)).split("\n")[0].slice(0, 300) };
-    }
-    const sent = await fetch(`${url}/api/crawl/render-done`, { method: "POST", headers: { ...auth, "Content-Type": "application/json" }, body: JSON.stringify({ auditId: task.auditId, url: task.url, ...out }), signal: AbortSignal.timeout(60_000) })
-      .then((r) => r.ok)
-      .catch(() => false);
-    console.log(`render ${task.url}: ${out.ok ? `${Math.round((out.html?.length ?? 0) / 1024)} KB` : out.error} in ${Date.now() - started} ms${sent ? "" : " (not saved)"}`);
-  }
-}
-
 const chromium = await chromiumOrNull();
 if (!chromium) console.log("No playwright-core here, so report PDFs, page reading and images are off.");
 await Promise.all([
   jobs(),
-  ...(chromium ? [pdfs(chromium), ...Array.from({ length: readers }, (_, i) => pages(chromium, i)), ...Array.from({ length: imagers }, (_, i) => images(chromium, i)), ...Array.from({ length: renderers }, (_, i) => renders(chromium, i))] : []),
+  ...(chromium ? [pdfs(chromium), ...Array.from({ length: readers }, (_, i) => pages(chromium, i)), ...Array.from({ length: imagers }, (_, i) => images(chromium, i))] : []),
 ]);
 await browser?.close().catch(() => {});

@@ -1,5 +1,6 @@
 "use client";
 
+import { askConfirm, askText } from "@/components/Dialogs";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -95,7 +96,7 @@ export function Writer({ sb, auth, site, canEdit }: { sb: SupabaseClient; auth: 
   }, [sb, openId, setOpenId]);
 
   async function remove(id: string) {
-    if (!confirm("Delete this draft?")) return;
+    if (!(await askConfirm({ title: "Delete this draft?", action: "Delete" }))) return;
     try {
       await deleteDoc(sb, id);
       setDocs((docs ?? []).filter((d) => d.id !== id));
@@ -328,8 +329,7 @@ export function Toolbar({ editor }: { editor: Editor }) {
       {b("</>", editor.isActive("codeBlock"), () => c().toggleCodeBlock().run(), "Code block")}
       {b("🔗", editor.isActive("link"), () => {
         if (editor.isActive("link")) return c().unsetLink().run();
-        const url = prompt("Link to");
-        if (url) c().setLink({ href: url }).run();
+        void askText({ title: "Link to", placeholder: "https://", action: "Add link" }).then((url) => url && c().setLink({ href: url }).run());
       }, "Link")}
       <span className="mx-1 h-5 w-px bg-rule" />
       {b("↶", false, () => c().undo().run(), "Undo")}

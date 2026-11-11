@@ -5,7 +5,7 @@
 //   progress: on the Content Plan with a brief or a draft under way
 //   missing:  rivals rank for it in the top 10 and the brand doesn't, or it's planned and not started
 
-import { keyWords, pageKeyOf } from "./onpage.ts";
+import { keyWords, pageKeyOf } from "./pageWords.ts";
 
 export type TopicStatus = "covered" | "overlap" | "progress" | "missing";
 export type Topic = {

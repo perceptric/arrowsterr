@@ -272,9 +272,7 @@ export function AiTab({ sb, loc, canEdit, call, onError }: { sb: SupabaseClient;
             <ul className="flex flex-col">
               {r.sources.map((s) => (
                 <li key={s.domain} className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-[var(--border-medium)] px-5 py-2.5 text-[13px] first:border-t-0">
-                  <a href={`/backlinks?q=${encodeURIComponent(s.domain)}`} className="min-w-0 font-medium text-ink wrap-anywhere hover:underline">
-                    {s.domain}
-                  </a>
+                  <span className="min-w-0 font-medium text-ink wrap-anywhere">{s.domain}</span>
                   {s.whose ? <span className={`aw-status ${s.whose === "you" ? "aw-status--ranked" : ""}`}>{s.whose === "you" ? "Your site" : "Competitor site"}</span> : null}
                   <span className="aw-num ml-auto text-muted">
                     {s.n} {s.n === 1 ? "answer" : "answers"}

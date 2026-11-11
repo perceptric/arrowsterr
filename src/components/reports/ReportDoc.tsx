@@ -126,7 +126,7 @@ function Kpi({ label, value, sub, change }: { label: string; value: React.ReactN
   );
 }
 
-/** The "SEO and links" block: one row of numbers for each tool with saved results, then the pages and keywords to act on. */
+/** The "SEO" block: the content map and Google Maps. Older reports also carry site health, on-page and backlinks. */
 function SeoBlock({ n, s }: { n: number; s: SeoSnapshot }) {
   const kpis: React.ReactNode[] = [];
   if (s.site) kpis.push(<Kpi key="site" label="Site health" value={s.site.score} change={<Change now={s.site.score} before={s.site.before} />} sub={`${num(s.site.pages)} pages`} />);
@@ -136,7 +136,7 @@ function SeoBlock({ n, s }: { n: number; s: SeoSnapshot }) {
   if (s.map) kpis.push(<Kpi key="map" label="Topics to write" value={s.map.missing} sub={`${s.map.covered} covered${s.map.overlap ? `, ${s.map.overlap} competing` : ""}`} />);
   return (
     <section className="sec">
-      <SectionHead n={n} title="SEO and links" />
+      <SectionHead n={n} title="SEO" />
       {kpis.length ? <div className="grid g4">{kpis.slice(0, 4)}</div> : null}
       {kpis.length > 4 ? <div className="grid g4">{kpis.slice(4)}</div> : null}
       {s.onpage?.worst.length ? (
@@ -261,7 +261,7 @@ const EMPTY: Partial<Record<BlockId, string>> = {
   traffic: "Connect Google Analytics or the tracking script to show website traffic.",
   visitors: "Connect the tracking script to show visitors and leads.",
   content: "No Content Plan for this brand yet.",
-  seo: "No site audit, on-page audit, backlinks, link building, content map or local scan saved for this brand yet.",
+  seo: "No content map or Local Research scan saved for this brand yet.",
 };
 
 /**

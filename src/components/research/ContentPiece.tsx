@@ -1,5 +1,6 @@
 "use client";
 
+import { askConfirm, askText } from "@/components/Dialogs";
 import { DateField, Dropdown } from "../Pickers";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import Link from "@tiptap/extension-link";
@@ -251,7 +252,7 @@ export function ContentPiece({
             <div className="flex flex-wrap items-center gap-3">
               <span className="aw-small mr-auto">{brief?.brief ? "Your brief uses these results." : "When you generate the brief, it uses these results. No second search."}</span>
               {canEdit ? (
-                <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => confirm("Search Google again for fresh results?") && runSerp()}>
+                <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={async () => (await askConfirm({ title: "Search Google again for fresh results?", action: "Search again", danger: false })) && runSerp()}>
                   Run again
                 </button>
               ) : null}
@@ -611,8 +612,7 @@ function DocToolbar({ editor }: { editor: Editor }) {
       {b("1.", editor.isActive("orderedList"), () => c().toggleOrderedList().run(), "Numbered list")}
       {b("🔗", editor.isActive("link"), () => {
         if (editor.isActive("link")) return c().unsetLink().run();
-        const url = prompt("Link to");
-        if (url) c().setLink({ href: url }).run();
+        void askText({ title: "Link to", placeholder: "https://", action: "Add link" }).then((url) => url && c().setLink({ href: url }).run());
       }, "Link")}
       <span className="mx-1 h-5 w-px bg-rule" />
       {b("⊞", false, () => c().insertTable({ rows: 3, cols: 2, withHeaderRow: true }).run(), "Insert table")}
@@ -718,7 +718,7 @@ function BriefEditor({
           {copied ? "Copied" : "Copy"}
         </button>
         {canEdit ? (
-          <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => confirm("Write the brief again? Your edits to this brief will be replaced.") && onRecreate()}>
+          <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={async () => (await askConfirm({ title: "Write the brief again?", text: "Your edits to this brief will be replaced.", action: "Recreate" })) && onRecreate()}>
             Recreate
           </button>
         ) : null}

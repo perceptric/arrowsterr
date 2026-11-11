@@ -11,7 +11,7 @@ export const SECTIONS: { id: ReportSection; label: string }[] = [
   { id: "traffic", label: "Traffic" },
   { id: "visitors", label: "Visitors" },
   { id: "content", label: "Content" },
-  { id: "seo", label: "SEO and links" },
+  { id: "seo", label: "SEO" },
 ];
 
 /** White label settings. theme is missing on reports made before templates existed. */
@@ -53,7 +53,7 @@ export type ReportSnapshot = {
   traffic: { visits: number; visitsBefore: number | null; ai: number; aiBefore: number | null; byEngine: { engine: string; visits: number; prev: number | null }[] } | null; // before: null with no comparison
   visitors: { total: number; hot: number; actions: number; top: { name: string; emoji: string; score: number; label: string; source: string }[] } | null;
   content: { published: number; writing: number; briefs: number; planned: number; pages: ContentRow[] } | null;
-  /** Site health, on-page, backlinks, links won, content map and Google Maps ranks. Missing on reports made before it. */
+  /** The content map and Google Maps (older reports also carry site health, on-page and backlinks). Missing on reports made before it. */
   seo?: SeoSnapshot | null;
   wins: { text: string; change: number; unit: string; area: string }[];
   drops: { text: string; change: number; unit: string; area: string }[];

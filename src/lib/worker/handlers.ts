@@ -19,10 +19,6 @@ import type { AgentResult } from "../research";
 import { articleResearchJob } from "../articleResearchServer";
 import { writerBriefJob, writerDraftJob } from "../writerServer";
 import { wpPublishJob } from "../wpSyncServer";
-import { queueWeeklyAudits, runAudit } from "../audit";
-import { queueCwvSyncs, syncCwv } from "../cwv";
-import { queueGscSyncs, syncGsc } from "../gsc";
-import { runOnpage } from "../onpageServer";
 import { runMap } from "../contentMapServer";
 import { collectScan, queueWeeklyScans } from "../localServer";
 import { queueProfileReads, runProfileRead } from "../localProfileServer";
@@ -56,11 +52,6 @@ export const slotOf = (brandId: string) => seed(brandId) % WINDOW_MIN;
 export async function schedule(db: SupabaseClient, job: Job) {
   // Scheduled reports due this tick (docs/reports.md, section 32.4). A failure here never holds up the daily checks.
   await queueReportSends(db).catch((e) => console.error("Report schedules failed:", e instanceof Error ? e.message : e));
-  // Weekly site audits (docs/site-audit.md), for brands that already ran one. A failure here never holds up the daily checks.
-  await queueWeeklyAudits(db).catch((e) => console.error("Weekly site audits failed:", e instanceof Error ? e.message : e));
-  // Technical SEO: Search Console and Chrome UX Report syncs, once a day per brand (docs/technical-seo-plan.md).
-  await queueGscSyncs(db).catch((e) => console.error("Search Console syncs failed:", e instanceof Error ? e.message : e));
-  await queueCwvSyncs(db).catch((e) => console.error("Core Web Vitals syncs failed:", e instanceof Error ? e.message : e));
   // Local Research: each keyword's weekly Google Maps grid scan (docs/local-research.md).
   await queueWeeklyScans(db).catch((e) => console.error("Weekly local scans failed:", e instanceof Error ? e.message : e));
   await queueProfileReads(db).catch((e) => console.error("Weekly local profile reads failed:", e instanceof Error ? e.message : e));
@@ -303,10 +294,9 @@ export async function plan(db: SupabaseClient, job: Job) {
   await finish(job.id);
 }
 
-// ─────────────── Zippie: site audits and change sets ───────────────
-export async function audit(db: SupabaseClient, job: Job) {
-  const { auditId, domain, part } = job.payload as { auditId: string; domain: string; part?: number };
-  await runAudit(db, auditId, domain, part ?? 0);
+// ─────────────── Zippie: change sets ───────────────
+// Technical SEO was removed (Site Audit, On-page Audit, Indexing, Speed): its jobs still in the queue just finish.
+export async function audit(_db: SupabaseClient, job: Job) {
   await finish(job.id);
 }
 
@@ -355,10 +345,7 @@ export async function link_check(_db: SupabaseClient, job: Job) {
   await finish(job.id);
 }
 
-// On-page Audit (docs/onpage-audit.md). A failed audit saves its error and hands its tasks back itself.
-export async function onpage(db: SupabaseClient, job: Job) {
-  const { auditId } = job.payload as { auditId: string };
-  await runOnpage(db, auditId);
+export async function onpage(_db: SupabaseClient, job: Job) {
   await finish(job.id);
 }
 
@@ -464,15 +451,10 @@ export async function clean_brands(db: SupabaseClient, job: Job) {
   await finish(job.id);
 }
 
-// ─────────────── Technical SEO: Search Console and Chrome UX Report ───────────────
-export async function gsc_sync(db: SupabaseClient, job: Job) {
-  const { brandId, part } = job.payload as { brandId: string; part?: number };
-  await syncGsc(db, brandId, part ?? 0);
+export async function gsc_sync(_db: SupabaseClient, job: Job) {
   await finish(job.id);
 }
 
-export async function cwv_sync(db: SupabaseClient, job: Job) {
-  const { brandId } = job.payload as { brandId: string };
-  await syncCwv(db, brandId);
+export async function cwv_sync(_db: SupabaseClient, job: Job) {
   await finish(job.id);
 }

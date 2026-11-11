@@ -1,5 +1,4 @@
 import { exchange, googleReady, readState, seal } from "@/lib/google";
-import { connectGsc } from "@/lib/gsc";
 import { adminClient } from "@/lib/serverAuth";
 
 // Google sends people back here after they allow access. Save the encrypted sign-in, then return to the app.
@@ -20,11 +19,7 @@ export async function GET(request: Request) {
     if (!member || member.role === "viewer") return go(state.back, { ga4: "error", reason: "You need editor access to connect Google Analytics." });
 
     const { refresh, email } = await exchange(url.searchParams.get("code") ?? "", base);
-    if (!refresh) return go(state.back, { [state.kind === "gsc" ? "gsc" : "ga4"]: "error", reason: "Google did not return access. Try again." });
-    if (state.kind === "gsc") {
-      const site = await connectGsc(db, { brandId: state.brandId, workspaceId: state.workspaceId, userId: state.userId, refresh, email });
-      return go(state.back, site ? { gsc: "connected" } : { gsc: "pick" });
-    }
+    if (!refresh) return go(state.back, { ga4: "error", reason: "Google did not return access. Try again." });
     const res = await db.from("ga4_connections").upsert({ brand_id: state.brandId, workspace_id: state.workspaceId, refresh_token: seal(refresh), email, connected_by: state.userId });
     if (res.error) throw new Error(res.error.message + (/ga4_connections/.test(res.error.message) ? " Run supabase/014_google_analytics.sql in Supabase." : ""));
     await db.from("brands").update({ ga4_email: email, ga4_property: null, ga4_property_name: null }).eq("id", state.brandId);

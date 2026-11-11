@@ -166,23 +166,6 @@ export function localAlertEmail(a: LocalAlertData, footer: Footer): Email {
   });
 }
 
-// ─────────────── site audit ───────────────
-
-export type AuditDropData = { brand: string; domain: string; score: number; before: number; issues: { title: string; count: number; isNew: boolean }[]; url: string };
-
-/** The weekly crawl found the site health score down by 5 points or more since the last full crawl. */
-export function auditDropEmail(a: AuditDropData, footer: Footer): Email {
-  const drop = a.before - a.score;
-  const title = `${a.brand}'s site health fell ${drop} points`;
-  const blocks: Block[] = [
-    { t: "stats", items: [{ label: "Before", value: String(a.before) }, { label: "Now", value: String(a.score), tag: { text: `-${drop}`, tone: "bad" } }] },
-  ];
-  if (a.issues.length) {
-    blocks.push({ t: "label", text: "What to look at" }, { t: "rows", items: a.issues.map((i) => ({ title: i.title, meta: `${num(i.count)} ${i.count === 1 ? "page" : "pages"}`, ...(i.isNew ? { tag: { text: "New", tone: "bad" as const } } : {}) })) });
-  }
-  return renderEmail({ subject: title, preview: `Site health is ${a.score} of 100 on ${a.domain}, down from ${a.before}.`, eyebrow: "Site audit", title, blocks, button: { label: "Open the audit", url: a.url }, footer });
-}
-
 // ─────────────── content brief ───────────────
 
 export type BriefData = {
