@@ -58,6 +58,7 @@ import { researchTarget } from "./research/pdfTarget";
 import { PDF_PAGES, type PdfPage } from "@/lib/pdf/pages";
 import { answersSince, competitorsSnapshot, promptsSnapshot } from "@/lib/shareSnapshot";
 import { ShareButton } from "./ShareDialog";
+import { post } from "./reports/reportApi";
 import { ExportsSettings, JobsSettings } from "./JobsSettings";
 import { BillingPage, choosePlan } from "./BillingPage";
 import { Onboarding, type Checking, type NewBrand, type Welcome } from "./Onboarding";
@@ -738,7 +739,20 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
             progress={progress}
             hasRuns={brandRuns.length > 0}
             share={
-              active && view && canEdit && SHARE_OF[page] ? (
+              active && canEdit && page === "local" ? (
+                <ShareButton
+                  key={`local-${active.id}`}
+                  auth={auth}
+                  brandId={active.id}
+                  title="Local Research"
+                  secure={plan ? reportLimits(plan.plan).secure : false}
+                  make={() => {
+                    const id = peek<string | null>(`local:${active.id}:loc`);
+                    if (!id) return Promise.reject(new Error("Open a location first."));
+                    return post<{ url: string; id: string }>(auth, "/api/local", { action: "share", brandId: active.id, locationId: id });
+                  }}
+                />
+              ) : active && view && canEdit && SHARE_OF[page] ? (
                 <ShareButton
                   key={`${page}-${active.id}`}
                   auth={auth}
@@ -963,7 +977,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
               }}
             />
           ) : page === "local" ? (
-            <LocalResearchPage key={view.brand.id} brand={{ id: view.brand.id, name: view.brand.name, domain: view.brand.domain }} sb={sb} auth={auth} canEdit={canEdit} secure={plan ? reportLimits(plan.plan).secure : false} />
+            <LocalResearchPage key={view.brand.id} brand={{ id: view.brand.id, name: view.brand.name, domain: view.brand.domain }} sb={sb} auth={auth} canEdit={canEdit} />
           ) : page === "contentmap" ? (
             <ContentMapPage key={view.brand.id} brand={{ id: view.brand.id, name: view.brand.name, domain: view.brand.domain }} sb={sb} auth={auth} canEdit={canEdit} onConnect={() => go("publishing")} />
           ) : page === "perception" ? (

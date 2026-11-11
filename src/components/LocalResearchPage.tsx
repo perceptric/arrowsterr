@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { businesses, GRID, gridOf, headToHead, isBusiness, keywordSuggestions, keywordTable, localInsights, mapOwners, placeKey, placeText, rankBands, rankMoves, reviewHistory, scanTasks, scheduleOf, SCHEDULES, SIZES, SPACINGS, type Business, type Duel, type KeywordRun, type ListingCheck, type Location, type MapOwner, type Move, type Place, type ScanResult } from "@/lib/local";
 import { LocalMap, rankDot, type MapDot } from "./LocalMap";
@@ -9,13 +9,14 @@ import { ReviewsTab } from "./local/ReviewsTab";
 import { AiTab } from "./local/AiTab";
 import { AlertsTab } from "./local/AlertsTab";
 import { saveCsv } from "./local/saveCsv";
-import { ShareButton } from "./ShareDialog";
+import { askConfirm, askText } from "./Dialogs";
+import { profileGaps, type Profile } from "@/lib/localProfile";
 import { putStash } from "@/lib/stash";
 import type { RunAuth } from "@/lib/runner";
-import { Dropdown } from "./Pickers";
+import { Dropdown, Pop, useAnchoredPop } from "./Pickers";
 import { BAR_INPUT } from "./research/shared";
 import { SearchBar, SearchButton } from "./SearchBar";
-import { Card, Delta, Seg, Thinking } from "./ui";
+import { Card, Delta, Seg, SidePanel, Thinking } from "./ui";
 import { LocalIntro } from "./ToolIntros";
 import { useApi } from "./ZippiePage";
 
@@ -45,18 +46,22 @@ const tabFromUrl = (): Tab => {
   return TABS.find((x) => x.id === t)?.id ?? "rankings";
 };
 
-export function LocalResearchPage({ brand, sb, auth, canEdit, secure = false }: { brand: Brand; sb: SupabaseClient; auth: RunAuth; canEdit: boolean; secure?: boolean }) {
+export function LocalResearchPage({ brand, sb, auth, canEdit }: { brand: Brand; sb: SupabaseClient; auth: RunAuth; canEdit: boolean }) {
   const api = useApi(auth);
   const [locs, setLocs] = useState<SavedLoc[] | undefined>(undefined);
   const [sel, setSel] = useState("");
   const [adding, setAdding] = useState(false);
   const [replacing, setReplacing] = useState(false);
-  const [removing, setRemoving] = useState(false);
   const [tab, setTab] = useState<Tab>(() => tabFromUrl());
   const [limits, setLimits] = useState<Limits | null>(null);
   const [error, setError] = useState("");
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState("");
+  // Scan now sits in the header; the Rankings tab says what it does (the open keyword) and whether it's running.
+  const scanRef = useRef<(() => void) | null>(null);
+  const [scanState, setScanState] = useState<{ label: string; disabled: boolean } | null>(null);
+  const locMenu = useAnchoredPop();
+  const moreMenu = useAnchoredPop();
   const call = useCallback(<T,>(action: string, extra: Record<string, unknown> = {}) => api<T>("/api/local", { action, brandId: brand.id, ...extra }), [api, brand.id]);
 
   useEffect(() => {
@@ -103,7 +108,8 @@ export function LocalResearchPage({ brand, sb, auth, canEdit, secure = false }: 
   }
   const put = (l: SavedLoc) => setLocs((all) => (all ?? []).some((x) => x.id === l.id) ? (all ?? []).map((x) => (x.id === l.id ? l : x)) : [...(all ?? []), l]);
   const loc = locs?.find((l) => l.id === sel) ?? null;
-  // Download PDF in the top bar makes the open location's report.
+  const facts = useFacts(sb, loc?.id ?? null);
+  // Download PDF and Share in the top bar use the open location.
   useEffect(() => {
     putStash(`local:${brand.id}:loc`, loc?.id ?? null);
   }, [brand.id, loc?.id]);
@@ -114,67 +120,142 @@ export function LocalResearchPage({ brand, sb, auth, canEdit, secure = false }: 
   };
   const canAdd = canEdit && (locs?.length ?? 0) < (limits?.locations ?? 1);
   const finding = locs !== undefined && (locs.length === 0 || adding || replacing);
+  const pick = (id: string) => {
+    locMenu.close();
+    setSel(id);
+  };
+
+  async function removeLoc() {
+    moreMenu.close();
+    if (!loc || !(await askConfirm({ title: `Remove ${loc.name || loc.title}?`, text: "Its scans, profile reads, reviews and alerts are deleted.", action: "Remove" }))) return;
+    const r = await run("remove", () => call<{ removed: string }>("remove", { locationId: loc.id }));
+    if (!r) return;
+    const rest = (locs ?? []).filter((x) => x.id !== loc.id);
+    setLocs(rest);
+    setSel(rest.length > 1 ? "all" : (rest[0]?.id ?? ""));
+  }
+  async function rename() {
+    moreMenu.close();
+    if (!loc) return;
+    const name = await askText({ title: "Rename location", value: loc.name || loc.city || "", action: "Rename" });
+    if (name) await save({ name });
+  }
+  async function trackAi() {
+    moreMenu.close();
+    if (!loc) return;
+    const r = await run("prompts", () => call<{ added: string[] }>("prompts", { locationId: loc.id }));
+    if (r) setNote(`Tracking ${r.added.length} local prompts in AI Visibility, under the topic Local.`);
+  }
+
+  const locButton =
+    locs && locs.length && !finding ? (
+      <button type="button" className="aw-ctl" aria-expanded={Boolean(locMenu.anchor)} onClick={(e) => locMenu.toggle(e.currentTarget)}>
+        <span className="font-medium text-ink">{sel === "all" || !loc ? "All locations" : loc.name || loc.city || "Location"}</span>
+        {locs.length > 1 && loc ? <span className="text-muted">{locs.indexOf(loc) + 1} of {locs.length}</span> : null}
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" className="text-faint">
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
+    ) : null;
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <h1 className="aw-h2 mb-0!">Local Research</h1>
-        {loc && !finding ? (
-          <div className="flex flex-wrap items-center gap-3 text-[13px]">
-            <span className="text-body wrap-break-word">
-              <b className="font-semibold text-ink">{loc.title}</b>
-              {loc.address ? `, ${loc.address}` : ""}
+    <div className="flex flex-col gap-5">
+      {loc && !finding && sel !== "all" ? (
+        <div className="flex flex-wrap items-start gap-4">
+          <div className="flex min-w-0 flex-1 basis-[420px] items-center gap-3.5">
+            <span aria-hidden="true" className="grid h-12 w-12 shrink-0 place-items-center rounded-[14px] bg-[var(--signal-soft)] text-[17px] font-bold text-[var(--signal)]">
+              {initials(loc.title)}
             </span>
-            {canEdit ? (
-              <>
-                <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setReplacing(true)}>
-                  Change business
-                </button>
-                <button
-                  type="button"
-                  className={`aw-btn aw-btn--sm ${removing ? "aw-btn--danger" : "aw-btn--ghost"}`}
-                  disabled={busy === "remove"}
-                  onClick={async () => {
-                    if (!removing) return setRemoving(true);
-                    const r = await run("remove", () => call<{ removed: string }>("remove", { locationId: loc.id }));
-                    setRemoving(false);
-                    if (!r) return;
-                    const rest = (locs ?? []).filter((x) => x.id !== loc.id);
-                    setLocs(rest);
-                    setSel(rest.length > 1 ? "all" : (rest[0]?.id ?? ""));
-                  }}
-                  onBlur={() => setRemoving(false)}
-                >
-                  {removing ? "Delete it and its scans" : "Remove location"}
-                </button>
-              </>
-            ) : null}
+            <div className="flex min-w-0 flex-col gap-1">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <h1 className="aw-h2 mb-0! wrap-break-word">{loc.title}</h1>
+                {locButton}
+              </div>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13.5px] text-muted">
+                {loc.address ? <span className="wrap-break-word">{loc.address}</span> : null}
+                {facts.rating !== null ? (
+                  <span className="text-body">
+                    ★ {facts.rating}
+                    {facts.reviews !== null ? <span className="text-muted"> ({facts.reviews.toLocaleString("en-US")} reviews)</span> : null}
+                  </span>
+                ) : null}
+                {facts.category ?? loc.category ? <span>{facts.category ?? loc.category}</span> : null}
+              </div>
+            </div>
           </div>
-        ) : null}
-      </div>
-
-      {locs && locs.length && !finding ? (
-        <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Locations">
-          {locs.length > 1 ? (
-            <button type="button" aria-pressed={sel === "all"} onClick={() => setSel("all")} className="aw-chip aw-chip--btn">
-              All locations
-            </button>
-          ) : null}
-          {locs.map((l) => (
-            <button key={l.id} type="button" aria-pressed={sel === l.id} onClick={() => setSel(l.id)} className="aw-chip aw-chip--btn">
-              {l.name || l.city || l.title}
-            </button>
-          ))}
           {canEdit ? (
-            canAdd ? (
-              <button type="button" className="aw-chip aw-chip--btn aw-chip--quiet" onClick={() => setAdding(true)}>
-                + Add location
+            <div className="flex items-center gap-2">
+              {tab === "rankings" && scanState ? (
+                <button type="button" className="aw-btn aw-btn--primary" disabled={scanState.disabled} onClick={() => scanRef.current?.()}>
+                  {scanState.label}
+                </button>
+              ) : null}
+              <button type="button" className="aw-iconbtn" aria-label="More actions for this location" title="More" aria-expanded={Boolean(moreMenu.anchor)} onClick={(e) => moreMenu.toggle(e.currentTarget)}>
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+                  <circle cx="5" cy="12" r="1.8" />
+                  <circle cx="12" cy="12" r="1.8" />
+                  <circle cx="19" cy="12" r="1.8" />
+                </svg>
               </button>
-            ) : limits ? (
-              <span className="text-[12px] text-muted">{limits.locations} of {limits.locations} locations on your plan</span>
-            ) : null
+            </div>
           ) : null}
         </div>
+      ) : (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h1 className="aw-h2 mb-0!">Local Research</h1>
+          {locs && locs.length > 1 ? locButton : null}
+        </div>
+      )}
+
+      {locMenu.anchor && locs ? (
+        <Pop anchor={locMenu.anchor} onClose={locMenu.close} width={300} label="Locations">
+          <div className="flex flex-col px-1">
+            {locs.length > 1 ? (
+              <button type="button" onClick={() => pick("all")} className={`flex w-full items-center rounded-aw px-2 py-2 text-left text-[13px] hover:bg-surface-2 ${sel === "all" ? "font-medium text-ink" : "text-body"}`}>
+                All locations
+              </button>
+            ) : null}
+            {locs.map((l) => (
+              <button key={l.id} type="button" aria-current={sel === l.id} onClick={() => pick(l.id)} className={`flex w-full items-start justify-between gap-3 rounded-aw px-2 py-2 text-left text-[13px] hover:bg-surface-2 ${sel === l.id ? "bg-[var(--signal-soft)] font-medium text-ink" : "text-body"}`}>
+                <span className="min-w-0 wrap-break-word">{l.name || l.city || l.title}</span>
+                <span className="min-w-0 text-right text-[12px] font-normal text-muted wrap-break-word">{street(l.address) ?? ""}</span>
+              </button>
+            ))}
+            {canEdit ? (
+              <div className="mt-1 border-t border-rule-faint pt-1">
+                {canAdd ? (
+                  <button type="button" onClick={() => { locMenu.close(); setAdding(true); }} className="flex w-full items-center rounded-aw px-2 py-2 text-left text-[13px] font-medium text-[var(--signal)] hover:bg-surface-2">
+                    + Add location
+                  </button>
+                ) : limits ? (
+                  <span className="block px-2 py-2 text-[12px] text-muted">{limits.locations} of {limits.locations} locations on your plan</span>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        </Pop>
+      ) : null}
+      {moreMenu.anchor && loc ? (
+        <Pop anchor={moreMenu.anchor} onClose={moreMenu.close} width={260} label="Location actions">
+          <div className="flex flex-col px-1">
+            <button type="button" onClick={() => { moreMenu.close(); setReplacing(true); }} className="flex w-full rounded-aw px-2 py-2 text-left text-[13px] text-ink hover:bg-surface-2">
+              Change business
+            </button>
+            <button type="button" onClick={rename} className="flex w-full rounded-aw px-2 py-2 text-left text-[13px] text-ink hover:bg-surface-2">
+              Rename location
+            </button>
+            {loc.city ? (
+              <button type="button" onClick={trackAi} disabled={busy === "prompts"} className="flex w-full rounded-aw px-2 py-2 text-left text-[13px] text-ink hover:bg-surface-2">
+                Track these keywords in AI answers
+              </button>
+            ) : null}
+            <div className="mt-1 border-t border-rule-faint pt-1">
+              <button type="button" onClick={removeLoc} disabled={busy === "remove"} className="flex w-full rounded-aw px-2 py-2 text-left text-[13px] text-neg hover:bg-surface-2">
+                Remove location
+              </button>
+            </div>
+          </div>
+        </Pop>
       ) : null}
 
       {finding ? (
@@ -209,15 +290,18 @@ export function LocalResearchPage({ brand, sb, auth, canEdit, secure = false }: 
         <Overview brand={brand} sb={sb} locs={locs} onPick={setSel} />
       ) : loc ? (
         <>
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <div role="tablist" aria-label="Location view" className="aw-tabs flex">
-              {TABS.map((t) => (
+          <div role="tablist" aria-label="Location view" className="aw-tabs flex flex-wrap">
+            {TABS.map((t) => {
+              const n = t.id === "profile" ? facts.gaps : t.id === "reviews" ? facts.toAnswer : t.id === "alerts" ? facts.alerts : 0;
+              const label = t.id === "profile" ? `${n} ${n === 1 ? "gap" : "gaps"}` : t.id === "reviews" ? `${n} to answer` : String(n);
+              const tone = t.id === "alerts" ? "bg-[var(--aw-neg-bg)] text-neg" : t.id === "profile" ? "bg-[var(--aw-warn-bg)] text-warn" : "bg-[var(--aw-surface-2)] text-body";
+              return (
                 <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} onClick={() => setTab(t.id)}>
                   {t.label}
+                  {n ? <span className={`ml-1.5 rounded-[6px] px-1.5 py-px text-[11.5px] font-semibold ${tone}`}>{label}</span> : null}
                 </button>
-              ))}
-            </div>
-            {canEdit ? <ShareButton auth={auth} brandId={brand.id} title={`Local Research: ${loc.name || loc.title}`} secure={secure} make={() => call<{ url: string; id: string }>("share", { locationId: loc.id })} /> : null}
+              );
+            })}
           </div>
           {tab === "alerts" ? (
             <AlertsTab key={loc.id} sb={sb} loc={loc} canEdit={canEdit} onSave={(alerts) => save({ alerts })} onError={setError} />
@@ -228,12 +312,67 @@ export function LocalResearchPage({ brand, sb, auth, canEdit, secure = false }: 
           ) : tab === "reviews" ? (
             <ReviewsTab key={loc.id} sb={sb} locationId={loc.id} placeId={loc.placeId} keywords={loc.keywords} city={loc.city ?? null} canEdit={canEdit} call={call} onError={setError} />
           ) : (
-            <Scans key={loc.id} brand={brand} loc={loc} sb={sb} canEdit={canEdit} busy={busy} call={call} run={run} save={save} onNote={setNote} maxKeywords={limits?.keywords ?? 5} />
+            <Scans key={loc.id} brand={brand} loc={loc} sb={sb} canEdit={canEdit} busy={busy} call={call} run={run} save={save} onNote={setNote} maxKeywords={limits?.keywords ?? 5} scanRef={scanRef} onScanState={setScanState} />
           )}
         </>
       ) : null}
     </div>
   );
+}
+
+/** A grid's points before any scan: small plain dots, so the preview shows where the grid falls. */
+const blankDots = (size: number): MapDot[] => Array.from({ length: size * size }, () => ({ label: "", bg: "var(--signal)", fg: "#fff", border: "#fff", aria: "Grid point" }));
+
+/** The two letters on the business's tile. */
+const initials = (title: string) =>
+  title
+    .replace(/[^\p{L}\p{N}\s]/gu, "")
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]!.toUpperCase())
+    .join("") || "?";
+/** The street part of an address, to tell two places with the same name apart. */
+const street = (address: string | null | undefined) => (address ? address.split(",")[0]!.trim() : null);
+
+/** The header's rating and category, and the counts on the tabs: profile gaps, reviews to answer, open alerts. */
+function useFacts(sb: SupabaseClient, locationId: string | null) {
+  const empty = { rating: null as number | null, reviews: null as number | null, category: null as string | null, gaps: 0, toAnswer: 0, alerts: 0 };
+  const [facts, setFacts] = useState<{ id: string | null; v: typeof empty }>({ id: null, v: empty });
+  useEffect(() => {
+    if (!locationId) return;
+    let live = true;
+    (async () => {
+      const month = new Date(Date.now() - 30 * 864e5).toISOString();
+      const year = new Date(Date.now() - 365 * 864e5).toISOString();
+      const [a, r, p] = await Promise.all([
+        sb.from("local_alerts").select("id", { count: "exact", head: true }).eq("location_id", locationId).eq("status", "open").gte("created_at", month),
+        sb.from("local_reviews").select("id", { count: "exact", head: true }).eq("location_id", locationId).eq("you", true).is("reply", null).is("removed_at", null).gte("posted_at", year),
+        sb.from("local_profiles").select("you, confirm, read_at, data").eq("location_id", locationId).order("read_at", { ascending: false }).limit(12),
+      ]);
+      const rows = ((p.data ?? []) as { you: boolean; confirm: boolean; read_at: string; data: Profile }[]);
+      const yours = rows.filter((x) => x.you);
+      const full = yours.find((x) => !x.confirm) ?? yours[0];
+      const rivals = full ? rows.filter((x) => !x.you && x.read_at === full.read_at).map((x) => x.data) : [];
+      const me = yours[0]?.data ?? null;
+      if (!live) return;
+      setFacts({
+        id: locationId,
+        v: {
+          rating: me?.rating ?? null,
+          reviews: me?.reviews ?? null,
+          category: me?.category ?? null,
+          gaps: me && rivals.length ? profileGaps(me, rivals, Date.parse(yours[0].read_at)).length : 0,
+          toAnswer: r.error ? 0 : (r.count ?? 0),
+          alerts: a.error ? 0 : (a.count ?? 0),
+        },
+      });
+    })().catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, [sb, locationId]);
+  return facts.id === locationId ? facts.v : empty;
 }
 
 type Call = <T>(action: string, extra?: Record<string, unknown>) => Promise<T>;
@@ -387,14 +526,15 @@ function Overview({ brand, sb, locs, onPick }: { brand: Brand; sb: SupabaseClien
   );
 }
 
-function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote, maxKeywords }: { brand: Brand; loc: SavedLoc; sb: SupabaseClient; canEdit: boolean; busy: string; call: Call; run: <T>(k: string, fn: () => Promise<T>) => Promise<T | null>; save: (x: Record<string, unknown>) => Promise<void>; onNote: (s: string) => void; maxKeywords: number }) {
+function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote, maxKeywords, scanRef, onScanState }: { brand: Brand; loc: SavedLoc; sb: SupabaseClient; canEdit: boolean; busy: string; call: Call; run: <T>(k: string, fn: () => Promise<T>) => Promise<T | null>; save: (x: Record<string, unknown>) => Promise<void>; onNote: (s: string) => void; maxKeywords: number; scanRef: React.MutableRefObject<(() => void) | null>; onScanState: (s: { label: string; disabled: boolean } | null) => void }) {
   const [kw, setKw] = useState(loc.keywords[0] ?? "");
   const [scans, setScans] = useState<Scan[] | null>(null);
-  const controls = canEdit;
   const [pt, setPt] = useState<number | null>(null);
   const [newKw, setNewKw] = useState("");
   const [picking, setPicking] = useState(false);
+  const [sheet, setSheet] = useState(false);
   const [name, setName] = useState(loc.name ?? "");
+  const addMenu = useAnchoredPop();
   const load = useCallback(async () => {
     if (!kw) return setScans([]);
     const { data } = await sb.from("local_scans").select("id, keyword, status, step, error, created_at, result").eq("location_id", loc.id).eq("keyword", kw).order("created_at", { ascending: false }).limit(12);
@@ -411,6 +551,23 @@ function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote, maxKeyw
     return () => clearInterval(t);
   }, [running, load]);
 
+  // The header's Scan now scans the open keyword.
+  const scanNow = useCallback(async () => {
+    if (kw && (await run("scan", () => call("scan", { locationId: loc.id, keyword: kw })))) load();
+  }, [kw, run, call, loc.id, load]);
+  useEffect(() => {
+    scanRef.current = scanNow;
+    return () => {
+      scanRef.current = null;
+    };
+  }, [scanRef, scanNow]);
+  const scanLabel = running ? "Scanning" : busy === "scan" ? "Starting" : "Scan now";
+  const scanBlocked = !kw || Boolean(running) || busy === "scan";
+  useEffect(() => {
+    onScanState(kw ? { label: scanLabel, disabled: scanBlocked } : null);
+  }, [kw, scanLabel, scanBlocked, onScanState]);
+  useEffect(() => () => onScanState(null), [onScanState]);
+
   const done = (scans ?? []).filter((s) => s.status === "done" && s.result);
   const cur = done[0]?.result ?? null;
   // Earlier scans drawn on the same grid can be compared with the latest one, point by point.
@@ -418,13 +575,11 @@ function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote, maxKeyw
   const comparable = done.slice(1).filter((d) => same(d.result));
   const [compareId, setCompareId] = useState<string | null>(null);
   const prevScan = comparable.find((d) => d.id === compareId) ?? comparable[0] ?? null;
-  // The saved Google Maps results of the latest scan and the one it's compared with, so every business's rank at every
-  // point, and how it moved, can go on the map.
   const curId = done[0]?.id ?? null;
   const raw = useRaw(sb, curId);
   const prevRaw = useRaw(sb, prevScan?.id ?? null);
   const prev = prevScan?.result ?? null;
-  // Every keyword's numbers from each finished scan, for the keyword table and the history chart.
+  // Every keyword's numbers from each finished scan: the keyword chips and the history chart.
   const [history, setHistory] = useState<KeywordRun[]>([]);
   const lastDone = done[0]?.id ?? "";
   useEffect(() => {
@@ -446,110 +601,224 @@ function Scans({ brand, loc, sb, canEdit, busy, call, run, save, onNote, maxKeyw
   }, [sb, loc.id, lastDone]);
   const failed = scans?.[0]?.status === "failed" ? scans[0] : null;
   const g = gridOf(loc);
-  const suggestions = keywordSuggestions(loc, cur?.rivals ?? []).slice(0, Math.max(0, Math.min(5, maxKeywords - loc.keywords.length)));
-  const addKeyword = async (k: string) => {
-    await save({ keywords: [...loc.keywords, k] });
+  const suggestions = keywordSuggestions(loc, cur?.rivals ?? []);
+  const room = Math.max(0, maxKeywords - loc.keywords.length);
+  const chips = keywordTable(history, loc.keywords);
+  const pickKw = (k: string) => {
     setKw(k);
     setPt(null);
+  };
+  const addKeyword = async (k: string) => {
+    addMenu.close();
+    await save({ keywords: [...loc.keywords, k] });
+    pickKw(k);
+  };
+  const replaceKeyword = async (from: string, to: string) => {
+    await save({ keywords: loc.keywords.map((x) => (x === from ? to : x)) });
+    pickKw(to);
   };
   const pickCenter = async (p: { lat: number; lng: number }) => {
     setPicking(false);
     await save({ center: p });
     onNote("The grid's centre moved. The next scan uses it.");
   };
+  // Results from a grid that isn't the one in the settings now say so, so the point counts never seem to disagree.
+  const gridMoved =
+    cur && (cur.size !== g.size || (cur.shape ?? "square") !== g.shape || cur.spacing !== g.spacing || Math.abs((cur.center?.lat ?? loc.lat) - g.center.lat) > 1e-6 || Math.abs((cur.center?.lng ?? loc.lng) - g.center.lng) > 1e-6);
+  const schedule = SCHEDULES.find((x) => x.id === scheduleOf(loc));
+  const span = Math.round(loc.spacing * (g.size - 1) * 100) / 100;
 
   return (
     <div className="flex flex-col gap-4">
-      <Card>
-        <div className="flex flex-col gap-3 px-5 py-4">
-          <div className="flex flex-wrap items-center gap-2">
-            {loc.keywords.map((k) => (
-              <span key={k} className="inline-flex items-center">
-                <button type="button" aria-pressed={kw === k} onClick={() => { setKw(k); setPt(null); }} className="aw-chip aw-chip--btn">
-                  {k}
-                </button>
-                {controls ? (
-                  <button type="button" className="aw-iconbtn h-6! w-6!" aria-label={`Remove ${k}`} onClick={() => save({ keywords: loc.keywords.filter((x) => x !== k) })}>
-                    ×
-                  </button>
-                ) : null}
-              </span>
-            ))}
-            {controls && loc.keywords.length < maxKeywords ? (
+      <div className="flex flex-wrap items-center gap-2">
+        <div role="group" aria-label="Keywords" className="flex flex-wrap items-center gap-2">
+          {chips.map((r) => {
+            const on = r.keyword === kw;
+            const avg = r.last?.avg ?? null;
+            const none = Boolean(r.last && r.last.read && !r.last.found);
+            return (
+              <button key={r.keyword} type="button" aria-pressed={on} onClick={() => pickKw(r.keyword)} className={`inline-flex h-9 items-center gap-2 rounded-full border pr-1.5 pl-3.5 text-[13px] font-medium ${on ? "border-[var(--aw-ink)] bg-[var(--aw-ink)] text-white" : "border-[var(--aw-rule)] bg-[var(--aw-surface)] text-ink hover:bg-[var(--aw-surface-2)]"}`}>
+                <span className="wrap-break-word">{r.keyword}</span>
+                {r.change !== null && r.change !== 0 ? <span className={`text-[12px] font-semibold ${r.change < 0 ? (on ? "text-[#86EFAC]" : "text-pos") : on ? "text-[#FCA5A5]" : "text-neg"}`}>{r.change < 0 ? `↑${-r.change}` : `↓${r.change}`}</span> : null}
+                <span className={`aw-num rounded-full px-2 py-0.5 text-[12px] font-semibold ${none ? "bg-[var(--aw-warn-bg)] text-warn" : on ? "bg-white/15 text-white" : "bg-[var(--aw-surface-2)] text-body"}`}>{none ? "not ranked" : avg === null ? "no scan" : `#${avg}`}</span>
+              </button>
+            );
+          })}
+          {canEdit ? (
+            <button type="button" aria-expanded={Boolean(addMenu.anchor)} onClick={(e) => addMenu.toggle(e.currentTarget)} className="inline-flex h-9 items-center rounded-full border border-dashed border-[var(--aw-rule-strong,#D5D8E0)] px-3.5 text-[13px] font-medium text-[var(--signal)]">
+              + Keyword
+            </button>
+          ) : null}
+        </div>
+        <span className="flex-1" />
+        {canEdit ? (
+          <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setSheet(true)}>
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+              <path d="M4 7h10M18 7h2M4 17h4M12 17h8" />
+              <circle cx="16" cy="7" r="2" />
+              <circle cx="10" cy="17" r="2" />
+            </svg>
+            Grid {g.size} × {g.size}, {loc.spacing} mi, {schedule?.id === "off" ? "not scheduled" : (schedule?.label ?? "weekly").toLowerCase()}
+          </button>
+        ) : (
+          <span className="text-[12.5px] text-muted">
+            Grid {g.size} × {g.size}, {loc.spacing} mi apart
+          </span>
+        )}
+      </div>
+
+      {addMenu.anchor ? (
+        <Pop anchor={addMenu.anchor} onClose={addMenu.close} width={380} label="Keywords">
+          <div className="flex flex-col gap-3 px-2 py-1">
+            {room ? (
               <form
                 className="flex items-center gap-2"
                 onSubmit={async (e) => {
                   e.preventDefault();
                   const k = newKw.trim().toLowerCase();
-                  if (!k) return;
-                  await addKeyword(k);
+                  if (!k || loc.keywords.includes(k)) return;
                   setNewKw("");
+                  await addKeyword(k);
                 }}
               >
-                <input id="local-kw" className="aw-input py-1.5! text-[13px]!" value={newKw} onChange={(e) => setNewKw(e.target.value)} placeholder="emergency dentist" aria-label="Add a keyword" />
-                <button type="submit" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={!newKw.trim()}>
+                <input className="aw-input min-w-0 flex-1" value={newKw} onChange={(e) => setNewKw(e.target.value)} placeholder={suggestions[0] ?? "keyword"} aria-label="Add a keyword" />
+                <button type="submit" className="aw-btn aw-btn--primary aw-btn--sm" disabled={!newKw.trim()}>
                   Add
                 </button>
               </form>
             ) : null}
-          </div>
-          {controls && suggestions.length ? (
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-[12.5px] text-muted">Suggested</span>
-              {suggestions.map((k) => (
-                <button key={k} type="button" className="aw-chip aw-chip--btn aw-chip--brand" onClick={() => addKeyword(k)} disabled={busy === "settings"}>
-                  + {k}
-                </button>
+            {room && suggestions.length ? (
+              <div className="flex flex-col gap-1.5">
+                <span className="text-[12px] text-muted">Suggested</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {suggestions.slice(0, 6).map((k) => (
+                    <button key={k} type="button" className="aw-chip aw-chip--btn" onClick={() => addKeyword(k)} disabled={busy === "settings"}>
+                      + {k}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+            <div className="flex flex-col gap-1 border-t border-rule-faint pt-2">
+              <span className="text-[12px] text-muted">
+                {loc.keywords.length} of {maxKeywords} keywords on your plan
+              </span>
+              {loc.keywords.map((k) => (
+                <div key={k} className="flex items-center gap-2 text-[13px]">
+                  <span className="min-w-0 flex-1 text-ink wrap-break-word">{k}</span>
+                  <button
+                    type="button"
+                    className="aw-text-link text-[12.5px] text-muted!"
+                    onClick={async () => {
+                      if (!(await askConfirm({ title: `Stop tracking “${k}”?`, text: "Its past scans stay in the history.", action: "Stop tracking" }))) return;
+                      await save({ keywords: loc.keywords.filter((x) => x !== k) });
+                      if (k === kw) pickKw(loc.keywords.find((x) => x !== k) ?? "");
+                    }}
+                  >
+                    Remove
+                  </button>
+                </div>
               ))}
             </div>
-          ) : null}
-          {controls ? (
-            <div className="flex flex-wrap items-center gap-3">
-              <Seg label="Grid size" value={String(g.size)} onChange={(v) => save({ size: Number(v) })} options={SIZES.map((n) => ({ id: String(n), label: `${n} × ${n}` }))} />
-              <Seg label="Grid shape" value={g.shape} onChange={(v) => save({ shape: v })} options={[{ id: "square", label: "Square" }, { id: "circle", label: "Round" }]} />
-              <Dropdown<number> label="Spacing" value={loc.spacing} onChange={(v) => save({ spacing: v })} options={SPACINGS.map((n) => ({ id: n, label: `${n} mi apart` }))} />
-              <Dropdown<string> label="Schedule" value={scheduleOf(loc)} onChange={(v) => save({ schedule: v })} options={SCHEDULES.map((x) => ({ id: x.id, label: x.id === "off" ? "No scheduled scans" : `${x.label} scan` }))} />
-            </div>
-          ) : null}
-          {controls ? (
-            <div className="flex flex-wrap items-center gap-3">
-              <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" title={`${scanTasks(g.points.length, true)} tasks`} disabled={!kw || Boolean(running) || busy === "scan"} onClick={async () => (await run("scan", () => call("scan", { locationId: loc.id, keyword: kw }))) && load()}>
-                {running ? "Scanning" : busy === "scan" ? "Starting" : "Scan now"}
-              </button>
-              <span className="text-[12.5px] text-muted">{g.points.length} points</span>
-              <button type="button" className={`aw-btn aw-btn--sm ${picking ? "aw-btn--primary" : "aw-btn--secondary"}`} aria-pressed={picking} onClick={() => setPicking(!picking)}>
-                {picking ? "Click the map" : "Move centre"}
-              </button>
-              {loc.center ? (
-                <button type="button" className="aw-btn aw-btn--ghost aw-btn--sm" onClick={() => save({ center: null })}>
-                  Centre on the business
-                </button>
-              ) : null}
-              {loc.city ? (
-                <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={busy === "prompts"} onClick={async () => { const r = await run("prompts", () => call<{ added: string[] }>("prompts", { locationId: loc.id })); if (r) onNote(`Tracking ${r.added.length} local prompts in AI Visibility, under the topic Local.`); }}>
-                  Track in AI answers
-                </button>
-              ) : null}
-              <form className="ml-auto flex items-center gap-2" onSubmit={(e) => { e.preventDefault(); if (name.trim() && name.trim() !== loc.name) save({ name: name.trim() }); }}>
-                <label htmlFor="local-name" className="text-[12.5px] text-muted">Name</label>
-                <input id="local-name" className="aw-input w-40 py-1.5! text-[13px]!" value={name} onChange={(e) => setName(e.target.value)} onBlur={() => name.trim() && name.trim() !== loc.name && save({ name: name.trim() })} />
-              </form>
-            </div>
-          ) : null}
+          </div>
+        </Pop>
+      ) : null}
+
+      {cur && gridMoved && canEdit ? (
+        <div className="flex flex-wrap items-center gap-3 rounded-[10px] bg-[var(--signal-soft)] px-3.5 py-2.5 text-[13px] text-[var(--signal-ink,var(--signal))]">
+          <span className="min-w-0 flex-1 wrap-break-word">
+            These results are from a {cur.size ?? GRID} × {cur.size ?? GRID} grid, {cur.spacing} mi apart. The next scan uses your new {g.size} × {g.size} grid ({g.points.length} points).
+          </span>
+          <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={scanBlocked} onClick={scanNow}>
+            Scan now on the new grid
+          </button>
         </div>
-      </Card>
+      ) : null}
 
       {running ? <Thinking text={running.step || "Scanning"} /> : failed ? <p className="aw-error">The last scan failed: {failed.error}</p> : null}
-      {kw && scans && !done.length && !running && !failed ? <p className="aw-small">No scan for “{kw}”.</p> : null}
+      {kw && scans && !done.length && !running && !failed ? <p className="aw-small">No scan for “{kw}” yet.</p> : null}
+      {!kw ? <p className="aw-small">Add a keyword to scan.</p> : null}
 
-      {cur && !picking ? (
-        <Results cur={cur} prev={prev} prevAt={prevScan?.created_at ?? null} compare={comparable.map((d) => ({ id: d.id, at: d.created_at }))} compareId={prevScan?.id ?? null} onCompare={setCompareId} done={done} loc={loc} domain={brand.domain} raw={raw} prevRaw={prevRaw} history={history} keyword={kw} onKeyword={(k) => { setKw(k); setPt(null); }} pt={pt} onPt={setPt} />
-      ) : scans && (picking || !done.length) ? (
-        <Card title={picking ? "Click where the grid's centre should be" : `The grid, ${g.points.length} points`}>
+      {cur ? (
+        <Results
+          cur={cur}
+          prev={prev}
+          prevAt={prevScan?.created_at ?? null}
+          compare={comparable.map((d) => ({ id: d.id, at: d.created_at }))}
+          compareId={prevScan?.id ?? null}
+          onCompare={setCompareId}
+          done={done}
+          loc={loc}
+          domain={brand.domain}
+          raw={raw}
+          prevRaw={prevRaw}
+          history={history}
+          keyword={kw}
+          pt={pt}
+          onPt={setPt}
+          replaceWith={canEdit ? (suggestions.find((s) => !loc.keywords.includes(s)) ?? null) : null}
+          onReplace={(to) => replaceKeyword(kw, to)}
+        />
+      ) : scans && !done.length && kw ? (
+        <Card title={`The grid, ${g.points.length} points`}>
           <div className="p-3">
-            <LocalMap lat={g.center.lat} lng={g.center.lng} spacing={g.spacing} size={g.size} shape={g.shape} pin={{ lat: loc.lat, lng: loc.lng }} dots={[]} sel={-1} onSel={() => undefined} onFail={() => undefined} onPick={picking ? pickCenter : undefined} />
+            <LocalMap lat={g.center.lat} lng={g.center.lng} spacing={g.spacing} size={g.size} shape={g.shape} pin={{ lat: loc.lat, lng: loc.lng }} dots={blankDots(g.size)} sel={-1} onSel={() => undefined} onFail={() => undefined} />
           </div>
         </Card>
+      ) : null}
+
+      {sheet ? (
+        <SidePanel narrow title="Grid settings" onClose={() => { setSheet(false); setPicking(false); }}>
+          <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-2">
+              <LocalMap lat={g.center.lat} lng={g.center.lng} spacing={g.spacing} size={g.size} shape={g.shape} pin={{ lat: loc.lat, lng: loc.lng }} dots={blankDots(g.size)} sel={-1} onSel={() => undefined} onFail={() => undefined} onPick={picking ? pickCenter : undefined} />
+              <div className="flex flex-wrap items-center gap-2">
+                <button type="button" className={`aw-btn aw-btn--sm ${picking ? "aw-btn--primary" : "aw-btn--secondary"}`} aria-pressed={picking} onClick={() => setPicking(!picking)}>
+                  {picking ? "Click the map" : "Move centre"}
+                </button>
+                {loc.center ? (
+                  <button type="button" className="aw-btn aw-btn--ghost aw-btn--sm" onClick={() => save({ center: null })}>
+                    Centre on the business
+                  </button>
+                ) : null}
+              </div>
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[18px] font-semibold text-ink">{g.points.length} points</span>
+              <span className="text-[13px] text-muted">
+                {span} × {span} mi, {scanTasks(g.points.length, false)} tasks a scheduled scan, {scanTasks(g.points.length, true)} for Scan now
+              </span>
+            </div>
+            <div className="flex flex-col gap-2">
+              <span className="text-[13px] font-semibold text-ink">Size</span>
+              <Seg label="Grid size" value={String(g.size)} onChange={(v) => save({ size: Number(v) })} options={SIZES.map((n) => ({ id: String(n), label: `${n} × ${n}` }))} />
+            </div>
+            <div className="flex flex-col gap-2">
+              <span className="text-[13px] font-semibold text-ink">Shape</span>
+              <Seg label="Grid shape" value={g.shape} onChange={(v) => save({ shape: v })} options={[{ id: "square", label: "Square" }, { id: "circle", label: "Round, for service areas" }]} />
+            </div>
+            <div className="flex flex-col gap-2">
+              <span className="text-[13px] font-semibold text-ink">Distance between points</span>
+              <Seg label="Distance between points" value={String(loc.spacing)} onChange={(v) => save({ spacing: Number(v) })} options={SPACINGS.map((n) => ({ id: String(n), label: `${n} mi` }))} />
+            </div>
+            <div className="flex flex-col gap-2">
+              <span className="text-[13px] font-semibold text-ink">Scan every</span>
+              <Seg label="Schedule" value={scheduleOf(loc)} onChange={(v) => save({ schedule: v })} options={SCHEDULES.map((x) => ({ id: x.id, label: x.id === "off" ? "Not scheduled" : x.label }))} />
+            </div>
+            <form
+              className="flex flex-col gap-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (name.trim() && name.trim() !== loc.name) save({ name: name.trim() });
+              }}
+            >
+              <label htmlFor="local-name" className="text-[13px] font-semibold text-ink">
+                Location name
+              </label>
+              <input id="local-name" className="aw-input" value={name} onChange={(e) => setName(e.target.value)} onBlur={() => name.trim() && name.trim() !== loc.name && save({ name: name.trim() })} />
+            </form>
+          </div>
+        </SidePanel>
       ) : null}
     </div>
   );
@@ -559,7 +828,7 @@ type Sort = "rank" | "reviews" | "rating";
 
 type Mode = "ranks" | "change" | "duel";
 
-function Results({ cur, prev, prevAt, compare, compareId, onCompare, done, loc, domain, raw, prevRaw, history, keyword, onKeyword, pt, onPt }: { cur: ScanResult & { listing?: ListingCheck[] }; prev: ScanResult | null; prevAt: string | null; compare: { id: string; at: string }[]; compareId: string | null; onCompare: (id: string) => void; done: Scan[]; loc: Location; domain: string; raw: Record<string, Place[] | null> | null; prevRaw: Record<string, Place[] | null> | null; history: KeywordRun[]; keyword: string; onKeyword: (k: string) => void; pt: number | null; onPt: (i: number | null) => void }) {
+function Results({ cur, prev, prevAt, compare, compareId, onCompare, done, loc, domain, raw, prevRaw, history, keyword, pt, onPt, replaceWith, onReplace }: { cur: ScanResult & { listing?: ListingCheck[] }; prev: ScanResult | null; prevAt: string | null; compare: { id: string; at: string }[]; compareId: string | null; onCompare: (id: string) => void; done: Scan[]; loc: Location; domain: string; raw: Record<string, Place[] | null> | null; prevRaw: Record<string, Place[] | null> | null; history: KeywordRun[]; keyword: string; pt: number | null; onPt: (i: number | null) => void; replaceWith: string | null; onReplace: (to: string) => void }) {
   const owners = useMemo(() => mapOwners(cur, loc), [cur, loc]);
   const { headline, insights } = useMemo(() => localInsights(cur, prev, loc), [cur, prev, loc]);
   const fixes = (cur.listing ?? []).filter((c) => c.status !== "pass").length;
@@ -611,115 +880,61 @@ function Results({ cur, prev, prevAt, compare, compareId, onCompare, done, loc, 
         ? `You rank higher at ${duel.you} points, ${picked.title} at ${duel.them}${duel.tie ? `, the same at ${duel.tie}` : ""}.`
         : null;
   const bands = rankBands(picked.ranks);
+  const prevAvg = picked.you ? (prev?.avg ?? null) : null;
+  const misfit = cur.read > 0 && cur.found === 0;
   const shown = [...list].sort((a, b) => (sort === "reviews" ? (b.reviews ?? -1) - (a.reviews ?? -1) : sort === "rating" ? (b.rating ?? -1) - (a.rating ?? -1) : (a.avg ?? 99) - (b.avg ?? 99))).slice(0, 20);
-  const pct = (n: number) => (bands.read ? Math.round((n / bands.read) * 100) : 0);
-  const prevAvg = picked.you ? prev?.avg ?? null : null;
-
-  const others = list.filter((b) => b.key !== picked.key).sort((a, b) => b.voice - a.voice);
-  const voice = [
-    { label: picked.you ? "You" : picked.title, value: picked.voice, color: "var(--signal)" },
-    ...others.slice(0, 3).map((b, k) => ({ label: b.you ? "You" : b.title, value: b.voice, color: ["#1F2937", "#6B7280", "#B0B6C0"][k] })),
-  ];
-  const rest = Math.max(0, 1 - voice.reduce((a, v) => a + v.value, 0));
-  if (rest > 0.001) voice.push({ label: "Everyone else", value: rest, color: "#E5E7EB" });
+  // Share of the map pack: the four businesses holding the most top 3 spots, you always among them, then everyone else.
+  const share = [...list.filter((b) => !b.you).sort((a, b) => b.voice - a.voice).slice(0, 4), you].sort((a, b) => b.voice - a.voice);
+  const rest = Math.max(0, 1 - share.reduce((a, b) => a + b.voice, 0));
   const passed = (cur.listing ?? []).filter((c) => c.status === "pass").length;
   const checks = (cur.listing ?? []).length;
+  const compareWith = (key: string) => {
+    setPick(key);
+    setMode(key === "__you" ? "ranks" : "duel");
+  };
 
   return (
     <>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Tile label={picked.you ? "Average rank" : `Average rank, ${picked.title}`}>
-          <div className="flex items-center gap-4">
-            <RankGauge avg={picked.avg} />
-            <div className="flex min-w-0 flex-col gap-1">
-              <span className="flex items-baseline gap-2">
-                <span className="aw-num text-[30px] leading-none font-semibold text-ink">{picked.avg ?? "–"}</span>
-                {picked.avg !== null && prevAvg !== null ? <Delta now={picked.avg} before={prevAvg} lowerIsBetter /> : null}
-              </span>
-              <span className="text-[12px] text-muted">across {bands.read} points, lower is better</span>
-            </div>
+      {misfit ? (
+        <div className="flex flex-wrap items-start gap-3.5 rounded-[12px] border border-[#F3DDB5] bg-[var(--aw-warn-bg)] px-4 py-3.5">
+          <div className="flex min-w-0 flex-1 basis-[420px] flex-col gap-1">
+            <span className="font-semibold text-ink">You aren&apos;t in the top 20 anywhere for “{keyword}”.</span>
+            <span className="text-[13.5px] text-body">A search for another business&apos;s name, or for something you don&apos;t offer, can&apos;t move. Track what your customers search instead.</span>
           </div>
-        </Tile>
-        <Tile label="Share of voice">
-          <div className="flex items-center gap-4">
-            <Donut parts={voice} centre={`${Math.round(picked.voice * 1000) / 10}%`} />
-            <ul className="flex min-w-0 flex-1 flex-col gap-1">
-              {voice.map((v) => (
-                <li key={v.label} className="flex items-center gap-2 text-[12px]">
-                  <i className="inline-block h-2 w-2 shrink-0 rounded-full" style={{ background: v.color }} />
-                  <span className={`min-w-0 flex-1 wrap-break-word ${v.color === "var(--signal)" ? "font-semibold text-ink" : "text-body"}`}>{v.label}</span>
-                  <span className="aw-num shrink-0 text-muted">{Math.round(v.value * 100)}%</span>
+          {replaceWith ? (
+            <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => onReplace(replaceWith)}>
+              Replace with “{replaceWith}”
+            </button>
+          ) : null}
+        </div>
+      ) : (
+        <section className="aw-frame flex flex-wrap items-center gap-4 px-5 py-4">
+          <div className="flex min-w-0 flex-1 basis-[420px] flex-col gap-1.5">
+            <span className="text-[15px] leading-snug font-semibold text-ink wrap-break-word">{headline}</span>
+            <ul className="flex flex-wrap gap-x-5 gap-y-1">
+              {insights.slice(0, 2).map((x) => (
+                <li key={x.text} className="flex items-start gap-2 text-[13px] leading-snug text-body">
+                  <i className="mt-[5px] inline-block h-2 w-2 shrink-0 rounded-full" style={{ background: INSIGHT[x.tone] }} />
+                  <span className="min-w-0 wrap-break-word">{x.text}</span>
                 </li>
               ))}
             </ul>
           </div>
-        </Tile>
-        <Tile label="Rank distribution">
-          <div className="flex flex-col gap-3">
-            <span className="flex h-3 w-full gap-0.5 overflow-hidden rounded-full bg-[var(--aw-surface-2)]">
-              {([[bands.good, MAP.top3], [bands.average, MAP.top10], [bands.poor, MAP.top20], [bands.out, "#E5484D"]] as const).map(([n, c], k) => (n ? <span key={k} className="h-full" style={{ width: `${pct(n)}%`, background: c }} /> : null))}
-            </span>
-            <ul className="grid grid-cols-2 gap-x-3 gap-y-1.5">
-              {([["1 to 3", bands.good, MAP.top3], ["4 to 10", bands.average, MAP.top10], ["11 to 20", bands.poor, MAP.top20], ["Not in top 20", bands.out, "#E5484D"]] as const).map(([label, n, c]) => (
-                <li key={label} className="flex items-center gap-2 text-[12px]">
-                  <i className="inline-block h-2 w-2 shrink-0 rounded-full" style={{ background: c }} />
-                  <span className="min-w-0 flex-1 text-body">{label}</span>
-                  <span className="aw-num font-medium text-ink">{pct(n)}%</span>
-                </li>
-              ))}
-            </ul>
+          <div className="w-full sm:w-auto sm:max-w-[420px]">
+            <Sides ranks={you.ranks} size={size} />
           </div>
-        </Tile>
-        <Tile label="Top 3 coverage">
-          <div className="flex items-center gap-4">
-            <Matrix ranks={picked.ranks} size={size} inGrid={inGrid} />
-            <div className="flex min-w-0 flex-col gap-1">
-              <span className="aw-num text-[30px] leading-none font-semibold text-ink">
-                {bands.good}
-                <span className="text-[16px] font-medium text-muted"> / {bands.read}</span>
-              </span>
-              <span className="text-[12px] text-muted">points in the map pack, #1 at {picked.ranks.filter((r) => r === 1).length}</span>
-            </div>
-          </div>
-        </Tile>
-      </div>
+        </section>
+      )}
 
-      <Card>
-        <div className="grid lg:grid-cols-[320px_minmax(0,1fr)]">
-          <div className="flex min-w-0 flex-col border-b border-[var(--aw-rule)] lg:border-r lg:border-b-0">
-            <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-3">
-              <span className="text-[13px] font-semibold text-ink">“{cur.keyword}”</span>
-              <Seg label="Sort businesses" value={sort} onChange={setSort} options={[{ id: "rank", label: "Rank" }, { id: "reviews", label: "Reviews" }, { id: "rating", label: "Rating" }]} />
-            </div>
-            <div className="relative min-h-0 flex-1">
-            <ul className="flex max-h-[520px] flex-col overflow-y-auto px-2 pb-2 lg:absolute lg:inset-0 lg:max-h-none">
-              {shown.map((b) => {
-                const on = b.key === picked.key;
-                return (
-                  <li key={b.key}>
-                    <button type="button" aria-pressed={on} onClick={() => setPick(b.key)} className={`flex w-full items-start gap-3 rounded-[10px] px-2.5 py-2.5 text-left ${on ? "bg-[var(--signal-soft)]" : "hover:bg-[var(--aw-surface-2)]"}`}>
-                      <span className="aw-num mt-0.5 grid h-7 min-w-10 shrink-0 place-items-center rounded-[6px] px-1 text-[12px] font-semibold text-white" style={{ background: b.avg === null || b.avg > 20 ? "#E5484D" : b.avg <= 3 ? MAP.top3 : b.avg <= 10 ? MAP.top10 : MAP.top20 }}>{b.avg ?? "–"}</span>
-                      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                        <span className="flex items-start justify-between gap-2">
-                          <span className={`text-[13px] font-semibold wrap-break-word ${b.you ? "text-[var(--signal-ink)]" : "text-ink"}`}>{b.title}</span>
-                          {b.you ? <span className="aw-status aw-status--ranked shrink-0">You</span> : null}
-                        </span>
-                        {b.address ? <span className="text-[12px] text-muted wrap-break-word">{b.address}</span> : null}
-                        <span className="text-[12px] text-body">
-                          {b.rating !== null ? <span className="font-medium text-ink">★ {b.rating}</span> : null}
-                          {b.reviews !== null ? <span className="text-muted"> ({b.reviews.toLocaleString("en-US")})</span> : null}
-                          {b.top3 ? <span className="text-muted">{b.rating !== null || b.reviews !== null ? ", " : ""}top 3 at {b.top3}</span> : null}
-                        </span>
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-            </div>
-          </div>
-          <div className="relative min-w-0 p-3">
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-3 px-1">
+      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)]">
+        <Card>
+          <div className="relative flex flex-col gap-3 p-4">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+              <h2 className="text-[15px] font-semibold text-ink wrap-break-word">“{cur.keyword}” on Google Maps</h2>
+              <span className="text-[12.5px] text-muted">
+                {when(done[0].created_at)}, {inGrid.size} points {cur.spacing} mi apart
+              </span>
+              <span className="flex-1" />
               <Seg
                 label="Map view"
                 value={view}
@@ -730,81 +945,159 @@ function Results({ cur, prev, prevAt, compare, compareId, onCompare, done, loc, 
                   ...(!picked.you ? [{ id: "duel" as const, label: "Head to head" }] : []),
                 ]}
               />
-              {view === "change" && compare.length > 1 && compareId ? (
-                <Dropdown<string> label="Compare with" value={compareId} onChange={onCompare} options={compare.map((c) => ({ id: c.id, label: `Against ${when(c.at)}` }))} />
-              ) : null}
-              <span className="text-[12.5px] text-body wrap-break-word">{summary ?? (picked.you ? "Pick a competitor in the list to compare head to head." : `Showing ${picked.title}'s ranks.`)}</span>
-              <button
-                type="button"
-                className="aw-btn aw-btn--secondary aw-btn--sm"
-                onClick={() => {
-                  const pts = [...inGrid].sort((a, b) => a - b);
-                  saveCsv(
-                    `${loc.name || loc.title} ${keyword} ${done[0].created_at.slice(0, 10)}.csv`,
-                    ["Business", "You", "Average rank", "Top 3 points", "Points found", "Rating", "Reviews", ...pts.map((i) => `Point ${i + 1}`)],
-                    list.map((b) => [b.title, b.you ? "Yes" : "", b.avg, b.top3, b.found, b.rating, b.reviews, ...pts.map((i) => (b.ranks[i] === undefined ? "" : (b.ranks[i] ?? "20+")))]),
-                  );
-                }}
-              >
-                Export CSV
-              </button>
             </div>
+            {!picked.you || summary ? (
+              <div className="flex flex-wrap items-center gap-3 text-[13px]">
+                {!picked.you ? (
+                  <span className="inline-flex items-center gap-2 rounded-full bg-[var(--aw-surface-2)] py-1 pr-1 pl-3 text-ink">
+                    Showing {picked.title}
+                    <button type="button" className="aw-btn aw-btn--ghost aw-btn--sm" onClick={() => compareWith("__you")}>
+                      Back to you
+                    </button>
+                  </span>
+                ) : null}
+                {summary ? <span className="text-body wrap-break-word">{summary}</span> : null}
+                {view === "change" && compare.length > 1 && compareId ? <Dropdown<string> label="Compare with" value={compareId} onChange={onCompare} options={compare.map((c) => ({ id: c.id, label: `Against ${when(c.at)}` }))} /> : null}
+              </div>
+            ) : null}
             {mapFailed ? (
               <Heat ranks={picked.ranks} spacing={cur.spacing} size={size} inGrid={inGrid} sel={at} onSel={onPt} />
             ) : (
               <LocalMap lat={center.lat} lng={center.lng} spacing={cur.spacing} size={size} shape={cur.shape ?? "square"} pin={{ lat: loc.lat, lng: loc.lng }} dots={dots} sel={at} onSel={onPt} onFail={onFail} />
             )}
-            {pt !== null ? (
-              <div className="pointer-events-none absolute top-[72px] left-6 z-10 w-[min(300px,calc(100%-48px))]">
-                <div className="pointer-events-auto rounded-[12px] bg-[var(--aw-surface)] shadow-[0_2px_12px_rgb(0_0_0_/_0.14)]">
-                  <div className="flex items-center justify-between gap-2 py-1.5 pr-1.5 pl-4">
-                    <span className="text-[12px] font-semibold text-ink">{at === centre ? (cur.center ? "Map pack at the centre" : "Map pack at the business") : `Map pack ${placeText(at, cur.spacing, size)}`}</span>
-                    <button type="button" className="aw-iconbtn h-7! w-7!" aria-label="Close" onClick={() => onPt(null)}>
-                      ×
-                    </button>
-                  </div>
-                  {raw ? <Pack results={raw[String(at)]} picked={picked} at={at} loc={{ ...loc, domain }} /> : <PackAt scan={cur} i={at} you={loc} />}
-                </div>
-              </div>
-            ) : null}
-            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 px-1 text-[12px] text-body">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12px] text-body">
               {legend.map((t) => (
                 <span key={t.label} className="flex items-center gap-1.5">
                   <i className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: t.dot }} />
                   {t.label}
                 </span>
               ))}
-              <span className="ml-auto text-muted">
-                {size} × {size}{cur.shape === "circle" ? " round" : ""}, {cur.spacing} mi between points, {when(done[0].created_at)}
-              </span>
+              <span className="ml-auto text-muted">The pin is your business. Click a point to see who ranks there.</span>
             </div>
           </div>
-        </div>
-      </Card>
-
-      <div className="grid gap-4 xl:grid-cols-2">
-        <Card title="All keywords" className="h-full">
-          <Keywords rows={keywordTable(history, loc.keywords)} current={keyword} onPick={onKeyword} />
         </Card>
-        <Card title={`Rank over time, “${keyword}”`} className="h-full">
-          <History runs={keywordTable(history, [keyword])[0].runs} />
-        </Card>
-      </div>
 
-      <div className="grid gap-4 xl:grid-cols-3">
-        <Card title="What this scan says" className="h-full">
-          <div className="flex h-full flex-col gap-3 px-5 pt-4 pb-5">
-            <p className="rounded-[10px] bg-[var(--signal-soft)] px-3.5 py-3 text-[14px] leading-snug font-semibold text-ink wrap-break-word">{headline}</p>
-            <ul className="flex flex-col gap-2">
-              {insights.map((x) => (
-                <li key={x.text} className="flex items-start gap-2.5 text-[13px] leading-snug text-body">
-                  <i className="mt-[5px] inline-block h-2 w-2 shrink-0 rounded-full" style={{ background: INSIGHT[x.tone] }} />
-                  <span className="min-w-0 wrap-break-word">{x.text}</span>
+        <div className="flex min-w-0 flex-col gap-4">
+          <section className="aw-frame flex flex-col gap-3.5 px-5 py-4">
+            <div className="flex items-baseline justify-between gap-2">
+              <h2 className="text-[13px] font-medium text-muted wrap-break-word">{picked.you ? "Average rank" : `Average rank, ${picked.title}`}</h2>
+              <span className="text-[12px] text-muted">lower is better</span>
+            </div>
+            <span className="flex flex-wrap items-baseline gap-2.5">
+              <span className="aw-num text-[40px] leading-none font-bold text-ink">{misfit && picked.you ? "20+" : (picked.avg ?? "–")}</span>
+              {picked.avg !== null && prevAvg !== null && !misfit ? <Delta now={picked.avg} before={prevAvg} lowerIsBetter /> : null}
+            </span>
+            <span className="flex h-2.5 w-full gap-0.5 overflow-hidden rounded-full bg-[var(--aw-surface-2)]" aria-hidden="true">
+              {([[bands.good, MAP.top3], [bands.average, MAP.top10], [bands.poor, MAP.top20], [bands.out, "#E5484D"]] as const).map(([n, c], k) => (n ? <span key={k} className="h-full" style={{ width: `${bands.read ? (n / bands.read) * 100 : 0}%`, background: c }} /> : null))}
+            </span>
+            <ul className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+              {([["1 to 3", bands.good, MAP.top3], ["4 to 10", bands.average, MAP.top10], ["11 to 20", bands.poor, MAP.top20], ["Not in top 20", bands.out, "#E5484D"]] as const).map(([label, n, c]) => (
+                <li key={label} className="flex items-center gap-2 text-[12.5px]">
+                  <i className="inline-block h-2 w-2 shrink-0 rounded-full" style={{ background: c }} />
+                  <span className="min-w-0 flex-1 text-body">{label}</span>
+                  <span className="aw-num font-semibold text-ink">{n} pts</span>
                 </li>
               ))}
             </ul>
-            <Sides ranks={picked.ranks} size={size} />
+          </section>
+
+          <section className="aw-frame flex flex-col gap-3 px-5 py-4">
+            <h2 className="text-[13px] font-medium text-muted">Share of the map pack</h2>
+            {share.map((b) => (
+              <div key={b.key} className="flex flex-col gap-1">
+                <div className="flex items-baseline gap-2 text-[13px]">
+                  <span className={`min-w-0 wrap-break-word ${b.you ? "font-semibold text-[var(--signal)]" : "font-medium text-ink"}`}>{b.you ? "You" : b.title}</span>
+                  {!b.you && street(b.address) ? <span className="min-w-0 text-[12px] text-muted wrap-break-word">{street(b.address)}</span> : null}
+                  <span className="aw-num ml-auto shrink-0 text-[12.5px] font-medium text-ink">{Math.round(b.voice * 100)}%</span>
+                </div>
+                <span className="block h-1.5 overflow-hidden rounded-full bg-[var(--aw-surface-2)]">
+                  <span className="block h-full rounded-full" style={{ width: `${b.voice * 100}%`, background: b.you ? "var(--signal)" : "var(--aw-faint)" }} />
+                </span>
+              </div>
+            ))}
+            {rest > 0.005 ? (
+              <div className="flex items-baseline gap-2 text-[13px] text-muted">
+                <span>Everyone else</span>
+                <span className="aw-num ml-auto text-[12.5px]">{Math.round(rest * 100)}%</span>
+              </div>
+            ) : null}
+          </section>
+
+          <section className="aw-frame flex flex-col gap-2 pt-4">
+            <h2 className="px-5 text-[13px] font-medium text-muted">Map pack {at === centre ? (cur.center ? "at the centre" : "at your business") : placeText(at, cur.spacing, size)}</h2>
+            {raw ? <Pack results={raw[String(at)]} picked={picked} at={at} loc={{ ...loc, domain }} /> : <PackAt scan={cur} i={at} you={loc} />}
+          </section>
+        </div>
+      </div>
+
+      <Card
+        title="Businesses on this grid"
+        action={
+          <div className="flex flex-wrap items-center gap-2">
+            <Seg label="Sort businesses" value={sort} onChange={setSort} options={[{ id: "rank", label: "Rank" }, { id: "reviews", label: "Reviews" }, { id: "rating", label: "Rating" }]} />
+            <button
+              type="button"
+              className="aw-btn aw-btn--secondary aw-btn--sm"
+              onClick={() => {
+                const pts = [...inGrid].sort((a, b) => a - b);
+                saveCsv(
+                  `${loc.name || loc.title} ${keyword} ${done[0].created_at.slice(0, 10)}.csv`,
+                  ["Business", "Address", "You", "Average rank", "Top 3 points", "Points found", "Rating", "Reviews", ...pts.map((i) => `Point ${i + 1}`)],
+                  list.map((b) => [b.title, b.address, b.you ? "Yes" : "", b.avg, b.top3, b.found, b.rating, b.reviews, ...pts.map((i) => (b.ranks[i] === undefined ? "" : (b.ranks[i] ?? "20+")))]),
+                );
+              }}
+            >
+              Export CSV
+            </button>
           </div>
+        }
+      >
+        <div className="overflow-x-auto">
+          <table className="aw-table">
+            <thead>
+              <tr>
+                <th>Business</th>
+                <th className="text-right">Average rank</th>
+                <th className="text-right">In the top 3</th>
+                <th className="text-right">Rating</th>
+                <th className="text-right">Reviews</th>
+                <th>
+                  <span className="sr-only">Map</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {shown.map((b) => (
+                <tr key={b.key} className={b.you ? "bg-[var(--signal-tint,rgb(9_67_176_/_0.045))]" : ""}>
+                  <td className="min-w-56">
+                    <span className={`block wrap-break-word ${b.you ? "font-semibold text-[var(--signal)]" : "font-medium text-ink"}`}>{b.you ? `${b.title} (you)` : b.title}</span>
+                    {b.address ? <span className="block text-[12px] text-muted wrap-break-word">{b.address}</span> : null}
+                  </td>
+                  <td className="aw-num text-right">{b.avg ?? "–"}</td>
+                  <td className="aw-num text-right">
+                    {b.top3} of {bands.read}
+                  </td>
+                  <td className="aw-num text-right">{b.rating !== null ? `★ ${b.rating}` : "–"}</td>
+                  <td className="aw-num text-right">{b.reviews?.toLocaleString("en-US") ?? "–"}</td>
+                  <td className="text-right">
+                    {b.key === picked.key ? (
+                      <span className="text-[12.5px] text-muted">On the map</span>
+                    ) : (
+                      <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => compareWith(b.key)}>
+                        {b.you ? "Show you" : "Compare on map"}
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      <div className="grid gap-4 xl:grid-cols-3">
+        <Card title={`Rank over time, “${keyword}”`} className="h-full">
+          <History runs={keywordTable(history, [keyword])[0].runs} />
         </Card>
         <Card title="Listing check" className="h-full" action={checks ? <span className={`aw-status ${fixes ? "aw-status--warn" : "aw-status--ranked"}`}>{fixes ? `${fixes} to fix` : "All good"}</span> : null}>
           {cur.listing ? (
@@ -899,97 +1192,6 @@ function duelDot(d: Duel, mine: number | null | undefined, theirs: number | null
   if (d === "tie") return { label: "=", bg: "#9CA3AF", fg: "#fff", border: "#fff", aria: "Same rank" };
   if (d === "neither") return { label: "–", bg: "#E5E7EB", fg: "#6B7280", border: "#fff", aria: "Neither in the top 20" };
   return { label: "?", bg: "#fff", fg: "#9A9A9A", border: "#C8C8C8", dashed: true, aria: "No answer" };
-}
-
-const bandColor = (v: number | null) => (v === null || v > 20 ? "#E5484D" : v <= 3 ? MAP.top3 : v <= 10 ? MAP.top10 : MAP.top20);
-
-/** Every keyword's latest numbers in one table: click a row to open it. */
-function Keywords({ rows, current, onPick }: { rows: ReturnType<typeof keywordTable>; current: string; onPick: (k: string) => void }) {
-  const scanned = rows.filter((r) => r.last?.avg != null).sort((a, b) => a.last!.avg! - b.last!.avg!);
-  const best = scanned[0] ?? null;
-  const worst = scanned.length > 1 ? scanned[scanned.length - 1] : null;
-  return (
-    <div className="flex h-full flex-col gap-3 pb-4">
-    <div className="overflow-x-auto px-2">
-      <table className="aw-table">
-        <thead>
-          <tr>
-            <th>Keyword</th>
-            <th className="text-right">Average rank</th>
-            <th className="text-right">Top 3</th>
-            <th>Trend</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r) => {
-            const on = r.keyword === current;
-            const l = r.last;
-            return (
-              <tr key={r.keyword} onClick={() => onPick(r.keyword)} className={`cursor-pointer ${on ? "bg-[var(--signal-soft)]" : ""}`}>
-                <td className={`min-w-36 wrap-break-word ${on ? "font-semibold text-[var(--signal-ink)]" : "text-ink"}`}>
-                  <button type="button" onClick={() => onPick(r.keyword)} className="text-left">
-                    {r.keyword}
-                  </button>
-                </td>
-                <td className="text-right whitespace-nowrap">
-                  {l ? (
-                    <span className="inline-flex items-center gap-2">
-                      {r.change !== null && r.change !== 0 ? <span className={`text-[12px] ${r.change < 0 ? "text-pos" : "text-neg"}`}>{r.change < 0 ? `↑${-r.change}` : `↓${r.change}`}</span> : null}
-                      <span className="aw-num inline-grid h-6 min-w-10 place-items-center rounded-[6px] px-1 text-[12px] font-semibold text-white" style={{ background: bandColor(l.avg) }}>
-                        {l.avg ?? "–"}
-                      </span>
-                    </span>
-                  ) : (
-                    <span className="text-[12px] text-muted">No scan yet</span>
-                  )}
-                </td>
-                <td className="aw-num text-right">{l && l.read ? `${Math.round((l.top3 / l.read) * 100)}%` : "–"}</td>
-                <td className="w-28">{r.runs.length > 1 ? <Trend values={r.runs.map((x) => x.avg ?? 21).reverse()} /> : <span className="text-[12px] text-muted">–</span>}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
-      {best ? (
-        <div className="mt-auto grid grid-cols-2 gap-2 px-5">
-          {[["Strongest keyword", best], ["Needs the most work", worst]].map(([label, r]) => {
-            const row = r as (typeof rows)[number] | null;
-            return (
-              <button key={label as string} type="button" disabled={!row} onClick={() => row && onPick(row.keyword)} className="flex flex-col items-start gap-1 rounded-[10px] bg-[var(--aw-surface-2)] px-3.5 py-3 text-left disabled:cursor-default">
-                <span className="text-[11px] font-medium text-muted">{label as string}</span>
-                {row ? (
-                  <span className="flex flex-wrap items-center gap-2">
-                    <span className="aw-num inline-grid h-6 min-w-10 place-items-center rounded-[6px] px-1 text-[12px] font-semibold text-white" style={{ background: bandColor(row.last!.avg) }}>
-                      {row.last!.avg}
-                    </span>
-                    <span className="text-[13px] font-semibold text-ink wrap-break-word">{row.keyword}</span>
-                  </span>
-                ) : (
-                  <span className="text-[13px] text-muted">Scan another keyword to compare</span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-/** A small line of average rank, scans oldest first, drawn with #1 at the top. */
-function Trend({ values }: { values: number[] }) {
-  const w = 96;
-  const h = 26;
-  const max = Math.max(...values, 2);
-  const min = Math.min(...values, 1);
-  const pts = values.map((v, i) => `${((i / (values.length - 1)) * w).toFixed(1)},${(3 + ((v - min) / (max - min || 1)) * (h - 6)).toFixed(1)}`).join(" ");
-  const better = values[values.length - 1] <= values[0];
-  return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="block h-[26px] w-24" aria-hidden="true">
-      <polyline points={pts} fill="none" stroke={better ? MAP.top3 : "#E5484D"} strokeWidth="2" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
-    </svg>
-  );
 }
 
 /** Average rank (line, #1 at the top) and top 3 share (bars) for one keyword, scan by scan. */
@@ -1092,30 +1294,6 @@ function useRaw(sb: SupabaseClient, id: string | null): Record<string, Place[] |
   return raw && raw.id === id ? raw.points : null;
 }
 
-/** A card of the top row: a label and one visual with its number. All four are the same height. */
-function Tile({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <section className="aw-frame flex h-full min-w-0 flex-col gap-3 px-5 py-4">
-      <span className="text-[12px] font-medium text-muted wrap-break-word">{label}</span>
-      <div className="flex flex-1 flex-col justify-center">{children}</div>
-    </section>
-  );
-}
-
-/** Average rank on a ring: full and green at #1, empty and red at 21 (not in the top 20). */
-function RankGauge({ avg }: { avg: number | null }) {
-  const r = 26;
-  const len = 2 * Math.PI * r;
-  const share = avg === null ? 0 : Math.max(0, Math.min(1, (21 - avg) / 20));
-  const color = avg === null ? "var(--aw-faint)" : avg <= 3 ? MAP.top3 : avg <= 10 ? MAP.top10 : avg <= 20 ? MAP.top20 : "#E5484D";
-  return (
-    <svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true" className="shrink-0">
-      <circle cx="32" cy="32" r={r} fill="none" stroke="var(--aw-surface-2)" strokeWidth="7" />
-      <circle cx="32" cy="32" r={r} fill="none" stroke={color} strokeWidth="7" strokeLinecap="round" strokeDasharray={`${share * len} ${len}`} transform="rotate(-90 32 32)" />
-    </svg>
-  );
-}
-
 /** A donut of shares with a label in the middle. */
 function Donut({ parts, centre, size = 76 }: { parts: { label: string; value: number; color: string }[]; centre: string; size?: number }) {
   const total = parts.reduce((a, p) => a + p.value, 0) || 1;
@@ -1130,19 +1308,6 @@ function Donut({ parts, centre, size = 76 }: { parts: { label: string; value: nu
         {centre}
       </text>
     </svg>
-  );
-}
-
-/** The grid in small: the picked business's rank at each point. Points outside a round grid stay blank. */
-function Matrix({ ranks, size, inGrid }: { ranks: (number | null | undefined)[]; size: number; inGrid: Set<number> }) {
-  const px = size >= 13 ? 4 : size >= 9 ? 5 : 7;
-  return (
-    <span className="grid shrink-0" style={{ gridTemplateColumns: `repeat(${size}, ${px}px)`, gap: size >= 13 ? 2 : 3 }} aria-hidden="true">
-      {Array.from({ length: size * size }, (_, i) => {
-        const r = ranks[i];
-        return <i key={i} className="block rounded-[2px]" style={{ width: px, height: px, background: !inGrid.has(i) ? "transparent" : r === undefined ? "var(--aw-surface-2)" : r === null ? "#F3B5B7" : r <= 3 ? MAP.top3 : r <= 10 ? MAP.top10 : MAP.top20 }} />;
-      })}
-    </span>
   );
 }
 
@@ -1315,8 +1480,8 @@ function Reviews({ done, owners }: { done: Scan[]; owners: MapOwner[] }) {
   return (
     <div className="flex h-full flex-col gap-5 px-5 pt-4 pb-5">
       <div className="flex flex-col gap-3">
-        {rows.map((r) => (
-          <div key={r.title} className="flex flex-col gap-1.5">
+        {rows.map((r, k) => (
+          <div key={`${r.title}${k}`} className="flex flex-col gap-1.5">
             <div className="flex items-baseline justify-between gap-3 text-[13px]">
               <span className={`min-w-0 wrap-break-word ${r.you ? "font-semibold text-[var(--signal-ink)]" : "text-ink"}`}>{r.you ? `${r.title} (you)` : r.title}</span>
               <span className="shrink-0 text-muted tabular-nums">
@@ -1363,9 +1528,9 @@ function ReviewLines({ h, series }: { h: { at: string }[]; series: { name: strin
             {v}
           </text>
         ))}
-        {series.map((s) => {
+        {series.map((s, k) => {
           const pts = s.vals.map((v, k) => (v === null ? null : `${x(k)},${y(v)}`)).filter(Boolean).join(" ");
-          return pts ? <polyline key={s.name} points={pts} fill="none" stroke={s.color} strokeWidth="2" /> : null;
+          return pts ? <polyline key={`${s.name}${k}`} points={pts} fill="none" stroke={s.color} strokeWidth="2" /> : null;
         })}
         <text x={x(0)} y={H - 4} fill="var(--aw-muted)" style={{ font: "10px Inter, system-ui, sans-serif" }}>
           {when(h[0].at)}
@@ -1375,8 +1540,8 @@ function ReviewLines({ h, series }: { h: { at: string }[]; series: { name: strin
         </text>
       </svg>
       <div className="flex flex-wrap gap-3 text-[12px] text-body">
-        {series.map((s) => (
-          <span key={s.name} className="flex items-center gap-1.5">
+        {series.map((s, k) => (
+          <span key={`${s.name}${k}`} className="flex items-center gap-1.5">
             <span className="inline-block h-[3px] w-3.5 rounded" style={{ background: s.color }} />
             {s.name}
           </span>
