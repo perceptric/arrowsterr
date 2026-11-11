@@ -13,7 +13,7 @@ import { DomainResearch, type SeoStart } from "./DomainResearch";
 import { KeywordGap } from "./KeywordGap";
 import { KeywordOverview } from "./KeywordOverview";
 import { AnalyzeSeo, ResearchKeyword } from "./shared";
-import type { WriterAccess } from "./ContentPiece";
+import type { WriterAccess } from "./shared";
 
 export type Tool = "keywords" | "domain" | "gap" | "calendar";
 const TITLES: Record<Tool, string> = {

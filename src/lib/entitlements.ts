@@ -81,18 +81,18 @@ export async function requireTrack(workspaceId: string, track: Track): Promise<R
   return Response.json({ error: `Your Starter plan has ${TRACKS[e.open.seo ? "seo" : "visibility"].label}. Get ${TRACKS[track].label} too on Pro.`, limit: true, boost: "scale" }, { status: 429 });
 }
 
-/** The Content Plan and content briefs start on Starter. Free gets the research tools only. */
+/** The Content Plan starts on Starter. Free gets the research tools only. */
 export async function requireContentPlan(workspaceId: string): Promise<Response | null> {
   const e = await entitlement(workspaceId);
   if (e.limits.plansPerMonth > 0) return null;
-  return Response.json({ error: "The Content Plan and content briefs start on Starter.", limit: true, boost: "foundation" }, { status: 429 });
+  return Response.json({ error: "The Content Plan starts on Starter.", limit: true, boost: "foundation" }, { status: 429 });
 }
 
-/** The Agentic Writer and publishing start on Pro. Starter's Organic Research goes up to content briefs. */
+/** The Agentic Writer and publishing start on Pro. Starter's Organic Research goes up to the Content Plan. */
 export async function requireWriter(workspaceId: string): Promise<Response | null> {
   const e = await entitlement(workspaceId);
   if (e.limits.writer === "full" && e.open.seo) return null;
-  return Response.json({ error: "The Agentic Writer is on Pro. Starter's Organic Research goes up to content briefs.", limit: true, boost: "scale" }, { status: 429 });
+  return Response.json({ error: "The Agentic Writer is on Pro. Starter's Organic Research goes up to the Content Plan.", limit: true, boost: "scale" }, { status: 429 });
 }
 
 function readOnly(e: Entitlement) {

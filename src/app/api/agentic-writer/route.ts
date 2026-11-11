@@ -3,18 +3,16 @@ import { entitlement, requireActive, requireWriter } from "@/lib/entitlements";
 import { queueReady } from "@/lib/jobs";
 import { periodOf } from "@/lib/plans";
 import { adminClient, requireRole } from "@/lib/serverAuth";
-import { editBrief, type BriefRow } from "@/lib/writerBrief";
+import type { BriefRow } from "@/lib/writerBrief";
 import { startBrief, startDraft } from "@/lib/writerServer";
 
 // The Agentic Writer's actions (supabase/050_agentic_writer.sql). Lists and progress are read by the browser.
-//   { action: "brief", itemId, note? }               Generate Brief, or Regenerate it with a one-line note
-//   { action: "notes", briefId, notes }              the editor's notes for the draft
-//   { action: "approve", briefId }                   approve a ready brief
-//   { action: "save", briefId, brief }               a person's edits to a finished brief (editBrief keeps the research)
-//   { action: "draft", briefId, note?, confirm? }    Generate Draft, or Regenerate it (confirm: replace hand edits).
-//                                                    A ready brief is approved first, so Generate Draft is one click.
+//   { action: "brief", itemId, note? }               Write draft: research and outline in the background; the draft
+//                                                    starts on its own when the outline is done (docs/drafts-plan.md)
+//   { action: "draft", briefId, note?, confirm? }    Write draft from an outline that has none yet, or Regenerate it
+//                                                    (confirm: replace hand edits). A ready outline is approved first.
 //   { action: "remove", itemId }                     take a topic out of the writer; its brief and draft stay
-const ACTIONS = ["brief", "notes", "approve", "save", "draft", "remove"];
+const ACTIONS = ["brief", "draft", "remove"];
 const fail = (error: string, status: number) => Response.json({ error }, { status });
 
 export async function POST(request: Request) {
@@ -49,43 +47,6 @@ export async function POST(request: Request) {
       delete extra.write_queued_at;
       const { error } = await db.from("calendar_items").update({ extra }).eq("id", it.id);
       if (error) return fail(error.message, 500);
-      return Response.json({ ok: true });
-    }
-
-    if (action === "notes") {
-      const b = await brief();
-      if (!b) return fail("Brief not found.", 404);
-      const notes = String(body.notes ?? "").slice(0, 4000);
-      const { error } = await db.from("writer_briefs").update({ notes, updated_at: new Date().toISOString() }).eq("id", b.id);
-      if (error) return fail(error.message, 500);
-      return Response.json({ ok: true });
-    }
-
-    if (action === "save") {
-      const b = await brief();
-      if (!b) return fail("Brief not found.", 404);
-      if (!b.brief || (b.status !== "ready" && b.status !== "approved")) return fail("The brief is still being written.", 409);
-      const next = editBrief(b.brief, body.brief);
-      const { data, error } = await db.from("writer_briefs").update({ brief: next, updated_at: new Date().toISOString() }).eq("id", b.id).eq("version", b.version).in("status", ["ready", "approved"]).select("id");
-      if (error) return fail(error.message, 500);
-      if (!data?.length) return fail("The brief changed. Open it again.", 409);
-      return Response.json({ ok: true });
-    }
-
-    if (action === "approve") {
-      const b = await brief();
-      if (!b) return fail("Brief not found.", 404);
-      if (b.status === "approved") return Response.json({ ok: true });
-      if (b.status !== "ready") return fail("Only a finished brief can be approved.", 409);
-      const { data, error } = await db
-        .from("writer_briefs")
-        .update({ status: "approved", approved_by: userId, approved_at: new Date().toISOString(), updated_at: new Date().toISOString() })
-        .eq("id", b.id)
-        .eq("status", "ready")
-        .eq("version", b.version)
-        .select("id");
-      if (error) return fail(error.message, 500);
-      if (!data?.length) return fail("The brief changed. Look again before approving.", 409);
       return Response.json({ ok: true });
     }
 

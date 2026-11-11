@@ -1,5 +1,6 @@
 "use client";
 
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useState } from "react";
 import { ALERT_POINTS } from "@/lib/integrationTypes";
 import type { RunAuth } from "@/lib/runner";
@@ -10,15 +11,20 @@ import { post } from "./research/shared";
 import type { BrandTab } from "./SettingsPage";
 import { Ga4Connect, type SiteStatus } from "./TrafficPage";
 import { BrandLogo } from "./BrandLogo";
+import { BrandGuidelines } from "./BrandGuidelines";
+import { BrandKitPanel } from "./BrandKit";
+import { BrandVoiceSettings } from "./BrandVoice";
 import { favicon, Thinking } from "./ui";
 
 type BrandRef = { id: string; name: string; domain: string };
 
 /**
- * Settings › Brand: what each brand has of its own. Publishing sites, Google Analytics, and its Slack channel and
- * alert size. A picker on top switches the brand. Tone of voice lives on the Brand page.
+ * Settings › Brand: what each brand has of its own. Its tone of voice, Brand Kit and guidelines (what the Agentic
+ * Writer writes from, read through loadBrandContext in src/lib/brandContext.ts), publishing sites, Google Analytics,
+ * and its Slack channel and alert size. A picker on top switches the brand.
  */
 export function BrandSettings({
+  sb,
   tab,
   auth,
   brand,
@@ -27,6 +33,7 @@ export function BrandSettings({
   isAdmin,
   onBrand,
 }: {
+  sb: SupabaseClient;
   tab: BrandTab;
   auth: RunAuth;
   brand: BrandRef | null;
@@ -44,7 +51,13 @@ export function BrandSettings({
           <Dropdown label="Brand" value={brand.id} onChange={onBrand} className="aw-dropdown--sm" options={brands.map((b) => ({ id: b.id, label: b.name }))} />
         </label>
       ) : null}
-      {tab === "publishing" ? (
+      {tab === "voice" ? (
+        <BrandVoiceSettings key={brand.id} auth={auth} brand={brand} canEdit={canEdit} />
+      ) : tab === "kit" ? (
+        <BrandKitPanel key={brand.id} sb={sb} auth={auth} canEdit={canEdit} brand={brand} />
+      ) : tab === "guidelines" ? (
+        <BrandGuidelines key={brand.id} sb={sb} workspaceId={auth.workspaceId} brand={brand} canEdit={canEdit} />
+      ) : tab === "publishing" ? (
         <CmsSettings key={brand.id} auth={auth} isAdmin={isAdmin} brand={brand} brands={brands} />
       ) : tab === "google" ? (
         <BrandGoogle key={brand.id} auth={auth} brand={brand} canEdit={canEdit} />

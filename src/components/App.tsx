@@ -70,7 +70,6 @@ import { ReportsPage } from "./reports/ReportsPage";
 import { VisitorsPage } from "./VisitorsPage";
 import { ZippieWidget } from "./ZippieWidget";
 import { LibraryPage } from "./writer/LibraryPage";
-import { BrandPage } from "./BrandPage";
 import { CONTENT_ALIASES, CONTENT_SLUGS, type ContentPage } from "@/lib/contentRoutes";
 
 export type { Brand } from "@/lib/db";
@@ -103,6 +102,9 @@ const SLUGS: Record<Page, string> = {
   access: "/settings/access",
   ai: "/settings/ai",
   brandkit: "/settings/brand-kit",
+  voice: "/settings/tone-of-voice",
+  kit: "/settings/kit",
+  guidelines: "/settings/guidelines",
   retention: "/settings/data-retention",
   integrations: "/settings/integrations",
   publishing: "/settings/publishing",
@@ -126,6 +128,9 @@ const ALIASES: Record<string, Page> = {
   "/industry-research": "gap",
   "/ai-gap": "gap",
   ...CONTENT_ALIASES,
+  "/brand": "voice",
+  "/brand-voice": "voice",
+  "/settings/brand-voice": "voice",
   "/plan": "billing",
   "/billing": "billing",
 };
@@ -881,6 +886,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
               ) : isBrandTab(page) ? (
                 <BrandSettings
                   key={ws.id}
+                  sb={sb}
                   tab={page}
                   auth={auth}
                   brand={active ? { id: active.id, name: active.name, domain: active.domain } : null}
@@ -928,8 +934,6 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
             />
           ) : page === "library" ? (
             <LibraryPage key={view.brand.id} view={view} auth={auth} canEdit={canEdit} onCalendar={() => go("calendar")} />
-          ) : page === "brand" ? (
-            <BrandPage key={view.brand.id} sb={sb} auth={auth} brand={{ id: view.brand.id, name: view.brand.name, domain: view.brand.domain }} workspace={{ name: ws.name, website: workDomain(email) || view.brand.domain }} canEdit={canEdit} />
           ) : RESEARCH.includes(page) ? (
             <ResearchPage key={view.brand.id} sb={sb} auth={auth} view={view} canEdit={canEdit} tool={page as Tool} onTool={(t) => go(t)} seoStart={seoStart}
               refresh={{ paid: Boolean(plan && plan.plan !== "free" && plan.plan !== "trial"), onUpgrade: () => go("billing") }}
@@ -1072,8 +1076,7 @@ const NAV: { group: string; icon: string; items: { id: Page; label: string; icon
     icon: "pen",
     items: [
       { id: "calendar", label: "Editorial Calendar", icon: "calendar" },
-      { id: "library", label: "Library", icon: "book" },
-      { id: "brand", label: "Brand", icon: "palette" },
+      { id: "library", label: "Drafts", icon: "book" },
     ],
   },
   {

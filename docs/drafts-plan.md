@@ -4,6 +4,8 @@ The Content Brief goes away. People work with **Drafts** only, and publish a dra
 
 Written November 2026. Prices marked "check" couldn't be confirmed on the vendor's own page.
 
+**Phase 1 shipped (November 2026).** Write draft runs the research and outline in the background and starts the draft on its own (`chainDraft` in `writerDraft.ts`, called from the `writer_brief` job). The Content Brief tab, the brief and outline review screens, the brief API (`/api/research/brief`) and Brief ready are gone; pieces left at Brief ready moved to Planned (`supabase/076_drafts_only.sql`). The Library is Drafts (`/drafts`, with `/library` forwarded). Brand moved into Settings › Brand: Tone of voice, Brand Kit and Guidelines sit next to Publishing sites, and `/brand` forwards there.
+
 ---
 
 ## 1. Summary

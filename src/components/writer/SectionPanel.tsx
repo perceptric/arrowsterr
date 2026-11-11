@@ -165,7 +165,7 @@ export function SectionPanel({
         </div>
         {notes && (notes.points.length || notes.sources.length || notes.images.length) ? (
           <div className="mx-6 mt-5 flex flex-col gap-2 border border-rule bg-[var(--bg-secondary)] px-4 py-3 text-[13px]">
-            <span className="text-[12px] font-medium text-muted">Brief</span>
+            <span className="text-[12px] font-medium text-muted">Outline</span>
             {notes.points.length ? (
               <ul className="flex list-disc flex-col gap-1 pl-4 text-ink">
                 {notes.points.map((p, i) => (

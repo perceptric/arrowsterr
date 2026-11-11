@@ -13,7 +13,7 @@ import { nextMonday, STAGES } from "@/lib/research";
 import { writeState } from "@/lib/writeFlow";
 import { openInLibrary } from "../writer/parts";
 import { useWriteActions, WriteButton } from "../writer/WriteButton";
-import type { WriterAccess } from "./ContentPiece";
+import type { WriterAccess } from "./shared";
 import { Difficulty, FIELD, fmtCpc, fmtNum, slugify, slugOf, STAGE_LABEL, StageTag, STATUS_PICK, statusLabel, Tick } from "./shared";
 
 const isoDay = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -128,7 +128,7 @@ export function KeywordDeepDive({
         <span className="ml-auto flex flex-wrap items-center gap-2">
           {inWriterAt(item) ? (
             <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={!brandId} onClick={() => brandId && openInLibrary(brandId, null)}>
-              <Tick /> In Library
+              <Tick /> In Drafts
             </button>
           ) : null}
           <WriteButton state={state} busy={actions.busy.has(item.id)} canEdit={canEdit} onAct={() => void actions.act(item, state)} onOpen={() => actions.open(item, state)} />

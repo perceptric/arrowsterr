@@ -360,7 +360,7 @@ export function JobsSettings({ sb, ws, brands }: { sb: SupabaseClient; ws: Works
       {list === null ? (
         <p className="aw-small">Loading...</p>
       ) : !list.length ? (
-        <p className="aw-callout text-[15px]!">Nothing has run yet. Checks, Content Plan builds, briefs and bulk analyses show up here.</p>
+        <p className="aw-callout text-[15px]!">Nothing has run yet. Checks, Content Plan builds, drafts and bulk analyses show up here.</p>
       ) : (
         <div className="aw-table-wrap">
           <table className="aw-table aw-table--compact">

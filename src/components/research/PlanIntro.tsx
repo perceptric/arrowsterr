@@ -22,7 +22,7 @@ const day = (n: number | null) => {
 /** A made-up Content Plan for Acme, shown before a brand has its own. */
 const SAMPLE: Row[] = (
   [
-    ["quickbooks alternatives", "bofu", 4400, 41, "commercial", 15.6, "update", "Competitor comparisons", 0, "brief", "Our page ranks #14. Add a pricing table and FAQs."],
+    ["quickbooks alternatives", "bofu", 4400, 41, "commercial", 15.6, "update", "Competitor comparisons", 0, "writing", "Our page ranks #14. Add a pricing table and FAQs."],
     ["best accounting software for small business", "bofu", 9900, 62, "commercial", 18.4, "new", "Software comparisons", 1, "writing", "Compare 8 tools on price, payroll and bank sync."],
     ["acme vs quickbooks", "bofu", 1300, 28, "commercial", 12.1, "new", "Competitor comparisons", 3, "planned", "Honest side-by-side. Win on ease of use."],
     ["invoice software for freelancers", "bofu", 2900, 35, "transactional", 9.8, "new", "Invoicing", 8, "planned", "Lead with the free plan."],
@@ -56,7 +56,7 @@ const SAMPLE: Row[] = (
       action,
       current_url: action === "update" ? `https://acme.com/blog/${keyword.replace(/\s+/g, "-")}` : null,
       current_rank: action === "update" ? 14 : null,
-      brief_status: status === "brief" || status === "writing" ? "done" : null,
+      brief_status: null,
       brief_error: null,
       brief_at: null,
     }),
@@ -96,7 +96,7 @@ export function PlanIntro({ canEdit, busy, built, onBuild, trial }: { canEdit: b
           "Cherry-pick the keywords that have the highest revenue potential",
           "Plan 12 weeks of content with dates, ready-to-buy topics first",
           "Find pages you already have that could rank higher with a quick content update",
-          "Read Google's top 10 for any keyword, write the brief, then write the draft with the Agentic Writer",
+          "Read Google's top 10 for any keyword, then write the draft with the Agentic Writer",
         ].map((x) => (
           <li key={x} className="flex items-start gap-2.5">
             <span className="mt-0.5 text-brand">
@@ -151,15 +151,14 @@ export function PlanSample() {
   );
 }
 
-type DemoTab = "overview" | "serp" | "brief" | "draft";
+type DemoTab = "overview" | "serp" | "draft";
 
-/** What a real piece holds, filled with sample data: the SERP analysis, the brief and the Agentic Writer. */
+/** What a real piece holds, filled with sample data: the SERP analysis and the Agentic Writer. */
 function DemoPiece({ row, onClose }: { row: Row; onClose: () => void }) {
   const [tab, setTab] = useState<DemoTab>("draft");
   const tabs: { id: DemoTab; label: React.ReactNode }[] = [
     { id: "overview", label: "Overview" },
     { id: "serp", label: <>SERP analysis <Tick /></> },
-    { id: "brief", label: <>Content Brief <Tick /></> },
     { id: "draft", label: "Agentic Writer" },
   ];
   const serp = [
@@ -203,7 +202,7 @@ function DemoPiece({ row, onClose }: { row: Row; onClose: () => void }) {
         <section className="aw-frame">
           <div className="aw-frame__head justify-between">
             <h3 className="aw-h4">Google&apos;s top results · United States</h3>
-            <span className="aw-small">The brief reads this. No second search.</span>
+            <span className="aw-small">The draft reads this. No second search.</span>
           </div>
           <table className="aw-table">
             <thead>
@@ -230,19 +229,6 @@ function DemoPiece({ row, onClose }: { row: Row; onClose: () => void }) {
               ))}
             </tbody>
           </table>
-        </section>
-      ) : tab === "brief" ? (
-        <section className="aw-frame flex flex-col gap-3 p-6">
-          <span className="aw-label">Search intent</span>
-          <p className="text-[14px] text-ink">Buyers comparing tools before a free trial. They want prices, must-have features and an honest pick.</p>
-          <span className="aw-label">Outline</span>
-          <ol className="list-decimal pl-5 text-[14px] text-ink">
-            <li>Introduction: the problem, why it costs money, the fix</li>
-            <li>H2: How we picked</li>
-            <li>H2: The 8 best options, compared (table: price, payroll, bank sync)</li>
-            <li>H2: Where Acme fits</li>
-            <li>H2: FAQs</li>
-          </ol>
         </section>
       ) : (
         <section className="aw-frame overflow-hidden">

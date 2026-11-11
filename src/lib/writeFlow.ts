@@ -1,5 +1,6 @@
-// Agentic Writing's one button (docs/agentic-writing.md, section 1): what a piece's Write cell shows, from its
-// Editorial Calendar status, its outline (writer_briefs) and its draft (writer_drafts). The Calendar, the Day panel,
+// Agentic Writing's one button (docs/agentic-writing.md, section 1, and docs/drafts-plan.md): what a piece's Write
+// cell shows, from its Editorial Calendar status, its outline (writer_briefs, written in the background and never
+// reviewed: the draft starts from it on its own) and its draft (writer_drafts). The Calendar, the Day panel,
 // the Library grid and the Keyword Deep Dive all read it here, so they always show the same button. Pure.
 
 type Brief = { id: string; status: "generating" | "ready" | "approved" | "failed"; step: string; error: string | null };
@@ -21,7 +22,8 @@ export const stepLabel = (kind: "brief" | "draft", step: string) => (kind === "b
 
 /**
  * The Write cell for one piece. A live post wins. Then the draft: being written, ready to publish, or failed.
- * Then the outline: being written, failed, or ready (an approved outline with no draft still offers Write draft).
+ * Then the outline: being written, failed, or done with no draft. That last one is an older outline, or one whose
+ * draft didn't start (the month was full): it offers Write draft, with the reason when there is one.
  */
 export function writeState({ item, brief, draft }: { item: { status: string; url: string | null }; brief: Brief | null; draft: Draft | null }): WriteState {
   if (item.status === "published" && item.url) return { kind: "view", url: item.url, docId: draft?.doc_id ?? null };
@@ -32,7 +34,8 @@ export function writeState({ item, brief, draft }: { item: { status: string; url
   }
   if (brief) {
     if (brief.status === "generating") return { kind: "busy", label: stepLabel("brief", brief.step) };
-    if (brief.status === "failed") return { kind: "retry", target: "outline", error: brief.error || "The outline stopped.", briefId: brief.id };
+    if (brief.status === "failed") return { kind: "retry", target: "outline", error: brief.error || "The draft stopped while researching.", briefId: brief.id };
+    if (brief.error) return { kind: "retry", target: "draft", error: brief.error, briefId: brief.id };
     return { kind: "draft", briefId: brief.id };
   }
   return { kind: "outline" };

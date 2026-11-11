@@ -475,8 +475,7 @@ export function ReportDoc({ r, id = "report", editing = false }: { r: ReportSnap
           <div className="grid g4">
             <Kpi label="Published" value={r.content.published} />
             <Kpi label="Writing" value={r.content.writing} />
-            <Kpi label="Briefs ready" value={r.content.briefs} />
-            <Kpi label="Planned" value={r.content.planned} />
+            <Kpi label="Planned" value={r.content.planned + (r.content.briefs ?? 0)} />
           </div>
           {r.content.pages.length ? (
             <div className="card">
