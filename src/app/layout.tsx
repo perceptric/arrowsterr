@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DM_Mono, Funnel_Display, Geist, Geist_Mono, IBM_Plex_Mono, Inter } from "next/font/google";
 import "./globals.css";
+import { DialogHost } from "@/components/Dialogs";
 
 // The Arro game's pixel-style text.
 const plex = IBM_Plex_Mono({
@@ -56,7 +57,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${plex.variable} ${inter.variable} ${geist.variable} ${display.variable} ${mono.variable} ${dmMono.variable} h-full`}
     >
       <body className="min-h-full">
-        <div className="aw flex min-h-screen flex-col">{children}</div>
+        <div className="aw flex min-h-screen flex-col">
+          {children}
+          <DialogHost />
+        </div>
       </body>
     </html>
   );

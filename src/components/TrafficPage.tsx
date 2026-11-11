@@ -1,5 +1,6 @@
 "use client";
 
+import { askConfirm } from "@/components/Dialogs";
 import { Dropdown } from "./Pickers";
 import { useCallback, useEffect, useState } from "react";
 import { answered, ownsDomain } from "@/lib/metrics";
@@ -352,7 +353,7 @@ export function TrafficPage({ view, auth, canEdit }: { view: View; auth: RunAuth
   }
 
   async function disconnectGa4() {
-    if (!confirm("Disconnect Google Analytics from this brand?")) return;
+    if (!(await askConfirm({ title: "Disconnect Google Analytics from this brand?", action: "Disconnect" }))) return;
     try {
       await call("/api/ga4", { action: "disconnect" });
       setSaved({});

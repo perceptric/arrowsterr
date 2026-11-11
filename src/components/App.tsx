@@ -1,5 +1,6 @@
 "use client";
 
+import { askConfirm, askText } from "@/components/Dialogs";
 import { identify, inWorkspace, resetAnalytics } from "@/lib/analytics";
 import { Dropdown, Pop, useAnchoredPop } from "./Pickers";
 import { withoutResearch } from "@/lib/researchUrl";
@@ -736,8 +737,8 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
               setTopic("All");
             }}
             onAdd={() => setAdding(true)}
-            onRemove={(b) => {
-              if (confirm(`Stop tracking ${b.name}? Its results will be deleted.`)) remove(b.id);
+            onRemove={async (b) => {
+              if (await askConfirm({ title: `Stop tracking ${b.name}?`, text: "Its results will be deleted.", action: "Stop tracking" })) remove(b.id);
             }}
             days={days}
             onDays={setDays}
@@ -1292,9 +1293,9 @@ function Sidebar({
               <button
                 type="button"
                 onClick={async () => {
-                  const name = prompt("Name your new workspace");
                   wsMenu.close();
-                  if (name?.trim()) await onNewWorkspace(name.trim());
+                  const name = await askText({ title: "Name your new workspace", action: "Create" });
+                  if (name) await onNewWorkspace(name);
                 }}
                 className="flex h-8 w-full items-center rounded-aw px-2 text-left text-[13px] text-body hover:bg-surface-2"
               >

@@ -1,5 +1,6 @@
 "use client";
 
+import { askConfirm } from "@/components/Dialogs";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useState } from "react";
 import { atLeast, getPlanUsage, type PlanUsage, type Workspace } from "@/lib/db";
@@ -107,16 +108,16 @@ export function BillingPage({ sb, ws, auth, onPlan }: { sb: SupabaseClient; ws: 
           className={`aw-btn aw-btn--block ${current ? "aw-btn--secondary" : "aw-btn--primary"}`}
           disabled={current || !isAdmin || busy !== null}
           title={isAdmin ? undefined : "Ask an admin"}
-          onClick={() => {
+          onClick={async () => {
             if (onStarter) {
-              if (!confirm(`Switch Starter to ${TRACKS[pick].label}? You can switch once a month.`)) return;
+              if (!(await askConfirm({ title: `Switch Starter to ${TRACKS[pick].label}?`, text: "You can switch once a month.", action: "Switch", danger: false }))) return;
               act(`track:${pick}`, async () => {
                 await post(auth, "/api/billing/track", { track: pick });
                 return `Starter now opens ${TRACKS[pick].label}.`;
               });
               return;
             }
-            if (paying && !confirm(`Switch to Starter with ${TRACKS[pick].label}? The difference is charged or credited today.`)) return;
+            if (paying && !(await askConfirm({ title: `Switch to Starter with ${TRACKS[pick].label}?`, text: "The difference is charged or credited today.", action: "Switch", danger: false }))) return;
             act(`foundation:${pick}`, () => choosePlan(auth, "foundation", cycle, pick));
           }}
         >
@@ -158,8 +159,8 @@ export function BillingPage({ sb, ws, auth, onPlan }: { sb: SupabaseClient; ws: 
         className={`aw-btn aw-btn--block ${up ? "aw-btn--primary" : "aw-btn--secondary"}`}
         disabled={!isAdmin || busy !== null}
         title={isAdmin ? undefined : "Ask an admin"}
-        onClick={() => {
-          if (paying && !confirm(`Switch to ${PLANS[id].name}? The difference is charged or credited today.`)) return;
+        onClick={async () => {
+          if (paying && !(await askConfirm({ title: `Switch to ${PLANS[id].name}?`, text: "The difference is charged or credited today.", action: "Switch", danger: false }))) return;
           act(id, () => choosePlan(auth, id, cycle));
         }}
       >

@@ -1,5 +1,6 @@
 "use client";
 
+import { askConfirm } from "@/components/Dialogs";
 import type { Factor, SupabaseClient, User } from "@supabase/supabase-js";
 import { useCallback, useEffect, useState } from "react";
 import { Dropdown } from "./Pickers";
@@ -361,8 +362,8 @@ export function SecuritySettings({ sb, user }: { sb: SupabaseClient; user: User 
               type="button"
               className="aw-btn aw-btn--secondary"
               disabled={busy}
-              onClick={() => {
-                if (!confirm("Turn off 2-step sign-in? You will only need your password or Google to sign in.")) return;
+              onClick={async () => {
+                if (!(await askConfirm({ title: "Turn off 2-step sign-in?", text: "You will only need your password or Google to sign in.", action: "Turn off" }))) return;
                 run(async () => {
                   for (const f of factors ?? []) {
                     const { error: err } = await sb.auth.mfa.unenroll({

@@ -1,5 +1,6 @@
 "use client";
 
+import { askConfirm } from "@/components/Dialogs";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
@@ -722,7 +723,7 @@ export function DocsEditor({
                   <button
                     type="button"
                     className="aw-btn aw-btn--secondary aw-btn--sm"
-                    onClick={() => (!layout.words || confirm("Import the brief? It replaces this draft with the brief's outline. You can revert it.")) && importTheBrief()}
+                    onClick={async () => (!layout.words || (await askConfirm({ title: "Import the brief?", text: "It replaces this draft with the brief's outline. You can revert it.", action: "Import" }))) && importTheBrief()}
                   >
                     Import brief
                   </button>

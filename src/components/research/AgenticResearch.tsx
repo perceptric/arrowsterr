@@ -1,5 +1,6 @@
 "use client";
 
+import { askConfirm } from "@/components/Dialogs";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useState } from "react";
 import { keywordRunResult, listKeywordRuns, saveKeywordRunResult, type BankRow, type KeywordRun, type Site } from "@/lib/db";
@@ -163,7 +164,7 @@ export function PlanProgress({
             <span className="ml-auto">
               <StopButton
                 onStop={async () => {
-                  if (!confirm("Stop building the content plan? You can start it again.")) return;
+                  if (!(await askConfirm({ title: "Stop building the content plan?", text: "You can start it again.", action: "Stop" }))) return;
                   try {
                     await onStop(run.id);
                   } catch (e) {

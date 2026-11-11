@@ -1,5 +1,6 @@
 "use client";
 
+import { askConfirm, askText } from "@/components/Dialogs";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { AuditIssue, AuditResult } from "@/lib/audit";
 import type { RunAuth } from "@/lib/runner";
@@ -392,8 +393,8 @@ export function ZippiePage({ auth, canEdit, compact = false, where = null, onClo
             leave();
           }}
           onNewProject={async () => {
-            const name = prompt("Name your project");
-            if (!name?.trim()) return;
+            const name = await askText({ title: "Name your project", action: "Create" });
+            if (!name) return;
             try {
               const r = await api<{ project: Project }>("/api/ask/library", { action: "project_save", name });
               setLib((l) => ({ ...l, projects: [r.project, ...l.projects] }));
@@ -814,7 +815,7 @@ export function ChangeSetCard({ id, api, canEdit }: { id: string; api: ReturnTyp
     return () => clearInterval(t);
   }, [set?.status, load]);
   const act = async (body: Record<string, unknown>, ask?: string) => {
-    if (ask && !confirm(ask)) return;
+    if (ask && !(await askConfirm({ title: ask, action: "Continue", danger: false }))) return;
     setBusy(true);
     setError("");
     try {
@@ -1128,10 +1129,10 @@ function ChatsPanel(p: {
             <div className="zp-menu zp-menu--pop" onMouseLeave={closeMenu}>
             <button
               type="button"
-              onClick={() => {
+              onClick={async () => {
                 closeMenu();
-                const title = prompt("Rename chat", t.title);
-                if (title?.trim()) p.onThread(t, "rename", { title });
+                const title = await askText({ title: "Rename chat", value: t.title, action: "Rename" });
+                if (title) p.onThread(t, "rename", { title });
               }}
             >
               <Icon d={I.edit} /> Rename
@@ -1164,9 +1165,9 @@ function ChatsPanel(p: {
             <button
               type="button"
               className="text-[#B3093C]!"
-              onClick={() => {
+              onClick={async () => {
                 closeMenu();
-                if (confirm("Delete this chat?")) p.onThread(t, "delete");
+                if (await askConfirm({ title: "Delete this chat?", action: "Delete" })) p.onThread(t, "delete");
               }}
             >
               <Icon d={I.x} /> Delete
@@ -1277,8 +1278,8 @@ function ProjectView(p: {
                 type="button"
                 className="aw-btn aw-btn--secondary aw-btn--sm"
                 onClick={async () => {
-                  const name = prompt("Rename project", p.project.name);
-                  if (!name?.trim()) return;
+                  const name = await askText({ title: "Rename project", value: p.project.name, action: "Rename" });
+                  if (!name) return;
                   await p.api("/api/ask/library", { action: "project_save", id: p.project.id, name, instructions }).catch((e) => setError(msgOf(e)));
                   p.onChange();
                 }}
@@ -1289,7 +1290,7 @@ function ProjectView(p: {
                 type="button"
                 className="aw-btn aw-btn--secondary aw-btn--sm"
                 onClick={async () => {
-                  if (!confirm(`Delete ${p.project.name}? Its chats stay, outside the project. Its knowledge is deleted.`)) return;
+                  if (!(await askConfirm({ title: `Delete ${p.project.name}?`, text: "Its chats stay, outside the project. Its knowledge is deleted.", action: "Delete" }))) return;
                   await p.api("/api/ask/library", { action: "project_delete", id: p.project.id }).catch((e) => setError(msgOf(e)));
                   p.onDeleted();
                 }}
@@ -1489,7 +1490,7 @@ function KnowledgeView(p: { api: ReturnType<typeof useApi>; lib: Library; canEdi
                   className="zp-icon-btn zp-icon-btn--sm"
                   aria-label={`Delete ${k.name}`}
                   onClick={async () => {
-                    if (!confirm(`Delete ${k.name}?`)) return;
+                    if (!(await askConfirm({ title: `Delete ${k.name}?`, action: "Delete" }))) return;
                     await p.api("/api/ask/library", { action: "knowledge_delete", id: k.id }).catch((e) => setError(msgOf(e)));
                     p.onChange();
                   }}
@@ -1591,7 +1592,7 @@ function SkillsView(p: { api: ReturnType<typeof useApi>; lib: Library; canEdit: 
                     <button type="button" className="aw-text-link text-[13px]" onClick={() => setEdit(s)}>
                       Edit
                     </button>
-                    <button type="button" className="aw-text-link text-[13px] text-muted!" onClick={() => confirm(`Delete ${s.name}?`) && call({ action: "skill_delete", id: s.key })}>
+                    <button type="button" className="aw-text-link text-[13px] text-muted!" onClick={async () => (await askConfirm({ title: `Delete ${s.name}?`, action: "Delete" })) && call({ action: "skill_delete", id: s.key })}>
                       Delete
                     </button>
                   </>

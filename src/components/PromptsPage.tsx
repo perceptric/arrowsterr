@@ -1,5 +1,6 @@
 "use client";
 
+import { askConfirm } from "@/components/Dialogs";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { Fragment, useEffect, useRef, useState } from "react";
 import type { Chat } from "@/lib/chats";
@@ -44,10 +45,10 @@ export function PromptsPage(p: Props) {
     : {
         full: total >= MAX_PROMPTS,
         renameTopic: (from, to) => save(all.map((t) => (t.name === from ? { ...t, name: to } : t))),
-        removeTopic: (name) => confirm(`Remove the topic "${name}" and its prompts?`) && save(all.filter((t) => t.name !== name)),
+        removeTopic: async (name) => (await askConfirm({ title: `Remove the topic “${name}”?`, text: "Its prompts are removed too.", action: "Remove" })) && save(all.filter((t) => t.name !== name)),
         addPrompt: (topic, text) => total < MAX_PROMPTS && save(all.map((t) => (t.name === topic && !t.prompts.includes(text) ? { ...t, prompts: [...t.prompts, text] } : t))),
         editPrompt: (topic, from, to) => save(all.map((t) => (t.name === topic ? { ...t, prompts: t.prompts.map((x) => (x === from ? to : x)) } : t))),
-        removePrompt: (topic, text) => confirm(`Remove this prompt?\n\n${text}`) && save(all.map((t) => (t.name === topic ? { ...t, prompts: t.prompts.filter((x) => x !== text) } : t))),
+        removePrompt: async (topic, text) => (await askConfirm({ title: "Remove this prompt?", text, action: "Remove" })) && save(all.map((t) => (t.name === topic ? { ...t, prompts: t.prompts.filter((x) => x !== text) } : t))),
       };
 
   return (
