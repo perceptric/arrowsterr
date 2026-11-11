@@ -319,6 +319,9 @@ export const writer_draft = writerDraftJob;
 // Idempotent: it updates the article's one post, never makes a second.
 export const wp_publish = wpPublishJob;
 
+// ─────────────── cms_publish: put a scheduled article live on Webflow, Framer and the rest (cmsSchedule.ts) ───────────────
+export { cmsPublishJob as cms_publish } from "../cmsScheduleServer";
+
 // ─────────────── clean_brands: take questions and steps out of a brand's saved answers ───────────────
 
 const CHECK_MODEL = () => process.env.EXTRACT_MODEL || "claude-haiku-5-5";

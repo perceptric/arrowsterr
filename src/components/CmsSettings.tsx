@@ -3,19 +3,19 @@
 import { useEffect, useState } from "react";
 import { CMS, type CmsConnection, type CmsKind } from "@/lib/cmsTypes";
 import type { RunAuth } from "@/lib/runner";
+import { ConnectWizard } from "./ConnectWizard";
 import { Dropdown } from "./Pickers";
 import { Confirm } from "./reports/Dialog";
 import { post } from "./research/shared";
 
 type BrandRef = { id: string; name: string };
 
-/** Connect the sites this brand publishes to. Admins only; keys are tested, then kept on the server. */
+/** Connect the sites this brand publishes to, through the connect wizard (one click where the CMS allows it). Admins only; keys are tested, then kept on the server. */
 export function CmsSettings({ auth, isAdmin, brand, brands }: { auth: RunAuth; isAdmin: boolean; brand: BrandRef; brands: BrandRef[] }) {
   const [list, setList] = useState<CmsConnection[] | null>(null);
   const [setup, setSetup] = useState("");
   const [notice, setNotice] = useState(false);
   const [kind, setKind] = useState<CmsKind | null>(null);
-  const [form, setForm] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState("");
@@ -36,25 +36,19 @@ export function CmsSettings({ auth, isAdmin, brand, brands }: { auth: RunAuth; i
     };
   }, [auth, brand.id]);
 
-  const spec = CMS.find((c) => c.id === kind);
-  async function connect(e: React.FormEvent) {
-    e.preventDefault();
-    if (!spec) return;
-    setBusy(true);
-    setError("");
-    try {
-      const { name, ...config } = form;
-      const r = await post<{ connection: CmsConnection; check: string }>(auth, "/api/cms", { action: "connect", kind: spec.id, name, config, brandId: brand.id });
-      setList([...(list ?? []), r.connection]);
-      setDone(`${spec.label} connected. ${r.check}.`);
-      setKind(null);
-      setForm({});
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setBusy(false);
-    }
-  }
+  // Webflow's sign-in window comes back here when it lost its opener: say how it went, then tidy the address.
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    const wf = q.get("webflow");
+    if (!wf) return;
+    // Reading the address once on open is the point of this effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (wf === "connected") setDone("Webflow connected.");
+    else setError(q.get("reason") || "Could not connect Webflow.");
+    q.delete("webflow");
+    q.delete("reason");
+    window.history.replaceState(null, "", window.location.pathname + (q.size ? `?${q}` : ""));
+  }, []);
   async function remove(c: CmsConnection) {
     setBusy(true);
     try {
@@ -141,45 +135,20 @@ export function CmsSettings({ auth, isAdmin, brand, brands }: { auth: RunAuth; i
               + {c.label}
             </button>
           ))}
-          <span className="aw-chip opacity-70" title="Framer has no publishing API. Download a CSV from the writer and import it into a Framer CMS collection.">
-            Framer · CSV import
-          </span>
         </div>
       ) : null}
 
-      {spec ? (
-        <form onSubmit={connect} className="aw-frame flex max-w-2xl flex-col gap-4 p-5">
-          <span className="aw-h4">Connect {spec.label}</span>
-          <p className="text-[13px] text-muted">{spec.help}</p>
-          <label className="flex flex-col gap-1.5">
-            <span className="aw-label">Name</span>
-            <input value={form.name ?? ""} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder={`${spec.label} blog`} className="aw-input py-2! text-[14px]!" />
-          </label>
-          {spec.fields.map((f) => (
-            <label key={f.id} className="flex flex-col gap-1.5">
-              <span className="aw-label">
-                {f.label}
-                {f.optional ? " (optional)" : ""}
-              </span>
-              <input
-                type={f.secret ? "password" : "text"}
-                autoComplete="off"
-                value={form[f.id] ?? ""}
-                onChange={(e) => setForm({ ...form, [f.id]: e.target.value })}
-                placeholder={f.placeholder}
-                className="aw-input py-2! text-[14px]!"
-              />
-            </label>
-          ))}
-          <span className="flex gap-2">
-            <button type="submit" className="aw-btn aw-btn--primary aw-btn--sm" disabled={busy}>
-              {busy ? "Testing..." : "Test and connect"}
-            </button>
-            <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setKind(null)}>
-              Cancel
-            </button>
-          </span>
-        </form>
+      {kind ? (
+        <ConnectWizard
+          auth={auth}
+          platform={kind}
+          brandId={brand.id}
+          onClose={() => setKind(null)}
+          onConnected={(c) => {
+            setList((l) => [...(l ?? []).filter((x) => x.id !== c.id), c]);
+            setDone("");
+          }}
+        />
       ) : null}
 
       {removing ? <Confirm title="Disconnect site" text={`Disconnect ${removing.name}? Articles already published stay on the site.`} action="Disconnect" busy={busy} onConfirm={() => remove(removing)} onClose={() => setRemoving(null)} /> : null}

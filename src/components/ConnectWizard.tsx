@@ -46,12 +46,18 @@ export function ConnectWizard({
   const [done, setDone] = useState<{ c: CmsConnection; check: string } | null>(null);
   const [manual, setManual] = useState(false);
   const [waiting, setWaiting] = useState(false);
+  const [oauth, setOauth] = useState<{ webflow?: boolean }>({});
+  const [webflowWaiting, setWebflowWaiting] = useState(false);
   const [plugin, setPlugin] = useState<{ checking: boolean; found: { version: string; current: boolean } | null; looked: boolean }>({ checking: false, found: null, looked: false });
 
   useEffect(() => {
     let live = true;
-    call<{ connections: CmsConnection[] }>(auth, { action: "list", brandId })
-      .then((r) => live && setList(r.connections))
+    call<{ connections: CmsConnection[]; oauth?: { webflow?: boolean } }>(auth, { action: "list", brandId })
+      .then((r) => {
+        if (!live) return;
+        setList(r.connections);
+        setOauth(r.oauth ?? {});
+      })
       .catch(() => live && setList([]));
     return () => {
       live = false;
@@ -119,6 +125,44 @@ export function ConnectWizard({
     const w = window.open(authorizeUrl(site, window.location.origin), "arrowsterr-wordpress", "width=760,height=780");
     if (!w) return setError("Your browser blocked the WordPress window. Allow pop-ups for this site, or use an application password.");
     setWaiting(true);
+  }
+
+  // Webflow's answer comes back from its sign-in window (api/cms/webflow/callback): the site is saved by then.
+  useEffect(() => {
+    if (!webflowWaiting) return;
+    const onMessage = async (e: MessageEvent) => {
+      if (e.origin !== window.location.origin || e.data?.type !== "arrowsterr:webflow") return;
+      setWebflowWaiting(false);
+      if (!e.data.ok) return setError(String(e.data.reason ?? "Could not connect Webflow."));
+      try {
+        const r = await call<{ connections: CmsConnection[] }>(auth, { action: "list", brandId });
+        setList(r.connections);
+        const c = [...r.connections].reverse().find((x) => x.kind === "webflow");
+        if (!c) return setError("Webflow connected, but the site didn't show up. Reload and check Settings.");
+        setDone({ c, check: String(e.data.check ?? "Connected") });
+        track("cms_connected", { kind: "webflow", one_click: true });
+        onConnected(c);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : String(err));
+      }
+    };
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, [webflowWaiting, auth, brandId, onConnected]);
+
+  async function signInWebflow() {
+    setError("");
+    // Open the window first, inside the click, so the browser doesn't block it; then send it to Webflow.
+    const w = window.open("about:blank", "arrowsterr-webflow", "width=760,height=820");
+    if (!w) return setError("Your browser blocked the Webflow window. Allow pop-ups for this site, or paste a site token.");
+    try {
+      const r = await call<{ url: string }>(auth, { action: "webflow_start", brandId });
+      w.location.href = r.url;
+      setWebflowWaiting(true);
+    } catch (err) {
+      w.close();
+      setError(err instanceof Error ? err.message : String(err));
+    }
   }
 
   async function checkPlugin(id: string) {
@@ -212,6 +256,24 @@ export function ConnectWizard({
             </span>
           </div>
         </form>
+      ) : spec.id === "webflow" && oauth.webflow && !manual ? (
+        <div className="flex flex-col gap-4">
+          <p className="text-[14px] text-body">Sign in with Webflow and pick your site. Arrowsterr finds your blog collection and its fields on its own.</p>
+          {error ? <p className="aw-error">{error}</p> : null}
+          <div className="flex items-center justify-between gap-2">
+            <button type="button" className="aw-btn aw-btn--ghost aw-btn--sm" onClick={() => (platform ? onClose() : setKind(null))}>
+              {platform ? "Cancel" : "Back"}
+            </button>
+            <span className="flex items-center gap-2">
+              <button type="button" className="aw-text-link text-[12px]" onClick={() => setManual(true)}>
+                Use a site token
+              </button>
+              <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" disabled={webflowWaiting} onClick={() => void signInWebflow()}>
+                {webflowWaiting ? "Waiting for Webflow..." : "Sign in with Webflow"}
+              </button>
+            </span>
+          </div>
+        </div>
       ) : (
         <form onSubmit={connect} className="flex flex-col gap-4">
           <p className="text-[14px] text-body">{guide.blurb}</p>

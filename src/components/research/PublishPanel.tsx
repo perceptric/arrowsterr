@@ -10,7 +10,7 @@ import type { RunAuth } from "@/lib/runner";
 import type { DocPublishMeta } from "@/lib/writerAgent";
 import { ConnectWizard } from "../ConnectWizard";
 import { SidePanel, Thinking } from "../ui";
-import { downloadCsv, post } from "./shared";
+import { post } from "./shared";
 
 const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -52,7 +52,7 @@ const STATE: Record<NonNullable<Publication["status"]>, { label: string; tone: s
   deleted: { label: "Deleted in WordPress", tone: "aw-status--missed" },
 };
 
-/** Send a draft to a connected CMS, as a draft, live or on a date, with its SEO details. WordPress posts stay in sync. */
+/** Send a draft to a connected CMS, as a draft, live or on a date, with its SEO details. WordPress posts stay in sync; other sites schedule with a cms_publish job. */
 export function PublishPanel({ sb, auth, docId, brandId, title, html, onClose }: { sb: SupabaseClient; auth: RunAuth; docId: string; brandId?: string; title: string; html: () => string; onClose: () => void }) {
   const [conns, setConns] = useState<CmsConnection[] | null>(null);
   const [pubs, setPubs] = useState<Publication[]>([]);
@@ -107,6 +107,7 @@ export function PublishPanel({ sb, auth, docId, brandId, title, html, onClose }:
       setF((x) => ({ ...x, title: pm.title || x.title, slug: pm.slug || d.slug || x.slug, metaTitle: pm.metaTitle || d.metaTitle || "", description: pm.description || d.metaDescription || "", image: pm.image ?? "", schema: pm.schema ?? "" }));
       if (d.dueDate) setDay(d.dueDate);
       applyPub(c.publications.find((p) => p.connectionId === first));
+      applyRec(pm.published?.find((p) => p.connectionId === first && p.kind !== "wordpress"));
       // Read the posts back from WordPress, so an edit or delete there shows here.
       if (c.publications.some((p) => p.remoteId)) void sync();
     });
@@ -148,10 +149,22 @@ export function PublishPanel({ sb, auth, docId, brandId, title, html, onClose }:
       setTime(`${pad(d.getHours())}:${d.getMinutes() < 30 ? "00" : "30"}`);
     } else if (p.status === "publish") setMode("publish");
   }
+  /** The same for Webflow, Framer and the rest: their schedule, or live. */
+  function applyRec(r: Published | undefined) {
+    if (!r) return;
+    if (r.live) setMode("publish");
+    else if (r.scheduledFor) {
+      const d = new Date(r.scheduledFor);
+      setMode("schedule");
+      setDay(localDay(d));
+      setTime(`${pad(d.getHours())}:${d.getMinutes() < 30 ? "00" : "30"}`);
+    }
+  }
   function pickSite(id: string) {
     setTo(id);
-    if (conns?.find((c) => c.id === id)?.kind !== "wordpress" && mode === "schedule") setMode("draft");
+    setMode("draft");
     applyPub(pubs.find((p) => p.connectionId === id));
+    applyRec(meta?.published?.find((p) => p.connectionId === id && p.kind !== "wordpress"));
   }
 
   const scheduleAt = useMemo(() => (day ? new Date(`${day}T${time}:00`).toISOString() : ""), [day, time]);
@@ -209,15 +222,14 @@ export function PublishPanel({ sb, auth, docId, brandId, title, html, onClose }:
     </label>
   );
 
-  const modes: { v: Mode; label: string }[] = wp
-    ? [
+  // A live post on Webflow, Framer and the rest can only be updated live: a draft would take it off the site.
+  const liveElsewhere = !wp && Boolean(before?.live);
+  const modes: { v: Mode; label: string }[] = liveElsewhere
+    ? [{ v: "publish", label: "Live" }]
+    : [
         { v: "draft", label: "Draft" },
         { v: "publish", label: "Publish now" },
         { v: "schedule", label: "Schedule" },
-      ]
-    : [
-        { v: "draft", label: "As a draft" },
-        { v: "publish", label: "Live now" },
       ];
   const late = mode === "schedule" && scheduleAt && Date.parse(scheduleAt) < now;
   const action = gone
@@ -228,7 +240,7 @@ export function PublishPanel({ sb, auth, docId, brandId, title, html, onClose }:
         : `Update on ${conn?.name}`
       : mode === "schedule"
         ? `Schedule on ${conn?.name}`
-        : mode === "draft" && wp
+        : mode === "draft"
           ? `Save draft to ${conn?.name}`
           : `Publish to ${conn?.name}`;
   const state = pub?.status ? STATE[pub.status] : null;
@@ -274,6 +286,29 @@ export function PublishPanel({ sb, auth, docId, brandId, title, html, onClose }:
             </div>
           ) : null}
 
+          {!wp && before ? (
+            <div className="flex flex-col gap-2 border-y border-rule-faint py-3">
+              <span className="flex flex-wrap items-center gap-2">
+                {before.live ? (
+                  <span className="aw-status aw-status--ranked">Live</span>
+                ) : before.scheduledFor ? (
+                  <>
+                    <span className="aw-status aw-status--warn">Scheduled</span>
+                    <span className="text-[13px] text-ink">{when(before.scheduledFor)}</span>
+                  </>
+                ) : (
+                  <span className="aw-status aw-status--pending">Draft</span>
+                )}
+                <span className="text-[12px] text-muted">Sent {when(before.at)}</span>
+              </span>
+              {before.url ? (
+                <a href={before.url} target="_blank" rel="noopener noreferrer" className="text-[13px] wrap-anywhere">
+                  {before.url}
+                </a>
+              ) : null}
+            </div>
+          ) : null}
+
           {field("title", "Title", `${f.title.length} characters`)}
           {field("slug", "Slug", "")}
           {wp ? field("metaTitle", "Meta title", `${f.metaTitle.length}/60`) : null}
@@ -316,14 +351,14 @@ export function PublishPanel({ sb, auth, docId, brandId, title, html, onClose }:
                   </button>
                 ))}
               </div>
-              {wp && mode === "schedule" ? (
+              {mode === "schedule" ? (
                 <div className="flex gap-2">
                   <DateField label="Publish date" value={day} onChange={(v) => setDay(v ?? "")} className="aw-dropdown--field flex-1" clearable={false} />
                   <Dropdown label="Publish time" value={time} onChange={setTime} className="aw-dropdown--field w-28" options={TIMES.map((t) => ({ id: t, label: t }))} />
                 </div>
               ) : null}
               {late ? <p className="aw-error">That time has passed. It publishes now.</p> : null}
-              <button type="button" className="aw-btn aw-btn--primary self-start" disabled={busy || !to || !f.title.trim() || (wp && mode === "schedule" && !day)} onClick={publish}>
+              <button type="button" className="aw-btn aw-btn--primary self-start" disabled={busy || !to || !f.title.trim() || (mode === "schedule" && !day)} onClick={publish}>
                 {busy ? "Publishing..." : action}
               </button>
             </div>
@@ -336,7 +371,7 @@ export function PublishPanel({ sb, auth, docId, brandId, title, html, onClose }:
           ))}
           {done ? (
             <div className="aw-callout flex flex-col gap-1">
-              <span>{done.status === "future" ? "Scheduled." : done.live ? "Published live." : "Saved as a draft."}</span>
+              <span>{done.status === "future" || done.scheduledFor ? "Scheduled." : done.live ? "Published live." : "Saved as a draft."}</span>
               {done.url ? (
                 <a href={done.url} target="_blank" rel="noopener noreferrer">
                   {done.url}
@@ -345,17 +380,6 @@ export function PublishPanel({ sb, auth, docId, brandId, title, html, onClose }:
             </div>
           ) : null}
 
-          <div className="flex flex-col gap-2 border-t border-rule-faint pt-4">
-            <span className="aw-label">Framer</span>
-            <span className="text-[13px] text-muted">Framer has no publishing API. Download a CSV and import it into your Framer CMS collection.</span>
-            <button
-              type="button"
-              className="aw-btn aw-btn--secondary aw-btn--sm self-start"
-              onClick={() => downloadCsv(`${f.slug || "post"}-framer.csv`, ["Title", "Slug", "Content", "Meta Description", "Image"], [[f.title, f.slug, html(), f.description, f.image]])}
-            >
-              Download for Framer
-            </button>
-          </div>
         </div>
       )}
       {connecting ? (

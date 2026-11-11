@@ -29,7 +29,9 @@ export function unseal(sealed: string) {
 }
 
 /** A signed, short-lived note that rides through Google's sign-in and comes back to the callback. */
-export type State = { brandId: string; workspaceId: string; userId: string; back: string; exp: number; kind?: "ga4" };
+export type State = { brandId: string; workspaceId: string; userId: string; back: string; exp: number; kind?: "ga4" | "webflow" };
+/** True when signed sign-in notes can be made (any sign-in, not only Google's). */
+export const stateReady = () => Boolean(secret());
 export function signState(s: Omit<State, "exp">) {
   const body = Buffer.from(JSON.stringify({ ...s, exp: Date.now() + 15 * 60_000 })).toString("base64url");
   return `${body}.${createHmac("sha256", secret()!).update(body).digest("base64url")}`;

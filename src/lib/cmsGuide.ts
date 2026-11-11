@@ -21,6 +21,16 @@ export const CMS_GUIDE: Record<CmsKind, CmsGuide> = {
     ],
     open: (f) => (site(f.siteUrl) ? { label: "Open WordPress", href: `${site(f.siteUrl)}/wp-admin/profile.php#application-passwords-section` } : null),
   },
+  framer: {
+    blurb: "Arrowsterr needs an API key for your Framer project. It only works with this project and you can delete it any time.",
+    steps: [
+      "Click Open Framer and open your website project.",
+      "Copy the project's link from your browser's address bar and paste it below.",
+      "Open Site Settings, then General, then API Keys. Create a key named Arrowsterr and paste it below.",
+      "Type the name of your blog collection, or leave it empty to use the one that looks like a blog.",
+    ],
+    open: () => ({ label: "Open Framer", href: "https://framer.com/projects" }),
+  },
   webflow: {
     blurb: "Zippie needs a site API token with CMS access.",
     steps: [

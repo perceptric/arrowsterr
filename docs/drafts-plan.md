@@ -6,6 +6,8 @@ Written November 2026. Prices marked "check" couldn't be confirmed on the vendor
 
 **Phase 1 shipped (November 2026).** Write draft runs the research and outline in the background and starts the draft on its own (`chainDraft` in `writerDraft.ts`, called from the `writer_brief` job). The Content Brief tab, the brief and outline review screens, the brief API (`/api/research/brief`) and Brief ready are gone; pieces left at Brief ready moved to Planned (`supabase/076_drafts_only.sql`). The Library is Drafts (`/drafts`, with `/library` forwarded). Brand moved into Settings › Brand: Tone of voice, Brand Kit and Guidelines sit next to Publishing sites, and `/brand` forwards there.
 
+**Phase 2 shipped (November 2026).** Publish has Draft, Publish now and Schedule for every site. WordPress keeps its own schedule (`wp_publish`); the other sites go up as a draft right away and a `cms_publish` job puts them live at the time with the article as it is then (`cmsSchedule.ts`, tested on a double run, a moved schedule and a failure that retries). A live post on those sites can only be updated live. Framer connects with its project link and an API key through the Framer Server API (`framer-api`); the blog collection and its fields are found on their own (`cmsMap.ts`), and a live publish publishes the site and deploys it to the custom domain. Webflow connects with Sign in with Webflow when `WEBFLOW_CLIENT_ID` and `WEBFLOW_CLIENT_SECRET` are set (`webflowAuth.ts`), finding the site, blog collection and fields the same way; a pasted site token still works. Settings › Publishing sites uses the same connect wizard. Framer needs `supabase/077_framer_sites.sql`.
+
 ---
 
 ## 1. Summary
