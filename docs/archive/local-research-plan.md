@@ -1,3 +1,5 @@
+> **Removed, November 2026.** Local Research, Perception and Content Map were taken out of the app. Their screens, routes, jobs and Zippie and MCP tools are gone; their tables stay in the database, unused. Kept here for history.
+
 # Local Research: improvement plan
 
 November 2026. How to make Local Research (Organic Research, Local Research, `/local-research`, see `docs/local-research.md`) the tool a local business or an agency checks every week. Prices marked "check" couldn't be confirmed on the vendor's own page.

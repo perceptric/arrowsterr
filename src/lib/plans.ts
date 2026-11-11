@@ -89,13 +89,6 @@ export const TASK_COST = {
   widget: 25, // an interactive element
   ai: 3, // a small AI job: ideas, a summary, prompt suggestions
   guideline: 10, // reading a site for its brand guideline
-  localscan: 6, // the weekly Google Maps rank grid: 49 points for one keyword, standard queue
-  localnow: 12, // a Google Maps rank grid now: 49 points, priority queue
-  localfind: 1, // finding the business on Google Maps
-  localprofile: 5, // the Google profiles of a location's business and its 3 leaders: details, questions, posts
-  localreviews: 3, // the Google reviews of a location's business and its 3 leaders: the newest 50 each (200 the first time), themes
-  localreply: 1, // one draft reply to a review
-  contentmap: 40, // a content map: what you and 2 rivals rank for, grouped into pillars, links checked
 } as const;
 
 /** The two toolsets. Starter opens one of them; Free, the trial and Pro and up open both. */

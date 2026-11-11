@@ -1,3 +1,5 @@
+> **Removed, November 2026.** Local Research, Perception and Content Map were taken out of the app. Their screens, routes, jobs and Zippie and MCP tools are gone; their tables stay in the database, unused. Kept here for history.
+
 # Perception
 
 The words AI uses for a brand, on one radar. It lives under AI Visibility → Perception (`/perception`).

@@ -1,5 +1,4 @@
 import "server-only";
-import { loadLocal } from "../localReportServer";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { DAY, readCache } from "../cache";
 import type { Run } from "../chats";
@@ -31,17 +30,9 @@ async function bulkRows<T>(db: SupabaseClient, workspaceId: string, id: string, 
 /** Read what was researched and build the PDF's numbers. Throws a short message when it can't. */
 export async function researchData(db: SupabaseClient, workspaceId: string, brand: { id: string; name: string; domain: string }, page: ResearchPage, raw: unknown, now = Date.now()): Promise<ResearchMade> {
   const p = cleanResearch(page, raw);
-  if (!p) throw new Error(page === "keywords" ? "Search for a keyword first." : page === "domain" ? "Analyze a site first." : page === "local" ? "Pick a location first." : "Compare with a competitor first.");
+  if (!p) throw new Error(page === "keywords" ? "Search for a keyword first." : page === "domain" ? "Analyze a site first." : "Compare with a competitor first.");
   const google = (country: string) => `Google · ${country}`;
 
-  if (p.tool === "local") {
-    const end = new Date(now).toISOString().slice(0, 10);
-    const start = new Date(now - (p.days - 1) * DAY).toISOString().slice(0, 10);
-    const [location] = await loadLocal(db, brand.id, start, end, p.locationId);
-    if (!location) throw new Error("This location has no finished scan yet. Scan it first, then download its PDF.");
-    const show = (d: string) => new Date(`${d}T12:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-    return { data: { page: "local", brand: brand.name, location }, params: p, period: `Last ${p.days} days · ${show(start)} – ${show(end)}`, filters: location.address ? [location.address] : [] };
-  }
   if (p.tool === "keyword") {
     const { data } = await savedOnly(() => keywordReport(p.keyword, p.country, p.device));
     if (!data) throw new Error(NOT_SAVED_PDF);

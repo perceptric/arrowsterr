@@ -1,3 +1,5 @@
+> **Removed, November 2026.** Local Research, Perception and Content Map were taken out of the app. Their screens, routes, jobs and Zippie and MCP tools are gone; their tables stay in the database, unused. Kept here for history.
+
 # Content Map
 
 The Content Map (Content, Content Map, at `/content-map`) shows a brand's topics as bubbles grouped around pillars: what it covers, what its rivals win and it doesn't, what's under way, and where two of its own pages compete. It is step 5 of the new tools plan.

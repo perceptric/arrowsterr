@@ -13,7 +13,6 @@ export const BLOCKS: { id: BlockId; label: string; website?: boolean }[] = [
   { id: "traffic", label: "Website traffic", website: true },
   { id: "visitors", label: "Visitors and leads", website: true },
   { id: "content", label: "Content" },
-  { id: "seo", label: "SEO" },
 ];
 const IDS = new Set<string>(BLOCKS.map((b) => b.id));
 

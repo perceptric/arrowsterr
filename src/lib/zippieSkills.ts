@@ -24,37 +24,6 @@ export const BUILTIN_SKILLS: Omit<Skill, "builtin" | "enabled">[] = [
 - To change real pages, use get_site_content, then propose_changes with play "meta". Tell the person the changes wait for their approval.`,
   },
   {
-    key: "fill-content-map",
-    name: "Fill the content map",
-    description: "Finds the missing topics worth writing first and adds them to the Content Plan.",
-    instructions: `1. Call get_content_map. If there's none, say an editor builds it on Content, Content Map, in one line.
-2. Report topics, covered, missing, competing pages and pages not linked from their pillar's main page in one line.
-3. Pick the 5 best missing topics: ones competitors rank for and that aren't planned, most searches first, and favour pillars the brand already covers well, since those pages can link to them.
-4. Ask before adding. Then add them with add_to_content_plan, one line of angle in notes for each: what competitors cover and what the brand can add.
-5. For competing pages, say which page should stay and that the other should merge into it with a redirect.
-6. For topics not linked from their pillar's main page, offer propose_changes with play "links" on that page. Changes wait for approval.`,
-  },
-  {
-    key: "local-audit",
-    name: "Local audit",
-    description: "Why competitors win the Google Maps pack near the business, and what to fix first.",
-    instructions: `1. Call get_local_research. If there's no location or no scan, say what to add on Local Research in one line.
-2. For each keyword, give the average rank, the top 3 share and where on the grid the business is weakest (edges, one side).
-3. Compare with the 2 competitors holding the top 3 most: reviews, rating and category.
-4. List the listing check failures first: a phone that differs, a missing address or LocalBusiness schema, a category competitors use and the business doesn't.
-5. End with 3 moves, most impact first: fix the listing, add the competitors' category if it fits, get more reviews, add location pages or schema. Each says what to do and why.`,
-  },
-  {
-    key: "review-response-plan",
-    name: "Review response plan",
-    description: "A plan to get more Google reviews and reply to them, against the competitors winning the map.",
-    instructions: `1. Call get_local_research. Compare the business's reviews and rating with the competitors holding the top 3.
-2. Set a monthly goal for new reviews that closes the gap in 6 months, with the math shown in one line.
-3. Give 3 moments to ask for a review that fit this kind of business, and a short ask for each (text message and email), in the brand's voice.
-4. Give reply templates for a 5-star, a 3-star and a 1-star review: short, personal, no copy-paste feel, and never offering anything in return for a review.
-5. Remind the person that Google forbids paying for or gating reviews.`,
-  },
-  {
     key: "faq-builder",
     name: "FAQ sections",
     description: "FAQ sections built from the questions buyers ask AI, with FAQ structured data.",
