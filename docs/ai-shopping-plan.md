@@ -81,15 +81,15 @@ The parser is `src/lib/shopParse.ts` (`readCards`), tested on all 80 answers in 
 
 Opened from the Catalog side panel. One brand, one catalog.
 
-- **Shopify:** the store already connected in Publishing sites, plus the `read_products` scope (one more scope on the Shopify app; existing stores sign in again once). GraphQL `products(first: 250)` paged: `id`, `title`, `vendor`, `productType`, `handle`, `onlineStoreUrl`, `featuredImage { url }`, `variants { sku barcode price inventoryQuantity }`.
-- **Google Merchant Center:** sign in with Google (Merchant API, read only): `offerId`, `title`, `brand`, `gtin`, `mpn`, `link`, `price`, `availability`, `imageLink`. Preferred when both exist: it's the feed AI shopping reads.
+- **Shopify:** the store already connected in Publishing sites, plus the `read_products` scope (one more scope on the Shopify app; existing stores sign in again once). GraphQL `products(first: 25, query: "status:active")` paged, 30 variants each to stay under Shopify's query cost: `id`, `title`, `vendor`, `productType`, `handle`, `onlineStoreUrl`, `featuredImage { url }`, `variants { sku barcode price availableForSale }` (`inventoryQuantity` needs another scope).
+- **Google Merchant Center:** sign in with Google (scope `https://www.googleapis.com/auth/content`), then the Merchant API v1: `accounts/v1/accounts` to pick the account and `products/v1/accounts/{id}/products` (1,000 a page) for `offerId`, `productAttributes` (`title`, `brand`, `gtins`, `mpn`, `link`, `price`, `salePrice`, `availability`, `imageLink`, `itemGroupId`). Variants that share an `itemGroupId` fold into one product. Paths and field names are from Google's docs (check: confirm on the first real account). Preferred when both exist: it's the feed AI shopping reads.
 - **CSV:** for anyone else: title, brand, URL, price, SKU, GTIN.
 
 Each product is stored once with its variants folded in: `title`, `brand` (plus the aliases people add), `skus[]`, `gtins[]`, `mpns[]`, `url`, `price_min`, `price_max`, `currency`, `in_stock`, `image_hash` (section 5.3), and its match tokens (section 5.2). The catalog syncs daily, and keeps each day's price, because a card is always compared with the price on the day it was read.
 
 ### 3.1 Which brands get it
 
-AI Shopping is on or off per brand. ChatGPT and AI Mode show product cards for things people buy online, so a software company, an agency or a law firm would only ever see an empty tab. Brands that don't sell products keep the normal AI Visibility pages and run no shopping checks, so they add $0.
+AI Shopping is on or off per brand. ChatGPT and AI Mode show product cards for things people buy online, so a software company, an agency or a law firm would only ever see an empty tab. Brands that don't sell products keep the normal AI Visibility pages and run no shopping checks; they cost only the weekly detection, about $0.01 a month.
 
 **Three kinds of brand:**
 
@@ -101,11 +101,14 @@ AI Shopping is on or off per brand. ChatGPT and AI Mode show product cards for t
 
 **How it's decided.** A `shop_detect` job looks for these signals, in order. The first one found turns AI Shopping on and is saved as the reason:
 
-1. **A store is connected:** Shopify in Publishing sites, Merchant Center, or a CSV upload.
-2. **The site sells things:** the crawl Arrowsterr already runs finds `Product` JSON-LD with an `offers` price on at least 3 pages, or a cart or checkout link (`/cart`, `/checkout`, `add-to-cart`). `Product` without a price doesn't count, because software sites use it too. `pageFacts.ts` already reads the JSON-LD types; it also keeps whether `offers` is there.
-3. **Cards already name the brand:** the normal tracking runs return product items next to the answer at no extra cost (ChatGPT `chat_gpt_products`, AI Mode `ai_overview_shopping`), and `read()` in `dataforseo.ts` drops them today. It starts counting them per brand, and 3 cards with the brand's name in 14 days turn AI Shopping on.
+1. **A store is connected:** Shopify, Merchant Center, or a CSV upload in the Catalog panel.
+2. **The site sells things:** the job reads the homepage, up to 6 product or collection pages linked from it, and Shopify's public `/products.json`. Any Shopify products, `Product` JSON-LD with a price on at least 3 pages, or a priced `Product` page plus a cart (a `/cart`, `/basket` or `/bag` link, an add-to-cart form, or an "Add to cart" button) turns it on. A `Product` without a price, a `SoftwareApplication`, or a `/checkout` link alone doesn't count, because software sites use them too.
+3. **"Buy <brand>" answers show products:** one AI Mode and one ChatGPT question through the standard queue. Any Google product link in the AI Mode answer (a Google Shopping page with a `gpcid`), a link to the brand's own site tagged `srsltid` (Google Merchant Center's tag), or a ChatGPT card from the brand's own site turns it on. Cards that only carry the brand's name don't count here: "buy Intercom" shows door intercoms.
+4. **Tracked cards name the brand:** the normal tracking runs return product cards next to the answer at no extra cost, and the check job now counts the ones that name the brand (a whole word in the title, the store's name, or the brand's own site) into `shop_seen`. 3 in 14 days turn it on. This is how a retailer like REI is found: its own site blocks readers, and "buy REI" shows no products, but REI is the store on cards in its outdoor prompts.
 
-None of the three means off. The job runs when a brand is added, after each site crawl, and once a week.
+None of them means off. The job runs when a brand is set to Auto and once a week. Once on, Auto turns it off only after 3 weekly checks in a row find nothing, so one bad day never hides the tab.
+
+**Tested on 30 real brands** (`tests/shopDetect.test.ts`, recorded November 2026): Allbirds, Gymshark, Glossier, Brooks Running, HOKA, Warby Parker, Casper, Patagonia, Bombas, Away, Oura, Brooklinen, REI, Fenty Beauty and Ninja all turn on; HubSpot, Notion, Ahrefs, Stripe, McKinsey, Deloitte, Webflow, Figma, Slack, Salesforce, Zapier, Intercom, Asana, Mailchimp and Linear all stay off, and no signal fires for any of them. 6 of the 15 shops block the site reader (403, 429 or no answer); the answers find all 6. The site reader identifies itself as ArrowsterrBot and never poses as a browser.
 
 **A person decides last.** Settings › Brand has an AI Shopping switch with three states: Auto (the default, follows the job), On and Off. A switch set by hand is never changed by the job.
 
@@ -262,7 +265,7 @@ All run on the existing jobs queue and worker.
 | Phase | Weeks | Ships | Done when |
 |---|---|---|---|
 | 1. Real data first (shipped) | 0.5 | 40 test prompts run on both engines; every raw response saved as a test fixture; parsers written against those fixtures | Every `chat_gpt_products` and `ai_overview_shopping` field in section 2 is confirmed from real responses, and the parser tests pass on all of them |
-| 2. Catalog | 1 | Shopify `read_products`, Merchant Center sign-in, CSV, the Catalog side panel, `shop_detect` and the Settings switch | A Shopify store's 42 products load with variants folded in and daily prices; on 30 hand-labeled brands (15 that sell, 15 that don't), detection turns on every brand that sells and none that don't |
+| 2. Catalog (shipped) | 1 | Shopify `read_products`, Merchant Center sign-in, CSV, the Catalog side panel, `shop_detect` and the Settings switch | A Shopify store's 42 products load with variants folded in and daily prices; on 30 hand-labeled brands (15 that sell, 15 that don't), detection turns on every brand that sells and none that don't |
 | 3. Matching | 1.5 | Section 5 with its tests, "Is this yours?" | On 200 hand-labeled cards: no wrong matches, and at least 85% matched without asking |
 | 4. Numbers and screens | 1.5 | Sections 6 to 8, Overview, Products, Prompts, Stores, Sources, alerts | The numbers on 3 test brands match a hand count of the same runs |
 
@@ -274,7 +277,7 @@ About 4.5 weeks for one engineer.
 
 Phase 1 cost $0.32 once (80 live tasks at $0.004) and adds nothing a month: the parser runs on the worker that already exists. To record again: `NODE_USE_ENV_PROXY=1 node scripts/shop-record.mjs --again` (needs `DFS_LOGIN` and `DFS_PASSWORD`, or a proxy that adds them). `node scripts/shop-fields.mjs` lists every field and how often it's filled.
 
-**Assumptions:** 1.3 brands per team; 30% of brands sell products and turn it on (20 brands at Beta, 195 at Growth); the other 70% run no shopping checks and add $0 (section 3.1); 40 prompts, 2 engines, 2 runs a day each; DataForSEO standard queue at $0.0012 per run for both endpoints; product lookups for under 5% of new cards.
+**Assumptions:** 1.3 brands per team; 30% of brands sell products and turn it on (20 brands at Beta, 195 at Growth); the other 70% run no shopping checks, only the weekly detection (section 3.1); 40 prompts, 2 engines, 2 runs a day each; DataForSEO standard queue at $0.0012 per run for both endpoints; product lookups for under 5% of new cards.
 
 | Line | Per brand a month | Beta (50 teams) | Growth (500 teams) |
 |---|---|---|---|
@@ -282,9 +285,10 @@ Phase 1 cost $0.32 once (80 live tasks at $0.004) and adds nothing a month: the 
 | Deep checks (about 10 a month, 20 runs each, on 1 engine) | $0.24 | $5 | $47 |
 | Google product lookups (cost per product check) | ~$0.10 | $2 | $20 |
 | Claude Haiku: prompt ideas, brand names, one-line reasons | ~$0.15 | $3 | $29 |
+| Detection for every brand on Auto: 2 "buy <brand>" questions a week at $0.0012 (65 brands at Beta, 650 at Growth) | $0.01 | $1 | $7 |
 | Merchant Center and Shopify APIs | $0 | $0 | $0 |
 | Servers: the jobs on the existing worker; raw responses about 40 MB per brand a month on the VPS disk | $0 | $0 | $0 |
-| **Monthly total** | **~$6.25** | **~$125** | **~$1,219** |
+| **Monthly total** | **~$6.26** | **~$126** | **~$1,226** |
 
 Plan tasks cover it the way they cover Keyword Research: each run and deep check takes tasks, so heavy use pays for itself.
 

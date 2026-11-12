@@ -16,6 +16,7 @@ import { BrandGuidelines } from "./BrandGuidelines";
 import { BrandKitPanel } from "./BrandKit";
 import { BrandVoiceSettings } from "./BrandVoice";
 import { favicon, Thinking } from "./ui";
+import { ShoppingSwitch } from "./ShoppingPage";
 
 type BrandRef = { id: string; name: string; domain: string };
 
@@ -62,6 +63,8 @@ export function BrandSettings({
         <CmsSettings key={brand.id} auth={auth} isAdmin={isAdmin} brand={brand} brands={brands} />
       ) : tab === "google" ? (
         <BrandGoogle key={brand.id} auth={auth} brand={brand} canEdit={canEdit} />
+      ) : tab === "shopsettings" ? (
+        <ShoppingSwitch key={brand.id} auth={auth} brand={brand} canEdit={canEdit} />
       ) : (
         <BrandAlerts key={brand.id} auth={auth} brand={brand} isAdmin={isAdmin} />
       )}

@@ -475,6 +475,18 @@ export const DRAWINGS = {
     s.step = 3;
     pts.forEach(([x, z]) => s.at(x, 3.95, z, 8.7, (a, b) => `<circle cx="${n(a)}" cy="${n(b)}" r="3" fill="${fill("paper")}" stroke="${fill("blue")}" stroke-width="2"/>`, 4));
   },
+  shop: (s: Iso) => {
+    s.plate({ cx: 4, cy: 4, r: 2.9 });
+    // A shopping bag with its handle, and a price tag leaning on it.
+    s.step = 1;
+    s.box(1.9, 2.7, 0, 4.0, 2.4, 4.4, "blue");
+    s.flat([[1.9, 2.7], [5.9, 2.7], [5.9, 5.1], [1.9, 5.1]], 4.4, "sky", "", 9);
+    s.step = 2;
+    s.line([[2.9, 3.9, 4.4], [3.0, 3.9, 6.0], [4.8, 3.9, 6.0], [4.9, 3.9, 4.4]], "gray", 4, 10);
+    s.step = 3;
+    s.box(5.2, 5.3, 0, 1.5, 0.3, 2.0, "gold");
+    s.at(5.95, 5.6, 1.5, 12, (a, b) => `<circle cx="${n(a)}" cy="${n(b)}" r="3" fill="${fill("paper")}"/>`, 3);
+  },
   zippie: (s: Iso) => {
     s.plate({ cx: 4, cy: 4, r: 2 });
     s.step = 1;

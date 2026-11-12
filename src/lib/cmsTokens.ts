@@ -3,8 +3,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { needsRefresh, pickBlog, refreshed } from "./cmsOauth";
 
 // One-click sign-in for Shopify and HubSpot (docs/drafts-plan.md, phase 3). Each needs its app's keys on the server:
-// SHOPIFY_CLIENT_ID and SHOPIFY_CLIENT_SECRET (redirect <app>/api/cms/shopify/callback, scopes read_content and
-// write_content), HUBSPOT_CLIENT_ID and HUBSPOT_CLIENT_SECRET (redirect <app>/api/cms/hubspot/callback, scopes
+// SHOPIFY_CLIENT_ID and SHOPIFY_CLIENT_SECRET (redirect <app>/api/cms/shopify/callback, scopes read_content,
+// write_content and read_products for AI Shopping's catalog), HUBSPOT_CLIENT_ID and HUBSPOT_CLIENT_SECRET (redirect <app>/api/cms/hubspot/callback, scopes
 // oauth and content). Both hand out short access tokens with a refresh token; freshConfig renews them before each call.
 
 export type OauthKind = "shopify" | "hubspot";
@@ -16,7 +16,7 @@ export const oauthRedirect = (kind: OauthKind, origin: string) => `${origin}/api
 
 export function oauthUrl(kind: OauthKind, origin: string, state: string, shop = "") {
   if (kind === "shopify") {
-    const q = new URLSearchParams({ client_id: env("SHOPIFY_CLIENT_ID"), scope: "read_content,write_content", redirect_uri: oauthRedirect(kind, origin), state });
+    const q = new URLSearchParams({ client_id: env("SHOPIFY_CLIENT_ID"), scope: "read_content,write_content,read_products", redirect_uri: oauthRedirect(kind, origin), state });
     return `https://${shop}/admin/oauth/authorize?${q}`;
   }
   const q = new URLSearchParams({ client_id: env("HUBSPOT_CLIENT_ID"), scope: "oauth content", redirect_uri: oauthRedirect(kind, origin), state });
