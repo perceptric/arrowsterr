@@ -12,7 +12,7 @@ import { Copy, InstallGuide, snippetFor } from "./InstallGuide";
 import { TrendChart, type Line } from "./TrendChart";
 import { aiSourceOf } from "@/lib/aiSources";
 import { useStash } from "@/lib/stash";
-import { SampleBars, SampleRows, SampleStats, ToolIntro } from "./ToolIntro";
+import { EmptyScreen } from "./Drawing";
 import { Card, Delta, favicon, pct, Seg, sortRows, SortTh, Thinking, useSort } from "./ui";
 
 type Ga4 = { email: string; property: string | null; name: string | null };
@@ -31,7 +31,7 @@ type Status = {
 };
 
 /** Connect Google Analytics 4: sign in with Google, then pick the property for this brand. */
-export function Ga4Connect({ status, canEdit, call, onDone }: { status: Status; canEdit: boolean; call: (path: string, body: Record<string, unknown>) => Promise<Record<string, unknown>>; onDone: () => void }) {
+export function Ga4Connect({ status, canEdit, call, onDone, bare = false }: { status: Status; canEdit: boolean; call: (path: string, body: Record<string, unknown>) => Promise<Record<string, unknown>>; bare?: boolean; onDone: () => void }) {
   const [props, setProps] = useState<{ id: string; name: string; account: string }[] | null>(null);
   const [pick, setPick] = useState("");
   const [busy, setBusy] = useState(false);
@@ -79,7 +79,8 @@ export function Ga4Connect({ status, canEdit, call, onDone }: { status: Status; 
   }
 
   return (
-    <section className="aw-frame flex flex-col gap-4 p-6">
+    <section className={bare ? "flex flex-col items-center gap-3" : "aw-frame flex flex-col gap-4 p-6"}>
+      {bare ? (signedIn ? <span className="text-[13px] text-muted">Signed in as {status.ga4!.email}</span> : null) : (
       <div className="flex items-center gap-3">
         <BrandLogo src={favicon("analytics.google.com")} name="Google Analytics" size={28} />
         <div className="flex flex-col">
@@ -87,6 +88,7 @@ export function Ga4Connect({ status, canEdit, call, onDone }: { status: Status; 
           <span className="text-[13px] text-body">{signedIn ? `Signed in as ${status.ga4!.email}` : "Use the analytics you already have. Visits from AI, landing pages and conversions in one click."}</span>
         </div>
       </div>
+      )}
       {error ? <p className="aw-error">{error}</p> : null}
       {!canEdit ? (
         <p className="aw-small">Ask an editor to connect Google Analytics.</p>
@@ -397,35 +399,22 @@ export function TrafficPage({ view, auth, canEdit }: { view: View; auth: RunAuth
         <h1 className="aw-h2">Traffic</h1>
         {error ? <p className="aw-error">{error}</p> : null}
         {notice}
-        <Ga4Connect status={status} canEdit={canEdit} call={call} onDone={check} />
-        <span className="aw-label">Or use the Arrowsterr tracking script</span>
-        <ToolIntro
-          title={`See every visit to ${brand.domain}, including visits from AI`}
-          lead="Add one line of code to your site and see your visitors, top pages, sources, countries and devices. Arrowsterr also shows exactly how many people arrive from ChatGPT, Perplexity, Gemini and other AI assistants."
+        <EmptyScreen
+          drawing="traffic"
+          title="See every visit from AI"
           action={
-            canEdit ? (
-              <button type="button" className="aw-btn aw-btn--accent" onClick={connect}>
-                Connect {brand.domain}
-              </button>
-            ) : (
-              <p className="aw-small">Ask an editor or admin in this workspace to connect the website.</p>
-            )
+            <div className="flex flex-col items-center gap-3">
+              <Ga4Connect status={status} canEdit={canEdit} call={call} onDone={check} bare />
+              {canEdit ? (
+                <button type="button" className="aw-text-link text-[13px]" onClick={connect}>
+                  Use the Arrowsterr tracking script
+                </button>
+              ) : null}
+            </div>
           }
-          features={[
-            { title: "Visitors and visits", text: "Visitors, visits, pageviews, bounce rate and time on site, with the change from last period.", visual: <SampleStats items={[["Visitors", "4.2K"], ["Visits", "5.8K"], ["Bounce", "41%"]]} /> },
-            { title: "Visits from AI", text: "How many visitors each AI assistant sends you, day by day.", visual: <SampleRows rows={[["ChatGPT", 120], ["Perplexity", 48], ["Gemini", 22]]} /> },
-            { title: "Traffic over time", text: "Daily visitors and pageviews, so you can see what moved the needle.", visual: <SampleBars /> },
-            { title: "Sources and pages", text: "Where visitors come from, the pages they land on, and the pages they leave from." },
-            { title: "Locations and devices", text: "Countries, cities, languages, browsers and devices, all in one place." },
-            { title: "AI citations meet visits", text: "Your pages that AI answers cite, next to the visits those pages get from AI." },
-          ]}
-          steps={["Click Connect.", "Copy the one-line code into your site's head. Guides cover WordPress, Shopify, Webflow, Wix and more.", "Click Verify install. Visits show up within minutes."]}
-          faqs={[
-            { q: "Does it use cookies?", a: "No. Visitors are counted without cookies and no IP addresses are stored." },
-            { q: "Will it slow down my site?", a: "No. The script is tiny and loads after your page." },
-            { q: "Can my web person install it?", a: "Yes. Send them the private install link from the setup page. They don't need an account." },
-          ]}
-        />
+        >
+          Connect Google Analytics to count visits from AI answers and search.
+        </EmptyScreen>
       </div>
     );
   }

@@ -89,7 +89,7 @@ export function LibraryPage({ view, auth, canEdit, onCalendar }: { view: View; a
       ) : (
         <EmptyScreen
           drawing="drafts"
-          title="Write drafts that rank and get cited"
+          title="Write drafts that get cited"
           action={
             onCalendar ? (
               <button type="button" className="aw-btn aw-btn--primary" onClick={onCalendar}>
@@ -98,7 +98,7 @@ export function LibraryPage({ view, auth, canEdit, onCalendar }: { view: View; a
             ) : undefined
           }
         >
-          Add keywords from the Editorial Calendar. Arrowsterr writes each draft in {brand.name}&apos;s voice.
+          Add keywords from the Editorial Calendar to write them here.
         </EmptyScreen>
       )}
     </div>

@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { fileLine, PDF_PAGES } from "@/lib/pdf/pages";
 import type { ReportLimits } from "@/lib/plans";
 import type { RunAuth } from "@/lib/runner";
-import { ToolIntro } from "../ToolIntro";
+import { EmptyScreen } from "../Drawing";
 import { Seg, Thinking } from "../ui";
 import { Confirm } from "./Dialog";
 import { LinksTab } from "./LinksTab";
@@ -114,10 +114,9 @@ function Downloads({ sb, auth, brands, canEdit }: { sb: SupabaseClient; auth: Ru
     <>
       {error ? <p className="aw-error">{error}</p> : null}
       {!files.length ? (
-        <ToolIntro
-          title="Every PDF you download lands here"
-          lead="Click Download PDF on any page. Pick the Arrowsterr design or your Brand Kit's, and the file is kept here to download again."
-        />
+        <EmptyScreen drawing="reports" title="Your reports land here" fill={false}>
+          Download a PDF from any page and it shows up here.
+        </EmptyScreen>
       ) : (
         <section className="aw-frame overflow-x-auto">
           <table className="aw-table aw-table--compact">

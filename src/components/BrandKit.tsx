@@ -9,7 +9,7 @@ import { FONTS, fontStack, fontsUrl, type Font } from "@/lib/reportTheme";
 import type { RunAuth } from "@/lib/runner";
 import { Copy } from "./InstallGuide";
 import { Dropdown } from "./Pickers";
-import { ToolIntro } from "./ToolIntro";
+import { EmptyScreen } from "./Drawing";
 import { Zippie } from "./Zippie";
 
 // Brand Kits (docs/reports.md, section 31): the learning animation shown in onboarding and Settings,
@@ -438,17 +438,18 @@ export function BrandKitPanel({ sb, auth, canEdit, brand }: { sb: SupabaseClient
 
   if (!row)
     return (
-      <ToolIntro
-        title={`${brand.name}'s brand, learned from its website`}
-        lead="Zippie reads every stylesheet on the site and saves the logo, colors, fonts, type scale, buttons and voice."
+      <EmptyScreen
+        drawing="palette"
+        title="Give reports your brand's look"
+        fill={false}
         action={
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col items-center gap-3">
             {error ? <p className="aw-error">{error}</p> : null}
             <LearnForm website={brand.domain} canEdit={canEdit} label="Learn the brand" onLearn={setLearning} />
             {ws && canEdit ? (
               <button
                 type="button"
-                className="aw-text-link self-start"
+                className="aw-text-link"
                 onClick={async () => {
                   const now = new Date().toISOString();
                   const { error: e } = await sb
@@ -463,7 +464,9 @@ export function BrandKitPanel({ sb, auth, canEdit, brand }: { sb: SupabaseClient
             ) : null}
           </div>
         }
-      />
+      >
+        Arrowsterr reads {brand.name}&apos;s site for its colors, fonts and logo.
+      </EmptyScreen>
     );
 
   return <KitEditor key={`${row.key}-${row.learned_at ?? ""}`} sb={sb} workspaceId={auth.workspaceId} row={row} canEdit={canEdit} onLearn={() => setLearning(row.website || brand.domain)} />;

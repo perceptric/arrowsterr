@@ -8,7 +8,7 @@ import type { ReportLimits } from "@/lib/plans";
 import type { RunAuth } from "@/lib/runner";
 import { MAX_MONTHDAY, recipientList, WEEKDAYS, whenLine, type Cadence } from "@/lib/schedules";
 import { Dropdown } from "../Pickers";
-import { ToolIntro } from "../ToolIntro";
+import { EmptyScreen } from "../Drawing";
 import { Seg, Thinking } from "../ui";
 import { Confirm, Modal } from "./Dialog";
 import { errText, openFile, post } from "./reportApi";
@@ -134,17 +134,9 @@ export function SchedulesTab({
         </div>
       ) : null}
       {!list.length ? (
-        <div className="flex flex-col gap-4">
-          <ToolIntro title="Send reports on a schedule" lead="Pick a brand, its pages and who gets them. Each week or month, one email goes out with a PDF for each page." />
-          {max > 0 ? (
-            addButton
-          ) : (
-            <div className="aw-callout flex flex-wrap items-center gap-3 self-start">
-              Scheduled reports are on Starter and up.
-              {canEdit ? upgrade : null}
-            </div>
-          )}
-        </div>
+        <EmptyScreen drawing="clock" title="Send reports on a schedule" fill={false} action={max > 0 ? addButton : canEdit ? upgrade : undefined}>
+          {max > 0 ? "Pick a brand, its pages and who gets them." : "Scheduled reports are on Starter and up."}
+        </EmptyScreen>
       ) : (
         <>
           {addButton}
