@@ -297,3 +297,18 @@ html, body { background: var(--v10-canvas) !important; }
 }
 :root :is(.aw, #calm) .aw-think__icon { border: 0 !important; border-radius: 12px !important; background: var(--v10-signal-soft) !important; box-shadow: none !important; }
 :root :is(.aw, #calm) .aw-skel, :root :is(.aw, #calm) .aw-shimmer { border-radius: 9999px !important; }
+
+/* Stat rows (aw-stats): one white card, the numbers split by hairlines. Older layers (strong-ui, omni-ui, calm-ui,
+   keyed-ui) made each number its own card with gaps between; this undoes all of them. Each cell draws its line on its
+   left and top, and the card clips the ones on its outer edge, so any number of columns, wrapped or not, lines up. */
+:root :is(.aw, #calm) .aw-stats {
+  gap: 0 !important; padding: 0 !important; background: var(--v10-card) !important; border: 0 !important;
+  border-radius: 16px !important; box-shadow: var(--shadow-rest) !important; overflow: hidden;
+}
+:root :is(.aw, #calm) .aw-stats > .aw-stat {
+  background: transparent !important; border: 0 !important; border-radius: 0 !important;
+  box-shadow: -1px 0 0 var(--v10-border), 0 -1px 0 var(--v10-border) !important;
+}
+/* On a laptop the row stays on one line (no 3-and-2 wrap); on a tablet, in two columns, a last number left alone fills its row. */
+@media (min-width: 1025px) { :root :is(.aw, #calm) .aw-stats--tight { grid-template-columns: repeat(var(--cols, 4), minmax(0, 1fr)) !important; } }
+@media (max-width: 1024px) { :root :is(.aw, #calm) .aw-stats > .aw-stat:last-child:nth-child(odd) { grid-column: 1 / -1; } }
