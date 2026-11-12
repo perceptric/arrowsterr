@@ -3,7 +3,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useState } from "react";
 import type { RunAuth } from "@/lib/runner";
-import { ToolIntro } from "../ToolIntro";
+import { EmptyScreen } from "../Drawing";
 import { Thinking } from "../ui";
 import { Confirm, Modal } from "./Dialog";
 import { LinkSettings, type LinkLock } from "./LinkSettings";
@@ -83,7 +83,9 @@ export function LinksTab({ sb, auth, brands, canEdit, secure }: { sb: SupabaseCl
     <>
       {error ? <p className="aw-error">{error}</p> : null}
       {!links.length ? (
-        <ToolIntro title="Links you share land here" lead="Click Share on Prompts or Competitors. Each link shows here with its views, and you can add a password, set an expiry date or revoke it." />
+        <EmptyScreen drawing="link" title="Links you share land here" fill={false}>
+          Click Share on Prompts or Competitors to make one.
+        </EmptyScreen>
       ) : (
         <section className="aw-frame overflow-x-auto">
           <table className="aw-table aw-table--compact">

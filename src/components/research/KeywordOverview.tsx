@@ -10,7 +10,7 @@ import { countryOf, dbOf, domainHref, keywordHref, plainClick, setUrl, urlParams
 import { peek, putStash, useStash } from "@/lib/stash";
 import { BrandLogo } from "../BrandLogo";
 import { Sheet } from "../Sheet";
-import { SampleBars, SampleChips, SampleRing, SampleRows, SampleStats, ToolIntro } from "../ToolIntro";
+import { EmptyScreen } from "../Drawing";
 import { CalendarIcon, Card, favicon, Seg, Thinking } from "../ui";
 import { BulkKeywords } from "./Bulk";
 import { BAR_BUTTON, BAR_FIELD, BAR_INPUT, AnalyzeSeo, downloadCsv, fmtCpc, post, postLines, Sparkline } from "./shared";
@@ -685,43 +685,15 @@ export function KeywordOverview({ sb, auth, site, canEdit }: { sb: SupabaseClien
       ) : null}
 
       {!busy && !report ? (
-        <ToolIntro
-          title="Know what your market wants before you write a word"
-          lead="Every search is a person telling Google what they need. Keyword Research shows how many people ask, how hard it is to win the top spots, what the searcher is ready to do and what advertisers pay to reach them. Use it to place your content bets on the topics that bring buyers, and skip the ones that only bring clicks."
+        <EmptyScreen
+          drawing="search"
+          title="Find what your buyers search"
           examples={["crm software", "best seo agencies", "how to start a podcast"]}
           onExample={canEdit ? (x) => analyze(x) : undefined}
-          features={[
-            { title: "Keyword difficulty", text: "A 0 to 100 score for how hard it is to rank in the top 10. Lower is easier.", visual: <SampleRing /> },
-            { title: "Search volume and trend", text: "Average monthly searches and how interest moved over the last 12 months.", visual: <SampleBars /> },
-            {
-              title: "Search intent",
-              text: "Why people search: to learn, to compare, to buy, or to find a brand.",
-              visual: <SampleChips items={[["Commercial", "#FEF3C7"], ["Informational", "#DBEAFE"], ["Transactional", "#DCFCE7"]]} />,
-            },
-            { title: "CPC", text: "What advertisers pay per click in Google Ads. A high CPC usually means buyers are close to buying.", visual: <SampleStats items={[["CPC", "$30.75"], ["Volume", "3.6K"], ["KD", "43"]]} /> },
-            {
-              title: "Keyword ideas",
-              text: "The wider market around one idea: broad, phrase, exact and related matches, and every question people ask, grouped by word so one keyword grows into a full topic you can own.",
-              visual: <SampleRows rows={[["best seo agency", 9900, "9.9K"], ["best local seo agency", 1600, "1.6K"], ["how to choose an seo agency", 70]]} />,
-            },
-            {
-              title: "Google's top 10",
-              text: "Who owns the topic today and which pages Google's AI Overview cites. This is the bar your page has to clear.",
-              visual: <SampleRows rows={[["clutch.co", 12000, "12K"], ["firstpagesage.com", 9300, "9.3K"], ["expertise.com", 6600, "6.6K"]]} />,
-            },
-          ]}
-          steps={[
-            "Type a keyword and pick a country.",
-            "Click Analyze.",
-            "Check difficulty, volume and intent, then add the best keywords to your editorial calendar.",
-            "Open Bulk analysis to check up to 500 keywords at once.",
-          ]}
-          faqs={[
-            { q: "How is Keyword Difficulty calculated?", a: "It looks at the pages in Google's top 10 for the keyword: how strong those sites are and how many links point to them. The stronger they are, the higher the score." },
-            { q: "What is a good keyword to target?", a: "One with steady search volume, a difficulty you can realistically beat (under 30 for newer sites), and intent that matches what you sell." },
-            { q: "Can I check keywords for another country?", a: "Yes. Pick the country next to the search box before you click Analyze." },
-          ]}
-        />
+          fill={false}
+        >
+          Type a keyword to see its volume, difficulty and ideas.
+        </EmptyScreen>
       ) : null}
     </div>
   );

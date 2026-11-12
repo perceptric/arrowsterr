@@ -20,7 +20,7 @@ import { KeywordDeepDive } from "./KeywordDeepDive";
 import { DayPanel } from "./DayPanel";
 import { byStage, CalendarViewIcon, Difficulty, downloadCsv, FIELD, ListViewIcon, post, slugify, slugOf, STAGE_LABEL, StageTag, STATUS_PICK, STATUSES, statusLabel, ViewSwitch, type WriterAccess } from "./shared";
 import { PlanProgress, planRows } from "./AgenticResearch";
-import { PlanIntro, PlanSample } from "./PlanIntro";
+import { EmptyScreen } from "../Drawing";
 import { usePlan } from "./usePlan";
 
 const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -471,15 +471,33 @@ export function EditorialCalendar({
   );
   const progress = <PlanProgress sb={sb} site={site} refresh={tick} onRows={onPlan} onStop={canEdit ? (runId) => post(auth, "/api/research/agentic", { action: "stop", runId }).then(() => {}) : undefined} />;
 
-  // Before the first plan: what it is, a sample, and one button.
+  // Before the first plan: the picture and one button.
   if (!built && !running)
     return (
       <div className="flex flex-col gap-5">
         {error ? <p className="aw-error">{error}</p> : null}
         {head}
-        <PlanIntro canEdit={canEdit} busy={building || running} built={built} onBuild={build} trial={refresh && !refresh.paid ? { onUpgrade: refresh.onUpgrade } : undefined} />
         {progress}
-        <PlanSample />
+        <EmptyScreen
+          drawing="calendar"
+          title="Plan 12 weeks of content"
+          action={
+            canEdit ? (
+              <>
+                <button type="button" className="aw-btn aw-btn--primary" onClick={build} disabled={building || running}>
+                  {building || running ? "Starting..." : "Build my plan"}
+                </button>
+                {refresh && !refresh.paid ? (
+                  <button type="button" className="aw-text-link text-[13px]" onClick={refresh.onUpgrade}>
+                    Get the full 120-item plan
+                  </button>
+                ) : null}
+              </>
+            ) : undefined
+          }
+        >
+          {canEdit ? "Arrowsterr picks the keywords that bring buyers and gives each a date." : "Ask an editor to build the Content Plan."}
+        </EmptyScreen>
         {toast}
       </div>
     );

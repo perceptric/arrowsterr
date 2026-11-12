@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyScreen } from "../Drawing";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useEffect, useId, useState } from "react";
 import { addCalendarItems, type Site } from "@/lib/db";
@@ -187,6 +188,12 @@ export function KeywordGap({
       {error ? <p className="aw-error">{error}</p> : null}
       {notice ? <div className="aw-callout">{notice}</div> : null}
       {busy ? <Thinking text={`Comparing ${me.name} with ${nameOf(query)}...`} /> : null}
+
+      {!busy && !gap && !error ? (
+        <EmptyScreen drawing="gap" title="Find the keywords rivals win" fill={false}>
+          Type a rival&apos;s domain, or pick one above, to compare keywords with yours.
+        </EmptyScreen>
+      ) : null}
 
       {!busy && gap ? (
         <>
