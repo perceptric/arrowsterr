@@ -1,0 +1,302 @@
+{
+ "prompt": "best sunscreen for oily skin",
+ "kind": "shop",
+ "engine": "aim",
+ "recorded_at": "2026-11-12T15:26:44.230Z",
+ "result": {
+  "keyword": "best sunscreen for oily skin",
+  "type": "ai_mode",
+  "se_domain": "google.com",
+  "location_code": 2840,
+  "language_code": "en",
+  "check_url": "https://www.google.com/search?q=best%20sunscreen%20for%20oily%20skin&hl=en&gl=US&udm=50&uule=w+CAIQIFISCQs2MuSEtepUEUK33kOSuTsc",
+  "datetime": "2026-11-12 15:26:43 +00:00",
+  "spell": null,
+  "refinement_chips": null,
+  "item_types": [
+   "ai_overview"
+  ],
+  "se_results_count": 0,
+  "items_count": 1,
+  "items": [
+   {
+    "type": "ai_overview",
+    "rank_group": 1,
+    "rank_absolute": 1,
+    "page": 1,
+    "position": "left",
+    "xpath": "/html[1]/body[1]/div[2]/div[1]/div[9]/div[1]/section[1]/div[1]/div[1]/div[4]/div[5]/div[1]/div[1]/div[1]/div[3]",
+    "markdown": "Finding a sunscreen for oily skin comes down to `avoiding heavy, pore-clogging oils and skipping anything labeled \"dewy,\" \"glowy,\" or \"radiant\"` . The top dermatologist- and user-approved options keep shine at bay without feeling heavy or suffocating.[[1]](https://www.reddit.com/r/BeautyItemsReview/comments/1ttkpaj/whats_the_best_sunscreen_for_oily_skin_that/)[[2]](https://www.osvidermatology.com/press/17-best-sunscreens-for-oily-skin-that-dont-feel-greasy-tested-and-reviewed-for-2023)\n\n### **Top Picks for Oily Skin** \n\n\n\n---\n\n- **Why it works:** A favorite in acne-safe and oily-skin communities, it dries down completely matte and genuinely helps control midday shine without triggering breakouts.[[1]](https://www.reddit.com/r/BeautyItemsReview/comments/1ttkpaj/whats_the_best_sunscreen_for_oily_skin_that/)\n\n\n\n---\n\n- **Why it works:** Formulated with **Airlicium** (an oil-absorbing silica complex), this chemical/hybrid fluid absorbs sweat and sebum, leaving a dry-touch, semi-matte finish that holds up well in humidity.[[1]](https://www.reddit.com/r/BeautyItemsReview/comments/1ttkpaj/whats_the_best_sunscreen_for_oily_skin_that/)\n\n\n\n---\n\n- **Why it works:** A completely clear, weightless, gel-like chemical sunscreen. It doubles as an oil-gripping makeup primer and leaves zero white cast. *(Note: Avoid if you are sensitive to chemical filters).* [[1]](https://www.osvidermatology.com/press/17-best-sunscreens-for-oily-skin-that-dont-feel-greasy-tested-and-reviewed-for-2023)\n\n\n\n---\n\n- **Why it works:** A lightweight, milky fluid that sets to a smooth, velvety, slightly powdery finish. It controls excess oil for hours, though it does have a subtle tone-up (brightening) effect.[[1]](https://www.reddit.com/r/BeautyItemsReview/comments/1ttkpaj/whats_the_best_sunscreen_for_oily_skin_that/)\n\n\n\n---\n\n- **Why it works:** Lightweight, invisible, and packed with skin-loving antioxidants. It wears comfortably under makeup or on bare skin without sliding off by noon.[[1]](https://www.reddit.com/r/BeautyItemsReview/comments/1ttkpaj/whats_the_best_sunscreen_for_oily_skin_that/)\n\n### **Quick Shopping Cheat Sheet** \n\n- **Look for labels:** *Oil-free, non-comedogenic, mattifying, dry-touch, or gel-cream.* \n- **Look for ingredients:** *Zinc oxide* (for natural oil-absorption/mineral) or *silica / dimethicone* (to blur pores and control sebum).\n- **Avoid:** *Heavy butters, coconut oil derivatives, or heavy cream formulas* marketed for dry skin.[[1]](https://www.reddit.com/r/BeautyItemsReview/comments/1ttkpaj/whats_the_best_sunscreen_for_oily_skin_that/)[[2]](https://www.osvidermatology.com/press/17-best-sunscreens-for-oily-skin-that-dont-feel-greasy-tested-and-reviewed-for-2023)\n\nIf you want to narrow this down, tell me:\n\n- Are you looking for a **mineral (physical)** or **chemical** sunscreen?\n- Do you wear **makeup** over your sunscreen daily?\n- Do you have **acne-prone** skin or sensitivity to specific filters?",
+    "items": [
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": null,
+      "text": "Finding a sunscreen for oily skin comes down to avoiding heavy, pore-clogging oils and skipping anything labeled \"dewy,\" \"glowy,\" or \"radiant\". The top dermatologist- and user-approved options keep shine at bay without feeling heavy or suffocating.",
+      "markdown": "Finding a sunscreen for oily skin comes down to `avoiding heavy, pore-clogging oils and skipping anything labeled \"dewy,\" \"glowy,\" or \"radiant\"` . The top dermatologist- and user-approved options keep shine at bay without feeling heavy or suffocating.[[1]](https://www.reddit.com/r/BeautyItemsReview/comments/1ttkpaj/whats_the_best_sunscreen_for_oily_skin_that/)[[2]](https://www.osvidermatology.com/press/17-best-sunscreens-for-oily-skin-that-dont-feel-greasy-tested-and-reviewed-for-2023)",
+      "links": null,
+      "images": null,
+      "references": [
+       {
+        "type": "ai_overview_reference",
+        "position": "left",
+        "source": "Reddit",
+        "domain": "www.reddit.com",
+        "url": "https://www.reddit.com/r/BeautyItemsReview/comments/1ttkpaj/whats_the_best_sunscreen_for_oily_skin_that/",
+        "title": "What's the best sunscreen for oily skin that doesn't make you look ...",
+        "text": "milk or fluid sunscreen is definitely best for oily skin. I like the La Roche-Posay Mineral ultra light face sunscreen fluid or th..."
+       },
+       {
+        "type": "ai_overview_reference",
+        "position": "left",
+        "source": "OSVI Dermatology",
+        "domain": "www.osvidermatology.com",
+        "url": "https://www.osvidermatology.com/press/17-best-sunscreens-for-oily-skin-that-dont-feel-greasy-tested-and-reviewed-for-2023",
+        "title": "17 Best Sunscreens for Oily Skin that Don't Feel Greasy (Tested and Reviewed for 2023) — OSVI Dermatology and Surgery Institute",
+        "text": "Oily skin sunscreens often feature mattifying agents like dimethicone or oil-control ingredients. Heavy oils and butters in sunscr..."
+       }
+      ]
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": "Top Picks for Oily Skin",
+      "text": null,
+      "markdown": "### **Top Picks for Oily Skin**",
+      "links": null,
+      "images": null,
+      "references": null
+     },
+     {
+      "type": "ai_overview_shopping",
+      "position": "left",
+      "title": null,
+      "markdown": "---\n\n[![Face Reality Skincare Daily Matte Face Sunscreen (SPF 30)](https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-56ba102415bb:10)](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462814614098850,imageDocid:8755572203230926033,gpcid:7682356910969245568,headlineOfferDocid:9373293460822876514,catalogid:2293553817432809244,productDocid:7124354723470359349,rds:PC_7682356910969245568%7CPROD_PC_7682356910969245568&q=product&sa=X&ved=2ahUKEwjGvpf_3oKYAxUuNBAIHTM0M8MQgLcPeggIAggBCB4QAQ&hl=en&gl=US)\n\n- **Why it works:** A favorite in acne-safe and oily-skin communities, it dries down completely matte and genuinely helps control midday shine without triggering breakouts.[[1]](https://www.reddit.com/r/BeautyItemsReview/comments/1ttkpaj/whats_the_best_sunscreen_for_oily_skin_that/)\n\n\n\n---\n\n[![La Roche-Posay Anthelios Clear Skin Oil-Free Sunscreen (SPF 60)](https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-56ba102415bb:11)](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462770267182246,imageDocid:3061815188406733082,gpcid:1288644522220389092,headlineOfferDocid:2359478519885624007,catalogid:17685000856901620865,productDocid:5132078931045541262,rds:PC_1288644522220389092%7CPROD_PC_1288644522220389092&q=product&sa=X&ved=2ahUKEwjGvpf_3oKYAxUuNBAIHTM0M8MQgLcPeggIAggBCB4QEg&hl=en&gl=US)\n\n- **Why it works:** Formulated with **Airlicium** (an oil-absorbing silica complex), this chemical/hybrid fluid absorbs sweat and sebum, leaving a dry-touch, semi-matte finish that holds up well in humidity.[[1]](https://www.reddit.com/r/BeautyItemsReview/comments/1ttkpaj/whats_the_best_sunscreen_for_oily_skin_that/)\n\n\n\n---\n\n[![Supergoop! Unseen Sunscreen (SPF 40)](https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-56ba102415bb:12)](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462472885641825,imageDocid:9199513634849675827,gpcid:10738178445041123379,headlineOfferDocid:17260487729711503065,catalogid:14126525213398706977,productDocid:18278312767025446341,rds:PC_11089062075261063519%7CPROD_PC_11089062075261063519&q=product&sa=X&ved=2ahUKEwjGvpf_3oKYAxUuNBAIHTM0M8MQgLcPeggIAggBCB4QIw&hl=en&gl=US)\n\n- **Why it works:** A completely clear, weightless, gel-like chemical sunscreen. It doubles as an oil-gripping makeup primer and leaves zero white cast. *(Note: Avoid if you are sensitive to chemical filters).* [[1]](https://www.osvidermatology.com/press/17-best-sunscreens-for-oily-skin-that-dont-feel-greasy-tested-and-reviewed-for-2023)\n\n\n\n---\n\n[![Missha Soft Finish Sun Milk (SPF 50+/PA+++)](https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-56ba102415bb:13)](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462896316594210,imageDocid:3415769325601021038,gpcid:9596848083577565749,headlineOfferDocid:17629298068000133616,catalogid:8643925506241003403,productDocid:12377488594256263538,rds:PC_9596848083577565749%7CPROD_PC_9596848083577565749&q=product&sa=X&ved=2ahUKEwjGvpf_3oKYAxUuNBAIHTM0M8MQgLcPeggIAggBCB4QMw&hl=en&gl=US)\n\n- **Why it works:** A lightweight, milky fluid that sets to a smooth, velvety, slightly powdery finish. It controls excess oil for hours, though it does have a subtle tone-up (brightening) effect.[[1]](https://www.reddit.com/r/BeautyItemsReview/comments/1ttkpaj/whats_the_best_sunscreen_for_oily_skin_that/)\n\n\n\n---\n\n[![Naturium UV Reflect Antioxidant SPF 50](https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-56ba102415bb:14)](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462459994143183,imageDocid:3685282981308186016,gpcid:1062196932322286013,headlineOfferDocid:3460472211629348539,catalogid:17956019244307975093,productDocid:8486050437978747786,rds:PC_1062196932322286013%7CPROD_PC_1062196932322286013&q=product&sa=X&ved=2ahUKEwjGvpf_3oKYAxUuNBAIHTM0M8MQgLcPeggIAggBCB4QRA&hl=en&gl=US)\n\n- **Why it works:** Lightweight, invisible, and packed with skin-loving antioxidants. It wears comfortably under makeup or on bare skin without sliding off by noon.[[1]](https://www.reddit.com/r/BeautyItemsReview/comments/1ttkpaj/whats_the_best_sunscreen_for_oily_skin_that/)",
+      "items": [
+       {
+        "type": "ai_overview_shopping_element",
+        "product_id": "2293553817432809244",
+        "data_docid": "7124354723470359349",
+        "gid": "7682356910969245568",
+        "title": "Face Reality Skincare Daily Matte Face Sunscreen (SPF 30)",
+        "url": "https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462814614098850,imageDocid:8755572203230926033,gpcid:7682356910969245568,headlineOfferDocid:9373293460822876514,catalogid:2293553817432809244,productDocid:7124354723470359349,rds:PC_7682356910969245568%7CPROD_PC_7682356910969245568&q=product&sa=X&ved=2ahUKEwjGvpf_3oKYAxUuNBAIHTM0M8MQgLcPeggIAggBCB4QAQ&hl=en&gl=US",
+        "domain": "www.google.com",
+        "rating": {
+         "rating_type": "Max5",
+         "value": 4.8,
+         "votes_count": 936,
+         "rating_max": 5
+        },
+        "price": {
+         "current": 30,
+         "regular": null,
+         "max_value": null,
+         "currency": "USD",
+         "is_price_range": false,
+         "displayed_price": "$30.00"
+        },
+        "seller": "Velvaere Aesthetics",
+        "snippet": "Velvaere Aesthetics & more",
+        "marketplace": null,
+        "marketplace_url": null,
+        "image_url": "https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-56ba102415bb:1",
+        "text": "Why it works: A favorite in acne-safe and oily-skin communities, it dries down completely matte and genuinely helps control midday shine without triggering breakouts.",
+        "markdown": "---\n\n[![Face Reality Skincare Daily Matte Face Sunscreen (SPF 30)](https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-56ba102415bb:0)](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462814614098850,imageDocid:8755572203230926033,gpcid:7682356910969245568,headlineOfferDocid:9373293460822876514,catalogid:2293553817432809244,productDocid:7124354723470359349,rds:PC_7682356910969245568%7CPROD_PC_7682356910969245568&q=product&sa=X&ved=2ahUKEwjGvpf_3oKYAxUuNBAIHTM0M8MQgLcPeggIAggBCB4QAQ&hl=en&gl=US)\n\n- **Why it works:** A favorite in acne-safe and oily-skin communities, it dries down completely matte and genuinely helps control midday shine without triggering breakouts.[[1]](https://www.reddit.com/r/BeautyItemsReview/comments/1ttkpaj/whats_the_best_sunscreen_for_oily_skin_that/)"
+       },
+       {
+        "type": "ai_overview_shopping_element",
+        "product_id": "17685000856901620865",
+        "data_docid": "5132078931045541262",
+        "gid": "1288644522220389092",
+        "title": "La Roche-Posay Anthelios Clear Skin Oil-Free Sunscreen (SPF 60)",
+        "url": "https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462770267182246,imageDocid:3061815188406733082,gpcid:1288644522220389092,headlineOfferDocid:2359478519885624007,catalogid:17685000856901620865,productDocid:5132078931045541262,rds:PC_1288644522220389092%7CPROD_PC_1288644522220389092&q=product&sa=X&ved=2ahUKEwjGvpf_3oKYAxUuNBAIHTM0M8MQgLcPeggIAggBCB4QEg&hl=en&gl=US",
+        "domain": "www.google.com",
+        "rating": {
+         "rating_type": "Max5",
+         "value": 3.5,
+         "votes_count": 1300,
+         "rating_max": 5
+        },
+        "price": {
+         "current": 20.99,
+         "regular": null,
+         "max_value": null,
+         "currency": "USD",
+         "is_price_range": false,
+         "displayed_price": "$20.99"
+        },
+        "seller": "Walgreens.com",
+        "snippet": "Walgreens.com & more",
+        "marketplace": null,
+        "marketplace_url": null,
+        "image_url": "https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-56ba102415bb:3",
+        "text": "Why it works: Formulated with Airlicium (an oil-absorbing silica complex), this chemical/hybrid fluid absorbs sweat and sebum, leaving a dry-touch, semi-matte finish that holds up well in humidity.",
+        "markdown": "---\n\n[![La Roche-Posay Anthelios Clear Skin Oil-Free Sunscreen (SPF 60)](https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-56ba102415bb:2)](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462770267182246,imageDocid:3061815188406733082,gpcid:1288644522220389092,headlineOfferDocid:2359478519885624007,catalogid:17685000856901620865,productDocid:5132078931045541262,rds:PC_1288644522220389092%7CPROD_PC_1288644522220389092&q=product&sa=X&ved=2ahUKEwjGvpf_3oKYAxUuNBAIHTM0M8MQgLcPeggIAggBCB4QEg&hl=en&gl=US)\n\n- **Why it works:** Formulated with **Airlicium** (an oil-absorbing silica complex), this chemical/hybrid fluid absorbs sweat and sebum, leaving a dry-touch, semi-matte finish that holds up well in humidity.[[1]](https://www.reddit.com/r/BeautyItemsReview/comments/1ttkpaj/whats_the_best_sunscreen_for_oily_skin_that/)"
+       },
+       {
+        "type": "ai_overview_shopping_element",
+        "product_id": "14126525213398706977",
+        "data_docid": "18278312767025446341",
+        "gid": "10738178445041123379",
+        "title": "Supergoop! Unseen Sunscreen (SPF 40)",
+        "url": "https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462472885641825,imageDocid:9199513634849675827,gpcid:10738178445041123379,headlineOfferDocid:17260487729711503065,catalogid:14126525213398706977,productDocid:18278312767025446341,rds:PC_11089062075261063519%7CPROD_PC_11089062075261063519&q=product&sa=X&ved=2ahUKEwjGvpf_3oKYAxUuNBAIHTM0M8MQgLcPeggIAggBCB4QIw&hl=en&gl=US",
+        "domain": "www.google.com",
+        "rating": {
+         "rating_type": "Max5",
+         "value": 4.6,
+         "votes_count": 8700,
+         "rating_max": 5
+        },
+        "price": {
+         "current": 18,
+         "regular": null,
+         "max_value": null,
+         "currency": "USD",
+         "is_price_range": false,
+         "displayed_price": "$18.00"
+        },
+        "seller": "Golf Galaxy",
+        "snippet": "Golf Galaxy & more",
+        "marketplace": null,
+        "marketplace_url": null,
+        "image_url": "https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-56ba102415bb:5",
+        "text": "Why it works: A completely clear, weightless, gel-like chemical sunscreen. It doubles as an oil-gripping makeup primer and leaves zero white cast. (Note: Avoid if you are sensitive to chemical filters).",
+        "markdown": "---\n\n[![Supergoop! Unseen Sunscreen (SPF 40)](https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-56ba102415bb:4)](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462472885641825,imageDocid:9199513634849675827,gpcid:10738178445041123379,headlineOfferDocid:17260487729711503065,catalogid:14126525213398706977,productDocid:18278312767025446341,rds:PC_11089062075261063519%7CPROD_PC_11089062075261063519&q=product&sa=X&ved=2ahUKEwjGvpf_3oKYAxUuNBAIHTM0M8MQgLcPeggIAggBCB4QIw&hl=en&gl=US)\n\n- **Why it works:** A completely clear, weightless, gel-like chemical sunscreen. It doubles as an oil-gripping makeup primer and leaves zero white cast. *(Note: Avoid if you are sensitive to chemical filters).* [[1]](https://www.osvidermatology.com/press/17-best-sunscreens-for-oily-skin-that-dont-feel-greasy-tested-and-reviewed-for-2023)"
+       },
+       {
+        "type": "ai_overview_shopping_element",
+        "product_id": "8643925506241003403",
+        "data_docid": "12377488594256263538",
+        "gid": "9596848083577565749",
+        "title": "Missha Soft Finish Sun Milk (SPF 50+/PA+++)",
+        "url": "https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462896316594210,imageDocid:3415769325601021038,gpcid:9596848083577565749,headlineOfferDocid:17629298068000133616,catalogid:8643925506241003403,productDocid:12377488594256263538,rds:PC_9596848083577565749%7CPROD_PC_9596848083577565749&q=product&sa=X&ved=2ahUKEwjGvpf_3oKYAxUuNBAIHTM0M8MQgLcPeggIAggBCB4QMw&hl=en&gl=US",
+        "domain": "www.google.com",
+        "rating": {
+         "rating_type": "Max5",
+         "value": 4.9,
+         "votes_count": 5400,
+         "rating_max": 5
+        },
+        "price": {
+         "current": 14.99,
+         "regular": 26,
+         "max_value": null,
+         "currency": "USD",
+         "is_price_range": false,
+         "displayed_price": "$14.99 $26"
+        },
+        "seller": "Asia Beauty Mall",
+        "snippet": "Asia Beauty Mall & more",
+        "marketplace": null,
+        "marketplace_url": null,
+        "image_url": "https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-56ba102415bb:7",
+        "text": "Why it works: A lightweight, milky fluid that sets to a smooth, velvety, slightly powdery finish. It controls excess oil for hours, though it does have a subtle tone-up (brightening) effect.",
+        "markdown": "---\n\n[![Missha Soft Finish Sun Milk (SPF 50+/PA+++)](https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-56ba102415bb:6)](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462896316594210,imageDocid:3415769325601021038,gpcid:9596848083577565749,headlineOfferDocid:17629298068000133616,catalogid:8643925506241003403,productDocid:12377488594256263538,rds:PC_9596848083577565749%7CPROD_PC_9596848083577565749&q=product&sa=X&ved=2ahUKEwjGvpf_3oKYAxUuNBAIHTM0M8MQgLcPeggIAggBCB4QMw&hl=en&gl=US)\n\n- **Why it works:** A lightweight, milky fluid that sets to a smooth, velvety, slightly powdery finish. It controls excess oil for hours, though it does have a subtle tone-up (brightening) effect.[[1]](https://www.reddit.com/r/BeautyItemsReview/comments/1ttkpaj/whats_the_best_sunscreen_for_oily_skin_that/)"
+       },
+       {
+        "type": "ai_overview_shopping_element",
+        "product_id": "17956019244307975093",
+        "data_docid": "8486050437978747786",
+        "gid": "1062196932322286013",
+        "title": "Naturium UV Reflect Antioxidant SPF 50",
+        "url": "https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462459994143183,imageDocid:3685282981308186016,gpcid:1062196932322286013,headlineOfferDocid:3460472211629348539,catalogid:17956019244307975093,productDocid:8486050437978747786,rds:PC_1062196932322286013%7CPROD_PC_1062196932322286013&q=product&sa=X&ved=2ahUKEwjGvpf_3oKYAxUuNBAIHTM0M8MQgLcPeggIAggBCB4QRA&hl=en&gl=US",
+        "domain": "www.google.com",
+        "rating": {
+         "rating_type": "Max5",
+         "value": 3.5,
+         "votes_count": 295,
+         "rating_max": 5
+        },
+        "price": {
+         "current": 26,
+         "regular": null,
+         "max_value": null,
+         "currency": "USD",
+         "is_price_range": false,
+         "displayed_price": "$26.00"
+        },
+        "seller": "Naturium",
+        "snippet": "Naturium & more",
+        "marketplace": null,
+        "marketplace_url": null,
+        "image_url": "https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-56ba102415bb:9",
+        "text": "Why it works: Lightweight, invisible, and packed with skin-loving antioxidants. It wears comfortably under makeup or on bare skin without sliding off by noon.",
+        "markdown": "---\n\n[![Naturium UV Reflect Antioxidant SPF 50](https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-56ba102415bb:8)](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462459994143183,imageDocid:3685282981308186016,gpcid:1062196932322286013,headlineOfferDocid:3460472211629348539,catalogid:17956019244307975093,productDocid:8486050437978747786,rds:PC_1062196932322286013%7CPROD_PC_1062196932322286013&q=product&sa=X&ved=2ahUKEwjGvpf_3oKYAxUuNBAIHTM0M8MQgLcPeggIAggBCB4QRA&hl=en&gl=US)\n\n- **Why it works:** Lightweight, invisible, and packed with skin-loving antioxidants. It wears comfortably under makeup or on bare skin without sliding off by noon.[[1]](https://www.reddit.com/r/BeautyItemsReview/comments/1ttkpaj/whats_the_best_sunscreen_for_oily_skin_that/)"
+       }
+      ]
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": "Quick Shopping Cheat Sheet",
+      "text": "Look for labels: Oil-free, non-comedogenic, mattifying, dry-touch, or gel-cream. Look for ingredients: Zinc oxide (for natural oil-absorption/mineral) or silica / dimethicone (to blur pores and control sebum). Avoid: Heavy butters, coconut oil derivatives, or heavy cream formulas marketed for dry skin.",
+      "markdown": "- **Look for labels:** *Oil-free, non-comedogenic, mattifying, dry-touch, or gel-cream.* \n- **Look for ingredients:** *Zinc oxide* (for natural oil-absorption/mineral) or *silica / dimethicone* (to blur pores and control sebum).\n- **Avoid:** *Heavy butters, coconut oil derivatives, or heavy cream formulas* marketed for dry skin.[[1]](https://www.reddit.com/r/BeautyItemsReview/comments/1ttkpaj/whats_the_best_sunscreen_for_oily_skin_that/)[[2]](https://www.osvidermatology.com/press/17-best-sunscreens-for-oily-skin-that-dont-feel-greasy-tested-and-reviewed-for-2023)",
+      "links": null,
+      "images": null,
+      "references": [
+       {
+        "type": "ai_overview_reference",
+        "position": "left",
+        "source": "Reddit",
+        "domain": "www.reddit.com",
+        "url": "https://www.reddit.com/r/BeautyItemsReview/comments/1ttkpaj/whats_the_best_sunscreen_for_oily_skin_that/",
+        "title": "What's the best sunscreen for oily skin that doesn't make you look ...",
+        "text": "milk or fluid sunscreen is definitely best for oily skin. I like the La Roche-Posay Mineral ultra light face sunscreen fluid or their clear skin dry touch face spf..."
+       },
+       {
+        "type": "ai_overview_reference",
+        "position": "left",
+        "source": "OSVI Dermatology",
+        "domain": "www.osvidermatology.com",
+        "url": "https://www.osvidermatology.com/press/17-best-sunscreens-for-oily-skin-that-dont-feel-greasy-tested-and-reviewed-for-2023",
+        "title": "17 Best Sunscreens for Oily Skin that Don't Feel Greasy (Tested and Reviewed for 2023) — OSVI Dermatology and Surgery Institute",
+        "text": "Sunscreen types for oily skin: Mineral (zinc oxide, titanium dioxide) offers mattifying, oil-absorbing, and less irritating physical barriers ideal for sensitive o..."
+       }
+      ]
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": null,
+      "text": "If you want to narrow this down, tell me:",
+      "markdown": "If you want to narrow this down, tell me:",
+      "links": null,
+      "images": null,
+      "references": null
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": null,
+      "text": "Are you looking for a mineral (physical) or chemical sunscreen? Do you wear makeup over your sunscreen daily? Do you have acne-prone skin or sensitivity to specific filters?",
+      "markdown": "- Are you looking for a **mineral (physical)** or **chemical** sunscreen?\n- Do you wear **makeup** over your sunscreen daily?\n- Do you have **acne-prone** skin or sensitivity to specific filters?",
+      "links": null,
+      "images": null,
+      "references": null
+     }
+    ],
+    "references": [
+     {
+      "type": "ai_overview_reference",
+      "position": "right",
+      "source": "Reddit",
+      "domain": "www.reddit.com",
+      "url": "https://www.reddit.com/r/BeautyItemsReview/comments/1ttkpaj/whats_the_best_sunscreen_for_oily_skin_that/",
+      "title": "What's the best sunscreen for oily skin that doesn't make you look ...",
+      "text": "milk or fluid sunscreen is definitely best for oily skin. I like the La Roche-Posay Mineral ultra light face sunscreen fluid or their clear skin dry touch face spf..."
+     },
+     {
+      "type": "ai_overview_reference",
+      "position": "right",
+      "source": "OSVI Dermatology",
+      "domain": "www.osvidermatology.com",
+      "url": "https://www.osvidermatology.com/press/17-best-sunscreens-for-oily-skin-that-dont-feel-greasy-tested-and-reviewed-for-2023",
+      "title": "17 Best Sunscreens for Oily Skin that Don't Feel Greasy (Tested and Reviewed for 2023) — OSVI Dermatology and Surgery Institute",
+      "text": "Sunscreen types for oily skin: Mineral (zinc oxide, titanium dioxide) offers mattifying, oil-absorbing, and less irritating physical barriers ideal for sensitive o..."
+     }
+    ],
+    "rectangle": null
+   }
+  ]
+ }
+}

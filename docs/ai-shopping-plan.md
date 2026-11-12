@@ -10,8 +10,8 @@ Written November 2026. Prices marked "check" couldn't be confirmed on the vendor
 
 | Engine | Product cards available | How | Status |
 |---|---|---|---|
-| ChatGPT | Yes | DataForSEO ChatGPT LLM Scraper, item type `chat_gpt_products` (the real ChatGPT app, the same endpoint Arrowsterr already uses for answers) | Fields check |
-| Google AI Mode | Yes | DataForSEO Google AI Mode SERP, `ai_overview_shopping` blocks inside `ai_overview` (already used for answers) | Fields confirmed verbatim |
+| ChatGPT | Yes | DataForSEO ChatGPT LLM Scraper, item type `chat_gpt_products` (the real ChatGPT app, the same endpoint Arrowsterr already uses for answers) | Fields confirmed from 40 real answers |
+| Google AI Mode | Yes | DataForSEO Google AI Mode SERP, `ai_overview_shopping` blocks inside `ai_overview` (already used for answers) | Fields confirmed verbatim and from 40 real answers |
 | Gemini | No | The Gemini LLM Scraper documents only `gemini_text`, `gemini_table`, `gemini_images` | Text mentions only |
 | Perplexity | No | DataForSEO has no Perplexity scraper; the API answers carry no shopping cards | Text mentions only |
 | Amazon Rufus | No | No provider; it runs inside Amazon's signed-in app | Left out |
@@ -44,11 +44,36 @@ Every answer is non-personalized and signed out, at one location and language pe
 
 The `url` also carries `mid` (Google's merchant ID of the headline offer) and `headlineOfferDocid`, parsed from its `prds=` parameter.
 
-### 2.2 ChatGPT (fields check)
+### 2.2 ChatGPT (confirmed from 40 real answers)
 
-`items[]` of type `chat_gpt_products`, each with `rank_group`, `rank_absolute` and `items[]` of `chat_gpt_products_element`: `product_id`, `title`, `price`, `currency`, `rating` (`value`, `votes_count`, `rating_max`, `rating_type`), `merchants`, `url`, `domain`, `images`, `tag`, and `product_ids[]` of type `chat_gpt_google_shopping_product` with `gpcid`, `catalog_id`, `mid`, `headline_offer_docid`. If confirmed, ChatGPT cards carry the same Google `gpcid` as AI Mode, so one product has one ID on both engines.
+`items[]` of type `chat_gpt_products` (one row per answer when there is one; `rank_absolute` is its place among the answer's parts) with `items[]` of `chat_gpt_products_element`. Filled in the 161 cards recorded:
 
-Also kept from ChatGPT: `chat_gpt_text` (`markdown`, `sources`, `brand_entities`) for text mentions and sources, and `chat_gpt_ad` so sponsored cards are never counted as recommendations.
+| Field | Filled | Holds | Use |
+|---|---|---|---|
+| `title` | 161 | Product name | Matching |
+| `images` | 148 | 1 to 3 picture links on `images.openai.com` | Image check |
+| `price`, `currency` | 134 | A number and "USD" | Price checks |
+| `url`, `domain` | 116 | The store's product page, tagged `utm_source=chatgpt.com` | Store, own-store link |
+| `product_id` | 91 | **The store's own ID**: a SKU (`SAUQ0B5-FIEBLA-S110`), a Shopify product ID (`gid://shopify/p/...`) or a Google ID. Not the same across stores | Own-store match for Shopify stores |
+| `merchants` | 91 | One store name, a string ("Backcountry") | Store |
+| `tag` | 84 | ChatGPT's label ("Best overall") | Shown |
+| `rating` | 8 | `value`, `votes_count`, `rating_max` | Shown when there |
+| `product_ids`, `id_to_token_map` | 0 | Always empty | Not used |
+
+What this changes:
+
+- **ChatGPT cards carry no Google product ID.** `product_ids` (with `gpcid`) is in DataForSEO's docs but came back empty on every card. A product's ChatGPT cards are matched by title, brand, price and picture (section 5.2), then remembered by store and `product_id`. A product has a Google ID on AI Mode only.
+- **45 of 161 ChatGPT cards are name and picture only:** no store, link or price. They count for card rate, product share and position, and are left out of store and price numbers.
+- **A link tagged `utm_campaign=openai_catalog`** means the store sends its products to ChatGPT through OpenAI's product feed. The Stores tab shows which stores do.
+- **No ads were seen** in 40 ChatGPT answers. `chat_gpt_ad` is never read as a card if it appears.
+
+Also kept from ChatGPT: `chat_gpt_text` (`markdown`, `sources`, `brand_entities`) for text mentions and sources.
+
+**AI Mode, from the same 40 prompts:** 98 cards. `gid` was filled on 97, and the 98th carried it in the link's `rds` value (`PC_<gpcid>`), so the parser reads it from there. `gid` always equals the link's `gpcid`, and `product_id` its `catalogid`. `mid` was in 92 links. `marketplace` and `price.max_value` were always empty. `snippet` ends in "& more" on 87 cards. Ads come as `ai_overview_paid`, a separate block, and are never cards.
+
+**How often cards show:** ChatGPT showed cards on 33 of 35 buying prompts, AI Mode on 20 of 35. Neither showed cards on the 5 prompts about software, services or training.
+
+The parser is `src/lib/shopParse.ts` (`readCards`), tested on all 80 answers in `tests/shopParse.test.ts`.
 
 ---
 
@@ -125,7 +150,7 @@ The core step: each card is either one of the brand's products, a rival's produc
 
 ### 5.1 The order of checks
 
-1. **Remembered ID.** If the card's `gid` (or ChatGPT `gpcid`) was matched before, it's that product. Confidence 1. This is how most cards are matched after the first week.
+1. **Remembered ID.** If an AI Mode card's `gid`, or a ChatGPT card's store and `product_id`, was matched before, it's that product. Confidence 1. This is how most cards are matched after the first week.
 2. **Own store link.** If the card's link or seller domain is the brand's store domain and its path is a catalog product's `handle` or `url`, it's that product. Confidence 1, and its `gid` is remembered.
 3. **Title, brand and price** (section 5.2), plus the picture when it's close (section 5.3).
 4. **Google product lookup**, only for cards still in doubt: DataForSEO Merchant Google product info by `product_id` returns specifications that can include a GTIN or MPN, matched against the catalog's (cost check, used for under 5% of cards).
@@ -163,7 +188,7 @@ Every rule has a test with the hard cases: "Glide 3" against "Glide 3 Wide" and 
 
 ## 6. The numbers
 
-For prompt q, engine e and run r, let C(q, e, r) be its cards in order. Positions start at 1, in the order the answer shows them; with two blocks, the first block's cards come first. Sponsored cards (`chat_gpt_ad`, `ai_overview_paid`) are kept apart and never counted.
+For prompt q, engine e and run r, let C(q, e, r) be its cards in order. Positions start at 1, in the order the answer shows them; with two blocks, the first block's cards come first. Ads (`ai_overview_paid`, and `chat_gpt_ad` if it ever appears) are a separate block and never counted.
 
 | Number | Definition |
 |---|---|
@@ -236,7 +261,7 @@ All run on the existing jobs queue and worker.
 
 | Phase | Weeks | Ships | Done when |
 |---|---|---|---|
-| 1. Real data first | 0.5 | 40 test prompts run on both engines; every raw response saved as a test fixture; parsers written against those fixtures | Every `chat_gpt_products` and `ai_overview_shopping` field in section 2 is confirmed from real responses, and the parser tests pass on all of them |
+| 1. Real data first (shipped) | 0.5 | 40 test prompts run on both engines; every raw response saved as a test fixture; parsers written against those fixtures | Every `chat_gpt_products` and `ai_overview_shopping` field in section 2 is confirmed from real responses, and the parser tests pass on all of them |
 | 2. Catalog | 1 | Shopify `read_products`, Merchant Center sign-in, CSV, the Catalog side panel, `shop_detect` and the Settings switch | A Shopify store's 42 products load with variants folded in and daily prices; on 30 hand-labeled brands (15 that sell, 15 that don't), detection turns on every brand that sells and none that don't |
 | 3. Matching | 1.5 | Section 5 with its tests, "Is this yours?" | On 200 hand-labeled cards: no wrong matches, and at least 85% matched without asking |
 | 4. Numbers and screens | 1.5 | Sections 6 to 8, Overview, Products, Prompts, Stores, Sources, alerts | The numbers on 3 test brands match a hand count of the same runs |
@@ -246,6 +271,8 @@ About 4.5 weeks for one engineer.
 ---
 
 ## 12. Running cost
+
+Phase 1 cost $0.32 once (80 live tasks at $0.004) and adds nothing a month: the parser runs on the worker that already exists. To record again: `NODE_USE_ENV_PROXY=1 node scripts/shop-record.mjs --again` (needs `DFS_LOGIN` and `DFS_PASSWORD`, or a proxy that adds them). `node scripts/shop-fields.mjs` lists every field and how often it's filled.
 
 **Assumptions:** 1.3 brands per team; 30% of brands sell products and turn it on (20 brands at Beta, 195 at Growth); the other 70% run no shopping checks and add $0 (section 3.1); 40 prompts, 2 engines, 2 runs a day each; DataForSEO standard queue at $0.0012 per run for both endpoints; product lookups for under 5% of new cards.
 

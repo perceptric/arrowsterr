@@ -1,0 +1,133 @@
+{
+ "prompt": "best office chair for long hours",
+ "kind": "shop",
+ "engine": "aim",
+ "recorded_at": "2026-11-12T15:27:04.913Z",
+ "result": {
+  "keyword": "best office chair for long hours",
+  "type": "ai_mode",
+  "se_domain": "google.com",
+  "location_code": 2840,
+  "language_code": "en",
+  "check_url": "https://www.google.com/search?q=best%20office%20chair%20for%20long%20hours&hl=en&gl=US&udm=50&uule=w+CAIQIFISCQs2MuSEtepUEUK33kOSuTsc",
+  "datetime": "2026-11-12 15:27:04 +00:00",
+  "spell": null,
+  "refinement_chips": null,
+  "item_types": [
+   "ai_overview"
+  ],
+  "se_results_count": 0,
+  "items_count": 1,
+  "items": [
+   {
+    "type": "ai_overview",
+    "rank_group": 1,
+    "rank_absolute": 1,
+    "page": 1,
+    "position": "left",
+    "xpath": "/html[1]/body[1]/div[2]/div[1]/div[9]/div[1]/section[1]/div[1]/div[1]/div[3]/div[4]/div[1]/div[1]/div[1]/div[3]",
+    "markdown": "Finding the right chair for an 8-plus hour workday comes down to adjustability, build quality, and how your body likes to be supported. Top-rated options span a wide range of budgets and sitting styles:\n\n### Top Picks for Long Hours\n\n- **Best Overall for Reclining & Movement: [Herman Miller Embody](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462732890363511,imageDocid:8429944052168884251,gpcid:16162280338043236049,headlineOfferDocid:6697031873355848002,catalogid:15895430170558959163,productDocid:8224994342968456063,rds:PC_18140897429589984861%7CPROD_PC_18140897429589984861&q=product&sa=X&ved=2ahUKEwj2-dCJ34KYAxVNX0EAHe-ZLW8Qxa4PeggIAggBCBAQAw)** *(~ $2,395)* \n\t- *Why it rocks:* Designed with a \"pixelated support\" matrix that flexes with your micro-movements and spine in real-time. It shines brightest for people who like a slight or active recline while working. Comes with a 12-year warranty.[[1]](https://www.wired.com/gallery/best-office-chairs/)\n- **The Gold Standard Mesh Chair: [Herman Miller Aeron](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462492398406605,imageDocid:12930407149724119953,gpcid:13007852262511206390,headlineOfferDocid:13316549878881847801,catalogid:12554393588505164957,productDocid:17708865242281143555,rds:PC_13007852262511206390%7CPROD_PC_13007852262511206390&q=product&sa=X&ved=2ahUKEwj2-dCJ34KYAxVNX0EAHe-ZLW8Qxa4PeggIAggBCBAQCw)** *(~ $2,250)* \n\t- *Why it rocks:* Iconic breathability, iconic posture-fit sacral/lumbar support (PostureFit SL), and different sizing options (Size A, B, C) to fit your exact frame. Unmatched long-term commercial durability.[[1]](https://www.wired.com/gallery/best-office-chairs/)\n- **Best All-Day Comfort Runner-Up: [Steelcase Gesture](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462576110688477,imageDocid:14470985122277100104,gpcid:13295908629286786165,headlineOfferDocid:4529591770917489357,catalogid:15688447677928822158,productDocid:13442170855201784889,rds:PC_13295908629286786165%7CPROD_PC_13295908629286786165&q=product&sa=X&ved=2ahUKEwj2-dCJ34KYAxVNX0EAHe-ZLW8Qxa4PeggIAggBCBAQEw)** *(~ $1,208)* \n\t- *Why it rocks:* Engineered explicitly to move with you as you shift positions, use a phone, type, or lean back. Its 360-degree arms move wherever your arms go.[[1]](https://www.wired.com/gallery/best-office-chairs/)\n- **Best Mid-Range Value: [Branch Ergonomic Chair](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462704272406801,imageDocid:5528060348129638683,gpcid:13142538113547815565,headlineOfferDocid:10185077111669560349,catalogid:13800606237824248452,productDocid:9040866115576321337,rds:PC_13142538113547815565%7CPROD_PC_13142538113547815565&q=product&sa=X&ved=2ahUKEwj2-dCJ34KYAxVNX0EAHe-ZLW8Qxa4PeggIAggBCBAQGw)** *(~ $311)* \n\t- *Why it rocks:* Built for a solid 8-hour shift featuring 8 individual adjustment points, a supportive dual-layer cushion, and a breathable mesh back without breaking the bank.[[1]](https://www.wired.com/gallery/best-office-chairs/)\n- **Best Budget Pick: [Staples Dexley Mesh Chair](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462829373862491,imageDocid:15800475976579756180,gpcid:494170256274311933,headlineOfferDocid:3903576819120034759,catalogid:13914021081082649659,productDocid:10513286823174451257,rds:PC_494170256274311933%7CPROD_PC_494170256274311933&q=product&sa=X&ved=2ahUKEwj2-dCJ34KYAxVNX0EAHe-ZLW8Qxa4PeggIAggBCBAQIw)** *(~ $120)* \n\t- *Why it rocks:* A great entry-level mesh back chair with tilt-lock and adjustable head support if you need good daily ergonomics on a strict budget.[[1]](https://www.wired.com/gallery/best-office-chairs/)\n\n### Quick Comparison Guide\n\nTo help narrow this down, let me know:\n\n- What is your **approximate budget**?\n- Do you prefer a **mesh back** or a **upholstered/cushioned back**?\n- Do you tend to sit **strictly upright** or do you like to **recline** while working?",
+    "items": [
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": null,
+      "text": "Finding the right chair for an 8-plus hour workday comes down to adjustability, build quality, and how your body likes to be supported. Top-rated options span a wide range of budgets and sitting styles:",
+      "markdown": "Finding the right chair for an 8-plus hour workday comes down to adjustability, build quality, and how your body likes to be supported. Top-rated options span a wide range of budgets and sitting styles:",
+      "links": null,
+      "images": null,
+      "references": null
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": "Top Picks for Long Hours",
+      "text": "Best Overall for Reclining & Movement: Herman Miller Embody (~ $2,395) Herman Miller Embody Herman Miller Embody Why it rocks: Designed with a \"pixelated support\" matrix that flexes with your micro-movements and spine in real-time. It shines brightest for people who like a slight or active recline while working. Comes with a 12-year warranty. The Gold Standard Mesh Chair: Herman Miller Aeron (~ $2,250) Herman Miller Aeron Herman Miller Aeron Why it rocks: Iconic breathability, iconic posture-fit sacral/lumbar support (PostureFit SL), and different sizing options (Size A, B, C) to fit your exact frame. Unmatched long-term commercial durability. Best All-Day Comfort Runner-Up: Steelcase Gesture (~ $1,208) Steelcase Gesture Steelcase Gesture Why it rocks: Engineered explicitly to move with you as you shift positions, use a phone, type, or lean back. Its 360-degree arms move wherever your arms go. Best Mid-Range Value: Branch Ergonomic Chair (~ $311) Branch Ergonomic Chair Branch Ergonomic Chair Why it rocks: Built for a solid 8-hour shift featuring 8 individual adjustment points, a supportive dual-layer cushion, and a breathable mesh back without breaking the bank. Best Budget Pick: Staples Dexley Mesh Chair (~ $120) Staples Dexley Mesh Chair Staples Dexley Mesh Chair Why it rocks: A great entry-level mesh back chair with tilt-lock and adjustable head support if you need good daily ergonomics on a strict budget.",
+      "markdown": "- **Best Overall for Reclining & Movement: [Herman Miller Embody](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462732890363511,imageDocid:8429944052168884251,gpcid:16162280338043236049,headlineOfferDocid:6697031873355848002,catalogid:15895430170558959163,productDocid:8224994342968456063,rds:PC_18140897429589984861%7CPROD_PC_18140897429589984861&q=product&sa=X&ved=2ahUKEwj2-dCJ34KYAxVNX0EAHe-ZLW8Qxa4PeggIAggBCBAQAw)** *(~ $2,395)* \n\t- *Why it rocks:* Designed with a \"pixelated support\" matrix that flexes with your micro-movements and spine in real-time. It shines brightest for people who like a slight or active recline while working. Comes with a 12-year warranty.[[1]](https://www.wired.com/gallery/best-office-chairs/)\n- **The Gold Standard Mesh Chair: [Herman Miller Aeron](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462492398406605,imageDocid:12930407149724119953,gpcid:13007852262511206390,headlineOfferDocid:13316549878881847801,catalogid:12554393588505164957,productDocid:17708865242281143555,rds:PC_13007852262511206390%7CPROD_PC_13007852262511206390&q=product&sa=X&ved=2ahUKEwj2-dCJ34KYAxVNX0EAHe-ZLW8Qxa4PeggIAggBCBAQCw)** *(~ $2,250)* \n\t- *Why it rocks:* Iconic breathability, iconic posture-fit sacral/lumbar support (PostureFit SL), and different sizing options (Size A, B, C) to fit your exact frame. Unmatched long-term commercial durability.[[1]](https://www.wired.com/gallery/best-office-chairs/)\n- **Best All-Day Comfort Runner-Up: [Steelcase Gesture](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462576110688477,imageDocid:14470985122277100104,gpcid:13295908629286786165,headlineOfferDocid:4529591770917489357,catalogid:15688447677928822158,productDocid:13442170855201784889,rds:PC_13295908629286786165%7CPROD_PC_13295908629286786165&q=product&sa=X&ved=2ahUKEwj2-dCJ34KYAxVNX0EAHe-ZLW8Qxa4PeggIAggBCBAQEw)** *(~ $1,208)* \n\t- *Why it rocks:* Engineered explicitly to move with you as you shift positions, use a phone, type, or lean back. Its 360-degree arms move wherever your arms go.[[1]](https://www.wired.com/gallery/best-office-chairs/)\n- **Best Mid-Range Value: [Branch Ergonomic Chair](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462704272406801,imageDocid:5528060348129638683,gpcid:13142538113547815565,headlineOfferDocid:10185077111669560349,catalogid:13800606237824248452,productDocid:9040866115576321337,rds:PC_13142538113547815565%7CPROD_PC_13142538113547815565&q=product&sa=X&ved=2ahUKEwj2-dCJ34KYAxVNX0EAHe-ZLW8Qxa4PeggIAggBCBAQGw)** *(~ $311)* \n\t- *Why it rocks:* Built for a solid 8-hour shift featuring 8 individual adjustment points, a supportive dual-layer cushion, and a breathable mesh back without breaking the bank.[[1]](https://www.wired.com/gallery/best-office-chairs/)\n- **Best Budget Pick: [Staples Dexley Mesh Chair](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462829373862491,imageDocid:15800475976579756180,gpcid:494170256274311933,headlineOfferDocid:3903576819120034759,catalogid:13914021081082649659,productDocid:10513286823174451257,rds:PC_494170256274311933%7CPROD_PC_494170256274311933&q=product&sa=X&ved=2ahUKEwj2-dCJ34KYAxVNX0EAHe-ZLW8Qxa4PeggIAggBCBAQIw)** *(~ $120)* \n\t- *Why it rocks:* A great entry-level mesh back chair with tilt-lock and adjustable head support if you need good daily ergonomics on a strict budget.[[1]](https://www.wired.com/gallery/best-office-chairs/)",
+      "links": [
+       {
+        "type": "link_element",
+        "title": "Herman Miller EmbodyGo to product viewer dialog for this item.",
+        "description": null,
+        "url": "https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462732890363511,imageDocid:8429944052168884251,gpcid:16162280338043236049,headlineOfferDocid:6697031873355848002,catalogid:15895430170558959163,productDocid:8224994342968456063,rds:PC_18140897429589984861%7CPROD_PC_18140897429589984861&q=product&sa=X&ved=2ahUKEwj2-dCJ34KYAxVNX0EAHe-ZLW8Qxa4PeggIAggBCBAQAw",
+        "domain": "www.google.com"
+       },
+       {
+        "type": "link_element",
+        "title": "Herman Miller AeronGo to product viewer dialog for this item.",
+        "description": null,
+        "url": "https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462492398406605,imageDocid:12930407149724119953,gpcid:13007852262511206390,headlineOfferDocid:13316549878881847801,catalogid:12554393588505164957,productDocid:17708865242281143555,rds:PC_13007852262511206390%7CPROD_PC_13007852262511206390&q=product&sa=X&ved=2ahUKEwj2-dCJ34KYAxVNX0EAHe-ZLW8Qxa4PeggIAggBCBAQCw",
+        "domain": "www.google.com"
+       },
+       {
+        "type": "link_element",
+        "title": "Steelcase GestureGo to product viewer dialog for this item.",
+        "description": null,
+        "url": "https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462576110688477,imageDocid:14470985122277100104,gpcid:13295908629286786165,headlineOfferDocid:4529591770917489357,catalogid:15688447677928822158,productDocid:13442170855201784889,rds:PC_13295908629286786165%7CPROD_PC_13295908629286786165&q=product&sa=X&ved=2ahUKEwj2-dCJ34KYAxVNX0EAHe-ZLW8Qxa4PeggIAggBCBAQEw",
+        "domain": "www.google.com"
+       },
+       {
+        "type": "link_element",
+        "title": "Branch Ergonomic ChairGo to product viewer dialog for this item.",
+        "description": null,
+        "url": "https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462704272406801,imageDocid:5528060348129638683,gpcid:13142538113547815565,headlineOfferDocid:10185077111669560349,catalogid:13800606237824248452,productDocid:9040866115576321337,rds:PC_13142538113547815565%7CPROD_PC_13142538113547815565&q=product&sa=X&ved=2ahUKEwj2-dCJ34KYAxVNX0EAHe-ZLW8Qxa4PeggIAggBCBAQGw",
+        "domain": "www.google.com"
+       },
+       {
+        "type": "link_element",
+        "title": "Staples Dexley Mesh ChairGo to product viewer dialog for this item.",
+        "description": null,
+        "url": "https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462829373862491,imageDocid:15800475976579756180,gpcid:494170256274311933,headlineOfferDocid:3903576819120034759,catalogid:13914021081082649659,productDocid:10513286823174451257,rds:PC_494170256274311933%7CPROD_PC_494170256274311933&q=product&sa=X&ved=2ahUKEwj2-dCJ34KYAxVNX0EAHe-ZLW8Qxa4PeggIAggBCBAQIw",
+        "domain": "www.google.com"
+       }
+      ],
+      "images": null,
+      "references": [
+       {
+        "type": "ai_overview_reference",
+        "position": "left",
+        "source": "WIRED",
+        "domain": "www.wired.com",
+        "url": "https://www.wired.com/gallery/best-office-chairs/",
+        "title": "15 Best Office Chairs of 2026—We Tested 70 to Pick Them | WIRED",
+        "text": "Steelcase Gesture ($1,208, 360-degree arms, 12-year warranty); Herman Miller Embody ($2,395, 12-year warranty);"
+       }
+      ]
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": "Quick Comparison Guide",
+      "text": "To help narrow this down, let me know:",
+      "markdown": "To help narrow this down, let me know:",
+      "links": null,
+      "images": null,
+      "references": null
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": null,
+      "text": "What is your approximate budget ? Do you prefer a mesh back or a upholstered/cushioned back ? Do you tend to sit strictly upright or do you like to recline while working?",
+      "markdown": "- What is your **approximate budget**?\n- Do you prefer a **mesh back** or a **upholstered/cushioned back**?\n- Do you tend to sit **strictly upright** or do you like to **recline** while working?",
+      "links": null,
+      "images": null,
+      "references": null
+     }
+    ],
+    "references": [
+     {
+      "type": "ai_overview_reference",
+      "position": "right",
+      "source": "WIRED",
+      "domain": "www.wired.com",
+      "url": "https://www.wired.com/gallery/best-office-chairs/",
+      "title": "15 Best Office Chairs of 2026—We Tested 70 to Pick Them | WIRED",
+      "text": "Staples Dexley ($120, height-adjustable arms); Sitting Tips: Move every 30 minutes; adjust armrests so palms hover and wrists stay straight; align eyes with monito..."
+     }
+    ],
+    "rectangle": null
+   }
+  ]
+ }
+}

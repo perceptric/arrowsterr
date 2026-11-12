@@ -1,0 +1,293 @@
+{
+ "prompt": "best moisturizer for dry sensitive skin",
+ "kind": "shop",
+ "engine": "aim",
+ "recorded_at": "2026-11-12T15:26:32.568Z",
+ "result": {
+  "keyword": "best moisturizer for dry sensitive skin",
+  "type": "ai_mode",
+  "se_domain": "google.com",
+  "location_code": 2840,
+  "language_code": "en",
+  "check_url": "https://www.google.com/search?q=best%20moisturizer%20for%20dry%20sensitive%20skin&hl=en&gl=US&udm=50&uule=w+CAIQIFISCQs2MuSEtepUEUK33kOSuTsc",
+  "datetime": "2026-11-12 15:26:32 +00:00",
+  "spell": null,
+  "refinement_chips": null,
+  "item_types": [
+   "ai_overview"
+  ],
+  "se_results_count": 0,
+  "items_count": 1,
+  "items": [
+   {
+    "type": "ai_overview",
+    "rank_group": 1,
+    "rank_absolute": 1,
+    "page": 1,
+    "position": "left",
+    "xpath": "/html[1]/body[1]/div[2]/div[1]/div[9]/div[1]/section[1]/div[1]/div[1]/div[4]/div[5]/div[1]/div[2]/div[1]/div[3]",
+    "markdown": "When dealing with dry, sensitive skin, `the goal` is a minimalist, fragrance-free formula that repairs the skin barrier with **ceramides**, **glycerin**, **squalane** , or **colloidal oatmeal**.[[1]](https://www.byrdie.com/the-best-facial-moisturizers-346719)[[2]](https://www.whowhatwear.com/beauty/skin/best-moisturizer-for-dry-skin)\n\nDermatologist-approved and top-rated options span a range of textures and budgets:\n\n#### Top Picks for Dry, Sensitive Skin\n\n\n\n---\n\n- **Key Ingredients:** Glycerin, shea butter, squalane\n- **Why it works:** Rich and comforting without a heavy, pore-clogging or overly complex formula; specifically designed to calm reactive, easily irritated skin.\n- **Where to look:** Featured via [Who What Wear](https://www.whowhatwear.com/beauty/skin/best-moisturizer-for-dry-skin).[[1]](https://www.whowhatwear.com/beauty/skin/best-moisturizer-for-dry-skin)\n\n\n\n---\n\n- **Key Ingredients:** Essential ceramides (1, 3, 6-II), hyaluronic acid, petrolatum\n- **Why it works:** A longtime gold standard accepted by the National Eczema Association. It floods the skin with continuous moisture and reinforces a compromised lipid barrier.\n- **Where to look:** Available via [Target](https://www.target.com/) or [Amazon](https://www.amazon.com/) as noted in [Byrdie](https://www.byrdie.com/the-best-facial-moisturizers-346719).[[1]](https://www.byrdie.com/the-best-facial-moisturizers-346719)\n\n\n\n---\n\n- **Key Ingredients:** High-density ceramides, glycerin\n- **Why it works:** Utilizes capsule technology that melts into the skin to deliver deep, long-lasting hydration for deeply parched or cracked skin.\n- **Where to look:** Highlighted in [Byrdie's 2026 Roundup](https://www.byrdie.com/the-best-facial-moisturizers-346719).[[1]](https://www.byrdie.com/the-best-facial-moisturizers-346719)\n\n\n\n---\n\n- **Key Ingredients:** Ceramide-3, niacinamide, glycerin, prebiotic thermal water\n- **Why it works:** Oil-free yet intensely soothing, making it great if you want daily hydration that won't feel heavy or greasy under sunscreen/makeup.\n- **Where to look:** Reviewed on Byrdie.[[1]](https://www.byrdie.com/the-best-facial-moisturizers-346719)\n\n\n\n---\n\n- **Key Ingredients:** Triple oat complex, shea butter\n- **Why it works:** Acts as an occlusive seal to lock in moisture overnight or rescue severely dry, chapped patches.\n- **Where to look:** Featured on Who What Wear.[[1]](https://www.whowhatwear.com/beauty/skin/best-moisturizer-for-dry-skin)\n\n#### Quick Shopping Checklist\n\n- Look for **\"Fragrance-Free\"** (not just \"Unscented,\" which can sometimes still contain masking scents).\n- Avoid high concentrations of alcohol, essential oils, or heavy chemical exfoliants (like AHAs/BHAs) in your daily cream.\n- Apply your moisturizer to **damp skin** right after washing your face to trap extra hydration.\n\nIf you want to narrow this down, tell me:\n\n- Are you looking for a **daytime** cream, a **night** cream, or an **all-purpose** one?\n- Do you prefer a **lightweight lotion** or a **rich balm/butter**?",
+    "items": [
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": null,
+      "text": "When dealing with dry, sensitive skin, the goal is a minimalist, fragrance-free formula that repairs the skin barrier with ceramides, glycerin, squalane, or colloidal oatmeal.",
+      "markdown": "When dealing with dry, sensitive skin, `the goal` is a minimalist, fragrance-free formula that repairs the skin barrier with **ceramides**, **glycerin**, **squalane** , or **colloidal oatmeal**.[[1]](https://www.byrdie.com/the-best-facial-moisturizers-346719)[[2]](https://www.whowhatwear.com/beauty/skin/best-moisturizer-for-dry-skin)",
+      "links": null,
+      "images": null,
+      "references": [
+       {
+        "type": "ai_overview_reference",
+        "position": "left",
+        "source": "Byrdie",
+        "domain": "www.byrdie.com",
+        "url": "https://www.byrdie.com/the-best-facial-moisturizers-346719",
+        "title": "15 Best Face Moisturizers of 2026",
+        "text": "Mary, tester with dry and sensitive skin (not pictured): Best Moisturizer for Sensitive Skin CeraVe Moisturizing Cream Credit: Tar..."
+       },
+       {
+        "type": "ai_overview_reference",
+        "position": "left",
+        "source": "Who What Wear",
+        "domain": "www.whowhatwear.com",
+        "url": "https://www.whowhatwear.com/beauty/skin/best-moisturizer-for-dry-skin",
+        "title": "The 7 Best Derm-Approved Moisturizers for Dry Skin in 2026",
+        "text": "Best Overall: Avène Tolérance Control Soothing Skin Recovery Balm Best for Mature Skin: Bioeffect EGF Power Cream Best Splurge: Va..."
+       }
+      ]
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": null,
+      "text": "Dermatologist-approved and top-rated options span a range of textures and budgets:",
+      "markdown": "Dermatologist-approved and top-rated options span a range of textures and budgets:",
+      "links": null,
+      "images": null,
+      "references": null
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": "Top Picks for Dry, Sensitive Skin",
+      "text": null,
+      "markdown": "#### Top Picks for Dry, Sensitive Skin",
+      "links": null,
+      "images": null,
+      "references": null
+     },
+     {
+      "type": "ai_overview_shopping",
+      "position": "left",
+      "title": null,
+      "markdown": "---\n\n[![Avène Tolérance Control Soothing Skin Recovery Balm](https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-a2cee281bc67:10)](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462896437255477,imageDocid:8527296354108758804,gpcid:17232253848408493865,headlineOfferDocid:3916506832617440725,catalogid:8796988209587493542,productDocid:8413957580628981394,rds:PC_17232253848408493865%7CPROD_PC_17232253848408493865&q=product&sa=X&ved=2ahUKEwiq15z63oKYAxViF1kFHTo2N40QgLcPeggIAggBCB8QAQ&hl=en&gl=US)\n\n- **Key Ingredients:** Glycerin, shea butter, squalane\n- **Why it works:** Rich and comforting without a heavy, pore-clogging or overly complex formula; specifically designed to calm reactive, easily irritated skin.\n- **Where to look:** Featured via [Who What Wear](https://www.whowhatwear.com/beauty/skin/best-moisturizer-for-dry-skin).[[1]](https://www.whowhatwear.com/beauty/skin/best-moisturizer-for-dry-skin)\n\n\n\n---\n\n[![CeraVe Moisturizing Cream](https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-a2cee281bc67:11)](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,imageDocid:5867694939986633855,gpcid:4767874147681480765,headlineOfferDocid:17901883794029654917,catalogid:8403125418457378048,productDocid:7008100870730843615,rds:PC_16245040360969784676%7CPROD_PC_16245040360969784676&q=product&sa=X&ved=2ahUKEwiq15z63oKYAxViF1kFHTo2N40QgLcPeggIAggBCB8QEg&hl=en&gl=US)\n\n- **Key Ingredients:** Essential ceramides (1, 3, 6-II), hyaluronic acid, petrolatum\n- **Why it works:** A longtime gold standard accepted by the National Eczema Association. It floods the skin with continuous moisture and reinforces a compromised lipid barrier.\n- **Where to look:** Available via [Target](https://www.target.com/) or [Amazon](https://www.amazon.com/) as noted in [Byrdie](https://www.byrdie.com/the-best-facial-moisturizers-346719).[[1]](https://www.byrdie.com/the-best-facial-moisturizers-346719)\n\n\n\n---\n\n[![Aestura Atobarrier365 Cream](https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-a2cee281bc67:12)](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462915706226134,imageDocid:10732064834268219399,gpcid:5002520289870695885,headlineOfferDocid:13543228222472941058,catalogid:15818921683424188474,productDocid:16226460345141261513,rds:PC_5002520289870695885%7CPROD_PC_5002520289870695885&q=product&sa=X&ved=2ahUKEwiq15z63oKYAxViF1kFHTo2N40QgLcPeggIAggBCB8QJQ&hl=en&gl=US)\n\n- **Key Ingredients:** High-density ceramides, glycerin\n- **Why it works:** Utilizes capsule technology that melts into the skin to deliver deep, long-lasting hydration for deeply parched or cracked skin.\n- **Where to look:** Highlighted in [Byrdie's 2026 Roundup](https://www.byrdie.com/the-best-facial-moisturizers-346719).[[1]](https://www.byrdie.com/the-best-facial-moisturizers-346719)\n\n\n\n---\n\n[![La Roche-Posay Toleriane Double Repair Face Moisturizer](https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-a2cee281bc67:13)](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,imageDocid:15996416023658014535,headlineOfferDocid:3957366810593323599,productDocid:3957366810593323599,rds:PC_7737188067976392393%7CPROD_PC_7737188067976392393&q=product&sa=X&ved=2ahUKEwiq15z63oKYAxViF1kFHTo2N40QgLcPeggIAggBCB8QNg&hl=en&gl=US)\n\n- **Key Ingredients:** Ceramide-3, niacinamide, glycerin, prebiotic thermal water\n- **Why it works:** Oil-free yet intensely soothing, making it great if you want daily hydration that won't feel heavy or greasy under sunscreen/makeup.\n- **Where to look:** Reviewed on Byrdie.[[1]](https://www.byrdie.com/the-best-facial-moisturizers-346719)\n\n\n\n---\n\n[![Aveeno Skin Relief Healing Ointment](https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-a2cee281bc67:14)](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462563932098466,imageDocid:4438097072036413842,gpcid:9842986851011454724,headlineOfferDocid:2564670515602042771,catalogid:15183448606619175937,productDocid:18027965291123561033,rds:PC_9057988225880021554%7CPROD_PC_9057988225880021554&q=product&sa=X&ved=2ahUKEwiq15z63oKYAxViF1kFHTo2N40QgLcPeggIAggBCB8QSA&hl=en&gl=US)\n\n- **Key Ingredients:** Triple oat complex, shea butter\n- **Why it works:** Acts as an occlusive seal to lock in moisture overnight or rescue severely dry, chapped patches.\n- **Where to look:** Featured on Who What Wear.[[1]](https://www.whowhatwear.com/beauty/skin/best-moisturizer-for-dry-skin)",
+      "items": [
+       {
+        "type": "ai_overview_shopping_element",
+        "product_id": "8796988209587493542",
+        "data_docid": "8413957580628981394",
+        "gid": "17232253848408493865",
+        "title": "Avène Tolérance Control Soothing Skin Recovery Balm",
+        "url": "https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462896437255477,imageDocid:8527296354108758804,gpcid:17232253848408493865,headlineOfferDocid:3916506832617440725,catalogid:8796988209587493542,productDocid:8413957580628981394,rds:PC_17232253848408493865%7CPROD_PC_17232253848408493865&q=product&sa=X&ved=2ahUKEwiq15z63oKYAxViF1kFHTo2N40QgLcPeggIAggBCB8QAQ&hl=en&gl=US",
+        "domain": "www.google.com",
+        "rating": {
+         "rating_type": "Max5",
+         "value": 4.6,
+         "votes_count": 132,
+         "rating_max": 5
+        },
+        "price": {
+         "current": 22.21,
+         "regular": 31,
+         "max_value": null,
+         "currency": "USD",
+         "is_price_range": false,
+         "displayed_price": "$22.21 $31"
+        },
+        "seller": "sweetcare.com",
+        "snippet": "sweetcare.com & more",
+        "marketplace": null,
+        "marketplace_url": null,
+        "image_url": "https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-a2cee281bc67:1",
+        "text": "Key Ingredients: Glycerin, shea butter, squalane\nWhy it works: Rich and comforting without a heavy, pore-clogging or overly complex formula; specifically designed to calm reactive, easily irritated skin.\nWhere to look: Featured via Who What Wear.",
+        "markdown": "---\n\n[![Avène Tolérance Control Soothing Skin Recovery Balm](https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-a2cee281bc67:0)](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462896437255477,imageDocid:8527296354108758804,gpcid:17232253848408493865,headlineOfferDocid:3916506832617440725,catalogid:8796988209587493542,productDocid:8413957580628981394,rds:PC_17232253848408493865%7CPROD_PC_17232253848408493865&q=product&sa=X&ved=2ahUKEwiq15z63oKYAxViF1kFHTo2N40QgLcPeggIAggBCB8QAQ&hl=en&gl=US)\n\n- **Key Ingredients:** Glycerin, shea butter, squalane\n- **Why it works:** Rich and comforting without a heavy, pore-clogging or overly complex formula; specifically designed to calm reactive, easily irritated skin.\n- **Where to look:** Featured via [Who What Wear](https://www.whowhatwear.com/beauty/skin/best-moisturizer-for-dry-skin).[[1]](https://www.whowhatwear.com/beauty/skin/best-moisturizer-for-dry-skin)"
+       },
+       {
+        "type": "ai_overview_shopping_element",
+        "product_id": "8403125418457378048",
+        "data_docid": "7008100870730843615",
+        "gid": "4767874147681480765",
+        "title": "CeraVe Moisturizing Cream",
+        "url": "https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,imageDocid:5867694939986633855,gpcid:4767874147681480765,headlineOfferDocid:17901883794029654917,catalogid:8403125418457378048,productDocid:7008100870730843615,rds:PC_16245040360969784676%7CPROD_PC_16245040360969784676&q=product&sa=X&ved=2ahUKEwiq15z63oKYAxViF1kFHTo2N40QgLcPeggIAggBCB8QEg&hl=en&gl=US",
+        "domain": "www.google.com",
+        "rating": {
+         "rating_type": "Max5",
+         "value": 4.8,
+         "votes_count": 91000,
+         "rating_max": 5
+        },
+        "price": {
+         "current": 15.99,
+         "regular": null,
+         "max_value": null,
+         "currency": "USD",
+         "is_price_range": false,
+         "displayed_price": "$15.99"
+        },
+        "seller": "Target",
+        "snippet": "Target & more",
+        "marketplace": null,
+        "marketplace_url": null,
+        "image_url": "https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-a2cee281bc67:3",
+        "text": "Key Ingredients: Essential ceramides (1, 3, 6-II), hyaluronic acid, petrolatum\nWhy it works: A longtime gold standard accepted by the National Eczema Association. It floods the skin with continuous moisture and reinforces a compromised lipid barrier.\nWhere to look: Available via Target or Amazon as noted in Byrdie.",
+        "markdown": "---\n\n[![CeraVe Moisturizing Cream](https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-a2cee281bc67:2)](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,imageDocid:5867694939986633855,gpcid:4767874147681480765,headlineOfferDocid:17901883794029654917,catalogid:8403125418457378048,productDocid:7008100870730843615,rds:PC_16245040360969784676%7CPROD_PC_16245040360969784676&q=product&sa=X&ved=2ahUKEwiq15z63oKYAxViF1kFHTo2N40QgLcPeggIAggBCB8QEg&hl=en&gl=US)\n\n- **Key Ingredients:** Essential ceramides (1, 3, 6-II), hyaluronic acid, petrolatum\n- **Why it works:** A longtime gold standard accepted by the National Eczema Association. It floods the skin with continuous moisture and reinforces a compromised lipid barrier.\n- **Where to look:** Available via [Target](https://www.target.com/) or [Amazon](https://www.amazon.com/) as noted in [Byrdie](https://www.byrdie.com/the-best-facial-moisturizers-346719).[[1]](https://www.byrdie.com/the-best-facial-moisturizers-346719)"
+       },
+       {
+        "type": "ai_overview_shopping_element",
+        "product_id": "15818921683424188474",
+        "data_docid": "16226460345141261513",
+        "gid": "5002520289870695885",
+        "title": "Aestura Atobarrier365 Cream",
+        "url": "https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462915706226134,imageDocid:10732064834268219399,gpcid:5002520289870695885,headlineOfferDocid:13543228222472941058,catalogid:15818921683424188474,productDocid:16226460345141261513,rds:PC_5002520289870695885%7CPROD_PC_5002520289870695885&q=product&sa=X&ved=2ahUKEwiq15z63oKYAxViF1kFHTo2N40QgLcPeggIAggBCB8QJQ&hl=en&gl=US",
+        "domain": "www.google.com",
+        "rating": {
+         "rating_type": "Max5",
+         "value": 4.7,
+         "votes_count": 1900,
+         "rating_max": 5
+        },
+        "price": {
+         "current": 32,
+         "regular": null,
+         "max_value": null,
+         "currency": "USD",
+         "is_price_range": false,
+         "displayed_price": "$32.00"
+        },
+        "seller": "Sephora",
+        "snippet": "Sephora & more",
+        "marketplace": null,
+        "marketplace_url": null,
+        "image_url": "https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-a2cee281bc67:5",
+        "text": "Key Ingredients: High-density ceramides, glycerin\nWhy it works: Utilizes capsule technology that melts into the skin to deliver deep, long-lasting hydration for deeply parched or cracked skin.\nWhere to look: Highlighted in Byrdie's 2026 Roundup.",
+        "markdown": "---\n\n[![Aestura Atobarrier365 Cream](https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-a2cee281bc67:4)](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462915706226134,imageDocid:10732064834268219399,gpcid:5002520289870695885,headlineOfferDocid:13543228222472941058,catalogid:15818921683424188474,productDocid:16226460345141261513,rds:PC_5002520289870695885%7CPROD_PC_5002520289870695885&q=product&sa=X&ved=2ahUKEwiq15z63oKYAxViF1kFHTo2N40QgLcPeggIAggBCB8QJQ&hl=en&gl=US)\n\n- **Key Ingredients:** High-density ceramides, glycerin\n- **Why it works:** Utilizes capsule technology that melts into the skin to deliver deep, long-lasting hydration for deeply parched or cracked skin.\n- **Where to look:** Highlighted in [Byrdie's 2026 Roundup](https://www.byrdie.com/the-best-facial-moisturizers-346719).[[1]](https://www.byrdie.com/the-best-facial-moisturizers-346719)"
+       },
+       {
+        "type": "ai_overview_shopping_element",
+        "product_id": "3957366810593323599",
+        "data_docid": "3957366810593323599",
+        "gid": null,
+        "title": "La Roche-Posay Toleriane Double Repair Face Moisturizer",
+        "url": "https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,imageDocid:15996416023658014535,headlineOfferDocid:3957366810593323599,productDocid:3957366810593323599,rds:PC_7737188067976392393%7CPROD_PC_7737188067976392393&q=product&sa=X&ved=2ahUKEwiq15z63oKYAxViF1kFHTo2N40QgLcPeggIAggBCB8QNg&hl=en&gl=US",
+        "domain": "www.google.com",
+        "rating": {
+         "rating_type": "Max5",
+         "value": 4.1,
+         "votes_count": 1300,
+         "rating_max": 5
+        },
+        "price": {
+         "current": 24.99,
+         "regular": null,
+         "max_value": null,
+         "currency": "USD",
+         "is_price_range": false,
+         "displayed_price": "$24.99"
+        },
+        "seller": "La Roche-Posay",
+        "snippet": "La Roche-Posay",
+        "marketplace": null,
+        "marketplace_url": null,
+        "image_url": "https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-a2cee281bc67:7",
+        "text": "Key Ingredients: Ceramide-3, niacinamide, glycerin, prebiotic thermal water\nWhy it works: Oil-free yet intensely soothing, making it great if you want daily hydration that won't feel heavy or greasy under sunscreen/makeup.\nWhere to look: Reviewed on Byrdie.",
+        "markdown": "---\n\n[![La Roche-Posay Toleriane Double Repair Face Moisturizer](https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-a2cee281bc67:6)](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,imageDocid:15996416023658014535,headlineOfferDocid:3957366810593323599,productDocid:3957366810593323599,rds:PC_7737188067976392393%7CPROD_PC_7737188067976392393&q=product&sa=X&ved=2ahUKEwiq15z63oKYAxViF1kFHTo2N40QgLcPeggIAggBCB8QNg&hl=en&gl=US)\n\n- **Key Ingredients:** Ceramide-3, niacinamide, glycerin, prebiotic thermal water\n- **Why it works:** Oil-free yet intensely soothing, making it great if you want daily hydration that won't feel heavy or greasy under sunscreen/makeup.\n- **Where to look:** Reviewed on Byrdie.[[1]](https://www.byrdie.com/the-best-facial-moisturizers-346719)"
+       },
+       {
+        "type": "ai_overview_shopping_element",
+        "product_id": "15183448606619175937",
+        "data_docid": "18027965291123561033",
+        "gid": "9842986851011454724",
+        "title": "Aveeno Skin Relief Healing Ointment",
+        "url": "https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462563932098466,imageDocid:4438097072036413842,gpcid:9842986851011454724,headlineOfferDocid:2564670515602042771,catalogid:15183448606619175937,productDocid:18027965291123561033,rds:PC_9057988225880021554%7CPROD_PC_9057988225880021554&q=product&sa=X&ved=2ahUKEwiq15z63oKYAxViF1kFHTo2N40QgLcPeggIAggBCB8QSA&hl=en&gl=US",
+        "domain": "www.google.com",
+        "rating": {
+         "rating_type": "Max5",
+         "value": 4.6,
+         "votes_count": 1600,
+         "rating_max": 5
+        },
+        "price": {
+         "current": 12.97,
+         "regular": null,
+         "max_value": null,
+         "currency": "USD",
+         "is_price_range": false,
+         "displayed_price": "$12.97"
+        },
+        "seller": "Walmart",
+        "snippet": "Walmart & more",
+        "marketplace": null,
+        "marketplace_url": null,
+        "image_url": "https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-a2cee281bc67:9",
+        "text": "Key Ingredients: Triple oat complex, shea butter\nWhy it works: Acts as an occlusive seal to lock in moisture overnight or rescue severely dry, chapped patches.\nWhere to look: Featured on Who What Wear.",
+        "markdown": "---\n\n[![Aveeno Skin Relief Healing Ointment](https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-a2cee281bc67:8)](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462563932098466,imageDocid:4438097072036413842,gpcid:9842986851011454724,headlineOfferDocid:2564670515602042771,catalogid:15183448606619175937,productDocid:18027965291123561033,rds:PC_9057988225880021554%7CPROD_PC_9057988225880021554&q=product&sa=X&ved=2ahUKEwiq15z63oKYAxViF1kFHTo2N40QgLcPeggIAggBCB8QSA&hl=en&gl=US)\n\n- **Key Ingredients:** Triple oat complex, shea butter\n- **Why it works:** Acts as an occlusive seal to lock in moisture overnight or rescue severely dry, chapped patches.\n- **Where to look:** Featured on Who What Wear.[[1]](https://www.whowhatwear.com/beauty/skin/best-moisturizer-for-dry-skin)"
+       }
+      ]
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": "Quick Shopping Checklist",
+      "text": "Look for \"Fragrance-Free\" (not just \"Unscented,\" which can sometimes still contain masking scents). Avoid high concentrations of alcohol, essential oils, or heavy chemical exfoliants (like AHAs/BHAs) in your daily cream. Apply your moisturizer to damp skin right after washing your face to trap extra hydration.",
+      "markdown": "- Look for **\"Fragrance-Free\"** (not just \"Unscented,\" which can sometimes still contain masking scents).\n- Avoid high concentrations of alcohol, essential oils, or heavy chemical exfoliants (like AHAs/BHAs) in your daily cream.\n- Apply your moisturizer to **damp skin** right after washing your face to trap extra hydration.",
+      "links": null,
+      "images": null,
+      "references": null
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": null,
+      "text": "If you want to narrow this down, tell me:",
+      "markdown": "If you want to narrow this down, tell me:",
+      "links": null,
+      "images": null,
+      "references": null
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": null,
+      "text": "Are you looking for a daytime cream, a night cream, or an all-purpose one? Do you prefer a lightweight lotion or a rich balm/butter ?",
+      "markdown": "- Are you looking for a **daytime** cream, a **night** cream, or an **all-purpose** one?\n- Do you prefer a **lightweight lotion** or a **rich balm/butter**?",
+      "links": null,
+      "images": null,
+      "references": null
+     }
+    ],
+    "references": [
+     {
+      "type": "ai_overview_reference",
+      "position": "right",
+      "source": "Byrdie",
+      "domain": "www.byrdie.com",
+      "url": "https://www.byrdie.com/the-best-facial-moisturizers-346719",
+      "title": "15 Best Face Moisturizers of 2026",
+      "text": "Mary, tester with dry and sensitive skin (not pictured): Best Moisturizer for Sensitive Skin CeraVe Moisturizing Cream Credit: Target $19 at Amazon $7 at Ulta $18 ..."
+     },
+     {
+      "type": "ai_overview_reference",
+      "position": "right",
+      "source": "Who What Wear",
+      "domain": "www.whowhatwear.com",
+      "url": "https://www.whowhatwear.com/beauty/skin/best-moisturizer-for-dry-skin",
+      "title": "The 7 Best Derm-Approved Moisturizers for Dry Skin in 2026",
+      "text": "Best Overall: Avène Tolérance Control Soothing Skin Recovery Balm Best for Mature Skin: Bioeffect EGF Power Cream Best Splurge: Valmont Hydra3 Charging Cream Best ..."
+     }
+    ],
+    "rectangle": null
+   }
+  ]
+ }
+}

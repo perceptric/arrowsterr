@@ -1,0 +1,337 @@
+{
+ "prompt": "best running shoes for beginners",
+ "kind": "shop",
+ "engine": "aim",
+ "recorded_at": "2026-11-12T15:25:47.576Z",
+ "result": {
+  "keyword": "best running shoes for beginners",
+  "type": "ai_mode",
+  "se_domain": "google.com",
+  "location_code": 2840,
+  "language_code": "en",
+  "check_url": "https://www.google.com/search?q=best%20running%20shoes%20for%20beginners&hl=en&gl=US&udm=50&uule=w+CAIQIFISCQs2MuSEtepUEUK33kOSuTsc",
+  "datetime": "2026-11-12 15:25:47 +00:00",
+  "spell": null,
+  "refinement_chips": null,
+  "item_types": [
+   "ai_overview"
+  ],
+  "se_results_count": 0,
+  "items_count": 1,
+  "items": [
+   {
+    "type": "ai_overview",
+    "rank_group": 1,
+    "rank_absolute": 1,
+    "page": 1,
+    "position": "left",
+    "xpath": "/html[1]/body[1]/div[2]/div[1]/div[9]/div[1]/section[1]/div[1]/div[1]/div[4]/div[5]/div[1]/div[1]/div[1]/div[3]",
+    "markdown": "Starting out with the right pair of running shoes makes a massive difference in how your knees, feet, and overall motivation feel. For beginners, the goal is **reliable daily trainers** —shoes that offer a smart balance of impact absorption, comfort, and durability without forcing you into a hyper-specialized \"racing\" shoe.[[1]](https://www.reddit.com/r/AskRunningShoeGeeks/comments/1knlhap/can_someone_please_help_me_to_pick_my_first_pair/)\n\n### Top Beginner Running Shoes\n\n\n\n---\n\n- **Price:** ~$175\n- **Why it works:** The Ghost is practically the gold standard for a first running shoe. It has a traditional, balanced feel—not too mushy and not too firm—anchored by nitrogen-infused DNA Loft v3 cushioning that soaks up pavement impact.\n- **Great for:** Heel-strikers, building up your first 5K or 10K, and anyone wanting a safe, straightforward fit.[[1]](https://qz.com/best-running-shoes-2026)\n\n\n\n---\n\n- **Price:** ~$155\n- **Why it works:** If you want a ride that feels energetic and propels you forward rather than feeling dull, the Novablast is a crowd favorite. It combines high-level, lightweight cushioning with a peppy toe-off.\n- **Great for:** Runners who want a lighter, lively daily trainer that can handle easy jogs or pick up the pace.[[1]](https://theruntesters.com/running-shoes/the-best-running-shoes-to-buy/)[[2]](https://believeintherun.com/shoe-reviews/best-beginner-running-shoes/)\n\n\n\n---\n\n- **Price:** ~$145–$150\n- **Why it works:** Hoka practically popularized thick, ultra-cushioned soles that still manage to feel featherlight. The Clifton uses an early-stage Meta-Rocker to help roll your foot smoothly from landing to push-off.\n- **Great for:** People worried about joint fatigue or anyone spending a lot of time on their feet.\n\n\n\n---\n\n- **Price:** ~$140\n- **Why it works:** A long-time staple of the running world, the Pegasus uses responsive foam paired with forefoot/heel air units for a snappy, secure lock-in.\n- **Great for:** A snug midfoot hold and runners who want a shoe that transitions easily from the treadmill to the road.\n\n\n\n---\n\n- **Price:** ~$150\n- **Why it works:** One of the most praised recent designs, it features high-end springy foam (Lightstrike Pro) in a simplified, lightweight package that punches well above its price tag.\n- **Great for:** Beginners who want a fast, modern feel that doubles nicely for light speed-work or everyday wear.[[1]](https://theruntesters.com/running-shoes/the-best-running-shoes-to-buy/)\n\n### Quick Tips for Choosing Your First Pair\n\n- **Go up a half-size:** Your feet swell and slide forward when you run. Having a thumb's width of space ahead of your longest toe prevents brutal black toenails.\n- **Neutral vs. Stability:** Most of the shoes above are **neutral** , which works for the vast majority of runners. If you heavily overpronate (your ankles roll inward significantly), look at stability counterparts like the *Hoka Arahi* or *Brooks GTS* versions.[[1]](https://theruntesters.com/running-shoes/the-best-running-shoes-to-buy/)[[2]](https://qz.com/best-running-shoes-2026)\n- **Check out reviews or local shops:** According to discussions on platforms like [Reddit (r/AskRunningShoeGeeks)](https://www.reddit.com/r/AskRunningShoeGeeks/comments/1knlhap/can_someone_please_help_me_to_pick_my_first_pair/) , a consensus recommendation is to visit a local running specialty shop if possible—they will often watch you jog for 30 seconds to point you toward the exact geometry your feet need.[[1]](https://www.reddit.com/r/AskRunningShoeGeeks/comments/1knlhap/can_someone_please_help_me_to_pick_my_first_pair/)\n\nIf you'd like to narrow this down, tell me:\n\n- Do you know if you have **flat arches, high arches, or neutral feet**?\n- Are you planning to run mostly **outdoors on pavement, on a treadmill, or mixed**?\n- What is your **approximate budget**?",
+    "items": [
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": null,
+      "text": "Starting out with the right pair of running shoes makes a massive difference in how your knees, feet, and overall motivation feel. For beginners, the goal is reliable daily trainers —shoes that offer a smart balance of impact absorption, comfort, and durability without forcing you into a hyper-specialized \"racing\" shoe.",
+      "markdown": "Starting out with the right pair of running shoes makes a massive difference in how your knees, feet, and overall motivation feel. For beginners, the goal is **reliable daily trainers** —shoes that offer a smart balance of impact absorption, comfort, and durability without forcing you into a hyper-specialized \"racing\" shoe.[[1]](https://www.reddit.com/r/AskRunningShoeGeeks/comments/1knlhap/can_someone_please_help_me_to_pick_my_first_pair/)",
+      "links": null,
+      "images": null,
+      "references": [
+       {
+        "type": "ai_overview_reference",
+        "position": "left",
+        "source": "Reddit",
+        "domain": "www.reddit.com",
+        "url": "https://www.reddit.com/r/AskRunningShoeGeeks/comments/1knlhap/can_someone_please_help_me_to_pick_my_first_pair/",
+        "title": "Can someone please help me to pick my first pair of running shoes?",
+        "text": "Several models are suggested as good initial running shoes or daily trainers, including Brooks Ghost, ASICS Novablast/Cumulus, Hok..."
+       }
+      ]
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": "Top Beginner Running Shoes",
+      "text": null,
+      "markdown": "### Top Beginner Running Shoes",
+      "links": null,
+      "images": null,
+      "references": null
+     },
+     {
+      "type": "ai_overview_shopping",
+      "position": "left",
+      "title": null,
+      "markdown": "---\n\n[![Brooks Ghost 18](https://api.dataforseo.com/cdn/i/11121525-1697-0139-0000-70fafe3c84d2:10)](https://www.google.com/search?ibp=oshop&prds=pvt:a,pvo:29,mid:576462549196774912,imageDocid:15915972125240344270,gpcid:7326703641027475137,headlineOfferDocid:3948599999763198308,catalogid:8366298953364076429,productDocid:6709741650701801796,rds:PC_7326703641027475137%7CPROD_PC_7326703641027475137&q=product&sa=X&ved=2ahUKEwjHiNXj3oKYAxU3lFYBHXtDGw4QgLcPeggIAggBCCAQAQ&hl=en&gl=US)\n\n- **Price:** ~$175\n- **Why it works:** The Ghost is practically the gold standard for a first running shoe. It has a traditional, balanced feel—not too mushy and not too firm—anchored by nitrogen-infused DNA Loft v3 cushioning that soaks up pavement impact.\n- **Great for:** Heel-strikers, building up your first 5K or 10K, and anyone wanting a safe, straightforward fit.[[1]](https://qz.com/best-running-shoes-2026)\n\n\n\n---\n\n[![ASICS Novablast 6](https://api.dataforseo.com/cdn/i/11121525-1697-0139-0000-70fafe3c84d2:11)](https://www.google.com/search?ibp=oshop&prds=pvt:a,pvo:29,mid:576462576249872247,imageDocid:13207580655371263381,gpcid:17782223141596220279,headlineOfferDocid:4394828248213248816,catalogid:1816383742077927375,productDocid:16159874941837717604,rds:PC_5626042281368975415%7CPROD_PC_5626042281368975415&q=product&sa=X&ved=2ahUKEwjHiNXj3oKYAxU3lFYBHXtDGw4QgLcPeggIAggBCCAQEw&hl=en&gl=US)\n\n- **Price:** ~$155\n- **Why it works:** If you want a ride that feels energetic and propels you forward rather than feeling dull, the Novablast is a crowd favorite. It combines high-level, lightweight cushioning with a peppy toe-off.\n- **Great for:** Runners who want a lighter, lively daily trainer that can handle easy jogs or pick up the pace.[[1]](https://theruntesters.com/running-shoes/the-best-running-shoes-to-buy/)[[2]](https://believeintherun.com/shoe-reviews/best-beginner-running-shoes/)\n\n\n\n---\n\n[![Hoka Clifton 10](https://api.dataforseo.com/cdn/i/11121525-1697-0139-0000-70fafe3c84d2:12)](https://www.google.com/search?ibp=oshop&prds=pvt:a,pvo:29,mid:576462511358383728,imageDocid:11766156655418795336,gpcid:18148596539609703814,headlineOfferDocid:8673790621286925294,catalogid:908430028105716607,productDocid:15393316118211811055,rds:PC_18148596539609703814%7CPROD_PC_18148596539609703814&q=product&sa=X&ved=2ahUKEwjHiNXj3oKYAxU3lFYBHXtDGw4QgLcPeggIAggBCCAQJQ&hl=en&gl=US)\n\n- **Price:** ~$145–$150\n- **Why it works:** Hoka practically popularized thick, ultra-cushioned soles that still manage to feel featherlight. The Clifton uses an early-stage Meta-Rocker to help roll your foot smoothly from landing to push-off.\n- **Great for:** People worried about joint fatigue or anyone spending a lot of time on their feet.\n\n\n\n---\n\n[![Nike Pegasus 41](https://api.dataforseo.com/cdn/i/11121525-1697-0139-0000-70fafe3c84d2:13)](https://www.google.com/search?ibp=oshop&prds=pvt:a,pvo:29,mid:576462775976734931,imageDocid:17910386741372430640,gpcid:12837924782550288304,headlineOfferDocid:3144578407051127212,catalogid:9096469711472791551,productDocid:15784266772130607627,rds:PC_12837924782550288304%7CPROD_PC_12837924782550288304&q=product&sa=X&ved=2ahUKEwjHiNXj3oKYAxU3lFYBHXtDGw4QgLcPeggIAggBCCAQNQ&hl=en&gl=US)\n\n- **Price:** ~$140\n- **Why it works:** A long-time staple of the running world, the Pegasus uses responsive foam paired with forefoot/heel air units for a snappy, secure lock-in.\n- **Great for:** A snug midfoot hold and runners who want a shoe that transitions easily from the treadmill to the road.\n\n\n\n---\n\n[![Adidas Adizero Evo SL](https://api.dataforseo.com/cdn/i/11121525-1697-0139-0000-70fafe3c84d2:14)](https://www.google.com/search?ibp=oshop&prds=pvt:a,pvo:29,mid:576462915606187204,imageDocid:8270447671530460351,gpcid:8805222204851159542,headlineOfferDocid:53195426980191916,catalogid:11817583815923665121,productDocid:3131866794156385679,rds:PC_8805222204851159542%7CPROD_PC_8805222204851159542&q=product&sa=X&ved=2ahUKEwjHiNXj3oKYAxU3lFYBHXtDGw4QgLcPeggIAggBCCAQRQ&hl=en&gl=US)\n\n- **Price:** ~$150\n- **Why it works:** One of the most praised recent designs, it features high-end springy foam (Lightstrike Pro) in a simplified, lightweight package that punches well above its price tag.\n- **Great for:** Beginners who want a fast, modern feel that doubles nicely for light speed-work or everyday wear.[[1]](https://theruntesters.com/running-shoes/the-best-running-shoes-to-buy/)",
+      "items": [
+       {
+        "type": "ai_overview_shopping_element",
+        "product_id": "8366298953364076429",
+        "data_docid": "6709741650701801796",
+        "gid": "7326703641027475137",
+        "title": "Brooks Ghost 18",
+        "url": "https://www.google.com/search?ibp=oshop&prds=pvt:a,pvo:29,mid:576462549196774912,imageDocid:15915972125240344270,gpcid:7326703641027475137,headlineOfferDocid:3948599999763198308,catalogid:8366298953364076429,productDocid:6709741650701801796,rds:PC_7326703641027475137%7CPROD_PC_7326703641027475137&q=product&sa=X&ved=2ahUKEwjHiNXj3oKYAxU3lFYBHXtDGw4QgLcPeggIAggBCCAQAQ&hl=en&gl=US",
+        "domain": "www.google.com",
+        "rating": {
+         "rating_type": "Max5",
+         "value": 4.5,
+         "votes_count": 698,
+         "rating_max": 5
+        },
+        "price": {
+         "current": 150,
+         "regular": null,
+         "max_value": null,
+         "currency": "USD",
+         "is_price_range": false,
+         "displayed_price": "$150.00"
+        },
+        "seller": "Brooks Running",
+        "snippet": "Brooks Running & more",
+        "marketplace": null,
+        "marketplace_url": null,
+        "image_url": "https://api.dataforseo.com/cdn/i/11121525-1697-0139-0000-70fafe3c84d2:1",
+        "text": "Price: ~$175\nWhy it works: The Ghost is practically the gold standard for a first running shoe. It has a traditional, balanced feel—not too mushy and not too firm—anchored by nitrogen-infused DNA Loft v3 cushioning that soaks up pavement impact.\nGreat for: Heel-strikers, building up your first 5K or 10K, and anyone wanting a safe, straightforward fit.",
+        "markdown": "---\n\n[![Brooks Ghost 18](https://api.dataforseo.com/cdn/i/11121525-1697-0139-0000-70fafe3c84d2:0)](https://www.google.com/search?ibp=oshop&prds=pvt:a,pvo:29,mid:576462549196774912,imageDocid:15915972125240344270,gpcid:7326703641027475137,headlineOfferDocid:3948599999763198308,catalogid:8366298953364076429,productDocid:6709741650701801796,rds:PC_7326703641027475137%7CPROD_PC_7326703641027475137&q=product&sa=X&ved=2ahUKEwjHiNXj3oKYAxU3lFYBHXtDGw4QgLcPeggIAggBCCAQAQ&hl=en&gl=US)\n\n- **Price:** ~$175\n- **Why it works:** The Ghost is practically the gold standard for a first running shoe. It has a traditional, balanced feel—not too mushy and not too firm—anchored by nitrogen-infused DNA Loft v3 cushioning that soaks up pavement impact.\n- **Great for:** Heel-strikers, building up your first 5K or 10K, and anyone wanting a safe, straightforward fit.[[1]](https://qz.com/best-running-shoes-2026)"
+       },
+       {
+        "type": "ai_overview_shopping_element",
+        "product_id": "1816383742077927375",
+        "data_docid": "16159874941837717604",
+        "gid": "17782223141596220279",
+        "title": "ASICS Novablast 6",
+        "url": "https://www.google.com/search?ibp=oshop&prds=pvt:a,pvo:29,mid:576462576249872247,imageDocid:13207580655371263381,gpcid:17782223141596220279,headlineOfferDocid:4394828248213248816,catalogid:1816383742077927375,productDocid:16159874941837717604,rds:PC_5626042281368975415%7CPROD_PC_5626042281368975415&q=product&sa=X&ved=2ahUKEwjHiNXj3oKYAxU3lFYBHXtDGw4QgLcPeggIAggBCCAQEw&hl=en&gl=US",
+        "domain": "www.google.com",
+        "rating": {
+         "rating_type": "Max5",
+         "value": 4.6,
+         "votes_count": 1500,
+         "rating_max": 5
+        },
+        "price": {
+         "current": 155,
+         "regular": null,
+         "max_value": null,
+         "currency": "USD",
+         "is_price_range": false,
+         "displayed_price": "$155.00"
+        },
+        "seller": "Fleet Feet",
+        "snippet": "Fleet Feet & more",
+        "marketplace": null,
+        "marketplace_url": null,
+        "image_url": "https://api.dataforseo.com/cdn/i/11121525-1697-0139-0000-70fafe3c84d2:3",
+        "text": "Price: ~$155\nWhy it works: If you want a ride that feels energetic and propels you forward rather than feeling dull, the Novablast is a crowd favorite. It combines high-level, lightweight cushioning with a peppy toe-off.\nGreat for: Runners who want a lighter, lively daily trainer that can handle easy jogs or pick up the pace.",
+        "markdown": "---\n\n[![ASICS Novablast 6](https://api.dataforseo.com/cdn/i/11121525-1697-0139-0000-70fafe3c84d2:2)](https://www.google.com/search?ibp=oshop&prds=pvt:a,pvo:29,mid:576462576249872247,imageDocid:13207580655371263381,gpcid:17782223141596220279,headlineOfferDocid:4394828248213248816,catalogid:1816383742077927375,productDocid:16159874941837717604,rds:PC_5626042281368975415%7CPROD_PC_5626042281368975415&q=product&sa=X&ved=2ahUKEwjHiNXj3oKYAxU3lFYBHXtDGw4QgLcPeggIAggBCCAQEw&hl=en&gl=US)\n\n- **Price:** ~$155\n- **Why it works:** If you want a ride that feels energetic and propels you forward rather than feeling dull, the Novablast is a crowd favorite. It combines high-level, lightweight cushioning with a peppy toe-off.\n- **Great for:** Runners who want a lighter, lively daily trainer that can handle easy jogs or pick up the pace.[[1]](https://theruntesters.com/running-shoes/the-best-running-shoes-to-buy/)[[2]](https://believeintherun.com/shoe-reviews/best-beginner-running-shoes/)"
+       },
+       {
+        "type": "ai_overview_shopping_element",
+        "product_id": "908430028105716607",
+        "data_docid": "15393316118211811055",
+        "gid": "18148596539609703814",
+        "title": "Hoka Clifton 10",
+        "url": "https://www.google.com/search?ibp=oshop&prds=pvt:a,pvo:29,mid:576462511358383728,imageDocid:11766156655418795336,gpcid:18148596539609703814,headlineOfferDocid:8673790621286925294,catalogid:908430028105716607,productDocid:15393316118211811055,rds:PC_18148596539609703814%7CPROD_PC_18148596539609703814&q=product&sa=X&ved=2ahUKEwjHiNXj3oKYAxU3lFYBHXtDGw4QgLcPeggIAggBCCAQJQ&hl=en&gl=US",
+        "domain": "www.google.com",
+        "rating": {
+         "rating_type": "Max5",
+         "value": 4.6,
+         "votes_count": 9000,
+         "rating_max": 5
+        },
+        "price": {
+         "current": 108.5,
+         "regular": 155,
+         "max_value": null,
+         "currency": "USD",
+         "is_price_range": false,
+         "displayed_price": "$108.50 $155"
+        },
+        "seller": "Zappos.com",
+        "snippet": "Zappos.com & more",
+        "marketplace": null,
+        "marketplace_url": null,
+        "image_url": "https://api.dataforseo.com/cdn/i/11121525-1697-0139-0000-70fafe3c84d2:5",
+        "text": "Price: ~$145–$150\nWhy it works: Hoka practically popularized thick, ultra-cushioned soles that still manage to feel featherlight. The Clifton uses an early-stage Meta-Rocker to help roll your foot smoothly from landing to push-off.\nGreat for: People worried about joint fatigue or anyone spending a lot of time on their feet.",
+        "markdown": "---\n\n[![Hoka Clifton 10](https://api.dataforseo.com/cdn/i/11121525-1697-0139-0000-70fafe3c84d2:4)](https://www.google.com/search?ibp=oshop&prds=pvt:a,pvo:29,mid:576462511358383728,imageDocid:11766156655418795336,gpcid:18148596539609703814,headlineOfferDocid:8673790621286925294,catalogid:908430028105716607,productDocid:15393316118211811055,rds:PC_18148596539609703814%7CPROD_PC_18148596539609703814&q=product&sa=X&ved=2ahUKEwjHiNXj3oKYAxU3lFYBHXtDGw4QgLcPeggIAggBCCAQJQ&hl=en&gl=US)\n\n- **Price:** ~$145–$150\n- **Why it works:** Hoka practically popularized thick, ultra-cushioned soles that still manage to feel featherlight. The Clifton uses an early-stage Meta-Rocker to help roll your foot smoothly from landing to push-off.\n- **Great for:** People worried about joint fatigue or anyone spending a lot of time on their feet."
+       },
+       {
+        "type": "ai_overview_shopping_element",
+        "product_id": "9096469711472791551",
+        "data_docid": "15784266772130607627",
+        "gid": "12837924782550288304",
+        "title": "Nike Pegasus 41",
+        "url": "https://www.google.com/search?ibp=oshop&prds=pvt:a,pvo:29,mid:576462775976734931,imageDocid:17910386741372430640,gpcid:12837924782550288304,headlineOfferDocid:3144578407051127212,catalogid:9096469711472791551,productDocid:15784266772130607627,rds:PC_12837924782550288304%7CPROD_PC_12837924782550288304&q=product&sa=X&ved=2ahUKEwjHiNXj3oKYAxU3lFYBHXtDGw4QgLcPeggIAggBCCAQNQ&hl=en&gl=US",
+        "domain": "www.google.com",
+        "rating": {
+         "rating_type": "Max5",
+         "value": 4.6,
+         "votes_count": 3300,
+         "rating_max": 5
+        },
+        "price": {
+         "current": 94.77,
+         "regular": 145,
+         "max_value": null,
+         "currency": "USD",
+         "is_price_range": false,
+         "displayed_price": "$94.77 $145"
+        },
+        "seller": "Zappos.com",
+        "snippet": "Zappos.com & more",
+        "marketplace": null,
+        "marketplace_url": null,
+        "image_url": "https://api.dataforseo.com/cdn/i/11121525-1697-0139-0000-70fafe3c84d2:7",
+        "text": "Price: ~$140\nWhy it works: A long-time staple of the running world, the Pegasus uses responsive foam paired with forefoot/heel air units for a snappy, secure lock-in.\nGreat for: A snug midfoot hold and runners who want a shoe that transitions easily from the treadmill to the road.",
+        "markdown": "---\n\n[![Nike Pegasus 41](https://api.dataforseo.com/cdn/i/11121525-1697-0139-0000-70fafe3c84d2:6)](https://www.google.com/search?ibp=oshop&prds=pvt:a,pvo:29,mid:576462775976734931,imageDocid:17910386741372430640,gpcid:12837924782550288304,headlineOfferDocid:3144578407051127212,catalogid:9096469711472791551,productDocid:15784266772130607627,rds:PC_12837924782550288304%7CPROD_PC_12837924782550288304&q=product&sa=X&ved=2ahUKEwjHiNXj3oKYAxU3lFYBHXtDGw4QgLcPeggIAggBCCAQNQ&hl=en&gl=US)\n\n- **Price:** ~$140\n- **Why it works:** A long-time staple of the running world, the Pegasus uses responsive foam paired with forefoot/heel air units for a snappy, secure lock-in.\n- **Great for:** A snug midfoot hold and runners who want a shoe that transitions easily from the treadmill to the road."
+       },
+       {
+        "type": "ai_overview_shopping_element",
+        "product_id": "11817583815923665121",
+        "data_docid": "3131866794156385679",
+        "gid": "8805222204851159542",
+        "title": "Adidas Adizero Evo SL",
+        "url": "https://www.google.com/search?ibp=oshop&prds=pvt:a,pvo:29,mid:576462915606187204,imageDocid:8270447671530460351,gpcid:8805222204851159542,headlineOfferDocid:53195426980191916,catalogid:11817583815923665121,productDocid:3131866794156385679,rds:PC_8805222204851159542%7CPROD_PC_8805222204851159542&q=product&sa=X&ved=2ahUKEwjHiNXj3oKYAxU3lFYBHXtDGw4QgLcPeggIAggBCCAQRQ&hl=en&gl=US",
+        "domain": "www.google.com",
+        "rating": {
+         "rating_type": "Max5",
+         "value": 4.7,
+         "votes_count": 33600,
+         "rating_max": 5
+        },
+        "price": {
+         "current": 120,
+         "regular": 150,
+         "max_value": null,
+         "currency": "USD",
+         "is_price_range": false,
+         "displayed_price": "$120.00 $150"
+        },
+        "seller": "adidas",
+        "snippet": "adidas & more",
+        "marketplace": null,
+        "marketplace_url": null,
+        "image_url": "https://api.dataforseo.com/cdn/i/11121525-1697-0139-0000-70fafe3c84d2:9",
+        "text": "Price: ~$150\nWhy it works: One of the most praised recent designs, it features high-end springy foam (Lightstrike Pro) in a simplified, lightweight package that punches well above its price tag.\nGreat for: Beginners who want a fast, modern feel that doubles nicely for light speed-work or everyday wear.",
+        "markdown": "---\n\n[![Adidas Adizero Evo SL](https://api.dataforseo.com/cdn/i/11121525-1697-0139-0000-70fafe3c84d2:8)](https://www.google.com/search?ibp=oshop&prds=pvt:a,pvo:29,mid:576462915606187204,imageDocid:8270447671530460351,gpcid:8805222204851159542,headlineOfferDocid:53195426980191916,catalogid:11817583815923665121,productDocid:3131866794156385679,rds:PC_8805222204851159542%7CPROD_PC_8805222204851159542&q=product&sa=X&ved=2ahUKEwjHiNXj3oKYAxU3lFYBHXtDGw4QgLcPeggIAggBCCAQRQ&hl=en&gl=US)\n\n- **Price:** ~$150\n- **Why it works:** One of the most praised recent designs, it features high-end springy foam (Lightstrike Pro) in a simplified, lightweight package that punches well above its price tag.\n- **Great for:** Beginners who want a fast, modern feel that doubles nicely for light speed-work or everyday wear.[[1]](https://theruntesters.com/running-shoes/the-best-running-shoes-to-buy/)"
+       }
+      ]
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": "Quick Tips for Choosing Your First Pair",
+      "text": "Go up a half-size: Your feet swell and slide forward when you run. Having a thumb's width of space ahead of your longest toe prevents brutal black toenails. Neutral vs. Stability: Most of the shoes above are neutral, which works for the vast majority of runners. If you heavily overpronate (your ankles roll inward significantly), look at stability counterparts like the Hoka Arahi or Brooks GTS versions. Check out reviews or local shops: According to discussions on platforms like Reddit (r/AskRunningShoeGeeks), a consensus recommendation is to visit a local running specialty shop if possible—they will often watch you jog for 30 seconds to point you toward the exact geometry your feet need.",
+      "markdown": "- **Go up a half-size:** Your feet swell and slide forward when you run. Having a thumb's width of space ahead of your longest toe prevents brutal black toenails.\n- **Neutral vs. Stability:** Most of the shoes above are **neutral** , which works for the vast majority of runners. If you heavily overpronate (your ankles roll inward significantly), look at stability counterparts like the *Hoka Arahi* or *Brooks GTS* versions.[[1]](https://theruntesters.com/running-shoes/the-best-running-shoes-to-buy/)[[2]](https://qz.com/best-running-shoes-2026)\n- **Check out reviews or local shops:** According to discussions on platforms like [Reddit (r/AskRunningShoeGeeks)](https://www.reddit.com/r/AskRunningShoeGeeks/comments/1knlhap/can_someone_please_help_me_to_pick_my_first_pair/) , a consensus recommendation is to visit a local running specialty shop if possible—they will often watch you jog for 30 seconds to point you toward the exact geometry your feet need.[[1]](https://www.reddit.com/r/AskRunningShoeGeeks/comments/1knlhap/can_someone_please_help_me_to_pick_my_first_pair/)",
+      "links": [
+       {
+        "type": "link_element",
+        "title": "Reddit (r/AskRunningShoeGeeks)",
+        "description": null,
+        "url": "https://www.reddit.com/r/AskRunningShoeGeeks/comments/1knlhap/can_someone_please_help_me_to_pick_my_first_pair/",
+        "domain": "www.reddit.com"
+       }
+      ],
+      "images": null,
+      "references": [
+       {
+        "type": "ai_overview_reference",
+        "position": "left",
+        "source": "The Run Testers",
+        "domain": "theruntesters.com",
+        "url": "https://theruntesters.com/running-shoes/the-best-running-shoes-to-buy/",
+        "title": "The Best Running Shoes 2026 - The Run Testers",
+        "text": "The Asics Novablast 6 is an excellent daily trainer for runners of all levels ・ is also quite light ・ creates a lively ride for fa..."
+       },
+       {
+        "type": "ai_overview_reference",
+        "position": "left",
+        "source": "qz.com",
+        "domain": "qz.com",
+        "url": "https://qz.com/best-running-shoes-2026",
+        "title": "Best running shoes 2026, per Runner's World testers - Quartz",
+        "text": "It is a neutral road trainer weighing … which soaks up impact and molds to the shape of the foot instead of pushing back hard. That middle-ground softness — not mu..."
+       },
+       {
+        "type": "ai_overview_reference",
+        "position": "left",
+        "source": "Reddit",
+        "domain": "www.reddit.com",
+        "url": "https://www.reddit.com/r/AskRunningShoeGeeks/comments/1knlhap/can_someone_please_help_me_to_pick_my_first_pair/",
+        "title": "Can someone please help me to pick my first pair of running shoes?",
+        "text": "Several models are suggested as good initial running shoes or daily trainers, including Brooks Ghost, ASICS Novablast/Cumulus, Hoka Clifton, Saucony Ride/Triumph"
+       }
+      ]
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": null,
+      "text": "If you'd like to narrow this down, tell me:",
+      "markdown": "If you'd like to narrow this down, tell me:",
+      "links": null,
+      "images": null,
+      "references": null
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": null,
+      "text": "Do you know if you have flat arches, high arches, or neutral feet ? Are you planning to run mostly outdoors on pavement, on a treadmill, or mixed ? What is your approximate budget ?",
+      "markdown": "- Do you know if you have **flat arches, high arches, or neutral feet**?\n- Are you planning to run mostly **outdoors on pavement, on a treadmill, or mixed**?\n- What is your **approximate budget**?",
+      "links": null,
+      "images": null,
+      "references": null
+     }
+    ],
+    "references": [
+     {
+      "type": "ai_overview_reference",
+      "position": "right",
+      "source": "The Run Testers",
+      "domain": "theruntesters.com",
+      "url": "https://theruntesters.com/running-shoes/the-best-running-shoes-to-buy/",
+      "title": "The Best Running Shoes 2026 - The Run Testers",
+      "text": "Daily Trainers: New Balance 1080v15 (£170/$170, 262g, 6mm drop); Asics Novablast 6 (£140/$155, 253g, 8mm drop). Fast Trainers: Asics Megablast (£210/$225, 241g, 8m..."
+     },
+     {
+      "type": "ai_overview_reference",
+      "position": "right",
+      "source": "Reddit",
+      "domain": "www.reddit.com",
+      "url": "https://www.reddit.com/r/AskRunningShoeGeeks/comments/1knlhap/can_someone_please_help_me_to_pick_my_first_pair/",
+      "title": "Can someone please help me to pick my first pair of running shoes?",
+      "text": "Several models are suggested as good initial running shoes or daily trainers, including Brooks Ghost, ASICS Novablast/Cumulus, Hoka Clifton, Saucony Ride/Triumph"
+     },
+     {
+      "type": "ai_overview_reference",
+      "position": "right",
+      "source": "qz.com",
+      "domain": "qz.com",
+      "url": "https://qz.com/best-running-shoes-2026",
+      "title": "Best running shoes 2026, per Runner's World testers - Quartz",
+      "text": "It is a neutral road trainer weighing … which soaks up impact and molds to the shape of the foot instead of pushing back hard. That middle-ground softness — not mu..."
+     },
+     {
+      "type": "ai_overview_reference",
+      "position": "right",
+      "source": "The Run Testers",
+      "domain": "theruntesters.com",
+      "url": "https://theruntesters.com/running-shoes/the-best-running-shoes-to-buy/",
+      "title": "The Best Running Shoes 2026 - The Run Testers",
+      "text": "The Asics Novablast 6 is an excellent daily trainer for runners of all levels ・ is also quite light ・ creates a lively ride for fa..."
+     },
+     {
+      "type": "ai_overview_reference",
+      "position": "right",
+      "source": "Believe in the Run",
+      "domain": "believeintherun.com",
+      "url": "https://believeintherun.com/shoe-reviews/best-beginner-running-shoes/",
+      "title": "These are the best running shoes for beginners in 2026",
+      "text": "Asics packed a pod of its brand-new FF Turbo Squared foam under the forefoot, which gives the Novablast 6 better bounce off the to..."
+     }
+    ],
+    "rectangle": null
+   }
+  ]
+ }
+}
