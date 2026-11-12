@@ -1,0 +1,149 @@
+{
+ "prompt": "how to train for a first marathon",
+ "kind": "none",
+ "engine": "aim",
+ "recorded_at": "2026-11-12T15:30:10.292Z",
+ "result": {
+  "keyword": "how to train for a first marathon",
+  "type": "ai_mode",
+  "se_domain": "google.com",
+  "location_code": 2840,
+  "language_code": "en",
+  "check_url": "https://www.google.com/search?q=how%20to%20train%20for%20a%20first%20marathon&hl=en&gl=US&udm=50&uule=w+CAIQIFISCQs2MuSEtepUEUK33kOSuTsc",
+  "datetime": "2026-11-12 15:30:09 +00:00",
+  "spell": null,
+  "refinement_chips": null,
+  "item_types": [
+   "ai_overview"
+  ],
+  "se_results_count": 0,
+  "items_count": 1,
+  "items": [
+   {
+    "type": "ai_overview",
+    "rank_group": 1,
+    "rank_absolute": 1,
+    "page": 1,
+    "position": "left",
+    "xpath": "/html[1]/body[1]/div[2]/div[1]/div[9]/div[1]/section[1]/div[1]/div[1]/div[4]/div[5]/div[1]/div[2]/div[1]/div[3]",
+    "markdown": "Training for your first marathon is an exciting milestone. Most beginner plans span **16 to 20 weeks** , assuming you can already comfortably run/walk or run about 3 to 5 miles at a time and maintain a baseline of 15–20 miles per week.\n\n#### Phase 1: The Building Blocks (Weeks 1–4)\n\n- **Weekly Mileage:** Start around 15–20 miles total.\n- **Easy Runs (3–4 miles):** Run at a conversational pace. If you can't talk in full sentences, you're going too fast.\n- **The Long Run (6–8 miles):** Usually done on the weekend. Build this up slowly by no more than 10% per week.\n- **Strength & Mobility (2 days):** Focus on glutes, core, hips, and single-leg stability to keep injury away.\n\n#### Phase 2: Building Endurance (Weeks 5–12)\n\n- **Weekly Mileage:** Gradually scale up to 25–40 miles per week.\n- **Pace Variation:** Introduce tempo runs or race-pace miles into one of your midweek sessions.\n- **Peak Long Run:** Work your way up to a 18-to-20-mile long run about 3 weeks before race day. (You don't need to run a full 26.2 miles in training; the taper will bridge the gap safely).\n- **Fueling Practice:** Use your long runs to test out energy gels, sports drinks, and hydration gear. Never try anything new on race day.\n\n#### Phase 3: The Taper (Weeks 13–16 / Final 3 Weeks)\n\n- **Reduce Mileage:** Drop your weekly mileage by 20% to 50% so your muscles and glycogen stores can fully repair.\n- **Rest & Sleep:** Prioritize high-quality sleep and easy stretching. You might feel \"taper madness\"—phantom aches and restless energy—which is totally normal.\n- **Race Day:** Line up with confidence, pace yourself conservatively for the first half (13.1 miles), and run your own race.\n\n#### Golden Rules for Beginners\n\n**80/20 Rule:** About 80% of your runs should feel easy and slow; only 20% should feel hard or fast.\n1. **Listen to Your Body:** Distinguish between normal muscle fatigue and sharp, persistent joint pain. Rest a day early rather than being forced to rest a month late.\n2. **Gear Check:** Get properly fitted for running shoes at a local specialty shop, and replace them if they have more than 300–500 miles on them before the race.\n3. **Follow Structured Plans:** Look into trusted blueprints like the Every Woman's Marathon Beginner Plan[Every Woman's Marathon Beginner Plan](https://everywomansmarathon.com/training/beginner-marathon-plan/) or classic programs from Hal Higdon[Hal Higdon](https://www.halhigdon.com/) or RRCA[RRCA](https://www.rrca.org/) to map out your calendar day-by-day.[[1]](https://everywomansmarathon.com/training/beginner-marathon-plan/)\n\nTo help tailor a plan for you, tell me:\n\n- What is your **current weekly mileage** or longest recent run?\n- Do you have a **target race date** in mind?",
+    "items": [
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": null,
+      "text": "Training for your first marathon is an exciting milestone. Most beginner plans span 16 to 20 weeks, assuming you can already comfortably run/walk or run about 3 to 5 miles at a time and maintain a baseline of 15–20 miles per week.",
+      "markdown": "Training for your first marathon is an exciting milestone. Most beginner plans span **16 to 20 weeks** , assuming you can already comfortably run/walk or run about 3 to 5 miles at a time and maintain a baseline of 15–20 miles per week.",
+      "links": null,
+      "images": null,
+      "references": null
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": "Phase 1: The Building Blocks (Weeks 1–4)",
+      "text": "Weekly Mileage: Start around 15–20 miles total. Easy Runs (3–4 miles): Run at a conversational pace. If you can't talk in full sentences, you're going too fast. The Long Run (6–8 miles): Usually done on the weekend. Build this up slowly by no more than 10% per week. Strength & Mobility (2 days): Focus on glutes, core, hips, and single-leg stability to keep injury away.",
+      "markdown": "- **Weekly Mileage:** Start around 15–20 miles total.\n- **Easy Runs (3–4 miles):** Run at a conversational pace. If you can't talk in full sentences, you're going too fast.\n- **The Long Run (6–8 miles):** Usually done on the weekend. Build this up slowly by no more than 10% per week.\n- **Strength & Mobility (2 days):** Focus on glutes, core, hips, and single-leg stability to keep injury away.",
+      "links": null,
+      "images": null,
+      "references": null
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": "Phase 2: Building Endurance (Weeks 5–12)",
+      "text": "Weekly Mileage: Gradually scale up to 25–40 miles per week. Pace Variation: Introduce tempo runs or race-pace miles into one of your midweek sessions. Peak Long Run: Work your way up to a 18-to-20-mile long run about 3 weeks before race day. (You don't need to run a full 26.2 miles in training; the taper will bridge the gap safely). Fueling Practice: Use your long runs to test out energy gels, sports drinks, and hydration gear. Never try anything new on race day.",
+      "markdown": "- **Weekly Mileage:** Gradually scale up to 25–40 miles per week.\n- **Pace Variation:** Introduce tempo runs or race-pace miles into one of your midweek sessions.\n- **Peak Long Run:** Work your way up to a 18-to-20-mile long run about 3 weeks before race day. (You don't need to run a full 26.2 miles in training; the taper will bridge the gap safely).\n- **Fueling Practice:** Use your long runs to test out energy gels, sports drinks, and hydration gear. Never try anything new on race day.",
+      "links": null,
+      "images": null,
+      "references": null
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": "Phase 3: The Taper (Weeks 13–16 / Final 3 Weeks)",
+      "text": "Reduce Mileage: Drop your weekly mileage by 20% to 50% so your muscles and glycogen stores can fully repair. Rest & Sleep: Prioritize high-quality sleep and easy stretching. You might feel \"taper madness\"—phantom aches and restless energy—which is totally normal. Race Day: Line up with confidence, pace yourself conservatively for the first half (13.1 miles), and run your own race.",
+      "markdown": "- **Reduce Mileage:** Drop your weekly mileage by 20% to 50% so your muscles and glycogen stores can fully repair.\n- **Rest & Sleep:** Prioritize high-quality sleep and easy stretching. You might feel \"taper madness\"—phantom aches and restless energy—which is totally normal.\n- **Race Day:** Line up with confidence, pace yourself conservatively for the first half (13.1 miles), and run your own race.",
+      "links": null,
+      "images": null,
+      "references": null
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": "Golden Rules for Beginners",
+      "text": "80/20 Rule: About 80% of your runs should feel easy and slow; only 20% should feel hard or fast. Listen to Your Body: Distinguish between normal muscle fatigue and sharp, persistent joint pain. Rest a day early rather than being forced to rest a month late. Gear Check: Get properly fitted for running shoes at a local specialty shop, and replace them if they have more than 300–500 miles on them before the race. Follow Structured Plans: Look into trusted blueprints like the Every Woman's Marathon Beginner Plan Every Woman's Marathon Beginner Plan or classic programs from Hal Higdon Hal Higdon or RRCA RRCA to map out your calendar day-by-day.",
+      "markdown": "**80/20 Rule:** About 80% of your runs should feel easy and slow; only 20% should feel hard or fast.\n1. **Listen to Your Body:** Distinguish between normal muscle fatigue and sharp, persistent joint pain. Rest a day early rather than being forced to rest a month late.\n2. **Gear Check:** Get properly fitted for running shoes at a local specialty shop, and replace them if they have more than 300–500 miles on them before the race.\n3. **Follow Structured Plans:** Look into trusted blueprints like the Every Woman's Marathon Beginner Plan[Every Woman's Marathon Beginner Plan](https://everywomansmarathon.com/training/beginner-marathon-plan/) or classic programs from Hal Higdon[Hal Higdon](https://www.halhigdon.com/) or RRCA[RRCA](https://www.rrca.org/) to map out your calendar day-by-day.[[1]](https://everywomansmarathon.com/training/beginner-marathon-plan/)",
+      "links": [
+       {
+        "type": "link_element",
+        "title": "Every Woman's Marathon Beginner Plan",
+        "description": null,
+        "url": "https://everywomansmarathon.com/training/beginner-marathon-plan/",
+        "domain": "everywomansmarathon.com"
+       },
+       {
+        "type": "link_element",
+        "title": "Hal Higdon",
+        "description": null,
+        "url": "https://www.halhigdon.com/",
+        "domain": "www.halhigdon.com"
+       },
+       {
+        "type": "link_element",
+        "title": "RRCA",
+        "description": null,
+        "url": "https://www.rrca.org/",
+        "domain": "www.rrca.org"
+       }
+      ],
+      "images": null,
+      "references": [
+       {
+        "type": "ai_overview_reference",
+        "position": "left",
+        "source": "Every Woman's Marathon",
+        "domain": "everywomansmarathon.com",
+        "url": "https://everywomansmarathon.com/training/beginner-marathon-plan/",
+        "title": "Marathon Beginner Plan",
+        "text": "16-week beginner marathon training plan; Training Structure: 4-5 running days per week on road and soft surfaces; weekly volume in..."
+       }
+      ]
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": null,
+      "text": "To help tailor a plan for you, tell me:",
+      "markdown": "To help tailor a plan for you, tell me:",
+      "links": null,
+      "images": null,
+      "references": null
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": null,
+      "text": "What is your current weekly mileage or longest recent run? Do you have a target race date in mind?",
+      "markdown": "- What is your **current weekly mileage** or longest recent run?\n- Do you have a **target race date** in mind?",
+      "links": null,
+      "images": null,
+      "references": null
+     }
+    ],
+    "references": [
+     {
+      "type": "ai_overview_reference",
+      "position": "right",
+      "source": "Every Woman's Marathon",
+      "domain": "everywomansmarathon.com",
+      "url": "https://everywomansmarathon.com/training/beginner-marathon-plan/",
+      "title": "Marathon Beginner Plan",
+      "text": "16-week beginner marathon training plan; Training Structure: 4-5 running days per week on road and soft surfaces; weekly volume includes easy runs (3-4 miles), fle..."
+     }
+    ],
+    "rectangle": null
+   }
+  ]
+ }
+}

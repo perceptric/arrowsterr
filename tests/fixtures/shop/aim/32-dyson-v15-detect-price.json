@@ -1,0 +1,203 @@
+{
+ "prompt": "Dyson V15 Detect price",
+ "kind": "shop",
+ "engine": "aim",
+ "recorded_at": "2026-11-12T15:29:19.225Z",
+ "result": {
+  "keyword": "Dyson V15 Detect price",
+  "type": "ai_mode",
+  "se_domain": "google.com",
+  "location_code": 2840,
+  "language_code": "en",
+  "check_url": "https://www.google.com/search?q=Dyson%20V15%20Detect%20price&hl=en&gl=US&udm=50&uule=w+CAIQIFISCQs2MuSEtepUEUK33kOSuTsc",
+  "datetime": "2026-11-12 15:29:18 +00:00",
+  "spell": null,
+  "refinement_chips": null,
+  "item_types": [
+   "ai_overview"
+  ],
+  "se_results_count": 0,
+  "items_count": 1,
+  "items": [
+   {
+    "type": "ai_overview",
+    "rank_group": 1,
+    "rank_absolute": 1,
+    "page": 1,
+    "position": "left",
+    "xpath": "/html[1]/body[1]/div[2]/div[1]/div[9]/div[1]/section[1]/div[1]/div[1]/div[4]/div[5]/div[1]/div[2]/div[1]/div[3]",
+    "markdown": "Current pricing and ongoing deals for the **[Dyson V15 Detect](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462567127104466,imageDocid:7529747793914606975,gpcid:8839689238923883785,headlineOfferDocid:9119140703695436610,catalogid:12059144334894634156,productDocid:2932875394652689804,rds:PC_8839689238923883785%7CPROD_PC_8839689238923883785&q=product&sa=X&ved=2ahUKEwiM5PzJ34KYAxUK8LsIHT43G8wQxa4PeggIAggBCAkQAQ)** cordless vacuum vary by retailer:\n\n- **Wayfair:** **$599.99** *(was $749.99, 20% off)* with free delivery — check it out on [Wayfair](https://www.wayfair.com/Dyson--Dyson-V15-Detect-44726101-L863-K~XYS10047.html?refid=FR49-XYS10047).\n- **Walmart:** **$599.99** *(was $889.99, 33% off)* for the Absolute + Car Cleaning Kit version with free delivery on [Walmart](https://www.walmart.com/ip/Dyson-V15-Detect-Absolute-Car-Cleaning-Kit-Cordless-Vacuum-Yellow-Nickel-New-Newest-Gen/20037872946?wmlspartner=wlpa&selectedSellerId=11746&veh=seo_fpl&cn=google).\n- **Home Depot:** **$649.99** *(was $849.95, 24% off)* with free delivery on [Home Depot](https://www.homedepot.com/p/Dyson-V15-Detect-Bagless-Cordless-Washable-Filter-Stick-Vacuum-for-Multi-Surface-with-Illumination-626417-01/342657001?source=shoppingads&locale=en-US&fp=ggl&srsltid=AYCX9vK332w6upSzcLxrJDHQab1n165CfVaLrehJkKWXksZwTvMsyg4ay2s).\n- **Best Buy (V15 Detect + Dok):** **$659.99** *(was $899.99, 27% off)* bundled with the floor dock on [Best Buy](https://www.bestbuy.com/product/dyson-v15-detect-dok-newest-model-cordless-vacuum-yellow-nickel/J3ZCSY25Y6/sku/6675887?utm_source=feed).\n- **Best Buy (Standard):** **$691.99** *(was $849.99, 19% off)* on [Best Buy](https://www.bestbuy.com/product/dyson-v15-detect-cordless-vacuum-yellow-nickel/J3ZCSY2534/sku/6675164?utm_source=feed).[[1]](https://www.wayfair.com/Dyson--Dyson-V15-Detect-44726101-L863-K~XYS10047.html?refid=FR49-XYS10047)[[2]](https://www.walmart.com/ip/Dyson-V15-Detect-Absolute-Car-Cleaning-Kit-Cordless-Vacuum-Yellow-Nickel-New-Newest-Gen/20037872946?wmlspartner=wlpa&selectedSellerId=11746&veh=seo_fpl&cn=google)[[3]](https://www.homedepot.com/p/Dyson-V15-Detect-Bagless-Cordless-Washable-Filter-Stick-Vacuum-for-Multi-Surface-with-Illumination-626417-01/342657001?source=shoppingads&locale=en-US&fp=ggl&srsltid=AYCX9vJ906jCU4LBvOOtWpjlRubQ9WiA7mte4QeR9093x9cnbWCD12k5JX0)[[4]](https://www.bestbuy.com/product/dyson-v15-detect-dok-newest-model-cordless-vacuum-yellow-nickel/J3ZCSY25Y6/sku/6675887?utm_source=feed)[[5]](https://www.bestbuy.com/product/dyson-v15-detect-cordless-vacuum-yellow-nickel/J3ZCSY2534/sku/6675164?utm_source=feed)\n\nWould you like help comparing **what accessories come with each bundle** or finding out **which retailer has the fastest shipping** to your area?",
+    "items": [
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": null,
+      "text": "Current pricing and ongoing deals for the Dyson V15 Detect cordless vacuum vary by retailer:",
+      "markdown": "Current pricing and ongoing deals for the **[Dyson V15 Detect](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462567127104466,imageDocid:7529747793914606975,gpcid:8839689238923883785,headlineOfferDocid:9119140703695436610,catalogid:12059144334894634156,productDocid:2932875394652689804,rds:PC_8839689238923883785%7CPROD_PC_8839689238923883785&q=product&sa=X&ved=2ahUKEwiM5PzJ34KYAxUK8LsIHT43G8wQxa4PeggIAggBCAkQAQ)** cordless vacuum vary by retailer:",
+      "links": [
+       {
+        "type": "link_element",
+        "title": "Dyson V15 DetectGo to product viewer dialog for this item.",
+        "description": null,
+        "url": "https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462567127104466,imageDocid:7529747793914606975,gpcid:8839689238923883785,headlineOfferDocid:9119140703695436610,catalogid:12059144334894634156,productDocid:2932875394652689804,rds:PC_8839689238923883785%7CPROD_PC_8839689238923883785&q=product&sa=X&ved=2ahUKEwiM5PzJ34KYAxUK8LsIHT43G8wQxa4PeggIAggBCAkQAQ",
+        "domain": "www.google.com"
+       }
+      ],
+      "images": null,
+      "references": null
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": null,
+      "text": "Wayfair: $599.99 (was $749.99, 20% off) with free delivery — check it out on Wayfair. Walmart: $599.99 (was $889.99, 33% off) for the Absolute + Car Cleaning Kit version with free delivery on Walmart. Home Depot: $649.99 (was $849.95, 24% off) with free delivery on Home Depot. Best Buy (V15 Detect + Dok): $659.99 (was $899.99, 27% off) bundled with the floor dock on Best Buy. Best Buy (Standard): $691.99 (was $849.99, 19% off) on Best Buy.",
+      "markdown": "- **Wayfair:** **$599.99** *(was $749.99, 20% off)* with free delivery — check it out on [Wayfair](https://www.wayfair.com/Dyson--Dyson-V15-Detect-44726101-L863-K~XYS10047.html?refid=FR49-XYS10047).\n- **Walmart:** **$599.99** *(was $889.99, 33% off)* for the Absolute + Car Cleaning Kit version with free delivery on [Walmart](https://www.walmart.com/ip/Dyson-V15-Detect-Absolute-Car-Cleaning-Kit-Cordless-Vacuum-Yellow-Nickel-New-Newest-Gen/20037872946?wmlspartner=wlpa&selectedSellerId=11746&veh=seo_fpl&cn=google).\n- **Home Depot:** **$649.99** *(was $849.95, 24% off)* with free delivery on [Home Depot](https://www.homedepot.com/p/Dyson-V15-Detect-Bagless-Cordless-Washable-Filter-Stick-Vacuum-for-Multi-Surface-with-Illumination-626417-01/342657001?source=shoppingads&locale=en-US&fp=ggl&srsltid=AYCX9vK332w6upSzcLxrJDHQab1n165CfVaLrehJkKWXksZwTvMsyg4ay2s).\n- **Best Buy (V15 Detect + Dok):** **$659.99** *(was $899.99, 27% off)* bundled with the floor dock on [Best Buy](https://www.bestbuy.com/product/dyson-v15-detect-dok-newest-model-cordless-vacuum-yellow-nickel/J3ZCSY25Y6/sku/6675887?utm_source=feed).\n- **Best Buy (Standard):** **$691.99** *(was $849.99, 19% off)* on [Best Buy](https://www.bestbuy.com/product/dyson-v15-detect-cordless-vacuum-yellow-nickel/J3ZCSY2534/sku/6675164?utm_source=feed).[[1]](https://www.wayfair.com/Dyson--Dyson-V15-Detect-44726101-L863-K~XYS10047.html?refid=FR49-XYS10047)[[2]](https://www.walmart.com/ip/Dyson-V15-Detect-Absolute-Car-Cleaning-Kit-Cordless-Vacuum-Yellow-Nickel-New-Newest-Gen/20037872946?wmlspartner=wlpa&selectedSellerId=11746&veh=seo_fpl&cn=google)[[3]](https://www.homedepot.com/p/Dyson-V15-Detect-Bagless-Cordless-Washable-Filter-Stick-Vacuum-for-Multi-Surface-with-Illumination-626417-01/342657001?source=shoppingads&locale=en-US&fp=ggl&srsltid=AYCX9vJ906jCU4LBvOOtWpjlRubQ9WiA7mte4QeR9093x9cnbWCD12k5JX0)[[4]](https://www.bestbuy.com/product/dyson-v15-detect-dok-newest-model-cordless-vacuum-yellow-nickel/J3ZCSY25Y6/sku/6675887?utm_source=feed)[[5]](https://www.bestbuy.com/product/dyson-v15-detect-cordless-vacuum-yellow-nickel/J3ZCSY2534/sku/6675164?utm_source=feed)",
+      "links": [
+       {
+        "type": "link_element",
+        "title": "Wayfair",
+        "description": null,
+        "url": "https://www.wayfair.com/Dyson--Dyson-V15-Detect-44726101-L863-K~XYS10047.html?refid=FR49-XYS10047",
+        "domain": "www.wayfair.com"
+       },
+       {
+        "type": "link_element",
+        "title": "Walmart",
+        "description": null,
+        "url": "https://www.walmart.com/ip/Dyson-V15-Detect-Absolute-Car-Cleaning-Kit-Cordless-Vacuum-Yellow-Nickel-New-Newest-Gen/20037872946?wmlspartner=wlpa&selectedSellerId=11746&veh=seo_fpl&cn=google",
+        "domain": "www.walmart.com"
+       },
+       {
+        "type": "link_element",
+        "title": "Home Depot",
+        "description": null,
+        "url": "https://www.homedepot.com/p/Dyson-V15-Detect-Bagless-Cordless-Washable-Filter-Stick-Vacuum-for-Multi-Surface-with-Illumination-626417-01/342657001?source=shoppingads&locale=en-US&fp=ggl&srsltid=AYCX9vK332w6upSzcLxrJDHQab1n165CfVaLrehJkKWXksZwTvMsyg4ay2s",
+        "domain": "www.homedepot.com"
+       },
+       {
+        "type": "link_element",
+        "title": "Best Buy",
+        "description": null,
+        "url": "https://www.bestbuy.com/product/dyson-v15-detect-dok-newest-model-cordless-vacuum-yellow-nickel/J3ZCSY25Y6/sku/6675887?utm_source=feed",
+        "domain": "www.bestbuy.com"
+       },
+       {
+        "type": "link_element",
+        "title": "Best Buy",
+        "description": null,
+        "url": "https://www.bestbuy.com/product/dyson-v15-detect-cordless-vacuum-yellow-nickel/J3ZCSY2534/sku/6675164?utm_source=feed",
+        "domain": "www.bestbuy.com"
+       }
+      ],
+      "images": null,
+      "references": [
+       {
+        "type": "ai_overview_reference",
+        "position": "left",
+        "source": "Dyson V15 Detect Dyson",
+        "domain": "www.wayfair.com",
+        "url": "https://www.wayfair.com/Dyson--Dyson-V15-Detect-44726101-L863-K~XYS10047.html?refid=FR49-XYS10047",
+        "title": "Dyson V15 Detect Dyson",
+        "text": null
+       },
+       {
+        "type": "ai_overview_reference",
+        "position": "left",
+        "source": "Dyson V15 Detect Absolute + Car Cleaning Kit Cordless Vacuum | Yellow/Nickel | New | Newest Gen, Silver",
+        "domain": "www.walmart.com",
+        "url": "https://www.walmart.com/ip/Dyson-V15-Detect-Absolute-Car-Cleaning-Kit-Cordless-Vacuum-Yellow-Nickel-New-Newest-Gen/20037872946?wmlspartner=wlpa&selectedSellerId=11746&veh=seo_fpl&cn=google",
+        "title": "Dyson V15 Detect Absolute + Car Cleaning Kit Cordless Vacuum | Yellow/Nickel | New | Newest Gen, Silver",
+        "text": null
+       },
+       {
+        "type": "ai_overview_reference",
+        "position": "left",
+        "source": "Dyson V15 Detect Bagless Cordless Washable Filter Stick Vacuum for Multi Surface with Illumination",
+        "domain": "www.homedepot.com",
+        "url": "https://www.homedepot.com/p/Dyson-V15-Detect-Bagless-Cordless-Washable-Filter-Stick-Vacuum-for-Multi-Surface-with-Illumination-626417-01/342657001?source=shoppingads&locale=en-US&fp=ggl&srsltid=AYCX9vJ906jCU4LBvOOtWpjlRubQ9WiA7mte4QeR9093x9cnbWCD12k5JX0",
+        "title": "Dyson V15 Detect Bagless Cordless Washable Filter Stick Vacuum for Multi Surface with Illumination",
+        "text": null
+       },
+       {
+        "type": "ai_overview_reference",
+        "position": "left",
+        "source": "Dyson - V15 Detect + Dok (Newest Model) Cordless Vacuum - Yellow/Nickel",
+        "domain": "www.bestbuy.com",
+        "url": "https://www.bestbuy.com/product/dyson-v15-detect-dok-newest-model-cordless-vacuum-yellow-nickel/J3ZCSY25Y6/sku/6675887?utm_source=feed",
+        "title": "Dyson - V15 Detect + Dok (Newest Model) Cordless Vacuum - Yellow/Nickel",
+        "text": null
+       },
+       {
+        "type": "ai_overview_reference",
+        "position": "left",
+        "source": "Dyson - V15 Detect Cordless Vacuum - Yellow/Nickel",
+        "domain": "www.bestbuy.com",
+        "url": "https://www.bestbuy.com/product/dyson-v15-detect-cordless-vacuum-yellow-nickel/J3ZCSY2534/sku/6675164?utm_source=feed",
+        "title": "Dyson - V15 Detect Cordless Vacuum - Yellow/Nickel",
+        "text": null
+       }
+      ]
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": null,
+      "text": "Would you like help comparing what accessories come with each bundle or finding out which retailer has the fastest shipping to your area?",
+      "markdown": "Would you like help comparing **what accessories come with each bundle** or finding out **which retailer has the fastest shipping** to your area?",
+      "links": null,
+      "images": null,
+      "references": null
+     }
+    ],
+    "references": [
+     {
+      "type": "ai_overview_reference",
+      "position": "right",
+      "source": "Dyson V15 Detect Dyson",
+      "domain": "www.wayfair.com",
+      "url": "https://www.wayfair.com/Dyson--Dyson-V15-Detect-44726101-L863-K~XYS10047.html?refid=FR49-XYS10047",
+      "title": "Dyson V15 Detect Dyson",
+      "text": null
+     },
+     {
+      "type": "ai_overview_reference",
+      "position": "right",
+      "source": "Dyson V15 Detect Absolute + Car Cleaning Kit Cordless Vacuum | Yellow/Nickel | New | Newest Gen, Silver",
+      "domain": "www.walmart.com",
+      "url": "https://www.walmart.com/ip/Dyson-V15-Detect-Absolute-Car-Cleaning-Kit-Cordless-Vacuum-Yellow-Nickel-New-Newest-Gen/20037872946?wmlspartner=wlpa&selectedSellerId=11746&veh=seo_fpl&cn=google",
+      "title": "Dyson V15 Detect Absolute + Car Cleaning Kit Cordless Vacuum | Yellow/Nickel | New | Newest Gen, Silver",
+      "text": null
+     },
+     {
+      "type": "ai_overview_reference",
+      "position": "right",
+      "source": "Dyson V15 Detect Bagless Cordless Washable Filter Stick Vacuum for Multi Surface with Illumination",
+      "domain": "www.homedepot.com",
+      "url": "https://www.homedepot.com/p/Dyson-V15-Detect-Bagless-Cordless-Washable-Filter-Stick-Vacuum-for-Multi-Surface-with-Illumination-626417-01/342657001?source=shoppingads&locale=en-US&fp=ggl&srsltid=AYCX9vJ906jCU4LBvOOtWpjlRubQ9WiA7mte4QeR9093x9cnbWCD12k5JX0",
+      "title": "Dyson V15 Detect Bagless Cordless Washable Filter Stick Vacuum for Multi Surface with Illumination",
+      "text": null
+     },
+     {
+      "type": "ai_overview_reference",
+      "position": "right",
+      "source": "Dyson - V15 Detect + Dok (Newest Model) Cordless Vacuum - Yellow/Nickel",
+      "domain": "www.bestbuy.com",
+      "url": "https://www.bestbuy.com/product/dyson-v15-detect-dok-newest-model-cordless-vacuum-yellow-nickel/J3ZCSY25Y6/sku/6675887?utm_source=feed",
+      "title": "Dyson - V15 Detect + Dok (Newest Model) Cordless Vacuum - Yellow/Nickel",
+      "text": null
+     },
+     {
+      "type": "ai_overview_reference",
+      "position": "right",
+      "source": "Dyson - V15 Detect Cordless Vacuum - Yellow/Nickel",
+      "domain": "www.bestbuy.com",
+      "url": "https://www.bestbuy.com/product/dyson-v15-detect-cordless-vacuum-yellow-nickel/J3ZCSY2534/sku/6675164?utm_source=feed",
+      "title": "Dyson - V15 Detect Cordless Vacuum - Yellow/Nickel",
+      "text": null
+     }
+    ],
+    "rectangle": null
+   }
+  ]
+ }
+}

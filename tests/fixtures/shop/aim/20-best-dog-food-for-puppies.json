@@ -1,0 +1,184 @@
+{
+ "prompt": "best dog food for puppies",
+ "kind": "shop",
+ "engine": "aim",
+ "recorded_at": "2026-11-12T15:27:53.681Z",
+ "result": {
+  "keyword": "best dog food for puppies",
+  "type": "ai_mode",
+  "se_domain": "google.com",
+  "location_code": 2840,
+  "language_code": "en",
+  "check_url": "https://www.google.com/search?q=best%20dog%20food%20for%20puppies&hl=en&gl=US&udm=50&uule=w+CAIQIFISCQs2MuSEtepUEUK33kOSuTsc",
+  "datetime": "2026-11-12 15:27:53 +00:00",
+  "spell": null,
+  "refinement_chips": null,
+  "item_types": [
+   "ai_overview"
+  ],
+  "se_results_count": 0,
+  "items_count": 1,
+  "items": [
+   {
+    "type": "ai_overview",
+    "rank_group": 1,
+    "rank_absolute": 1,
+    "page": 1,
+    "position": "left",
+    "xpath": "/html[1]/body[1]/div[2]/div[1]/div[9]/div[1]/section[1]/div[1]/div[1]/div[4]/div[5]/div[1]/div[1]/div[1]/div[3]",
+    "markdown": "Choosing the right food for a puppy is critical—their diet directly dictates proper bone growth, immune system development, and brain function. The \"Big Three\" science-backed brands consistently recommended by veterinarians and compliant with World Small Animal Veterinary Association (WSAVA) guidelines stand out above boutique trends:[[1]](https://www.maplewood.vet/best-puppy-food-brands-recommended-vets/)\n\n### Top Vet-Recommended Puppy Food Brands\n\n\n\n---\n\n**Purina Pro Plan (Puppy Lines)** \n\n- **Best for:** High palatability, active puppies, and targeted formulas (such as *Chicken & Rice* or *Sensitive Skin & Stomach Salmon & Rice*).\n- **Why it shines:** Features guaranteed live probiotics for digestive health and DHA for cognitive/retinal development. It is heavily backed by feeding trials and veterinary nutritionists.[[1]](https://www.maplewood.vet/best-puppy-food-brands-recommended-vets/)\n\n\n\n---\n\n**Royal Canin (Breed- and Size-Specific Lines)** \n\n- **Best for:** Precision nutrition tailored to exact growth curves (from tiny Yorkies to giant Mastiffs).\n- **Why it shines:** Kibble shapes are uniquely designed for specific jaw sizes and bite styles, with finely-tuned energy density and high digestibility.[[1]](https://www.maplewood.vet/best-puppy-food-brands-recommended-vets/)\n\n\n\n---\n\n**Hill’s Science Diet (Puppy Lines)** \n\n- **Best for:** Clinical nutrition and balanced whole-body development.\n- **Why it shines:** Widely regarded as a gold standard, offering exact calcium-to-phosphorus ratios which are vital for large-breed puppies to prevent joint and bone issues.[[1]](https://www.maplewood.vet/best-puppy-food-brands-recommended-vets/)\n\n### Key Things to Look For on the Label\n\n- **AAFCO Statement:** Ensure the bag explicitly states it is formulated for **growth** or **all life stages** (which includes gestation, lactation, and growth). Avoid foods labeled \"for maintenance only\" (adult food).\n- **Grain-Inclusive Preferred:** Vets generally advise sticking with grain-inclusive puppy formulas rather than trendy grain-free diets, which have faced scrutiny regarding canine heart health links.[[1]](https://www.maplewood.vet/best-puppy-food-brands-recommended-vets/)\n- **Match to Breed Size:** If your puppy will grow to be over 50–60 lbs as an adult, look specifically for a **Large Breed Puppy** formula to control growth rate and protect developing joints.\n\nYou can evaluate brand transparency and research credentials further via tools like the Pet Nutrition Alliance Guidelines or read deep-dive evaluations on [The New York Times Wirecutter](https://www.nytimes.com/wirecutter/reviews/how-to-buy-the-best-dog-food/).[[1]](https://www.nytimes.com/wirecutter/reviews/how-to-buy-the-best-dog-food/)\n\nIf you'd like, tell me:\n\n- Your puppy's **breed (or mix)** and **estimated adult size** \n- Their **approximate age** right now\n- Any **stomach sensitivities** or allergies they've shown\n\nI can narrow this down to a specific product recommendation and feeding guideline for you.",
+    "items": [
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": null,
+      "text": "Choosing the right food for a puppy is critical—their diet directly dictates proper bone growth, immune system development, and brain function. The \"Big Three\" science-backed brands consistently recommended by veterinarians and compliant with World Small Animal Veterinary Association (WSAVA) guidelines stand out above boutique trends:",
+      "markdown": "Choosing the right food for a puppy is critical—their diet directly dictates proper bone growth, immune system development, and brain function. The \"Big Three\" science-backed brands consistently recommended by veterinarians and compliant with World Small Animal Veterinary Association (WSAVA) guidelines stand out above boutique trends:[[1]](https://www.maplewood.vet/best-puppy-food-brands-recommended-vets/)",
+      "links": null,
+      "images": null,
+      "references": [
+       {
+        "type": "ai_overview_reference",
+        "position": "left",
+        "source": "Maplewood Veterinary Center",
+        "domain": "www.maplewood.vet",
+        "url": "https://www.maplewood.vet/best-puppy-food-brands-recommended-vets/",
+        "title": "Best Puppy Food Brands Recommended by U.S. Vets for Growth",
+        "text": "Vet Recommendations: Royal Canin (size/breed specific, high digestibility), Hill's Science Diet (clinical nutrition, predictive bi..."
+       }
+      ]
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": "Top Vet-Recommended Puppy Food Brands",
+      "text": "Purina Pro Plan (Puppy Lines)Best for: High palatability, active puppies, and targeted formulas (such as Chicken & Rice or Sensitive Skin & Stomach Salmon & Rice).\nWhy it shines: Features guaranteed live probiotics for digestive health and DHA for cognitive/retinal development. It is heavily backed by feeding trials and veterinary nutritionists.",
+      "markdown": "---\n\n**Purina Pro Plan (Puppy Lines)** \n\n- **Best for:** High palatability, active puppies, and targeted formulas (such as *Chicken & Rice* or *Sensitive Skin & Stomach Salmon & Rice*).\n- **Why it shines:** Features guaranteed live probiotics for digestive health and DHA for cognitive/retinal development. It is heavily backed by feeding trials and veterinary nutritionists.[[1]](https://www.maplewood.vet/best-puppy-food-brands-recommended-vets/)",
+      "links": null,
+      "images": null,
+      "references": null
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": null,
+      "text": "Royal Canin (Breed- and Size-Specific Lines)Best for: Precision nutrition tailored to exact growth curves (from tiny Yorkies to giant Mastiffs).\nWhy it shines: Kibble shapes are uniquely designed for specific jaw sizes and bite styles, with finely-tuned energy density and high digestibility.",
+      "markdown": "---\n\n**Royal Canin (Breed- and Size-Specific Lines)** \n\n- **Best for:** Precision nutrition tailored to exact growth curves (from tiny Yorkies to giant Mastiffs).\n- **Why it shines:** Kibble shapes are uniquely designed for specific jaw sizes and bite styles, with finely-tuned energy density and high digestibility.[[1]](https://www.maplewood.vet/best-puppy-food-brands-recommended-vets/)",
+      "links": null,
+      "images": null,
+      "references": null
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": null,
+      "text": "Hill’s Science Diet (Puppy Lines)Best for: Clinical nutrition and balanced whole-body development.\nWhy it shines: Widely regarded as a gold standard, offering exact calcium-to-phosphorus ratios which are vital for large-breed puppies to prevent joint and bone issues.",
+      "markdown": "---\n\n**Hill’s Science Diet (Puppy Lines)** \n\n- **Best for:** Clinical nutrition and balanced whole-body development.\n- **Why it shines:** Widely regarded as a gold standard, offering exact calcium-to-phosphorus ratios which are vital for large-breed puppies to prevent joint and bone issues.[[1]](https://www.maplewood.vet/best-puppy-food-brands-recommended-vets/)",
+      "links": null,
+      "images": null,
+      "references": null
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": "Key Things to Look For on the Label",
+      "text": "AAFCO Statement: Ensure the bag explicitly states it is formulated for growth or all life stages (which includes gestation, lactation, and growth). Avoid foods labeled \"for maintenance only\" (adult food). Grain-Inclusive Preferred: Vets generally advise sticking with grain-inclusive puppy formulas rather than trendy grain-free diets, which have faced scrutiny regarding canine heart health links. Match to Breed Size: If your puppy will grow to be over 50–60 lbs as an adult, look specifically for a Large Breed Puppy formula to control growth rate and protect developing joints.",
+      "markdown": "- **AAFCO Statement:** Ensure the bag explicitly states it is formulated for **growth** or **all life stages** (which includes gestation, lactation, and growth). Avoid foods labeled \"for maintenance only\" (adult food).\n- **Grain-Inclusive Preferred:** Vets generally advise sticking with grain-inclusive puppy formulas rather than trendy grain-free diets, which have faced scrutiny regarding canine heart health links.[[1]](https://www.maplewood.vet/best-puppy-food-brands-recommended-vets/)\n- **Match to Breed Size:** If your puppy will grow to be over 50–60 lbs as an adult, look specifically for a **Large Breed Puppy** formula to control growth rate and protect developing joints.",
+      "links": null,
+      "images": null,
+      "references": [
+       {
+        "type": "ai_overview_reference",
+        "position": "left",
+        "source": "Maplewood Veterinary Center",
+        "domain": "www.maplewood.vet",
+        "url": "https://www.maplewood.vet/best-puppy-food-brands-recommended-vets/",
+        "title": "Best Puppy Food Brands Recommended by U.S. Vets for Growth",
+        "text": "Grain-inclusive diets are preferred over grain-free due to potential heart disease links; avoid home-cooking without a veterinary nutritionist"
+       }
+      ]
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": null,
+      "text": "You can evaluate brand transparency and research credentials further via tools like the Pet Nutrition Alliance Guidelines or read deep-dive evaluations on The New York Times Wirecutter.",
+      "markdown": "You can evaluate brand transparency and research credentials further via tools like the Pet Nutrition Alliance Guidelines or read deep-dive evaluations on [The New York Times Wirecutter](https://www.nytimes.com/wirecutter/reviews/how-to-buy-the-best-dog-food/).[[1]](https://www.nytimes.com/wirecutter/reviews/how-to-buy-the-best-dog-food/)",
+      "links": [
+       {
+        "type": "link_element",
+        "title": "The New York Times Wirecutter",
+        "description": null,
+        "url": "https://www.nytimes.com/wirecutter/reviews/how-to-buy-the-best-dog-food/",
+        "domain": "www.nytimes.com"
+       }
+      ],
+      "images": null,
+      "references": [
+       {
+        "type": "ai_overview_reference",
+        "position": "left",
+        "source": "The New York Times",
+        "domain": "www.nytimes.com",
+        "url": "https://www.nytimes.com/wirecutter/reviews/how-to-buy-the-best-dog-food/",
+        "title": "How to Buy the Best Dog Food | Reviews by Wirecutter",
+        "text": "Evaluation: Assess brands via WSAVA guidelines or Pet Nutrition Alliance report for manufacturer transparency, veterinary nutritio..."
+       }
+      ]
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": null,
+      "text": "If you'd like, tell me:",
+      "markdown": "If you'd like, tell me:",
+      "links": null,
+      "images": null,
+      "references": null
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": null,
+      "text": "Your puppy's breed (or mix) and estimated adult size Their approximate age right now Any stomach sensitivities or allergies they've shown",
+      "markdown": "- Your puppy's **breed (or mix)** and **estimated adult size** \n- Their **approximate age** right now\n- Any **stomach sensitivities** or allergies they've shown",
+      "links": null,
+      "images": null,
+      "references": null
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": null,
+      "text": "I can narrow this down to a specific product recommendation and feeding guideline for you.",
+      "markdown": "I can narrow this down to a specific product recommendation and feeding guideline for you.",
+      "links": null,
+      "images": null,
+      "references": null
+     }
+    ],
+    "references": [
+     {
+      "type": "ai_overview_reference",
+      "position": "right",
+      "source": "The New York Times",
+      "domain": "www.nytimes.com",
+      "url": "https://www.nytimes.com/wirecutter/reviews/how-to-buy-the-best-dog-food/",
+      "title": "How to Buy the Best Dog Food | Reviews by Wirecutter",
+      "text": "Evaluation: Assess brands via WSAVA guidelines or Pet Nutrition Alliance report for manufacturer transparency, veterinary nutritionists, and research."
+     },
+     {
+      "type": "ai_overview_reference",
+      "position": "right",
+      "source": "Maplewood Veterinary Center",
+      "domain": "www.maplewood.vet",
+      "url": "https://www.maplewood.vet/best-puppy-food-brands-recommended-vets/",
+      "title": "Best Puppy Food Brands Recommended by U.S. Vets for Growth",
+      "text": "Grain-inclusive diets are preferred over grain-free due to potential heart disease links; avoid home-cooking without a veterinary nutritionist"
+     }
+    ],
+    "rectangle": null
+   }
+  ]
+ }
+}

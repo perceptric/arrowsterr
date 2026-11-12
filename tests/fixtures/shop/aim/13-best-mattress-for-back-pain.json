@@ -1,0 +1,340 @@
+{
+ "prompt": "best mattress for back pain",
+ "kind": "shop",
+ "engine": "aim",
+ "recorded_at": "2026-11-12T15:27:01.085Z",
+ "result": {
+  "keyword": "best mattress for back pain",
+  "type": "ai_mode",
+  "se_domain": "google.com",
+  "location_code": 2840,
+  "language_code": "en",
+  "check_url": "https://www.google.com/search?q=best%20mattress%20for%20back%20pain&hl=en&gl=US&udm=50&uule=w+CAIQIFISCQs2MuSEtepUEUK33kOSuTsc",
+  "datetime": "2026-11-12 15:27:00 +00:00",
+  "spell": null,
+  "refinement_chips": null,
+  "item_types": [
+   "ai_overview"
+  ],
+  "se_results_count": 0,
+  "items_count": 1,
+  "items": [
+   {
+    "type": "ai_overview",
+    "rank_group": 1,
+    "rank_absolute": 1,
+    "page": 1,
+    "position": "left",
+    "xpath": "/html[1]/body[1]/div[2]/div[1]/div[9]/div[1]/section[1]/div[1]/div[1]/div[4]/div[5]/div[1]/div[2]/div[1]/div[3]",
+    "markdown": "Finding the right mattress for back pain comes down to **spinal alignment** and **pressure relief** . You want a surface that keeps your spine in a neutral line—neither sagging like a hammock nor rigid like a board.[[1]](https://www.mattressnerd.com/best-mattress-for-back-pain/)[[2]](https://news.hss.edu/6-best-mattresses-for-back-pain-according-to-textile-and-medical-experts/)\n\nTop-rated options for back pain vary by your specific needs:\n\n#### Top Picks for Back Pain Relief\n\n\n\n---\n\n*Best Overall for Back Pain* \n\n- **Why it works:** Features zoned support coils that keep your hips elevated and prevent lower-back sinkage, paired with a plush pillow-top for pressure relief. Highlighted across reviews on [Mattress Nerd](https://www.mattressnerd.com/best-mattress-for-back-pain/).[[1]](https://www.mattressnerd.com/best-mattress-for-back-pain/)\n\n\n\n---\n\n*Best for Lower Back Pain* \n\n- **Why it works:** A classic inner-spring hybrid with a dedicated lumbar support enhancement in the center third of the bed and dual-coil construction.[[1]](https://www.mattressnerd.com/best-mattress-for-back-pain/)\n\n\n\n---\n\n*Best Budget Pick* \n\n- **Why it works:** Offers responsive coil support and targeted comfort layers at a much lower price point than luxury hybrids.[[1]](https://www.mattressnerd.com/best-mattress-for-back-pain/)\n\n\n\n---\n\n*Best for Side Sleepers with Back Pain* \n\n- **Why it works:** Deep contouring around the shoulders and hips prevents side sleepers from bending out of alignment while supporting the lumbar spine.[[1]](https://www.mattressnerd.com/best-mattress-for-back-pain/)\n\n\n\n---\n\n*Best Extra-Firm Pick* \n\n- **Why it works:** A flip-two-ways design offering a true firm-to-extra-firm surface for stomach sleepers or those who feel better on a rock-solid bed.[[1]](https://www.mattressnerd.com/best-mattress-for-back-pain/)\n\n#### Quick Guide: Matching Your Sleep Style to a Mattress\n\n- **Back Sleepers:** Look for a **medium-firm** (5.5 to 7 out of 10) mattress. You need enough contouring to support the natural curve of your lower back without your hips dropping too deep.[[1]](https://news.hss.edu/6-best-mattresses-for-back-pain-according-to-textile-and-medical-experts/)\n- **Side Sleepers:** Look for a **medium to medium-soft** (4 to 6 out of 10) hybrid with good pressure relief around the shoulders and hips so your spine doesn't hitch upward.\n- **Stomach Sleepers:** Look for a **firm** mattress (7+ out of 10). Stomach sleeping forces your lower back to arch; a soft bed makes it worse. *(Tip: Moving to your back or side is usually better for back pain if you can manage it).* [[1]](https://news.hss.edu/6-best-mattresses-for-back-pain-according-to-textile-and-medical-experts/)\n\nTo help narrow this down, tell me:\n\n- **What is your primary sleeping position?** (Back, side, or stomach)\n- **What is your budget range?** \n- **Do you tend to sleep hot?**",
+    "items": [
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": null,
+      "text": "Finding the right mattress for back pain comes down to spinal alignment and pressure relief. You want a surface that keeps your spine in a neutral line—neither sagging like a hammock nor rigid like a board.",
+      "markdown": "Finding the right mattress for back pain comes down to **spinal alignment** and **pressure relief** . You want a surface that keeps your spine in a neutral line—neither sagging like a hammock nor rigid like a board.[[1]](https://www.mattressnerd.com/best-mattress-for-back-pain/)[[2]](https://news.hss.edu/6-best-mattresses-for-back-pain-according-to-textile-and-medical-experts/)",
+      "links": null,
+      "images": null,
+      "references": [
+       {
+        "type": "ai_overview_reference",
+        "position": "left",
+        "source": "Mattress Nerd",
+        "domain": "www.mattressnerd.com",
+        "url": "https://www.mattressnerd.com/best-mattress-for-back-pain/",
+        "title": "Best Mattresses for Back Pain (2026)",
+        "text": "Helix Midnight Luxe as the best mattress for back pain. Its innerspring coils promote proper spinal alignment by keeping you eleva..."
+       },
+       {
+        "type": "ai_overview_reference",
+        "position": "left",
+        "source": "HSS | Hospital for Special Surgery",
+        "domain": "news.hss.edu",
+        "url": "https://news.hss.edu/6-best-mattresses-for-back-pain-according-to-textile-and-medical-experts/",
+        "title": "Good Housekeeping Interviews Dr. Baxi on Back Pain",
+        "text": "the right mattress can improve pain, stiffness and sleep quality up to 50-60 percent. Additionally, Dr. Baxi advised to sleep on y..."
+       }
+      ]
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": null,
+      "text": "Top-rated options for back pain vary by your specific needs:",
+      "markdown": "Top-rated options for back pain vary by your specific needs:",
+      "links": null,
+      "images": null,
+      "references": null
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": "Top Picks for Back Pain Relief",
+      "text": null,
+      "markdown": "#### Top Picks for Back Pain Relief",
+      "links": null,
+      "images": null,
+      "references": null
+     },
+     {
+      "type": "ai_overview_shopping",
+      "position": "left",
+      "title": null,
+      "markdown": "---\n\n[![Helix Midnight Luxe](https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-1a6fc0fe8e12:10)](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462912875483953,imageDocid:16467605713943436946,gpcid:12113601571603819382,headlineOfferDocid:4289631406725573170,catalogid:13456733018757945891,productDocid:8200605266866686533,rds:PC_12113601571603819382%7CPROD_PC_12113601571603819382&q=product&sa=X&ved=2ahUKEwi8kNOG34KYAxWmS0EAHQdpBNsQgLcPeggIAggBCB4QAQ&hl=en&gl=US)*Best Overall for Back Pain* \n\n- **Why it works:** Features zoned support coils that keep your hips elevated and prevent lower-back sinkage, paired with a plush pillow-top for pressure relief. Highlighted across reviews on [Mattress Nerd](https://www.mattressnerd.com/best-mattress-for-back-pain/).[[1]](https://www.mattressnerd.com/best-mattress-for-back-pain/)\n\n\n\n---\n\n[![Saatva Classic](https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-1a6fc0fe8e12:11)](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462845873513852,imageDocid:11863177491055190481,gpcid:971230634605328163,headlineOfferDocid:13271299266282630070,catalogid:3237608467010459519,productDocid:6074899515300459903,rds:PC_971230634605328163%7CPROD_PC_971230634605328163&q=product&sa=X&ved=2ahUKEwi8kNOG34KYAxWmS0EAHQdpBNsQgLcPeggIAggBCB4QEA&hl=en&gl=US)*Best for Lower Back Pain* \n\n- **Why it works:** A classic inner-spring hybrid with a dedicated lumbar support enhancement in the center third of the bed and dual-coil construction.[[1]](https://www.mattressnerd.com/best-mattress-for-back-pain/)\n\n\n\n---\n\n[![Brooklyn Bedding Signature Hybrid](https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-1a6fc0fe8e12:12)](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462441202345057,imageDocid:1286635654927248511,gpcid:10806068701072882081,headlineOfferDocid:17218003557359272000,catalogid:14989726912109675208,productDocid:15136171731635776690,rds:PC_10806068701072882081%7CPROD_PC_10806068701072882081&q=product&sa=X&ved=2ahUKEwi8kNOG34KYAxWmS0EAHQdpBNsQgLcPeggIAggBCB4QIA&hl=en&gl=US)*Best Budget Pick* \n\n- **Why it works:** Offers responsive coil support and targeted comfort layers at a much lower price point than luxury hybrids.[[1]](https://www.mattressnerd.com/best-mattress-for-back-pain/)\n\n\n\n---\n\n[![Nolah Evolution Hybrid](https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-1a6fc0fe8e12:13)](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462576251934629,imageDocid:5505636673753593619,gpcid:1098764614920451256,headlineOfferDocid:16510921050953530379,catalogid:9787033857306031252,productDocid:16610410808451271238,rds:PC_6095696231805408424%7CPROD_PC_6095696231805408424&q=product&sa=X&ved=2ahUKEwi8kNOG34KYAxWmS0EAHQdpBNsQgLcPeggIAggBCB4QMA&hl=en&gl=US)*Best for Side Sleepers with Back Pain* \n\n- **Why it works:** Deep contouring around the shoulders and hips prevents side sleepers from bending out of alignment while supporting the lumbar spine.[[1]](https://www.mattressnerd.com/best-mattress-for-back-pain/)\n\n\n\n---\n\n[![Brooklyn Bedding Plank Firm](https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-1a6fc0fe8e12:14)](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462567971661876,imageDocid:5748497728451200130,gpcid:4351084959297201225,headlineOfferDocid:8714859858716140129,catalogid:14794029838581494258,productDocid:9354327589531382918,rds:PC_4351084959297201225%7CPROD_PC_4351084959297201225&q=product&sa=X&ved=2ahUKEwi8kNOG34KYAxWmS0EAHQdpBNsQgLcPeggIAggBCB4QQA&hl=en&gl=US)*Best Extra-Firm Pick* \n\n- **Why it works:** A flip-two-ways design offering a true firm-to-extra-firm surface for stomach sleepers or those who feel better on a rock-solid bed.[[1]](https://www.mattressnerd.com/best-mattress-for-back-pain/)",
+      "items": [
+       {
+        "type": "ai_overview_shopping_element",
+        "product_id": "13456733018757945891",
+        "data_docid": "8200605266866686533",
+        "gid": "12113601571603819382",
+        "title": "Helix Midnight Luxe",
+        "url": "https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462912875483953,imageDocid:16467605713943436946,gpcid:12113601571603819382,headlineOfferDocid:4289631406725573170,catalogid:13456733018757945891,productDocid:8200605266866686533,rds:PC_12113601571603819382%7CPROD_PC_12113601571603819382&q=product&sa=X&ved=2ahUKEwi8kNOG34KYAxWmS0EAHQdpBNsQgLcPeggIAggBCB4QAQ&hl=en&gl=US",
+        "domain": "www.google.com",
+        "rating": {
+         "rating_type": "Max5",
+         "value": 4.3,
+         "votes_count": 11500,
+         "rating_max": 5
+        },
+        "price": {
+         "current": 1589,
+         "regular": 2119,
+         "max_value": null,
+         "currency": "USD",
+         "is_price_range": false,
+         "displayed_price": "$1,589.00 $2,119"
+        },
+        "seller": "Helix Sleep",
+        "snippet": "Helix Sleep & more",
+        "marketplace": null,
+        "marketplace_url": null,
+        "image_url": "https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-1a6fc0fe8e12:1",
+        "text": "Best Overall for Back PainWhy it works: Features zoned support coils that keep your hips elevated and prevent lower-back sinkage, paired with a plush pillow-top for pressure relief. Highlighted across reviews on Mattress Nerd.",
+        "markdown": "---\n\n[![Helix Midnight Luxe](https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-1a6fc0fe8e12:0)](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462912875483953,imageDocid:16467605713943436946,gpcid:12113601571603819382,headlineOfferDocid:4289631406725573170,catalogid:13456733018757945891,productDocid:8200605266866686533,rds:PC_12113601571603819382%7CPROD_PC_12113601571603819382&q=product&sa=X&ved=2ahUKEwi8kNOG34KYAxWmS0EAHQdpBNsQgLcPeggIAggBCB4QAQ&hl=en&gl=US)*Best Overall for Back Pain* \n\n- **Why it works:** Features zoned support coils that keep your hips elevated and prevent lower-back sinkage, paired with a plush pillow-top for pressure relief. Highlighted across reviews on [Mattress Nerd](https://www.mattressnerd.com/best-mattress-for-back-pain/).[[1]](https://www.mattressnerd.com/best-mattress-for-back-pain/)"
+       },
+       {
+        "type": "ai_overview_shopping_element",
+        "product_id": "3237608467010459519",
+        "data_docid": "6074899515300459903",
+        "gid": "971230634605328163",
+        "title": "Saatva Classic",
+        "url": "https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462845873513852,imageDocid:11863177491055190481,gpcid:971230634605328163,headlineOfferDocid:13271299266282630070,catalogid:3237608467010459519,productDocid:6074899515300459903,rds:PC_971230634605328163%7CPROD_PC_971230634605328163&q=product&sa=X&ved=2ahUKEwi8kNOG34KYAxWmS0EAHQdpBNsQgLcPeggIAggBCB4QEA&hl=en&gl=US",
+        "domain": "www.google.com",
+        "rating": {
+         "rating_type": "Max5",
+         "value": 4.5,
+         "votes_count": 6500,
+         "rating_max": 5
+        },
+        "price": {
+         "current": 1579,
+         "regular": 2229,
+         "max_value": null,
+         "currency": "USD",
+         "is_price_range": false,
+         "displayed_price": "$1,579.00 $2,229"
+        },
+        "seller": "Saatva",
+        "snippet": "Saatva & more",
+        "marketplace": null,
+        "marketplace_url": null,
+        "image_url": "https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-1a6fc0fe8e12:3",
+        "text": "Best for Lower Back PainWhy it works: A classic inner-spring hybrid with a dedicated lumbar support enhancement in the center third of the bed and dual-coil construction.",
+        "markdown": "---\n\n[![Saatva Classic](https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-1a6fc0fe8e12:2)](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462845873513852,imageDocid:11863177491055190481,gpcid:971230634605328163,headlineOfferDocid:13271299266282630070,catalogid:3237608467010459519,productDocid:6074899515300459903,rds:PC_971230634605328163%7CPROD_PC_971230634605328163&q=product&sa=X&ved=2ahUKEwi8kNOG34KYAxWmS0EAHQdpBNsQgLcPeggIAggBCB4QEA&hl=en&gl=US)*Best for Lower Back Pain* \n\n- **Why it works:** A classic inner-spring hybrid with a dedicated lumbar support enhancement in the center third of the bed and dual-coil construction.[[1]](https://www.mattressnerd.com/best-mattress-for-back-pain/)"
+       },
+       {
+        "type": "ai_overview_shopping_element",
+        "product_id": "14989726912109675208",
+        "data_docid": "15136171731635776690",
+        "gid": "10806068701072882081",
+        "title": "Brooklyn Bedding Signature Hybrid",
+        "url": "https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462441202345057,imageDocid:1286635654927248511,gpcid:10806068701072882081,headlineOfferDocid:17218003557359272000,catalogid:14989726912109675208,productDocid:15136171731635776690,rds:PC_10806068701072882081%7CPROD_PC_10806068701072882081&q=product&sa=X&ved=2ahUKEwi8kNOG34KYAxWmS0EAHQdpBNsQgLcPeggIAggBCB4QIA&hl=en&gl=US",
+        "domain": "www.google.com",
+        "rating": {
+         "rating_type": "Max5",
+         "value": 4.4,
+         "votes_count": 15700,
+         "rating_max": 5
+        },
+        "price": {
+         "current": 1025.5,
+         "regular": 1465,
+         "max_value": null,
+         "currency": "USD",
+         "is_price_range": false,
+         "displayed_price": "$1,025.50 $1,465"
+        },
+        "seller": "Brooklyn Bedding",
+        "snippet": "Brooklyn Bedding & more",
+        "marketplace": null,
+        "marketplace_url": null,
+        "image_url": "https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-1a6fc0fe8e12:5",
+        "text": "Best Budget PickWhy it works: Offers responsive coil support and targeted comfort layers at a much lower price point than luxury hybrids.",
+        "markdown": "---\n\n[![Brooklyn Bedding Signature Hybrid](https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-1a6fc0fe8e12:4)](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462441202345057,imageDocid:1286635654927248511,gpcid:10806068701072882081,headlineOfferDocid:17218003557359272000,catalogid:14989726912109675208,productDocid:15136171731635776690,rds:PC_10806068701072882081%7CPROD_PC_10806068701072882081&q=product&sa=X&ved=2ahUKEwi8kNOG34KYAxWmS0EAHQdpBNsQgLcPeggIAggBCB4QIA&hl=en&gl=US)*Best Budget Pick* \n\n- **Why it works:** Offers responsive coil support and targeted comfort layers at a much lower price point than luxury hybrids.[[1]](https://www.mattressnerd.com/best-mattress-for-back-pain/)"
+       },
+       {
+        "type": "ai_overview_shopping_element",
+        "product_id": "9787033857306031252",
+        "data_docid": "16610410808451271238",
+        "gid": "1098764614920451256",
+        "title": "Nolah Evolution Hybrid",
+        "url": "https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462576251934629,imageDocid:5505636673753593619,gpcid:1098764614920451256,headlineOfferDocid:16510921050953530379,catalogid:9787033857306031252,productDocid:16610410808451271238,rds:PC_6095696231805408424%7CPROD_PC_6095696231805408424&q=product&sa=X&ved=2ahUKEwi8kNOG34KYAxWmS0EAHQdpBNsQgLcPeggIAggBCB4QMA&hl=en&gl=US",
+        "domain": "www.google.com",
+        "rating": {
+         "rating_type": "Max5",
+         "value": 4.7,
+         "votes_count": 796,
+         "rating_max": 5
+        },
+        "price": {
+         "current": 1047,
+         "regular": 1610,
+         "max_value": null,
+         "currency": "USD",
+         "is_price_range": false,
+         "displayed_price": "$1,047.00 $1,610"
+        },
+        "seller": "Mattress Brands",
+        "snippet": "Mattress Brands & more",
+        "marketplace": null,
+        "marketplace_url": null,
+        "image_url": "https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-1a6fc0fe8e12:7",
+        "text": "Best for Side Sleepers with Back PainWhy it works: Deep contouring around the shoulders and hips prevents side sleepers from bending out of alignment while supporting the lumbar spine.",
+        "markdown": "---\n\n[![Nolah Evolution Hybrid](https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-1a6fc0fe8e12:6)](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462576251934629,imageDocid:5505636673753593619,gpcid:1098764614920451256,headlineOfferDocid:16510921050953530379,catalogid:9787033857306031252,productDocid:16610410808451271238,rds:PC_6095696231805408424%7CPROD_PC_6095696231805408424&q=product&sa=X&ved=2ahUKEwi8kNOG34KYAxWmS0EAHQdpBNsQgLcPeggIAggBCB4QMA&hl=en&gl=US)*Best for Side Sleepers with Back Pain* \n\n- **Why it works:** Deep contouring around the shoulders and hips prevents side sleepers from bending out of alignment while supporting the lumbar spine.[[1]](https://www.mattressnerd.com/best-mattress-for-back-pain/)"
+       },
+       {
+        "type": "ai_overview_shopping_element",
+        "product_id": "14794029838581494258",
+        "data_docid": "9354327589531382918",
+        "gid": "4351084959297201225",
+        "title": "Brooklyn Bedding Plank Firm",
+        "url": "https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462567971661876,imageDocid:5748497728451200130,gpcid:4351084959297201225,headlineOfferDocid:8714859858716140129,catalogid:14794029838581494258,productDocid:9354327589531382918,rds:PC_4351084959297201225%7CPROD_PC_4351084959297201225&q=product&sa=X&ved=2ahUKEwi8kNOG34KYAxWmS0EAHQdpBNsQgLcPeggIAggBCB4QQA&hl=en&gl=US",
+        "domain": "www.google.com",
+        "rating": {
+         "rating_type": "Max5",
+         "value": 4.3,
+         "votes_count": 4800,
+         "rating_max": 5
+        },
+        "price": {
+         "current": 1165.5,
+         "regular": 1665,
+         "max_value": null,
+         "currency": "USD",
+         "is_price_range": false,
+         "displayed_price": "$1,165.50 $1,665"
+        },
+        "seller": "Brooklyn Bedding",
+        "snippet": "Brooklyn Bedding & more",
+        "marketplace": null,
+        "marketplace_url": null,
+        "image_url": "https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-1a6fc0fe8e12:9",
+        "text": "Best Extra-Firm PickWhy it works: A flip-two-ways design offering a true firm-to-extra-firm surface for stomach sleepers or those who feel better on a rock-solid bed.",
+        "markdown": "---\n\n[![Brooklyn Bedding Plank Firm](https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-1a6fc0fe8e12:8)](https://www.google.com/search?ibp=oshop&prds=pvt:hg,pvo:29,mid:576462567971661876,imageDocid:5748497728451200130,gpcid:4351084959297201225,headlineOfferDocid:8714859858716140129,catalogid:14794029838581494258,productDocid:9354327589531382918,rds:PC_4351084959297201225%7CPROD_PC_4351084959297201225&q=product&sa=X&ved=2ahUKEwi8kNOG34KYAxWmS0EAHQdpBNsQgLcPeggIAggBCB4QQA&hl=en&gl=US)*Best Extra-Firm Pick* \n\n- **Why it works:** A flip-two-ways design offering a true firm-to-extra-firm surface for stomach sleepers or those who feel better on a rock-solid bed.[[1]](https://www.mattressnerd.com/best-mattress-for-back-pain/)"
+       }
+      ]
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": "Quick Guide: Matching Your Sleep Style to a Mattress",
+      "text": "Back Sleepers: Look for a medium-firm (5.5 to 7 out of 10) mattress. You need enough contouring to support the natural curve of your lower back without your hips dropping too deep. Side Sleepers: Look for a medium to medium-soft (4 to 6 out of 10) hybrid with good pressure relief around the shoulders and hips so your spine doesn't hitch upward. Stomach Sleepers: Look for a firm mattress (7+ out of 10). Stomach sleeping forces your lower back to arch; a soft bed makes it worse. (Tip: Moving to your back or side is usually better for back pain if you can manage it).",
+      "markdown": "- **Back Sleepers:** Look for a **medium-firm** (5.5 to 7 out of 10) mattress. You need enough contouring to support the natural curve of your lower back without your hips dropping too deep.[[1]](https://news.hss.edu/6-best-mattresses-for-back-pain-according-to-textile-and-medical-experts/)\n- **Side Sleepers:** Look for a **medium to medium-soft** (4 to 6 out of 10) hybrid with good pressure relief around the shoulders and hips so your spine doesn't hitch upward.\n- **Stomach Sleepers:** Look for a **firm** mattress (7+ out of 10). Stomach sleeping forces your lower back to arch; a soft bed makes it worse. *(Tip: Moving to your back or side is usually better for back pain if you can manage it).* [[1]](https://news.hss.edu/6-best-mattresses-for-back-pain-according-to-textile-and-medical-experts/)",
+      "links": null,
+      "images": null,
+      "references": [
+       {
+        "type": "ai_overview_reference",
+        "position": "left",
+        "source": "HSS | Hospital for Special Surgery",
+        "domain": "news.hss.edu",
+        "url": "https://news.hss.edu/6-best-mattresses-for-back-pain-according-to-textile-and-medical-experts/",
+        "title": "Good Housekeeping Interviews Dr. Baxi on Back Pain",
+        "text": "Dr. Baxi advised to sleep on your back to \"help alleviate pressure through the lower lumbar discs\" and to avoid sleeping on your stomach which can lead to poor spi..."
+       }
+      ]
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": null,
+      "text": "To help narrow this down, tell me:",
+      "markdown": "To help narrow this down, tell me:",
+      "links": null,
+      "images": null,
+      "references": null
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": null,
+      "text": "What is your primary sleeping position? (Back, side, or stomach) What is your budget range? Do you tend to sleep hot?",
+      "markdown": "- **What is your primary sleeping position?** (Back, side, or stomach)\n- **What is your budget range?** \n- **Do you tend to sleep hot?**",
+      "links": null,
+      "images": null,
+      "references": null
+     },
+     {
+      "type": "ai_overview_paid",
+      "position": "left",
+      "text": "You might consider these options:",
+      "markdown": "You might consider these options:",
+      "items": [
+       {
+        "type": "ai_overview_paid_element",
+        "title": "Best Mattress for Back Pain - Black Friday: Save up to 50% - Financing from 0% APR",
+        "url": null,
+        "domain": null,
+        "ad_aclk": "DChsSEwjgraqJ34KYAxUVolAGHYgAJAcYACICCAQQARoCZGc",
+        "website_name": "Nectar Sleep",
+        "breadcrumb": null,
+        "snippet": "Have Peace of Mind with Our Forever Warranty®. The Last Mattress You'll Ever Need to Buy!",
+        "images": [
+         {
+          "type": "images_element",
+          "alt": null,
+          "url": null,
+          "image_url": "https://api.dataforseo.com/cdn/i/11121526-1697-0139-0000-1a6fc0fe8e12:15"
+         }
+        ]
+       },
+       {
+        "type": "ai_overview_paid_element",
+        "title": "Built for Back Sleepers - Firm Support for Back Pain - Great for Stomach Sleepers",
+        "url": null,
+        "domain": null,
+        "ad_aclk": "DChsSEwjgraqJ34KYAxUVolAGHYgAJAcYACICCAQQABoCZGc",
+        "website_name": "helixsleep.com",
+        "breadcrumb": null,
+        "snippet": "Not sure which firmness fits you? Our 2-minute sleep quiz finds your match.",
+        "images": null
+       }
+      ]
+     }
+    ],
+    "references": [
+     {
+      "type": "ai_overview_reference",
+      "position": "right",
+      "source": "Mattress Nerd",
+      "domain": "www.mattressnerd.com",
+      "url": "https://www.mattressnerd.com/best-mattress-for-back-pain/",
+      "title": "Best Mattresses for Back Pain (2026)",
+      "text": "Our team chose the Helix Midnight Luxe as the best mattress for back pain because of its balance of cushioning and support. – Best Extra-Firm Mattress for Back Pai..."
+     },
+     {
+      "type": "ai_overview_reference",
+      "position": "right",
+      "source": "HSS | Hospital for Special Surgery",
+      "domain": "news.hss.edu",
+      "url": "https://news.hss.edu/6-best-mattresses-for-back-pain-according-to-textile-and-medical-experts/",
+      "title": "Good Housekeeping Interviews Dr. Baxi on Back Pain",
+      "text": "Dr. Baxi advised to sleep on your back to \"help alleviate pressure through the lower lumbar discs\" and to avoid sleeping on your stomach which can lead to poor spi..."
+     }
+    ],
+    "rectangle": null
+   }
+  ]
+ }
+}

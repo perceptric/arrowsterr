@@ -1,0 +1,122 @@
+{
+ "prompt": "best crm for small business",
+ "kind": "none",
+ "engine": "aim",
+ "recorded_at": "2026-11-12T15:29:50.003Z",
+ "result": {
+  "keyword": "best crm for small business",
+  "type": "ai_mode",
+  "se_domain": "google.com",
+  "location_code": 2840,
+  "language_code": "en",
+  "check_url": "https://www.google.com/search?q=best%20crm%20for%20small%20business&hl=en&gl=US&udm=50&uule=w+CAIQIFISCQs2MuSEtepUEUK33kOSuTsc",
+  "datetime": "2026-11-12 15:29:49 +00:00",
+  "spell": null,
+  "refinement_chips": null,
+  "item_types": [
+   "ai_overview"
+  ],
+  "se_results_count": 0,
+  "items_count": 1,
+  "items": [
+   {
+    "type": "ai_overview",
+    "rank_group": 1,
+    "rank_absolute": 1,
+    "page": 1,
+    "position": "left",
+    "xpath": "/html[1]/body[1]/div[2]/div[1]/div[7]/div[1]/section[1]/div[1]/div[1]/div[4]/div[5]/div[1]/div[2]/div[1]/div[3]",
+    "markdown": "Selecting the right CRM depends on your team size, budget, and primary goal (sales tracking vs. all-in-one marketing).[[1]](https://www.youtube.com/watch?v=GObnsNMNakQ&t=74)\n\n#### Top CRM Options for Small Businesses\n\n- **HubSpot CRM** — *Best overall for growing businesses and ease of use* \n\t- **Highlights:** Offers a robust free tier, intuitive contact management, built-in email tracking, and clean pipeline views. It scales seamlessly as you grow without feeling overly complex.\n\t- **Learn more:** Check out the HubSpot Pricing Overview.[[1]](https://www.youtube.com/watch?v=GObnsNMNakQ&t=74)\n- **Zoho CRM** — *Best for deep customization and value* \n\t- **Highlights:** Highly flexible modules, strong lead-capture tools, and built-in AI assistant features (Zia) at a fraction of enterprise cost.\n\t- **Learn more:** Explore the platform via Zoho Corporation.[[1]](https://www.youtube.com/watch?v=GObnsNMNakQ&t=224)\n- **Pipedrive** — *Best dedicated sales pipeline CRM* \n\t- **Highlights:** Built specifically for sales teams to track deals visually with a drag-and-drop interface. Fast to set up and very user-friendly for beginners.\n\t- **Learn more:** Compare features on [Pipedrive](https://www.pipedrive.com/en/crm-comparison/pipedrive-vs-monday).\n- **ActiveCampaign** — *Best for marketing automation and email campaigns* \n\t- **Highlights:** Combines solid CRM contact tracking with industry-leading email marketing, drip campaigns, and behavior-based triggers.\n\t- **Learn more:** Review options at [ActiveCampaign](https://www.activecampaign.com/blog/marketing-software).\n- **Insightly** — *Best for businesses that combine sales with project management* \n\t- **Highlights:** Automatically converts won deals into active post-sale projects so your sales and delivery teams stay synced.\n\t- **Learn more:** Read details on Insightly.\n\nIf you'd like to narrow this down, tell me:\n\n- **How many people** will be using the CRM?\n- Is your main focus **sales tracking**, **email marketing** , or **customer support**?",
+    "items": [
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": null,
+      "text": "Selecting the right CRM depends on your team size, budget, and primary goal (sales tracking vs. all-in-one marketing).",
+      "markdown": "Selecting the right CRM depends on your team size, budget, and primary goal (sales tracking vs. all-in-one marketing).[[1]](https://www.youtube.com/watch?v=GObnsNMNakQ&t=74)",
+      "links": null,
+      "images": null,
+      "references": [
+       {
+        "type": "ai_overview_reference",
+        "position": "left",
+        "source": "YouTube",
+        "domain": "www.youtube.com",
+        "url": "https://www.youtube.com/watch?v=GObnsNMNakQ&t=224",
+        "title": "Best CRM for Small Business 2026 | I Tested All 5 (Full Comparison)",
+        "text": "Best CRM for Small Business 2026 | I Tested All 5 (Full Comparison) company is not what works for a solo agency owner or a local s..."
+       }
+      ]
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": "Top CRM Options for Small Businesses",
+      "text": "HubSpot CRM — Best overall for growing businesses and ease of use Highlights: Offers a robust free tier, intuitive contact management, built-in email tracking, and clean pipeline views. It scales seamlessly as you grow without feeling overly complex. Learn more: Check out the HubSpot Pricing Overview. HubSpot Pricing Overview Zoho CRM — Best for deep customization and value Highlights: Highly flexible modules, strong lead-capture tools, and built-in AI assistant features (Zia) at a fraction of enterprise cost. Learn more: Explore the platform via Zoho Corporation. Zoho Corporation Pipedrive — Best dedicated sales pipeline CRM Highlights: Built specifically for sales teams to track deals visually with a drag-and-drop interface. Fast to set up and very user-friendly for beginners. Learn more: Compare features on Pipedrive. ActiveCampaign — Best for marketing automation and email campaigns Highlights: Combines solid CRM contact tracking with industry-leading email marketing, drip campaigns, and behavior-based triggers. Learn more: Review options at ActiveCampaign. Insightly — Best for businesses that combine sales with project management Highlights: Automatically converts won deals into active post-sale projects so your sales and delivery teams stay synced. Learn more: Read details on Insightly. Insightly",
+      "markdown": "- **HubSpot CRM** — *Best overall for growing businesses and ease of use* \n\t- **Highlights:** Offers a robust free tier, intuitive contact management, built-in email tracking, and clean pipeline views. It scales seamlessly as you grow without feeling overly complex.\n\t- **Learn more:** Check out the HubSpot Pricing Overview.[[1]](https://www.youtube.com/watch?v=GObnsNMNakQ&t=74)\n- **Zoho CRM** — *Best for deep customization and value* \n\t- **Highlights:** Highly flexible modules, strong lead-capture tools, and built-in AI assistant features (Zia) at a fraction of enterprise cost.\n\t- **Learn more:** Explore the platform via Zoho Corporation.[[1]](https://www.youtube.com/watch?v=GObnsNMNakQ&t=224)\n- **Pipedrive** — *Best dedicated sales pipeline CRM* \n\t- **Highlights:** Built specifically for sales teams to track deals visually with a drag-and-drop interface. Fast to set up and very user-friendly for beginners.\n\t- **Learn more:** Compare features on [Pipedrive](https://www.pipedrive.com/en/crm-comparison/pipedrive-vs-monday).\n- **ActiveCampaign** — *Best for marketing automation and email campaigns* \n\t- **Highlights:** Combines solid CRM contact tracking with industry-leading email marketing, drip campaigns, and behavior-based triggers.\n\t- **Learn more:** Review options at [ActiveCampaign](https://www.activecampaign.com/blog/marketing-software).\n- **Insightly** — *Best for businesses that combine sales with project management* \n\t- **Highlights:** Automatically converts won deals into active post-sale projects so your sales and delivery teams stay synced.\n\t- **Learn more:** Read details on Insightly.",
+      "links": [
+       {
+        "type": "link_element",
+        "title": "Pipedrive",
+        "description": null,
+        "url": "https://www.pipedrive.com/en/crm-comparison/pipedrive-vs-monday",
+        "domain": "www.pipedrive.com"
+       },
+       {
+        "type": "link_element",
+        "title": "ActiveCampaign",
+        "description": null,
+        "url": "https://www.activecampaign.com/blog/marketing-software",
+        "domain": "www.activecampaign.com"
+       }
+      ],
+      "images": null,
+      "references": [
+       {
+        "type": "ai_overview_reference",
+        "position": "left",
+        "source": "YouTube",
+        "domain": "www.youtube.com",
+        "url": "https://www.youtube.com/watch?v=GObnsNMNakQ&t=224",
+        "title": "Best CRM for Small Business 2026 | I Tested All 5 (Full Comparison)",
+        "text": "Best CRM for Small Business 2026 | I Tested All 5 (Full Comparison) company is not what works for a solo agency owner or a local service. business. so keep those f"
+       }
+      ]
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": null,
+      "text": "If you'd like to narrow this down, tell me:",
+      "markdown": "If you'd like to narrow this down, tell me:",
+      "links": null,
+      "images": null,
+      "references": null
+     },
+     {
+      "type": "ai_overview_element",
+      "position": "left",
+      "title": null,
+      "text": "How many people will be using the CRM? Is your main focus sales tracking, email marketing, or customer support ?",
+      "markdown": "- **How many people** will be using the CRM?\n- Is your main focus **sales tracking**, **email marketing** , or **customer support**?",
+      "links": null,
+      "images": null,
+      "references": null
+     }
+    ],
+    "references": [
+     {
+      "type": "ai_overview_reference",
+      "position": "right",
+      "source": "YouTube",
+      "domain": "www.youtube.com",
+      "url": "https://www.youtube.com/watch?v=GObnsNMNakQ&t=224",
+      "title": "Best CRM for Small Business 2026 | I Tested All 5 (Full Comparison)",
+      "text": "Best CRM for Small Business 2026 | I Tested All 5 (Full Comparison) company is not what works for a solo agency owner or a local service. business. so keep those f"
+     }
+    ],
+    "rectangle": null
+   }
+  ]
+ }
+}
