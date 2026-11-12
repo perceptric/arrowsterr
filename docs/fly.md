@@ -61,7 +61,7 @@ These are all the settings the app reads. Copy the ones you have on Render.
 | Google Analytics | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_TOKEN_KEY` |
 | Webflow sign-in | `WEBFLOW_CLIENT_ID`, `WEBFLOW_CLIENT_SECRET` (a Webflow Data Client app, redirect URI `<APP_URL>/api/cms/webflow/callback`, scopes `sites:read cms:read cms:write`) |
 | Shopify sign-in | `SHOPIFY_CLIENT_ID`, `SHOPIFY_CLIENT_SECRET` (a Shopify public app, redirect URL `<APP_URL>/api/cms/shopify/callback`, scopes `read_content,write_content`) |
-| HubSpot sign-in | `HUBSPOT_CLIENT_ID`, `HUBSPOT_CLIENT_SECRET` (a HubSpot public app, redirect URL `<APP_URL>/api/cms/hubspot/callback`, scope `content`) |
+| HubSpot sign-in | `HUBSPOT_CLIENT_ID`, `HUBSPOT_CLIENT_SECRET` (a HubSpot public app, redirect URL `<APP_URL>/api/cms/hubspot/callback`, scopes `oauth` and `content`) |
 | Website tracking | `UMAMI_URL`, `UMAMI_API_KEY`, `UMAMI_USERNAME`, `UMAMI_PASSWORD` |
 | Errors | `SENTRY_DSN` |
 | Models | `CLAUDE_MODEL`, `CLAUDE_ENGINE_MODEL`, `EXTRACT_MODEL`, `PROMPTS_MODEL`, `OPENAI_MODEL`, `GEMINI_MODEL`, `PERPLEXITY_MODEL` |
