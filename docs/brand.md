@@ -625,8 +625,10 @@ A `--soft` panel, `radius-lg`, 16px padding, title 13px 600, then `<dl>` rows: 3
 
 ### Empty state and first screen
 
-- First screen of a tool: eyebrow, h2 headline, one lead line (16px `--muted`, max 640px), the tool's search bar or main button, then a grid of feature cards. Each card has a 160px illustration area (`--soft` with the dot grid, a small mock of the real UI) and a title plus one sentence.
-- Empty state inside a working screen: a 20px icon in a 40px `--signal-soft` circle, a 15px 600 title, one 14px `--muted` line, one button.
+- Every empty screen, a tool's first screen included, is one picture, a title of six words or fewer, one 13.5px `--muted` line of 90 characters or fewer, and one main button (`EmptyScreen` in `src/components/Drawing.tsx`). Search tools keep their search bar above it and three Try chips under it. No lead paragraphs, feature cards, sample tables or bullet lists.
+- The picture is one object of solid isometric blocks on a pale plate, in the style of the arrowsterr.com city: 30° angle, three tones per block, no outlines, Signal Blue with gold as the small extra color (`src/lib/isoArt.ts`, 21 pictures). The blocks drop in, then the object floats; reduced motion keeps it still.
+- Inside a panel or a list, an empty state is the 120px picture and one line (`EmptyNote`).
+- `tests/emptyScreens.test.ts` holds these rules. The plan behind them is `docs/empty-screens-plan.md`.
 
 ### Illustration cards (mock UI)
 

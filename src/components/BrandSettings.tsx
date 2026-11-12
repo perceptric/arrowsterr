@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyNote } from "./Drawing";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useState } from "react";
 import { ALERT_POINTS } from "@/lib/integrationTypes";
@@ -42,7 +43,7 @@ export function BrandSettings({
   isAdmin: boolean;
   onBrand: (id: string) => void;
 }) {
-  if (!brand) return <div className="aw-callout max-w-xl">This workspace has no brands yet.</div>;
+  if (!brand) return <EmptyNote drawing="flag">This workspace has no brands yet.</EmptyNote>;
   return (
     <div className="flex flex-col gap-6">
       {brands.length > 1 ? (

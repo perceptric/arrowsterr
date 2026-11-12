@@ -70,7 +70,14 @@ export function LibraryPage({ view, auth, canEdit, onCalendar }: { view: View; a
   }, [setOpen]);
 
   if (site === undefined || (site && rows === null)) return <Thinking text="Opening Drafts..." />;
-  if (!site) return <p className="aw-error">{siteError || "This brand has no website yet."}</p>;
+  if (!site)
+    return siteError ? (
+      <p className="aw-error">{siteError}</p>
+    ) : (
+      <EmptyScreen drawing="globe" title="Add this brand's website">
+        Drafts need it to write in the brand&apos;s voice.
+      </EmptyScreen>
+    );
 
   const back = () => {
     setOpen(null);

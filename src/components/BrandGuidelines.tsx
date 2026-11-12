@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyNote } from "./Drawing";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 import { cleanGuidelines, cleanLinks, filePath, FILES_BUCKET, MAX_BODY, MAX_FILE_BYTES, MAX_FILES, type GuidelineFile, type GuidelinesRow } from "@/lib/brandGuidelines";
@@ -216,7 +217,7 @@ export function BrandGuidelines({ sb, workspaceId, brand, canEdit }: { sb: Supab
             ))}
           </ul>
         ) : (
-          <p className="px-5 py-6 text-[13px] text-muted">No files yet</p>
+          <EmptyNote drawing="files">Add a style guide or brand book.</EmptyNote>
         )}
       </div>
 

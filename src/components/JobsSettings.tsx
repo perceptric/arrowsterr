@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyScreen } from "./Drawing";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useState } from "react";
 import { Dropdown } from "./Pickers";
@@ -360,7 +361,9 @@ export function JobsSettings({ sb, ws, brands }: { sb: SupabaseClient; ws: Works
       {list === null ? (
         <p className="aw-small">Loading...</p>
       ) : !list.length ? (
-        <p className="aw-callout text-[15px]!">Nothing has run yet. Checks, Content Plan builds, drafts and bulk analyses show up here.</p>
+        <EmptyScreen drawing="gears" title="Nothing has run yet" fill={false}>
+          Checks, plan builds and drafts show up here.
+        </EmptyScreen>
       ) : (
         <div className="aw-table-wrap">
           <table className="aw-table aw-table--compact">

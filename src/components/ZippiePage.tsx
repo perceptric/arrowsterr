@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyNote } from "./Drawing";
 import { askConfirm, askText } from "@/components/Dialogs";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { RunAuth } from "@/lib/runner";
@@ -1257,7 +1258,7 @@ function ProjectView(p: {
         </div>
         <div className="flex flex-col gap-1">
           <p className="zp-label">Chats in this project</p>
-          {!p.threads.length ? <p className="text-[13px] text-muted">No chats yet. Start one above. Zippie remembers what you worked on in each chat here.</p> : null}
+          {!p.threads.length ? <EmptyNote drawing="zippie">Start a chat above. Zippie remembers what you worked on in each one.</EmptyNote> : null}
           {p.threads.map((t) => (
             <button key={t.id} type="button" className="zp-thread-row" onClick={() => p.onOpen(t)}>
               <Icon d={I.chat} size={15} />
@@ -1390,7 +1391,7 @@ function KnowledgeView(p: { api: ReturnType<typeof useApi>; lib: Library; canEdi
           <p className="text-[13px] text-muted">Editors and admins can add knowledge.</p>
         )}
         <div className="flex flex-col gap-1">
-          {!p.lib.knowledge.length ? <div className="aw-callout">Nothing here yet. Upload a brand guide or a product doc to start.</div> : null}
+          {!p.lib.knowledge.length ? <EmptyNote drawing="files">Upload a brand guide or a product doc for Zippie to know.</EmptyNote> : null}
           {p.lib.knowledge.map((k) => (
             <div key={k.id} className="zp-thread-row">
               <Icon d={k.kind === "url" ? I.link : k.kind === "note" ? I.note : I.file} size={15} />

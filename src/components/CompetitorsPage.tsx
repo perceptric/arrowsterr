@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyScreen } from "./Drawing";
 import { Dropdown } from "./Pickers";
 import { useState } from "react";
 import { answered, battle, brandStats, rankOf, rankTrend, topicGrid, trend, type BattleRow, type BrandStat } from "@/lib/metrics";
@@ -10,7 +11,7 @@ import { BrandLogo } from "./BrandLogo";
 import { B_COLOR, Bar, CompetitorPanel } from "./CompetitorPanel";
 import { EngineName } from "./Engines";
 import { TrendChart } from "./TrendChart";
-import { BrandName, Card, Delta, Empty, favicon, guessDomain, pct, pos, score, Seg, sortRows, SidePanel, SortTh, Tip, TIPS, useSort, YOU_COLOR } from "./ui";
+import { BrandName, Card, Delta, favicon, guessDomain, pct, pos, score, Seg, sortRows, SidePanel, SortTh, Tip, TIPS, useSort, YOU_COLOR } from "./ui";
 
 const MAX_BRANDS = 50;
 const SHOWN = 10; // brands on the chart at first
@@ -200,7 +201,12 @@ function AiCompetitors({ view, auth = null, initial, limit, onTopic }: Props) {
   const [seo, setSeo] = useState<Record<string, DomainReport>>({});
   const [quadTopic, setQuadTopic] = useState<string | null>(null);
 
-  if (!chats.length) return <Empty>No results in the last {days} days yet. They show up after the first check finishes, then update every day.</Empty>;
+  if (!chats.length)
+    return (
+      <EmptyScreen drawing="waiting" title="No results yet" fill={false}>
+        They show up here after the next daily check.
+      </EmptyScreen>
+    );
 
   // You, plus as many competitors as the plan tracks.
   const top = stats.filter((s) => s.isYou || others.indexOf(s) < (limit ?? MAX_BRANDS)).slice(0, MAX_BRANDS);

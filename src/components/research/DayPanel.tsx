@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyNote } from "../Drawing";
 import { useState } from "react";
 import type { CalendarItem } from "@/lib/db";
 import type { Stage } from "@/lib/research";
@@ -56,7 +57,11 @@ export function DayPanel({
               {writeCell ? writeCell(i) : null}
             </li>
           ))}
-          {!items.length ? <li className="rounded-aw border border-dashed border-rule px-4 py-5 text-center text-[13px] text-muted">Nothing planned yet</li> : null}
+          {!items.length ? (
+            <li>
+              <EmptyNote drawing="calendar">Nothing planned this day.</EmptyNote>
+            </li>
+          ) : null}
         </ul>
         {canEdit ? (
           <form

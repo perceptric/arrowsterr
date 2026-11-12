@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyNote } from "./Drawing";
 import { useEffect, useState } from "react";
 import { CMS, type CmsConnection, type CmsKind } from "@/lib/cmsTypes";
 import type { RunAuth } from "@/lib/runner";
@@ -114,7 +115,7 @@ export function CmsSettings({ auth, isAdmin, brand, brands }: { auth: RunAuth; i
           ))}
         </ul>
       ) : list && !setup ? (
-        <p className="text-[14px] text-muted">No publishing sites for {brand.name}.</p>
+        <EmptyNote drawing="plug">Connect a site to publish {brand.name}&apos;s drafts to WordPress, Webflow, Framer and more.</EmptyNote>
       ) : null}
       {list?.some((c) => c.kind === "wordpress") || kind === "wordpress" ? (
         <div className="aw-callout flex max-w-2xl flex-col gap-2 text-[14px]">

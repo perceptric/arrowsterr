@@ -5,14 +5,14 @@ export default function NotFound() {
   return (
     <ErrorScreen
       code="404"
-      title="This page doesn't exist"
+      title="This page isn't here"
       actions={
         <Link className="aw-btn aw-btn--primary" href="/">
           Go to Arrowsterr
         </Link>
       }
     >
-      The link may be old, or the page may have moved.
+      The link may be old.
     </ErrorScreen>
   );
 }

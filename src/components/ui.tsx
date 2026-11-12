@@ -111,9 +111,6 @@ export function Seg<T extends string>({ value, options, onChange, label }: { val
   );
 }
 
-export function Empty({ children }: { children: React.ReactNode }) {
-  return <div className="aw-callout max-w-2xl">{children}</div>;
-}
 
 /** The AI is working: a pulsing spark, a sweeping line and one short line of text. */
 export function Thinking({ text, children, done }: { text: string; children?: React.ReactNode; done?: boolean }) {

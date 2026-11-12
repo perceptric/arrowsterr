@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyScreen } from "./Drawing";
 import { askConfirm } from "@/components/Dialogs";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { Fragment, useEffect, useRef, useState } from "react";
@@ -15,7 +16,7 @@ import { ENGINE_LOGOS, EngineName } from "./Engines";
 import { Markdown } from "./Markdown";
 import { cleanAnswer } from "@/lib/answerText";
 import { TrendChart } from "./TrendChart";
-import { BrandName, Delta, Empty, favicon, OTHER_COLORS, pct, Seg, Tip, TIPS, YOU_COLOR, Spark } from "./ui";
+import { BrandName, Delta, favicon, OTHER_COLORS, pct, Seg, Tip, TIPS, YOU_COLOR, Spark } from "./ui";
 
 type Props = {
   sb: SupabaseClient;
@@ -188,7 +189,12 @@ function Scores({ view, loading }: { view: View; loading?: boolean }) {
         </div>
       </section>
     );
-  if (!chats.length) return <Empty>No results in the last {days} days yet. They show up after the first check finishes, then update every day.</Empty>;
+  if (!chats.length)
+    return (
+      <EmptyScreen drawing="waiting" title="No results yet" fill={false}>
+        They show up here after the next daily check.
+      </EmptyScreen>
+    );
   const prev = answered(previous, filter);
   const stats = brandStats(chats, you);
   const before = brandStats(prev, you);
@@ -314,7 +320,12 @@ function Results({
   const chats = answered(current, filter);
   const rows = promptRows(current, topics, engines, brand.name, filter, brand.domain);
   const tops = topicRows(chats, topics, engines, brand.name);
-  if (!topics.length) return <div className="aw-callout">No prompts yet.</div>;
+  if (!topics.length)
+    return (
+      <EmptyScreen drawing="prompts" title="Add the questions buyers ask" fill={false}>
+        Arrowsterr asks 6 AIs every day and tracks how they answer.
+      </EmptyScreen>
+    );
   const flip = (set: Set<string>, k: string) => (set.has(k) ? new Set([...set].filter((x) => x !== k)) : new Set([...set, k]));
   const cols = engines.length + 3;
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyScreen } from "./Drawing";
 import { askConfirm, askText } from "@/components/Dialogs";
 import { identify, inWorkspace, resetAnalytics } from "@/lib/analytics";
 import { Dropdown, Pop, useAnchoredPop } from "./Pickers";
@@ -910,7 +911,9 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
               {page === "settings" ? <TimezoneSetting key={`tz-${ws.id}`} sb={sb} ws={ws} /> : null}
             </SettingsPage>
           ) : !view ? (
-            <div className="aw-callout max-w-xl">This workspace has no brands yet. Ask an editor or admin to add one.</div>
+            <EmptyScreen drawing="flag" title="Add your first brand">
+              Ask an editor or admin to add one.
+            </EmptyScreen>
           ) : plan && trackOf(page) && !plan.open[trackOf(page)!] ? (
             <Glimpse
               track={trackOf(page)!}

@@ -28,6 +28,17 @@ export function Drawing({ kind, size = 220 }: { kind: DrawingKind; size?: number
   );
 }
 
+/** A small empty state inside a panel or list: the compact picture, one line and an optional button. */
+export function EmptyNote({ drawing: kind, children, action }: { drawing: DrawingKind; children: React.ReactNode; action?: React.ReactNode }) {
+  return (
+    <div className="aw-empty flex flex-col items-center gap-2 px-4 py-6 text-center">
+      <Drawing kind={kind} size={120} />
+      <p className="max-w-sm text-[13px] leading-5 text-muted">{children}</p>
+      {action ? <div className="mt-1 flex flex-wrap items-center justify-center gap-2">{action}</div> : null}
+    </div>
+  );
+}
+
 /**
  * An empty screen (docs/empty-screens-plan.md): the picture, a title of six words or fewer, one line, and the button
  * that makes the first one. Search tools pass examples, shown as Try chips. fill stretches it to the screen's height;
