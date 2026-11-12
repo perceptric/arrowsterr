@@ -88,7 +88,7 @@ export function LibraryPage({ view, auth, canEdit, onCalendar }: { view: View; a
         <ContentGrid sb={sb} auth={auth} site={site} brandId={brand.id} canEdit={canEdit} onOpen={setOpen} />
       ) : (
         <EmptyScreen
-          drawing="library"
+          drawing="drafts"
           title="Write drafts that rank and get cited"
           action={
             onCalendar ? (

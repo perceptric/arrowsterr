@@ -324,25 +324,20 @@ html, body { background: var(--paper-deep) !important; }
   :root :is(.aw, #calm) *, :root :is(.aw, #calm) *::before, :root :is(.aw, #calm) *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
 
-/* ─────────────── 14. Empty screens (src/components/Drawing.tsx) ───────────────
-   The screen rises in, the tile settles onto its plate, the sign draws itself, then the tile floats. */
+/* ─────────────── 14. Empty screens (src/components/Drawing.tsx, src/lib/isoArt.ts) ───────────────
+   The screen rises in, the picture's blocks drop in one after another like the city on arrowsterr.com, then the
+   object floats over its plate. */
 :root :is(.aw, #calm) .aw-empty { animation: aw-empty-rise 420ms var(--ease-out) both; }
 :root :is(.aw, #calm) .aw-empty__title, :root :is(.aw, #calm) .aw-empty > p, :root :is(.aw, #calm) .aw-empty > div { animation: aw-empty-rise 420ms var(--ease-out) both; }
 :root :is(.aw, #calm) .aw-empty__title { animation-delay: 120ms; }
 :root :is(.aw, #calm) .aw-empty > p { animation-delay: 180ms; }
 :root :is(.aw, #calm) .aw-empty > div { animation-delay: 240ms; }
-:root :is(.aw, #calm) .aw-drawing__tile { transform-box: fill-box; transform-origin: center; animation: aw-tile-settle 560ms var(--ease-out) both, aw-tile-float 4.8s ease-in-out 900ms infinite; }
-:root :is(.aw, #calm) .aw-drawing__shadow { transform-box: fill-box; transform-origin: center; animation: aw-shadow-float 4.8s ease-in-out 900ms infinite; }
-:root :is(.aw, #calm) .aw-drawing__sign * { stroke-dasharray: 1; stroke-dashoffset: 1; animation: aw-sign-draw 900ms var(--ease-calm) 420ms forwards; }
-:root :is(.aw, #calm) .aw-drawing__sign * + * { animation-delay: 560ms; }
-:root :is(.aw, #calm) .aw-drawing__sign * + * + * { animation-delay: 700ms; }
+:root :is(.aw, #calm) .aw-drawing .iso-p { animation: aw-iso-drop 520ms var(--ease-out) both; animation-delay: calc(var(--i) * 90ms); }
+:root :is(.aw, #calm) .aw-drawing .iso-float { animation: aw-iso-float 6s ease-in-out 1s infinite; }
 @keyframes aw-empty-rise { from { opacity: 0; transform: translateY(6px); } }
-@keyframes aw-tile-settle { from { opacity: 0; transform: translateY(-10px); } }
-@keyframes aw-tile-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
-@keyframes aw-shadow-float { 0%, 100% { transform: scale(1); opacity: .06; } 50% { transform: scale(.92); opacity: .04; } }
-@keyframes aw-sign-draw { to { stroke-dashoffset: 0; } }
+@keyframes aw-iso-drop { from { opacity: 0; transform: translateY(-10px); } }
+@keyframes aw-iso-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
 @media (prefers-reduced-motion: reduce) {
-  :root :is(.aw, #calm) :is(.aw-empty, .aw-empty *, .aw-drawing__tile, .aw-drawing__shadow) { animation: none !important; }
-  :root :is(.aw, #calm) .aw-drawing__sign * { animation: none !important; stroke-dashoffset: 0; }
+  :root :is(.aw, #calm) :is(.aw-empty, .aw-empty *, .aw-drawing .iso-p, .aw-drawing .iso-float) { animation: none !important; }
 }
 :root :is(.aw, #calm) .aw-onb__hero .aw-label { display: block; margin-bottom: 8px !important; }
