@@ -66,13 +66,13 @@ const LOCAL: LocalTool[] = [
       type: "object",
       properties: {
         kind: { type: "string", enum: ["cms", "traffic"] },
-        platform: { type: "string", enum: ["wordpress", "webflow", "framer", "shopify", "hubspot", "ghost"], description: "For kind cms, when the person said which CMS they use." },
+        platform: { type: "string", enum: ["wordpress", "webflow", "framer", "shopify", "hubspot", "ghost", "wix", "webhook"], description: "For kind cms, when the person said which CMS they use." },
       },
       required: ["kind"],
     },
     async run(ctx, args, emit) {
       const kind = args.kind === "traffic" ? "traffic" : "cms";
-      const platform = kind === "cms" && ["wordpress", "webflow", "framer", "shopify", "hubspot", "ghost"].includes(String(args.platform)) ? String(args.platform) : "";
+      const platform = kind === "cms" && ["wordpress", "webflow", "framer", "shopify", "hubspot", "ghost", "wix", "webhook"].includes(String(args.platform)) ? String(args.platform) : "";
       const id = platform ? `${kind}:${platform}` : kind;
       emit({ type: "setup", id });
       return { setup: id, note: kind === "cms" ? "A Connect card is now in the chat. Connecting a CMS needs a workspace admin. Point to the card in one short line; don't list the steps." : "A card that opens the Traffic page is now in the chat. Point to it in one short line." };

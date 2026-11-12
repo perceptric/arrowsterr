@@ -1,6 +1,9 @@
 import "server-only";
 import { createHmac } from "node:crypto";
 import { framerItem, mapFields, pickCollection } from "./cmsMap";
+import { shopifyGid, webhookBody, webhookResult, webhookSignature } from "./cmsOauth";
+import { shopifyGql } from "./cmsTokens";
+import { safePost } from "./safeFetch";
 import type { CmsKind, PublishInput } from "./cmsTypes";
 import { wpClient } from "./wpSyncServer";
 
@@ -72,29 +75,38 @@ const webflow = {
 };
 
 // ─────────────── Shopify ───────────────
+// The GraphQL Admin API (cmsTokens.ts SHOPIFY_API). A pasted Admin API token and a signed-in store work the same;
+// sites connected before keep plain number ids, which shopifyGid turns into GraphQL ids.
 
-const shop = (c: Config) => `https://${c.shop.replace(/^https?:\/\//, "").replace(/\/.*$/, "")}/admin/api/2024-10`;
-const shHead = (c: Config) => ({ "X-Shopify-Access-Token": c.token });
+const esc = (t: string) => t.replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]!);
+type ArticleOut = { article: { id: string; handle: string; blog: { handle: string } | null } | null; userErrors: { field?: string[]; message: string }[] };
 const shopify = {
   test: async (c: Config) => {
-    const b = await call(`${shop(c)}/blogs/${c.blogId}.json`, { headers: shHead(c) });
-    return `Blog: ${(b.blog as { title?: string })?.title ?? c.blogId}`;
+    const d = await shopifyGql<{ blog: { title: string } | null }>(c, "query Blog($id: ID!) { blog(id: $id) { title } }", { id: shopifyGid("Blog", c.blogId) });
+    if (!d.blog) throw new Error("That blog isn't in this store.");
+    return `Blog: ${d.blog.title}`;
   },
   publish: async (c: Config, p: PublishInput, id?: string): Promise<Result> => {
-    const article = {
+    const article: Record<string, unknown> = {
       title: p.title,
-      body_html: withSchema(p),
-      handle: p.slug || undefined,
-      summary_html: p.description ? `<p>${p.description}</p>` : undefined,
-      published: p.live,
-      ...(p.image ? { image: { src: p.image } } : {}),
-      metafields_global_title_tag: p.title,
-      metafields_global_description_tag: p.description || undefined,
+      body: withSchema(p),
+      ...(p.slug ? { handle: p.slug } : {}),
+      ...(p.description ? { summary: `<p>${esc(p.description)}</p>`, metafields: [{ namespace: "global", key: "description_tag", type: "single_line_text_field", value: p.description }] } : {}),
+      ...(p.image ? { image: { url: p.image, altText: p.title } } : {}),
+      isPublished: p.live,
     };
-    const url = `${shop(c)}/blogs/${c.blogId}/articles${id ? `/${id}` : ""}.json`;
-    const out = await call(url, { method: id ? "PUT" : "POST", headers: shHead(c), json: { article } });
-    const a = out.article as { id: number; handle: string };
-    return { id: String(a.id), url: null };
+    const pick = "article { id handle blog { handle } } userErrors { field message }";
+    const out = id
+      ? (await shopifyGql<{ articleUpdate: ArticleOut }>(c, `mutation Update($id: ID!, $article: ArticleUpdateInput!) { articleUpdate(id: $id, article: $article) { ${pick} } }`, { id: shopifyGid("Article", id), article })).articleUpdate
+      : (await shopifyGql<{ articleCreate: ArticleOut }>(c, `mutation Create($article: ArticleCreateInput!) { articleCreate(article: $article) { ${pick} } }`, { article: { ...article, blogId: shopifyGid("Blog", c.blogId), author: { name: c.shopName || "Editorial team" } } })).articleCreate;
+    if (out.userErrors?.length || !out.article) throw new Error(out.userErrors.map((e) => e.message).join(" ") || "Shopify didn't save the article.");
+    // The live address: the store's own domain, then /blogs/<blog>/<article>.
+    let url: string | null = null;
+    if (p.live && out.article.blog) {
+      const d = await shopifyGql<{ shop: { primaryDomain: { url: string } } }>(c, "{ shop { primaryDomain { url } } }").catch(() => null);
+      if (d?.shop.primaryDomain.url) url = `${d.shop.primaryDomain.url.replace(/\/+$/, "")}/blogs/${out.article.blog.handle}/${out.article.handle}`;
+    }
+    return { id: out.article.id, url };
   },
 };
 
@@ -219,4 +231,70 @@ const framer = {
     }),
 };
 
-export const CMS_API: Record<CmsKind, { test: (c: Config) => Promise<string>; publish: (c: Config, p: PublishInput, id?: string) => Promise<Result> }> = { wordpress, webflow, framer, shopify, hubspot, ghost };
+// ─────────────── Wix ───────────────
+// An API key and the site's ID. Wix posts are rich content, not HTML, so the article is converted first; posts need
+// a site member as their writer, so the first member writes them. Connecting tries both, so a change on Wix's side
+// shows as a clear error then, before anything is published.
+
+const WIX = "https://www.wixapis.com";
+const wixHead = (c: Config) => ({ Authorization: c.apiKey.trim(), "wix-site-id": c.siteId.trim() });
+async function wixRicos(c: Config, html: string) {
+  const out = await call(`${WIX}/ricos/v1/ricos-document/convert/to-ricos`, { method: "POST", headers: wixHead(c), json: { html } });
+  // The converted document; the name of its field isn't on Wix's pages we could read, so the likely ones are tried.
+  const doc = out.document ?? out.ricosDocument ?? out.richContent;
+  if (!doc || typeof doc !== "object") throw new Error("Wix didn't convert the article.");
+  return doc;
+}
+async function wixWriter(c: Config) {
+  const out = await call(`${WIX}/members/v1/members?paging.limit=1`, { headers: wixHead(c) });
+  const id = (out.members as { id?: string }[] | undefined)?.[0]?.id;
+  if (!id) throw new Error("The site needs at least one member to write posts. Add yourself as a member in Wix.");
+  return id;
+}
+const wix = {
+  test: async (c: Config) => {
+    await wixWriter(c);
+    await wixRicos(c, "<p>Arrowsterr</p>");
+    return "Connected";
+  },
+  publish: async (c: Config, p: PublishInput, id?: string): Promise<Result> => {
+    const richContent = await wixRicos(c, p.html);
+    const draftPost: Record<string, unknown> = { title: p.title.slice(0, 200), richContent, ...(p.description ? { excerpt: p.description.slice(0, 500) } : {}) };
+    let postId = id;
+    if (id) {
+      await call(`${WIX}/blog/v3/draft-posts/${id}`, { method: "PATCH", headers: wixHead(c), json: { draftPost: { ...draftPost, id }, action: p.live ? "UPDATE_PUBLISH" : "UPDATE" } });
+    } else {
+      const out = await call(`${WIX}/blog/v3/draft-posts`, { method: "POST", headers: wixHead(c), json: { draftPost: { ...draftPost, memberId: await wixWriter(c) }, publish: p.live } });
+      postId = String((out.draftPost as { id?: string } | undefined)?.id ?? "");
+      if (!postId) throw new Error("Wix didn't save the post.");
+    }
+    let url: string | null = null;
+    if (p.live) {
+      const got = await call(`${WIX}/blog/v3/posts/${postId}?fieldsets=URL`, { headers: wixHead(c) }).catch(() => null);
+      const u = (got?.post as { url?: { base?: string; path?: string } } | undefined)?.url;
+      if (u?.base && u.path) url = `${u.base.replace(/\/+$/, "")}${u.path}`;
+    }
+    return { id: postId!, url };
+  },
+};
+
+// ─────────────── Webhook ───────────────
+// Any other site: the article goes to the site's address as JSON, signed with its secret when it has one. The site
+// may answer with { id, url }; the id comes back on every update so it can change the same post.
+
+const webhook = {
+  test: async (c: Config) => {
+    const body = webhookBody({ title: "Test", html: "<p>Test</p>", slug: "test", description: "", image: "", schema: "", live: false }, undefined, new Date(), true);
+    const r = await safePost(c.url, body, c.secret ? { "X-Arrowsterr-Signature": webhookSignature(c.secret, body) } : {});
+    if (!r.ok) throw new Error(r.error ?? `The site answered ${r.status}.`);
+    return "The site answered the test";
+  },
+  publish: async (c: Config, p: PublishInput, id?: string): Promise<Result> => {
+    const body = webhookBody(p, id, new Date());
+    const r = await safePost(c.url, body, c.secret ? { "X-Arrowsterr-Signature": webhookSignature(c.secret, body) } : {});
+    if (!r.ok) throw new Error(r.error ?? `The site answered ${r.status}: ${r.body.slice(0, 200)}`);
+    return webhookResult(r.body, id, p.slug);
+  },
+};
+
+export const CMS_API: Record<CmsKind, { test: (c: Config) => Promise<string>; publish: (c: Config, p: PublishInput, id?: string) => Promise<Result> }> = { wordpress, webflow, framer, shopify, hubspot, ghost, wix, webhook };

@@ -13,9 +13,11 @@ import { framedModules } from "@/lib/wpModules";
 import { cmsScheduleKey, publishPlan } from "@/lib/cmsSchedule";
 import { signState, stateReady } from "@/lib/google";
 import { webflowAuthUrl, webflowReady } from "@/lib/webflowAuth";
+import { freshConfig, oauthReady, oauthUrl } from "@/lib/cmsTokens";
+import { shopDomain } from "@/lib/cmsOauth";
 
 /** Which sites connect with a sign-in instead of pasted keys, on this server. */
-const oauth = () => ({ webflow: webflowReady() && stateReady() });
+const oauth = () => ({ webflow: webflowReady() && stateReady(), shopify: oauthReady("shopify") && stateReady(), hubspot: oauthReady("hubspot") && stateReady() });
 
 const str = (v: unknown, n: number) => String(v ?? "").trim().slice(0, n);
 const err = (error: string, status = 400) => Response.json({ error }, { status });
@@ -43,7 +45,8 @@ async function draftBrand(
 //   publish: { docId, connectionId, mode: draft|publish|schedule, scheduleAt, title, html, slug, description, image, schema }
 //            editors, only to the draft's own brand's sites. WordPress also takes { categoryId, tags, metaTitle, asNew }.
 //            Other sites schedule by going up as a draft now; a cms_publish job puts them live at the time.
-//   webflow_start: { brandId }                 admins: Webflow's sign-in link (webflowAuth.ts); the callback saves the site
+//   oauth_start: { kind, brandId, shop? }      admins: the sign-in link for Webflow, Shopify (with the store's address) or
+//                                              HubSpot; its callback saves the site. webflow_start is the older name.
 //   publish_info: { docId }                    the draft's brand's sites, where the draft went (WordPress), and defaults from its plan
 //   wp_site: { docId, connectionId }           a WordPress site's categories and whether the Arrowsterr plugin is on it
 //   sync: { docId }                            read each WordPress post back: status, address, last edit, or deleted
@@ -90,8 +93,12 @@ export async function POST(request: Request) {
     return Response.json({ connections: all.filter((c) => c.brand_id === brandId), notice: showMoveNotice(count ?? 0, all), oauth: oauth() });
   }
 
-  if (body.action === "webflow_start") {
-    if (!oauth().webflow) return err("Webflow sign-in is not set up on this server. Paste a site token instead.", 500);
+  if (body.action === "oauth_start" || body.action === "webflow_start") {
+    const kind = body.action === "webflow_start" ? "webflow" : String(body.kind ?? "");
+    if (kind !== "webflow" && kind !== "shopify" && kind !== "hubspot") return err("Pick a site to sign in to.");
+    if (!oauth()[kind]) return err("Sign-in for this site is not set up on this server. Paste its keys instead.", 500);
+    const shop = kind === "shopify" ? shopDomain(str(body.shop, 200)) : null;
+    if (kind === "shopify" && !shop) return err("Type your store address, like acme.myshopify.com.");
     let brandId = await brandIn(body.brandId);
     if (body.brandId && !brandId) return err("That brand is not in this workspace.", 404);
     if (!brandId) {
@@ -103,7 +110,8 @@ export async function POST(request: Request) {
     if (!me.user) return err("Sign in again.", 401);
     const host = request.headers.get("x-forwarded-host");
     const base = host ? `https://${host}` : new URL(request.url).origin;
-    return Response.json({ url: webflowAuthUrl(base, signState({ brandId, workspaceId: ws, userId: me.user.id, back: "/settings/publishing", kind: "webflow" })) });
+    const state = signState({ brandId, workspaceId: ws, userId: me.user.id, back: "/settings/publishing", kind, ...(shop ? { shop } : {}) });
+    return Response.json({ url: kind === "webflow" ? webflowAuthUrl(base, state) : oauthUrl(kind, base, state, shop ?? "") });
   }
 
   if (body.action === "connect") {
@@ -296,7 +304,7 @@ export async function POST(request: Request) {
     const before = meta.published?.find((p) => p.connectionId === pick.id);
     try {
       const live = before?.live ?? false;
-      const out = await CMS_API[pick.kind as CmsKind].publish(pick.config as Record<string, string>, { ...input, html: framedModules(input.html), live }, before?.id);
+      const out = await CMS_API[pick.kind as CmsKind].publish(await freshConfig(db, pick), { ...input, html: framedModules(input.html), live }, before?.id);
       const rec: Published = { connectionId: pick.id, kind: pick.kind as CmsKind, id: out.id, url: out.url, live, at: new Date().toISOString() };
       await auth.sb.from("docs").update({ meta: { ...meta, published: [...(meta.published ?? []).filter((p) => p.connectionId !== pick.id), rec] } }).eq("id", d.doc.id);
       return Response.json({ published: rec });
@@ -343,7 +351,7 @@ export async function POST(request: Request) {
     input.live = plan.live;
     try {
       // Only WordPress reads the module contract; other sites get each module as a self-contained frame.
-      const out = await CMS_API[conn.kind as CmsKind].publish(conn.config as Record<string, string>, { ...input, html: framedModules(input.html) }, before?.id);
+      const out = await CMS_API[conn.kind as CmsKind].publish(await freshConfig(db, conn), { ...input, html: framedModules(input.html) }, before?.id);
       const rec: Published = { connectionId: conn.id, kind: conn.kind as CmsKind, id: out.id, url: out.url ?? (before?.id === out.id ? before.url : null), live: input.live, at: new Date().toISOString(), ...(plan.at ? { scheduledFor: plan.at } : {}) };
       const next = { ...meta, title: input.title, slug: input.slug, description: input.description, image: input.image, schema: input.schema, published: [...(meta.published ?? []).filter((p) => p.connectionId !== conn.id), rec] };
       await auth.sb.from("docs").update({ meta: next }).eq("id", doc.id);

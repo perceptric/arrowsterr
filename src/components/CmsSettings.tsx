@@ -37,16 +37,17 @@ export function CmsSettings({ auth, isAdmin, brand, brands }: { auth: RunAuth; i
     };
   }, [auth, brand.id]);
 
-  // Webflow's sign-in window comes back here when it lost its opener: say how it went, then tidy the address.
+  // A sign-in window (Webflow, Shopify, HubSpot) comes back here when it lost its opener: say how it went, then tidy the address.
   useEffect(() => {
     const q = new URLSearchParams(window.location.search);
-    const wf = q.get("webflow");
-    if (!wf) return;
+    const kind = (["webflow", "shopify", "hubspot"] as const).find((k) => q.has(k));
+    if (!kind) return;
+    const name = CMS.find((c) => c.id === kind)?.label ?? kind;
     // Reading the address once on open is the point of this effect.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (wf === "connected") setDone("Webflow connected.");
-    else setError(q.get("reason") || "Could not connect Webflow.");
-    q.delete("webflow");
+    if (q.get(kind) === "connected") setDone(`${name} connected.`);
+    else setError(q.get("reason") || `Could not connect ${name}.`);
+    q.delete(kind);
     q.delete("reason");
     window.history.replaceState(null, "", window.location.pathname + (q.size ? `?${q}` : ""));
   }, []);

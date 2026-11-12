@@ -1,6 +1,6 @@
 // CMS publishing, shared by the server and the browser. Secrets never come back to the browser.
 
-export type CmsKind = "wordpress" | "webflow" | "framer" | "shopify" | "hubspot" | "ghost";
+export type CmsKind = "wordpress" | "webflow" | "framer" | "shopify" | "hubspot" | "ghost" | "wix" | "webhook";
 /** brand_id is the brand that publishes to it. backfilled: given to the first brand by 048_brand_integrations.sql, not moved yet. */
 export type CmsConnection = { id: string; kind: CmsKind; name: string; created_at: string; brand_id?: string | null; backfilled?: boolean };
 
@@ -52,7 +52,7 @@ export const CMS: { id: CmsKind; label: string; help: string; fields: CmsField[]
   {
     id: "shopify",
     label: "Shopify blog",
-    help: "In Shopify, open Settings → Apps → Develop apps, make an app with write_content access and paste its Admin API token. The blog ID is in the blog's URL in your admin.",
+    help: "Sign in with Shopify, or open Settings → Apps → Develop apps, make an app with write_content access and paste its Admin API token with the blog ID from the blog's URL in your admin.",
     fields: [
       { id: "shop", label: "Store address", placeholder: "your-store.myshopify.com" },
       { id: "token", label: "Admin API token", placeholder: "shpat_...", secret: true },
@@ -62,7 +62,7 @@ export const CMS: { id: CmsKind; label: string; help: string; fields: CmsField[]
   {
     id: "hubspot",
     label: "HubSpot",
-    help: "In HubSpot, open Settings → Integrations → Private apps, make an app with the content scope and paste its token. The blog ID is in the blog's settings URL.",
+    help: "Sign in with HubSpot, or open Settings → Integrations → Private apps, make an app with the content scope and paste its token with the blog ID from the blog's settings URL.",
     fields: [
       { id: "token", label: "Private app token", placeholder: "pat-...", secret: true },
       { id: "blogId", label: "Blog ID", placeholder: "12345678901" },
@@ -75,6 +75,24 @@ export const CMS: { id: CmsKind; label: string; help: string; fields: CmsField[]
     fields: [
       { id: "siteUrl", label: "API URL", placeholder: "https://example.ghost.io" },
       { id: "adminKey", label: "Admin API key", placeholder: "64f1...:a1b2...", secret: true },
+    ],
+  },
+  {
+    id: "wix",
+    label: "Wix",
+    help: "In your Wix account, open API Keys, create a key with Wix Blog and Members permissions, and paste it with your site's ID from its dashboard address.",
+    fields: [
+      { id: "apiKey", label: "API key", placeholder: "IST.eyJ...", secret: true },
+      { id: "siteId", label: "Site ID", placeholder: "1a2b3c4d-..." },
+    ],
+  },
+  {
+    id: "webhook",
+    label: "Webhook",
+    help: "Arrowsterr sends each article to your site's address as JSON. Add a secret to check the X-Arrowsterr-Signature header.",
+    fields: [
+      { id: "url", label: "Your site's address", placeholder: "https://yoursite.com/api/articles" },
+      { id: "secret", label: "Signing secret", placeholder: "", secret: true, optional: true },
     ],
   },
 ];

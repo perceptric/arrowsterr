@@ -29,7 +29,7 @@ export function unseal(sealed: string) {
 }
 
 /** A signed, short-lived note that rides through Google's sign-in and comes back to the callback. */
-export type State = { brandId: string; workspaceId: string; userId: string; back: string; exp: number; kind?: "ga4" | "webflow" };
+export type State = { brandId: string; workspaceId: string; userId: string; back: string; exp: number; kind?: "ga4" | "webflow" | "shopify" | "hubspot"; shop?: string };
 /** True when signed sign-in notes can be made (any sign-in, not only Google's). */
 export const stateReady = () => Boolean(secret());
 export function signState(s: Omit<State, "exp">) {

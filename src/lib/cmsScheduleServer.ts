@@ -1,6 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { CMS_API } from "./cms";
+import { freshConfig } from "./cmsTokens";
 import { runCmsSchedule } from "./cmsSchedule";
 import type { CmsKind, Published, PublishInput } from "./cmsTypes";
 import { docToHtml } from "./docHtml";
@@ -41,7 +42,7 @@ export async function cmsPublishJob(db: SupabaseClient, job: Job) {
           schema: cut(m.schema, 50_000),
           live: true,
         };
-        return CMS_API[conn.kind as CmsKind].publish(conn.config as Record<string, string>, input, id);
+        return CMS_API[conn.kind as CmsKind].publish(await freshConfig(db, conn), input, id);
       },
       save: async (rec) => {
         const d = await doc();
