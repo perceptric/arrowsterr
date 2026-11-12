@@ -62,6 +62,32 @@ Opened from the Catalog side panel. One brand, one catalog.
 
 Each product is stored once with its variants folded in: `title`, `brand` (plus the aliases people add), `skus[]`, `gtins[]`, `mpns[]`, `url`, `price_min`, `price_max`, `currency`, `in_stock`, `image_hash` (section 5.3), and its match tokens (section 5.2). The catalog syncs daily, and keeps each day's price, because a card is always compared with the price on the day it was read.
 
+### 3.1 Which brands get it
+
+AI Shopping is on or off per brand. ChatGPT and AI Mode show product cards for things people buy online, so a software company, an agency or a law firm would only ever see an empty tab. Brands that don't sell products keep the normal AI Visibility pages and run no shopping checks, so they add $0.
+
+**Three kinds of brand:**
+
+| Kind | Example | AI Shopping |
+|---|---|---|
+| Sells online from its own store | A shoe brand on Shopify | On. Everything in this plan |
+| Sells only through other stores | A brand sold only on Amazon, Walmart and REI | On. Catalog from Merchant Center or CSV; matching skips the own-store link (section 5.1, step 2); the retailer list is the main view |
+| Doesn't sell products | SaaS, agencies, services, B2B | Off. Tab hidden, no runs |
+
+**How it's decided.** A `shop_detect` job looks for these signals, in order. The first one found turns AI Shopping on and is saved as the reason:
+
+1. **A store is connected:** Shopify in Publishing sites, Merchant Center, or a CSV upload.
+2. **The site sells things:** the crawl Arrowsterr already runs finds `Product` JSON-LD with an `offers` price on at least 3 pages, or a cart or checkout link (`/cart`, `/checkout`, `add-to-cart`). `Product` without a price doesn't count, because software sites use it too. `pageFacts.ts` already reads the JSON-LD types; it also keeps whether `offers` is there.
+3. **Cards already name the brand:** the normal tracking runs return product items next to the answer at no extra cost (ChatGPT `chat_gpt_products`, AI Mode `ai_overview_shopping`), and `read()` in `dataforseo.ts` drops them today. It starts counting them per brand, and 3 cards with the brand's name in 14 days turn AI Shopping on.
+
+None of the three means off. The job runs when a brand is added, after each site crawl, and once a week.
+
+**A person decides last.** Settings › Brand has an AI Shopping switch with three states: Auto (the default, follows the job), On and Off. A switch set by hand is never changed by the job.
+
+**When it's off:** the sidebar hides AI Shopping for that brand. Opening `/ai-shopping` directly shows the empty screen with the shopping drawing, "Track your products in AI answers" and one button, Connect a store, which opens the Catalog side panel. Connecting a store turns it on.
+
+**When it turns off after being on:** runs stop that day; the history stays and shows again if it turns back on.
+
 ---
 
 ## 4. Prompts and sampling
@@ -187,7 +213,7 @@ For prompt q, engine e and run r, let C(q, e, r) be its cards in order. Position
 | `shop_ids` | `gid` to product, or to "not ours", with who decided and when |
 | `shop_daily` | Brand, prompt, engine, day: runs, runs with cards, and per brand and product the counts behind section 6 |
 
-Every row carries `brand_id`. The screens read `shop_daily`, so they stay fast.
+`brands` gets `shop_mode` (`auto`, `on`, `off`), `shop_on` (what Auto decided) and `shop_reason` (section 3.1). Every row carries `brand_id`. The screens read `shop_daily`, so they stay fast.
 
 ---
 
@@ -195,6 +221,7 @@ Every row carries `brand_id`. The screens read `shop_daily`, so they stay fast.
 
 | Job | When | Does |
 |---|---|---|
+| `shop_detect` | When a brand is added, after each site crawl, weekly | Section 3.1: sets `shop_on` and `shop_reason` for brands on Auto |
 | `shop_catalog_sync` | Daily, and on connect | Reads Shopify or Merchant Center into `shop_catalog` and the day's prices |
 | `shop_runs_post` | 4 times a day | Posts the day's runs to DataForSEO's standard queue, tagged with run IDs (key prompt + engine + day + sample, so a retry never posts twice) |
 | `shop_runs_collect` | Every 15 minutes | Collects finished tasks, saves the raw response, parses the cards |
@@ -210,7 +237,7 @@ All run on the existing jobs queue and worker.
 | Phase | Weeks | Ships | Done when |
 |---|---|---|---|
 | 1. Real data first | 0.5 | 40 test prompts run on both engines; every raw response saved as a test fixture; parsers written against those fixtures | Every `chat_gpt_products` and `ai_overview_shopping` field in section 2 is confirmed from real responses, and the parser tests pass on all of them |
-| 2. Catalog | 1 | Shopify `read_products`, Merchant Center sign-in, CSV, the Catalog side panel | A Shopify store's 42 products load with variants folded in and daily prices |
+| 2. Catalog | 1 | Shopify `read_products`, Merchant Center sign-in, CSV, the Catalog side panel, `shop_detect` and the Settings switch | A Shopify store's 42 products load with variants folded in and daily prices; on 30 hand-labeled brands (15 that sell, 15 that don't), detection turns on every brand that sells and none that don't |
 | 3. Matching | 1.5 | Section 5 with its tests, "Is this yours?" | On 200 hand-labeled cards: no wrong matches, and at least 85% matched without asking |
 | 4. Numbers and screens | 1.5 | Sections 6 to 8, Overview, Products, Prompts, Stores, Sources, alerts | The numbers on 3 test brands match a hand count of the same runs |
 
@@ -220,7 +247,7 @@ About 4.5 weeks for one engineer.
 
 ## 12. Running cost
 
-**Assumptions:** 1.3 brands per team; 30% of brands sell products and turn it on (20 brands at Beta, 195 at Growth); 40 prompts, 2 engines, 2 runs a day each; DataForSEO standard queue at $0.0012 per run for both endpoints; product lookups for under 5% of new cards.
+**Assumptions:** 1.3 brands per team; 30% of brands sell products and turn it on (20 brands at Beta, 195 at Growth); the other 70% run no shopping checks and add $0 (section 3.1); 40 prompts, 2 engines, 2 runs a day each; DataForSEO standard queue at $0.0012 per run for both endpoints; product lookups for under 5% of new cards.
 
 | Line | Per brand a month | Beta (50 teams) | Growth (500 teams) |
 |---|---|---|---|
