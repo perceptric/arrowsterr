@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyNote } from "../Drawing";
 import { track } from "@/lib/analytics";
 import { DateField, Dropdown } from "../Pickers";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -258,12 +259,16 @@ export function PublishPanel({ sb, auth, docId, brandId, title, html, onClose }:
               <Dropdown label="Publish to" value={to} onChange={pickSite} className="aw-dropdown--field w-full" options={conns.map((c) => ({ id: c.id, label: `${c.name} · ${CMS.find((x) => x.id === c.kind)?.label ?? ""}` }))} />
             </label>
           ) : (
-            <div className="aw-callout flex flex-wrap items-center justify-between gap-3">
-              <span>No publishing site for this brand yet.</span>
-              <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => setConnecting(true)}>
-                Connect a site
-              </button>
-            </div>
+            <EmptyNote
+              drawing="plug"
+              action={
+                <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => setConnecting(true)}>
+                  Connect a site
+                </button>
+              }
+            >
+              Drafts publish to this brand&apos;s own sites.
+            </EmptyNote>
           )}
 
           {wp && pub?.remoteId ? (

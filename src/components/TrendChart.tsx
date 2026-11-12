@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyNote } from "./Drawing";
 import { useState } from "react";
 import type { Metric, Point } from "@/lib/metrics";
 
@@ -51,7 +52,7 @@ export function TrendChart({ points, lines, metric, mode, wide = false }: { poin
   const bx = (i: number, j: number) => PAD.l + slot * i + slot / 2 - (barW * lines.length) / 2 + j * barW;
   const p = hover !== null ? points[hover] : null;
 
-  if (!n) return <p className="aw-small p-5">No results in this period yet.</p>;
+  if (!n) return <EmptyNote drawing="chart">No results in this period yet.</EmptyNote>;
   return (
     <div className="relative">
       <svg viewBox={`0 0 ${VW} ${H}`} className="block h-auto w-full" role="img" aria-label={`${metric} over time`} onMouseLeave={() => setHover(null)}>

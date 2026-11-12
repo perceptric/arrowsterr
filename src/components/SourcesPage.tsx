@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyNote, EmptyScreen } from "./Drawing";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createContext, Fragment, useContext, useEffect, useState } from "react";
 import { latestAnswersFor, type Answer } from "@/lib/db";
@@ -31,7 +32,7 @@ import { ENGINE_LOGOS, EngineName } from "./Engines";
 import { Markdown } from "./Markdown";
 import { cleanAnswer } from "@/lib/answerText";
 import { homeOf, hostOf, isGenericTitle, nameFromTitle, siteName } from "@/lib/linkTitles";
-import { Card, Empty, favicon, pct, Seg, SidePanel, sortRows, SortTh, Tip, TIPS, useSort } from "./ui";
+import { Card, favicon, pct, Seg, SidePanel, sortRows, SortTh, Tip, TIPS, useSort } from "./ui";
 
 export const TYPE_COLORS: Record<SourceType, string> = {
   You: "#0943B0",
@@ -183,7 +184,12 @@ export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseCli
   const [analyzing, setAnalyzing] = useState<AbortController | null>(null);
 
   const chats = answered(current, filter);
-  if (!chats.length) return <Empty>No results in the last {days} days yet. They show up after the first check finishes, then update every day.</Empty>;
+  if (!chats.length)
+    return (
+      <EmptyScreen drawing="waiting" title="No results yet" fill={false}>
+        They show up here after the next daily check.
+      </EmptyScreen>
+    );
   const stats = brandStats(chats, { name: brand.name, domain: brand.domain });
   // The most named brand for each domain, so a site shows its name instead of its address.
   const names: Record<string, string> = {};
@@ -477,7 +483,7 @@ export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseCli
           </div>
         </section>
       ) : (
-        <Empty>No {GROUPS.find((g) => g.id === group)!.label.toLowerCase()} sites cited in this period.</Empty>
+        <EmptyNote drawing="sources">No {GROUPS.find((g) => g.id === group)!.label.toLowerCase()} sites cited in this period.</EmptyNote>
       )}
 
       {/* 4. One list */}

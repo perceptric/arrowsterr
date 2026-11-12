@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyNote } from "../Drawing";
 import { useEffect } from "react";
 import type { Chat } from "@/lib/chats";
 import type { CalendarItem } from "@/lib/db";
@@ -46,7 +47,7 @@ export function ContentResults({ auth, brandId, domain, days, chats, items }: { 
   const rows = contentRows({ items, citedPaths: chats.length ? citedPathsOf(chats, domain) : null, traffic: t, visitors: v });
 
   if (!rows.length)
-    return <div className="aw-callout">No published pages yet. Set a page to Published and add its live URL. Its AI citations and visits show up here.</div>;
+    return <EmptyNote drawing="chart">No published pages yet. Set a page to Published with its live URL.</EmptyNote>;
 
   return (
     <div className="flex flex-col gap-4">

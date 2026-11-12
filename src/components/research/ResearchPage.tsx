@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyScreen } from "../Drawing";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useEffect } from "react";
 import { putStash, useStash } from "@/lib/stash";
@@ -87,7 +88,11 @@ export function ResearchPage({
       {site === undefined ? (
         <Thinking text={`Loading ${brand.domain}...`} />
       ) : !site ? (
-        error ? null : <div className="aw-callout max-w-xl">Ask an editor to open Research once for {brand.domain} to set it up.</div>
+        error ? null : (
+          <EmptyScreen drawing="search" title="Research isn't set up yet">
+            Ask an editor to open Research once for {brand.domain}.
+          </EmptyScreen>
+        )
       ) : tool === "keywords" ? (
         <KeywordOverview sb={sb} auth={auth} site={site} canEdit={canEdit} />
       ) : tool === "domain" ? (

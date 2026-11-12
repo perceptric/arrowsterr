@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Drawing } from "./Drawing";
 import { Logo } from "./Logo";
 
 /** The full-page message behind the 404 and error pages. */
@@ -9,7 +10,8 @@ export function ErrorScreen({ code, title, children, actions }: { code: string; 
         <Logo size="md" />
         <div className="aw-frame aw-frame--shadow w-full">
           <div className="aw-frame__body flex flex-col items-center gap-3">
-            <span className="aw-chip">{code}</span>
+            <Drawing kind="zippie" size={180} />
+            <span className="sr-only">{code}</span>
             <h1 className="aw-h3 mb-0!">{title}</h1>
             <div className="text-[14px] text-body">{children}</div>
             <div className="mt-2 flex flex-wrap justify-center gap-2">{actions}</div>

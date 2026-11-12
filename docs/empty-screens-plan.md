@@ -4,6 +4,8 @@ Every empty screen in Arrowsterr becomes one picture, a short title, one line an
 
 Written November 2026.
 
+**Shipped (November 2026).** All four phases are in: the 21 pictures (`src/lib/isoArt.ts`), `EmptyScreen` and `EmptyNote` (`src/components/Drawing.tsx`) on every screen below, the 404 and error pages with Zippie, the rule in `docs/brand.md`, and `tests/emptyScreens.test.ts`. `ToolIntro`, `PlanIntro` and the unused Content page went away. Domain Research's title became "See how any site wins search" to stay at six words. Visitors opens Traffic, since the tracking code is set up there.
+
 ---
 
 ## 1. Summary
@@ -87,7 +89,7 @@ Written November 2026.
 | Screen | Picture | Title | Line | Button |
 |---|---|---|---|---|
 | Keyword Research | search | Find what your buyers search | Type a keyword to see its volume, difficulty and ideas. | Search bar and 3 examples |
-| Domain Research | globe | See how any site wins on Google | Type a domain to see its keywords, pages and rivals. | Search bar and 3 examples |
+| Domain Research | globe | See how any site wins search | Type a domain to see its keywords, pages and rivals. | Search bar and 3 examples |
 | Competitive Analysis | gap | Find the keywords rivals win | Add up to 3 rivals to compare their keywords with yours. | The rivals form |
 | Editorial Calendar | calendar | Plan 12 weeks of content | Arrowsterr picks the keywords that bring buyers and gives each a date. | Build my plan |
 | Drafts | drafts | Write drafts that get cited | Add keywords from the Editorial Calendar to write them here. | Open the Editorial Calendar |
