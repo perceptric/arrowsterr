@@ -2,6 +2,7 @@ import "server-only";
 import { breadcrumbUrl, isGoogleRedirect, plainTarget } from "./serpUrl";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { charge } from "./meter";
+import { readCards } from "./shopParse";
 import { cleanSources, linksInText, type Source } from "./sources";
 
 // DataForSEO reads the real ChatGPT and Gemini apps, and Google's AI Overview and AI Mode, for us.
@@ -11,7 +12,9 @@ import { cleanSources, linksInText, type Source } from "./sources";
 export type DfsEngine = "ChatGPT" | "Gemini" | "AI Overview" | "AI Mode";
 export type Organic = { rank: number; domain: string; url: string };
 /** shown: Google showed an AI answer for the search. organic: Google's top 20 regular results (AI Overview only). */
-export type DfsAnswer = { text: string; sources: Source[]; shown?: boolean; organic?: Organic[]; queries?: string[] };
+/** A product card in the answer, kept small (AI Shopping detection counts the ones that name the brand). */
+export type DfsCard = { title: string; seller: string | null; domain: string | null };
+export type DfsAnswer = { text: string; sources: Source[]; shown?: boolean; organic?: Organic[]; queries?: string[]; cards?: DfsCard[] };
 
 const API = process.env.DFS_API_URL?.trim() || "https://api.dataforseo.com/v3";
 const PATHS: Record<DfsEngine, string> = {
@@ -101,7 +104,24 @@ function queriesOf(result: Record<string, unknown> | undefined): string[] | unde
   return out.length ? out.slice(0, 20) : undefined;
 }
 
+/** ChatGPT and AI Mode product cards, small. Never throws: a card that can't be read is left out. */
+function cardsOf(engine: DfsEngine, result: unknown): DfsCard[] | undefined {
+  if (engine !== "ChatGPT" && engine !== "AI Mode") return undefined;
+  try {
+    const cards = readCards(engine === "ChatGPT" ? "gpt" : "aim", result).cards.map((c) => ({ title: c.title, seller: c.seller, domain: c.domain }));
+    return cards.length ? cards.slice(0, 40) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 function read(engine: DfsEngine, result: { markdown?: string; sources?: Raw[]; items?: Item[] } | undefined): DfsAnswer {
+  const answer = readAnswerParts(engine, result);
+  const cards = cardsOf(engine, result);
+  return cards ? { ...answer, cards } : answer;
+}
+
+function readAnswerParts(engine: DfsEngine, result: { markdown?: string; sources?: Raw[]; items?: Item[] } | undefined): DfsAnswer {
   if (GOOGLE.includes(engine)) {
     const all = result?.items ?? [];
     const organic: Organic[] | undefined =
@@ -145,6 +165,22 @@ export async function postTasks(engine: DfsEngine, prompts: string[]): Promise<(
     chunk.forEach((_, j) => ids.push(tasks[j]?.status_code === 20100 ? tasks[j].id : null));
   }
   return ids;
+}
+
+/** Queue one search and keep its raw result for the caller (AI Shopping's "buy <brand>" check). Null when not accepted. */
+export async function postRaw(engine: DfsEngine, keyword: string): Promise<string | null> {
+  const [task] = await call(`${PATHS[engine]}/task_post`, [taskBody(engine, keyword, { priority: 1 })]);
+  return task?.status_code === 20100 ? task.id : null;
+}
+
+/** The raw result of a queued task: waiting, done (with DataForSEO's result as it came), or failed. */
+export async function getRaw(engine: DfsEngine, id: string): Promise<{ state: "waiting" } | { state: "done"; result: unknown } | { state: "failed"; error: string }> {
+  const [task] = await call(`${PATHS[engine]}/task_get/advanced/${id}`);
+  const code = Number(task?.status_code);
+  if (code === 20000) return { state: "done", result: task.result?.[0] ?? null };
+  if (code >= 40600 && code < 40700) return { state: "waiting" };
+  if (GOOGLE.includes(engine) && code === 40102) return { state: "done", result: null };
+  return { state: "failed", error: `DataForSEO: ${task?.status_message ?? `status ${code}`}` };
 }
 
 export type TaskState = { state: "waiting" } | { state: "done"; answer: DfsAnswer } | { state: "failed"; error: string };

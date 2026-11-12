@@ -6,6 +6,8 @@ import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes, 
 // or a key made from SUPABASE_SECRET_KEY when that is not set.
 
 const SCOPES = ["openid", "email", "https://www.googleapis.com/auth/analytics.readonly"];
+/** Google Merchant Center, read through the Merchant API, for AI Shopping's catalog (docs/ai-shopping-plan.md, section 3). */
+export const MERCHANT_SCOPES = ["openid", "email", "https://www.googleapis.com/auth/content"];
 
 export const googleReady = () => Boolean(process.env.GOOGLE_CLIENT_ID?.trim() && process.env.GOOGLE_CLIENT_SECRET?.trim() && secret());
 
@@ -29,7 +31,7 @@ export function unseal(sealed: string) {
 }
 
 /** A signed, short-lived note that rides through Google's sign-in and comes back to the callback. */
-export type State = { brandId: string; workspaceId: string; userId: string; back: string; exp: number; kind?: "ga4" | "webflow" | "shopify" | "hubspot"; shop?: string };
+export type State = { brandId: string; workspaceId: string; userId: string; back: string; exp: number; kind?: "ga4" | "merchant" | "webflow" | "shopify" | "hubspot"; shop?: string };
 /** True when signed sign-in notes can be made (any sign-in, not only Google's). */
 export const stateReady = () => Boolean(secret());
 export function signState(s: Omit<State, "exp">) {
@@ -48,12 +50,12 @@ export function readState(raw: string): State | null {
 
 export const redirectUri = (origin: string) => `${origin}/api/google/callback`;
 
-export function authUrl(origin: string, state: string) {
+export function authUrl(origin: string, state: string, scopes: string[] = SCOPES) {
   const q = new URLSearchParams({
     client_id: process.env.GOOGLE_CLIENT_ID!.trim(),
     redirect_uri: redirectUri(origin),
     response_type: "code",
-    scope: SCOPES.join(" "),
+    scope: scopes.join(" "),
     access_type: "offline",
     prompt: "consent", // always returns a refresh token, even on a second connect
     include_granted_scopes: "false",

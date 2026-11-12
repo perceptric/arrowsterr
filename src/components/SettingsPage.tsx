@@ -3,13 +3,14 @@ import type { ReactNode } from "react";
 export type SettingsTab = "profile" | "security" | "notifications" | "settings" | "members" | "access" | "ai" | "brandkit" | "retention" | "integrations" | "publishing" | "billing" | "exports" | "jobs" | BrandTab;
 
 /** Settings each brand has of its own (docs/content-v2.md, Per brand and per workspace). Brand's own page moved here. */
-export type BrandTab = "voice" | "kit" | "guidelines" | "publishing" | "google" | "alerts";
+export type BrandTab = "voice" | "kit" | "guidelines" | "publishing" | "google" | "shopsettings" | "alerts";
 export const BRAND_TABS: { id: BrandTab; label: string }[] = [
   { id: "voice", label: "Tone of voice" },
   { id: "kit", label: "Brand Kit" },
   { id: "guidelines", label: "Guidelines" },
   { id: "publishing", label: "Publishing sites" },
   { id: "google", label: "Google Analytics" },
+  { id: "shopsettings", label: "AI Shopping" },
   { id: "alerts", label: "Slack and alerts" },
 ];
 export const isBrandTab = (t: string): t is BrandTab => BRAND_TABS.some((b) => b.id === t);

@@ -71,10 +71,12 @@ import { ReportsPage } from "./reports/ReportsPage";
 import { VisitorsPage } from "./VisitorsPage";
 import { ZippieWidget } from "./ZippieWidget";
 import { LibraryPage } from "./writer/LibraryPage";
+import { ShoppingPage } from "./ShoppingPage";
+import { shopOn, type ShopMode } from "@/lib/shopDetect";
 import { CONTENT_ALIASES, CONTENT_SLUGS, type ContentPage } from "@/lib/contentRoutes";
 
 export type { Brand } from "@/lib/db";
-type Page = "prompts" | "competitors" | "domains" | "urls" | "traffic" | "visitors" | "keywords" | "domain" | "gap" | ContentPage | "summary" | SettingsTab;
+type Page = "prompts" | "competitors" | "domains" | "urls" | "shopping" | "traffic" | "visitors" | "keywords" | "domain" | "gap" | ContentPage | "summary" | SettingsTab;
 const RESEARCH: Page[] = ["keywords", "domain", "gap", "calendar"];
 const VISIBILITY: Page[] = ["prompts", "competitors", "domains", "urls"];
 /** Pages with their own PDF (docs/reports.md, section 32.3). */
@@ -88,6 +90,7 @@ const SLUGS: Record<Page, string> = {
   competitors: "/competitors",
   domains: "/sources",
   urls: "/sources/urls",
+  shopping: "/ai-shopping",
   traffic: "/traffic",
   visitors: "/visitors",
   keywords: "/keywords",
@@ -110,6 +113,7 @@ const SLUGS: Record<Page, string> = {
   integrations: "/settings/integrations",
   publishing: "/settings/publishing",
   google: "/settings/google-analytics",
+  shopsettings: "/settings/ai-shopping",
   alerts: "/settings/alerts",
   billing: "/settings/billing",
   exports: "/settings/imports-exports",
@@ -449,6 +453,25 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
   }, [sb, ws, userId]);
 
   const active = brands?.find((b) => b.id === activeId);
+  // AI Shopping shows for brands that sell products (docs/ai-shopping-plan.md, section 3.1). Read on its own, so the
+  // brand list still loads before supabase/079_ai_shopping.sql has run.
+  const [shopping, setShopping] = useState<Record<string, boolean>>({});
+  const shopKey = isSettings(page) || page === "shopping" ? page : "other";
+  useEffect(() => {
+    if (!ws) return;
+    let live = true;
+    sb.from("brands")
+      .select("id, shop_mode, shop_on")
+      .eq("workspace_id", ws.id)
+      .then(({ data, error }) => {
+        if (!live || error) return;
+        setShopping(Object.fromEntries((data ?? []).map((b) => [b.id as string, shopOn(b.shop_mode as ShopMode, b.shop_on as boolean)])));
+      });
+    return () => {
+      live = false;
+    };
+  }, [sb, ws, brands, shopKey]);
+  const hidePages: Page[] = active && shopping[active.id] ? [] : ["shopping"];
   // Load the brand's website and its content plans in the background, so research pages open at once.
   useEffect(() => {
     if (!active) return;
@@ -682,6 +705,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
     <div className="flex min-h-screen flex-col md:flex-row">
       <UndoKeys />
       <Sidebar
+        hide={hidePages}
         hidden={navHidden}
         onHide={toggleNav}
         sb={sb}
@@ -972,6 +996,8 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
             />
           ) : page === "visitors" ? (
             <VisitorsPage key={view.brand.id} view={view} auth={auth} />
+          ) : page === "shopping" ? (
+            <ShoppingPage key={view.brand.id} auth={auth} brand={{ id: view.brand.id, name: view.brand.name, domain: view.brand.domain }} canEdit={canEdit} onPublishing={() => go("publishing")} />
           ) : page === "traffic" ? (
             <TrafficPage key={view.brand.id} view={view} auth={auth} canEdit={canEdit} />
           ) : page === "domains" || page === "urls" ? (
@@ -1019,6 +1045,7 @@ const ICONS: Record<string, string> = {
   prompts: '<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r=".9"/><circle cx="4.5" cy="12" r=".9"/><circle cx="4.5" cy="18" r=".9"/>',
   competitors: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.4 3.3-5.5 6.5-5.5s5.7 2.1 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.8c1.8.8 3 2.6 3.5 5.2"/>',
   sources: '<path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/>',
+  bag: '<path d="M5 8h14l-1 12H6L5 8z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/>',
   search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
   globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/>',
   bank: '<path d="M6 4h12v16l-6-4-6 4z"/>',
@@ -1052,7 +1079,7 @@ function NavIcon({ name }: { name: string }) {
 
 /** The toolset a page belongs to. Starter opens one of them. */
 const trackOf = (page: Page): Track | null =>
-  ["prompts", "competitors", "domains", "urls"].includes(page) ? "visibility" : ["keywords", "domain", "gap", "calendar", "library"].includes(page) ? "seo" : null;
+  ["prompts", "competitors", "domains", "urls", "shopping"].includes(page) ? "visibility" : ["keywords", "domain", "gap", "calendar", "library"].includes(page) ? "seo" : null;
 
 /** The big modules of the app. Each opens to its own pages. */
 const NAV: { group: string; icon: string; items: { id: Page; label: string; icon: string; also?: Page[] }[] }[] = [
@@ -1063,6 +1090,7 @@ const NAV: { group: string; icon: string; items: { id: Page; label: string; icon
       { id: "prompts", label: "Prompts", icon: "prompts" },
       { id: "competitors", label: "Competitors", icon: "competitors" },
       { id: "domains", label: "Sources", icon: "sources", also: ["urls"] },
+      { id: "shopping", label: "AI Shopping", icon: "bag" },
     ],
   },
   {
@@ -1139,6 +1167,7 @@ function Sidebar({
   page,
   plan,
   onPage,
+  hide = [],
 }: {
   sb: SupabaseClient;
   email: string;
@@ -1150,6 +1179,7 @@ function Sidebar({
   page: Page;
   plan: PlanUsage | null;
   onPage: (p: Page) => void;
+  hide?: Page[];
   hidden: boolean;
   onHide: () => void;
 }) {
@@ -1157,7 +1187,7 @@ function Sidebar({
   const [closedGroups, setClosedGroups] = useState<Set<string>>(new Set());
   // On a phone the pages fold into a menu button, so the page comes first.
   const [menu, setMenu] = useState(false);
-  const groups = NAV;
+  const groups = NAV.map((g) => ({ ...g, items: g.items.filter((i) => !hide.includes(i.id)) })).filter((g) => g.items.length);
   // From the rail: show the full sidebar, with that module's pages open.
   const expand = (group?: string) => {
     if (group) setClosedGroups((x) => new Set([...x].filter((n) => n !== group)));

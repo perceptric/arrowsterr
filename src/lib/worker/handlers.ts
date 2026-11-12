@@ -11,6 +11,8 @@ import { answerRows, saveAnswers, type Profile } from "../db";
 import { askEngine, availableEngines, viaDfs, WEEKLY_ENGINES, type Engine } from "../engines";
 import { entitlement } from "../entitlements";
 import { enqueue, enqueueMany, finish, rateOk, retry, type Job } from "../jobs";
+import { cardNamesBrand } from "../shopDetect";
+import { queueShopWork } from "../shopServer";
 import { afterDaily, dispatch } from "../integrations";
 import { emailJob } from "../notify";
 import { briefEmail, planEmail } from "../emails";
@@ -45,6 +47,7 @@ export const slotOf = (brandId: string) => seed(brandId) % WINDOW_MIN;
 export async function schedule(db: SupabaseClient, job: Job) {
   // Scheduled reports due this tick (docs/reports.md, section 32.4). A failure here never holds up the daily checks.
   await queueReportSends(db).catch((e) => console.error("Report schedules failed:", e instanceof Error ? e.message : e));
+  await queueShopWork(db).catch((e) => console.error("AI Shopping jobs failed:", e instanceof Error ? e.message : e));
   const engines = availableEngines();
   if (!engines.length) return finish(job.id);
   const now = new Date();
@@ -166,7 +169,21 @@ export async function check(db: SupabaseClient, job: Job) {
     return record(db, job, p, failed(p.engine, p.prompt, LIMIT));
   }
   // Only the brand reading runs per brand. The answer itself was paid for once.
+  await seenCards(db, p, answer);
   await record(db, job, p, await readAnswer(p.engine, p.prompt, answer, p.brand, p.domain));
+}
+
+/** Product cards that name the brand, for AI Shopping detection (shopDetect.ts). Never stops the check. */
+async function seenCards(db: SupabaseClient, p: CheckPayload, answer: DfsAnswer) {
+  try {
+    if (!answer.cards?.length) return;
+    const n = answer.cards.filter((c) => cardNamesBrand(c, p.brand, p.domain)).length;
+    if (!n) return;
+    const { error } = await db.from("shop_seen").upsert({ brand_id: p.brandId, day: p.day, engine: p.engine, prompt: p.prompt.slice(0, 500), cards: n }, { onConflict: "brand_id,day,engine,prompt" });
+    if (error) console.error("AI Shopping cards not saved:", error.message);
+  } catch (e) {
+    console.error("AI Shopping cards not saved:", e instanceof Error ? e.message : e);
+  }
 }
 
 // ─────────────── rollup: the daily numbers for a finished run ───────────────
@@ -409,3 +426,6 @@ export async function gsc_sync(_db: SupabaseClient, job: Job) {
 export async function cwv_sync(_db: SupabaseClient, job: Job) {
   await finish(job.id);
 }
+
+// ─────────────── AI Shopping: which brands get it, and each catalog's daily sync (shopServer.ts) ───────────────
+export { shopDetectJob as shop_detect, shopCatalogSyncJob as shop_catalog_sync } from "../shopServer";
