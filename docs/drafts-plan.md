@@ -8,6 +8,14 @@ Written November 2026. Prices marked "check" couldn't be confirmed on the vendor
 
 **Phase 2 shipped (November 2026).** Publish has Draft, Publish now and Schedule for every site. WordPress keeps its own schedule (`wp_publish`); the other sites go up as a draft right away and a `cms_publish` job puts them live at the time with the article as it is then (`cmsSchedule.ts`, tested on a double run, a moved schedule and a failure that retries). A live post on those sites can only be updated live. Framer connects with its project link and an API key through the Framer Server API (`framer-api`); the blog collection and its fields are found on their own (`cmsMap.ts`), and a live publish publishes the site and deploys it to the custom domain. Webflow connects with Sign in with Webflow when `WEBFLOW_CLIENT_ID` and `WEBFLOW_CLIENT_SECRET` are set (`webflowAuth.ts`), finding the site, blog collection and fields the same way; a pasted site token still works. Settings › Publishing sites uses the same connect wizard. Framer needs `supabase/077_framer_sites.sql`.
 
+**Phase 3 shipped (November 2026).**
+- Shopify and HubSpot connect with a sign-in window when their app keys are on the server (`cmsTokens.ts`, see `docs/fly.md`). Pasted tokens still work.
+- Both hand out short access tokens with a refresh token, renewed before every publish (`freshConfig`). Shopify's sign-in is checked with Shopify's signature and our own signed state naming the same store (`cmsOauth.ts`, tested).
+- Shopify now publishes through the GraphQL Admin API (2026-10), for pasted and signed-in stores alike, and returns the article's live address.
+- Wix connects with an API key and the site ID: the article is converted to Wix rich content, and the site's first member writes it. Connecting tries both, so a change on Wix's side shows then (check: Wix's API key header and HTML converter weren't confirmed on Wix's own pages).
+- The webhook sends the article as JSON to any https address, signed with `X-Arrowsterr-Signature` when it has a secret, through `safePost` (public internet only, no redirects). The site can answer with `{ id, url }`.
+- Needs `supabase/078_more_sites.sql`.
+
 ---
 
 ## 1. Summary

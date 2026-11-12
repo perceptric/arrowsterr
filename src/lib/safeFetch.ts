@@ -101,3 +101,36 @@ export async function safeFetch(url: string, opts: { method?: "GET" | "HEAD"; ua
   }
   return { ok: false, status: 0, url: current, chain, headers: new Headers(), body: "", ms: Date.now() - start, error: "Too many redirects." };
 }
+
+/**
+ * POST JSON to a public HTTPS address people gave us (a webhook site). The same private-network guard as safeFetch;
+ * redirects are not followed, so a POST can't be bounced somewhere else. Never throws.
+ */
+export async function safePost(url: string, body: string, headers: Record<string, string> = {}, timeout = 20_000): Promise<{ ok: boolean; status: number; body: string; error?: string }> {
+  let u: URL;
+  try {
+    u = new URL(url);
+  } catch {
+    return { ok: false, status: 0, body: "", error: "Not a valid address." };
+  }
+  const host = u.hostname.replace(/^\[|\]$/g, "");
+  if (u.protocol !== "https:" || (isIP(host) && privateIp(host))) return { ok: false, status: 0, body: "", error: "Use an https address on the public internet." };
+  try {
+    const res = await ufetch(url, {
+      method: "POST",
+      redirect: "manual",
+      dispatcher: agent,
+      headers: { "User-Agent": UA, "Content-Type": "application/json", Accept: "application/json", ...headers },
+      body,
+      signal: AbortSignal.timeout(timeout),
+    });
+    const text = (await res.text().catch(() => "")).slice(0, 20_000);
+    if (res.status >= 300 && res.status < 400) return { ok: false, status: res.status, body: text, error: "The address redirected. Use the final address." };
+    return { ok: res.ok, status: res.status, body: text };
+  } catch (e) {
+    const err = e as { code?: string; cause?: { code?: string }; name?: string };
+    const code = err.cause?.code ?? err.code;
+    const error = code === "EPRIVATE" ? "That address points to a private network." : err.name === "TimeoutError" ? "It took too long to answer." : code === "ENOTFOUND" ? "That domain doesn't exist." : "It couldn't be reached.";
+    return { ok: false, status: 0, body: "", error };
+  }
+}

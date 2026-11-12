@@ -73,4 +73,22 @@ export const CMS_GUIDE: Record<CmsKind, CmsGuide> = {
     ],
     open: (f) => (site(f.siteUrl) ? { label: "Open Ghost", href: `${site(f.siteUrl)}/ghost/#/settings/integrations` } : null),
   },
+  wix: {
+    blurb: "Arrowsterr needs an API key from your Wix account and your site's ID.",
+    steps: [
+      "Click Open Wix and open API Keys in your account settings.",
+      "Create a key named Arrowsterr with the Wix Blog and Members permissions, and paste it below.",
+      "Open your site's dashboard. The site ID is the long code after /dashboard/ in the address. Paste it below.",
+    ],
+    open: () => ({ label: "Open Wix", href: "https://manage.wix.com/account/api-keys" }),
+  },
+  webhook: {
+    blurb: "Arrowsterr sends each article to your site's address as JSON: title, slug, description, image, HTML and schema.",
+    steps: [
+      "Paste the address your site takes articles at. It must start with https.",
+      "Add a secret if your site checks the X-Arrowsterr-Signature header.",
+      "Your site can answer with an id and url, so updates change the same post.",
+    ],
+    open: () => null,
+  },
 };
