@@ -2,6 +2,11 @@
 // in the style of the city on arrowsterr.com (arrowsterr-site, pages/home/iso.php). Same 30° angle, same three tones
 // per block (top, left 10% darker, right 22% darker), no outlines. Colors are CSS variables (--iso-<role>, -l, -r), so
 // one picture works in light and dark. Pure, so tests can cover it: it returns SVG markup with no user text in it.
+//
+// Light comes from the top left, as on the website: each face carries a soft gradient over its flat tone (tops
+// brighten toward the back, sides darken toward the ground), the top's front edges catch a thin highlight, round
+// things are shaded across, and everything that stands on the plate casts a soft shadow to the right. The plate is a
+// lit stage with its own shadow, over a faint glow in the brand's pale blue.
 
 export type Role = "blue" | "sky" | "pale" | "paper" | "mist" | "gray" | "gold" | "green" | "ground" | "ink";
 type Tone = "" | "l" | "r";
@@ -41,9 +46,35 @@ const S = 11;
 
 type Item = { depth: number; step: number; svg: string; float: boolean };
 
+/** The light: gradients and blurs every picture shares, under one id prefix so two pictures on a page don't clash. */
+function lightDefs(id: string) {
+  const lin = (name: string, x2: number, y2: number, stops: [number, string, number][]) =>
+    `<linearGradient id="${id}-${name}" x1="0" y1="0" x2="${x2}" y2="${y2}">${stops.map(([o, c, a]) => `<stop offset="${o}" stop-color="${c}" stop-opacity="${a}"/>`).join("")}</linearGradient>`;
+  return [
+    lin("top", 1, 1, [[0, "#fff", 0.5], [0.55, "#fff", 0.08], [1, "#fff", 0]]),
+    lin("left", 0, 1, [[0, "#fff", 0.1], [1, "#0B1B3F", 0.1]]),
+    lin("right", 0, 1, [[0, "#0B1B3F", 0.02], [1, "#0B1B3F", 0.2]]),
+    lin("round", 1, 0, [[0, "#fff", 0.3], [0.3, "#fff", 0.06], [0.62, "#0B1B3F", 0.04], [1, "#0B1B3F", 0.26]]),
+    `<radialGradient id="${id}-stage" cx="0.42" cy="0.38" r="0.7"><stop offset="0" stop-color="#fff" stop-opacity="0.85"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>`,
+    `<radialGradient id="${id}-glow" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="var(--iso-pale)" stop-opacity="0.55"/><stop offset="0.6" stop-color="var(--iso-mist)" stop-opacity="0.25"/><stop offset="1" stop-color="var(--iso-mist)" stop-opacity="0"/></radialGradient>`,
+    `<pattern id="${id}-dots" width="7" height="7" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="0.55" fill="var(--iso-gray)" fill-opacity="0.55"/></pattern>`,
+    `<radialGradient id="${id}-fade" cx="0.5" cy="0.5" r="0.5"><stop offset="0.35" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>`,
+    `<mask id="${id}-dotmask"><rect x="0" y="0" width="240" height="170" fill="url(#${id}-fade)"/></mask>`,
+    `<filter id="${id}-soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.6"/></filter>`,
+    `<filter id="${id}-tight" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="0.9"/></filter>`,
+    `<filter id="${id}-wide" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="5"/></filter>`,
+  ].join("");
+}
+
 /** A small isometric scene. Add shapes, then render them back to front. */
 export class Iso {
   private items: Item[] = [];
+  /** The prefix for this picture's gradient and filter ids. */
+  private id: string;
+  constructor(id = "iso") {
+    this.id = id;
+  }
+  private u = (name: string) => `url(#${this.id}-${name})`;
   /** Where the shapes reach, so tests can check they stay in the frame. */
   bounds = { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity };
   /** The animation step and whether shapes float with the object (the plate doesn't). */
@@ -74,11 +105,46 @@ export class Iso {
   box(x: number, y: number, z: number, w: number, d: number, h: number, role: Role, opacity = 1, depth?: number) {
     const P = (a: number, b: number, c: number) => this.p(a, b, c);
     const o = opacity < 1 ? ` fill-opacity="${opacity}"` : "";
-    const svg =
-      this.poly([P(x + w, y, z), P(x + w, y + d, z), P(x + w, y + d, z + h), P(x + w, y, z + h)], fill(role, "r"), o) +
-      this.poly([P(x, y + d, z), P(x + w, y + d, z), P(x + w, y + d, z + h), P(x, y + d, z + h)], fill(role, "l"), o) +
-      this.poly([P(x, y, z + h), P(x + w, y, z + h), P(x + w, y + d, z + h), P(x, y + d, z + h)], fill(role), o);
+    const right = [P(x + w, y, z), P(x + w, y + d, z), P(x + w, y + d, z + h), P(x + w, y, z + h)];
+    const left = [P(x, y + d, z), P(x + w, y + d, z), P(x + w, y + d, z + h), P(x, y + d, z + h)];
+    const top = [P(x, y, z + h), P(x + w, y, z + h), P(x + w, y + d, z + h), P(x, y + d, z + h)];
+    let svg = this.poly(right, fill(role, "r"), o) + this.poly(left, fill(role, "l"), o) + this.poly(top, fill(role), o);
+    if (opacity === 1) {
+      // The light over the flat tones, and the bright edge where the top meets the front faces.
+      if (h > 0.05) svg += this.poly(right, this.u("right")) + this.poly(left, this.u("left"));
+      svg += this.poly(top, this.u("top"));
+      const [a, b, c] = [P(x, y + d, z + h), P(x + w, y + d, z + h), P(x + w, y, z + h)];
+      svg += `<path d="M${n(a[0])} ${n(a[1])}L${n(b[0])} ${n(b[1])}L${n(c[0])} ${n(c[1])}" fill="none" stroke="#fff" stroke-opacity="0.55" stroke-width="0.7" stroke-linejoin="round"/>`;
+      if (h > 0.4) {
+        const [f0, f1] = [P(x + w, y + d, z), P(x + w, y + d, z + h)];
+        svg += `<path d="M${n(f0[0])} ${n(f0[1])}L${n(f1[0])} ${n(f1[1])}" stroke="#fff" stroke-opacity="0.16" stroke-width="0.6"/>`;
+      }
+    }
+    if (z <= 1.2 && this.float && h > 0.05) this.shadowOf([[x, y], [x + w, y], [x + w, y + d], [x, y + d]], h, z);
     return this.add(depth ?? x + y + z + (w + d) / 2, svg);
+  }
+
+  /**
+   * The soft shadow a thing standing on the plate casts: a wide blur thrown to the right (away from the light) and a
+   * tight dark line where it meets the plate. It stays on the plate while the object floats.
+   */
+  shadowOf(foot: [number, number][], h: number, lift = 0) {
+    const was = { float: this.float };
+    this.float = false;
+    // Higher things throw a longer, fainter shadow; something lifted off the plate has no tight contact line.
+    const reach = Math.min(1.6, 0.4 + (h + lift) * 0.2);
+    const fade = Math.max(0.35, 1 - lift / 1.6);
+    const cast = foot.map(([a, b]) => this.raw(a + reach, b + reach * 0.3, 0));
+    const tight = foot.map(([a, b]) => this.raw(a + 0.05, b + 0.05, 0));
+    const pts = (q: [number, number][]) => q.map(([a, b]) => `${n(a)},${n(b)}`).join(" ");
+    this.add(-98, `<polygon points="${pts(cast)}" fill="#0B1B3F" fill-opacity="${n(0.2 * fade)}" filter="${this.u("soft")}"/>`);
+    if (lift < 0.05) this.add(-97.9, `<polygon points="${pts(tight)}" fill="#0B1B3F" fill-opacity="0.22" filter="${this.u("tight")}"/>`);
+    Object.assign(this, was);
+  }
+
+  /** A point on screen without growing the bounds (shadows and glows may spill a little). */
+  private raw(x: number, y: number, z: number): [number, number] {
+    return [OX + (x - y) * 0.866 * S, OY + (x + y) * 0.5 * S - z * S];
   }
 
   /** A flat shape lying at height z, points on the ground plane. */
@@ -122,7 +188,12 @@ export class Iso {
     const side = `<path d="M${n(x - rx)} ${n(yTop)}V${n(yBot)}A${n(rx)} ${n(ry)} 0 0 0 ${n(x + rx)} ${n(yBot)}V${n(yTop)}Z" fill="${fill(role, "l")}"/>`;
     const right = `<path d="M${n(x)} ${n(yTop + ry)}V${n(yBot + ry)}A${n(rx)} ${n(ry)} 0 0 0 ${n(x + rx)} ${n(yBot)}V${n(yTop)}A${n(rx)} ${n(ry)} 0 0 1 ${n(x)} ${n(yTop + ry)}Z" fill="${fill(role, "r")}"/>`;
     const top = `<ellipse cx="${n(x)}" cy="${n(yTop)}" rx="${n(rx)}" ry="${n(ry)}" fill="${fill(role)}"/>`;
-    return this.add(depth ?? cx + cy + z + r, side + right + top);
+    // Shaded across, lit on the left, with a bright rim on the top's front edge.
+    const round = `<path d="M${n(x - rx)} ${n(yTop)}V${n(yBot)}A${n(rx)} ${n(ry)} 0 0 0 ${n(x + rx)} ${n(yBot)}V${n(yTop)}Z" fill="${this.u("round")}"/>`;
+    const sheen = `<ellipse cx="${n(x)}" cy="${n(yTop)}" rx="${n(rx)}" ry="${n(ry)}" fill="${this.u("top")}"/>`;
+    const rim = `<path d="M${n(x - rx)} ${n(yTop)}A${n(rx)} ${n(ry)} 0 0 0 ${n(x + rx)} ${n(yTop)}" fill="none" stroke="#fff" stroke-opacity="0.5" stroke-width="0.7"/>`;
+    if (z <= 1.2 && this.float) this.shadowOf(around(cx, cy, 16, () => r * 0.95), h, z);
+    return this.add(depth ?? cx + cy + z + r, side + right + (h > 0.05 ? round : "") + top + sheen + rim);
   }
 
   /** A flat ellipse lying at height z (a dial, a lens, a shadow). */
@@ -165,9 +236,16 @@ export class Iso {
     const was = { step: this.step, float: this.float };
     this.step = 0;
     this.float = false;
+    // A faint glow behind the scene, the plate's own soft shadow on the page, then the lit plate.
+    const [gx, gy] = this.raw(4, 4, 1.5);
+    this.add(-103, `<ellipse cx="${n(gx)}" cy="${n(gy)}" rx="108" ry="74" fill="${this.u("glow")}"/>`);
+    const under = [this.raw(0, 0, -0.9), this.raw(8, 0, -0.9), this.raw(8, 8, -0.9), this.raw(0, 8, -0.9)].map(([a, b]) => `${n(a)},${n(b + 3)}`).join(" ");
+    this.add(-102, `<polygon points="${under}" fill="#0B1B3F" fill-opacity="0.12" filter="${this.u("wide")}"/>`);
     this.box(0, 0, -0.5, 8, 8, 0.5, "ground");
     this.items[this.items.length - 1].depth = -100;
-    if (shadow) this.disc(shadow.cx, shadow.cy, 0.001, shadow.r, "ink", "", -99, ' fill-opacity="0.05"');
+    const plateTop = [this.raw(0, 0, 0), this.raw(8, 0, 0), this.raw(8, 8, 0), this.raw(0, 8, 0)].map(([a, b]) => `${n(a)},${n(b)}`).join(" ");
+    this.add(-99.5, `<polygon points="${plateTop}" fill="${this.u("stage")}"/><polygon points="${plateTop}" fill="${this.u("dots")}" mask="${this.u("dotmask")}"/>`);
+    if (shadow) this.disc(shadow.cx, shadow.cy, 0.001, shadow.r, "ink", "", -99, ` fill-opacity="0.06" filter="${this.u("soft")}"`);
     Object.assign(this, was);
     return this;
   }
@@ -178,7 +256,7 @@ export class Iso {
     const wrap = (i: Item) => `<g class="iso-p" style="--i:${i.step}">${i.svg}</g>`;
     const still = sorted.filter((i) => !i.float).map(wrap).join("");
     const floating = sorted.filter((i) => i.float).map(wrap).join("");
-    return `${still}<g class="iso-float">${floating}</g>`;
+    return `<defs>${lightDefs(this.id)}</defs>${still}<g class="iso-float">${floating}</g>`;
   }
 }
 
@@ -194,6 +272,28 @@ const gear = (s: Iso, cx: number, cy: number, R: number, role: Role, step: numbe
   s.extrude(around(cx, cy, 32, (i) => (i % 4 < 2 ? R : R * 0.78), Math.PI / 32), 0, 0.6, role);
   s.disc(cx, cy, 0.61, R * 0.3, "ground", "l", cx + cy + 0.7);
 };
+
+/** A shape on the upright plane y = at (the front of a card), from points along x and up z. */
+const onY = (s: Iso, at: number, pts: [number, number][], role: Role, depth: number, extra = "") =>
+  s.at(0, 0, 0, depth, () => `<polygon points="${pts.map(([a, z]) => s.p(a, at, z)).map(([x, y]) => `${n(x)},${n(y)}`).join(" ")}" fill="${fill(role)}"${extra}/>`);
+/** A bar of text or a chip on a card's front: x from a0 to a1, z from z0 to z1. */
+const barY = (s: Iso, at: number, a0: number, a1: number, z0: number, z1: number, role: Role, depth: number) => onY(s, at, [[a0, z0], [a1, z0], [a1, z1], [a0, z1]], role, depth);
+/** A line on a card's front, through points along x and up z. */
+const strokeY = (s: Iso, at: number, pts: [number, number][], role: Role, width: number, depth: number) =>
+  s.at(0, 0, 0, depth, () => `<path d="M${pts.map(([a, z]) => s.p(a, at, z)).map(([x, y]) => `${n(x)} ${n(y)}`).join("L")}" fill="none" stroke="${fill(role)}" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round"/>`);
+/**
+ * An upright card: a thin slab standing on (or floating above) the plate, its front a white panel inside a slim
+ * frame, like a screen. Returns the front plane and the depth to draw its content at, so the content lands on top.
+ */
+const card = (s: Iso, x: number, y: number, z: number, w: number, h: number, frame: Role = "mist", panel: Role = "paper") => {
+  s.box(x, y, z, w, 0.3, h, frame);
+  const at = y + 0.3;
+  const depth = x + y + z + (w + 0.3) / 2 + 0.2;
+  const m = 0.14;
+  barY(s, at, x + m, x + w - m, z + m, z + h - m, panel, depth - 0.1);
+  return { at, depth };
+};
+const star = (x: number, y: number, k = 1) => `<path d="M${n(x)} ${n(y - 9 * k)}c${n(1.1 * k)} ${n(4.2 * k)} ${n(2.4 * k)} ${n(5.5 * k)} ${n(6.6 * k)} ${n(6.6 * k)}-${n(4.2 * k)} ${n(1.1 * k)}-${n(5.5 * k)} ${n(2.4 * k)}-${n(6.6 * k)} ${n(6.6 * k)}-${n(1.1 * k)}-${n(4.2 * k)}-${n(2.4 * k)}-${n(5.5 * k)}-${n(6.6 * k)}-${n(6.6 * k)} ${n(4.2 * k)}-${n(1.1 * k)} ${n(5.5 * k)}-${n(2.4 * k)} ${n(6.6 * k)}-${n(6.6 * k)}z" fill="${fill("gold")}"/>`;
 
 // ─────────────── the pictures ───────────────
 // Each is drawn on the 8 by 8 plate. Steps order the drop-in: plate 0, then the object's parts.
@@ -272,23 +372,27 @@ export const DRAWINGS = {
     s.box(4.4, 3.0, 3.0, 1.8, 1.8, 2.6, "sky", 0.28);
   },
   prompts: (s: Iso) => {
-    s.plate({ cx: 4, cy: 3.8, r: 2.9 });
+    // An AI answer card with the brand named in it (the blue chip), and the question it answers floating behind.
+    s.plate({ cx: 4, cy: 4.2, r: 2.9 });
     s.step = 1;
-    s.box(1.4, 3.2, 0.7, 5.2, 0.9, 3.6, "paper");
+    s.box(3.5, 1.0, 3.3, 3.5, 0.3, 1.4, "blue");
+    const qd = 3.5 + 1.0 + 3.3 + 1.9 + 0.2;
+    barY(s, 1.3, 3.9, 6.5, 4.2, 4.36, "pale", qd);
+    barY(s, 1.3, 3.9, 5.6, 3.78, 3.94, "sky", qd);
     s.step = 2;
-    s.face("y", 4.1, 1.9, 3.3, 5.6, 3.7, "blue", "", 9.2);
+    const c = card(s, 0.8, 3.6, 0.5, 5.8, 4.0);
     s.step = 3;
-    s.face("y", 4.1, 1.9, 2.5, 4.8, 2.9, "sky", "", 9.2);
+    barY(s, c.at, 1.25, 1.9, 3.75, 4.25, "blue", c.depth);
+    barY(s, c.at, 2.15, 3.8, 3.95, 4.1, "gray", c.depth);
+    barY(s, c.at, 1.25, 6.1, 3.05, 3.22, "mist", c.depth);
+    barY(s, c.at, 1.25, 2.4, 2.45, 2.62, "mist", c.depth);
+    barY(s, c.at, 4.45, 6.1, 2.45, 2.62, "mist", c.depth);
+    barY(s, c.at, 1.25, 5.4, 1.85, 2.02, "mist", c.depth);
+    barY(s, c.at, 1.25, 4.2, 1.25, 1.42, "mist", c.depth);
     s.step = 4;
-    s.face("y", 4.1, 1.9, 1.7, 5.2, 2.1, "pale", "", 9.2);
-    // The bubble's tail, on its front face, pointing down to the plate.
-    s.step = 1;
-    s.at(0, 0, 0, 9.15, () => {
-      const a = s.p(1.9, 4.1, 0.75);
-      const b = s.p(3.3, 4.1, 0.75);
-      const c = s.p(1.5, 4.1, -0.1);
-      return `<polygon points="${[a, b, c].map(([x, y]) => `${n(x)},${n(y)}`).join(" ")}" fill="${fill("paper", "l")}"/>`;
-    });
+    barY(s, c.at, 2.55, 4.3, 2.36, 2.72, "blue", c.depth + 0.1);
+    s.step = 5;
+    s.at(6.3, 3.9, 4.9, 30, (x, y) => star(x, y), 10);
   },
   waiting: (s: Iso) => {
     s.plate({ cx: 4, cy: 4, r: 2.2 });
@@ -309,14 +413,25 @@ export const DRAWINGS = {
     s.cyl(4, 4, 4.2, 1.7, 0.35, "blue", 8.4);
   },
   sources: (s: Iso) => {
+    // An AI answer card citing two source pages: a link runs from each of its marks down to the page it cites.
     s.plate({ cx: 4, cy: 4, r: 3 });
     s.step = 1;
-    s.box(1.2, 4.4, 0, 2.0, 2.0, 2.4, "sky");
+    const ans = card(s, 2.2, 1.0, 1.4, 4.6, 3.4, "blue");
+    barY(s, ans.at, 2.6, 4.2, 4.1, 4.3, "gray", ans.depth);
+    for (let k = 0; k < 3; k++) barY(s, ans.at, 2.6, 6.3 - k * 0.6, 3.5 - k * 0.6, 3.66 - k * 0.6, "mist", ans.depth);
+    s.at(5.6, ans.at, 2.3, ans.depth + 0.1, (x, y) => `<circle cx="${n(x)}" cy="${n(y)}" r="3" fill="${fill("gold")}"/>`, 3);
+    s.at(6.3, ans.at, 2.3, ans.depth + 0.1, (x, y) => `<circle cx="${n(x)}" cy="${n(y)}" r="3" fill="${fill("blue")}"/>`, 3);
     s.step = 2;
-    s.box(4.4, 1.2, 0, 2.0, 2.0, 3.2, "blue");
+    const l = card(s, 0.6, 4.6, 0, 2.3, 2.5);
+    barY(s, l.at, 0.9, 2.6, 1.95, 2.2, "gold", l.depth);
+    for (let k = 0; k < 2; k++) barY(s, l.at, 0.9, 2.5 - k * 0.5, 1.45 - k * 0.5, 1.59 - k * 0.5, "mist", l.depth);
     s.step = 3;
-    const [x, y] = s.p(3.8, 3.8, 2.2);
-    s.add(20, `<rect x="${n(x - 19)}" y="${n(y - 7)}" width="24" height="14" rx="7" fill="none" stroke="${fill("gold")}" stroke-width="4"/><rect x="${n(x - 5)}" y="${n(y - 7)}" width="24" height="14" rx="7" fill="none" stroke="${fill("gold", "r")}" stroke-width="4"/>`);
+    const r = card(s, 4.3, 4.6, 0, 2.3, 2.5);
+    barY(s, r.at, 4.6, 6.3, 1.95, 2.2, "blue", r.depth);
+    for (let k = 0; k < 2; k++) barY(s, r.at, 4.6, 6.2 - k * 0.5, 1.45 - k * 0.5, 1.59 - k * 0.5, "mist", r.depth);
+    s.step = 4;
+    s.line([[5.6, 1.3, 2.3], [3.6, 3.0, 3.3], [1.75, 4.9, 2.5]], "gold", 1.8, 30);
+    s.line([[6.3, 1.3, 2.3], [6.0, 3.0, 3.2], [5.45, 4.9, 2.5]], "blue", 1.8, 30);
   },
   traffic: (s: Iso) => {
     s.plate({ cx: 4, cy: 5.3, r: 3 });
@@ -335,34 +450,40 @@ export const DRAWINGS = {
     s.at(6.1, 5.4, 6.0, 30.1, (x, y) => `<circle cx="${n(x)}" cy="${n(y)}" r="4.5" fill="${fill("gold")}"/>`, 5);
   },
   visitors: (s: Iso) => {
+    // A path of steps from the first visit to the goal, with visitors on it and a pin on the goal.
     s.plate();
-    const steps: [number, number][] = [
-      [1.0, 6.2],
-      [2.1, 5.2],
-      [3.3, 4.4],
-      [4.5, 3.6],
-    ];
+    const steps: [number, number][] = [[0.8, 6.0], [2.0, 5.0], [3.2, 4.0], [4.4, 3.0]];
     steps.forEach(([x, y], i) => {
-      s.step = i + 1;
-      s.box(x, y, 0, 0.9, 0.9, 0.15, i === steps.length - 1 ? "sky" : "pale");
+      s.step = 1 + i;
+      s.box(x, y, 0, 1.1, 1.1, 0.18 + i * 0.12, i === steps.length - 1 ? "sky" : "pale");
     });
-    s.step = 5;
-    s.disc(6.1, 2.2, 0.01, 0.7, "ink", "", 5, ' fill-opacity="0.1"');
-    s.box(6.0, 2.1, 0, 0.2, 0.2, 2.4, "gray");
+    const person = (x: number, y: number, z: number, role: Role, step: number) => {
+      s.step = step;
+      s.cyl(x, y, z, 0.32, 0.75, role);
+      s.at(x, y, z + 1.15, x + y + z + 2, (a, b) => `<circle cx="${n(a)}" cy="${n(b)}" r="3.5" fill="${fill(role)}"/><circle cx="${n(a - 1)}" cy="${n(b - 1.1)}" r="1.2" fill="#fff" fill-opacity="0.35"/>`, 4);
+    };
+    person(1.35, 6.55, 0.18, "gray", 5);
+    person(3.75, 4.55, 0.42, "sky", 6);
+    s.step = 7;
+    s.cyl(6.3, 1.8, 0, 1.0, 0.3, "blue");
+    s.box(6.2, 1.7, 0.3, 0.2, 0.2, 2.2, "gray");
     const r = 1.0 * S;
-    s.at(6.1, 2.2, 3.2, 12, (x, y) => `<circle cx="${n(x)}" cy="${n(y)}" r="${n(r)}" fill="${fill("blue")}"/><circle cx="${n(x - r * 0.15)}" cy="${n(y - r * 0.15)}" r="${n(r * 0.38)}" fill="${fill("paper")}"/>`, r);
+    s.at(6.3, 1.8, 3.0, 12, (x, y) => `<circle cx="${n(x)}" cy="${n(y)}" r="${n(r)}" fill="${fill("blue")}"/><circle cx="${n(x - r * 0.15)}" cy="${n(y - r * 0.15)}" r="${n(r * 0.38)}" fill="${fill("paper")}"/><circle cx="${n(x - r * 0.45)}" cy="${n(y - r * 0.5)}" r="${n(r * 0.18)}" fill="#fff" fill-opacity="0.4"/>`, r);
   },
   reports: (s: Iso) => {
-    s.plate({ cx: 4, cy: 3.6, r: 2.8 });
+    // A report: last month's sheet behind, this month's in front with its bar chart and headline number.
+    s.plate({ cx: 4, cy: 3.8, r: 2.8 });
     s.step = 1;
-    s.box(2.4, 2.4, 0, 4.0, 0.3, 5.0, "mist");
+    card(s, 2.2, 1.4, 0.4, 4.0, 4.6, "pale", "mist");
     s.step = 2;
-    s.box(1.6, 3.8, 0, 4.0, 0.3, 4.6, "paper");
-    s.face("y", 4.1, 2.2, 3.8, 4.6, 4.1, "blue", "", 8.5);
+    const c = card(s, 1.0, 3.6, 0, 4.4, 4.7);
+    barY(s, c.at, 1.6, 3.4, 3.95, 4.2, "gray", c.depth);
+    barY(s, c.at, 1.6, 2.6, 3.5, 3.66, "mist", c.depth);
     s.step = 3;
-    s.face("y", 4.1, 2.2, 0.8, 2.8, 2.8, "blue", "", 8.5);
-    s.face("y", 4.1, 3.1, 0.8, 3.7, 2.0, "sky", "", 8.5);
-    s.face("y", 4.1, 4.0, 0.8, 4.6, 3.3, "pale", "", 8.5);
+    const bars: [number, number, Role][] = [[1.7, 1.2, "pale"], [2.5, 1.9, "sky"], [3.3, 1.6, "sky"], [4.1, 2.7, "blue"]];
+    for (const [x, h, role] of bars) barY(s, c.at, x, x + 0.55, 0.45, 0.45 + h, role, c.depth + 0.05);
+    s.step = 4;
+    s.box(5.9, 4.4, 0, 1.4, 1.4, 0.9, "gold");
   },
   clock: (s: Iso) => {
     s.plate({ cx: 4, cy: 4, r: 2.9 });
@@ -380,13 +501,21 @@ export const DRAWINGS = {
     s.disc(4, 4, 0.94, 0.16, "blue", "", 12.3);
   },
   link: (s: Iso) => {
-    s.plate({ cx: 4, cy: 4, r: 2.6 });
+    // Two pages with a link running from one to the other: a backlink.
+    s.plate({ cx: 4, cy: 4, r: 3 });
     s.step = 1;
-    s.loop(3.2, 4.6, 0.12, 1.9, 0.95, 0.5, "blue", "l", 7);
-    s.loop(3.2, 4.6, 0.3, 1.9, 0.95, 0.5, "blue", "", 7.1);
+    const b = card(s, 4.4, 1.2, 0, 2.8, 4.0);
+    barY(s, b.at, 4.8, 6.8, 3.35, 3.6, "blue", b.depth);
+    for (let k = 0; k < 4; k++) barY(s, b.at, 4.8, 6.8 - (k % 2) * 0.7, 2.7 - k * 0.55, 2.86 - k * 0.55, "mist", b.depth);
     s.step = 2;
-    s.loop(4.8, 3.4, 0.12, 1.9, 0.95, 0.5, "sky", "l", 7.2);
-    s.loop(4.8, 3.4, 0.3, 1.9, 0.95, 0.5, "sky", "", 7.3);
+    const a = card(s, 0.8, 4.0, 0, 2.8, 4.0);
+    barY(s, a.at, 1.2, 3.2, 3.35, 3.6, "gray", a.depth);
+    for (let k = 0; k < 4; k++) barY(s, a.at, 1.2, 3.2 - (k % 2) * 0.6, 2.7 - k * 0.55, 2.86 - k * 0.55, "mist", a.depth);
+    barY(s, a.at, 1.6, 2.9, 2.08, 2.4, "sky", a.depth + 0.05);
+    s.step = 3;
+    s.line([[2.25, 4.3, 2.24], [3.0, 3.6, 4.4], [4.4, 2.3, 4.9], [5.8, 1.5, 3.48]], "blue", 2.2, 40);
+    s.at(5.8, 1.5, 3.48, 40.1, (x, y) => `<circle cx="${n(x)}" cy="${n(y)}" r="3.4" fill="${fill("blue")}"/>`, 4);
+    s.at(2.25, 4.3, 2.24, 40.1, (x, y) => `<circle cx="${n(x)}" cy="${n(y)}" r="2.6" fill="${fill("paper")}" stroke="${fill("blue")}" stroke-width="2"/>`, 3);
   },
   palette: (s: Iso) => {
     s.plate({ cx: 3.8, cy: 3.6, r: 3 });
@@ -459,21 +588,21 @@ export const DRAWINGS = {
     s.add(10, `<polygon points="${[...wave, ...low].map(([x, y, z]) => s.p(x, y, z)).map(([a, b]) => `${n(a)},${n(b)}`).join(" ")}" fill="${fill("blue")}"/>`);
   },
   chart: (s: Iso) => {
-    s.plate({ cx: 4, cy: 3.9, r: 2.9 });
+    // A dashboard card: a rising line over its shaded area, and the headline number on a tile in front.
+    s.plate({ cx: 4, cy: 4.4, r: 3 });
     s.step = 1;
-    s.box(1.4, 3.6, 0, 5.2, 0.35, 4.2, "paper");
-    for (let k = 0; k < 3; k++) s.face("y", 3.95, 1.9, 1.0 + k * 1.1, 6.1, 1.05 + k * 1.1, "mist", "", 8.5);
+    const c = card(s, 0.9, 3.0, 0, 5.9, 4.6);
+    barY(s, c.at, 1.35, 3.1, 3.95, 4.15, "gray", c.depth);
+    barY(s, c.at, 1.35, 2.4, 3.55, 3.7, "mist", c.depth);
+    for (let k = 0; k < 3; k++) barY(s, c.at, 1.35, 6.4, 0.8 + k * 0.85, 0.84 + k * 0.85, "mist", c.depth);
+    const pts: [number, number][] = [[1.35, 1.0], [2.35, 1.6], [3.35, 1.35], [4.35, 2.2], [5.35, 1.95], [6.35, 3.0]];
     s.step = 2;
-    const pts: [number, number][] = [
-      [1.9, 1.0],
-      [2.9, 1.8],
-      [3.8, 1.5],
-      [4.8, 2.6],
-      [5.9, 3.4],
-    ];
-    s.line(pts.map(([x, z]) => [x, 3.95, z] as [number, number, number]), "blue", 3, 8.6);
+    onY(s, c.at, [[1.35, 0.55], ...pts, [6.35, 0.55]], "sky", c.depth + 0.05, ' fill-opacity="0.28"');
+    strokeY(s, c.at, pts, "blue", 2.6, c.depth + 0.1);
+    s.at(6.35, c.at, 3.0, c.depth + 0.15, (x, y) => `<circle cx="${n(x)}" cy="${n(y)}" r="3.6" fill="${fill("paper")}" stroke="${fill("blue")}" stroke-width="2.2"/>`, 4);
     s.step = 3;
-    pts.forEach(([x, z]) => s.at(x, 3.95, z, 8.7, (a, b) => `<circle cx="${n(a)}" cy="${n(b)}" r="3" fill="${fill("paper")}" stroke="${fill("blue")}" stroke-width="2"/>`, 4));
+    s.box(5.2, 4.6, 0.9, 2.0, 1.9, 0.55, "blue");
+    s.at(6.2, 5.55, 1.45, 40, (x, y) => `<path d="M${n(x - 5)} ${n(y + 1.5)}L${n(x)} ${n(y - 3.5)}L${n(x + 5)} ${n(y + 1.5)}M${n(x)} ${n(y - 3.5)}V${n(y + 4)}" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`);
   },
   opportunities: (s: Iso) => {
     s.plate({ cx: 4.2, cy: 4, r: 3 });
@@ -548,7 +677,7 @@ export const DRAWING_KINDS = Object.keys(DRAWINGS) as DrawingKind[];
 
 /** One picture's markup and how far it reaches, inside FRAME. */
 export function drawing(kind: DrawingKind) {
-  const s = new Iso();
+  const s = new Iso(`iso-${kind}`);
   DRAWINGS[kind](s);
   return { body: s.render(), bounds: s.bounds };
 }

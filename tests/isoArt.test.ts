@@ -18,7 +18,7 @@ test("pictures carry no broken numbers and only palette colors", () => {
     assert.ok(!/NaN|undefined|Infinity/.test(body), k);
     for (const m of body.matchAll(/var\(--iso-([a-z]+)/g)) assert.ok(m[1] in isoVars("light") || `--iso-${m[1]}` in isoVars("light"), `${k}: ${m[1]}`);
     // The plate stays still and is drawn first; the object floats.
-    assert.ok(body.startsWith('<g class="iso-p" style="--i:0">'), k);
+    assert.ok(/^<defs>[\s\S]*?<\/defs><g class="iso-p" style="--i:0">/.test(body), k);
     assert.ok(body.includes('<g class="iso-float">'), k);
   }
 });
