@@ -4,7 +4,10 @@ import { jsonrepair } from "jsonrepair";
 import { charge, claudeCost } from "./meter";
 import { isGrammarError, schemaPrompt } from "./jsonReply";
 import type { Source } from "./sources";
-import { replyText, requestBody, type AskOpts } from "./claudeRequest";
+import { replyText, requestBody, thinkingFix, type AskOpts, type ThinkingOff } from "./claudeRequest";
+
+/** How each model takes "thinking off", learned from the API's own error the first time (claudeRequest.ts). */
+const thinkingOff = new Map<string, ThinkingOff>();
 
 export function claudeModel() {
   return process.env.CLAUDE_MODEL || "claude-sonnet-5-5";
@@ -19,13 +22,25 @@ export function claudeModel() {
 export async function askClaude(prompt: string, opts: AskOpts = {}): Promise<{ text: string; sources: Source[] }> {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const model = opts.model ?? claudeModel();
-  const body = requestBody(prompt, opts, model);
+  let off = thinkingOff.get(model) ?? "between_tools";
+  let body = requestBody(prompt, opts, model, off);
   const messages = body.messages as Anthropic.MessageParam[];
   let text = "";
   const sources: Source[] = [];
   // A long web search turn can pause. Send it back so Claude can finish (a few times at most).
   for (let turn = 0; turn < 4; turn++) {
-    const msg = await client.messages.create({ ...body, messages } as Anthropic.MessageCreateParamsNonStreaming);
+    let msg: Anthropic.Message;
+    try {
+      msg = await client.messages.create({ ...body, messages } as Anthropic.MessageCreateParamsNonStreaming);
+    } catch (e) {
+      // The model wants thinking turned off another way, and the error says which: remember it and ask again once.
+      const fix = opts.schema && (e as { status?: number }).status === 400 ? thinkingFix(String((e as Error).message), off) : null;
+      if (!fix) throw e;
+      off = fix;
+      thinkingOff.set(model, fix);
+      body = requestBody(prompt, opts, model, off);
+      msg = await client.messages.create({ ...body, messages } as Anthropic.MessageCreateParamsNonStreaming);
+    }
     const u = msg.usage;
     charge("claude", claudeCost(model, (u.input_tokens ?? 0) + (u.cache_read_input_tokens ?? 0) * 0.1 + (u.cache_creation_input_tokens ?? 0) * 1.25, u.output_tokens ?? 0, u.server_tool_use?.web_search_requests ?? 0));
     text += replyText(msg);

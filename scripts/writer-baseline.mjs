@@ -17,7 +17,7 @@ import { CHECK_SCHEMA, runDraft, SECTION_SCHEMA } from "../src/lib/writerDraft.t
 import { REVIEW_SCHEMA, STYLE_SYSTEM } from "../src/lib/writerStyle.ts";
 import { MODULE_SCHEMA } from "../src/lib/writerModules.ts";
 import { isGrammarError, schemaPrompt } from "../src/lib/jsonReply.ts";
-import { replyText, requestBody } from "../src/lib/claudeRequest.ts";
+import { replyText, requestBody, thinkingFix } from "../src/lib/claudeRequest.ts";
 import { scoreArticle, sumScores } from "../src/lib/writerScore.ts";
 import { contextOf, loadFixture, packOf, recorded, topics } from "../tests/writerFixtures.ts";
 
@@ -31,6 +31,7 @@ const usage = { calls: 0, input: 0, cacheRead: 0, cacheWrite: 0, output: 0 };
 // ───── one Claude call, built by the app's own src/lib/claudeRequest.ts, read the way claude.ts reads it ─────
 const client = FAKE ? null : new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, baseURL: process.env.WRITER_BASELINE_API || "https://api.anthropic.com" });
 const tooBig = new WeakSet();
+let off = "between_tools"; // how this model takes "thinking off" (src/lib/claudeRequest.ts)
 
 function parseJson(text) {
   const t = text.replace(/```(?:json)?/g, "");
@@ -45,7 +46,15 @@ function parseJson(text) {
 async function ask(prompt, opts) {
   for (let tries = 0; ; tries++) {
     try {
-      const msg = await client.messages.create(requestBody(prompt, opts, MODEL));
+      let msg;
+      try {
+        msg = await client.messages.create(requestBody(prompt, opts, MODEL, off));
+      } catch (e) {
+        const fix = opts.schema && e?.status === 400 ? thinkingFix(String(e?.message), off) : null;
+        if (!fix) throw e;
+        off = fix;
+        msg = await client.messages.create(requestBody(prompt, opts, MODEL, off));
+      }
       const u = msg.usage;
       usage.calls++;
       usage.input += u.input_tokens ?? 0;
