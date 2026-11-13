@@ -240,6 +240,21 @@ export function App({ config, googleClientId = null }: { config: SupaConfig; goo
     return () => data.subscription.unsubscribe();
   }, [sb]);
 
+  // Focus rings show for the keyboard only: a click or tap hides them until the next key press.
+  useEffect(() => {
+    const root = document.documentElement;
+    const pointer = () => root.setAttribute("data-pointer", "");
+    const keys = (e: KeyboardEvent) => {
+      if (e.key === "Tab" || e.key.startsWith("Arrow")) root.removeAttribute("data-pointer");
+    };
+    window.addEventListener("pointerdown", pointer, true);
+    window.addEventListener("keydown", keys, true);
+    return () => {
+      window.removeEventListener("pointerdown", pointer, true);
+      window.removeEventListener("keydown", keys, true);
+    };
+  }, []);
+
   // People with 2-step sign-in on enter a code before the app opens. Checked once per person, so a token refresh keeps the app open.
   const uid = session?.user.id;
   const [gate, setGate] = useState<{ user: string; need: boolean } | null>(null);
