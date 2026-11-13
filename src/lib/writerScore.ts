@@ -1,6 +1,7 @@
 // Draft and Write, Phase 0 (docs/draft-and-write-build.md): what we measure on every article the writer makes for
 // the 20 recorded topics. Today's writer sets the baseline; each later phase has to beat it.
 // Pure: an article's sections and the research behind it in, numbers out.
+import { allowedTerms } from "./houseLint.ts";
 import { lintDraft } from "./houseRules.ts";
 import type { ResearchPack } from "./writerBrief.ts";
 import type { Section } from "./writerDraft.ts";
@@ -51,7 +52,8 @@ export function scoreArticle(
 ): Score {
   const text = sections.map((s) => [s.h2, ...s.blocks.map(blockText)].join("\n")).join("\n");
   const words = plain(text).split(/\s+/).filter(Boolean).length;
-  const findings = lintDraft(sections, opts.examples ?? []);
+  // Words from the article's own topic are never findings (houseLint.ts).
+  const findings = lintDraft(sections, opts.examples ?? [], allowedTerms([pack.keyword, ...(opts.examples ?? []).map((e) => e.name)]));
   const lintRules: Record<string, number> = {};
   for (const f of findings) lintRules[f.rule] = (lintRules[f.rule] ?? 0) + 1;
   const have = allNumbers(researchText(pack));

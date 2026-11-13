@@ -11,7 +11,11 @@
 import type { BriefRow, Outcome, PlannedModule, ResearchPack, SourcePage, WriterBrief, WriterContext } from "./writerBrief.ts";
 import { contextPrefix } from "./writerBrief.ts";
 import { lintDraft, type Finding } from "./houseRules.ts";
-import { CLAIM_METHOD, findingsFor, fixPrompt, keepsFacts, mergeFindings, proofreadTitle, reviewPrompt, styleResult } from "./writerStyle.ts";
+import { CLAIM_METHOD, findingsFor, fixPrompt, mergeFindings, proofreadTitle, reviewPrompt, styleResult } from "./writerStyle.ts";
+import { allowedTerms } from "./houseLint.ts";
+import { tidy } from "./tidy.ts";
+import { applyEdits, auditSection, cleanEdits, polishLines, polishPrompt, proofDraft, type Proof } from "./writerPolish.ts";
+import { personaText } from "./writerPersona.ts";
 import { modulePrompt, moduleStyle, validateModule, wrapModule, type Validation } from "./writerModules.ts";
 import type { ImagesOut, MissingImage, PlacedImage } from "./writerImageTypes.ts";
 
@@ -31,6 +35,16 @@ export type Styled = {
   title?: string; // the H1 after the proofread, when its count changed
   findings?: Finding[]; // while the fixes run: what the lint and review found
   next?: number; // while the fixes run: the next section to fix
+  /** 1: fixing what the lint and review found. 2: fixing what the lint still finds after round 1. 3: fixes done. */
+  round?: 1 | 2 | 3;
+  /** The polish pass (writerPolish.ts): edits kept, and edits the fact audit or the lint refused. */
+  polish?: { applied: StyleNote[]; refused: { id: string; why: string }[] } | null;
+  /** Fixes code made with no AI (tidy.ts): quotes, a repeated adverb, long paragraphs split. */
+  tidied?: string[];
+  /** Sections a rewrite was refused for, with the fact audit's reasons. */
+  blocked?: { key: string; why: string }[];
+  /** The proof on the finished draft: Ship, or Hold with the reasons. */
+  proof?: Proof;
   done?: boolean;
 };
 
@@ -77,6 +91,8 @@ export type DraftDeps = {
   /** The style review and fix (writerStyle.ts), with the writing skills as a cached system prompt. Without them, only the lint runs. */
   styleReview?: (prefix: string, prompt: string) => Promise<unknown>;
   styleFix?: (prefix: string, prompt: string) => Promise<unknown>;
+  /** The polish pass (writerPolish.ts): voice check and copyedit, as line edits. Without it, the pass is skipped. */
+  polish?: (prefix: string, prompt: string) => Promise<unknown>;
   buildModule(prefix: string, prompt: string): Promise<unknown>;
   /** The image step (writerImagesServer.ts). Without it, images stay notes. */
   images?: (a: { draft: DraftRow; brief: WriterBrief; sections: Section[]; ctx: WriterContext; prefix: string }) => Promise<ImagesOut>;
@@ -187,7 +203,7 @@ export function exampleFor(b: Pick<WriterBrief, "examples">, h2: string) {
 }
 
 // ─────────────── step 2: check ───────────────
-const SENTENCE = /(?<=[.!?…])["”)\]]?\s+(?=["“(\[]?[A-Z0-9])/;
+const SENTENCE = /(?<=[.!?…]["”)\]]?)\s+(?=["“(\[]?[A-Z0-9])/; // the closing quote stays with its sentence
 export const sentences = (text: string) => text.split(SENTENCE).map((s) => s.trim()).filter(Boolean);
 export const stripLinks = (s: string) => s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, "$1 <$2>").replace(/\*\*([^*]+)\*\*/g, "$1");
 
@@ -484,39 +500,73 @@ export async function runDraft(store: DraftStore, deps: DraftDeps, id: string, v
   }
   const written = sections.filter((s): s is Section => Boolean(s));
 
-  // Step 2: the style passes. The lint is free; the review is one call; each section with findings is rewritten
-  // once and saved as it lands, so a turn that runs out of time picks up at the next section.
+  // Step 2: the style passes (docs/zippie-skills-plan.md, section 2). The lint is free; the review is one call; each
+  // section with findings is rewritten once and saved as it lands, so a turn that runs out of time picks up at the
+  // next section. Round 2 rewrites only what the lint still finds. Then code tidies, the polish call returns line
+  // edits, and every rewrite and edit passes the fact audit or is thrown away.
   const examples = brief.examples ?? [];
+  const allow = allowedTerms([b.keyword, ...examples.map((e) => e.name)]);
+  const names = [ctx.brand.name, ...examples.map((e) => e.name)].filter(Boolean);
+  const planOf = (sec: Section) => plan.find((p) => p.key === sec.key) ?? { key: sec.key, kind: "h2" as const, h2: sec.h2, points: [], h3: [], sources: [], cta: false };
   if (!d.styled?.done) {
     let st: Styled = d.styled ?? { sections: written, fixed: [], left: [], proofread: [] };
     if (!st.findings) {
-      const lint = lintDraft(written, examples);
+      const lint = lintDraft(written, examples, allow);
       let review: unknown = null;
       if (deps.styleReview) {
         if (over()) return later;
         review = await deps.styleReview(prefix, reviewPrompt(claimLines(written).map((l) => ({ id: l.id, text: stripLinks(l.text) })), lint, { sample: ctx.sample ?? "", examples }));
       }
-      st = { ...st, findings: mergeFindings(lint, review, new Set(claimLines(written).map((l) => l.id))), next: 0 };
+      st = { ...st, findings: mergeFindings(lint, review, new Set(claimLines(written).map((l) => l.id))), next: 0, round: 1 };
       await save({ styled: st });
     }
-    const findings = st.findings ?? [];
-    const out = [...st.sections];
-    for (let si = st.next ?? 0; si < written.length; si++) {
-      const mine = findingsFor(findings, si);
-      if (mine.length && deps.styleFix) {
-        if (over()) return later;
-        const sec = written[si];
-        const raw = await deps.styleFix(prefix, fixPrompt(sec, mine, { sample: ctx.sample ?? "", opener: sec.h2 ? exampleFor(brief, sec.h2)?.opener : undefined }));
-        const fixed = cleanSection(raw, plan.find((p) => p.key === sec.key) ?? { key: sec.key, kind: "h2", h2: sec.h2, points: [], h3: [], sources: [], cta: false });
-        // A rewrite that loses or adds a number or a link is thrown away.
-        if (fixed.blocks.length && keepsFacts(sec, fixed)) out[si] = fixed;
+    // The fix rounds. Each section's rewrite is kept only when the fact audit passes.
+    while ((st.round ?? 1) < 3) {
+      const base = st.round === 2 ? st.sections : written;
+      const findings = st.findings ?? [];
+      const out = [...st.sections];
+      for (let si = st.next ?? 0; si < base.length; si++) {
+        const mine = findingsFor(findings, si);
+        if (mine.length && deps.styleFix) {
+          if (over()) return later;
+          const sec = base[si];
+          const raw = await deps.styleFix(prefix, fixPrompt(sec, mine, { sample: ctx.sample ?? "", opener: sec.h2 ? exampleFor(brief, sec.h2)?.opener : undefined }));
+          const fixed = cleanSection(raw, planOf(sec));
+          const audit = fixed.blocks.length ? auditSection(sec, fixed, names) : { status: "BLOCK" as const, reasons: ["the rewrite came back empty"] };
+          if (audit.status !== "BLOCK") out[si] = fixed;
+          else st = { ...st, blocked: [...(st.blocked ?? []), { key: sec.key, why: audit.reasons.join("; ") }].slice(-50) };
+        }
+        st = { ...st, sections: out, next: si + 1 };
+        await save({ styled: st });
       }
-      st = { ...st, sections: out, next: si + 1 };
+      // Code's own fixes, then what the lint still finds goes to round 2.
+      const tidied = tidy(out);
+      st = { ...st, sections: tidied.sections, tidied: [...(st.tidied ?? []), ...tidied.notes].slice(-100) };
+      const left = lintDraft(tidied.sections, examples, allow);
+      st = st.round === 1 && left.length && deps.styleFix ? { ...st, round: 2, findings: left, next: 0 } : { ...st, round: 3, next: 0 };
       await save({ styled: st });
     }
+    // The polish pass: one call, line edits, each audited.
+    if (st.polish === undefined) {
+      let polish: Styled["polish"] = null;
+      let sections = st.sections;
+      if (deps.polish) {
+        if (over()) return later;
+        const lines = polishLines(sections);
+        const raw = await deps.polish(prefix, polishPrompt(lines, { persona: personaText(ctx.persona ?? null), sample: ctx.sample ?? "" }));
+        const done = applyEdits(sections, cleanEdits(raw, new Set(lines.map((l) => l.id))), { names, allow });
+        const tidied = tidy(done.sections);
+        sections = tidied.sections;
+        polish = { applied: done.applied.slice(0, 100), refused: done.refused.slice(0, 100) };
+        st = { ...st, tidied: [...(st.tidied ?? []), ...tidied.notes].slice(-100) };
+      }
+      st = { ...st, sections, polish };
+      await save({ styled: st });
+    }
+    const out = st.sections;
     const title = proofreadTitle(brief.h1, out, examples.length);
-    const result = styleResult(written, out, findings, examples, claimLines);
-    await save({ styled: { sections: out, ...result, proofread: title.notes, ...(title.title ? { title: title.title } : {}), done: true }, step: "check" });
+    const result = styleResult(written, out, st.findings ?? [], examples, claimLines, allow);
+    await save({ styled: { ...st, sections: out, ...result, proofread: title.notes, ...(title.title ? { title: title.title } : {}), done: true }, step: "check" });
   }
   const styled = d.styled!.sections;
 
@@ -554,6 +604,9 @@ export async function runDraft(store: DraftStore, deps: DraftDeps, id: string, v
     await save({ modules: mods, step: j === brief.modules.length - 1 && mods[j]!.status !== "retry" ? "save" : "modules" });
     if (mods[j]!.status === "retry") j--; // try it again now, with the reason
   }
+
+  // The proof on the finished text: Ship, or Hold with the reasons. Free.
+  if (d.styled && !d.styled.proof) await save({ styled: { ...d.styled, proof: proofDraft(final, { examples, allow }) } });
 
   // Step 4: into the doc. Free, and safe to repeat.
   const built = brief.modules.map((module, j) => ({ module, html: mods[j]?.status === "ok" ? mods[j]!.html! : "" })).filter((m) => m.html);

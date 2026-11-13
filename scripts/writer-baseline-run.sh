@@ -9,7 +9,7 @@ if [ -n "$ANTHROPIC_API_KEY" ]; then echo "STEP key present"; else echo "STEP no
 echo "STEP model ${WRITER_MODEL:-${CLAUDE_MODEL:-default}}"
 node --no-warnings scripts/writer-baseline.mjs ${BASELINE_TOPICS:-} 2>&1 | sed -u 's/^/LOG /' || true
 echo "STEP printing results"
-for f in tests/fixtures/writer/baseline/*.json; do
+for f in ${WRITER_OUT:-tests/fixtures/writer/baseline}/*.json; do
   name=$(basename "$f" .json)
   gzip -9c "$f" | base64 -w 12000 | awk -v n="$name" '{ print "RESULT " n " " NR " " $0 }'
 done

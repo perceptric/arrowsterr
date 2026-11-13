@@ -1,0 +1,430 @@
+{
+ "model": "claude-sonnet-5-5",
+ "run": "2026-11-13",
+ "articles": 20,
+ "wordsAvg": 2285,
+ "lintPerArticle": 3.4,
+ "lintRules": {
+  "sentences": 60,
+  "words": 6,
+  "dashes": 2
+ },
+ "ship": 15,
+ "hold": 5,
+ "factChanges": 0,
+ "rewritesRefused": 62,
+ "polishApplied": 345,
+ "polishRefused": 39,
+ "unsourcedNumbers": 3,
+ "checkedNumbers": 275,
+ "secondsAvg": 279,
+ "costTotal": 23.88,
+ "costPerArticle": 1.19,
+ "articlesDetail": [
+  {
+   "slug": "b2b-content-strategy",
+   "kind": "agency",
+   "words": 2673,
+   "lint": 2,
+   "lintRules": {
+    "sentences": 2
+   },
+   "proof": "Ship",
+   "holdReasons": [],
+   "factChanges": 0,
+   "rewritesRefused": 2,
+   "polishApplied": 30,
+   "polishRefused": 4,
+   "unsourced": 0,
+   "numbers": 8,
+   "seconds": 308,
+   "calls": 31,
+   "cost": 1.38
+  },
+  {
+   "slug": "budgeting-apps",
+   "kind": "publisher",
+   "words": 2459,
+   "lint": 10,
+   "lintRules": {
+    "sentences": 7,
+    "words": 3
+   },
+   "proof": "Hold",
+   "holdReasons": [
+    "A paragraph appears twice: in \"1. PocketGuard: best for knowing what's safe to spend\" and \"2. YNAB: best for hands-on zero-based budgeting\""
+   ],
+   "factChanges": 0,
+   "rewritesRefused": 6,
+   "polishApplied": 21,
+   "polishRefused": 8,
+   "unsourced": 0,
+   "numbers": 5,
+   "seconds": 330,
+   "calls": 36,
+   "cost": 1.29
+  },
+  {
+   "slug": "credit-score",
+   "kind": "publisher",
+   "words": 2231,
+   "lint": 3,
+   "lintRules": {
+    "sentences": 1,
+    "words": 2
+   },
+   "proof": "Ship",
+   "holdReasons": [],
+   "factChanges": 0,
+   "rewritesRefused": 1,
+   "polishApplied": 7,
+   "polishRefused": 1,
+   "unsourced": 2,
+   "numbers": 8,
+   "seconds": 249,
+   "calls": 27,
+   "cost": 1.07
+  },
+  {
+   "slug": "emergency-fund",
+   "kind": "publisher",
+   "words": 2424,
+   "lint": 0,
+   "lintRules": {},
+   "proof": "Ship",
+   "holdReasons": [],
+   "factChanges": 0,
+   "rewritesRefused": 1,
+   "polishApplied": 23,
+   "polishRefused": 1,
+   "unsourced": 0,
+   "numbers": 18,
+   "seconds": 245,
+   "calls": 29,
+   "cost": 1.18
+  },
+  {
+   "slug": "generative-engine-optimization",
+   "kind": "agency",
+   "words": 2481,
+   "lint": 2,
+   "lintRules": {
+    "sentences": 2
+   },
+   "proof": "Ship",
+   "holdReasons": [],
+   "factChanges": 0,
+   "rewritesRefused": 3,
+   "polishApplied": 23,
+   "polishRefused": 2,
+   "unsourced": 0,
+   "numbers": 3,
+   "seconds": 345,
+   "calls": 31,
+   "cost": 1.44
+  },
+  {
+   "slug": "kanban-vs-scrum",
+   "kind": "saas",
+   "words": 2323,
+   "lint": 1,
+   "lintRules": {
+    "sentences": 1
+   },
+   "proof": "Ship",
+   "holdReasons": [],
+   "factChanges": 0,
+   "rewritesRefused": 5,
+   "polishApplied": 25,
+   "polishRefused": 3,
+   "unsourced": 0,
+   "numbers": 0,
+   "seconds": 263,
+   "calls": 26,
+   "cost": 1.16
+  },
+  {
+   "slug": "keyword-research",
+   "kind": "agency",
+   "words": 2815,
+   "lint": 5,
+   "lintRules": {
+    "sentences": 5
+   },
+   "proof": "Hold",
+   "holdReasons": [
+    "\"Step 6: Use your keywords and track rankings\" says six steps and lists 4"
+   ],
+   "factChanges": 0,
+   "rewritesRefused": 5,
+   "polishApplied": 7,
+   "polishRefused": 1,
+   "unsourced": 0,
+   "numbers": 2,
+   "seconds": 320,
+   "calls": 32,
+   "cost": 1.28
+  },
+  {
+   "slug": "neutral-vs-stability",
+   "kind": "store",
+   "words": 1737,
+   "lint": 2,
+   "lintRules": {
+    "sentences": 2
+   },
+   "proof": "Ship",
+   "holdReasons": [],
+   "factChanges": 0,
+   "rewritesRefused": 5,
+   "polishApplied": 12,
+   "polishRefused": 2,
+   "unsourced": 0,
+   "numbers": 0,
+   "seconds": 262,
+   "calls": 25,
+   "cost": 1.16
+  },
+  {
+   "slug": "pm-software-small-teams",
+   "kind": "saas",
+   "words": 839,
+   "lint": 1,
+   "lintRules": {
+    "sentences": 1
+   },
+   "proof": "Ship",
+   "holdReasons": [],
+   "factChanges": 0,
+   "rewritesRefused": 0,
+   "polishApplied": 9,
+   "polishRefused": 0,
+   "unsourced": 0,
+   "numbers": 1,
+   "seconds": 151,
+   "calls": 9,
+   "cost": 0.94
+  },
+  {
+   "slug": "project-brief",
+   "kind": "saas",
+   "words": 2462,
+   "lint": 0,
+   "lintRules": {},
+   "proof": "Ship",
+   "holdReasons": [],
+   "factChanges": 0,
+   "rewritesRefused": 5,
+   "polishApplied": 25,
+   "polishRefused": 0,
+   "unsourced": 0,
+   "numbers": 0,
+   "seconds": 247,
+   "calls": 28,
+   "cost": 1
+  },
+  {
+   "slug": "replace-running-shoes",
+   "kind": "store",
+   "words": 2101,
+   "lint": 1,
+   "lintRules": {
+    "sentences": 1
+   },
+   "proof": "Ship",
+   "holdReasons": [],
+   "factChanges": 0,
+   "rewritesRefused": 3,
+   "polishApplied": 15,
+   "polishRefused": 2,
+   "unsourced": 0,
+   "numbers": 32,
+   "seconds": 259,
+   "calls": 26,
+   "cost": 1.09
+  },
+  {
+   "slug": "resource-planning",
+   "kind": "saas",
+   "words": 2536,
+   "lint": 0,
+   "lintRules": {},
+   "proof": "Ship",
+   "holdReasons": [],
+   "factChanges": 0,
+   "rewritesRefused": 3,
+   "polishApplied": 36,
+   "polishRefused": 1,
+   "unsourced": 0,
+   "numbers": 1,
+   "seconds": 312,
+   "calls": 29,
+   "cost": 1.26
+  },
+  {
+   "slug": "roth-vs-traditional",
+   "kind": "publisher",
+   "words": 2285,
+   "lint": 2,
+   "lintRules": {
+    "sentences": 2
+   },
+   "proof": "Ship",
+   "holdReasons": [],
+   "factChanges": 0,
+   "rewritesRefused": 6,
+   "polishApplied": 13,
+   "polishRefused": 1,
+   "unsourced": 1,
+   "numbers": 30,
+   "seconds": 276,
+   "calls": 28,
+   "cost": 1.07
+  },
+  {
+   "slug": "running-shoes-beginners",
+   "kind": "store",
+   "words": 1963,
+   "lint": 0,
+   "lintRules": {},
+   "proof": "Ship",
+   "holdReasons": [],
+   "factChanges": 0,
+   "rewritesRefused": 1,
+   "polishApplied": 16,
+   "polishRefused": 1,
+   "unsourced": 0,
+   "numbers": 2,
+   "seconds": 195,
+   "calls": 10,
+   "cost": 0.81
+  },
+  {
+   "slug": "seo-tools-agencies",
+   "kind": "agency",
+   "words": 3008,
+   "lint": 6,
+   "lintRules": {
+    "sentences": 6
+   },
+   "proof": "Hold",
+   "holdReasons": [
+    "A paragraph appears twice: in \"2. Ahrefs: best for backlink and competitor research\" and \"3. SE Ranking: best for agencies that want one platform with white-label options\""
+   ],
+   "factChanges": 0,
+   "rewritesRefused": 1,
+   "polishApplied": 7,
+   "polishRefused": 2,
+   "unsourced": 0,
+   "numbers": 15,
+   "seconds": 332,
+   "calls": 31,
+   "cost": 1.49
+  },
+  {
+   "slug": "tankless-vs-tank",
+   "kind": "local",
+   "words": 2222,
+   "lint": 18,
+   "lintRules": {
+    "sentences": 17,
+    "words": 1
+   },
+   "proof": "Ship",
+   "holdReasons": [],
+   "factChanges": 0,
+   "rewritesRefused": 3,
+   "polishApplied": 6,
+   "polishRefused": 2,
+   "unsourced": 0,
+   "numbers": 57,
+   "seconds": 355,
+   "calls": 32,
+   "cost": 1.38
+  },
+  {
+   "slug": "trail-running-shoes",
+   "kind": "store",
+   "words": 2838,
+   "lint": 7,
+   "lintRules": {
+    "sentences": 6,
+    "dashes": 1
+   },
+   "proof": "Hold",
+   "holdReasons": [
+    "\"7. Salomon Speedcross 6: best for mud and soft ground\" says two options and lists 1"
+   ],
+   "factChanges": 0,
+   "rewritesRefused": 6,
+   "polishApplied": 12,
+   "polishRefused": 3,
+   "unsourced": 0,
+   "numbers": 13,
+   "seconds": 322,
+   "calls": 33,
+   "cost": 1.45
+  },
+  {
+   "slug": "unclog-drain",
+   "kind": "local",
+   "words": 2217,
+   "lint": 0,
+   "lintRules": {},
+   "proof": "Ship",
+   "holdReasons": [],
+   "factChanges": 0,
+   "rewritesRefused": 2,
+   "polishApplied": 20,
+   "polishRefused": 0,
+   "unsourced": 0,
+   "numbers": 0,
+   "seconds": 246,
+   "calls": 27,
+   "cost": 1.07
+  },
+  {
+   "slug": "water-heater-cost",
+   "kind": "local",
+   "words": 2127,
+   "lint": 1,
+   "lintRules": {
+    "sentences": 1
+   },
+   "proof": "Hold",
+   "holdReasons": [
+    "A paragraph appears twice: in \"3. Tankless gas water heater: best for long life and steady hot water\" and \"4. Tankless electric water heater: best for small homes and low demand\""
+   ],
+   "factChanges": 0,
+   "rewritesRefused": 2,
+   "polishApplied": 24,
+   "polishRefused": 5,
+   "unsourced": 0,
+   "numbers": 80,
+   "seconds": 250,
+   "calls": 22,
+   "cost": 1.09
+  },
+  {
+   "slug": "water-heater-signs",
+   "kind": "local",
+   "words": 1961,
+   "lint": 7,
+   "lintRules": {
+    "sentences": 6,
+    "dashes": 1
+   },
+   "proof": "Ship",
+   "holdReasons": [],
+   "factChanges": 0,
+   "rewritesRefused": 2,
+   "polishApplied": 14,
+   "polishRefused": 0,
+   "unsourced": 0,
+   "numbers": 0,
+   "seconds": 322,
+   "calls": 29,
+   "cost": 1.27
+  }
+ ]
+}

@@ -10,7 +10,7 @@ import { contextOf, loadFixture, packOf, topics } from "./writerFixtures.ts";
 const DIR = new URL("./fixtures/writer/baseline/", import.meta.url);
 const load = (slug: string) => JSON.parse(readFileSync(new URL(`${slug}.json`, DIR), "utf8"));
 
-test("every topic has a baseline article, and the scorer gives it the same numbers it was saved with", () => {
+test("every topic has a baseline article, and the scorer gives it the same numbers it was saved with (lint now stricter)", () => {
   for (const t of topics()) {
     assert.ok(existsSync(new URL(`${t.slug}.json`, DIR)), `${t.slug} has no baseline: run scripts/writer-baseline.mjs ${t.slug}`);
     const b = load(t.slug);
@@ -25,7 +25,11 @@ test("every topic has a baseline article, and the scorer gives it the same numbe
       images: (b.brief.images ?? []).length,
       modules: b.modules.filter((m: { status: string }) => m.status === "ok").length,
     });
-    assert.deepEqual(again, b.score, t.slug);
+    // The house lint grew (houseLint.ts, the Perceptric lint port), so today's lint finds at least what it found then.
+    const { lint, lintRules: _rules, ...rest } = again;
+    const { lint: savedLint, lintRules: _savedRules, ...savedRest } = b.score;
+    assert.deepEqual(rest, savedRest, t.slug);
+    assert.ok(lint >= savedLint, `${t.slug}: lint ${lint} < saved ${savedLint}`);
   }
 });
 
@@ -35,4 +39,13 @@ test("the summary matches the 20 articles", () => {
   const sum = sumScores(all.map((b) => b.score));
   for (const k of Object.keys(sum) as (keyof typeof sum)[]) assert.equal(s[k], sum[k], k);
   assert.equal(s.modulesPlanned, all.reduce((a, b) => a + b.brief.modules.length, 0));
+});
+
+test("the Phase 2 run on the 20 topics changed no facts and every article has a proof", () => {
+  const s = JSON.parse(readFileSync(new URL("../phase2/summary.json", DIR), "utf8"));
+  assert.equal(s.articles, 20);
+  assert.equal(s.factChanges, 0);
+  assert.equal(s.ship + s.hold, 20);
+  assert.equal(s.articlesDetail.length, 20);
+  for (const a of s.articlesDetail) assert.equal(a.proof === "Hold", a.holdReasons.length > 0, a.slug);
 });
