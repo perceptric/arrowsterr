@@ -585,6 +585,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
     void runBrand(brand);
     // Make the brand's site now. The Content Plan waits until someone clicks Build.
     void siteForBrand(sb, brand, true).catch(() => {});
+    return brand.id;
   }
 
   async function update(brand: Brand) {

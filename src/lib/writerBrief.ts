@@ -5,6 +5,7 @@
 // Pure: the database and the paid calls come in as `store` and `deps` (writerServer.ts), so tests run it offline.
 import type { BrandKit } from "./brandKit.ts";
 import { voiceText, type BrandVoice } from "./brandVoice.ts";
+import { personaText, type WriterPersona } from "./writerPersona.ts";
 import { isBofu, listicleRules, listicleSlug } from "./listicle.ts";
 import { kindLabel, kindsForPrompt, MODULE_IDS } from "./moduleCatalog.ts";
 import { rulesText, sampleText } from "./houseRules.ts";
@@ -130,6 +131,8 @@ export type WriterContext = {
   guidelines: { body: string; links: string[] } | null;
   /** The brand's voice sample (brand_voices.sample_text): how its writing sounds. */
   sample?: string;
+  /** The writer persona from onboarding: who writes, the point of view, approved proof, claims to never make. */
+  persona?: WriterPersona | null;
   sitemap: string[]; // the brand's own pages, for internal links
   stage?: "bofu" | "mofu" | "tofu" | null; // the piece's funnel stage: BOFU briefs are listicles
 };
@@ -173,6 +176,7 @@ export function brandText(c: WriterContext): string {
   return [
     `Brand: ${c.brand.name} (${c.brand.domain})`,
     c.voice ? `Brand Voice:\n${voiceText(c.voice)}` : "Brand Voice: not set. Write plainly and confidently, for a smart reader in a hurry.",
+    c.persona ? `Writer persona:\n${personaText(c.persona)}` : "",
     k ? `Brand Kit: colors primary ${k.colors.primary}, secondary ${k.colors.secondary}, ink ${k.colors.ink}, text ${k.colors.text}; fonts ${k.fonts.heading} for headings, ${k.fonts.body} for text.` : "",
     c.guidelines?.body ? `Brand guidelines:\n${clip(c.guidelines.body, 6000)}` : "",
     sampleText(c.sample ?? ""),
