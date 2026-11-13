@@ -1,0 +1,569 @@
+{
+ "a": 52,
+ "b": 48,
+ "c": 14,
+ "aSent": 44,
+ "bSent": 40,
+ "cSent": 7,
+ "rewrites": 33,
+ "kept": 33,
+ "refused": 0,
+ "articles": 20,
+ "perArticle": {
+  "a": 2.6,
+  "b": 2.4,
+  "c": 0.7
+ },
+ "usage": {
+  "calls": 33,
+  "input": 39737,
+  "cacheRead": 1738922,
+  "cacheWrite": 429439,
+  "output": 27079
+ },
+ "cost": 1.77,
+ "run": "2026-11-13",
+ "what": "Phase 2b replayed on the 20 Phase 2 articles: a = today's lint, b = after tidy, c = after the length round",
+ "articlesDetail": [
+  {
+   "slug": "b2b-content-strategy",
+   "lint": {
+    "a": {
+     "total": 2,
+     "sentences": 2
+    },
+    "b": {
+     "total": 1,
+     "sentences": 1
+    },
+    "c": {
+     "total": 0,
+     "sentences": 0
+    }
+   },
+   "rewrites": 1,
+   "kept": 1,
+   "refused": [],
+   "usage": {
+    "calls": 1,
+    "input": 1094,
+    "cacheRead": 0,
+    "cacheWrite": 70084,
+    "output": 773
+   }
+  },
+  {
+   "slug": "budgeting-apps",
+   "lint": {
+    "a": {
+     "total": 10,
+     "sentences": 7
+    },
+    "b": {
+     "total": 10,
+     "sentences": 7
+    },
+    "c": {
+     "total": 3,
+     "sentences": 1
+    }
+   },
+   "rewrites": 5,
+   "kept": 5,
+   "refused": [],
+   "usage": {
+    "calls": 5,
+    "input": 5165,
+    "cacheRead": 281398,
+    "cacheWrite": 20577,
+    "output": 3384
+   }
+  },
+  {
+   "slug": "credit-score",
+   "lint": {
+    "a": {
+     "total": 3,
+     "sentences": 1
+    },
+    "b": {
+     "total": 3,
+     "sentences": 1
+    },
+    "c": {
+     "total": 3,
+     "sentences": 1
+    }
+   },
+   "rewrites": 1,
+   "kept": 1,
+   "refused": [],
+   "usage": {
+    "calls": 1,
+    "input": 1066,
+    "cacheRead": 39818,
+    "cacheWrite": 21278,
+    "output": 770
+   }
+  },
+  {
+   "slug": "emergency-fund",
+   "lint": {
+    "a": {
+     "total": 0,
+     "sentences": 0
+    },
+    "b": {
+     "total": 0,
+     "sentences": 0
+    },
+    "c": {
+     "total": 0,
+     "sentences": 0
+    }
+   },
+   "rewrites": 0,
+   "kept": 0,
+   "refused": [],
+   "usage": {
+    "calls": 0,
+    "input": 0,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "output": 0
+   }
+  },
+  {
+   "slug": "generative-engine-optimization",
+   "lint": {
+    "a": {
+     "total": 1,
+     "sentences": 1
+    },
+    "b": {
+     "total": 1,
+     "sentences": 1
+    },
+    "c": {
+     "total": 1,
+     "sentences": 1
+    }
+   },
+   "rewrites": 1,
+   "kept": 1,
+   "refused": [],
+   "usage": {
+    "calls": 1,
+    "input": 1930,
+    "cacheRead": 39818,
+    "cacheWrite": 28628,
+    "output": 1618
+   }
+  },
+  {
+   "slug": "kanban-vs-scrum",
+   "lint": {
+    "a": {
+     "total": 1,
+     "sentences": 1
+    },
+    "b": {
+     "total": 1,
+     "sentences": 1
+    },
+    "c": {
+     "total": 0,
+     "sentences": 0
+    }
+   },
+   "rewrites": 1,
+   "kept": 1,
+   "refused": [],
+   "usage": {
+    "calls": 1,
+    "input": 1031,
+    "cacheRead": 39818,
+    "cacheWrite": 26375,
+    "output": 629
+   }
+  },
+  {
+   "slug": "keyword-research",
+   "lint": {
+    "a": {
+     "total": 5,
+     "sentences": 5
+    },
+    "b": {
+     "total": 5,
+     "sentences": 5
+    },
+    "c": {
+     "total": 2,
+     "sentences": 2
+    }
+   },
+   "rewrites": 5,
+   "kept": 5,
+   "refused": [],
+   "usage": {
+    "calls": 5,
+    "input": 5614,
+    "cacheRead": 293094,
+    "cacheWrite": 23501,
+    "output": 3859
+   }
+  },
+  {
+   "slug": "neutral-vs-stability",
+   "lint": {
+    "a": {
+     "total": 2,
+     "sentences": 2
+    },
+    "b": {
+     "total": 1,
+     "sentences": 1
+    },
+    "c": {
+     "total": 0,
+     "sentences": 0
+    }
+   },
+   "rewrites": 1,
+   "kept": 1,
+   "refused": [],
+   "usage": {
+    "calls": 1,
+    "input": 967,
+    "cacheRead": 39818,
+    "cacheWrite": 28286,
+    "output": 645
+   }
+  },
+  {
+   "slug": "pm-software-small-teams",
+   "lint": {
+    "a": {
+     "total": 1,
+     "sentences": 1
+    },
+    "b": {
+     "total": 1,
+     "sentences": 1
+    },
+    "c": {
+     "total": 0,
+     "sentences": 0
+    }
+   },
+   "rewrites": 1,
+   "kept": 1,
+   "refused": [],
+   "usage": {
+    "calls": 1,
+    "input": 1852,
+    "cacheRead": 39818,
+    "cacheWrite": 26978,
+    "output": 1475
+   }
+  },
+  {
+   "slug": "project-brief",
+   "lint": {
+    "a": {
+     "total": 0,
+     "sentences": 0
+    },
+    "b": {
+     "total": 0,
+     "sentences": 0
+    },
+    "c": {
+     "total": 0,
+     "sentences": 0
+    }
+   },
+   "rewrites": 0,
+   "kept": 0,
+   "refused": [],
+   "usage": {
+    "calls": 0,
+    "input": 0,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "output": 0
+   }
+  },
+  {
+   "slug": "replace-running-shoes",
+   "lint": {
+    "a": {
+     "total": 1,
+     "sentences": 1
+    },
+    "b": {
+     "total": 1,
+     "sentences": 1
+    },
+    "c": {
+     "total": 0,
+     "sentences": 0
+    }
+   },
+   "rewrites": 1,
+   "kept": 1,
+   "refused": [],
+   "usage": {
+    "calls": 1,
+    "input": 1119,
+    "cacheRead": 39818,
+    "cacheWrite": 23481,
+    "output": 803
+   }
+  },
+  {
+   "slug": "resource-planning",
+   "lint": {
+    "a": {
+     "total": 0,
+     "sentences": 0
+    },
+    "b": {
+     "total": 0,
+     "sentences": 0
+    },
+    "c": {
+     "total": 0,
+     "sentences": 0
+    }
+   },
+   "rewrites": 0,
+   "kept": 0,
+   "refused": [],
+   "usage": {
+    "calls": 0,
+    "input": 0,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "output": 0
+   }
+  },
+  {
+   "slug": "roth-vs-traditional",
+   "lint": {
+    "a": {
+     "total": 2,
+     "sentences": 2
+    },
+    "b": {
+     "total": 1,
+     "sentences": 1
+    },
+    "c": {
+     "total": 0,
+     "sentences": 0
+    }
+   },
+   "rewrites": 1,
+   "kept": 1,
+   "refused": [],
+   "usage": {
+    "calls": 1,
+    "input": 1527,
+    "cacheRead": 39818,
+    "cacheWrite": 19266,
+    "output": 1118
+   }
+  },
+  {
+   "slug": "running-shoes-beginners",
+   "lint": {
+    "a": {
+     "total": 0,
+     "sentences": 0
+    },
+    "b": {
+     "total": 0,
+     "sentences": 0
+    },
+    "c": {
+     "total": 0,
+     "sentences": 0
+    }
+   },
+   "rewrites": 0,
+   "kept": 0,
+   "refused": [],
+   "usage": {
+    "calls": 0,
+    "input": 0,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "output": 0
+   }
+  },
+  {
+   "slug": "seo-tools-agencies",
+   "lint": {
+    "a": {
+     "total": 5,
+     "sentences": 5
+    },
+    "b": {
+     "total": 5,
+     "sentences": 5
+    },
+    "c": {
+     "total": 0,
+     "sentences": 0
+    }
+   },
+   "rewrites": 3,
+   "kept": 3,
+   "refused": [],
+   "usage": {
+    "calls": 3,
+    "input": 3602,
+    "cacheRead": 182756,
+    "cacheWrite": 31651,
+    "output": 2446
+   }
+  },
+  {
+   "slug": "tankless-vs-tank",
+   "lint": {
+    "a": {
+     "total": 8,
+     "sentences": 7
+    },
+    "b": {
+     "total": 7,
+     "sentences": 6
+    },
+    "c": {
+     "total": 1,
+     "sentences": 0
+    }
+   },
+   "rewrites": 5,
+   "kept": 5,
+   "refused": [],
+   "usage": {
+    "calls": 5,
+    "input": 5585,
+    "cacheRead": 296326,
+    "cacheWrite": 24309,
+    "output": 3523
+   }
+  },
+  {
+   "slug": "trail-running-shoes",
+   "lint": {
+    "a": {
+     "total": 7,
+     "sentences": 6
+    },
+    "b": {
+     "total": 7,
+     "sentences": 6
+    },
+    "c": {
+     "total": 3,
+     "sentences": 2
+    }
+   },
+   "rewrites": 5,
+   "kept": 5,
+   "refused": [],
+   "usage": {
+    "calls": 5,
+    "input": 6217,
+    "cacheRead": 326986,
+    "cacheWrite": 31974,
+    "output": 4008
+   }
+  },
+  {
+   "slug": "unclog-drain",
+   "lint": {
+    "a": {
+     "total": 0,
+     "sentences": 0
+    },
+    "b": {
+     "total": 0,
+     "sentences": 0
+    },
+    "c": {
+     "total": 0,
+     "sentences": 0
+    }
+   },
+   "rewrites": 0,
+   "kept": 0,
+   "refused": [],
+   "usage": {
+    "calls": 0,
+    "input": 0,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "output": 0
+   }
+  },
+  {
+   "slug": "water-heater-cost",
+   "lint": {
+    "a": {
+     "total": 1,
+     "sentences": 1
+    },
+    "b": {
+     "total": 1,
+     "sentences": 1
+    },
+    "c": {
+     "total": 0,
+     "sentences": 0
+    }
+   },
+   "rewrites": 1,
+   "kept": 1,
+   "refused": [],
+   "usage": {
+    "calls": 1,
+    "input": 1557,
+    "cacheRead": 39818,
+    "cacheWrite": 28827,
+    "output": 1185
+   }
+  },
+  {
+   "slug": "water-heater-signs",
+   "lint": {
+    "a": {
+     "total": 3,
+     "sentences": 2
+    },
+    "b": {
+     "total": 3,
+     "sentences": 2
+    },
+    "c": {
+     "total": 1,
+     "sentences": 0
+    }
+   },
+   "rewrites": 1,
+   "kept": 1,
+   "refused": [],
+   "usage": {
+    "calls": 1,
+    "input": 1411,
+    "cacheRead": 39818,
+    "cacheWrite": 24224,
+    "output": 843
+   }
+  }
+ ]
+}

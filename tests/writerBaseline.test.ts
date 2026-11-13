@@ -48,3 +48,11 @@ test("the Phase 2 run on the 20 topics changed no facts and every article has a 
   assert.equal(s.articlesDetail.length, 20);
   for (const a of s.articlesDetail) assert.equal(a.proof === "Hold", a.holdReasons.length > 0, a.slug);
 });
+
+test("Phase 2b: the length round brings the lint under one finding an article, and the audit kept every rewrite", () => {
+  const s = JSON.parse(readFileSync(new URL("../phase2/summary-2b.json", DIR), "utf8"));
+  assert.equal(s.articles, 20);
+  assert.ok(s.perArticle.c < 1, `still ${s.perArticle.c} an article`);
+  assert.ok(s.c < s.b && s.b <= s.a);
+  assert.equal(s.kept + s.refused, s.rewrites);
+});
