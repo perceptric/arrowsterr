@@ -16,7 +16,7 @@ import { ENGINE_LOGOS, EngineName } from "./Engines";
 import { Markdown } from "./Markdown";
 import { cleanAnswer } from "@/lib/answerText";
 import { TrendChart } from "./TrendChart";
-import { BrandName, Delta, favicon, OTHER_COLORS, pct, Seg, Tip, TIPS, YOU_COLOR, Spark } from "./ui";
+import { BrandName, Delta, favicon, OTHER_COLORS, pct, Seg, Tip, TIPS, YOU_COLOR } from "./ui";
 
 type Props = {
   sb: SupabaseClient;
@@ -201,8 +201,6 @@ function Scores({ view, loading }: { view: View; loading?: boolean }) {
   const me = stats.find((s) => s.isYou)!;
   const meBefore = before.find((s) => s.isYou);
   const hadBefore = prev.length > 0;
-  // Your visibility day by day, for the trend line in the lead cell.
-  const daily = trend(current, [brand.name], "visibility", filter).map((p) => p.values[brand.name] ?? 0);
   const change = hadBefore ? me.visibility - (meBefore?.visibility ?? 0) : null;
   const headline =
     change === null
@@ -238,7 +236,6 @@ function Scores({ view, loading }: { view: View; loading?: boolean }) {
                   <Delta now={m.now} before={m.before} digits={0} />
                 </span>
               </span>
-              {i === 0 && daily.length > 2 ? <Spark values={daily} className="aw-lead__spark" /> : null}
               <span className="flex flex-wrap items-center justify-between gap-2 text-[13px] text-muted">
                 {m.help}
                 <span className="aw-num">
