@@ -32,7 +32,7 @@ const Brand = ({ name, logo, size = 16 }: { name: string; logo: string; size?: n
   </span>
 );
 
-/** Competitive Analysis: rivals from your AI answers and from Google, and how your keywords overlap with theirs. */
+/** Competitive Analysis: competitors from your AI answers and from Google, and how your keywords overlap with theirs. */
 export function KeywordGap({
   sb,
   auth,
@@ -190,8 +190,8 @@ export function KeywordGap({
       {busy ? <Thinking text={`Comparing ${me.name} with ${nameOf(query)}...`} /> : null}
 
       {!busy && !gap && !error ? (
-        <EmptyScreen drawing="gap" title="Find the keywords rivals win" fill={false}>
-          Type a rival&apos;s domain, or pick one above, to compare keywords with yours.
+        <EmptyScreen drawing="gap" title="Find the keywords competitors win" fill={false}>
+          Type a competitor&apos;s domain, or pick one above, to compare keywords with yours.
         </EmptyScreen>
       ) : null}
 

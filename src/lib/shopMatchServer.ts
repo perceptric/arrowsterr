@@ -142,7 +142,7 @@ async function nameRivals(titles: string[]): Promise<Map<string, string>> {
       if (t && nameInTitle(n.brand, t)) out.set(t, n.brand.trim());
     }
   } catch (e) {
-    console.error("AI Shopping rival names:", say(e));
+    console.error("AI Shopping competitor names:", say(e));
   }
   return out;
 }
