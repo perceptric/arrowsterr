@@ -4,53 +4,48 @@ import { jsonrepair } from "jsonrepair";
 import { charge, claudeCost } from "./meter";
 import { isGrammarError, schemaPrompt } from "./jsonReply";
 import type { Source } from "./sources";
+import { replyText, requestBody, thinkingFix, type AskOpts, type ThinkingOff } from "./claudeRequest";
+
+/** How each model takes "thinking off", learned from the API's own error the first time (claudeRequest.ts). */
+const thinkingOff = new Map<string, ThinkingOff>();
 
 export function claudeModel() {
   return process.env.CLAUDE_MODEL || "claude-sonnet-5-5";
 }
 
-// The newer web search filters results before Claude reads them, so answers cost fewer input tokens.
-const SEARCH_TOOL = "web_search_20260209" as const;
-
 /**
  * Ask Claude one question. With `searches` above 0, Claude can search the web that many times.
  * `prefix` is a long, stable start (a brand and its research) sent before the prompt and cached, so calls that
  * share it pay a tenth for those tokens after the first. `system` is a stable system prompt (the writing skills),
- * cached on its own, so it is shared by every call that sends the same text.
+ * cached on its own, so it is shared by every call that sends the same text. The request is built in claudeRequest.ts.
  */
-export async function askClaude(
-  prompt: string,
-  opts: { searches?: number; maxTokens?: number; model?: string; effort?: "low" | "medium" | "high"; schema?: Record<string, unknown>; prefix?: string; system?: string } = {},
-): Promise<{ text: string; sources: Source[] }> {
+export async function askClaude(prompt: string, opts: AskOpts = {}): Promise<{ text: string; sources: Source[] }> {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-  const content: Anthropic.MessageParam["content"] = opts.prefix
-    ? [
-        { type: "text", text: opts.prefix, cache_control: { type: "ephemeral" } },
-        { type: "text", text: prompt },
-      ]
-    : prompt;
-  const messages: Anthropic.MessageParam[] = [{ role: "user", content }];
+  const model = opts.model ?? claudeModel();
+  let off = thinkingOff.get(model) ?? "between_tools";
+  let body = requestBody(prompt, opts, model, off);
+  const messages = body.messages as Anthropic.MessageParam[];
   let text = "";
   const sources: Source[] = [];
-  const model = opts.model ?? claudeModel();
   // A long web search turn can pause. Send it back so Claude can finish (a few times at most).
   for (let turn = 0; turn < 4; turn++) {
-    const msg = await client.messages.create({
-      model,
-      max_tokens: opts.maxTokens ?? 16000,
-      ...(opts.system ? { system: [{ type: "text" as const, text: opts.system, cache_control: { type: "ephemeral" as const } }] } : {}),
-      messages,
-      // With a schema, the API makes sure the reply is valid JSON in that shape.
-      ...(opts.effort || opts.schema
-        ? { output_config: { ...(opts.effort ? { effort: opts.effort } : {}), ...(opts.schema ? { format: { type: "json_schema" as const, schema: opts.schema } } : {}) } }
-        : {}),
-      ...(opts.searches ? { tools: [{ type: SEARCH_TOOL, name: "web_search" as const, max_uses: opts.searches }] } : {}),
-    });
+    let msg: Anthropic.Message;
+    try {
+      msg = await client.messages.create({ ...body, messages } as Anthropic.MessageCreateParamsNonStreaming);
+    } catch (e) {
+      // The model wants thinking turned off another way, and the error says which: remember it and ask again once.
+      const fix = opts.schema && (e as { status?: number }).status === 400 ? thinkingFix(String((e as Error).message), off) : null;
+      if (!fix) throw e;
+      off = fix;
+      thinkingOff.set(model, fix);
+      body = requestBody(prompt, opts, model, off);
+      msg = await client.messages.create({ ...body, messages } as Anthropic.MessageCreateParamsNonStreaming);
+    }
     const u = msg.usage;
     charge("claude", claudeCost(model, (u.input_tokens ?? 0) + (u.cache_read_input_tokens ?? 0) * 0.1 + (u.cache_creation_input_tokens ?? 0) * 1.25, u.output_tokens ?? 0, u.server_tool_use?.web_search_requests ?? 0));
+    text += replyText(msg);
     for (const block of msg.content) {
       if (block.type !== "text") continue;
-      text += block.text;
       for (const c of block.citations ?? []) {
         if (c.type === "web_search_result_location") sources.push({ url: c.url, title: c.title, domain: "" });
       }
@@ -62,7 +57,7 @@ export async function askClaude(
 }
 
 /** Ask Claude for JSON in a fixed shape. No web search: structured replies cannot carry search citations. */
-export async function askJson<T>(prompt: string, schema: Record<string, unknown>, opts: { maxTokens?: number; model?: string; effort?: "low" | "medium" | "high"; prefix?: string; system?: string } = {}): Promise<T> {
+export async function askJson<T>(prompt: string, schema: Record<string, unknown>, opts: Omit<AskOpts, "schema" | "searches"> = {}): Promise<T> {
   if (!tooBig.has(schema)) {
     try {
       const { text } = await askClaude(prompt, { ...opts, schema });

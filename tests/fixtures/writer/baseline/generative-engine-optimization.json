@@ -1,0 +1,1165 @@
+{
+ "slug": "generative-engine-optimization",
+ "keyword": "what is generative engine optimization",
+ "kind": "agency",
+ "stage": "tofu",
+ "model": "claude-sonnet-5-5",
+ "at": "2026-11-13T10:12:04.557Z",
+ "seconds": 232,
+ "usage": {
+  "calls": 22,
+  "input": 53732,
+  "cacheRead": 886113,
+  "cacheWrite": 139167,
+  "output": 32386
+ },
+ "score": {
+  "words": 2666,
+  "sections": 10,
+  "lint": 2,
+  "lintRules": {
+   "sentences": 2
+  },
+  "numbers": 1,
+  "unsourced": [],
+  "links": 63,
+  "strayLinks": [],
+  "images": 3,
+  "modules": 0
+ },
+ "title": "What Is Generative Engine Optimization? A B2B Guide",
+ "brief": {
+  "titles": [
+   "What Is Generative Engine Optimization? A B2B Guide",
+   "What Is Generative Engine Optimization (GEO)? Plain Guide",
+   "Generative Engine Optimization: What It Is and Where to Start"
+  ],
+  "h1": "What Is Generative Engine Optimization? A B2B Guide",
+  "metaDescription": "Generative engine optimization (GEO) helps your content show up in AI answers. Learn what it is, how it differs from SEO and how to start.",
+  "slug": "what-is-generative-engine-optimization",
+  "searchIntent": "The searcher wants a plain definition of generative engine optimization, how it differs from SEO and whether they need to act on it. A definition-first explainer with a short comparison, a few practical steps and an honest look at the evidence serves them best.",
+  "reader": "A marketing lead at a B2B software company who knows SEO and content marketing well and has heard of GEO, AEO or AI search but has not worked on it yet. They want to explain GEO to their team, decide what it means for their content, and pick a first step they can start this month.",
+  "angle": "We explain GEO in everyday words for B2B marketing leads, then separate what the top pages agree on from what research has actually shown so far. You get a clear starting plan and a way to measure it without overpromising results.",
+  "wordTarget": 2300,
+  "outline": [
+   {
+    "h2": "What is generative engine optimization?",
+    "points": [
+     "Open with a one-sentence definition: GEO is the practice of structuring and refining content so AI answer engines like ChatGPT, Gemini and Perplexity can find, summarize and cite it.",
+     "Explain generative engines in plain words: AI tools that use large language models to write a direct answer instead of returning a list of links.",
+     "Say the goal is to be cited, paraphrased or represented inside an AI-generated answer, which is a different goal from ranking on a results page.",
+     "Note that AEO (answer engine optimization) and LLMO (large language model optimization) are names people use for the same area, and that writers draw the lines between them differently."
+    ],
+    "h3": [
+     {
+      "title": "Which tools count as generative engines?",
+      "points": [
+       "Name the engines listed in source 1: ChatGPT, Claude, Gemini, Llama, Perplexity and Microsoft Copilot.",
+       "Add Google AI Overviews, which sources 8 and 9 and the AI answers include.",
+       "Mention that Perplexity often shows citations, which matters for how you can be found."
+      ]
+     }
+    ],
+    "sources": [
+     1,
+     7,
+     8,
+     9
+    ]
+   },
+   {
+    "h2": "How generative engines decide what to show",
+    "points": [
+     "Explain that these tools do not just match keywords. They synthesize answers using natural language understanding, relevance and contextual depth (source 2).",
+     "Say that how content is structured, presented and referenced matters as much as what it says (source 1).",
+     "Keep the technical terms light and define each one in a sentence when used."
+    ],
+    "h3": [
+     {
+      "title": "Answers from what the model already learned",
+      "points": [
+       "Pretrained models learn from public web data such as Common Crawl, books and Wikipedia, then are refined with task-specific data (source 1).",
+       "Your content can only show up here if it was part of that training data."
+      ]
+     },
+     {
+      "title": "Answers from live retrieval",
+      "points": [
+       "Retrieval-augmented generation (RAG) combines a language model with real-time search over an indexed knowledge base (source 1).",
+       "Here, being clear, authoritative and well sourced helps an engine pick your page (sources 1, 7).",
+       "The 2026 survey in source 10 says topical relevance and where your content sits in the context are the most reproducible levers."
+      ]
+     }
+    ],
+    "sources": [
+     1,
+     2,
+     7,
+     10
+    ]
+   },
+   {
+    "h2": "GEO vs SEO: what changes and what stays the same",
+    "points": [
+     "Goal: SEO helps you appear in search results pages, while GEO helps you appear inside AI-generated answers (source 8).",
+     "Metrics: SEO tracks keyword rankings and organic traffic, while GEO tracks AI visibility, mentions, citations and share of voice (source 8).",
+     "Overlap: both reward user-first content and E-E-A-T signals, and keywords still give context (source 9).",
+     "Say plainly that GEO complements SEO and does not replace it (sources 1, 2, 7, 8).",
+     "Include a short side-by-side table of goal, key tactics and metrics, built from source 8.",
+     "Attribute Jarred Smith's view that SEO is the foundation AI systems need in order to find you as his framework, not an industry rule (source 4)."
+    ],
+    "h3": [],
+    "sources": [
+     1,
+     2,
+     4,
+     7,
+     8,
+     9
+    ]
+   },
+   {
+    "h2": "Why GEO matters for B2B marketing teams",
+    "points": [
+     "Buyers increasingly use AI tools for recommendations, research and comparisons (source 8). Brands that are not referenced in those answers risk losing reach to competitors that are (source 7).",
+     "Searches are changing shape: source 9 reports AI search queries average 23 words compared with 4 words on Google. Longer questions mean content has to answer specific situations.",
+     "Source 8 says ChatGPT reached 100 million users faster than any app in history. Attribute the claim to Semrush.",
+     "Source 1 says users often skip the click, so brand mentions can matter even without a visit. Some engines such as Perplexity cite sources, and a mention can lead to discovery.",
+     "Source 3 warns that AI can describe a brand from stale or incomplete information. Present this as the vendor's view and as a reason to check what AI says about you.",
+     "Keep the tone calm. This is a new channel to understand, not a reason to panic."
+    ],
+    "h3": [],
+    "sources": [
+     1,
+     3,
+     7,
+     8,
+     9
+    ]
+   },
+   {
+    "h2": "GEO strategies you can use",
+    "points": [
+     "Open with the idea that most GEO tactics are good content habits you can start on pages you already have.",
+     "Point to the content types source 2 finds work for startups in B2B and SaaS: founder-led points of view, deep blog posts, structured lists, FAQs with schema, and case studies with specific examples."
+    ],
+    "h3": [
+     {
+      "title": "Write clear, direct and well-sourced answers",
+      "points": [
+       "Lead sections with a concise, factual answer and back it with data or named sources (sources 1, 7).",
+       "Write with a defined point of view, since source 7 says that tends to perform better.",
+       "Cite credible sources and be cited by others (source 1 heading and approach)."
+      ]
+     },
+     {
+      "title": "Structure pages so machines can read them",
+      "points": [
+       "Use clear headings, bullet lists, FAQs and schema markup (sources 1, 2).",
+       "Source 7 attributes research by Chris Long at Go Fish Digital suggesting bullet points and snippet-ready structure can influence whether content surfaces. Attribute it, and do not state it as proven.",
+       "Keep one idea per section so a single passage can stand alone as an answer."
+      ]
+     },
+     {
+      "title": "Earn consistent mentions across the web",
+      "points": [
+       "Brand consistency across your site, third-party directories, reviews and media coverage supports GEO (source 7).",
+       "Source 8 lists getting mentioned by credible sites and platforms as a core GEO tactic.",
+       "Source 1 lists brand mentions and consistency as a strategy in its own right."
+      ]
+     },
+     {
+      "title": "Keep content fresh and easy to crawl",
+      "points": [
+       "Source 1 covers crawlability, indexability, performance and content freshness as technical GEO basics.",
+       "Source 8 also lists keeping content fresh among its GEO tactics.",
+       "Give a short checklist a team can hand to a developer."
+      ]
+     }
+    ],
+    "sources": [
+     1,
+     2,
+     7,
+     8
+    ]
+   },
+   {
+    "h2": "How to start with GEO: a step-by-step plan",
+    "points": [
+     "Present this as a numbered list a marketing lead could assign this week.",
+     "Step 1: write the 10 to 15 questions your buyers would ask an AI tool about your category. Source 7 says to structure content around likely prompts, and source 4 uses twelve buyer prompts in its audit.",
+     "Step 2: run those prompts on several engines and record whether you are mentioned, where you appear and which sources are cited (sources 3, 4, 8).",
+     "Step 3: audit your existing pages for clarity and citation-worthiness (source 7).",
+     "Step 4: improve your top pages with direct answers, headings, lists, FAQs and updated facts.",
+     "Step 5: build credible third-party mentions in places your buyers read (sources 7, 8).",
+     "Step 6: repeat the prompts on a schedule and compare results over time."
+    ],
+    "h3": [],
+    "sources": [
+     3,
+     4,
+     7,
+     8,
+     9
+    ]
+   },
+   {
+    "h2": "How to measure GEO results",
+    "points": [
+     "Metrics to track: AI visibility, AI mentions, AI citations and AI share of voice (source 8).",
+     "Source 3 adds position (first recommendation or one of several) and sentiment (positive, neutral or negative).",
+     "Source 1 suggests tracking mentions in generative responses.",
+     "Warn that answers change from run to run. Source 4 found that in 21 of 72 brand and engine pairings the same buyer got a yes on some runs and a no on others, and source 10 reports substantial run-to-run variability. Recommend repeated runs and trends over single snapshots.",
+     "Mention that dedicated monitoring dashboards exist, for example BrandinAI (source 3), and say that vendor pages describe their own products."
+    ],
+    "h3": [],
+    "sources": [
+     1,
+     3,
+     4,
+     8,
+     10
+    ]
+   },
+   {
+    "h2": "What the evidence says so far, and your next step",
+    "points": [
+     "Be open about the limits: source 10 is a survey of 45 studies. It says the widely cited gains from the foundational GEO paper hold in a fixed experimental setting where the source is already present in the context.",
+     "It also says no reviewed technique shows a stable, longitudinal, cross-platform causal effect on organic discoverability or downstream behavior.",
+     "It finds topical relevance and context position are the most reproducible levers, generic heuristics transfer poorly, and competition can erode individual gains.",
+     "Source 4 reports that four engines led with the same brand only 26% of the time in the author's own index, so check each engine separately.",
+     "Give the practical takeaway: put effort into clear, useful, well-structured content you would want anyway, and treat each GEO tactic as a test you measure.",
+     "Close with one next step: run your buyer questions through the AI tools your customers use and note what you find."
+    ],
+    "h3": [],
+    "sources": [
+     1,
+     4,
+     10
+    ]
+   }
+  ],
+  "entities": [
+   "Generative engine optimization (GEO)",
+   "Search engine optimization (SEO)",
+   "Answer engine optimization (AEO)",
+   "Large language model optimization (LLMO)",
+   "Generative engines",
+   "Large language models (LLMs)",
+   "ChatGPT",
+   "Claude",
+   "Gemini",
+   "Llama",
+   "Perplexity",
+   "Microsoft Copilot",
+   "Google AI Overviews",
+   "Retrieval-augmented generation (RAG)",
+   "Embeddings and semantic search",
+   "Schema markup",
+   "Citations and brand mentions",
+   "AI visibility and share of voice",
+   "E-E-A-T",
+   "Agentic search",
+   "Common Crawl",
+   "Chris Long (Go Fish Digital)",
+   "Jarred Smith",
+   "Pranjal Aggarwal and the 2023 GEO paper"
+  ],
+  "gaps": [
+   "Several top pages are vendor or agency pages that sell a service, and few say what research has and has not shown. Source 10 says the evidence is narrow, and this article will say so kindly and plainly.",
+   "Many pages use unexplained terms such as embeddings and vector space. We will explain each term in a sentence.",
+   "Pages treat GEO, AEO and LLMO as the same thing in some places and as separate layers in others (sources 4, 7). We will explain that the names vary.",
+   "Few pages warn that AI answers vary from run to run, so a single check can mislead. Sources 4 and 10 give us reasons to measure repeatedly.",
+   "Claims such as first-mover advantage (source 1) and urgency language (source 2) are not backed by data in the sources. We will avoid presenting them as fact.",
+   "Most pages are not written for B2B software marketers. We will tie each tactic to buyer questions, case studies and founder-led content."
+  ],
+  "faqs": [
+   {
+    "question": "Is GEO replacing SEO?",
+    "answer": "No. Sources 1, 2, 7 and 8 all say GEO complements SEO, and much SEO work still helps you appear in AI answers."
+   },
+   {
+    "question": "What is the difference between GEO and AEO?",
+    "answer": "Explain that people use the terms differently. Source 4 treats AEO as the answer layer and GEO as the recommendation layer, while source 7 says they share common ground and the AI answers call AEO another name for GEO."
+   },
+   {
+    "question": "How do I optimize for AEO?",
+    "answer": "Say to structure content as direct answers with clear headings, lists and FAQs (sources 1, 7, 9). Point to the strategies section."
+   },
+   {
+    "question": "Does GEO work?",
+    "answer": "Say the evidence is narrow. Source 10 finds already-retrieved content can change how it is cited, but no reviewed technique shows a stable long-term effect across platforms, so test and measure."
+   },
+   {
+    "question": "How can I tell if AI tools mention my company?",
+    "answer": "Run your buyer questions across several engines on a schedule and record mentions, position, sentiment and cited sources (sources 3, 4, 8). Repeat runs because answers vary."
+   },
+   {
+    "question": "What should I look for in a GEO agency?",
+    "answer": "Do not rank agencies. Say to ask how they measure results, whether they test repeatedly across engines (sources 4, 10), and how they build on SEO basics."
+   }
+  ],
+  "internalLinks": [
+   {
+    "url": "https://northlinedigital.example/blog/ai-search-guide",
+    "anchor": "our guide to AI search",
+    "where": "How generative engines decide what to show"
+   },
+   {
+    "url": "https://northlinedigital.example/blog/seo-basics",
+    "anchor": "SEO basics",
+    "where": "GEO vs SEO: what changes and what stays the same"
+   },
+   {
+    "url": "https://northlinedigital.example/services/seo",
+    "anchor": "SEO support",
+    "where": "GEO vs SEO: what changes and what stays the same"
+   },
+   {
+    "url": "https://northlinedigital.example/blog/content-strategy",
+    "anchor": "content strategy",
+    "where": "GEO strategies you can use"
+   },
+   {
+    "url": "https://northlinedigital.example/services/ai-search",
+    "anchor": "AI search support",
+    "where": "What the evidence says so far, and your next step"
+   }
+  ],
+  "cta": {
+   "text": "Curious whether AI tools mention your company today? See how we help B2B teams check and improve their visibility in AI search.",
+   "where": "End of the last H2, linking to https://northlinedigital.example/services/ai-search"
+  },
+  "modules": [],
+  "images": [
+   {
+    "placement": "What is generative engine optimization?",
+    "shows": "A traditional results page with a list of links next to an AI answer that combines several sources and cites a few of them.",
+    "alt": "Side-by-side drawing of a search results list and a single AI-written answer with source citations.",
+    "kind": "comparison"
+   },
+   {
+    "placement": "Why GEO matters for B2B marketing teams",
+    "shows": "Average query length on Google compared with AI search, in words.",
+    "alt": "Bar chart comparing an average of 4 words per Google query with 23 words per AI search query.",
+    "kind": "chart",
+    "numbers": "Google average query length: 4 words; AI search average query length: 23 words",
+    "sources": [
+     9
+    ]
+   },
+   {
+    "placement": "How to start with GEO: a step-by-step plan",
+    "shows": "The six steps in order: list buyer questions, test engines, audit content, improve top pages, earn mentions, repeat the check.",
+    "alt": "Six-step diagram showing the path from listing buyer questions to repeating the AI check.",
+    "kind": "steps"
+   }
+  ],
+  "examples": [],
+  "checks": [],
+  "research": {
+   "sources": [
+    {
+     "n": 1,
+     "url": "https://craftercms.com/blog/business/generative-engine-optimization-the-new-frontier-of-web-visibility-in-the-age-of-ai",
+     "title": "Generative Engine Optimization (GEO)",
+     "domain": "craftercms.com",
+     "kind": "serp",
+     "position": 1,
+     "words": 4157
+    },
+    {
+     "n": 2,
+     "url": "https://digi-tx.com/seo/generative-engine-optimization/",
+     "title": "Unlock GEO vs SEO: Generative Engine Optimization Explained",
+     "domain": "digi-tx.com",
+     "kind": "serp",
+     "position": 3,
+     "words": 1694
+    },
+    {
+     "n": 3,
+     "url": "https://brandinai.com/",
+     "title": "BrandinAI - your brand visibility in AI answers",
+     "domain": "brandinai.com",
+     "kind": "serp",
+     "position": 4,
+     "words": 2330
+    },
+    {
+     "n": 4,
+     "url": "https://www.jarredsmith.com/",
+     "title": "Jarred Smith — Author of Explainable | AEO, GEO & AI Brand Visibility Expert",
+     "domain": "jarredsmith.com",
+     "kind": "serp",
+     "position": 5,
+     "words": 1028
+    },
+    {
+     "n": 5,
+     "url": "https://thehypernix.com/",
+     "title": "Elevate Your Brand with Innovative Digital Design Solutions | hypernix",
+     "domain": "thehypernix.com",
+     "kind": "serp",
+     "position": 7,
+     "words": 182
+    },
+    {
+     "n": 6,
+     "url": "https://www.tfsfventures.com/",
+     "title": "TFSF Ventures — Corporate Intelligence",
+     "domain": "tfsfventures.com",
+     "kind": "serp",
+     "position": 8,
+     "words": 1119
+    },
+    {
+     "n": 7,
+     "url": "https://www.hubspot.com/glossary/geo-generative-engine-optimization?LanguageId=1",
+     "title": "GEO (Generative Engine Optimization) – Definition, FAQs & How HubSpot Helps",
+     "domain": "hubspot.com",
+     "kind": "ai",
+     "position": null,
+     "words": 2428
+    },
+    {
+     "n": 8,
+     "url": "https://www.semrush.com/blog/generative-engine-optimization/?msockid=22c6bb76f3b56548130fad86f2d3649e",
+     "title": "Generative Engine Optimization: A Practical Guide",
+     "domain": "semrush.com",
+     "kind": "ai",
+     "position": null,
+     "words": 1831
+    },
+    {
+     "n": 9,
+     "url": "https://blog.hubspot.com/marketing/generative-engine-optimization?content_language=English",
+     "title": "Generative engine optimization: What we know so far about generative SEO",
+     "domain": "blog.hubspot.com",
+     "kind": "ai",
+     "position": null,
+     "words": 4565
+    },
+    {
+     "n": 10,
+     "url": "https://arxiv.org/abs/2607.14035",
+     "title": "Optimizing Visibility in Generative Engines: A Critical Survey of Generative Engine Optimization (2023-2026)",
+     "domain": "arxiv.org",
+     "kind": "ai",
+     "position": null,
+     "words": 440
+    }
+   ],
+   "questions": [
+    "What does \"search engine optimization\" mean?",
+    "How do I learn SEO as a beginner?",
+    "How to optimize for AEO?",
+    "What is the best agency for generative engine optimization?"
+   ],
+   "engines": [
+    "ChatGPT",
+    "Gemini",
+    "AI Mode"
+   ],
+   "topPages": "",
+   "aiAnswers": ""
+  },
+  "model": "claude-sonnet-5-5",
+  "at": "2026-11-13T10:09:39.876Z"
+ },
+ "sections": [
+  {
+   "key": "intro",
+   "h2": "",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "If you run marketing at a B2B software company, you may have heard teammates ask about GEO, AEO or \"AI search\". You may also be wondering what it all means for your content.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "People now ask tools like ChatGPT and Perplexity for [direct answers, summaries and recommendations](https://craftercms.com/blog/business/generative-engine-optimization-the-new-frontier-of-web-visibility-in-the-age-of-ai) instead of scanning a list of links.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "So what is generative engine optimization, and do you need to act on it? In this guide, we explain it in everyday words, show how it compares with SEO, and give you a first step you can start this month, along with an honest look at what research has shown so far.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-0",
+   "h2": "What is generative engine optimization?",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "**Generative engine optimization (GEO)** is the practice of structuring and refining content so that AI answer engines like ChatGPT, Gemini and Perplexity can find, summarize and cite it, according to [HubSpot's glossary](https://www.hubspot.com/glossary/geo-generative-engine-optimization?LanguageId=1). If you already know SEO, think of it as a close relative that targets a different kind of result.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "**Generative engines** are AI tools that use large language models (LLMs) to write a direct, human-like answer. [Unlike traditional search engines that index pages and return links](https://craftercms.com/blog/business/generative-engine-optimization-the-new-frontier-of-web-visibility-in-the-age-of-ai), they pull in large amounts of data and generate a response.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The goal of GEO is to have your content cited, paraphrased or represented inside an AI-generated answer. [Where traditional search returns a ranked list of links, these tools combine information into one answer](https://www.hubspot.com/glossary/geo-generative-engine-optimization?LanguageId=1), so visibility depends on whether your content shows up in that answer.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You may also hear **answer engine optimization (AEO)** and **large language model optimization (LLMO)**. [HubSpot lists both as related terms](https://www.hubspot.com/glossary/geo-generative-engine-optimization?LanguageId=1), and writers draw the lines between them differently, so it helps to ask what someone means when they use a label.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Which tools count as generative engines?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Crafter CMS lists these leading generative engines](https://craftercms.com/blog/business/generative-engine-optimization-the-new-frontier-of-web-visibility-in-the-age-of-ai):",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "ChatGPT, from OpenAI.",
+      "Claude, from Anthropic.",
+      "Gemini, from Google.",
+      "Llama, from Meta.",
+      "Perplexity, a search-style interface that often includes citations.",
+      "Microsoft Copilot, which is powered by OpenAI models and Bing search."
+     ],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-1",
+   "h2": "How generative engines decide what to show",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Generative engines do not simply match your keywords to a page. According to [Digi-tx](https://digi-tx.com/seo/generative-engine-optimization/), they build answers from natural language understanding, relevance, contextual depth and knowledge graphs, which is a different process from link-based ranking.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Crafter CMS](https://craftercms.com/blog/business/generative-engine-optimization-the-new-frontier-of-web-visibility-in-the-age-of-ai) adds that these tools rely on how content is structured, presented and referenced, and not only on what it says.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you'd like a wider view of this shift, see [our guide to AI search](https://northlinedigital.example/blog/ai-search-guide).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Generative engines get their answers in two main ways, and each one changes what you can do about it.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Answers from what the model already learned",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Pretrained models learn from public web data such as Common Crawl, books and Wikipedia, then are refined with task-specific data, as [Crafter CMS](https://craftercms.com/blog/business/generative-engine-optimization-the-new-frontier-of-web-visibility-in-the-age-of-ai) explains.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Answers from live retrieval",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Retrieval-augmented generation (RAG) combines a language model with real-time search over an indexed knowledge base, according to [Crafter CMS](https://craftercms.com/blog/business/generative-engine-optimization-the-new-frontier-of-web-visibility-in-the-age-of-ai). In plain words, the tool looks up current pages first and then writes its answer from what it finds.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here, being clear, authoritative and well sourced helps an engine pick your page, as both [Crafter CMS](https://craftercms.com/blog/business/generative-engine-optimization-the-new-frontier-of-web-visibility-in-the-age-of-ai) and [HubSpot](https://www.hubspot.com/glossary/geo-generative-engine-optimization?LanguageId=1) point out.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Surprisingly, a recent [survey of 45 GEO studies](https://arxiv.org/abs/2607.14035) found that topical relevance and where your content sits in the context are the most reproducible levers.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how to read that: a page that closely answers a specific question, with the answer placed where a tool can find it, gives you the most reliable starting point.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-2",
+   "h2": "GEO vs SEO: what changes and what stays the same",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "If you already run SEO, you have a head start on GEO, because the two share a lot of ground. The main difference is where you want your content to show up.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "According to [Semrush](https://www.semrush.com/blog/generative-engine-optimization/?msockid=22c6bb76f3b56548130fad86f2d3649e), SEO helps you appear in search engine results pages, while GEO helps you appear inside AI-generated answers. With SEO you compete for a spot in a list of links, and with GEO you compete to be part of the answer itself.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's a short side-by-side view built from the same Semrush comparison:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "table",
+     "text": "",
+     "items": [],
+     "rows": [
+      [
+       "Area",
+       "SEO",
+       "GEO"
+      ],
+      [
+       "Goal",
+       "Rank in search results",
+       "Appear in AI-generated answers"
+      ],
+      [
+       "Metrics",
+       "Keyword rankings and organic traffic",
+       "AI visibility, mentions, citations and share of voice"
+      ]
+     ]
+    },
+    {
+     "type": "p",
+     "text": "The overlap matters just as much as the differences. [HubSpot](https://blog.hubspot.com/marketing/generative-engine-optimization?content_language=English) notes that both approaches reward user-first content and E-E-A-T signals, and that keywords still give context.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "So the habits you already have carry over, including helpful pages, clear sourcing and a site that search tools can read. As you can see, you don't need to start from zero.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "GEO complements SEO and does not replace it, and [Crafter CMS](https://craftercms.com/blog/business/generative-engine-optimization-the-new-frontier-of-web-visibility-in-the-age-of-ai), [Digi-tx](https://digi-tx.com/seo/generative-engine-optimization/), [HubSpot](https://www.hubspot.com/glossary/geo-generative-engine-optimization?LanguageId=1) and [Semrush](https://www.semrush.com/blog/generative-engine-optimization/?msockid=22c6bb76f3b56548130fad86f2d3649e) all describe it that way. If your [SEO basics](https://northlinedigital.example/blog/seo-basics) are in good shape, you are already building the base, and our [SEO support](https://northlinedigital.example/services/seo) can help you strengthen it.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Jarred Smith, an author and consultant on AI visibility, organizes this work as layers, with SEO as the foundation that [lets AI systems find you in the first place](https://www.jarredsmith.com/). He describes this as his own framework for deciding which problems to fix first, and no search platform publishes it as a requirement.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-3",
+   "h2": "Why GEO matters for B2B marketing teams",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "If you run marketing at a B2B software company, you may wonder whether AI tools are already shaping how your buyers build a shortlist. We think it's a fair question, and the sources we checked suggest it deserves a calm, practical look.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Semrush says that AI-generated answers are now part of how people search, and that [people increasingly turn to AI for product recommendations, research and comparisons](https://www.semrush.com/blog/generative-engine-optimization/?msockid=22c6bb76f3b56548130fad86f2d3649e). If your brand is named in those answers, you become part of the buyer's consideration set. HubSpot adds that [brands not referenced in AI-generated answers risk losing reach to competitors whose content is cited instead](https://www.hubspot.com/glossary/geo-generative-engine-optimization?LanguageId=1).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's why this matters for your content in a few specific ways:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Buyers ask longer, more specific questions, because [HubSpot reports that AI search queries average 23 words compared with 4 words on Google](https://blog.hubspot.com/marketing/generative-engine-optimization?content_language=English), so your pages need to speak to real situations.",
+      "Many people skip the click, since Crafter CMS notes that [users often receive a synthesized answer without visiting the original source](https://craftercms.com/blog/business/generative-engine-optimization-the-new-frontier-of-web-visibility-in-the-age-of-ai), so a brand mention can matter even when no visit follows.",
+      "Some engines show their sources, and Crafter CMS points out that [Perplexity cites sources, so a mention there can lead to recognition and discovery](https://craftercms.com/blog/business/generative-engine-optimization-the-new-frontier-of-web-visibility-in-the-age-of-ai)."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "There is one more reason to look: BrandinAI, a vendor that sells AI visibility monitoring, warns that [a model may present your brand from stale or incomplete information](https://brandinai.com/), in a way you would never choose. That is the vendor's view, and we can't confirm how often it happens, but it is a good reason to ask a few AI tools about your company and see what they say.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Honestly, none of this calls for panic, and you can think of it as a new channel to learn about one question at a time, using the content habits you already know.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-4",
+   "h2": "GEO strategies you can use",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Most GEO tactics are good content habits, so you can start on pages you already have.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Founder-led points of view give AI tools a clear voice to quote.",
+      "Deep blog posts cover a topic fully enough to answer follow-up questions.",
+      "Structured lists make facts easy to pull out.",
+      "FAQs with schema markup pair real buyer questions with direct answers.",
+      "Case studies with specific examples show how your product works in practice."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Write clear, direct and well-sourced answers",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Lead each section with a concise, factual answer, then back it up with data or a named source. [HubSpot](https://www.hubspot.com/glossary/geo-generative-engine-optimization?LanguageId=1) says content that is clearly structured, factually grounded and written with a defined point of view tends to perform better in answer engines.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Crafter CMS also points to a \"cite and be cited\" approach, which means you link to credible sources and earn links from others in return. As you can see, this is the same habit that makes any article more useful to a reader.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Structure pages so machines can read them",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Crafter CMS](https://craftercms.com/blog/business/generative-engine-optimization-the-new-frontier-of-web-visibility-in-the-age-of-ai) and Digi-tx both recommend clear headings, bullet lists, FAQs and schema markup, which is code that labels the parts of a page for search tools. HubSpot also mentions research by Chris Long at Go Fish Digital suggesting that bullet points and snippet-ready structure can influence whether your content surfaces, though that is only a suggestion and has not been shown to hold in every case.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "To make this practical, keep one idea per section, so a single passage can stand alone as an answer.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Earn consistent mentions across the web",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "HubSpot says that brand consistency across your own site, third-party directories, reviews and media coverage supports GEO. [Semrush](https://www.semrush.com/blog/generative-engine-optimization/?msockid=22c6bb76f3b56548130fad86f2d3649e) lists getting mentioned by credible sites and platforms as a core GEO tactic, and Crafter CMS treats brand mentions and consistency as a strategy in its own right.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you want a place to plan this, our [content strategy](https://northlinedigital.example/blog/content-strategy) guide shows how to decide which topics and outlets matter most.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Keep content fresh and easy to crawl",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Crafter CMS covers crawlability, indexability, performance and content freshness as technical GEO basics, and Semrush also lists keeping content fresh among its tactics. Here is a short checklist you can hand to a developer:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Check that search and AI crawlers are allowed to reach your key pages.",
+      "Confirm your important pages are indexable and load quickly.",
+      "Review your top pages on a regular schedule and update facts that have changed."
+     ],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-5",
+   "h2": "How to start with GEO: a step-by-step plan",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "You don't need a big budget or a new team to begin with GEO, and you can hand most of the work to someone on your team this week. The steps below are in the order we'd do them.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "Write down 10 to 15 questions your buyers would ask an AI tool about your category. HubSpot says to [structure content around the prompts your audience is likely to submit](https://www.hubspot.com/glossary/geo-generative-engine-optimization?LanguageId=1), and Jarred Smith's audit uses [twelve buyer prompts](https://www.jarredsmith.com/), so a list of that size is a reasonable place to start.",
+      "Run those prompts on several engines and record whether your brand is mentioned, where it appears and which sources are cited. BrandinAI describes tracking [mentions, position and cited sources](https://brandinai.com/), Semrush measures [AI visibility, mentions and citations](https://www.semrush.com/blog/generative-engine-optimization/?msockid=22c6bb76f3b56548130fad86f2d3649e), and a simple spreadsheet works for a first pass.",
+      "Audit your existing pages for clarity and citation-worthiness, which HubSpot lists as a [practical part of GEO](https://www.hubspot.com/glossary/geo-generative-engine-optimization?LanguageId=1). Ask whether each page answers one question directly and names its sources.",
+      "Improve your top pages with direct answers, clear headings, lists, FAQs and updated facts.",
+      "Build credible third-party mentions in places your buyers read. Both [HubSpot](https://www.hubspot.com/glossary/geo-generative-engine-optimization?LanguageId=1) and [Semrush](https://www.semrush.com/blog/generative-engine-optimization/?msockid=22c6bb76f3b56548130fad86f2d3649e) point to consistent, credible mentions as part of the work.",
+      "Repeat the same prompts on a schedule and compare results over time, so you see a trend and not a single snapshot."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Steps 1 and 2 give you the most useful information for the least effort, because they show you where you stand before you change anything. As you can see, the plan uses your existing content and a few hours of focused checking.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you're unsure who should own each step, start by giving the question list to your content lead and the page audit to whoever manages your SEO.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-6",
+   "h2": "How to measure GEO results",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Once you start working on GEO, you will want to know whether it is helping. The good news is that the main numbers are easy to understand, even if the tools around them are new.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Semrush](https://www.semrush.com/blog/generative-engine-optimization/?msockid=22c6bb76f3b56548130fad86f2d3649e) says GEO is measured with a different set of numbers than SEO, which relies on keyword rankings and organic traffic. Here are the ones to track:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[BrandinAI](https://brandinai.com/) adds two more views: position, meaning whether you are the first recommendation or one of several alternatives, and sentiment, meaning whether the answer sounds positive, neutral or negative. [Crafter CMS](https://craftercms.com/blog/business/generative-engine-optimization-the-new-frontier-of-web-visibility-in-the-age-of-ai) also suggests tracking mentions in generative responses.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Answers change from one run to the next, so a single check can mislead you. In [Jarred Smith's AI Verdict Study](https://www.jarredsmith.com/), 21 of 72 brand and engine pairings gave the same buyer a yes on some runs and a no on others, and a [2026 survey of GEO research](https://arxiv.org/abs/2607.14035) also reports substantial run-to-run variability.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Luckily, the fix is simple: run each prompt several times, on a schedule, and look at the trend across those runs.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Dedicated dashboards exist for this work, for example BrandinAI, and a spreadsheet is enough for a first pass. Vendor pages describe their own products, so use them to learn what is possible and judge the fit for your team yourself.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-7",
+   "h2": "What the evidence says so far, and your next step",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Before you commit time to GEO, it helps to know how firm the evidence is today. A [2026 survey of 45 GEO studies](https://arxiv.org/abs/2607.14035) reviews the field in detail, and its findings are useful for planning.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The survey says the widely cited gains from the foundational GEO paper are valid in a fixed experimental setting, where a source is already present in the context.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "That is a fair and helpful reading of where the field stands, and the same survey points to a few things that held up best across the studies:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Topical relevance and where your content sits in the context are the most reproducible levers.",
+      "Generic heuristics transfer poorly from one setting to another.",
+      "Competition can erode individual gains, so a tactic that helps today may help less later."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Engines also differ from one another. In [Jarred Smith's AI Recommendation Index](https://www.jarredsmith.com/), four engines led with the same brand only 26% of the time, so check each engine separately instead of assuming one result applies to all.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Put your effort into clear, useful, well-structured content you would want to publish anyway, which is also what [Crafter CMS](https://craftercms.com/blog/business/generative-engine-optimization-the-new-frontier-of-web-visibility-in-the-age-of-ai) describes as content clarity and authority. Then treat each GEO tactic as a test that you measure, and keep the ones that show results for your brand.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Your next step is small and you can start it this week: take the questions your buyers ask, run them through the AI tools your customers use, and write down what you find, including who gets named and which pages get cited.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Curious whether AI tools mention your company today? See how we help B2B teams check and improve their visibility with our [AI search support](https://northlinedigital.example/services/ai-search).",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "faq",
+   "h2": "Frequently asked questions",
+   "blocks": [
+    {
+     "type": "h3",
+     "text": "Is GEO replacing SEO?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "No, and [Crafter CMS](https://craftercms.com/blog/business/generative-engine-optimization-the-new-frontier-of-web-visibility-in-the-age-of-ai) calls GEO a complement to SEO, as do [Digi-tx](https://digi-tx.com/seo/generative-engine-optimization/), [HubSpot](https://www.hubspot.com/glossary/geo-generative-engine-optimization?LanguageId=1) and [Semrush](https://www.semrush.com/blog/generative-engine-optimization/?msockid=22c6bb76f3b56548130fad86f2d3649e).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What is the difference between GEO and AEO?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "People use the two terms in different ways. [Jarred Smith](https://www.jarredsmith.com/) treats AEO as the answer layer and GEO as the recommendation layer, which he describes as his own framework and not an industry rule.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[HubSpot](https://www.hubspot.com/glossary/geo-generative-engine-optimization?LanguageId=1) says GEO shares common ground with AEO, so the line between them depends on who is writing.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "How do I optimize for AEO?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Start by writing content as direct answers, with clear headings, lists and FAQs, which [Crafter CMS](https://craftercms.com/blog/business/generative-engine-optimization-the-new-frontier-of-web-visibility-in-the-age-of-ai) and [HubSpot](https://www.hubspot.com/glossary/geo-generative-engine-optimization?LanguageId=1) both point to.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[HubSpot's blog](https://blog.hubspot.com/marketing/generative-engine-optimization?content_language=English) also stresses content that answers natural language questions with authority, and the strategies section above walks through each of these in more detail.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Does GEO work?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The evidence is narrow so far. A [2026 survey of 45 studies](https://arxiv.org/abs/2607.14035) found that content already in an engine's context can change how it is cited, but no reviewed technique showed a stable, long-term effect across platforms, so we suggest you test each tactic and measure it for your own brand.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "How can I tell if AI tools mention my company?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Run your buyer questions across several engines on a schedule, and record what [BrandinAI](https://brandinai.com/) and [Semrush](https://www.semrush.com/blog/generative-engine-optimization/?msockid=22c6bb76f3b56548130fad86f2d3649e) describe:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Whether your company is mentioned.",
+      "Where it appears in the answer.",
+      "Whether the tone is positive, neutral or negative.",
+      "Which sources the engine cites."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Repeat the runs, because [Jarred Smith's study](https://www.jarredsmith.com/) found the same buyer got a yes on some runs and a no on others.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What should I look for in a GEO agency?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Repeated testing matters because [the 2026 survey](https://arxiv.org/abs/2607.14035) reports substantial run-to-run variability in AI answers.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  }
+ ],
+ "cut": [
+  {
+   "id": "1.7.0",
+   "why": "Sources 8 and 9 mention Google AI Overviews but the claim that both treat them as part of how people get AI answers is only loosely supported; Semrush says Google's AI Overviews reach billions of users, HubSpot lists them as a term, so the 'we'd add' framing is acceptable but the attribution overrea"
+  },
+  {
+   "id": "2.6.0",
+   "why": "Source 1 does not say content can only show up if it was in training data; this is an unsupported inference."
+  },
+  {
+   "id": "2.6.1",
+   "why": "Claim that you have little direct control over training data is not stated in the sources."
+  },
+  {
+   "id": "2.5.1",
+   "why": "Description of Common Crawl as a public archive used by many AI developers is not in the sources."
+  },
+  {
+   "id": "5.0.1",
+   "why": "Source 2 does not say these content types are found to work well for startups in B2B and SaaS as a finding; it lists them as headings only, and 'fit most marketing teams' is unsupported."
+  },
+  {
+   "id": "4.3.i1",
+   "why": "The framing that the tools are widely used is fine but pairing with Semrush's 100 million claim is supported; however the 'faster than any app in history' wording matches source 8, so only flagged if misattributed. Kept low risk; cut for safety on a number."
+  },
+  {
+   "id": "7.2.i0",
+   "why": "Definitions of AI visibility, mentions, citations and share of voice are not given in the sources; the descriptions of what each measures are invented."
+  },
+  {
+   "id": "7.2.i1",
+   "why": "Definition of AI mentions is not stated in the sources."
+  },
+  {
+   "id": "7.2.i2",
+   "why": "Definition of AI citations is not stated in the sources."
+  },
+  {
+   "id": "7.2.i3",
+   "why": "Definition of AI share of voice is not stated in the sources."
+  },
+  {
+   "id": "8.1.1",
+   "why": "Wording about 'clearly causes' effects is a loose paraphrase; the survey says no technique shows stable longitudinal cross-platform causal effect, but this restates it beyond what the source says about 'organic discoverability or downstream behavior'."
+  },
+  {
+   "id": "9.1.1",
+   "why": "Source 8 says SEO work is equally important for visibility in the agentic web; the claim that it helps you appear in AI answers is a paraphrase but acceptable. Flagged only as lower confidence."
+  },
+  {
+   "id": "9.15.0",
+   "why": "Advice on questions to ask a vendor is opinion, but the sentence implies sources on how agencies should measure; no source supports a vendor-vetting checklist."
+  },
+  {
+   "id": "3.3.r2",
+   "why": "Table cell 'Clear and extractable writing, credible mentions and fresh content' paraphrases source 8; 'crawlability, keywords, search intent and backlinks' matches source 8, so low risk. Cut as a caution on table fidelity."
+  },
+  {
+   "id": "2.2.0",
+   "why": "The example that a page with clear headings and named sources gives an engine more to work with is asserted as fact beyond what the sources demonstrate."
+  },
+  {
+   "id": "1.7.1",
+   "why": "Claim that a clear, well-cited page gives a direct way to be found on Perplexity is an inference not stated in the sources."
+  }
+ ],
+ "styleLeft": [
+  {
+   "id": "8.4.0",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "9.9.0",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  }
+ ],
+ "modules": []
+}

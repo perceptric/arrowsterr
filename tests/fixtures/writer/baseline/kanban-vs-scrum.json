@@ -1,0 +1,1142 @@
+{
+ "slug": "kanban-vs-scrum",
+ "keyword": "kanban vs scrum",
+ "kind": "saas",
+ "stage": "mofu",
+ "model": "claude-sonnet-5-5",
+ "at": "2026-11-13T09:59:20.000Z",
+ "seconds": 272,
+ "usage": {
+  "calls": 23,
+  "input": 53267,
+  "cacheRead": 850106,
+  "cacheWrite": 155694,
+  "output": 38085
+ },
+ "score": {
+  "words": 2560,
+  "sections": 9,
+  "lint": 5,
+  "lintRules": {
+   "sentences": 5
+  },
+  "numbers": 0,
+  "unsourced": [],
+  "links": 62,
+  "strayLinks": [],
+  "images": 4,
+  "modules": 0
+ },
+ "title": "Kanban vs Scrum: How to Choose for Your Team",
+ "brief": {
+  "titles": [
+   "Kanban vs Scrum: How to Choose for Your Team",
+   "Kanban vs Scrum: Key Differences and When to Use Each",
+   "Kanban vs Scrum for Teams Running Several Projects"
+  ],
+  "h1": "Kanban vs Scrum: How to Choose for Your Team",
+  "metaDescription": "Kanban vs scrum compared on roles, cadence, change and metrics, plus when to use each or blend both as Scrumban. Pick the fit for your team.",
+  "slug": "kanban-vs-scrum",
+  "searchIntent": "The searcher wants a clear comparison of Kanban and Scrum and help deciding which one suits their team. A comparison guide with a side-by-side table, plain definitions, when-to-use advice and a short Scrumban section serves this best.",
+  "reader": "A team lead at a company with 10 to 200 people who runs several projects at once. They know the words Agile, sprint and board but have not picked a method for their team. They want to choose one, try it on a live project and see results without a long training course.",
+  "angle": "Most top pages explain the two methods for a single software team and stop at a table. We write for team leads who juggle several projects, give a short set of questions for choosing, and show how to blend a board for ongoing work with sprints for planned work. The article ends with a two-to-four-week pilot the reader can start on one project.",
+  "wordTarget": 2200,
+  "outline": [
+   {
+    "h2": "What Kanban and Scrum are",
+    "points": [
+     "Give a one-paragraph answer up front: Kanban is a visual method for managing a continuous flow of work, and Scrum is a framework that organizes work into fixed-length sprints with defined roles [1][7].",
+     "Both belong to the Agile family and both aim to improve efficiency and adapt to change. Atlassian says neither wins by default, and the right choice depends on your team [7].",
+     "Name the sources of each method briefly so the reader sees why they differ, without turning it into a history lesson."
+    ],
+    "h3": [
+     {
+      "title": "What is Kanban?",
+      "points": [
+       "Kanban is a visual project management method. A board, physical or digital, splits the work into columns, and cards move from one column to the next until the task is done [1].",
+       "Typical columns are to do, in progress and done [8].",
+       "The method traces back to Toyota. Kanban means signboard in Japanese, and Asana credits Taiichi Ohno at Toyota in the 1940s [1][8].",
+       "Coursera lists the benefits it links to Kanban: better visibility of flow, faster delivery, better predictability and better alignment between business goals and delivery [1]."
+      ]
+     },
+     {
+      "title": "What is Scrum?",
+      "points": [
+       "Scrum is an iterative framework. The team picks work from its backlog for a time-boxed sprint, works toward a shared sprint goal, then reviews the result and improves its process before the next sprint [7].",
+       "Scrum was first described by Hirotaka Takeuchi and Ikujiro Nonaka in the 1986 paper \"New New Product Development Game\" [3].",
+       "Name the three accountabilities: Product Owner, Scrum Master and Developers [7]."
+      ]
+     }
+    ],
+    "sources": [
+     1,
+     3,
+     7,
+     8,
+     9
+    ]
+   },
+   {
+    "h2": "Kanban vs scrum: the key differences",
+    "points": [
+     "Open with a side-by-side table the reader can scan. Rows: workflow style, roles, planning cadence, how work is limited, handling change, metrics, release style and best fit [3][7].",
+     "Workflow: Scrum uses fixed-length sprints, and Kanban uses continuous flow where the team pulls the next item when it has capacity [7].",
+     "Roles: Scrum has defined accountabilities, and Kanban requires no roles [3][7].",
+     "Change: Scrum considers changes against the sprint goal and strongly discourages changes during a sprint, while Kanban lets priorities change as work moves through [3][7].",
+     "Metrics: Kanban teams track lead time, cycle time, throughput and cumulative flow. Scrum teams track sprint goal progress, velocity and burndown [7].",
+     "Coursera sums it up: one optimizes flow and the other optimizes iteration [1]."
+    ],
+    "h3": [],
+    "sources": [
+     1,
+     3,
+     7,
+     9
+    ]
+   },
+   {
+    "h2": "How each one runs day to day",
+    "points": [
+     "Show what the reader would actually do each week, so the table turns into a picture of the workweek [7].",
+     "Explain that Atlassian says each method creates a very different rhythm for the workweek [7]."
+    ],
+    "h3": [
+     {
+      "title": "How a Kanban board runs",
+      "points": [
+       "Work sits in columns. The team pulls a new card only when it has capacity [7].",
+       "Work in progress limits cap how many items sit in each stage, which prevents overload and improves throughput [8].",
+       "A cumulative flow diagram shows where work is piling up. Teams set WIP limits once they spot the bottleneck [8].",
+       "Meetings are optional and flexible [7]."
+      ]
+     },
+     {
+      "title": "How a Scrum sprint runs",
+      "points": [
+       "Sprints commonly run one to four weeks [7].",
+       "Walk through the four Scrum events in order: sprint planning, the daily scrum, the sprint review and the retrospective [9].",
+       "The team commits to a batch of work at the start of the sprint [3][7].",
+       "Planview notes that because every activity follows the same cadence, a delay can halt the whole project [3]."
+      ]
+     }
+    ],
+    "sources": [
+     3,
+     7,
+     8,
+     9
+    ]
+   },
+   {
+    "h2": "When to use Kanban and when to use Scrum",
+    "points": [
+     "Give two short bulleted lists the reader can match against their own work, then place the quiz after them.",
+     "Kanban fits ongoing requests and frequently shifting priorities, and work can release when it is ready [3][7].",
+     "Scrum fits teams that can plan work in structured increments and have stable priorities, and it gives a steady delivery rhythm with a regular chance to inspect the work [3][7].",
+     "Atlassian says the choice depends on how predictable your workflow is, how often priorities shift and how your team likes to work and learn [7].",
+     "Remind the reader that the methods apply beyond software. Atlassian names operations, marketing and product management as examples [7].",
+     "Frame the quiz as a quick way to see which way your answers lean."
+    ],
+    "h3": [],
+    "sources": [
+     1,
+     3,
+     7
+    ]
+   },
+   {
+    "h2": "Scrumban: using both together",
+    "points": [
+     "Scrumban is a hybrid that mixes Scrum and Kanban [1].",
+     "Coursera cites the 2022 State of Agile report: 27 percent of respondents used Scrumban and 56 percent used Kanban [1].",
+     "Many Scrum teams add a Kanban board to get an extra layer of visibility, and Kanban can sit on top of any method to visualize and improve the flow of work [3].",
+     "Planview says Scrum teams using Kanban as a visual tool can deliver work faster and more often [3].",
+     "Coursera says you can use both to get continuous visibility and structured iteration without choosing between them [1].",
+     "Link to the small teams article for readers who want a lighter way to start."
+    ],
+    "h3": [],
+    "sources": [
+     1,
+     3,
+     7,
+     8
+    ]
+   },
+   {
+    "h2": "How to choose when you run several projects at once",
+    "points": [
+     "Write this section as Planwise's practical advice built on the sources. Say plainly that the right method depends on the kind of work in each project.",
+     "Give a numbered list of steps: list your active projects, mark which ones have ongoing requests and which have planned increments, check how often priorities changed last month, and check whether stakeholders need a fixed delivery date [3][7].",
+     "Projects with ongoing or shifting work point to Kanban. Projects with stable goals and planned increments point to Scrum [3][7].",
+     "If your answers are mixed, try a board with sprint-style planning, which is Scrumban [1][3].",
+     "Remind the reader to keep one method per team, so people are not switching rhythms inside one week. Mark this as our advice and not from a source.",
+     "Link to project management basics for readers who need the wider picture."
+    ],
+    "h3": [],
+    "sources": [
+     1,
+     3,
+     7
+    ]
+   },
+   {
+    "h2": "Try one method on one project",
+    "points": [
+     "Give a short numbered pilot plan: pick one live project, set up the board or sprint plan, run it for two to four weeks, and review. Sprint lengths of one to four weeks come from [7].",
+     "Pick one measure to compare: cycle time for Kanban, and velocity for Scrum [3][7].",
+     "Write a short project brief first so the team agrees on the goal. Link to the project brief template.",
+     "At the end of the pilot, ask what slowed the work down and adjust the columns, limits or sprint length [8].",
+     "Finish on the next step: start a Kanban board in Planwise with one project."
+    ],
+    "h3": [],
+    "sources": [
+     1,
+     3,
+     7,
+     8
+    ]
+   }
+  ],
+  "entities": [
+   "Kanban",
+   "Scrum",
+   "Scrumban",
+   "Agile",
+   "Lean",
+   "Waterfall",
+   "Kanban board",
+   "sprint",
+   "backlog",
+   "sprint goal",
+   "Product Owner",
+   "Scrum Master",
+   "Developers",
+   "work in progress (WIP) limits",
+   "pull system",
+   "cycle time",
+   "lead time",
+   "throughput",
+   "velocity",
+   "burndown chart",
+   "cumulative flow diagram",
+   "sprint planning",
+   "daily scrum",
+   "sprint review",
+   "retrospective",
+   "Taiichi Ohno",
+   "Toyota",
+   "Hirotaka Takeuchi and Ikujiro Nonaka",
+   "State of Agile report",
+   "Atlassian",
+   "Asana",
+   "Planview",
+   "Coursera",
+   "Planwise"
+  ],
+  "gaps": [
+   "Top pages describe one team with one backlog. None speak to a lead who runs several projects at once and may need a different rhythm for different work.",
+   "Most pages end with a table or a pros and cons list and give no short, repeatable way to decide. We add a quiz and a numbered choosing guide.",
+   "The Coursera page promotes a certificate, and the Asana page covers four methods in about 3,900 words. A focused article on only these two methods can answer faster.",
+   "Few pages explain what the first two to four weeks look like. We give a small pilot plan with one measure to compare.",
+   "Planview describes Scrum roles in strict terms, such as the Scrum Master dictating timelines. We use the Atlassian wording of accountabilities and have an editor check it.",
+   "Scrumban is mentioned in a line or two. We explain why teams combine the methods, with the survey figures Coursera cites.",
+   "The AI answers give pros and cons but say little about how to start. We end with a next step and a Planwise board."
+  ],
+  "faqs": [
+   {
+    "question": "Why use Kanban instead of Scrum?",
+    "answer": "Say Kanban suits ongoing requests and shifting priorities because work flows continuously, changes can be made mid-stream and no roles are required [3][7]. Say Scrum is the better fit when priorities are stable."
+   },
+   {
+    "question": "Is Kanban or Scrum better for software teams?",
+    "answer": "Say neither wins by default. The choice depends on how predictable the work is and how often priorities shift, and many teams blend the two [7]."
+   },
+   {
+    "question": "Can you use Kanban and Scrum together?",
+    "answer": "Say yes. Many Scrum teams add a Kanban board for visibility, and the hybrid is called Scrumban [1][3]."
+   },
+   {
+    "question": "What is Scrumban?",
+    "answer": "Say it is a hybrid of Scrum and Kanban. Give the 2022 State of Agile figures as Coursera cites them: 27 percent of respondents used Scrumban and 56 percent used Kanban [1]."
+   },
+   {
+    "question": "Is Kanban part of Agile?",
+    "answer": "Say Kanban uses principles from both Agile and Lean [1]. Asana calls it a subset of Agile that supports adaptive planning and continuous improvement [8]."
+   },
+   {
+    "question": "When should a team switch from Scrum to Kanban?",
+    "answer": "Say to consider it when work arrives as ongoing requests or priorities change often, because Kanban fits that kind of work [7]. Add that a board on top of Scrum is a lighter first step [3]."
+   }
+  ],
+  "internalLinks": [
+   {
+    "url": "https://planwise.example/blog/kanban-guide",
+    "anchor": "our Kanban guide",
+    "where": "What Kanban and Scrum are"
+   },
+   {
+    "url": "https://planwise.example/blog/agile-for-small-teams",
+    "anchor": "Agile for small teams",
+    "where": "Scrumban: using both together"
+   },
+   {
+    "url": "https://planwise.example/blog/project-management-basics",
+    "anchor": "project management basics",
+    "where": "How to choose when you run several projects at once"
+   },
+   {
+    "url": "https://planwise.example/templates/project-brief",
+    "anchor": "project brief template",
+    "where": "Try one method on one project"
+   },
+   {
+    "url": "https://planwise.example/features/kanban",
+    "anchor": "Kanban board in Planwise",
+    "where": "Try one method on one project"
+   }
+  ],
+  "cta": {
+   "text": "Start a Kanban board in Planwise with one live project, and see where your work piles up this week.",
+   "where": "End of the article, as a button linking to https://planwise.example/features/kanban"
+  },
+  "modules": [
+   {
+    "type": "quiz",
+    "title": "Which fits your team: Kanban, Scrum or both?",
+    "purpose": "Help the reader pick Kanban, Scrum or Scrumban from five questions about their own work.",
+    "placement": "When to use Kanban and when to use Scrum",
+    "inputs": [
+     "How often do your priorities change? (often, sometimes, rarely)",
+     "How does work reach your team? (ongoing requests, or planned pieces of a larger outcome)",
+     "Can you break your outcomes into small usable increments you can review every one to four weeks? (yes, partly, no)",
+     "Do you want set roles such as Product Owner and Scrum Master, or no required roles?",
+     "Do you prefer to release work when it is ready, or in planned batches at the end of a sprint?"
+    ],
+    "outputs": [
+     "Mostly Kanban answers: Kanban fits. Give a one-line reason and a link to the Kanban guide.",
+     "Mostly Scrum answers: Scrum fits. Give a one-line reason.",
+     "Mixed answers: try Scrumban, a board with sprint-style planning. Link to the Scrumban section."
+    ],
+    "data": "Answer mapping from the sources. Often changing priorities, ongoing requests, no required roles and release when ready point to Kanban [3][7]. Stable priorities, work planned in increments, defined accountabilities and sprint-based releases point to Scrum [3][7]. Mixed answers point to Scrumban [1][3].",
+    "why": "The right choice depends on several things at once: predictability, priority shifts and working style [7]. A quiz weighs them for the reader's own team, which a table cannot do."
+   }
+  ],
+  "images": [
+   {
+    "placement": "What Kanban and Scrum are",
+    "shows": "A Kanban board with columns for to do, in progress and done, cards moving left to right and a WIP limit label on the in progress column.",
+    "alt": "A simple Kanban board with three labeled columns and task cards moving from to do to done.",
+    "kind": "anatomy"
+   },
+   {
+    "placement": "How each one runs day to day",
+    "shows": "One Scrum sprint in order: sprint planning, daily scrum, sprint review and retrospective, then the next sprint.",
+    "alt": "A four-step diagram of a Scrum sprint from planning to retrospective.",
+    "kind": "steps"
+   },
+   {
+    "placement": "Scrumban: using both together",
+    "shows": "A bar chart of how many respondents used Kanban and Scrumban in the 2022 State of Agile report, as cited by Coursera.",
+    "alt": "A bar chart showing 56 percent of respondents used Kanban and 27 percent used Scrumban.",
+    "kind": "chart",
+    "numbers": "Kanban: 56 percent. Scrumban: 27 percent. Source: 2022 State of Agile report, as cited by Coursera.",
+    "sources": [
+     1
+    ]
+   },
+   {
+    "placement": "Try one method on one project",
+    "shows": "A pilot checklist: pick one project, set the columns or sprint length, choose one measure, set a review date and write the project brief.",
+    "alt": "A checklist of five steps for running a two to four week pilot of Kanban or Scrum.",
+    "kind": "checklist"
+   }
+  ],
+  "examples": [],
+  "checks": [],
+  "research": {
+   "sources": [
+    {
+     "n": 1,
+     "url": "https://www.coursera.org/articles/kanban-vs-scrum",
+     "title": "Kanban vs. Scrum: What's the Difference?",
+     "domain": "coursera.org",
+     "kind": "serp",
+     "position": 3,
+     "words": 2003
+    },
+    {
+     "n": 2,
+     "url": "https://www.phoenix.edu/",
+     "title": "Online College for Working Adults | University of Phoenix",
+     "domain": "phoenix.edu",
+     "kind": "serp",
+     "position": 4,
+     "words": 1080
+    },
+    {
+     "n": 3,
+     "url": "https://www.planview.com/resources/guide/introduction-to-kanban/kanban-vs-scrum/",
+     "title": "Kanban vs. Scrum: What are the Differences? | Planview",
+     "domain": "planview.com",
+     "kind": "serp",
+     "position": 5,
+     "words": 962
+    },
+    {
+     "n": 4,
+     "url": "https://asana.com/Resources",
+     "title": "Work, Task & Project Management Resources • Asana • Asana",
+     "domain": "asana.com",
+     "kind": "serp",
+     "position": 6,
+     "words": 328
+    },
+    {
+     "n": 5,
+     "url": "https://www.mendix.com/Blog",
+     "title": "Low-Code Development Blog | Mendix",
+     "domain": "mendix.com",
+     "kind": "serp",
+     "position": 7,
+     "words": 469
+    },
+    {
+     "n": 6,
+     "url": "https://www.youtube.com/watch?v=rIaz-l1Kf8w",
+     "title": "Scrum vs Kanban - What's the Difference? - YouTube",
+     "domain": "youtube.com",
+     "kind": "serp",
+     "position": 8,
+     "words": 1018
+    },
+    {
+     "n": 7,
+     "url": "https://www.atlassian.com/agile/kanban/kanban-vs-scrum",
+     "title": "Kanban vs scrum | Atlassian",
+     "domain": "atlassian.com",
+     "kind": "ai",
+     "position": null,
+     "words": 1843
+    },
+    {
+     "n": 8,
+     "url": "https://asana.com/resources/waterfall-agile-kanban-scrum",
+     "title": "Kanban vs Scrum vs Agile vs Waterfall: What’s the Difference? [2026] • Asana",
+     "domain": "asana.com",
+     "kind": "ai",
+     "position": null,
+     "words": 3948
+    },
+    {
+     "n": 9,
+     "url": "https://www.atlassian.com/agile/project-management",
+     "title": "Agile project management | Atlassian",
+     "domain": "atlassian.com",
+     "kind": "ai",
+     "position": null,
+     "words": 2029
+    }
+   ],
+   "questions": [
+    "Why use Kanban instead of Scrum?",
+    "Is Jira a Kanban?",
+    "What are the 3 C's of Scrum?",
+    "What are the six-six rules of Kanban?"
+   ],
+   "engines": [
+    "ChatGPT",
+    "Gemini",
+    "AI Mode"
+   ],
+   "topPages": "",
+   "aiAnswers": ""
+  },
+  "model": "claude-sonnet-5-5",
+  "at": "2026-11-13T09:56:12.974Z"
+ },
+ "sections": [
+  {
+   "key": "intro",
+   "h2": "",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "If you lead a team that runs several projects at once, you may be weighing **Kanban** against **Scrum**. Both are popular Agile methods, but they organize work in very different ways, so choosing between them can feel like a guess.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "In this guide, we compare kanban vs scrum in plain words, using [Atlassian](https://www.atlassian.com/agile/kanban/kanban-vs-scrum), [Planview](https://www.planview.com/resources/guide/introduction-to-kanban/kanban-vs-scrum/) and [Coursera](https://www.coursera.org/articles/kanban-vs-scrum) as our sources. You'll see what each method is, where each one fits and how teams combine them.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "By the end, you'll have a short way to choose and a small pilot you can start on one live project.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-0",
+   "h2": "What Kanban and Scrum are",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Kanban is a visual method that helps a team manage a continuous flow of work, while Scrum is a framework that gives a team structure by organizing work into fixed-length sprints, according to [Coursera](https://www.coursera.org/articles/kanban-vs-scrum) and [Atlassian](https://www.atlassian.com/agile/kanban/kanban-vs-scrum).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Both belong to the Agile family, and both aim to improve efficiency and help teams adapt to change. [Atlassian says neither one wins by default](https://www.atlassian.com/agile/kanban/kanban-vs-scrum), so the right choice depends on your team and the work you do.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What is Kanban?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Kanban is a visual project management method that helps teams see their tasks and spot where work is piling up. A board, physical or digital, [splits the work into columns, and cards move from one column to the next until the task is done](https://www.coursera.org/articles/kanban-vs-scrum). Typical columns are [to do, in progress and done](https://asana.com/resources/waterfall-agile-kanban-scrum), and you can read more in [our Kanban guide](https://planwise.example/blog/kanban-guide).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The method traces back to Toyota, since Kanban means \"signboard\" in Japanese and [Asana credits Taiichi Ohno at Toyota in the 1940s](https://asana.com/resources/waterfall-agile-kanban-scrum) for developing the approach.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Coursera lists several benefits it links to Kanban](https://www.coursera.org/articles/kanban-vs-scrum):",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Better visibility of how work flows.",
+      "Faster delivery of finished work.",
+      "Better predictability.",
+      "Better alignment between business goals and the delivery of work."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What is Scrum?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Scrum is an iterative framework in which [the team picks work from its backlog for a time-boxed sprint, works toward a shared sprint goal, then reviews the result and improves its process before the next sprint](https://www.atlassian.com/agile/kanban/kanban-vs-scrum). It was first described by Hirotaka Takeuchi and Ikujiro Nonaka in their 1986 paper, [\"New New Product Development Game\"](https://www.planview.com/resources/guide/introduction-to-kanban/kanban-vs-scrum/).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Atlassian describes [three accountabilities](https://www.atlassian.com/agile/kanban/kanban-vs-scrum) that make roles clear for everyone on a Scrum team:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "The Product Owner is one of the three Scrum accountabilities.",
+      "The Scrum Master is the second accountability.",
+      "The Developers are the third accountability, and together the three cover the whole team."
+     ],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-1",
+   "h2": "Kanban vs scrum: the key differences",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "You can scan the table below in about a minute. The rows come from the [Atlassian comparison](https://www.atlassian.com/agile/kanban/kanban-vs-scrum) and the [Planview guide](https://www.planview.com/resources/guide/introduction-to-kanban/kanban-vs-scrum/), so you can check any line against the original.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "table",
+     "text": "",
+     "items": [],
+     "rows": [
+      [
+       "",
+       "Kanban",
+       "Scrum"
+      ],
+      [
+       "Workflow style",
+       "Continuous flow",
+       "Fixed-length sprints"
+      ],
+      [
+       "Roles",
+       "No required roles",
+       "Product Owner, Scrum Master and Developers"
+      ],
+      [
+       "Planning cadence",
+       "Replenishment happens as capacity opens",
+       "Sprint planning before each sprint"
+      ],
+      [
+       "How work is limited",
+       "WIP limits on active workflow stages",
+       "Sprint commitment and team capacity"
+      ],
+      [
+       "Handling change",
+       "Priorities can change as work moves through",
+       "Changes are weighed against the sprint goal"
+      ],
+      [
+       "Metrics",
+       "Lead time, cycle time, throughput and cumulative flow",
+       "Sprint goal progress, velocity and burndown"
+      ],
+      [
+       "Release style",
+       "Work can release when it is ready",
+       "Often planned around sprint or release goals"
+      ],
+      [
+       "Best fit",
+       "Ongoing requests or shifting priorities",
+       "Work you can plan in structured increments"
+      ]
+     ]
+    },
+    {
+     "type": "p",
+     "text": "Four differences matter most when you compare the two, and the first is rhythm, since Scrum teams work in fixed-length sprints while Kanban teams use continuous flow and [pull the next item only when they have capacity](https://www.atlassian.com/agile/kanban/kanban-vs-scrum). The other three are listed below.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Roles differ because Scrum gives you [defined accountabilities](https://www.atlassian.com/agile/kanban/kanban-vs-scrum), while Kanban asks for none, although Planview notes a team may still have a project manager.",
+      "Change works differently because, in Scrum, [changes during a sprint are strongly discouraged](https://www.planview.com/resources/guide/introduction-to-kanban/kanban-vs-scrum/) and are weighed against the sprint goal, while Kanban lets you adjust priorities as work moves through the board.",
+      "Measurement differs because Kanban teams look at lead time, cycle time and throughput, while Scrum teams look at velocity and burndown, as [Atlassian lists](https://www.atlassian.com/agile/kanban/kanban-vs-scrum)."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Coursera puts it in one line: [one method optimizes flow and the other optimizes iteration](https://www.coursera.org/articles/kanban-vs-scrum). As you can see, the right choice depends on the kind of work you run.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-2",
+   "h2": "How each one runs day to day",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Your own workweek looks different inside each method, and a table can only hint at that. Here's how each one runs, so you can picture what your team would do on a Monday morning. Atlassian points out that [each method creates a very different rhythm for the workweek](https://www.atlassian.com/agile/kanban/kanban-vs-scrum), and that rhythm is what your team will feel most.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "How a Kanban board runs",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Your work sits in columns on a board, and your team [pulls a new card only when it has capacity](https://www.atlassian.com/agile/kanban/kanban-vs-scrum). Nothing waits for a planning day, so a new request can join the line whenever it arrives.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's what a typical week looks like on a Kanban board:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Your team picks up the next card in priority order only when someone finishes a task and has room for more.",
+      "Work in progress limits [cap how many items sit in each stage](https://asana.com/resources/waterfall-agile-kanban-scrum), which prevents overload and improves throughput.",
+      "A cumulative flow diagram shows where work is piling up, and [teams set WIP limits once they spot the bottleneck](https://asana.com/resources/waterfall-agile-kanban-scrum).",
+      "Meetings are [optional and flexible](https://www.atlassian.com/agile/kanban/kanban-vs-scrum), so you can keep a short daily check-in or skip it."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "How a Scrum sprint runs",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Scrum works in cycles, and [sprints commonly run one to four weeks](https://www.atlassian.com/agile/kanban/kanban-vs-scrum). Your team commits to a batch of work at the start of each one.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Because every activity follows the same cadence, Planview notes that [a delay can halt the whole project](https://www.planview.com/resources/guide/introduction-to-kanban/kanban-vs-scrum/). Luckily, that shared rhythm is also why many leads like Scrum, since everyone knows what happens and when.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-3",
+   "h2": "When to use Kanban and when to use Scrum",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Both methods can work well, so the useful question is which one fits the work in front of you. [Atlassian](https://www.atlassian.com/agile/kanban/kanban-vs-scrum) says the choice depends on how predictable your workflow is, how often priorities shift and how your team likes to work and learn.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how to match your own work against each one.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Kanban tends to fit when",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Your team handles ongoing requests that arrive at different times and in different sizes.",
+      "Priorities change often, and you need to reorder work without waiting for a planning meeting.",
+      "You want finished work to go out when it is ready, instead of waiting for the end of a cycle.",
+      "You would like to see where work piles up before you change anything else about how you run things."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Atlassian](https://www.atlassian.com/agile/kanban/kanban-vs-scrum) describes Kanban as a fit for ongoing requests and shifting priorities, and notes that work can release when it is ready. [Planview](https://www.planview.com/resources/guide/introduction-to-kanban/kanban-vs-scrum/) adds that it works best for projects with widely varying priorities.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Scrum tends to fit when",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "You can break a goal into small, usable pieces and plan them ahead of time.",
+      "Your priorities stay fairly stable from one week to the next.",
+      "You want a steady delivery rhythm with a regular chance to look back at the work.",
+      "Stakeholders expect to see a batch of finished work on a set schedule."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Atlassian](https://www.atlassian.com/agile/kanban/kanban-vs-scrum) says Scrum suits teams that can plan work in structured increments, and [Planview](https://www.planview.com/resources/guide/introduction-to-kanban/kanban-vs-scrum/) says it is best for teams with stable priorities that may not change much over time.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "These methods apply well beyond software teams. Atlassian names operations, marketing and product management as teams that can use them, so a marketing lead can run a board just as an engineering lead can run sprints.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You don't have to decide from a list alone. The short quiz below shows which way your answers lean, so you can see whether Kanban, Scrum or a mix fits your team.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-4",
+   "h2": "Scrumban: using both together",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Scrumban is a hybrid method that mixes Scrum and Kanban, and [Coursera](https://www.coursera.org/articles/kanban-vs-scrum) describes it as a process teams use when they want parts of both. Many teams end up here after trying one method and wanting something from the other.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Coursera cites the 2022 State of Agile report, in which [27 percent of respondents were using Scrumban, while 56 percent were using Kanban](https://www.coursera.org/articles/kanban-vs-scrum). Many Scrum teams also borrow from Kanban already, because [Planview says they add a Kanban board](https://www.planview.com/resources/guide/introduction-to-kanban/kanban-vs-scrum/) for an extra layer of visibility.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Planview adds that Kanban can be applied to visualize and improve the flow of work no matter which method the team uses to do it, and that [Scrum teams using Kanban as a visual tool can get work delivered faster and more often](https://www.planview.com/resources/guide/introduction-to-kanban/kanban-vs-scrum/).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "We think a blend works because a board shows everyone what is in progress and where work is waiting, while sprints give the team a regular rhythm for planning and review. Coursera puts the payoff plainly: you can use both to gain [continuous visibility and structured iteration, without having to choose between the two methods](https://www.coursera.org/articles/kanban-vs-scrum).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how a blend can look when you run several projects at once:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Keep a shared board where every project's cards sit in columns, so you can see all the work in one place.",
+      "Run sprints on the projects that have stable goals and planned increments, using the board as the sprint view.",
+      "Let projects with ongoing requests flow through the board without sprints, and pull a new card when the team has capacity.",
+      "Review the board at the end of each sprint to see where work piled up and what to change next."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you want a lighter way in, our guide to [Agile for small teams](https://planwise.example/blog/agile-for-small-teams) shows how to begin with a board and a short planning habit.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-5",
+   "h2": "How to choose when you run several projects at once",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "The right method depends on the kind of work in each project, so we'd start by looking at your projects one at a time. Here are four checks you can run today.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "List every project your team has running right now.",
+      "Mark which projects have ongoing requests and which have planned increments of work.",
+      "Check how often priorities changed on each project last month.",
+      "Check whether stakeholders need a fixed delivery date for any of them."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Now read your answers. Atlassian says the choice depends on [how predictable your workflow is and how often priorities shift](https://www.atlassian.com/agile/kanban/kanban-vs-scrum), so those two checks matter most.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Planview describes Kanban as [best for projects with widely varying priorities](https://www.planview.com/resources/guide/introduction-to-kanban/kanban-vs-scrum/) and Scrum as best for teams with stable priorities that may not change much over time. Atlassian adds that Kanban suits teams with ongoing requests, while Scrum suits teams that can plan work in structured increments.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Projects with ongoing or shifting work point to Kanban.",
+      "Projects with stable goals and planned increments point to Scrum.",
+      "Projects where stakeholders need a fixed delivery date lean toward Scrum, since sprints give you a regular point to review and release."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "What if your answers are mixed? You don't have to pick a side, because a board with sprint-style planning is [Scrumban](https://www.coursera.org/articles/kanban-vs-scrum), a hybrid that Planview says many Scrum teams already use to [add visibility to their projects](https://www.planview.com/resources/guide/introduction-to-kanban/kanban-vs-scrum/).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "One more piece of advice from us, which comes from our own view and not from the sources, is to keep one method per team. When people switch rhythms inside a single week, planning can get confusing and the board may be harder to trust.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you want the wider picture before you decide, our [project management basics](https://planwise.example/blog/project-management-basics) guide covers how projects are planned, tracked and finished.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-6",
+   "h2": "Try one method on one project",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "If you want to compare Kanban and Scrum, we suggest trying one on real work. Here's how we'd run a small pilot on a single live project, so you see results without a long training course.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "Pick one live project that your team is already working on, ideally one with a clear owner and a clear finish line.",
+      "Use our [project brief template](https://planwise.example/templates/project-brief) to write a short brief first, so everyone agrees on the goal before the method gets any attention.",
+      "Set up either a board with columns such as to do, in progress and done, or a sprint plan with a backlog and a sprint goal.",
+      "Run it for two to four weeks, which fits the one to four week sprint length that [Atlassian describes](https://www.atlassian.com/agile/kanban/kanban-vs-scrum).",
+      "Review what happened at the end and decide whether to keep the method, change it or try the other one."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Pick one measure to compare, so you can base the review on numbers you can check. If you try Kanban, track cycle time, which [Planview defines](https://www.planview.com/resources/guide/introduction-to-kanban/kanban-vs-scrum/) as the time it takes to finish one full piece of work from beginning to end.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you try Scrum, track velocity across your sprints, which is how [Planview](https://www.planview.com/resources/guide/introduction-to-kanban/kanban-vs-scrum/) and [Atlassian](https://www.atlassian.com/agile/kanban/kanban-vs-scrum) say Scrum teams measure progress. Choose the measure that matches the method you pick, and note your first result as soon as it exists so you have something to compare against.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "When the pilot ends, ask your team what slowed the work down. [Asana notes](https://asana.com/resources/waterfall-agile-kanban-scrum) that Kanban teams find piles of waiting work with a cumulative flow diagram and then set work in progress limits, so you can use the same approach to adjust your columns, limits or sprint length.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A few questions help you review the pilot together:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Where did work wait the longest before someone picked it up?",
+      "Did the team finish more or less than you expected in the time you set?",
+      "Which meetings or board updates helped, and which ones could you drop?",
+      "Would the next project fit this method, or does it need a different rhythm?"
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Honestly, a small trial gives you a clearer answer than more reading about the two methods. Start a [Kanban board in Planwise](https://planwise.example/features/kanban) with one live project, and see where your work piles up this week.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "faq",
+   "h2": "Frequently asked questions",
+   "blocks": [
+    {
+     "type": "h3",
+     "text": "Why use Kanban instead of Scrum?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Kanban suits ongoing requests and shifting priorities, and Planview gives three reasons for that fit:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "[Work is delivered continuously.](https://www.planview.com/resources/guide/introduction-to-kanban/kanban-vs-scrum/)",
+      "[Changes can be made mid-stream.](https://www.planview.com/resources/guide/introduction-to-kanban/kanban-vs-scrum/)",
+      "[No roles are required.](https://www.planview.com/resources/guide/introduction-to-kanban/kanban-vs-scrum/)"
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Atlassian adds that Kanban fits teams with [ongoing requests or frequently shifting priorities](https://www.atlassian.com/agile/kanban/kanban-vs-scrum). Scrum fits teams that can plan work in structured increments and have stable priorities, according to the same Atlassian and Planview pages.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Is Kanban or Scrum better for software teams?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Neither one wins by default. Atlassian says the right choice depends on [how predictable your workflow is, how often priorities shift and how your team likes to work](https://www.atlassian.com/agile/kanban/kanban-vs-scrum).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Many teams also blend the two, which means you can take parts of both methods and skip the either-or choice.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Can you use Kanban and Scrum together?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Yes, you can.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Coursera says the combination gives you [continuous visibility and structured iteration](https://www.coursera.org/articles/kanban-vs-scrum) without choosing between the two.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What is Scrumban?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Scrumban is a hybrid process that mixes Scrum and Kanban. According to the 2022 State of Agile report, as [Coursera cites it](https://www.coursera.org/articles/kanban-vs-scrum), 27 percent of survey respondents were using Scrumban and 56 percent were using Kanban.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Is Kanban part of Agile?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Kanban uses principles from both [Agile and Lean](https://www.coursera.org/articles/kanban-vs-scrum), and Asana describes it as a [subsect of the Agile methodology](https://asana.com/resources/waterfall-agile-kanban-scrum) that supports adaptive planning, early delivery and continuous improvement.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "When should a team switch from Scrum to Kanban?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Consider it when your work arrives as ongoing requests or your priorities change often, because [Kanban fits that kind of work](https://www.atlassian.com/agile/kanban/kanban-vs-scrum).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If a full switch feels big, adding a board on top of Scrum is a lighter first step, since [Scrum teams often adopt Kanban principles for extra visibility](https://www.planview.com/resources/guide/introduction-to-kanban/kanban-vs-scrum/).",
+     "items": [],
+     "rows": []
+    }
+   ]
+  }
+ ],
+ "cut": [
+  {
+   "id": "3.7.0",
+   "why": "Cites the Atlassian agile project management page, which only has headings in the sources and no text naming these four events as the Scrum ceremonies; the four events are not supported by the provided text."
+  },
+  {
+   "id": "3.8.i0",
+   "why": "Description of sprint planning is not backed by source text; the only source for the four events is a heading list."
+  },
+  {
+   "id": "3.8.i1",
+   "why": "Description of the daily scrum is not backed by source text."
+  },
+  {
+   "id": "3.8.i2",
+   "why": "Description of the sprint review is not backed by source text."
+  },
+  {
+   "id": "3.8.i3",
+   "why": "Description of the retrospective is not backed by source text."
+  },
+  {
+   "id": "8.8.1",
+   "why": "Planview says many Scrum teams also use Kanban as a visual process and project management tool, but the claim that Scrum teams can add it to gain visibility is fine; however the 'Yes, you can' framing is okay, while this line attributes more than the source says only slightly. Low risk but the 'many"
+  }
+ ],
+ "styleLeft": [
+  {
+   "id": "2.2.1",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "6.2.0",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "6.5.0",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "8.5.0",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "8.8.0",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  }
+ ],
+ "modules": [
+  {
+   "status": "dropped",
+   "error": "It loads an outside file."
+  }
+ ]
+}

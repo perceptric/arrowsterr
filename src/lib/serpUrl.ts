@@ -45,25 +45,32 @@ export function plainTarget(u: string): string | null {
  */
 export function breadcrumbUrl(b: string | null | undefined): string | null {
   const parts = (b ?? "").split(/\s*›\s*/).map((p) => p.trim()).filter(Boolean);
-  if (!parts.length || !/^https?:\/\/[^\s/]+/i.test(parts[0])) return null;
-  const origin = parts[0].replace(/\/+$/, "");
-  const path = parts.slice(1).filter((p) => /^[\w.~%+-]+$/.test(p));
+  // The site is only the address at the start: Google can add a date or a count after it ("https://x.com · Sep 15, 2016").
+  const site = /^https?:\/\/[^\s/·•]+/i.exec(parts[0] ?? "");
+  if (!site) return null;
+  const origin = site[0];
+  // A part Google cut short ("best-running-shoes-for-b...") is not the real path, so it counts as unreadable.
+  const path = parts.slice(1).filter((p) => /^[\w.~%+-]+$/.test(p) && !/(\.\.\.|…)$/.test(p));
   if (GOOGLE.test(hostOf(origin))) return null;
   return path.length === parts.length - 1 ? `${origin}/${path.join("/")}` : `${origin}/`;
 }
 
 type Item = { type?: string; url?: string | null; domain?: string | null; breadcrumb?: string | null };
 
+export const MAX_HOPS = 3; // google.com/goto sends to www.google.com/goto first, then to the site
+
 /**
  * Swap Google redirect links in organic results for the real address, in place. `resolve` follows one redirect and
- * returns where it lands (or null). Results that can't be resolved keep the redirect link, with the breadcrumb's domain.
+ * returns where it lands (or null). A redirect that lands on another Google redirect is followed again, up to
+ * MAX_HOPS. Results that can't be resolved take the breadcrumb's address, or keep the redirect link.
  */
 export async function fixSerpItems<T extends Item>(items: T[], resolve: (u: string) => Promise<string | null>): Promise<T[]> {
   const todo = items.filter((i) => i.type === "organic" && isGoogleRedirect(i.url));
   await Promise.all(
     todo.map(async (i) => {
       const from = i.url!;
-      const real = plainTarget(from) ?? (await resolve(from).catch(() => null));
+      let real = plainTarget(from) ?? (await resolve(from).catch(() => null));
+      for (let hop = 1; hop < MAX_HOPS && real && isGoogleRedirect(real); hop++) real = plainTarget(real) ?? (await resolve(real).catch(() => null));
       const target = real && !GOOGLE.test(hostOf(real)) && !isGoogleRedirect(real) ? real : breadcrumbUrl(i.breadcrumb);
       if (target) {
         i.url = target;

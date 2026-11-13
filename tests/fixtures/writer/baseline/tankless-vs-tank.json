@@ -1,0 +1,1232 @@
+{
+ "slug": "tankless-vs-tank",
+ "keyword": "tankless vs tank water heater",
+ "kind": "local",
+ "stage": "mofu",
+ "model": "claude-sonnet-5-5",
+ "at": "2026-11-13T10:08:59.485Z",
+ "seconds": 296,
+ "usage": {
+  "calls": 26,
+  "input": 60290,
+  "cacheRead": 943855,
+  "cacheWrite": 147211,
+  "output": 43413
+ },
+ "score": {
+  "words": 2385,
+  "sections": 10,
+  "lint": 18,
+  "lintRules": {
+   "sentences": 11,
+   "adverbs": 3,
+   "paragraphs": 4
+  },
+  "numbers": 31,
+  "unsourced": [],
+  "links": 72,
+  "strayLinks": [],
+  "images": 4,
+  "modules": 1
+ },
+ "title": "Tankless vs Tank Water Heater: Which Fits Your Austin Home?",
+ "brief": {
+  "titles": [
+   "Tankless vs Tank Water Heater: Which Fits Your Austin Home?",
+   "Tankless vs Tank Water Heater: Costs, Lifespan and Fit",
+   "Tank or Tankless Water Heater? A Plain Guide for Austin Homes"
+  ],
+  "h1": "Tankless vs Tank Water Heater: Which Fits Your Austin Home?",
+  "metaDescription": "Compare tankless vs tank water heaters on cost, lifespan, hot water supply and space, so you can choose the right one for your Austin home.",
+  "slug": "tankless-vs-tank-water-heater",
+  "searchIntent": "The searcher is choosing between the two types, usually because a heater is old, failing or about to be replaced, and wants a side-by-side comparison with real costs and clear guidance on which fits their home. A comparison article with short sections, lists, one table and a decision aid serves this best.",
+  "reader": "An Austin homeowner with an aging or failing water heater. They know roughly what a water heater does but not how the two types differ in price, running cost, flow limits or installation work. They want to pick one with confidence and know who to call next.",
+  "angle": "We explain the choice as a fit question about your household, your fuel, your space and your timeline, using plain numbers with each source named. We also cover what top pages skip: the price ranges differ by source, a switch to tankless usually needs plumbing or utility upgrades, and most replacements happen in an emergency, so planning ahead gives you more choices.",
+  "wordTarget": 1900,
+  "outline": [
+   {
+    "h2": "How tank and tankless water heaters work",
+    "points": [
+     "A tank heater stores hot water in an insulated tank, typically 20 to 80 gallons, and a thermostat tells the burner or electric elements when to reheat [3][4].",
+     "A tankless heater heats water as it flows through the unit with a gas burner or electric element, so there is no stored supply [1][4].",
+     "Both types come in gas and electric versions, and gas tankless units use a heat exchanger [1][7].",
+     "Tank sizes run from about 30 gallons for one or two people to more than 80 gallons for a household of more than five [3]."
+    ],
+    "h3": [
+     {
+      "title": "Tank water heaters",
+      "points": [
+       "Water enters at the bottom, heats, and leaves from the top when you open a hot tap [4].",
+       "Standby heat loss means the tank reheats as stored water cools [4]."
+      ]
+     },
+     {
+      "title": "Tankless water heaters",
+      "points": [
+       "Also called on-demand heaters; they only run when you call for hot water [1][6].",
+       "Most heat water up to about 140 degrees Fahrenheit [3]."
+      ]
+     }
+    ],
+    "sources": [
+     1,
+     3,
+     4,
+     7
+    ]
+   },
+   {
+    "h2": "What each one costs to buy and install",
+    "points": [
+     "Show the ranges and name each source, because they differ. A. O. Smith lists tank units at $300 to $2,000 and tankless units at $1,000 to $3,000 [1].",
+     "Remodel Cost Calculator lists installed prices of $800 to $2,000 for a tank and $2,500 to $6,000 for tankless [8].",
+     "Explain why tankless installs cost more: gas line upgrades of about $300 to $1,000, venting kits of $200 to $500, and for electric units an electrical upgrade of $500 to $1,500 [8].",
+     "Whole-home electric tankless units can need 120 to 150 amps of dedicated capacity, which can mean a panel upgrade in older homes [8].",
+     "Consumer Reports says switching to tankless is not a simple swap because it can need a plumbing retrofit and gas or electric upgrades [6].",
+     "Rebates and tax incentives may lower the cost, and the article tells the reader to ask for current ones [1]."
+    ],
+    "h3": [],
+    "sources": [
+     1,
+     6,
+     7,
+     8
+    ]
+   },
+   {
+    "h2": "Running costs and energy use",
+    "points": [
+     "Tank heaters keep reheating stored water, which is called standby heat loss. Remodel Cost Calculator puts it at 10 to 30 percent of a tank's energy use [4][8].",
+     "Remodel Cost Calculator cites the Department of Energy for tankless units being 24 to 34 percent more efficient than tank units [8].",
+     "Annual operating cost for gas: $280 to $480 for a tank and $200 to $360 for tankless. For electric: $500 to $700 for a tank and $370 to $520 for tankless [8].",
+     "Consumer Reports says gas water heaters generally cost about half as much to run as electric ones, and heating water is roughly 18 percent of a household's energy use [7].",
+     "Consumer Reports says it expects tankless to save at least $100 a year, so the article keeps savings modest and explains that a higher purchase price takes time to pay back [6]. A. O. Smith warns that tankless does not pay for itself right away [1]."
+    ],
+    "h3": [],
+    "sources": [
+     1,
+     4,
+     6,
+     7,
+     8
+    ]
+   },
+   {
+    "h2": "Hot water supply and flow rate",
+    "points": [
+     "A tank gives you hot water right away, but a large load can empty it and you wait for it to reheat [3][4]. Remodel Cost Calculator gives 30 to 60 minutes for a full reheat [8].",
+     "A tankless unit does not run out but is limited by flow rate, so several fixtures at once can strain one unit [4][8].",
+     "Use the Consumer Reports example: you might not be able to run the dishwasher and washing machine while someone showers [6].",
+     "Colder incoming water takes longer to heat, so Consumer Reports quotes plumber Geno Caccia saying the colder the water coming in, the longer it takes to heat [6].",
+     "Explain that tankless does not mean instant hot water, because the pipes still have to clear. This matches A. O. Smith's myth section [1].",
+     "Large households sometimes install more than one tankless unit [1][3]."
+    ],
+    "h3": [],
+    "sources": [
+     1,
+     3,
+     4,
+     6,
+     8
+    ]
+   },
+   {
+    "h2": "Lifespan, space and maintenance",
+    "points": [
+     "Lifespan: Remodel Cost Calculator lists 10 to 15 years for a tank and 20 to 25 for tankless [8]. Synergy gives up to 20 years for tankless [4], and Consumer Reports says most tankless units last at least 20 years [7].",
+     "Space: Remodel Cost Calculator lists about 5 to 7 square feet for a large tank unit and about 2 square feet for a wall-mounted tankless [8]. Tankless units can sometimes be installed outside [1].",
+     "Maintenance: Consumer Reports says tankless needs descaling and flushing every one to two years [7].",
+     "Tanks also need care. Bradford White's blog topics point to sediment buildup and hard water as things that affect a heater's efficiency [2]."
+    ],
+    "h3": [],
+    "sources": [
+     1,
+     2,
+     4,
+     7,
+     8
+    ]
+   },
+   {
+    "h2": "Which one fits your home",
+    "points": [
+     "Give a plain way to decide based on household size, simultaneous hot water use, fuel, space and timeline.",
+     "Remodel Cost Calculator suggests a tank when you already have one, demand is moderate (one to three people) and the fuel stays the same [8].",
+     "It suggests tankless when your tank is failing, you have natural gas, you have several simultaneous demands, or you want the floor space back [8].",
+     "Consumer Reports says tankless is best for people who do not run more than one hot water use at a time, and that gas versions suit homes that already heat water with gas [7].",
+     "Remind the reader that electric tankless can need an expensive electrical upgrade [7][8].",
+     "Ask the reader one real question to help them decide, such as whether they usually run the shower and the dishwasher together."
+    ],
+    "h3": [
+     {
+      "title": "When a tank is the better fit",
+      "points": [
+       "Lowest upfront cost and the simplest swap, especially with the same fuel [3][8].",
+       "Handles a lot of hot water at once until the tank runs out [4]."
+      ]
+     },
+     {
+      "title": "When tankless is the better fit",
+      "points": [
+       "Longer life, lower running cost and a smaller footprint [4][7][8].",
+       "Works best when someone plans to stay in the home long enough to earn back the extra cost [1][8]."
+      ]
+     }
+    ],
+    "sources": [
+     3,
+     4,
+     6,
+     7,
+     8
+    ]
+   },
+   {
+    "h2": "A third option: the heat pump water heater",
+    "points": [
+     "Define it in plain words: it looks like a tank heater but has a heat pump that pulls heat from the air, so it is taller and needs space or proper venting [7].",
+     "Remodel Cost Calculator lists a unit at $1,500 to $2,500 and says it can cut electric water heating bills by 60 to 70 percent [8].",
+     "A. O. Smith says its heat pump models use 70 percent less electricity than standard electric tank heaters [1]. Name the source as a manufacturer.",
+     "Consumer Reports says heat pump models are much more efficient than standard tanks but cost more up front [7]."
+    ],
+    "h3": [],
+    "sources": [
+     1,
+     7,
+     8
+    ]
+   },
+   {
+    "h2": "Plan before your water heater fails",
+    "points": [
+     "Consumer Reports cites the American Council for an Energy-Efficient Economy saying 90 percent of water heater installations happen in an emergency, which leaves little time to compare options [6].",
+     "Consumer Reports advises you not to wait for a leak or flood before shopping for a replacement [7].",
+     "Bradford White says its products are sold through plumbing professionals, and that a pro should recommend and install your heater [2].",
+     "Give a short checklist to bring to a plumber: heater age, fuel type, tank size, space, number of people, and what runs at the same time."
+    ],
+    "h3": [],
+    "sources": [
+     2,
+     6,
+     7
+    ]
+   }
+  ],
+  "entities": [
+   "tankless water heater",
+   "tank (storage) water heater",
+   "on-demand water heater",
+   "heat pump (hybrid) water heater",
+   "standby heat loss",
+   "heat exchanger",
+   "flow rate (GPM)",
+   "gas line upgrade",
+   "venting",
+   "electrical service upgrade",
+   "descaling and flushing",
+   "Department of Energy",
+   "ENERGY STAR",
+   "American Council for an Energy-Efficient Economy",
+   "Consumer Reports",
+   "A. O. Smith",
+   "Bradford White",
+   "Brightwater Plumbing",
+   "Austin, Texas"
+  ],
+  "gaps": [
+   "Top pages write for a general US audience and never mention Austin. This article adds local checks for an editor to confirm, such as water hardness and rebates.",
+   "Cost ranges differ between sources. We show them side by side with each source named, and explain that part of the gap comes from installation upgrades.",
+   "Few pages explain that a switch to tankless can need a gas line, venting or electrical upgrade, and Remodel Cost Calculator lists these items with prices [8].",
+   "Most pages treat emergency replacement as an afterthought. Consumer Reports gives the 90 percent figure and the advice to plan ahead [6][7].",
+   "Pages that praise tankless endless hot water rarely explain the flow rate limit with a household example, which Consumer Reports does [6].",
+   "Several top pages are sales pages for a brand or a contractor. This article stays even-handed and gives a fit-based way to choose.",
+   "Heat pump water heaters are the efficiency leader in two sources but are barely covered next to the tank versus tankless debate [7][8]."
+  ],
+  "faqs": [
+   {
+    "question": "Why do some plumbers not recommend tankless water heaters?",
+    "answer": "Say plumbers usually raise cost and fit, not a flaw in the product: higher install cost, possible gas, venting or electrical upgrades, and flow limits when several fixtures run at once [6][7][8]. Say it works well in the right home."
+   },
+   {
+    "question": "What are the downsides of a tankless water heater?",
+    "answer": "List higher purchase and install cost, possible upgrades, a flow rate limit with simultaneous use, and descaling and flushing every one to two years [7][8]."
+   },
+   {
+    "question": "Can I replace my 40 gallon water heater with a tankless one?",
+    "answer": "Yes, but it is not a simple swap. It can need a plumbing retrofit and gas or electrical upgrades, so ask a plumber to check your fuel, venting and capacity first [6][8]."
+   },
+   {
+    "question": "Why do people still choose tank water heaters?",
+    "answer": "Lower upfront cost, a simpler swap, and a large supply of hot water ready at once. Tanks remain the most common type [3][7][8]."
+   },
+   {
+    "question": "How long do tank and tankless water heaters last?",
+    "answer": "Give the ranges with sources: 10 to 15 years for a tank and 20 to 25 for tankless [8], and note that Consumer Reports says most tankless units last at least 20 years [7]."
+   },
+   {
+    "question": "Is a tankless water heater really cheaper to run?",
+    "answer": "Usually yes. Remodel Cost Calculator shows lower yearly operating costs for both gas and electric, but the savings are modest and take time to cover the higher purchase price [1][6][8]."
+   }
+  ],
+  "internalLinks": [
+   {
+    "url": "https://brightwaterplumbing.example/pricing",
+    "anchor": "what Brightwater Plumbing charges for water heater work",
+    "where": "What each one costs to buy and install"
+   },
+   {
+    "url": "https://brightwaterplumbing.example/services/water-heaters",
+    "anchor": "water heater installation",
+    "where": "What each one costs to buy and install"
+   },
+   {
+    "url": "https://brightwaterplumbing.example/blog/water-heater-guide",
+    "anchor": "our water heater guide",
+    "where": "How tank and tankless water heaters work"
+   },
+   {
+    "url": "https://brightwaterplumbing.example/services/emergency",
+    "anchor": "emergency plumbing service",
+    "where": "Plan before your water heater fails"
+   },
+   {
+    "url": "https://brightwaterplumbing.example/contact",
+    "anchor": "contact Brightwater Plumbing",
+    "where": "Plan before your water heater fails"
+   }
+  ],
+  "cta": {
+   "text": "Not sure which water heater fits your home? Contact Brightwater Plumbing and we'll look at your space, fuel and hot water use with you, then give you a clear quote before any work starts.",
+   "where": "End of the article, after Plan before your water heater fails, linking to the contact page"
+  },
+  "modules": [
+   {
+    "type": "table",
+    "title": "Tank vs tankless at a glance",
+    "purpose": "Show the main differences side by side so the reader can scan them after reading the details.",
+    "placement": "Lifespan, space and maintenance",
+    "inputs": [],
+    "outputs": [],
+    "data": "Columns: Factor, Tank, Tankless. Rows from Remodel Cost Calculator [8], with the source named in a caption: Total installed cost $800 to $2,000 vs $2,500 to $6,000; Lifespan 10 to 15 years vs 20 to 25 years; Annual operating cost (gas) $280 to $480 vs $200 to $360; Annual operating cost (electric) $500 to $700 vs $370 to $520; Floor space about 5 to 7 sq ft (large unit) vs about 2 sq ft (wall-mounted); Standby loss 10 to 30 percent of energy use vs near zero; Recovery time 30 to 60 minutes for a full reheat vs continuous.",
+    "why": "Seven factors across two options are easier to compare in a grid than in paragraphs, and the reader can use it when talking to a plumber."
+   },
+   {
+    "type": "quiz",
+    "title": "Which water heater leans your way?",
+    "purpose": "Help the reader see whether a tank, a tankless or a conversation with a plumber is the best next step.",
+    "placement": "Which one fits your home",
+    "inputs": [
+     "How many people live in your home? (one to three, four or more)",
+     "Do you often run hot water in more than one place at once, such as a shower and a dishwasher?",
+     "Do you have natural gas service, or is your home all electric?",
+     "Is your current heater failing, or are you planning ahead?",
+     "Do you want to free up floor space?"
+    ],
+    "outputs": [
+     "Leans tank: fewer people, moderate demand, same fuel, lowest upfront cost [8].",
+     "Leans tankless: natural gas, heavy or overlapping demand, a failing tank, a wish for space [7][8].",
+     "Talk to a plumber first: all electric home with electrical upgrade questions, or more than one answer pointing each way [7][8]."
+    ],
+    "data": "Scoring logic comes from Remodel Cost Calculator's tank and tankless guidance [8], Consumer Reports on single-use demand and gas versions [7], and the Consumer Reports simultaneous-use example [6]. The result links to the contact page.",
+    "why": "The reader's own household facts decide the answer, and a short quiz applies the source guidance to them faster than reading two lists."
+   }
+  ],
+  "images": [
+   {
+    "placement": "How tank and tankless water heaters work",
+    "shows": "A tank heater with stored hot water next to a tankless unit heating water as it flows, with labels for storage, burner or element, and heat exchanger.",
+    "alt": "Side-by-side drawing of a tank water heater holding stored water and a wall-mounted tankless unit heating water as it passes through.",
+    "kind": "comparison"
+   },
+   {
+    "placement": "What each one costs to buy and install",
+    "shows": "Installed cost ranges for tank and tankless water heaters, with the source named.",
+    "alt": "Bar chart comparing installed cost ranges for a tank and a tankless water heater.",
+    "kind": "chart",
+    "numbers": "Tank installed: $800 to $2,000; Tankless installed: $2,500 to $6,000",
+    "sources": [
+     8
+    ]
+   },
+   {
+    "placement": "Running costs and energy use",
+    "shows": "Yearly operating cost ranges for gas and electric versions of each type.",
+    "alt": "Bar chart of yearly operating cost ranges for gas and electric tank and tankless water heaters.",
+    "kind": "chart",
+    "numbers": "Gas tank: $280 to $480 per year; Gas tankless: $200 to $360 per year; Electric tank: $500 to $700 per year; Electric tankless: $370 to $520 per year",
+    "sources": [
+     8
+    ]
+   },
+   {
+    "placement": "Plan before your water heater fails",
+    "shows": "Things to gather before you call a plumber: heater age, fuel type, tank size, available space, number of people and what runs together.",
+    "alt": "Checklist of details to have ready when you call a plumber about a new water heater.",
+    "kind": "checklist"
+   }
+  ],
+  "examples": [],
+  "checks": [
+   "Austin water hardness and how it affects descaling or sediment (sources only say hard water and sediment affect heaters, not Austin specifics).",
+   "Current Austin Energy, Austin Water or utility rebates for water heaters and heat pump models.",
+   "Typical Austin installed prices, since the sources give national ranges and Brightwater Plumbing's own prices on the pricing page.",
+   "Whether Brightwater Plumbing installs tankless and heat pump water heaters, and in which fuel types, before the CTA promises it.",
+   "Common installation locations in Austin homes, such as garages and attics, and any local code needs.",
+   "Whether gas service is common in the reader's Austin neighborhood, which affects the gas versus electric advice.",
+   "Source 6 is from January 2019, so the $100 a year savings claim and the 90 percent emergency figure may be dated.",
+   "Department of Energy rule status: source 2 says enforcement is delayed until October 6, 2027 pending legal challenges, and source 7 says the 2024 standards are under threat of reversal. Confirm before mentioning.",
+   "Lifespan and efficiency figures differ between sources, and the AI answers give 8 to 12 years for tanks. Use the sourced ranges and name each source."
+  ],
+  "research": {
+   "sources": [
+    {
+     "n": 1,
+     "url": "https://www.hotwater.com/info-center/tankless-vs-tank-water-heaters.html",
+     "title": "Tankless Water Heater vs Standard Tank: Which Is Best for You? | A. O. Smith",
+     "domain": "hotwater.com",
+     "kind": "serp",
+     "position": 1,
+     "words": 1681
+    },
+    {
+     "n": 2,
+     "url": "https://www.bradfordwhite.com/",
+     "title": "Home",
+     "domain": "bradfordwhite.com",
+     "kind": "serp",
+     "position": 3,
+     "words": 1034
+    },
+    {
+     "n": 3,
+     "url": "https://www.marrsheating.com/the-water-heater-debate-should-you-get-a-tankless-or-tank-water-heater/",
+     "title": "The Water Heater Debate: Tankless or Tank Water Heater? | Marr's",
+     "domain": "marrsheating.com",
+     "kind": "serp",
+     "position": 4,
+     "words": 1209
+    },
+    {
+     "n": 4,
+     "url": "https://www.synergycompanies.com/post/understanding-tankless-vs-tank-water-heaters",
+     "title": "Understanding Tankless vs. Tank Water Heaters: How Do They Work?",
+     "domain": "synergycompanies.com",
+     "kind": "serp",
+     "position": 5,
+     "words": 899
+    },
+    {
+     "n": 5,
+     "url": "https://www.buddsplumbing.com/",
+     "title": "Plumber & HVAC Cape May County NJ",
+     "domain": "buddsplumbing.com",
+     "kind": "serp",
+     "position": 7,
+     "words": 250
+    },
+    {
+     "n": 6,
+     "url": "https://www.consumerreports.org/appliances/water-heaters/tankless-water-heaters-vs-storage-tank-water-heaters-a5291982593",
+     "title": "Tankless Water Heaters vs. Storage Tank Water Heaters - Consumer Reports",
+     "domain": "consumerreports.org",
+     "kind": "ai",
+     "position": null,
+     "words": 2644
+    },
+    {
+     "n": 7,
+     "url": "https://www.consumerreports.org/appliances/water-heaters/buying-guide",
+     "title": "Save Money with an Energy-Efficient Water Heater - Consumer Reports",
+     "domain": "consumerreports.org",
+     "kind": "ai",
+     "position": null,
+     "words": 2612
+    },
+    {
+     "n": 8,
+     "url": "https://remodelcostcalc.com/blog/tank-vs-tankless-water-heater.html",
+     "title": "Tank vs Tankless Water Heater: Full Cost Comparison 2026 | Remodel Cost Calculator",
+     "domain": "remodelcostcalc.com",
+     "kind": "ai",
+     "position": null,
+     "words": 2266
+    }
+   ],
+   "questions": [
+    "Why do plumbers not recommend tankless water heaters?",
+    "What are the downsides to a tankless water heater?",
+    "Can I replace my 40 gallon water heater with a tankless water heater?",
+    "Why do people still use tank water heaters?"
+   ],
+   "engines": [
+    "ChatGPT",
+    "Gemini",
+    "AI Mode"
+   ],
+   "topPages": "The top pages are comparison guides and manufacturer or contractor pages of roughly 900 to 2,600 words. They cover how each type works, initial cost, installation, operating cost, performance, lifespan and maintenance, usually with pros and cons lists. A. O. Smith adds a myths section and Consumer Reports adds lab testing and payback time. Few offer local guidance, and the manufacturer pages lean toward their own products.",
+   "aiAnswers": "ChatGPT, Gemini and Google AI Mode all say neither type is always better: tankless wins on efficiency, lifespan and space, while tank wins on upfront cost and simple replacement. They show side-by-side tables with install cost, lifespan, hot water supply and maintenance. The cited sources are Consumer Reports, the Department of Energy and Remodel Cost Calculator."
+  },
+  "model": "claude-sonnet-5-5",
+  "at": "2026-11-13T10:05:29.495Z"
+ },
+ "sections": [
+  {
+   "key": "intro",
+   "h2": "",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Your water heater is getting old, or it just stopped working, and now you have to pick a replacement. The big question is whether a tank or a tankless unit fits your home better.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "In this guide, we compare **tankless vs tank water heater** options in plain words, using numbers from [Consumer Reports](https://www.consumerreports.org/appliances/water-heaters/buying-guide), [A. O. Smith](https://www.hotwater.com/info-center/tankless-vs-tank-water-heaters.html) and other sources we name along the way.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "We look at these four things, then give you a simple way to choose:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "What each type costs to buy and install.",
+      "What each type costs to run.",
+      "How much hot water each type gives you.",
+      "How much space each type needs."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "As you read, think about who lives in your home and what you use hot water for at the same time, because your daily habits will shape your choice as much as the price tag will.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-0",
+   "h2": "How tank and tankless water heaters work",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "A **tank water heater** is an appliance that stores hot water in an insulated tank so it's ready when you open a tap. A **tankless water heater**, also called an on-demand heater, heats water only as it flows through the unit. If you'd like a broader overview first, you can read [our water heater guide](https://brightwaterplumbing.example/blog/water-heater-guide).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Tank water heaters",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A tank unit keeps water in a large, insulated tank that [holds 20 to 80 gallons](https://www.synergycompanies.com/post/understanding-tankless-vs-tank-water-heaters). A thermostat watches the temperature and tells the gas burner or electric elements when to turn on and off.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Two things happen inside the tank that affect how it works and what it costs you in energy:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Cold water enters at the bottom of the tank, heats up, and leaves from the top when you open a hot tap, as [Synergy explains](https://www.synergycompanies.com/post/understanding-tankless-vs-tank-water-heaters).",
+      "The tank has to reheat whenever the stored water cools, a process called standby heat loss, which [uses energy even when nobody is running a tap](https://www.synergycompanies.com/post/understanding-tankless-vs-tank-water-heaters)."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Tankless water heaters",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A tankless unit has no stored supply. When you turn on a hot tap, [water passes through a gas burner or an electric element and is heated as it flows](https://www.hotwater.com/info-center/tankless-vs-tank-water-heaters.html). Gas versions use a heat exchanger to pass heat into the water, as [Consumer Reports describes](https://www.consumerreports.org/appliances/water-heaters/buying-guide).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "These units only run when you call for hot water, and you can get them in [electric or gas versions](https://www.hotwater.com/info-center/tankless-vs-tank-water-heaters.html).",
+      "Most models can [heat water up to about 140 degrees Fahrenheit](https://www.marrsheating.com/the-water-heater-debate-should-you-get-a-tankless-or-tank-water-heater/)."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Thankfully, both types do the same job and differ mostly in cost, flow and space, which is where you'll feel the difference in daily use.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-1",
+   "h2": "What each one costs to buy and install",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Prices vary from one source to the next, so we'll show you each range and name where it comes from.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "[A. O. Smith](https://www.hotwater.com/info-center/tankless-vs-tank-water-heaters.html) lists tank units at $300 to $2,000 and tankless units at $1,000 to $3,000.",
+      "[Remodel Cost Calculator](https://remodelcostcalc.com/blog/tank-vs-tankless-water-heater.html) lists installed prices of $800 to $2,000 for a tank and $2,500 to $6,000 for tankless."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Tankless installs usually cost more because the home often needs upgrades first. Remodel Cost Calculator lists these common add-ons:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "A gas line upgrade costs about $300 to $1,000.",
+      "A stainless venting kit costs about $200 to $500.",
+      "An electrical upgrade for electric units costs about $500 to $1,500."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Whole-home electric tankless units can need 120 to 150 amps of dedicated capacity, which can mean a panel upgrade in older homes, according to [Remodel Cost Calculator](https://remodelcostcalc.com/blog/tank-vs-tankless-water-heater.html).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Consumer Reports](https://www.consumerreports.org/appliances/water-heaters/tankless-water-heaters-vs-storage-tank-water-heaters-a5291982593) says switching to tankless is no easy swap, because it can require a plumbing retrofit and an upgrade to your electric service or gas lines.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Thankfully, rebates and tax incentives may lower the overall cost, as [A. O. Smith](https://www.hotwater.com/info-center/tankless-vs-tank-water-heaters.html) points out, so ask your plumber which ones apply right now. You can also see [what Brightwater Plumbing charges for water heater work](https://brightwaterplumbing.example/pricing) and read about our [water heater installation](https://brightwaterplumbing.example/services/water-heaters) service.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-2",
+   "h2": "Running costs and energy use",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Tank heaters keep a full tank hot all day, so they reheat the stored water whenever it cools. This is called standby heat loss, and [Synergy](https://www.synergycompanies.com/post/understanding-tankless-vs-tank-water-heaters) explains that it means a tank uses energy even when nobody is running a tap. [Remodel Cost Calculator](https://remodelcostcalc.com/blog/tank-vs-tankless-water-heater.html) puts that loss at 10 to 30 percent of a tank's energy use.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Citing the Department of Energy, [Remodel Cost Calculator](https://remodelcostcalc.com/blog/tank-vs-tankless-water-heater.html) says they are 24 to 34 percent more efficient than tank units. Here are the yearly operating costs it lists for an average family:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "A gas tank heater costs about $280 to $480 a year to run, while a gas tankless unit costs about $200 to $360.",
+      "An electric tank heater costs about $500 to $700 a year, while an electric tankless unit costs about $370 to $520."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Fuel matters too. [Consumer Reports](https://www.consumerreports.org/appliances/water-heaters/buying-guide) says gas water heaters generally cost about half as much to run as electric ones, and that heating water makes up roughly 18 percent of a household's energy use.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Honestly, the yearly savings from tankless are modest. [Consumer Reports](https://www.consumerreports.org/appliances/water-heaters/tankless-water-heaters-vs-storage-tank-water-heaters-a5291982593) expects at least $100 a year, and [A. O. Smith](https://www.hotwater.com/info-center/tankless-vs-tank-water-heaters.html) warns that a tankless heater does not pay for itself right away. Because the higher purchase price takes time to earn back, you'll want to think about how long you plan to stay in your home.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-3",
+   "h2": "Hot water supply and flow rate",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "A tank heater hands you hot water the moment you open the tap, since it keeps a supply stored and ready. [Marr's](https://www.marrsheating.com/the-water-heater-debate-should-you-get-a-tankless-or-tank-water-heater/) explains that a big load can empty the tank, and you then wait for it to refill and reheat.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Remodel Cost Calculator](https://remodelcostcalc.com/blog/tank-vs-tankless-water-heater.html) puts a full reheat at 30 to 60 minutes.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A tankless unit does not run out of hot water, but it can only heat so much at one time. [Synergy](https://www.synergycompanies.com/post/understanding-tankless-vs-tank-water-heaters) notes that this flow rate limit can be an issue for larger households with several hot water needs at once.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Remodel Cost Calculator](https://remodelcostcalc.com/blog/tank-vs-tankless-water-heater.html) describes the same limit as endless hot water that is capped by flow rate.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "For example, [Consumer Reports](https://www.consumerreports.org/appliances/water-heaters/tankless-water-heaters-vs-storage-tank-water-heaters-a5291982593) says you might not be able to run the dishwasher and the washing machine while someone is taking a shower. Here are the things that decide how a tankless unit will feel in your home:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "How many fixtures and appliances call for hot water at the same moment.",
+      "How cold the water is when it enters the unit, since plumber Geno Caccia tells [Consumer Reports](https://www.consumerreports.org/appliances/water-heaters/tankless-water-heaters-vs-storage-tank-water-heaters-a5291982593) that the colder the water coming in, the longer it takes to heat."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "O. Smith](https://www.hotwater.com/info-center/tankless-vs-tank-water-heaters.html) lists this as one of the common myths about tankless heaters.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Thankfully, a busy household has options. [A. O. Smith](https://www.hotwater.com/info-center/tankless-vs-tank-water-heaters.html) says that depending on the size of your home you might install more than one tankless unit.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Marr's](https://www.marrsheating.com/the-water-heater-debate-should-you-get-a-tankless-or-tank-water-heater/) says you can also use more than one tank heater to keep up with demand.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-4",
+   "h2": "Lifespan, space and maintenance",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Lifespan is one place where the two types differ clearly. [Remodel Cost Calculator](https://remodelcostcalc.com/blog/tank-vs-tankless-water-heater.html) lists 10 to 15 years for a tank heater and 20 to 25 years for a tankless one, while [Synergy](https://www.synergycompanies.com/post/understanding-tankless-vs-tank-water-heaters) gives up to 20 years for tankless.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Consumer Reports](https://www.consumerreports.org/appliances/water-heaters/buying-guide) says most tankless units last at least 20 years.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Space in your home",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Remodel Cost Calculator lists about 5 to 7 square feet of floor space for a large tank unit and about 2 square feet for a wall-mounted tankless heater.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[A. O.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Maintenance for each type",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Both types need some care, and here's how it breaks down:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Consumer Reports says a tankless heater needs descaling and flushing every one to two years.",
+      "Bradford White's blog topics point to [sediment buildup and hard water](https://www.bradfordwhite.com/) as things that affect how well a heater runs."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Do you plan to stay in your home for the next 15 or 20 years? Your answer helps you decide whether a longer lifespan is worth the extra care that tankless maintenance asks for.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-5",
+   "h2": "Which one fits your home",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Your household, your fuel, your space and your timeline all help point toward one type or the other. [Remodel Cost Calculator](https://remodelcostcalc.com/blog/tank-vs-tankless-water-heater.html) says most homes do well with one of two paths, and Consumer Reports adds a few useful details.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "To start, count how many people live in your home, then picture a busy morning and ask yourself what runs at the same time.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "When a tank is the better fit",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Remodel Cost Calculator](https://remodelcostcalc.com/blog/tank-vs-tankless-water-heater.html) suggests sticking with a tank when you already have one, your hot water demand is moderate at one to three people, and the fuel type stays the same.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "You get plenty of hot water at once, until the tank runs out, as [Synergy](https://www.synergycompanies.com/post/understanding-tankless-vs-tank-water-heaters) explains."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "When tankless is the better fit",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Remodel Cost Calculator](https://remodelcostcalc.com/blog/tank-vs-tankless-water-heater.html) suggests tankless when your tank is failing, you have natural gas, you have several hot water demands at once, or you want the floor space back. [Consumer Reports](https://www.consumerreports.org/appliances/water-heaters/buying-guide) adds that tankless suits people who don't run more than one hot water use at a time, and that gas versions fit homes that already heat water with gas.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "You get a longer life, lower running costs and a smaller footprint, according to [Consumer Reports](https://www.consumerreports.org/appliances/water-heaters/buying-guide) and [Synergy](https://www.synergycompanies.com/post/understanding-tankless-vs-tank-water-heaters).",
+      "You get the best value when you plan to stay in your home long enough to earn back the extra cost, as [A. O. Smith](https://www.hotwater.com/info-center/tankless-vs-tank-water-heaters.html) and [Remodel Cost Calculator](https://remodelcostcalc.com/blog/tank-vs-tankless-water-heater.html) both point out."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Keep in mind that an electric tankless unit can need an expensive electrical upgrade, as [Consumer Reports](https://www.consumerreports.org/appliances/water-heaters/buying-guide) and [Remodel Cost Calculator](https://remodelcostcalc.com/blog/tank-vs-tankless-water-heater.html) both note. Do you usually run the shower and the dishwasher together? If you do, that's a good reason to talk through your options with a plumber before you choose.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-6",
+   "h2": "A third option: the heat pump water heater",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "A heat pump water heater is a type of water heater that looks like a tank heater but adds a heat pump that pulls heat from the surrounding air to warm the water. [Consumer Reports](https://www.consumerreports.org/appliances/water-heaters/buying-guide) explains that this design makes the units taller than standard tanks, so they generally need a larger space or proper venting.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how the sources describe it:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "[Remodel Cost Calculator](https://remodelcostcalc.com/blog/tank-vs-tankless-water-heater.html) lists a heat pump tank unit at $1,500 to $2,500 and says it can cut electric water heating bills by 60 to 70 percent.",
+      "[A. O. Smith](https://www.hotwater.com/info-center/tankless-vs-tank-water-heaters.html), a water heater manufacturer, says its heat pump models use 70 percent less electricity than standard electric tank water heaters.",
+      "[Consumer Reports](https://www.consumerreports.org/appliances/water-heaters/buying-guide) says heat pump models are much more efficient than standard tanks but cost more up front."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "As you can see, the savings figures come from different sources and aren't identical, so treat them as a general range that may differ in your home. The higher price takes time to earn back, much like it does with a tankless unit.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If your heater is electric and you have a little extra room, ask your plumber whether a heat pump model fits your space.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-7",
+   "h2": "Plan before your water heater fails",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "When your water heater is old, it helps to know that [Consumer Reports](https://www.consumerreports.org/appliances/water-heaters/tankless-water-heaters-vs-storage-tank-water-heaters-a5291982593) cites the American Council for an Energy-Efficient Economy, which says 90 percent of water heater installations happen in an emergency. That leaves very little time to compare options or ask questions.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Thankfully, a little planning gives you more choices. [Consumer Reports](https://www.consumerreports.org/appliances/water-heaters/buying-guide) advises you not to wait for a leak or a flood before you shop for a replacement.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Bradford White is a water heater manufacturer that makes tank, tankless and heat pump models for homes and businesses. [Bradford White says](https://www.bradfordwhite.com/) its products are sold through plumbing professionals, and that a pro should recommend and install your heater.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's what to gather before you call a plumber, so the first conversation goes faster:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "The age of your current water heater, which is often printed on the label.",
+      "Your fuel type, such as natural gas or electric.",
+      "The size of your tank, if you have one.",
+      "The space around the heater and where it sits in your home.",
+      "The number of people who live in your house.",
+      "What tends to run at the same time, such as showers, the dishwasher and the washing machine."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If your heater is already leaking or has stopped working, you can reach our [emergency plumbing service](https://brightwaterplumbing.example/services/emergency). If it still works, you have time to compare your options.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Not sure which water heater fits your home? [Contact Brightwater Plumbing](https://brightwaterplumbing.example/contact) and we'll look at your space, fuel and hot water use with you, then give you a clear quote before any work starts.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "faq",
+   "h2": "Frequently asked questions",
+   "blocks": [
+    {
+     "type": "h3",
+     "text": "Why do some plumbers not recommend tankless water heaters?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Tankless installs can cost more, may need [gas, venting or electrical upgrades](https://remodelcostcalc.com/blog/tank-vs-tankless-water-heater.html), and can [struggle when several fixtures run at once](https://www.consumerreports.org/appliances/water-heaters/buying-guide). Tankless units work well in the right home, and [Consumer Reports notes](https://www.consumerreports.org/appliances/water-heaters/tankless-water-heaters-vs-storage-tank-water-heaters-a5291982593) that switching can need extra plumbing and utility work.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What are the downsides of a tankless water heater?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "The purchase and installation cost is higher, and [Remodel Cost Calculator lists installed prices](https://remodelcostcalc.com/blog/tank-vs-tankless-water-heater.html) of $2,500 to $6,000.",
+      "The unit has a flow rate limit, so running a shower and a dishwasher together can [strain it](https://www.consumerreports.org/appliances/water-heaters/buying-guide).",
+      "Consumer Reports says it needs [descaling and flushing every one to two years](https://www.consumerreports.org/appliances/water-heaters/buying-guide)."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Can I replace my 40 gallon water heater with a tankless one?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You can, although the switch is more than a simple swap, since [Consumer Reports says](https://www.consumerreports.org/appliances/water-heaters/tankless-water-heaters-vs-storage-tank-water-heaters-a5291982593) it can need a plumbing retrofit and a gas or electrical upgrade. [Remodel Cost Calculator prices those items](https://remodelcostcalc.com/blog/tank-vs-tankless-water-heater.html) separately, so we suggest having a plumber check your fuel, venting and capacity before you decide.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Why do people still choose tank water heaters?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here are the reasons that come up most often:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Tanks cost less up front, as [Remodel Cost Calculator explains](https://remodelcostcalc.com/blog/tank-vs-tankless-water-heater.html), especially when you keep the same fuel.",
+      "You get a large supply of hot water ready at once until the tank runs out, according to [Marr's](https://www.marrsheating.com/the-water-heater-debate-should-you-get-a-tankless-or-tank-water-heater/)."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "How long do tank and tankless water heaters last?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Remodel Cost Calculator lists](https://remodelcostcalc.com/blog/tank-vs-tankless-water-heater.html) 10 to 15 years for a tank and 20 to 25 years for a tankless unit, and [Consumer Reports adds](https://www.consumerreports.org/appliances/water-heaters/buying-guide) that most tankless units last at least 20 years.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Is a tankless water heater really cheaper to run?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Usually yes, since [Remodel Cost Calculator shows](https://remodelcostcalc.com/blog/tank-vs-tankless-water-heater.html) lower yearly operating costs for tankless in both gas and electric versions. The savings are modest, though, because [Consumer Reports estimates](https://www.consumerreports.org/appliances/water-heaters/tankless-water-heaters-vs-storage-tank-water-heaters-a5291982593) at least $100 a year, while [A. O. Smith warns](https://www.hotwater.com/info-center/tankless-vs-tank-water-heaters.html) that tankless does not pay for itself right away.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you would like help working out which type fits your home, [contact Brightwater Plumbing](https://brightwaterplumbing.example/contact) and we'll walk through your options with you.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  }
+ ],
+ "cut": [
+  {
+   "id": "4.5.i2",
+   "why": "Distance from the unit to the faucet affecting tankless performance is not stated in any source."
+  },
+  {
+   "id": "4.6.0",
+   "why": "The claim that tankless is not instant because pipe water must clear is not stated in the sources; A. O. Smith's myth heading does not give that explanation."
+  },
+  {
+   "id": "5.4.2",
+   "why": "Freeing up a utility room or closet is not stated in the sources."
+  },
+  {
+   "id": "6.3.1",
+   "why": "Marr's says tank heaters are inexpensive to purchase, install and maintain, but this is acceptable; however the attributed claim about easy swap in 6.4.i0 is partly unsupported (see that item)."
+  },
+  {
+   "id": "6.4.i0",
+   "why": "Remodel Cost Calculator source text shown does not say lowest upfront cost and easy swap when fuel stays the same in these terms beyond the quick-answer text; keep only if supported, otherwise narrow."
+  },
+  {
+   "id": "9.9.i1",
+   "why": "Marr's says tanks hook up easily to existing gas lines, not that replacement is generally an easier job with little need for upgrades; overstated."
+  },
+  {
+   "id": "5.7.i2",
+   "why": "Advice that tank owners can ask a plumber about sediment at the same visit is unsupported; minor but presents a service detail not in sources."
+  },
+  {
+   "id": "1.3.0",
+   "why": "Marr's says 80 gallons for more than five people and about 30 gallons for one to two people; acceptable, but the 'more than 80' phrasing slightly misstates 'more than 80 gallons for a household of more than five' and is fine; no cut needed beyond this note."
+  },
+  {
+   "id": "7.1.0",
+   "why": "Claiming two sources point to heat pump as the efficiency leader is only partly supported; Remodel Cost Calculator and Consumer Reports do, but 'less attention' framing is an unsupported claim about other pages."
+  },
+  {
+   "id": "9.3.0",
+   "why": "Lead-in is fine, but list items below depend on unsupported specifics; see 9.4.i1."
+  },
+  {
+   "id": "9.4.i1",
+   "why": "Gas line, venting or electrical upgrade adding to the bill is supported, but no source is attached; kept only if sourced."
+  },
+  {
+   "id": "2.0.1",
+   "why": "Claim that some ranges cover the unit only while others include installation is an inference; A. O. Smith's ranges do not state this clearly."
+  },
+  {
+   "id": "3.1.0",
+   "why": "Fine, no cut."
+  }
+ ],
+ "styleLeft": [
+  {
+   "id": "0.1.1",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "2.6.0",
+   "rule": "adverbs",
+   "before": "\"thankfully\" used twice",
+   "after": null
+  },
+  {
+   "id": "2.6.1",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "2.6.0",
+   "rule": "paragraphs",
+   "before": "a long paragraph",
+   "after": null
+  },
+  {
+   "id": "3.3.0",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "3.4.2",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "3.4.0",
+   "rule": "paragraphs",
+   "before": "a long paragraph",
+   "after": null
+  },
+  {
+   "id": "4.6.1",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "4.7.0",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "4.7.0",
+   "rule": "adverbs",
+   "before": "\"thankfully\" used twice",
+   "after": null
+  },
+  {
+   "id": "4.7.1",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "4.7.2",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "4.7.0",
+   "rule": "paragraphs",
+   "before": "a long paragraph",
+   "after": null
+  },
+  {
+   "id": "5.4.0",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "5.4.1",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "8.1.0",
+   "rule": "adverbs",
+   "before": "\"thankfully\" used twice",
+   "after": null
+  },
+  {
+   "id": "9.13.2",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "9.13.0",
+   "rule": "paragraphs",
+   "before": "a long paragraph",
+   "after": null
+  }
+ ],
+ "modules": [
+  {
+   "status": "ok",
+   "error": null
+  },
+  {
+   "status": "dropped",
+   "error": "It loads an outside file."
+  }
+ ]
+}

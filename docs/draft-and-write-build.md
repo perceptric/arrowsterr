@@ -67,16 +67,40 @@ Older briefs have no cards. `cardsFrom(brief)` builds plain cards from `outline`
 
 ## 3. Build order
 
-Seven phases, about 7.5 weeks for one engineer. Each phase ships on its own and leaves the writer working.
+Seven phases, about 8 weeks for one engineer. Each phase ships on its own and leaves the writer working.
 
 ### Phase 0. Recorded topics (0.5 week)
 
 Every later step is tested offline on real research.
 
-1. `scripts/writer-record.mjs` records the research pack for 20 keywords across 5 kinds of site (SaaS, store, agency, local, publisher) into `tests/fixtures/writer/`.
-2. Record the current writer's output on the same 20, as the baseline to beat.
+1. `scripts/writer-record.mjs` records the research for 20 keywords across 5 kinds of site (SaaS, store, agency, local, publisher) into `tests/fixtures/writer/<slug>.json.gz`. The topics and their made-up brands are in `tests/fixtures/writer/topics.mjs`. It runs the app's own research steps: Google's top 10 with People Also Ask and the AI Overview, ChatGPT, Gemini and AI Mode asked the keyword as a question, and every page read in Chromium with the worker's own reader (a test keeps the two copies the same). About $0.02 a topic (check).
+2. `tests/writerFixtures.ts` turns a recorded topic into the same research pack and brand the writer gets in the app (`toPack` in `writerBrief.ts`, now shared with `loadResearch`).
+3. `src/lib/writerScore.ts` measures each article: words, house rule findings left, money, percent and large numbers the research doesn't have, links that are neither sources nor the brand's pages, images planned and modules built.
+4. `scripts/writer-baseline.mjs` runs today's writer (`runBrief`, `runDraft`, same prompts, schemas and limits as `writerServer.ts`) on the 20 topics and saves each article with its score in `tests/fixtures/writer/baseline/`, plus `summary.json`. It needs `ANTHROPIC_API_KEY`, about $16 for all 20 (check). `--fake` checks the wiring for free.
 
-**Done when** the 20 packs load in tests with no network.
+To run the baseline on the VPS with the web app's key, without the key leaving the server: create a one-off Docker project with Hostinger's API (`POST /api/vps/v1/virtual-machines/2139771/docker`) whose service uses `node:22-bookworm-slim`, reads `env_file: /docker/arrowsterr-web/.env`, downloads the branch from `codeload.github.com` at a pinned commit and runs `sh scripts/writer-baseline-run.sh` (set `BASELINE_TOPICS` to run some topics). The results come back in the logs as `RESULT` lines (gzip and base64). Take the project down when it finishes.
+
+Found while running the baseline: Sonnet 5.5 thinks on its own, and on a brief it spent all 12,000 reply tokens thinking and returned no text. Every JSON call now turns thinking off (`claudeRequest.ts`). Sonnet 5.5 takes that as `"between_tools"` and refuses `"disabled"`, and the API's error names the right one, so `claude.ts` learns it per model. A reply that runs out of tokens with no text now fails with that reason, so the job retries.
+
+Found while recording: Google now sends most results as `google.com/goto` links that land on `www.google.com/goto` first, and the app followed only one step. Most top-10 pages fell back to Google's breadcrumb, and a breadcrumb cut short with "..." became a broken address. `fixSerpItems` now follows up to 3 steps and drops cut-off breadcrumb parts. That fixes article research, the rank tracker, keyword research and briefs.
+
+**Done when** the 20 packs load in tests with no network and the baseline summary is saved. Done November 13, 2026.
+
+**The baseline** (`tests/fixtures/writer/baseline/summary.json`, today's writer with the thinking fix, Claude Sonnet 5.5):
+
+| Measure | Result | What it means for the plan |
+|---|---|---|
+| Articles finished | 20 of 20 | |
+| Words | 2,398 on average | |
+| House rule findings left | 4.6 per article: 59 sentence length, 26 feeling adverbs, 5 paragraph length, 1 dash | Phase 5 (house lint port and fixes) |
+| Money, percent and large numbers with no match in the research | 3 of 248 | The fact notes (Phase 1) tie each number to a quote |
+| Links outside the sources and the brand's pages | 0 | |
+| Images planned | 3.4 per article | Phase 2 plans visuals by rule |
+| Interactive modules | 11 built of 15 planned: 4 dropped (3 loaded an outside file, 1 had broken script) | Phase 3 moves to fixed templates |
+| Time | about 4 minutes an article | |
+| Claude cost | $20.18 for 20, about **$1.01 an article** (check) | Higher than the ~$0.82 in `docs/agentic-writing.md` |
+
+The scorer checks that a number appears somewhere in the research, which is loose. Phase 1's fact notes make it strict (the number has to be in the quote its note cites).
 
 ### Phase 1. Generate draft (1.5 weeks)
 
@@ -161,12 +185,17 @@ New order in `runDraft`, each step saved before the next:
 
 **Done when** on the 20 topics no fact changes through the passes, the lint finds no FAIL and each proof verdict matches a hand check.
 
-### Phase 6. Ready to publish (0.5 week)
+### Phase 6. Ready to publish and tracking (1 week)
 
 1. Meta, schema (FAQ, and HowTo when there's a flowchart), alt text on every image, and the card's internal links in place.
 2. **The gate** sits in the server's publish route, so the button, scheduling, bulk publish and the API all obey it. Hold or an open Detail needed keeps Publish off and lists what's left, each item a link to its line.
 
-**Done when** no path can publish a Hold draft, including a scheduled one.
+3. **Track rank in Traffic.** When the CMS reports the post live, its main keyword (and up to 2 secondary ones) joins the brand's Traffic project for that domain, tagged `Published`. A brand with no project for the domain gets one named "Published posts". The post's row in Drafts and the Calendar then shows its rank, read from `rank_checks` where the URL found is the post's URL.
+4. **Track in AI answers.** The article's main question (the top People Also Ask question, or the H1 asked as a question) joins the brand's Prompts, with the cluster's name as its topic. The post's row shows whether AI answers cite it, read from the prompt's runs.
+5. Both are switches on the Ready card, on by default (`autoTrack` in Settings > Brand). Both are safe to repeat: a second publish adds nothing (`unique (project_id, keyword)` for Traffic, same words for Prompts). When a plan's tracked keyword or prompt limit is full, that step is skipped with one line on the Ready card and a link to the page, and the post still publishes. Nothing already tracked is removed.
+6. Content Opportunities marks the cluster's page as covered once the post is live.
+
+**Done when** no path can publish a Hold draft, including a scheduled one, and publishing a post twice adds its keyword and its question once each.
 
 ---
 
@@ -183,6 +212,8 @@ New order in `runDraft`, each step saved before the next:
 - A rewrite that drops "likely" from a claim is put back.
 - A scheduled publish of a Hold draft is refused.
 - A reload in the middle of Write shows the same sections and visuals.
+- Publishing the same post twice adds its keyword to Traffic once and its question to Prompts once.
+- A full tracked keyword limit skips the Traffic step, and the post still publishes.
 
 ---
 
@@ -223,9 +254,19 @@ Claude Sonnet 5.5 at $2 in and $10 out per million tokens (check). 10 articles a
 | | Beta (50 teams) | Growth (500 teams) |
 |---|---|---|
 | Added a month | **~$120** | **~$1,200** |
-| Writer total with today's ~$0.82 an article | ~$530 | ~$5,300 |
+| Writer total with today's measured ~$1.01 an article (Phase 0 baseline) | ~$625 | ~$6,250 |
 
 This replaces the ~$95 and ~$950 in the plan, which left out the fact notes call.
+
+**Tracking published posts** adds one keyword and one prompt per article. Each counts against the plan's own limits, which the plan prices already cover at full use (`docs/traffic-rank-tracker.md`, `docs/pricing-v5.md`). The new spend is on teams below their limits, and it grows each month as posts add up:
+
+| Line | Each a month | Beta, first month (500 posts) | Growth, first month (5,000 posts) |
+|---|---|---|---|
+| Rank checks | ~$0.07 a keyword (check) | ~$35 | ~$350 |
+| AI answer checks, 6 engines daily | ~$0.36 a prompt (check) | ~$180 | ~$1,800 |
+| **Added in the first month** | | **~$215** | **~$2,150** |
+
+Each later month adds about the same again until teams reach their limits, where it stops.
 
 ---
 
@@ -242,3 +283,4 @@ This replaces the ~$95 and ~$950 in the plan, which left out the fact notes call
 | Shoe finder and calculator | Phase 3 |
 | Claim check, AI-tell review, fact audit, proof | Phase 5 |
 | Ready to publish, Publish and Send to review | Phase 6 |
+| Rank in Traffic and AI answers for each live post | Phase 6 |
