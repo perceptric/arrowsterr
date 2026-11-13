@@ -985,7 +985,6 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
             <ResearchPage key={view.brand.id} sb={sb} auth={auth} view={view} canEdit={canEdit} tool={page as Tool} onTool={(t) => go(t)} seoStart={seoStart}
               refresh={{ paid: Boolean(plan && plan.plan !== "free" && plan.plan !== "trial"), onUpgrade: () => go("billing") }}
               writer={{ open: !plan || plan.limits.writer === "full", onUpgrade: () => go("billing") }}
-              onDrafts={() => go("library")}
               onSeoStarted={() => setSeoStart(null)}
               onSeo={(target, scope) => {
                 setSeoStart({ target, scope });
@@ -1121,7 +1120,7 @@ const NAV: { group: string; icon: string; items: { id: Page; label: string; icon
     icon: "pen",
     items: [
       { id: "keywords", label: "Research", icon: "search", also: ["domain", "gap"] },
-      { id: "opportunities", label: "Content Opportunities", icon: "trend" },
+      { id: "opportunities", label: "Opportunities", icon: "trend" },
       { id: "calendar", label: "Calendar", icon: "calendar" },
     ],
   },
