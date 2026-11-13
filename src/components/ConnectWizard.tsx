@@ -2,6 +2,7 @@
 
 import { track } from "@/lib/analytics";
 import { useEffect, useState } from "react";
+import { CmsLogo } from "./CmsLogo";
 import { CMS_GUIDE } from "@/lib/cmsGuide";
 import { CMS, type CmsConnection, type CmsKind } from "@/lib/cmsTypes";
 import { authorizeUrl, siteAddress, WP_ANSWER_KEY, type WpAnswer } from "@/lib/wpAuthorize";
@@ -234,6 +235,7 @@ export function ConnectWizard({
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {CMS.map((c) => (
               <button key={c.id} type="button" className="zp-wiz-tile" onClick={() => setKind(c.id)}>
+                <CmsLogo kind={c.id} size={40} />
                 <span className="text-[15px] font-medium text-ink">{c.label}</span>
                 <span className="text-[12px] text-muted">{list?.some((x) => x.kind === c.id) ? "Connected" : "Connect"}</span>
               </button>

@@ -350,3 +350,17 @@ html, body { background: var(--v10-canvas) !important; }
 .aw .aw-move.is-up { color: var(--v10-success); }
 .aw .aw-move.is-down { color: var(--v10-danger); }
 .aw .aw-spark.aw-spark--cell { display: block; width: 110px; height: 22px; }
+
+/* ─────────────── Onboarding: one-tap choices (company size and type) ─────────────── */
+:root :is(.aw, #calm) .aw-onb__choice {
+  display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 12px; border-radius: 10px;
+  background: var(--v10-card) !important; border: 1px solid var(--v10-border-strong) !important; font-size: 14px; font-weight: 500; color: var(--v10-ink-2); cursor: pointer;
+}
+:root :is(.aw, #calm) .aw-onb__choice:hover { border-color: var(--v10-muted) !important; color: var(--v10-ink); }
+:root :is(.aw, #calm) .aw-onb__choice.is-on { background: var(--v10-signal-soft) !important; color: var(--v10-signal-strong); border-color: var(--v10-signal) !important; }
+
+/* ─────────────── CMS logos (Sites) ─────────────── */
+:root :is(.aw, #calm) .aw-cms-logo { display: inline-grid; place-items: center; flex: none; border-radius: 10px; background: var(--v10-card); box-shadow: inset 0 0 0 1px var(--v10-border); color: var(--v10-ink-2); overflow: hidden; }
+:root :is(.aw, #calm) .aw-cms-logo img { display: block; object-fit: contain; }
+:root :is(.aw, #calm) .aw-cms-option { display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px 10px; border-radius: 8px; font-size: 14px; font-weight: 500; color: var(--v10-ink); cursor: pointer; }
+:root :is(.aw, #calm) .aw-cms-option:hover, :root :is(.aw, #calm) .aw-cms-option:focus-visible { background: var(--v10-soft); outline: none; }

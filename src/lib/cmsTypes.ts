@@ -15,6 +15,19 @@ export function mayPublish(site: { workspace_id: string; brand_id: string | null
 /** The one-time notice to move sites: only with several brands, while a site the migration assigned is still unmoved. */
 export const showMoveNotice = (brands: number, all: { backfilled?: boolean }[]) => brands > 1 && all.some((c) => c.backfilled);
 
+/** Each CMS's logo, from its own site's icon at 128px. A webhook has no brand, so it draws its own icon. */
+const icon = (domain: string) => `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+export const CMS_LOGO: Record<CmsKind, string | null> = {
+  wordpress: icon("wordpress.org"),
+  webflow: icon("webflow.com"),
+  framer: icon("framer.com"),
+  shopify: icon("shopify.com"),
+  hubspot: icon("hubspot.com"),
+  ghost: icon("ghost.org"),
+  wix: icon("wix.com"),
+  webhook: null,
+};
+
 export type CmsField = { id: string; label: string; placeholder: string; secret?: boolean; optional?: boolean };
 export const CMS: { id: CmsKind; label: string; help: string; fields: CmsField[] }[] = [
   {

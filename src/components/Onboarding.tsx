@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { MUSINGS } from "@/lib/musings";
 import { DinoGame } from "./DinoGame";
-import { flatPrompts, type Brand, type Profile, type Topic } from "@/lib/db";
+import { flatPrompts, type Brand, type BusinessType, type Profile, type Topic } from "@/lib/db";
 import { ANGLES, BUSINESS_TYPES, MAX_PROMPTS, TOPIC_KINDS, type Angle, type PickedTopic } from "@/lib/onboarding";
 import type { RunAuth } from "@/lib/runner";
 import { BrandLogo } from "./BrandLogo";
@@ -14,12 +14,22 @@ import { Logo } from "./Logo";
 import { Thinking } from "./ui";
 
 export type NewBrand = Omit<Brand, "id" | "workspace_id" | "daily">;
-type Step = "you" | "workspace" | "site" | "topics" | "prompts" | "done";
+type Step = "you" | "workspace" | "about" | "site" | "topics" | "prompts" | "done";
 /** A new account's first steps: who they are and what to call the workspace. null skips that step. */
-export type Welcome = { you: { first: string; last: string; role: string } | null; workspace: string | null };
+export type Welcome = { you: { first: string; last: string } | null; workspace: string | null; about: About | null };
+/** Who the person is and what kind of company they work at, asked once at the start. */
+export type About = { role: string; size: string; type: string };
 /** The first check, model by model: answers in so far out of the prompts each one gets. */
 export type Checking = { engine: string; done: number; total: number }[];
 export const ROLES = ["Founder / CEO", "Marketing lead", "SEO or content", "Growth", "Agency", "Developer", "Other"];
+export const COMPANY_SIZES = ["Just me", "2–10", "11–50", "51–200", "201–1,000", "1,000+"];
+export const COMPANY_TYPES: { id: string; label: string; business: BusinessType }[] = [
+  { id: "saas", label: "SaaS", business: "saas" },
+  { id: "ecommerce", label: "Ecommerce", business: "ecommerce" },
+  { id: "agency", label: "Agency", business: "service" },
+  { id: "local", label: "Local business", business: "local" },
+  { id: "other", label: "Other", business: "other" },
+];
 type TopicPick = PickedTopic & { on: boolean };
 type PromptPick = { text: string; angle: Angle; on: boolean };
 type PlanTopic = { name: string; prompts: PromptPick[] };
@@ -85,7 +95,7 @@ export function Onboarding({
   checking?: Checking | null;
   /** First onboarding of a new account: ask for a profile and a workspace name first. */
   welcome?: Welcome;
-  onWelcome?: (w: { you?: { first: string; last: string; role: string }; workspace?: string }) => Promise<void>;
+  onWelcome?: (w: { you?: { first: string; last: string }; workspace?: string; about?: About }) => Promise<void>;
   seo?: boolean; // Starter on Organic Research: no prompts to set up
   promptRoom?: number; // prompts the workspace's plan still has room for
   engines?: string[]; // AI engines the first check runs on
@@ -112,7 +122,12 @@ export function Onboarding({
   const [playing, setPlaying] = useState(false);
   const [ready, setReady] = useState<Step | null>(null);
   const [leaving, setLeaving] = useState(false);
-  const [step, setStep] = useState<Step>(welcome?.you ? "you" : welcome?.workspace != null ? "workspace" : (saved?.step ?? "site"));
+  // The welcome steps that apply, in order: profile, workspace, then about the company. Then the brand's site.
+  // Kept from the first render: saving a step changes the account, which would otherwise drop it from the list.
+  const [welcomeSteps] = useState(() => ([welcome?.you ? "you" : null, welcome?.workspace != null ? "workspace" : null, welcome?.about ? "about" : null] as (Step | null)[]).filter((x): x is Step => Boolean(x)));
+  const after = (s: Step): Step => welcomeSteps[welcomeSteps.indexOf(s) + 1] ?? saved?.step ?? "site";
+  const stepLabel = (s: Step) => (welcomeSteps.length > 1 ? `Welcome, ${welcomeSteps.indexOf(s) + 1} of ${welcomeSteps.length}` : "Welcome");
+  const [step, setStep] = useState<Step>(welcomeSteps[0] ?? saved?.step ?? "site");
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const [website, setWebsite] = useState(saved?.website ?? "");
@@ -126,6 +141,7 @@ export function Onboarding({
   // The Brand Kit step shows while the research runs. role can change on the first step.
   const [kitOpen, setKitOpen] = useState(false);
   const [role, setRole] = useState(kit?.role ?? "");
+  const [companyType, setCompanyType] = useState(welcome?.about?.type ?? "");
   const cap = Math.max(1, promptRoom);
 
   useEffect(() => {
@@ -208,6 +224,10 @@ export function Onboarding({
       setDomain(d.domain);
       setUrl(d.url);
       setLogo(d.logo);
+      // The person said what kind of company theirs is; on the first brand that beats the research's guess.
+      // Agencies add their clients' brands, so their answer says nothing about the brand.
+      const said = COMPANY_TYPES.find((t) => t.id === companyType);
+      if (said && said.id !== "agency" && kit) d.profile = { ...d.profile, businessType: said.business };
       setProfile(d.profile);
       setTopics((d.topics as PickedTopic[]).map((t) => ({ ...t, on: true })));
       if (seo) {
@@ -262,7 +282,7 @@ export function Onboarding({
     <main className="aw-onb flex min-h-screen flex-col">
       <header className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 border-b border-rule bg-white/95 px-5 py-3 backdrop-blur">
         <Logo size="sm" />
-        {step !== "site" && step !== "you" && step !== "workspace" && !seo ? (
+        {step !== "site" && step !== "you" && step !== "workspace" && step !== "about" && !seo ? (
           <ol className="aw-steps" aria-label="Steps">
             {steps.map((s, i) => (
               <li key={s.id} className={`aw-steps__item ${i === at ? "is-on" : i < at ? "is-done" : ""}`}>
@@ -294,7 +314,7 @@ export function Onboarding({
 
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-4 py-6 sm:px-6">
         {error ? <p className="aw-error">{error}</p> : null}
-        {kitOpen && kit ? <KitStep auth={auth} website={website} agency={role === "Agency"} agencySite={kit.agencySite} onClose={() => setKitOpen(false)} /> : null}
+        {kitOpen && kit ? <KitStep auth={auth} website={website} agency={role === "Agency" || companyType === "agency"} agencySite={kit.agencySite} onClose={() => setKitOpen(false)} /> : null}
         {(busy || ready) && !kitOpen ? (
           <div className="mx-auto w-full max-w-4xl">
             <Thinking text={leaving ? (ready === "done" ? "Opening your brand..." : "Loading your topics...") : ready ? (ready === "done" ? "Setup done" : "Research done") : busy} done={Boolean(ready) && !leaving}>
@@ -313,23 +333,35 @@ export function Onboarding({
 
         {step === "you" && !busy && welcome?.you ? (
           <YouStep
-            step={welcome.workspace != null ? "Welcome · 1 of 2" : "Welcome"}
+            step={stepLabel("you")}
             init={welcome.you}
             onNext={(you) => run("Saving your profile...", async () => {
               await onWelcome?.({ you });
-              setRole(you.role);
-              go(welcome.workspace != null ? "workspace" : (saved?.step ?? "site"));
+              go(after("you"));
             })}
           />
         ) : null}
         {step === "workspace" && !busy && welcome?.workspace != null ? (
           <WorkspaceStep
-            step={welcome.you ? "Welcome · 2 of 2" : "Welcome"}
+            step={stepLabel("workspace")}
             init={welcome.workspace}
             onBack={welcome.you ? () => go("you") : undefined}
             onNext={(name) => run("Creating your workspace...", async () => {
               await onWelcome?.({ workspace: name });
-              go(saved?.step ?? "site");
+              go(after("workspace"));
+            })}
+          />
+        ) : null}
+        {step === "about" && !busy && welcome?.about ? (
+          <AboutStep
+            step={stepLabel("about")}
+            init={welcome.about}
+            onBack={welcomeSteps.indexOf("about") > 0 ? () => go(welcomeSteps[welcomeSteps.indexOf("about") - 1]) : undefined}
+            onNext={(about) => run("Saving...", async () => {
+              await onWelcome?.({ about });
+              setRole(about.role);
+              setCompanyType(about.type);
+              go(after("about"));
             })}
           />
         ) : null}
@@ -466,12 +498,11 @@ function WelcomeCard({ step, title, lead, children, onSubmit }: { step: string; 
   );
 }
 
-function YouStep({ step, init, onNext }: { step: string; init: { first: string; last: string; role: string }; onNext: (v: { first: string; last: string; role: string }) => void }) {
+function YouStep({ step, init, onNext }: { step: string; init: { first: string; last: string }; onNext: (v: { first: string; last: string }) => void }) {
   const [first, setFirst] = useState(init.first);
   const [last, setLast] = useState(init.last);
-  const [role, setRole] = useState(init.role);
   return (
-    <WelcomeCard step={step} title="Create your profile" onSubmit={() => first.trim() && onNext({ first: first.trim(), last: last.trim(), role })}>
+    <WelcomeCard step={step} title="Create your profile" onSubmit={() => first.trim() && onNext({ first: first.trim(), last: last.trim() })}>
       <div className="flex flex-col gap-1.5">
         <span className="aw-label">Name</span>
         <div className="grid grid-cols-2 gap-3">
@@ -479,13 +510,52 @@ function YouStep({ step, init, onNext }: { step: string; init: { first: string; 
           <input value={last} onChange={(e) => setLast(e.target.value)} placeholder="Last name" aria-label="Last name" className="aw-input" />
         </div>
       </div>
+      <button type="submit" className="aw-btn aw-btn--accent aw-btn--lg w-full" disabled={!first.trim()}>
+        Continue
+      </button>
+    </WelcomeCard>
+  );
+}
+
+function AboutStep({ step, init, onBack, onNext }: { step: string; init: About; onBack?: () => void; onNext: (v: About) => void }) {
+  const [role, setRole] = useState(init.role);
+  const [size, setSize] = useState(init.size);
+  const [type, setType] = useState(init.type);
+  const ok = Boolean(role && size && type);
+  return (
+    <WelcomeCard step={step} title="About your company" onSubmit={() => ok && onNext({ role, size, type })}>
       <div className="flex flex-col gap-1.5">
         <span className="aw-label">What&apos;s your role?</span>
         <Dropdown label="Your role" value={role} onChange={setRole} placeholder="Pick one" className="aw-dropdown--field h-11! w-full" options={ROLES.map((r) => ({ id: r, label: r }))} />
       </div>
-      <button type="submit" className="aw-btn aw-btn--accent aw-btn--lg w-full" disabled={!first.trim()}>
+      <div className="flex flex-col gap-1.5">
+        <span className="aw-label">How many people work at your company?</span>
+        <div className="aw-onb__choices grid grid-cols-3 gap-2" role="radiogroup" aria-label="Company size">
+          {COMPANY_SIZES.map((x) => (
+            <button key={x} type="button" role="radio" aria-checked={size === x} className={`aw-onb__choice ${size === x ? "is-on" : ""}`} onClick={() => setSize(x)}>
+              {x}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <span className="aw-label">What kind of company is it?</span>
+        <div className="aw-onb__choices grid grid-cols-2 gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Company type">
+          {COMPANY_TYPES.map((t) => (
+            <button key={t.id} type="button" role="radio" aria-checked={type === t.id} className={`aw-onb__choice ${type === t.id ? "is-on" : ""}`} onClick={() => setType(t.id)}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <button type="submit" className="aw-btn aw-btn--accent aw-btn--lg w-full" disabled={!ok}>
         Continue
       </button>
+      {onBack ? (
+        <button type="button" className="aw-text-link self-start text-muted!" onClick={onBack}>
+          ← Back
+        </button>
+      ) : null}
     </WelcomeCard>
   );
 }

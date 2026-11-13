@@ -50,7 +50,7 @@ ${evidenceText(e)}
 
 Rules:
 - name is the company's short brand name, as people say it. Not the page title.
-- logo is the index of the option most likely to be the main logo. A file or SVG named or placed as the logo beats a favicon or a social image. Use -1 if none fit.
+- logo is the index of the option most likely to be the main logo. ${b.homeLogo ? "Option 0 is the picture in the link to the homepage, so it is the logo." : ""} A file or SVG named or placed as the logo beats a favicon or a social image. Use -1 if none fit.
 - logoOnDark is true only if the logo looks white or light (for example a file named logo-white), so it needs a dark background.
 - colors.primary is the main brand color, the one on buttons and links. colors.secondary is a second brand color that looks good next to it.
 - colors.ink is for headings, colors.text for body copy, colors.muted for small notes. All three must be easy to read on colors.surface (cards) and colors.paper (the page). colors.line is a soft border color.
@@ -68,7 +68,8 @@ Rules:
     KIT_SCHEMA,
     { model: KIT_MODEL, maxTokens: 4000 },
   );
-  const kit = cleanKit({ ...out, logo: pickLogo(out.logo, b.logos) });
+  // The picture in the link to the homepage is the logo; the agent's pick is used only when there is none.
+  const kit = cleanKit({ ...out, logo: b.homeLogo ?? pickLogo(out.logo, b.logos) });
   say({ part: "logo", logo: kit.logo, onDark: kit.logoOnDark });
   return { kit, why: typeof out.why === "string" ? out.why.slice(0, 300) : "" };
 }

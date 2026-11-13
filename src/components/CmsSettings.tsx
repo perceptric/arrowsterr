@@ -5,7 +5,8 @@ import { useEffect, useState } from "react";
 import { CMS, type CmsConnection, type CmsKind } from "@/lib/cmsTypes";
 import type { RunAuth } from "@/lib/runner";
 import { ConnectWizard } from "./ConnectWizard";
-import { Dropdown } from "./Pickers";
+import { CmsLogo } from "./CmsLogo";
+import { Dropdown, Pop, useAnchoredPop } from "./Pickers";
 import { Confirm } from "./reports/Dialog";
 import { post } from "./research/shared";
 
@@ -21,6 +22,7 @@ export function CmsSettings({ auth, isAdmin, brand, brands }: { auth: RunAuth; i
   const [error, setError] = useState("");
   const [done, setDone] = useState("");
   const [removing, setRemoving] = useState<CmsConnection | null>(null);
+  const menu = useAnchoredPop();
 
   useEffect(() => {
     let live = true;
@@ -98,9 +100,12 @@ export function CmsSettings({ auth, isAdmin, brand, brands }: { auth: RunAuth; i
         <ul className="aw-frame flex max-w-2xl flex-col divide-y divide-rule-faint">
           {list.map((c) => (
             <li key={c.id} className="flex items-center justify-between gap-3 px-5 py-3">
-              <span className="flex flex-col">
-                <span className="text-[15px] text-ink">{c.name}</span>
-                <span className="text-[12px] text-muted">{CMS.find((x) => x.id === c.kind)?.label}</span>
+              <span className="flex min-w-0 items-center gap-3">
+                <CmsLogo kind={c.kind} size={44} />
+                <span className="flex min-w-0 flex-col">
+                  <span className="text-[15px] text-ink">{c.name}</span>
+                  <span className="text-[12px] text-muted">{CMS.find((x) => x.id === c.kind)?.label}</span>
+                </span>
               </span>
               {isAdmin ? (
                 <span className="flex items-center gap-3">
@@ -131,12 +136,35 @@ export function CmsSettings({ auth, isAdmin, brand, brands }: { auth: RunAuth; i
       ) : null}
 
       {isAdmin && !setup ? (
-        <div className="flex flex-wrap gap-2">
-          {CMS.map((c) => (
-            <button key={c.id} type="button" className={`aw-chip ${kind === c.id ? "aw-chip--brand" : ""}`} onClick={() => setKind(kind === c.id ? null : c.id)}>
-              + {c.label}
-            </button>
-          ))}
+        <div>
+          <button type="button" className="aw-btn aw-btn--primary inline-flex items-center gap-2" aria-haspopup="menu" aria-expanded={Boolean(menu.anchor)} onClick={(e) => menu.toggle(e.currentTarget)}>
+            Add a site
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true">
+              <path d="M6 9h12l-6 7z" />
+            </svg>
+          </button>
+          {menu.anchor ? (
+            <Pop anchor={menu.anchor} onClose={menu.close} width={320} label="Add a site">
+              <div className="flex flex-col p-1.5" role="menu">
+                {CMS.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    role="menuitem"
+                    className="aw-cms-option"
+                    onClick={() => {
+                      setKind(c.id);
+                      menu.close();
+                    }}
+                  >
+                    <CmsLogo kind={c.id} size={44} />
+                    <span className="flex-1 text-left">{c.label}</span>
+                    {list?.some((x) => x.kind === c.id) ? <span className="aw-status aw-status--ranked">Connected</span> : null}
+                  </button>
+                ))}
+              </div>
+            </Pop>
+          ) : null}
         </div>
       ) : null}
 
