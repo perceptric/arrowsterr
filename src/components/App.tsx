@@ -51,6 +51,7 @@ import { CompetitorsPage } from "./CompetitorsPage";
 import { MembersPage } from "./MembersPage";
 import { isBrandTab, SettingsPage, SETTINGS_TABS, type SettingsTab } from "./SettingsPage";
 import { BrandSettings } from "./BrandSettings";
+import { TrafficProjects } from "./TrafficProjects";
 import { NotificationSettings, ProfileSettings, SecuritySettings } from "./AccountSettings";
 import { AccessSettings, AiSettingsPage, RetentionSettings, TimezoneSetting } from "./WorkspaceSettings";
 import { BrandKitSettings } from "./BrandKit";
@@ -76,7 +77,7 @@ import { shopOn, type ShopMode } from "@/lib/shopDetect";
 import { CONTENT_ALIASES, CONTENT_SLUGS, type ContentPage } from "@/lib/contentRoutes";
 
 export type { Brand } from "@/lib/db";
-type Page = "prompts" | "competitors" | "domains" | "urls" | "shopping" | "traffic" | "visitors" | "keywords" | "domain" | "gap" | ContentPage | "summary" | SettingsTab;
+type Page = "prompts" | "competitors" | "domains" | "urls" | "shopping" | "rank" | "traffic" | "visitors" | "keywords" | "domain" | "gap" | ContentPage | "summary" | SettingsTab;
 const RESEARCH: Page[] = ["keywords", "domain", "gap", "calendar", "opportunities"];
 const VISIBILITY: Page[] = ["prompts", "competitors", "domains", "urls"];
 /** Pages with their own PDF (docs/reports.md, section 32.3). */
@@ -91,7 +92,8 @@ const SLUGS: Record<Page, string> = {
   domains: "/sources",
   urls: "/sources/urls",
   shopping: "/ai-shopping",
-  traffic: "/traffic",
+  rank: "/traffic",
+  traffic: "/analytics",
   visitors: "/visitors",
   keywords: "/research/keywords",
   domain: "/research/domains",
@@ -127,7 +129,6 @@ const ALIASES: Record<string, Page> = {
   "/overview": "prompts",
   "/domains": "domains",
   "/urls": "urls",
-  "/analytics": "traffic",
   "/keyword-research": "keywords",
   "/keywords": "keywords",
   "/research": "keywords",
@@ -964,6 +965,8 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
               }}
               onPlans={() => go("billing")}
             />
+          ) : page === "rank" ? (
+            <TrafficProjects key={ws.id} auth={auth} canEdit={canEdit} brandId={view.brand.id} brandDomain={view.brand.domain} />
           ) : (page as string) === "publishing" ? (
             <div className="flex flex-col gap-5">
               <h1 className="aw-h2">Sites</h1>
@@ -1105,6 +1108,17 @@ const trackOf = (page: Page): Track | null =>
 /** The big modules of the app. Each opens to its own pages. */
 const NAV: { group: string; icon: string; items: { id: Page; label: string; icon: string; also?: Page[] }[] }[] = [
   {
+    group: "Visibility",
+    icon: "radar",
+    items: [
+      { id: "rank", label: "Traffic", icon: "pulse" },
+      { id: "prompts", label: "Prompts", icon: "prompts" },
+      { id: "competitors", label: "Competitors", icon: "competitors" },
+      { id: "domains", label: "Sources", icon: "sources", also: ["urls"] },
+      { id: "shopping", label: "AI Shopping", icon: "bag" },
+    ],
+  },
+  {
     group: "Plan & Create",
     icon: "pen",
     items: [
@@ -1119,16 +1133,6 @@ const NAV: { group: string; icon: string; items: { id: Page; label: string; icon
     items: [
       { id: "calendar", label: "Calendar", icon: "calendar" },
       { id: "publishing", label: "Sites", icon: "globe" },
-    ],
-  },
-  {
-    group: "Monitor",
-    icon: "radar",
-    items: [
-      { id: "prompts", label: "Prompts", icon: "prompts" },
-      { id: "competitors", label: "Competitors", icon: "competitors" },
-      { id: "domains", label: "Sources", icon: "sources", also: ["urls"] },
-      { id: "shopping", label: "AI Shopping", icon: "bag" },
     ],
   },
   {
@@ -1318,44 +1322,46 @@ function Sidebar({
           const collapsed = closedGroups.has(g.group);
           const track = trackOf(g.items[0].id);
           const locked = Boolean(plan && track && !plan.open[track]);
+          const link = (item: (typeof g.items)[number], top = false) => {
+            const on = page === item.id || Boolean(item.also?.includes(page));
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => {
+                  setMenu(false);
+                  onPage(item.id);
+                }}
+                aria-current={on ? "page" : undefined}
+                className={`aw-nav-link ${top ? "aw-nav-link--top" : ""} ${on ? "is-on" : ""}`}
+              >
+                <NavIcon name={item.icon} />
+                <span className="min-w-0 truncate">{item.label}</span>
+              </button>
+            );
+          };
+          // A group of one page with the group's own name is a plain link, like Reports.
+          if (g.items.length === 1 && g.items[0].label === g.group) return <div key={g.group}>{link(g.items[0], true)}</div>;
           return (
-            <div key={g.group} className="flex flex-col gap-0.5">
+            <div key={g.group} className="aw-nav-tree-group">
               <button
                 type="button"
-                className="aw-nav-section"
+                className="aw-nav-group"
                 aria-expanded={!collapsed}
                 onClick={() => setClosedGroups((x) => (x.has(g.group) ? new Set([...x].filter((n) => n !== g.group)) : new Set(x).add(g.group)))}
               >
-                <span className="flex items-center gap-1.5">
-                  {g.group}
-                  {locked ? (
-                    <span className="aw-chip h-4! px-1! text-[10px]!" title="On Pro">
-                      Pro
-                    </span>
-                  ) : null}
-                </span>
-                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" className={`aw-nav-section__chev ${collapsed ? "" : "rotate-90"}`}>
-                  <path d="m9 6 6 6-6 6" />
+                <NavIcon name={g.icon} />
+                <span>{g.group}</span>
+                {locked ? (
+                  <span className="aw-chip h-4! px-1! text-[10px]!" title="On Pro">
+                    Pro
+                  </span>
+                ) : null}
+                <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor" aria-hidden="true" className={`aw-nav-group__caret ${collapsed ? "is-closed" : ""}`}>
+                  <path d="M6 9h12l-6 7z" />
                 </svg>
               </button>
-              {!collapsed
-                ? g.items.map((item) => {
-                    const on = page === item.id || Boolean(item.also?.includes(page));
-                    return (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => {
-                          setMenu(false);
-                          onPage(item.id);
-                        }}
-                        aria-current={on ? "page" : undefined} className={`aw-nav-link ${on ? "is-on" : ""}`}>
-                        <NavIcon name={item.icon} />
-                        <span className="min-w-0 truncate">{item.label}</span>
-                      </button>
-                    );
-                  })
-                : null}
+              {!collapsed ? <div className="aw-nav-tree">{g.items.map((item) => link(item))}</div> : null}
             </div>
           );
         })}

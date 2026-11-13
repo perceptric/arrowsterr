@@ -330,3 +330,23 @@ html, body { background: var(--v10-canvas) !important; }
 .aw .aw-sheet tr.aw-sheet__group.is-open .aw-sheet__toggle svg { transform: rotate(90deg); }
 .aw .aw-sheet .aw-sheet__groupmeta { font-size: 12px; color: var(--aw-muted); }
 @media (prefers-reduced-motion: reduce) { .aw .aw-sheet .aw-sheet__toggle svg { transition: none; } }
+
+/* ─────────────── Sidebar as a tree: each group opens and closes, its pages hang off a guide line ─────────────── */
+:root :is(.aw, #calm) .aw-nav-tree-group { display: flex; flex-direction: column; gap: 2px; margin-top: 6px; }
+:root :is(.aw, #calm) .aw-nav-group {
+  display: flex; align-items: center; gap: 8px; width: 100%; height: 32px; padding: 0 8px; border-radius: 8px;
+  font-size: 13.5px; font-weight: 600; color: var(--v10-ink); text-align: left; cursor: pointer;
+}
+:root :is(.aw, #calm) .aw-nav-group:hover { background: var(--v10-soft); }
+:root :is(.aw, #calm) .aw-nav-group .aw-nav__icon { width: 16px; height: 16px; color: var(--v10-ink-2); flex: none; }
+:root :is(.aw, #calm) .aw-nav-group__caret { color: var(--v10-muted); flex: none; transition: transform 120ms ease; }
+:root :is(.aw, #calm) .aw-nav-group__caret.is-closed { transform: rotate(-90deg); }
+:root :is(.aw, #calm) .aw-nav-tree { display: flex; flex-direction: column; gap: 1px; margin-left: 15px; padding-left: 9px; border-left: 1px solid var(--v10-border); }
+:root :is(.aw, #calm) .aw-nav-link--top { margin-top: 6px; font-weight: 600 !important; color: var(--v10-ink) !important; }
+@media (prefers-reduced-motion: reduce) { :root :is(.aw, #calm) .aw-nav-group__caret { transition: none; } }
+
+/* ─────────────── Traffic: position moves and small trend lines in sheet cells ─────────────── */
+.aw .aw-move { display: inline-flex; align-items: center; gap: 2px; font-family: var(--aw-mono); font-size: 12px; font-variant-numeric: tabular-nums; }
+.aw .aw-move.is-up { color: var(--v10-success); }
+.aw .aw-move.is-down { color: var(--v10-danger); }
+.aw .aw-spark.aw-spark--cell { display: block; width: 110px; height: 22px; }

@@ -31,28 +31,29 @@ export type Plan = {
   reports: Reports;
   alerts: boolean; // Slack, Zapier and the API
   sso: boolean;
+  trackedKeywords: number; // Visibility › Traffic: keywords ranked every day, across every project in the workspace
 };
 
 export const UNLIMITED = 1000;
-const base = { sso: false, engines: null, briefsPerMonth: 0, planMaxKeywords: 120, researchPerMonth: 0, aiPerMonth: 0, draftsPerBrand: 0 } as const;
+const base = { sso: false, engines: null, briefsPerMonth: 0, planMaxKeywords: 120, researchPerMonth: 0, aiPerMonth: 0, draftsPerBrand: 0, trackedKeywords: 100 } as const;
 /** Drafts a brand may start each month on plans with the Agentic Writer (docs/content-v2.md: 10 articles a month). */
 export const DRAFTS_PER_BRAND = 10;
 
 // Pricing v5 (docs/pricing-v5.md). Prices are US dollars a month.
 export const PLANS: Record<PlanId, Plan> = {
   // Free forever: the 2 AIs buyers use most, checked weekly, plus a taste of Organic Research.
-  free: { ...base, id: "free", name: "Free", tagline: "Free forever. See where AI names you.", price: 0, annual: 0, prompts: 10, brands: 1, seats: 1, competitors: 3, historyDays: 30, checkEvery: 7, checkNowPerDay: 0, engines: ["ChatGPT", "AI Overview"], plansPerMonth: 0, planMaxKeywords: 30, tasksPerMonth: 200, pageviewsPerMonth: 10_000, writer: "none", reports: "basic", alerts: false },
+  free: { ...base, id: "free", trackedKeywords: 10, name: "Free", tagline: "Free forever. See where AI names you.", price: 0, annual: 0, prompts: 10, brands: 1, seats: 1, competitors: 3, historyDays: 30, checkEvery: 7, checkNowPerDay: 0, engines: ["ChatGPT", "AI Overview"], plansPerMonth: 0, planMaxKeywords: 30, tasksPerMonth: 200, pageviewsPerMonth: 10_000, writer: "none", reports: "basic", alerts: false },
   // Starter opens one toolset, picked by the customer: AI Visibility or Organic Research. See TRACKS and STARTER.
   foundation: { ...base, id: "foundation", name: "Starter", tagline: "One toolset: AI Visibility or Organic Research", price: 39, annual: 33, prompts: 50, brands: 3, seats: 2, competitors: 10, historyDays: 180, checkEvery: 1, checkNowPerDay: 3, plansPerMonth: 1, tasksPerMonth: 3_000, pageviewsPerMonth: 25_000, writer: "none", reports: "templates", alerts: false },
-  scale: { ...base, id: "scale", name: "Pro", tagline: "Both toolsets, with the Agentic Writer", price: 179, annual: 152, prompts: 150, brands: 10, seats: 5, competitors: 15, historyDays: 365, checkEvery: 1, checkNowPerDay: 10, plansPerMonth: 1, tasksPerMonth: 8_000, pageviewsPerMonth: 250_000, writer: "full", draftsPerBrand: DRAFTS_PER_BRAND, reports: "templates", alerts: true },
-  agency: { ...base, id: "agency", name: "Agency", tagline: "Every client, your brand on the report", price: 499, annual: 424, prompts: 400, brands: UNLIMITED, seats: 15, competitors: 25, historyDays: 730, checkEvery: 1, checkNowPerDay: 30, plansPerMonth: 1, tasksPerMonth: 20_000, pageviewsPerMonth: 2_000_000, writer: "full", draftsPerBrand: DRAFTS_PER_BRAND, reports: "whitelabel", alerts: true },
-  enterprise: { ...base, id: "enterprise", name: "Enterprise", tagline: "Custom volume, security and support", price: 1500, annual: 1500, prompts: 1000, brands: UNLIMITED, seats: UNLIMITED, competitors: 50, historyDays: 1095, checkEvery: 1, checkNowPerDay: 500, plansPerMonth: 1, tasksPerMonth: 150_000, pageviewsPerMonth: 10_000_000, writer: "full", draftsPerBrand: DRAFTS_PER_BRAND, reports: "whitelabel", alerts: true, sso: true },
+  scale: { ...base, id: "scale", trackedKeywords: 300, name: "Pro", tagline: "Both toolsets, with the Agentic Writer", price: 179, annual: 152, prompts: 150, brands: 10, seats: 5, competitors: 15, historyDays: 365, checkEvery: 1, checkNowPerDay: 10, plansPerMonth: 1, tasksPerMonth: 8_000, pageviewsPerMonth: 250_000, writer: "full", draftsPerBrand: DRAFTS_PER_BRAND, reports: "templates", alerts: true },
+  agency: { ...base, id: "agency", trackedKeywords: 1000, name: "Agency", tagline: "Every client, your brand on the report", price: 499, annual: 424, prompts: 400, brands: UNLIMITED, seats: 15, competitors: 25, historyDays: 730, checkEvery: 1, checkNowPerDay: 30, plansPerMonth: 1, tasksPerMonth: 20_000, pageviewsPerMonth: 2_000_000, writer: "full", draftsPerBrand: DRAFTS_PER_BRAND, reports: "whitelabel", alerts: true },
+  enterprise: { ...base, id: "enterprise", trackedKeywords: 5000, name: "Enterprise", tagline: "Custom volume, security and support", price: 1500, annual: 1500, prompts: 1000, brands: UNLIMITED, seats: UNLIMITED, competitors: 50, historyDays: 1095, checkEvery: 1, checkNowPerDay: 500, plansPerMonth: 1, tasksPerMonth: 150_000, pageviewsPerMonth: 10_000_000, writer: "full", draftsPerBrand: DRAFTS_PER_BRAND, reports: "whitelabel", alerts: true, sso: true },
   // No longer sold. Workspaces that bought it keep it.
-  thrive: { ...base, id: "thrive", name: "Thrive", tagline: "", price: 149, annual: 127, prompts: 50, brands: UNLIMITED, seats: 5, competitors: 15, historyDays: 365, checkEvery: 1, checkNowPerDay: 10, plansPerMonth: 1, tasksPerMonth: 20_000, pageviewsPerMonth: 500_000, writer: "full", draftsPerBrand: DRAFTS_PER_BRAND, reports: "templates", alerts: true },
+  thrive: { ...base, id: "thrive", trackedKeywords: 300, name: "Thrive", tagline: "", price: 149, annual: 127, prompts: 50, brands: UNLIMITED, seats: 5, competitors: 15, historyDays: 365, checkEvery: 1, checkNowPerDay: 10, plansPerMonth: 1, tasksPerMonth: 20_000, pageviewsPerMonth: 500_000, writer: "full", draftsPerBrand: DRAFTS_PER_BRAND, reports: "templates", alerts: true },
   // 7 days of Pro with fewer prompts. No card. Then the workspace moves to Free and keeps its data.
-  trial: { ...base, id: "trial", name: "Trial", tagline: "", price: 0, annual: 0, prompts: 25, brands: 3, seats: 3, competitors: 10, historyDays: 180, checkEvery: 1, checkNowPerDay: 5, plansPerMonth: 1, tasksPerMonth: 500, pageviewsPerMonth: 25_000, writer: "full", draftsPerBrand: 3, reports: "templates", alerts: false },
+  trial: { ...base, id: "trial", trackedKeywords: 50, name: "Trial", tagline: "", price: 0, annual: 0, prompts: 25, brands: 3, seats: 3, competitors: 10, historyDays: 180, checkEvery: 1, checkNowPerDay: 5, plansPerMonth: 1, tasksPerMonth: 500, pageviewsPerMonth: 25_000, writer: "full", draftsPerBrand: 3, reports: "templates", alerts: false },
   // Workspaces made before billing existed keep what they had until they pick a plan.
-  legacy: { ...base, id: "legacy", name: "Early access", tagline: "", price: 0, annual: 0, prompts: 50, brands: UNLIMITED, seats: 15, competitors: 25, historyDays: 365, checkEvery: 1, checkNowPerDay: 50, plansPerMonth: 1, tasksPerMonth: 30_000, pageviewsPerMonth: 500_000, writer: "full", draftsPerBrand: DRAFTS_PER_BRAND, reports: "whitelabel", alerts: true },
+  legacy: { ...base, id: "legacy", trackedKeywords: 300, name: "Early access", tagline: "", price: 0, annual: 0, prompts: 50, brands: UNLIMITED, seats: 15, competitors: 25, historyDays: 365, checkEvery: 1, checkNowPerDay: 50, plansPerMonth: 1, tasksPerMonth: 30_000, pageviewsPerMonth: 500_000, writer: "full", draftsPerBrand: DRAFTS_PER_BRAND, reports: "whitelabel", alerts: true },
 };
 
 /**

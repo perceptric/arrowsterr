@@ -15,6 +15,7 @@ import { cardNamesBrand } from "../shopDetect";
 import { queueShopWork } from "../shopServer";
 import { queueMatching, saveCards } from "../shopMatchServer";
 import { queueShopRuns } from "../shopRunsServer";
+import { queueRankChecks } from "../rankTrackServer";
 import { afterDaily, dispatch } from "../integrations";
 import { emailJob } from "../notify";
 import { briefEmail, planEmail } from "../emails";
@@ -52,6 +53,7 @@ export async function schedule(db: SupabaseClient, job: Job) {
   await queueShopWork(db).catch((e) => console.error("AI Shopping jobs failed:", e instanceof Error ? e.message : e));
   await queueMatching(db).catch((e) => console.error("AI Shopping matching failed:", e instanceof Error ? e.message : e));
   await queueShopRuns(db).catch((e) => console.error("AI Shopping runs failed:", e instanceof Error ? e.message : e));
+  await queueRankChecks(db).catch((e) => console.error("Rank checks failed:", e instanceof Error ? e.message : e));
   const engines = availableEngines();
   if (!engines.length) return finish(job.id);
   const now = new Date();
@@ -436,3 +438,4 @@ export async function cwv_sync(_db: SupabaseClient, job: Job) {
 export { shopDetectJob as shop_detect, shopCatalogSyncJob as shop_catalog_sync } from "../shopServer";
 export { shopMatchJob as shop_match, shopLookupJob as shop_lookup } from "../shopMatchServer";
 export { shopRunsPostJob as shop_runs_post, shopRunsCollectJob as shop_runs_collect } from "../shopRunsServer";
+export { rankCheckJob as rank_check, rankCollectJob as rank_collect } from "../rankTrackServer";
