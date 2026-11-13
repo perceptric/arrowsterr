@@ -3,9 +3,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { startArticleResearch } from "./articleResearchServer";
 import { loadBrandContext } from "./brandContext";
 import { askJson, claudeModel } from "./claude";
-import { domainOf } from "./sources";
 import { enqueue, finish, retry, type Job } from "./jobs";
-import { BRIEF_SCHEMA, drive, runBrief, type BriefDeps, type BriefRow, type BriefStore, type Outcome, type ResearchPack, type WriterContext } from "./writerBrief";
+import { BRIEF_SCHEMA, drive, runBrief, toPack, type ResearchRows, type BriefDeps, type BriefRow, type BriefStore, type Outcome, type ResearchPack, type WriterContext } from "./writerBrief";
 import { chainDraft, CHECK_SCHEMA, requestDraft, runDraft, SECTION_SCHEMA, type DraftAsk, type DraftDeps, type DraftRow, type DraftStore, type QuotaStore, type ChainStore } from "./writerDraft";
 import { MODULE_SCHEMA } from "./writerModules";
 import { ensureBrandSetup } from "./brandSetupServer";
@@ -116,8 +115,6 @@ export function quotaStore(db: SupabaseClient): QuotaStore {
 }
 
 // ─────────────── the research and the brand ───────────────
-type PageRow = { url: string; final_url: string | null; title: string | null; source: "serp" | "ai"; position: number | null; word_count: number | null; headings: { text: string }[] | null; body: string | null };
-
 /** What the research saved for a run: the pages read, People Also Ask, AI Overview and the AI answers. */
 export async function loadResearch(db: SupabaseClient, runId: string): Promise<ResearchPack> {
   const [run, pages, answers] = await Promise.all([
@@ -125,26 +122,9 @@ export async function loadResearch(db: SupabaseClient, runId: string): Promise<R
     db.from("article_pages").select("url, final_url, title, source, position, word_count, headings, body").eq("run_id", runId).eq("status", "done").order("position", { ascending: true, nullsFirst: false }),
     db.from("article_ai_answers").select("engine, answer, cited").eq("run_id", runId),
   ]);
-  const r = must(run) as { keyword: string; paa: { question: string; answer: string | null }[]; ai_overview: { text?: string } | null } | null;
+  const r = must(run) as ResearchRows["run"] | null;
   if (!r) throw new Error("The research for this topic was deleted.");
-  return {
-    keyword: r.keyword,
-    pages: ((must(pages) ?? []) as PageRow[]).map((p) => ({
-      url: p.url,
-      title: p.title,
-      domain: domainOf(p.final_url || p.url).replace(/^www\./, ""),
-      kind: p.source,
-      position: p.position,
-      words: p.word_count ?? 0,
-      headings: (p.headings ?? []).map((h) => h.text).filter(Boolean),
-      body: p.body ?? "",
-    })),
-    questions: (r.paa ?? []).map((q) => ({ question: q.question, answer: q.answer ?? null })),
-    aiOverview: r.ai_overview?.text ?? "",
-    answers: ((must(answers) ?? []) as { engine: string; answer: string | null; cited: { url: string }[] | null }[])
-      .filter((a) => a.answer)
-      .map((a) => ({ engine: a.engine, text: a.answer!, cited: (a.cited ?? []).map((c) => c.url) })),
-  };
+  return toPack({ run: r, pages: (must(pages) ?? []) as ResearchRows["pages"], answers: (must(answers) ?? []) as ResearchRows["answers"] });
 }
 
 /** The brand, its voice, kit and guidelines, and its sitemap for internal links. */

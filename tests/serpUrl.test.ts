@@ -16,6 +16,9 @@ test("breadcrumbs give the site and, when the parts look like a path, the page",
   assert.equal(breadcrumbUrl("https://replit.com › ai › App Builder Guide"), "https://replit.com/");
   assert.equal(breadcrumbUrl("https://figma.com"), "https://figma.com/");
   assert.equal(breadcrumbUrl("Figma"), null);
+  // Google cuts long parts short: a cut part is not the real path, so only the site is kept.
+  assert.equal(breadcrumbUrl("https://www.runweekly.com › best-running-shoes-for-b..."), "https://www.runweekly.com/");
+  assert.equal(breadcrumbUrl("https://www.runweekly.com › guides › best-running-shoes-for-b…"), "https://www.runweekly.com/");
   assert.equal(breadcrumbUrl("https://www.google.com › search"), null);
 });
 
@@ -40,4 +43,22 @@ test("redirect links in organic results are swapped for the real address, others
   assert.equal(items[3].url, "https://cloud.google.com/blog/x");
   assert.equal(items[4].url, "https://google.com/goto?url=DDD"); // ads aren't touched
   assert.equal(seen.length, 3);
+});
+
+test("a redirect to another Google redirect is followed until it reaches the site, up to 3 steps", async () => {
+  const items = [
+    { type: "organic", url: "https://google.com/goto?url=AAA", domain: "google.com", breadcrumb: "https://www.runweekly.com › best-running-shoes-for-b..." },
+    { type: "organic", url: "https://google.com/goto?url=LOOP", domain: "google.com", breadcrumb: "https://www.loop.com › guides" },
+  ];
+  const seen: string[] = [];
+  await fixSerpItems(items, async (u) => {
+    seen.push(u);
+    if (u === "https://google.com/goto?url=AAA") return "https://www.google.com/goto?url=AAA"; // Google's first hop
+    if (u === "https://www.google.com/goto?url=AAA") return "https://www.runweekly.com/best-running-shoes-for-beginners/";
+    return "https://www.google.com/goto?url=LOOP"; // never leaves Google
+  });
+  assert.equal(items[0].url, "https://www.runweekly.com/best-running-shoes-for-beginners/");
+  assert.equal(items[0].domain, "runweekly.com");
+  assert.equal(items[1].url, "https://www.loop.com/guides"); // gave up after 3 steps: the breadcrumb
+  assert.equal(seen.filter((u) => u.includes("LOOP")).length, 3);
 });

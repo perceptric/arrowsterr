@@ -80,8 +80,8 @@ Each step saves before the next, so a stopped job picks up where it left off and
 
 ## 6. Phases
 
-The build order, tests and risks are in `docs/draft-and-write-build.md`: seven phases, about 7.5 weeks for one engineer.
+The build order, tests and risks are in `docs/draft-and-write-build.md`: seven phases, about 8 weeks for one engineer.
 
 ## 7. Running cost
 
-About $0.24 more per article: **~$120 a month at Beta** and **~$1,200 at Growth** (Claude Sonnet 5.5 prices, check). The line by line math is in `docs/draft-and-write-build.md`, section 7.
+About $0.24 more per article: **~$120 a month at Beta** and **~$1,200 at Growth** (Claude Sonnet 5.5 prices, check). Tracking each live post in Traffic and AI answers adds about $215 at Beta and $2,150 at Growth in the first month, growing until teams reach their plan limits. The line by line math is in `docs/draft-and-write-build.md`, section 7.

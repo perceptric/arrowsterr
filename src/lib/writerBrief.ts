@@ -10,6 +10,7 @@ import { kindLabel, kindsForPrompt, MODULE_IDS } from "./moduleCatalog.ts";
 import { rulesText, sampleText } from "./houseRules.ts";
 import { IMAGE_KINDS } from "./writerImageTypes.ts";
 import type { BriefImage, ImageKind } from "./writerImageTypes.ts";
+import { domainOf } from "./sources.ts";
 
 // ─────────────── shapes ───────────────
 export type Outcome = { state: "done" } | { state: "failed"; error: string } | { state: "wait"; seconds: number; why: string };
@@ -93,6 +94,33 @@ export type ResearchPack = {
   aiOverview: string;
   answers: { engine: string; text: string; cited: string[] }[];
 };
+
+/** What the research saved for one run, as the database (and the recorded test topics) hold it. */
+export type ResearchRows = {
+  run: { keyword: string; paa: { question: string; answer: string | null }[] | null; ai_overview: { text?: string } | null };
+  pages: { url: string; final_url: string | null; title: string | null; source: "serp" | "ai"; position: number | null; word_count: number | null; headings: { text: string }[] | null; body: string | null }[];
+  answers: { engine: string; answer: string | null; cited: { url: string }[] | null }[];
+};
+
+/** The research as the writer reads it. Pages come in the order given (Google's order first, then cited pages). */
+export function toPack(r: ResearchRows): ResearchPack {
+  return {
+    keyword: r.run.keyword,
+    pages: r.pages.map((p) => ({
+      url: p.url,
+      title: p.title,
+      domain: domainOf(p.final_url || p.url).replace(/^www\./, ""),
+      kind: p.source,
+      position: p.position,
+      words: p.word_count ?? 0,
+      headings: (p.headings ?? []).map((h) => h.text).filter(Boolean),
+      body: p.body ?? "",
+    })),
+    questions: (r.run.paa ?? []).map((q) => ({ question: q.question, answer: q.answer ?? null })),
+    aiOverview: r.run.ai_overview?.text ?? "",
+    answers: r.answers.filter((a) => a.answer).map((a) => ({ engine: a.engine, text: a.answer!, cited: (a.cited ?? []).map((c) => c.url) })),
+  };
+}
 
 /** Who the brand is and how it writes. */
 export type WriterContext = {
