@@ -1,4 +1,5 @@
-import { answer, type AskEvent } from "@/lib/ask";
+import { answer, skillsOf, type AskEvent } from "@/lib/ask";
+import type { Proposal } from "@/lib/zippieTools";
 import { take } from "@/lib/entitlements";
 import { meteredRoute, streamed } from "@/lib/meter";
 import { TASK_COST } from "@/lib/plans";
@@ -12,7 +13,7 @@ const missing = (e: { message: string } | null) => e && /ask_threads|ask_message
 const SETUP = "Run supabase/036_ask.sql in Supabase to turn on Zippie.";
 
 type Block = { type: string; text?: string; name?: string; content?: unknown };
-type Card = { kind: "changeset" | "setup"; id: string };
+type Card = { kind: "changeset" | "setup"; id: string } | { kind: "proposal"; id: string; proposal: Proposal };
 
 // Zippie. Everyone in the workspace can chat and read; only editors prepare changes.
 //   threads: {}                       the workspace's chats, newest first
@@ -49,8 +50,10 @@ async function handle(request: Request) {
     if (error) return err(error.message, 500);
     // Show people the words and which tools ran. Tool results stay on the server, except the change sets
     // they started, which show as cards under the reply that started them.
-    type Out = { id: number; role: string; text: string; tools: string[]; cards: Card[]; created_at: string };
+    type Out = { id: number; role: string; text: string; tools: string[]; cards: Card[]; skill?: string; created_at: string };
     const messages: Out[] = [];
+    const skills = await skillsOf(db, ws, userId);
+    const titleOf = (key: unknown) => skills.find((x) => x.key === key)?.title;
     for (const m of data ?? []) {
       const blocks = (typeof m.content === "string" ? [{ type: "text", text: m.content }] : (m.content as Block[])) ?? [];
       const results = blocks.filter((b) => b.type === "tool_result");
@@ -62,10 +65,19 @@ async function handle(request: Request) {
           if (owner && set) owner.cards.push({ kind: "changeset", id: set });
           const setup = raw.match(/"setup":"((?:cms|traffic)(?::[a-z]+)?)"/)?.[1];
           if (owner && setup) owner.cards.push({ kind: "setup", id: setup });
+          if (owner && raw.includes('"proposal"')) {
+            try {
+              const p = (JSON.parse(raw) as { proposal?: Proposal }).proposal;
+              if (p) owner.cards.push({ kind: "proposal", id: `${m.id}:${owner.cards.length}`, proposal: p });
+            } catch {
+              /* a result cut short: no card */
+            }
+          }
         }
         continue;
       }
-      messages.push({ id: m.id, role: m.role, text: m.text, tools: blocks.filter((b) => b.type === "tool_use").map((b) => b.name ?? ""), cards: [], created_at: m.created_at });
+      const used = blocks.find((b) => b.type === "tool_use" && b.name === "use_skill") as (Block & { input?: { key?: string } }) | undefined;
+      messages.push({ id: m.id, role: m.role, text: m.text, tools: blocks.filter((b) => b.type === "tool_use" && b.name !== "use_skill").map((b) => b.name ?? ""), cards: [], skill: used ? titleOf(used.input?.key) : undefined, created_at: m.created_at });
     }
     // Several tool turns make one reply on screen: fold assistant turns that follow each other.
     const shown: Out[] = [];
@@ -75,6 +87,7 @@ async function handle(request: Request) {
         prev.text = [prev.text, m.text].filter(Boolean).join("\n\n");
         prev.tools.push(...m.tools);
         prev.cards.push(...m.cards);
+        prev.skill ??= m.skill;
       } else shown.push({ ...m, tools: [...m.tools], cards: [...m.cards] });
     }
     return Response.json({ thread: t, messages: shown.filter((m) => m.text || m.tools.length || m.cards.length) });
@@ -127,8 +140,8 @@ async function handle(request: Request) {
     const line = (x: AskEvent | { type: "thread"; id: string; title: string; projectId: string | null }) => void writer.write(JSON.stringify(x) + "\n").catch(() => {});
     line({ type: "thread", id: thread.id, title: thread.title, projectId: thread.project_id });
     if (thread.project_id) void db.from("ask_projects").update({ updated_at: new Date().toISOString() }).eq("id", thread.project_id);
-    const where = body.where && typeof body.where === "object" ? { brand: str(body.where.brand, 120) || null, page: str(body.where.page, 80) } : null;
-    const work = answer({ db, ws, userId, canEdit, threadId: thread.id, projectId: thread.project_id, where }, message, line, str(body.skill, 80) || null)
+    const where = body.where && typeof body.where === "object" ? { brand: str(body.where.brand, 120) || null, page: str(body.where.page, 80), id: str(body.where.id, 60) || null } : null;
+    const work = answer({ db, ws, userId, canEdit, threadId: thread.id, projectId: thread.project_id, where }, message, line, str(body.skill, 120) || null)
       .then(() => true)
       .catch((e) => {
         const error = e instanceof Error ? e.message : String(e);

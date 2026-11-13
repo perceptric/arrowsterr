@@ -1,0 +1,200 @@
+// Technical SEO: Zippie checks a site on demand with crawl_site, crawl_page, check_urls, read_robots and page_speed.
+// Nothing is saved between runs, so every answer is about the site as it is now.
+
+import { def, LIST_FIXES, type Def } from "./shared.ts";
+
+const CHECKS = `# What a page check looks at
+
+| Check | A problem when |
+|---|---|
+| Status | 4xx or 5xx |
+| Redirects | more than 1 hop, or a loop |
+| Indexing | noindex on a page that's in the sitemap |
+| Canonical | missing, or pointing to a different page |
+| Title | missing, over 60 characters, or the same as another page |
+| Meta description | missing, over 160 characters, or the same as another page |
+| H1 | missing, or more than one |
+| Content | under 300 words on a page meant to rank |
+| Images | no alt text, or over 300 KB |
+| Links in | no internal links point to the page |
+| Structured data | none on an article or product page |
+
+Most harmful first: pages that return errors, then pages Google can't index, then duplicates, then the rest.`;
+
+export const TECH: Def[] = [
+  def({
+    slug: "site-health-check",
+    title: "Site health check",
+    group: "tech",
+    speed: "deep",
+    result: "Report, then fixes to approve",
+    tools: ["crawl_site", "check_urls", "propose_changes"],
+    description:
+      'Crawls up to 150 pages of the site and reports broken pages, redirect chains, noindex pages, canonical problems, duplicate titles and descriptions, thin pages and orphan pages, most harmful first. Use it when someone asks for an SEO audit, a site check, a health check, "what\'s wrong with my site", "why isn\'t my site ranking" or "check my SEO".',
+    intro: "A full technical check of the site as it is right now, sorted by what hurts most.",
+    use: ["Someone asks for an audit, a health check or what's wrong with the site.", "Before a redesign or after a big change, to see what broke."],
+    notFor: ["One page only: use Page audit.", "Speed only: use Page speed."],
+    steps: [
+      "Call crawl_site for the brand's domain (from list_brands when it isn't given).",
+      "Call check_urls on the internal links that came back with an error or a redirect, to confirm them.",
+      "Sort the problems with the table in checks.md, and count the pages each one hits.",
+      "Where a play can fix a problem (meta, alt, schema, faq, links), offer to start it with propose_changes.",
+    ],
+    hard: ["A site that blocks the crawler: say so, and offer Indexing check to read robots.txt.", "Over 150 pages: say the check covered the first 150 from the sitemap.", LIST_FIXES],
+    output: ["One line: how many pages were checked and how many problems need fixing this week.", "Each problem with the count of pages, 3 example URLs and the fix.", "What to do first, in one line."],
+    files: { "checks.md": CHECKS },
+  }),
+  def({
+    slug: "page-audit",
+    title: "Page audit",
+    group: "tech",
+    speed: "quick",
+    result: "Report, then fixes to approve",
+    tools: ["crawl_page", "page_speed", "propose_changes"],
+    description: 'Checks one URL from top to bottom: status, title, meta description, headings, canonical, indexing, structured data, images, links and page speed, with each fix and why it matters. Use it when someone shares a URL, or says "check this page", "audit this page", "why doesn\'t this page rank" or "is this page OK".',
+    intro: "Everything that matters on one page, with the fix for each.",
+    use: ["Someone shares a URL or asks about the page they're on."],
+    notFor: ["The whole site: use Site health check."],
+    steps: ["Call crawl_page on the URL.", "Call page_speed on the URL for mobile.", "Check each row of the table in checks.md.", "Offer the fixes a play can make with propose_changes."],
+    hard: ["The page redirects: audit where it lands, and say it redirects.", LIST_FIXES],
+    output: ["A table: check, what's there now, the fix. Problems first, then what's fine in one line."],
+    files: { "checks.md": CHECKS },
+  }),
+  def({
+    slug: "indexing-check",
+    title: "Indexing check",
+    group: "tech",
+    speed: "quick",
+    result: "Report",
+    tools: ["read_robots", "crawl_site"],
+    description: 'What Google can and can\'t reach: robots.txt rules, the sitemap, noindex tags, canonicals and blocked pages. Use it when pages don\'t show up in Google, when someone asks "is my site indexed", "is robots.txt blocking anything" or "is my sitemap OK".',
+    intro: "Finds what keeps pages out of Google.",
+    use: ["Pages are missing from Google.", "After a launch, to check nothing is blocked."],
+    steps: ["Call read_robots for the domain.", "Call crawl_site and collect pages with noindex, a canonical to another page, or a block in robots.txt.", "Compare the sitemap with what the crawl found: pages in the sitemap that are blocked, and pages that rank but aren't in it."],
+    hard: ["A staging noindex left on the live site: put this first, it blocks everything.", LIST_FIXES],
+    output: ["robots.txt: what it blocks.", "Sitemap: how many URLs, and any that are broken or blocked.", "Pages Google can't index, with the reason for each."],
+  }),
+  def({
+    slug: "page-speed",
+    title: "Page speed",
+    group: "tech",
+    speed: "quick",
+    result: "Report",
+    tools: ["page_speed", "crawl_page"],
+    description: 'Core Web Vitals (LCP, CLS, INP) for the main page types, with the biggest fixes in plain words. Use it when someone asks "why is my site slow", "check page speed", "Core Web Vitals" or "PageSpeed score".',
+    intro: "How fast the main pages load on a phone, and what slows them.",
+    use: ["Someone asks about speed or Core Web Vitals."],
+    steps: ["Pick up to 4 page types: the homepage, a blog post, a product or service page, a category page. Use crawl_page on the homepage to find links to each.", "Call page_speed on each, mobile.", "List the 3 biggest fixes across them, from the opportunities page_speed returns."],
+    hard: ["Lab numbers move from run to run: round them, and say a second run can differ by a few points."],
+    output: ["A table: page, score, LCP, CLS, INP.", "The 3 fixes, each with the pages it helps."],
+  }),
+  def({
+    slug: "broken-links",
+    title: "Broken links and redirects",
+    group: "tech",
+    speed: "deep",
+    result: "Report, then fixes to approve",
+    tools: ["crawl_site", "check_urls", "propose_changes"],
+    description: 'Finds broken internal and outside links and redirect chains, and lists the fix for each: the live page a 404 should go to, or the link to swap. Use it after a redesign or a site move, or when someone says "find broken links", "404s", "dead links" or "redirect chains".',
+    intro: "Every link that goes nowhere, and where it should go.",
+    use: ["After a redesign, a move or deleting pages.", "Someone reports a 404."],
+    steps: ["Call crawl_site.", "Call check_urls on every outside link the crawl found.", "For each broken page, pick the closest live page by its words and path.", "Offer the links play with propose_changes to fix links inside posts."],
+    hard: [LIST_FIXES],
+    output: ["Broken internal pages: the URL, how many links point to it, and the page it should redirect to.", "Broken outside links: the page they're on and the dead link.", "Redirect chains: each hop."],
+  }),
+  def({
+    slug: "structured-data",
+    title: "Structured data",
+    group: "tech",
+    speed: "quick",
+    result: "Report, then changes to approve",
+    tools: ["crawl_page", "get_site_content", "propose_changes"],
+    description: 'Checks a page\'s JSON-LD and adds Article, FAQ, HowTo, Product or LocalBusiness structured data where it fits. Use it when someone asks about schema, structured data, rich results, JSON-LD or FAQ markup.',
+    intro: "Makes sure Google and AI engines can read what each page is.",
+    use: ["Someone asks about schema or rich results."],
+    steps: ["Call crawl_page to read the structured data a page has now.", "Call get_site_content to find pages with none.", "Start the schema play with propose_changes for those pages."],
+    output: ["What each page has, what it's missing, and the review card."],
+  }),
+  def({
+    slug: "image-check",
+    title: "Image check",
+    group: "tech",
+    speed: "quick",
+    result: "Report, then changes to approve",
+    tools: ["get_site_content", "crawl_page", "propose_changes"],
+    description: 'Finds images with no alt text and images that are too heavy, then writes alt text. Use it when someone says "alt text", "image SEO", "accessibility" or "my images are slow".',
+    intro: "Alt text for every image, and a list of the heavy ones.",
+    use: ["Someone asks about alt text or image weight."],
+    steps: ["Call get_site_content to count images without alt text.", "Call crawl_page on the heaviest pages to list image sizes.", "Start the alt play with propose_changes."],
+    output: ["How many images need alt text, the review card, and images over 300 KB with their pages."],
+  }),
+  def({
+    slug: "canonicals",
+    title: "Canonicals and duplicates",
+    group: "tech",
+    speed: "deep",
+    result: "Report",
+    tools: ["crawl_site"],
+    description: 'Finds duplicate and near-duplicate pages (same title, same description, URL variants) and the canonical each should point to. Use it when someone asks about duplicate content, canonical tags or "two pages showing the same thing".',
+    intro: "One page for each thing, and a canonical that says which one.",
+    use: ["Duplicate titles or descriptions show up.", "URL variants (www, trailing slash, tracking codes) split a page."],
+    steps: ["Call crawl_site.", "Group pages with the same title, the same description or the same path without its query.", "For each group, pick the page to keep: the one with the most links in, then the shortest URL."],
+    hard: [LIST_FIXES],
+    output: ["Each group: the page to keep and the canonical to set on the others."],
+  }),
+  def({
+    slug: "hreflang",
+    title: "Hreflang check",
+    group: "tech",
+    speed: "quick",
+    result: "Report",
+    tools: ["crawl_site"],
+    description: 'Checks that language and region tags (hreflang) point back to each other and to live pages. Use it for sites in more than one language or country, or when someone asks about hreflang or "the wrong language shows in Google".',
+    intro: "Makes sure each language version points to the others.",
+    use: ["The site has more than one language or country."],
+    steps: ["Call crawl_site.", "For each page with hreflang tags, check each target is live and points back.", "Check one x-default is set."],
+    hard: [LIST_FIXES],
+    output: ["Pages with missing return tags, broken targets or no x-default."],
+  }),
+  def({
+    slug: "site-move",
+    title: "Site move check",
+    group: "tech",
+    speed: "deep",
+    result: "Redirect map",
+    tools: ["check_urls", "crawl_site"],
+    description: 'Compares the old URL list with the new site and builds the redirect map, then checks each redirect works. Use it before or after a redesign, a domain change or a CMS move, or when someone says "migration", "new site" or "we changed our URLs".',
+    intro: "Keeps rankings through a move by sending every old URL to its new home.",
+    use: ["A redesign, a domain change or a CMS move."],
+    steps: ["Ask for the old URL list when it isn't in the chat or Knowledge.", "Call check_urls on the old URLs.", "Call crawl_site on the new site and match each old URL to its new page by path and title.", "List old URL, new URL and whether the redirect works now."],
+    hard: ["No good match: say so, and suggest the closest category page.", LIST_FIXES],
+    output: ["The redirect map as a table, broken ones first, ready to paste into the CMS's redirect settings."],
+  }),
+  def({
+    slug: "ai-crawlers",
+    title: "AI crawler access",
+    group: "tech",
+    speed: "quick",
+    result: "Report",
+    tools: ["read_robots"],
+    description: 'Which AI bots robots.txt lets in (GPTBot, OAI-SearchBot, ClaudeBot, PerplexityBot, Google-Extended, CCBot) and the rules to change. Use it when someone asks "can ChatGPT read my site", "AI crawlers", "GPTBot" or "why doesn\'t AI cite us".',
+    intro: "AI engines can only cite pages their bots can read.",
+    use: ["The brand is missing from AI answers.", "Someone asks about AI bots."],
+    steps: ["Call read_robots.", "For each AI bot, say if it's allowed, blocked or limited, and which rule decides it.", "Write the rules to add for the bots the person wants in."],
+    hard: [LIST_FIXES],
+    output: ["A table: bot, who runs it, allowed or blocked.", "The robots.txt lines to change."],
+  }),
+  def({
+    slug: "llms-txt",
+    title: "llms.txt writer",
+    group: "tech",
+    speed: "quick",
+    result: "A file to add",
+    tools: ["crawl_site", "get_site_content"],
+    description: 'Writes the site\'s llms.txt: a short guide to its most useful pages for AI engines. Use it when someone asks for llms.txt or "help AI understand my site".',
+    intro: "A plain map of the site for AI engines.",
+    use: ["Someone asks for an llms.txt."],
+    steps: ["Call crawl_site (or get_site_content when a CMS is connected).", "Pick the 10 to 30 pages that explain what the brand does: product, pricing, docs, top guides.", "Write the file: a title, one line on the brand, then sections of links with one line each."],
+    output: ["The llms.txt in a code block, ready to upload to the site's root."],
+  }),
+];
