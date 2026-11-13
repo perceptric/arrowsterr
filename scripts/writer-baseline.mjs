@@ -17,6 +17,7 @@ import { CHECK_SCHEMA, runDraft, SECTION_SCHEMA } from "../src/lib/writerDraft.t
 import { REVIEW_SCHEMA, STYLE_SYSTEM } from "../src/lib/writerStyle.ts";
 import { MODULE_SCHEMA } from "../src/lib/writerModules.ts";
 import { isGrammarError, schemaPrompt } from "../src/lib/jsonReply.ts";
+import { replyText, requestBody } from "../src/lib/claudeRequest.ts";
 import { scoreArticle, sumScores } from "../src/lib/writerScore.ts";
 import { contextOf, loadFixture, packOf, recorded, topics } from "../tests/writerFixtures.ts";
 
@@ -27,7 +28,7 @@ const only = args.filter((a) => !a.startsWith("--"));
 const MODEL = process.env.WRITER_MODEL?.trim() || process.env.CLAUDE_MODEL || "claude-sonnet-5-5";
 const usage = { calls: 0, input: 0, cacheRead: 0, cacheWrite: 0, output: 0 };
 
-// ───── one Claude call, the way src/lib/claude.ts (askClaude, askJson) makes it ─────
+// ───── one Claude call, built by the app's own src/lib/claudeRequest.ts, read the way claude.ts reads it ─────
 const client = FAKE ? null : new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, baseURL: process.env.WRITER_BASELINE_API || "https://api.anthropic.com" });
 const tooBig = new WeakSet();
 
@@ -42,32 +43,20 @@ function parseJson(text) {
 }
 
 async function ask(prompt, opts) {
-  const content = opts.prefix ? [{ type: "text", text: opts.prefix, cache_control: { type: "ephemeral" } }, { type: "text", text: prompt }] : prompt;
   for (let tries = 0; ; tries++) {
     try {
-      const msg = await client.messages.create({
-        model: MODEL,
-        max_tokens: opts.maxTokens ?? 16000,
-        ...(opts.system ? { system: [{ type: "text", text: opts.system, cache_control: { type: "ephemeral" } }] } : {}),
-        messages: [{ role: "user", content }],
-        ...(opts.schema ? { output_config: { format: { type: "json_schema", schema: opts.schema } } } : {}),
-      });
+      const msg = await client.messages.create(requestBody(prompt, opts, MODEL));
       const u = msg.usage;
       usage.calls++;
       usage.input += u.input_tokens ?? 0;
       usage.cacheRead += u.cache_read_input_tokens ?? 0;
       usage.cacheWrite += u.cache_creation_input_tokens ?? 0;
       usage.output += u.output_tokens ?? 0;
-      const text = msg.content.filter((b) => b.type === "text").map((b) => b.text).join("");
-      if (!text.includes("{")) {
-        const why = `no JSON in the reply (stop: ${msg.stop_reason}, blocks: ${msg.content.map((b) => b.type).join(",") || "none"}, output tokens: ${u.output_tokens}, text: ${JSON.stringify(text.slice(0, 200))})`;
-        throw Object.assign(new Error(why), { status: 0, final: true });
-      }
-      return text;
+      return replyText(msg);
     } catch (e) {
       // A hiccup (busy, rate limit, network, 5xx) is tried again with growing waits.
       const status = e?.status ?? 0;
-      if (e?.final || tries >= 4 || (status && status < 500 && status !== 429 && status !== 408)) throw e;
+      if (tries >= 4 || (status && status < 500 && status !== 429 && status !== 408) || /reply tokens/.test(String(e?.message))) throw e;
       await new Promise((r) => setTimeout(r, 2000 * 2 ** tries));
     }
   }
