@@ -42,6 +42,8 @@ Written November 2026.
 - No outlines.
 - The tool's part of the object is Signal Blue (#0943B0, the logo's blue). The rest is the city's pale blues and grays.
 - Dark mode has its own set of tones.
+- **Light (November 13, 2026):** light comes from the top left. Every face carries a soft gradient over its flat tone, the top's front edges catch a thin highlight, round things are shaded across, and whatever stands on the plate casts a soft shadow to the right that stays put while the object floats. The plate is a lit stage with a faint dot grid and its own shadow, over a pale blue glow.
+- **Real pieces of the product:** pictures about a screen show it as an upright card with a white panel in a slim frame, like a screen: the AI answer naming the brand (prompts), the dashboard with its rising line (chart), two pages joined by a link (link), an answer citing two pages (sources) and this month's report (reports). Visitors walk a path of steps to the goal pin.
 
 **Sizes:**
 - Full: 220 px wide, for a screen.
