@@ -230,7 +230,7 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
 
   const head = "sticky z-20 border-r border-b border-rule bg-[var(--bg-secondary)] px-2 text-left font-medium text-muted";
   const cell = "border-r border-b border-rule bg-white px-2 py-1.5 align-top group-hover:bg-[var(--bg-secondary)]";
-  const muted = (t: string) => (t ? <span className="line-clamp-3 text-muted">{t}</span> : <span className="text-faint">–</span>);
+  const muted = (t: string) => (t ? <span className="text-muted wrap-break-word">{t}</span> : <span className="text-faint">–</span>);
 
   function metaCell(r: GridRow, key: "status" | "metaTitle" | "description" | "slug") {
     if (key === "status") {
@@ -259,7 +259,7 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
     }
     const value = r.doc ? String(r.doc.meta[key] ?? "") : "";
     const fallback = key === "metaTitle" ? (r.plan?.title ?? "") : key === "description" ? (r.plan?.description ?? "") : (r.plan?.slug ?? "");
-    const face = value ? <span className="line-clamp-3 text-ink">{value}</span> : muted(fallback);
+    const face = value ? <span className="text-ink wrap-break-word">{value}</span> : muted(fallback);
     return canEdit && r.doc ? (
       <button type="button" className="flex h-full w-full items-start text-left" onClick={(e) => setEdit({ itemId: r.topic.id, key, anchor: e.currentTarget.getBoundingClientRect() })}>
         {face}
@@ -274,11 +274,11 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
     if (!p) return muted("");
     if (c.heading)
       return r.doc ? (
-        <button type="button" className="line-clamp-3 text-left font-medium text-ink" onClick={() => setPanel({ itemId: r.topic.id, pair: c.pair })}>
+        <button type="button" className="text-left font-medium text-ink wrap-break-word" onClick={() => setPanel({ itemId: r.topic.id, pair: c.pair })}>
           {p.heading || "–"}
         </button>
       ) : (
-        <span className="line-clamp-3 text-muted">{p.heading || "–"}</span>
+        <span className="text-muted wrap-break-word">{p.heading || "–"}</span>
       );
     // A section with words opens as it is; an empty one (or one with no doc yet) offers Write.
     if (p.body && (p.body.words || p.body.has.length)) return <Section body={p.body} onOpen={() => setPanel({ itemId: r.topic.id, pair: c.pair })} />;
@@ -374,7 +374,7 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
           <tbody>
             {list.map((r) => (
               <tr key={r.topic.id} className="group">
-                <td className={`${cell} sticky left-0 z-10`} style={{ height: 64 }}>
+                <td className={`${cell} sticky left-0 z-10`}>
                   <input
                     type="checkbox"
                     className="mt-2"
@@ -391,8 +391,8 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
                   />
                 </td>
                 <td className={`${cell} aw-dgrid__key sticky z-10`} style={{ left: W.check }}>
-                  <div className="flex h-[51px] flex-col items-start gap-1 overflow-hidden">
-                    <span className="w-full truncate font-medium text-ink">{r.topic.keyword}</span>
+                  <div className="flex flex-col items-start gap-1">
+                    <span className="w-full font-medium text-ink wrap-break-word">{r.topic.keyword}</span>
                     <span className="flex items-center gap-3">
                       {r.doc ? (
                         <button type="button" className="aw-text-link text-[12px]" onClick={() => fullView(r)}>
@@ -419,18 +419,18 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
                   </div>
                 </td>
                 <td className={cell}>
-                  <div className="flex h-[51px] items-start pt-1">
+                  <div className="flex items-start pt-1">
                     <WriteButton state={stateOf(r)} busy={actions.busy.has(r.topic.id)} canEdit={canEdit} onAct={() => void actions.act(r.topic, stateOf(r))} onOpen={() => actions.open(r.topic, stateOf(r))} />
                   </div>
                 </td>
                 {metaCols.map((c) => (
                   <td key={c.key} className={cell}>
-                    <div className="h-[51px] overflow-hidden">{metaCell(r, c.key)}</div>
+                    <div>{metaCell(r, c.key)}</div>
                   </td>
                 ))}
                 {contentCols.map((c) => (
                   <td key={c.key} className={cell}>
-                    <div className="h-[51px] overflow-hidden">{contentCell(r, c)}</div>
+                    <div>{contentCell(r, c)}</div>
                   </td>
                 ))}
                 <td className={cell} />
@@ -531,7 +531,7 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
 function Section({ body, onOpen }: { body: CellSummary; onOpen: () => void }) {
   return (
     <button type="button" onClick={onOpen} className="flex h-full w-full flex-col items-start gap-1 text-left">
-      <span className="line-clamp-2 w-full text-muted">{body.preview || "–"}</span>
+      <span className="w-full text-muted wrap-break-word">{body.preview || "–"}</span>
       <span className="mt-auto flex flex-wrap items-center gap-1">
         {body.has.map((h) => (
           <span key={h} className="tw-tag">

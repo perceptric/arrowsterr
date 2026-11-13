@@ -389,3 +389,5 @@ html, body { background: var(--v10-canvas) !important; }
 :root :is(.aw, #calm) table.aw-dgrid.aw-dgrid td { background: var(--v10-card) !important; }
 :root :is(.aw, #calm) table.aw-dgrid.aw-dgrid tbody tr:hover > td { background: var(--v10-soft) !important; }
 :root :is(.aw, #calm) table.aw-dgrid.aw-dgrid .aw-dgrid__key { box-shadow: inset -1px 0 0 var(--v10-border-strong); }
+/* Cells grow to fit their text: it wraps, and the row gets taller. */
+:root :is(.aw, #calm) table.aw-dgrid.aw-dgrid tbody td { height: auto !important; padding: 10px 10px !important; vertical-align: top; white-space: normal; line-height: 1.45; }
