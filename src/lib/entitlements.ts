@@ -150,24 +150,3 @@ export async function take(workspaceId: string, metric: Metric, n = 1, opts: { r
   onRefund(giveBack, opts.refundIfFree ?? true);
   return { ok: true, used: Number(data), limit, giveBack, period };
 }
-
-/** What a workspace used this period, for the Billing page. */
-export async function usageOf(workspaceId: string) {
-  const e = await entitlement(workspaceId);
-  const db = adminClient();
-  const periods = (Object.keys(METRICS) as Metric[]).map((m) => ({ m, p: periodOf(m, new Date(), e.anchor) }));
-  const { data } = db ? await db.from("usage_counters").select("metric, period, used").eq("workspace_id", workspaceId).in("period", [...new Set(periods.map((x) => x.p))]) : { data: [] };
-  const rows = (data ?? []) as { metric: Metric; period: string; used: number }[];
-  return {
-    plan: e.plan,
-    credits: e.credits,
-    name: e.limits.name,
-    status: e.status,
-    readOnly: e.readOnly,
-    trialEndsAt: e.trialEndsAt,
-    periodEnd: e.periodEnd,
-    limits: e.limits,
-    boost: nextPlan(e.plan),
-    allowances: periods.map(({ m, p }) => ({ metric: m, label: METRICS[m].label, period: METRICS[m].period, used: rows.find((r) => r.metric === m && r.period === p)?.used ?? 0, limit: METRICS[m].limit(e.limits) })),
-  };
-}

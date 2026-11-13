@@ -65,18 +65,6 @@ export async function wpPlugin(c: Config): Promise<{ version: string; seo: strin
   }
 }
 
-/** Turn IndexNow on or off through the plugin (1.2.0 and later; needs an administrator's application password). */
-export async function wpIndexNow(c: Config, on: boolean): Promise<{ indexnow: boolean }> {
-  const { data } = await call(`${base(c.siteUrl)}/wp-json/arrowsterr/v1/indexnow`, { method: "POST", headers: wpAuth(c), json: { on } });
-  return data as { indexnow: boolean };
-}
-
-/** Save llms.txt through the plugin, served at /llms.txt (1.2.0 and later; administrators). Empty text removes it. */
-export async function wpLlms(c: Config, text: string): Promise<{ llms: boolean; url: string }> {
-  const { data } = await call(`${base(c.siteUrl)}/wp-json/arrowsterr/v1/llms`, { method: "POST", headers: wpAuth(c), json: { text } });
-  return data as { llms: boolean; url: string };
-}
-
 async function wpList(c: Config, max: number): Promise<Item[]> {
   const out: Item[] = [];
   const users = new Map<number, string>();

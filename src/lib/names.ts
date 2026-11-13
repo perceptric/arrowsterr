@@ -67,5 +67,3 @@ export function persona(code: string): Persona {
   const [noun, emoji] = NOUNS[hash(code, 7) % NOUNS.length];
   return { name: `${ADJECTIVES[hash(code, 1) % ADJECTIVES.length]} ${noun}`, emoji, color: COLORS[hash(code, 13) % COLORS.length] };
 }
-
-export const NAME_COUNT = ADJECTIVES.length * NOUNS.length;

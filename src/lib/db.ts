@@ -348,18 +348,6 @@ export type PlanUsage = NonNullable<Awaited<ReturnType<typeof getPlanUsage>>>;
 export type Site = { id: string; workspace_id: string; brand_id: string | null; domain: string; name: string; profile: Profile };
 const SITE_COLS = "id, workspace_id, brand_id, domain, name, profile";
 
-/** The workspace's websites. Brands without one get one, made from the brand, when an editor opens Research. */
-export async function listSites(sb: SupabaseClient, workspaceId: string, brands: Brand[], canEdit: boolean): Promise<Site[]> {
-  let sites = check(await sb.from("sites").select(SITE_COLS).eq("workspace_id", workspaceId).order("created_at")) as Site[];
-  const missing = brands.filter((b) => !sites.some((s) => s.brand_id === b.id || s.domain === b.domain));
-  if (canEdit && missing.length) {
-    const rows = missing.map((b) => ({ workspace_id: workspaceId, brand_id: b.id, domain: b.domain, name: b.name, profile: b.profile ?? {} }));
-    check(await sb.from("sites").upsert(rows, { onConflict: "workspace_id,domain", ignoreDuplicates: true }));
-    sites = check(await sb.from("sites").select(SITE_COLS).eq("workspace_id", workspaceId).order("created_at")) as Site[];
-  }
-  return sites;
-}
-
 /**
  * The research website for a brand. Every brand has exactly one, made on first use,
  * and it always follows the brand's business answers.
@@ -385,16 +373,8 @@ export async function siteForBrand(sb: SupabaseClient, brand: Brand, canEdit: bo
   return site;
 }
 
-export async function addSite(sb: SupabaseClient, s: Omit<Site, "id" | "brand_id">): Promise<Site> {
-  return check(await sb.from("sites").insert(s).select(SITE_COLS).single()) as Site;
-}
-
 export async function saveSite(sb: SupabaseClient, s: Site) {
   check(await sb.from("sites").update({ name: s.name, profile: s.profile }).eq("id", s.id));
-}
-
-export async function deleteSite(sb: SupabaseClient, id: string) {
-  check(await sb.from("sites").delete().eq("id", id));
 }
 
 export type CalendarStatus = "planned" | "brief" | "writing" | "review" | "published";
@@ -481,23 +461,6 @@ export async function getBrief(sb: SupabaseClient, id: string) {
   // Before supabase/029_brief_started.sql there is no start time. Read without it.
   if (res.error && /brief_started_at/.test(res.error.message)) return check(await sb.from("calendar_items").select(cols).eq("id", id).single()) as Row;
   return check(res) as Row;
-}
-
-/** The calendar item for a keyword on a site, made if it is not there yet. Returns its id. */
-export async function ensureCalendarItem(sb: SupabaseClient, workspaceId: string, siteId: string, keyword: string): Promise<string> {
-  await addCalendarItems(sb, workspaceId, [{ site_id: siteId, keyword, secondary: [], stage: null, theme: null, volume: null, difficulty: null, intent: null, cpc: null, source: "agentic writer" }]);
-  const row = check(await sb.from("calendar_items").select("id").eq("site_id", siteId).eq("keyword", keyword).single()) as { id: string };
-  return row.id;
-}
-
-/** Tie a draft to a calendar item, so its brief shows in the Agentic Writer. */
-export async function linkDoc(sb: SupabaseClient, docId: string, itemId: string) {
-  check(await sb.from("docs").update({ calendar_item_id: itemId }).eq("id", docId));
-}
-
-/** Save the brief after someone edits its document. */
-export async function saveBrief(sb: SupabaseClient, id: string, brief: Brief) {
-  check(await sb.from("calendar_items").update({ brief }).eq("id", id));
 }
 
 export async function updateCalendarItem(sb: SupabaseClient, id: string, patch: Partial<CalendarItem>) {

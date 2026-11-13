@@ -46,6 +46,4 @@ export const SYSTEM_SKILLS: Skill[] = DEFS.map((d) => ({
   ready: d.ready,
   files: { [MAIN]: markdown(d), ...(d.files ?? {}) },
 }));
-
-export const systemSkill = (key: string) => SYSTEM_SKILLS.find((s) => s.key === key || s.key === `system:${key}`) ?? null;
 export const groupLabel = (g: string) => GROUPS.find((x) => x.key === g)?.label ?? g;

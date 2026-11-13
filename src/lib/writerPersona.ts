@@ -55,8 +55,6 @@ export type WriterPersona = {
   /** A sample paragraph in this voice, for the person to approve. */
   sample: string;
 };
-
-export const EMPTY_PERSONA: WriterPersona = { writer: "", reader: "", pov: "", tone: [], sentences: "", use: [], avoid: [], naming: "", proof: [], never: [], cta: "", questions: [], sample: "" };
 export const MAX_POSTS = 8;
 export const MAX_PRODUCT_PAGES = 5;
 /** Below this many posts, the voice leans on the homepage and the house rules. */

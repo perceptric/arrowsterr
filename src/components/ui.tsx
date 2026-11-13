@@ -111,7 +111,6 @@ export function Seg<T extends string>({ value, options, onChange, label }: { val
   );
 }
 
-
 /** The AI is working: a pulsing spark, a sweeping line and one short line of text. */
 export function Thinking({ text, children, done }: { text: string; children?: React.ReactNode; done?: boolean }) {
   return (
@@ -277,30 +276,12 @@ export function AiIcon() {
   );
 }
 
-/** Save to the Topic Bank. */
-export function BookmarkIcon() {
-  return (
-    <svg {...ICON} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round">
-      <path d="M4 2h8v12l-4-3-4 3z" />
-    </svg>
-  );
-}
-
 /** Put on the Editorial Calendar. */
 export function CalendarIcon() {
   return (
     <svg {...ICON} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
       <rect x="2" y="3" width="12" height="11" rx="1.5" />
       <path d="M2 6.5h12M5 1.5v3M11 1.5v3" />
-    </svg>
-  );
-}
-
-/** Open the SEO view of a page. */
-export function ChartIcon() {
-  return (
-    <svg {...ICON} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
-      <path d="M2 14h12M4 11V8M8 11V4M12 11V6" />
     </svg>
   );
 }

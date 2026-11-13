@@ -83,11 +83,6 @@ const icon = (d: React.ReactNode) => (
 );
 export const CalendarViewIcon = () => icon(<><rect x={3.5} y={5} width={17} height={15} rx={2.5} /><path d="M3.5 10h17M8 3v4M16 3v4" /></>);
 export const ListViewIcon = () => icon(<path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" />);
-export type PlanView = "list" | "calendar";
-export const PLAN_VIEWS: { id: PlanView; label: string; icon: React.ReactNode }[] = [
-  { id: "list", label: "List", icon: <ListViewIcon /> },
-  { id: "calendar", label: "Calendar", icon: <CalendarViewIcon /> },
-];
 
 /** The impact as a colored dot and its name, so color is never the only signal. */
 export function StageTag({ stage }: { stage: Stage | null }) {
@@ -126,32 +121,6 @@ export function Sparkline({ values }: { values: number[] }) {
 
 export const fmtNum = (n: number | null | undefined) => (n === null || n === undefined ? "–" : n.toLocaleString("en-US"));
 export const fmtCpc = (n: number | null | undefined) => (n === null || n === undefined ? "–" : `$${n.toFixed(2)}`);
-
-const FEATURES: Record<string, string> = {
-  ai_overview: "AI Overview",
-  people_also_ask: "People also ask",
-  featured_snippet: "Snippet",
-  video: "Video",
-  local_pack: "Local",
-  shopping: "Shopping",
-  popular_products: "Products",
-  images: "Images",
-  top_stories: "News",
-};
-/** The Google features on a keyword's results page, AI Overview first. */
-export function SerpTags({ serp }: { serp: string[] }) {
-  const tags = Object.keys(FEATURES).filter((f) => serp.includes(f)).slice(0, 3);
-  if (!tags.length) return <span className="text-muted">–</span>;
-  return (
-    <span className="flex flex-wrap gap-1">
-      {tags.map((t) => (
-        <span key={t} className={`whitespace-nowrap border px-1.5 py-0.5 text-[11px] ${t === "ai_overview" ? "border-brand bg-brand-pale text-brand" : "border-rule text-body"}`}>
-          {FEATURES[t]}
-        </span>
-      ))}
-    </span>
-  );
-}
 
 /** POST to one of our API routes as the signed-in user. */
 export async function post<T>(auth: RunAuth, path: string, body: Record<string, unknown>, signal?: AbortSignal): Promise<T> {

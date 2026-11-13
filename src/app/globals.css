@@ -109,22 +109,8 @@ body {
 }
 
 /* Tighter tables for dashboard cards. */
-.aw .aw-table--dense th {
-  padding: 10px 12px !important;
-  font-size: 13px !important;
-}
-.aw .aw-table--dense td {
-  padding: 10px 12px !important;
-  font-size: 14px !important;
-  line-height: 1.45 !important;
-}
 
 /* Header row stays on top while a table scrolls. */
-.aw .aw-table--sticky th {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-}
 
 /* AI answers rendered from markdown */
 .aw .md {
@@ -158,9 +144,6 @@ body {
 }
 .aw details.answer > summary::-webkit-details-marker {
   display: none;
-}
-.aw details.answer[open] .aw-plus {
-  transform: rotate(45deg);
 }
 
 /* Tables that scroll sideways on small screens instead of stacking. */
@@ -207,12 +190,6 @@ body {
 }
 
 /* A brand name chip. */
-.aw .aw-pill {
-  display: inline-flex; align-items: center; padding: 4px 10px;
-  font-size: var(--aw-fs-small) !important; color: var(--aw-body) !important;
-  background: var(--aw-surface); border: 1px solid var(--aw-rule);
-}
-.aw .aw-pill.is-on { color: var(--aw-brand) !important; border-color: var(--aw-brand); background: var(--aw-brand-pale); }
 
 /* A number on a white cell with a hairline border. */
 .aw .aw-card-stat { background: var(--aw-surface); border: 1px solid var(--aw-rule); padding: 16px 18px; }
@@ -223,16 +200,13 @@ body {
 .aw .aw-textarea { resize: vertical; line-height: 1.55 !important; }
 
 /* Selects get their own chevron with room to breathe from the border. */
-.aw select, .aw select.aw-select {
+.aw select {
   appearance: none; -webkit-appearance: none;
   padding-right: 40px !important;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23767E8C' stroke-width='1.4'/%3E%3C/svg%3E");
   background-repeat: no-repeat !important;
   background-position: right 16px center !important;
   background-size: 10px 6px !important;
-}
-.aw select.aw-select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23767E8C' stroke-width='1.4'/%3E%3C/svg%3E") !important;
 }
 
 /* Thinking state: a pulsing AI spark and a line that sweeps. */
@@ -251,10 +225,9 @@ body {
 @keyframes aw-sweep { from { left: -40% } to { left: 100% } }
 
 /* Headings 18px and up use Funnel Display; twenty.css sets sizes and tracking. */
-.aw .aw-hero, .aw .aw-display, .aw .aw-h2 { font-family: var(--aw-display) !important; }
+.aw .aw-display, .aw .aw-h2 { font-family: var(--aw-display) !important; }
 
 /* Long reading: the document editor and the reports clients see. Same Geist as the rest of the app. */
-.aw .aw-docs,
 .aw .aw-read {
   --aw-font: var(--aw-read);
   font-family: var(--aw-read);

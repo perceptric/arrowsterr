@@ -156,8 +156,3 @@ export async function buildClientReport(input: BuildInput): Promise<Built> {
   };
   return { snapshot, range };
 }
-
-/** The numbers the AI summary may use: the snapshot without styling, and at most 10 content rows. */
-export function summaryInput(s: ReportSnapshot) {
-  return { ...s, style: undefined, brand: undefined, blocks: undefined, connected: undefined, content: s.content ? { ...s.content, pages: s.content.pages.slice(0, 10) } : null };
-}

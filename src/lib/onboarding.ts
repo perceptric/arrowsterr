@@ -28,8 +28,7 @@ export const COUNTRIES = [
   "Global",
 ];
 
-export const MAX_TOPICS = 8; // topics a brand can track
-export const PROMPTS_PER_TOPIC = 5;
+export const MAX_TOPICS = 8;
 export const MAX_PROMPTS = 25; // prompts tracked by default, within the trial's limit
 export const TOPIC_COUNT = 5;
 export const PROMPT_COUNT = 5; // one prompt of each type per topic

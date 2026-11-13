@@ -17,7 +17,6 @@
     "@google/genai": "^2.27.0",
     "@mozilla/readability": "^0.6.0",
     "@sentry/nextjs": "10.75.3",
-    "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.3",
     "@tiptap/extension-image": "^2.27.3",
     "@tiptap/extension-link": "^2.27.3",

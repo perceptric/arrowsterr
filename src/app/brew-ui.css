@@ -80,28 +80,22 @@
 }
 
 /* ─────────────── 2. Type ─────────────── */
-:root .aw .aw-hero, :root .aw .aw-display, :root .aw .aw-intro__title, :root .aw .aw-onb__title {
+:root .aw .aw-display, :root .aw .aw-onb__title {
   font-family: var(--font-display) !important; font-size: 28px !important; line-height: 34px !important; font-weight: 500 !important; letter-spacing: -0.02em !important; color: var(--text-primary) !important;
 }
 @media (min-width: 768px) {
-  :root .aw .aw-hero, :root .aw .aw-intro__title, :root .aw .aw-onb__title { font-size: 36px !important; line-height: 44px !important; }
+  :root .aw .aw-onb__title { font-size: 36px !important; line-height: 44px !important; }
 }
-:root .aw .aw-h1, :root .aw .aw-h2 { font-family: var(--font-display) !important; font-size: 20px !important; line-height: 28px !important; font-weight: 500 !important; letter-spacing: -0.015em !important; color: var(--text-primary) !important; }
+:root .aw .aw-h2 { font-family: var(--font-display) !important; font-size: 20px !important; line-height: 28px !important; font-weight: 500 !important; letter-spacing: -0.015em !important; color: var(--text-primary) !important; }
 :root .aw .aw-h3 { font-family: var(--font-sans) !important; font-size: 16px !important; line-height: 24px !important; font-weight: 500 !important; letter-spacing: -0.01em !important; color: var(--text-primary) !important; }
 :root .aw .aw-h4 { font-family: var(--font-sans) !important; font-size: 14px !important; line-height: 20px !important; font-weight: 500 !important; letter-spacing: -0.01em !important; color: var(--text-primary) !important; }
-:root .aw .aw-lede, :root .aw .aw-lg { font-size: 14px !important; font-weight: 400 !important; line-height: 22px !important; color: var(--text-secondary) !important; }
-:root .aw .aw-intro__lead { font-size: 16px !important; font-weight: 400 !important; line-height: 26px !important; letter-spacing: -0.01em !important; color: var(--text-secondary) !important; }
-:root .aw .aw-text { font-size: 14px !important; line-height: 20px; color: var(--text-primary); }
-:root .aw .aw-small, :root .aw .aw-sm { font-size: 13px !important; line-height: 18px; color: var(--text-secondary) !important; }
-:root .aw .aw-micro, :root .aw .aw-onb__kicker, :root .aw .aw-intro__n { font-size: 12px !important; line-height: 16px !important; font-weight: 500 !important; color: var(--text-secondary) !important; }
+:root .aw .aw-lede { font-size: 14px !important; font-weight: 400 !important; line-height: 22px !important; color: var(--text-secondary) !important; }
+:root .aw .aw-small { font-size: 13px !important; line-height: 18px; color: var(--text-secondary) !important; }
+:root .aw .aw-micro, :root .aw .aw-onb__kicker { font-size: 12px !important; line-height: 16px !important; font-weight: 500 !important; color: var(--text-secondary) !important; }
 /* Eyebrows: Geist Mono, uppercase, wide, in Signal Blue */
-:root .aw .aw-eyebrow {
-  font-family: var(--font-mono) !important; font-size: 12px !important; line-height: 1 !important; font-weight: 500 !important;
-  letter-spacing: 0.08em !important; text-transform: uppercase !important; color: var(--accent-11) !important;
-}
 :root .aw .aw-label, :root .aw label > .aw-label, :root .aw .tw-field__label { font-size: 13px !important; line-height: 18px !important; font-weight: 500 !important; color: var(--text-sidebar) !important; }
 :root .aw .tw-field__hint, :root .aw .tw-field__error { font-size: 12px; line-height: 16px; }
-:root .aw .aw-num, :root .aw .aw-stat__num, :root .aw .aw-kpi__num, :root .aw .aw-rank { font-family: var(--font-sans) !important; font-variant-numeric: tabular-nums; }
+:root .aw .aw-num, :root .aw .aw-stat__num, :root .aw .aw-rank { font-family: var(--font-sans) !important; font-variant-numeric: tabular-nums; }
 :root .aw code { font-size: 13px; border-radius: 6px; }
 :root .aw .md { font-size: 14px; line-height: 22px; color: var(--text-primary); }
 
@@ -112,11 +106,11 @@
   border-radius: 999px !important;
   transition: filter var(--duration-quick) var(--ease-smooth-out), background var(--duration-quick) var(--ease-smooth-out), box-shadow var(--duration-quick) var(--ease-smooth-out) !important;
 }
-:root .aw .aw-btn--primary, :root .aw .aw-btn--accent, :root .aw .aw-btn--brand, :root .aw a.aw-btn--primary:link, :root .aw a.aw-btn--primary:visited, :root .aw a.aw-btn--accent:link, :root .aw a.aw-btn--accent:visited {
+:root .aw .aw-btn--primary, :root .aw .aw-btn--accent, :root .aw a.aw-btn--primary:link, :root .aw a.aw-btn--primary:visited, :root .aw a.aw-btn--accent:link, :root .aw a.aw-btn--accent:visited {
   background: var(--button-gradient) !important; background-origin: border-box !important; color: #FFFFFF !important;
   border: 1.5px solid var(--button-edge) !important; box-shadow: var(--button-raised) !important;
 }
-:root .aw .aw-btn--primary:hover, :root .aw .aw-btn--accent:hover, :root .aw .aw-btn--brand:hover {
+:root .aw .aw-btn--primary:hover, :root .aw .aw-btn--accent:hover {
   background: var(--button-gradient) !important; border-color: var(--button-edge) !important; color: #FFFFFF !important;
   box-shadow: var(--button-raised) !important; filter: brightness(1.05);
 }
@@ -125,7 +119,7 @@
   border: 0 !important; box-shadow: 0 0 0 1px var(--button-ring), var(--button-shadow) !important;
 }
 :root .aw .aw-btn--secondary:hover, :root .aw .aw-ctl:hover { background: var(--bg-tertiary) !important; color: var(--text-primary) !important; box-shadow: 0 0 0 1px var(--button-ring), var(--button-shadow) !important; }
-:root .aw .aw-btn--ghost, :root .aw .aw-btn--tertiary, :root .aw .aw-btn--text { color: var(--text-secondary) !important; }
+:root .aw .aw-btn--ghost { color: var(--text-secondary) !important; }
 :root .aw .aw-btn--danger, :root .aw .aw-btn.bg-neg\!, :root .aw .aw-btn--primary.bg-neg\! {
   background: linear-gradient(180deg, #E5484D 50%, #CC172A 99.5%) !important; color: #FFFFFF !important;
   border: 1.5px solid var(--button-edge) !important; box-shadow: var(--button-raised) !important;
@@ -140,30 +134,26 @@
 :root .aw .aw-tool { font-size: 13px !important; }
 
 /* ─────────────── 4. Inputs ─────────────── */
-:root .aw .aw-input, :root .aw .aw-textarea, :root .aw .aw-select, :root .aw .aw-dropdown--field, :root .aw .aw-pop__field, :root .aw .aw-pop__search,
-:root .aw input:is([type="text"], [type="email"], [type="url"], [type="search"], [type="password"], [type="number"], [type="tel"], [type="date"], [type="time"], :not([type])):not(.aw-sheet__input):not(.aw-docs__title):not(.tw-bare),
-:root .aw textarea:not(.aw-sheet__input):not(.tw-bare), :root .aw select {
+:root .aw .aw-input, :root .aw .aw-textarea, :root .aw .aw-dropdown--field, :root .aw .aw-pop__field, :root .aw .aw-pop__search, :root .aw input:is([type="text"], [type="email"], [type="url"], [type="search"], [type="password"], [type="number"], [type="tel"], [type="date"], [type="time"], :not([type])):not(.aw-sheet__input):not(.aw-docs__title):not(.tw-bare), :root .aw textarea:not(.aw-sheet__input):not(.tw-bare), :root .aw select {
   min-height: 36px; padding: 0 var(--space-3); font-size: 14px !important; letter-spacing: -0.01em;
   background: var(--bg-primary) !important; border: 1px solid var(--border-medium) !important; border-radius: 10px !important;
 }
 :root .aw .aw-textarea, :root .aw textarea:not(.aw-sheet__input):not(.tw-bare) { padding: var(--space-3) !important; line-height: 22px !important; border-radius: 12px !important; }
-:root .aw .aw-input:focus, :root .aw .aw-textarea:focus, :root .aw .aw-select:focus, :root .aw .aw-pop__field:focus, :root .aw .aw-pop__search:focus,
-:root .aw input:is([type="text"], [type="email"], [type="url"], [type="search"], [type="password"], [type="number"], [type="tel"], [type="date"], :not([type])):not(.aw-sheet__input):not(.aw-docs__title):not(.tw-bare):focus,
-:root .aw textarea:not(.aw-sheet__input):not(.tw-bare):focus, :root .aw select:focus {
+:root .aw .aw-input:focus, :root .aw .aw-textarea:focus, :root .aw .aw-pop__field:focus, :root .aw .aw-pop__search:focus, :root .aw input:is([type="text"], [type="email"], [type="url"], [type="search"], [type="password"], [type="number"], [type="tel"], [type="date"], :not([type])):not(.aw-sheet__input):not(.aw-docs__title):not(.tw-bare):focus, :root .aw textarea:not(.aw-sheet__input):not(.tw-bare):focus, :root .aw select:focus {
   border-color: var(--accent-9) !important; box-shadow: var(--focus-ring) !important;
 }
-:root .aw .aw-input--hero, :root .aw .aw-input--lg { min-height: 52px; padding: 0 var(--space-5) !important; font-size: 16px !important; border-radius: 999px !important; }
+:root .aw .aw-input--hero { min-height: 52px; padding: 0 var(--space-5) !important; font-size: 16px !important; border-radius: 999px !important; }
 :root .aw .aw-dropdown, :root .aw .aw-dropdown--field, :root .aw .aw-dropdown--sm { height: 36px; border-radius: 10px !important; font-size: 14px !important; }
 :root .aw .aw-dropdown--sm { height: 28px; font-size: 13px !important; }
 :root .aw .aw-sheet__input { font-size: 14px !important; }
 
 /* ─────────────── 5. Tags ─────────────── */
-:root .aw .aw-chip, :root .aw .aw-status, :root .aw .aw-sbadge, :root .aw .aw-badge, :root .aw .aw-tag, :root .aw .aw-pill, :root .aw .aw-pri, :root .aw .aw-engine {
+:root .aw .aw-chip, :root .aw .aw-status, :root .aw .aw-sbadge, :root .aw .aw-badge, :root .aw .aw-tag {
   height: 22px !important; padding: 0 var(--space-2) !important; font-size: 12px !important; font-weight: 500 !important; line-height: 14px !important;
 }
 
 /* ─────────────── 6. Surfaces ─────────────── */
-:root .aw .aw-frame, :root .aw .aw-card, :root .aw .aw-stats, :root .aw .aw-table-wrap, :root .aw .aw-kpi, :root .aw .aw-card-stat, :root .aw .aw-intro__card, :root .aw .aw-tile {
+:root .aw .aw-frame, :root .aw .aw-stats, :root .aw .aw-table-wrap, :root .aw .aw-card-stat {
   border-color: var(--border-medium) !important; border-radius: var(--radius-md) !important;
 }
 :root .aw .aw-frame__head { font-size: 14px; font-weight: 500; letter-spacing: -0.01em; }
@@ -173,12 +163,11 @@
 
 /* ─────────────── 7. Tables ─────────────── */
 :root .aw .aw-table, :root .aw .aw-sheet table { font-size: 14px; }
-:root .aw .aw-table--compact th, :root .aw .aw-table--dense th, :root .aw .aw-table--tight th { font-size: 13px !important; }
+:root .aw .aw-table--compact th, :root .aw .aw-table--tight th { font-size: 13px !important; }
 :root .aw .aw-sheet td.aw-sheet__n, :root .aw .aw-sheet th.aw-sheet__n { font-size: 13px !important; }
 
 /* ─────────────── 8. Tabs and switches ─────────────── */
 :root .aw .aw-tabs > button, :root .aw .aw-seg > button, :root .aw .aw-seg button { font-size: 14px !important; letter-spacing: -0.01em; }
-:root .aw .aw-viewbtn { height: 28px; border-radius: 999px; font-size: 14px; }
 :root .aw .aw-undo button { font-size: 13px; }
 
 /* ─────────────── 9. Menus, modals and the side panel ─────────────── */
@@ -186,18 +175,15 @@
 :root .aw .tw-modal__body { font-size: 14px; line-height: 22px; }
 
 /* ─────────────── 10. App shell ─────────────── */
-:root .aw .aw-nav-section { font-size: 12px !important; color: var(--text-tertiary) !important; }
-:root .aw .aw-nav-link, :root .aw .aw-mod, :root .aw .aw-mod--sm, :root .aw .aw-mod__item {
+:root .aw .aw-nav-link, :root .aw .aw-mod__item {
   height: 32px !important; min-height: 32px !important; border-radius: 8px !important; font-size: 14px !important; color: var(--text-sidebar) !important; letter-spacing: -0.01em;
 }
-:root .aw .aw-nav-link:hover, :root .aw .aw-mod:hover, :root .aw .aw-mod__item:hover { color: var(--text-primary) !important; }
+:root .aw .aw-nav-link:hover, :root .aw .aw-mod__item:hover { color: var(--text-primary) !important; }
 :root .aw .aw-ws-switch { border-radius: 8px; font-size: 14px; }
 :root .aw .aw-page-title { font-size: 14px !important; letter-spacing: -0.01em; }
 :root .aw .aw-page-body { border-radius: var(--radius-md) !important; }
 :root .aw .aw-live { font-size: 13px !important; }
 
 /* ─────────────── 11. Tool intros ─────────────── */
-:root .aw .aw-intro__t { font-size: 14px !important; font-weight: 500; letter-spacing: -0.01em; }
-:root .aw .aw-intro__x { font-size: 14px !important; line-height: 22px; color: var(--text-secondary) !important; }
 :root .aw .aw-try { font-size: 13px !important; }
 :root .aw .aw-chart-label { font-size: 12px; }
