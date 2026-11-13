@@ -207,7 +207,8 @@ export function cleanKit(x: unknown, base: BrandKit = DEFAULT_KIT): BrandKit {
 
   return {
     name: str(o.name, 60) || base.name,
-    logo: isLogo(o.logo) ? (o.logo as string).slice(0, 60_000) : o.logo === "" ? "" : base.logo,
+    // A logo is kept whole or not at all: a cut data URL draws nothing.
+    logo: isLogo(o.logo) && (o.logo as string).length <= 200_000 ? (o.logo as string) : o.logo === "" ? "" : base.logo,
     logoOnDark: typeof o.logoOnDark === "boolean" ? o.logoOnDark : base.logoOnDark,
     colors: { primary: color("primary"), secondary: color("secondary"), ink, text, muted, paper, surface, line: color("line") },
     fonts: { heading: headingFont, body: bodyFont },

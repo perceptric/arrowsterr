@@ -4,6 +4,7 @@ import { cssEvidence, evidenceText } from "./brandCss";
 import { pageNodes } from "./brandPage";
 import { askClaude, parseJson } from "./claude";
 import { safeFetch } from "./safeFetch";
+import { homeLogo, namedImage } from "./logoPick";
 import type { BrandGuideline } from "./writerTypes";
 
 // Builds a brand guideline from a website: reads the full homepage HTML and its stylesheets,
@@ -105,10 +106,15 @@ export async function readBrand(domain: string) {
     .first();
   const svgLogo = svg.length ? $.html(svg).replace(/<svg(?![^>]*xmlns=)/, '<svg xmlns="http://www.w3.org/2000/svg"') : "";
   const ldLogo = html.match(/"logo"\s*:\s*(?:\{[^}]*?"url"\s*:\s*)?"([^"]+)"/)?.[1] ?? null;
+  // The logo in the link to the homepage is the surest sign; it goes first and wins (src/lib/logoPick.ts).
+  // A plain header image counts only when it or its parents are named logo or brand.
+  const home = homeLogo($, base);
   const logos = [
     ...new Set(
       [
+        home,
         ...$('img[src*="logo" i], img[alt*="logo" i], [class*="logo" i] img, header img')
+          .filter((_, e) => namedImage($, e))
           .map((_, e) => $(e).attr("src") ?? $(e).attr("data-src"))
           .get(),
         ldLogo,
@@ -116,7 +122,7 @@ export async function readBrand(domain: string) {
         $('meta[property="og:image"]').attr("content"),
         $('link[rel*="icon"]').attr("href"),
       ]
-        .map(abs)
+        .map((u) => (u?.startsWith("data:image/svg") ? u : abs(u)))
         .filter((u): u is string => Boolean(u)),
     ),
   ].slice(0, 8);
@@ -134,8 +140,9 @@ export async function readBrand(domain: string) {
   return {
     title: $("title").first().text().trim(),
     description: $('meta[name="description"]').attr("content") ?? "",
-    logo: logo ? new URL(logo, base).toString() : null,
+    logo: home ?? (logo ? new URL(logo, base).toString() : null),
     logos,
+    homeLogo: home,
     siteName,
     contact,
     headings,

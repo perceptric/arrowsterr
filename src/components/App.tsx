@@ -650,21 +650,26 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
   const auth: RunAuth = { workspaceId: ws.id, token };
   if (onboarding) {
     // A brand-new account first says who they are and names its workspace. Adding more brands later skips this.
-    const meta = (session.user.user_metadata ?? {}) as { first_name?: string; last_name?: string; role?: string; full_name?: string; name?: string };
+    const meta = (session.user.user_metadata ?? {}) as { first_name?: string; last_name?: string; role?: string; full_name?: string; name?: string; company_size?: string; company_type?: string };
     const [gFirst = "", ...gLast] = String(meta.full_name ?? meta.name ?? "").trim().split(/\s+/);
-    const welcome: Welcome | undefined = !brands.length
-      ? {
-          you: meta.first_name ? null : { first: gFirst, last: gLast.join(" "), role: "" },
-          workspace: ws.role === "owner" && ws.name === firstWorkspaceName(email) ? guessCompany(email) : null,
-        }
-      : undefined;
+    // Role, company size and company type are asked once per person, so accounts made before the question see it next time.
+    const about = meta.role && meta.company_size && meta.company_type ? null : { role: meta.role ?? "", size: meta.company_size ?? "", type: meta.company_type ?? "" };
+    const welcome: Welcome = {
+      you: !brands.length && !meta.first_name ? { first: gFirst, last: gLast.join(" ") } : null,
+      workspace: !brands.length && ws.role === "owner" && ws.name === firstWorkspaceName(email) ? guessCompany(email) : null,
+      about,
+    };
     return (
       <Onboarding
         auth={auth}
-        welcome={welcome && (welcome.you || welcome.workspace != null) ? welcome : undefined}
+        welcome={welcome.you || welcome.workspace != null || welcome.about ? welcome : undefined}
         onWelcome={async (w) => {
           if (w.you) {
-            const { error: e } = await sb.auth.updateUser({ data: { first_name: w.you.first, last_name: w.you.last, role: w.you.role || null, full_name: [w.you.first, w.you.last].filter(Boolean).join(" ") } });
+            const { error: e } = await sb.auth.updateUser({ data: { first_name: w.you.first, last_name: w.you.last, full_name: [w.you.first, w.you.last].filter(Boolean).join(" ") } });
+            if (e) throw e;
+          }
+          if (w.about) {
+            const { error: e } = await sb.auth.updateUser({ data: { role: w.about.role, company_size: w.about.size, company_type: w.about.type } });
             if (e) throw e;
           }
           if (w.workspace) {
