@@ -210,14 +210,15 @@ html, body { background: var(--v10-canvas) !important; }
 :root :is(.aw, #calm) .aw-callout--warn { background: var(--v10-warning-soft) !important; color: #7C3A06 !important; }
 :root :is(.aw, #calm) :is(.aw-callout--error, .aw-callout--danger) { background: var(--v10-danger-soft) !important; color: #7F1D1D !important; }
 
-:root :is(.aw, #calm) table:not(.aw-sheet table) th {
+:root :is(.aw, #calm) table:not(.aw-sheet) th {
   padding-top: 10px !important; padding-bottom: 10px !important; font-size: 12px !important; font-weight: 500 !important; color: var(--v10-muted) !important; letter-spacing: 0 !important; text-transform: none !important;
-  background: transparent !important; border-bottom: 1px solid var(--v10-border) !important;
+  background: var(--v10-card) !important; border-bottom: 1px solid var(--v10-border) !important;
 }
-:root :is(.aw, #calm) table:not(.aw-sheet table) td { border-bottom: 1px solid rgb(231 233 238 / 0.6) !important; color: var(--v10-ink-2); }
-[data-theme="dark"] :is(.aw, #calm) table:not(.aw-sheet table) td { border-bottom-color: var(--v10-border) !important; }
-:root :is(.aw, #calm) table:not(.aw-sheet table) tbody tr:last-child > td { border-bottom: 0 !important; }
-:root :is(.aw, #calm) table:not(.aw-sheet table) tbody tr:hover > td { background: rgb(246 247 249 / 0.6) !important; }
+:root :is(.aw, #calm) table:not(.aw-sheet) td { border-bottom: 1px solid rgb(231 233 238 / 0.6) !important; color: var(--v10-ink-2); }
+[data-theme="dark"] :is(.aw, #calm) table:not(.aw-sheet) td { border-bottom-color: var(--v10-border) !important; }
+:root :is(.aw, #calm) table:not(.aw-sheet) tbody tr:last-child > td { border-bottom: 0 !important; }
+/* Solid colors only: a header or column pinned while scrolling must hide the rows under it. */
+:root :is(.aw, #calm) table:not(.aw-sheet) tbody tr:hover > td { background: color-mix(in srgb, var(--v10-soft) 60%, var(--v10-card)) !important; }
 :root :is(.aw, #calm) .aw-table :is(th, td):first-child { padding-left: 20px !important; }
 :root :is(.aw, #calm) .aw-table :is(th, td):last-child { padding-right: 20px !important; }
 :root :is(.aw, #calm) .aw-table td { padding-top: 12px !important; padding-bottom: 12px !important; font-size: 14px !important; vertical-align: top; }
@@ -314,6 +315,11 @@ html, body { background: var(--v10-canvas) !important; }
 @media (max-width: 1024px) { :root :is(.aw, #calm) .aw-stats > .aw-stat:last-child:nth-child(odd) { grid-column: 1 / -1; } }
 
 /* ─────────────── Sheet: column letters and grouped rows (Opportunities) ─────────────── */
+/* Every header row and pinned column has a solid color, so rows scrolling under them never show through. */
+:root :is(.aw, #calm) .aw-sheet thead tr:not(.aw-sheet__letters) th { background: var(--v10-card) !important; }
+:root :is(.aw, #calm) .aw-sheet tbody td:is(.aw-sheet__n, .aw-sheet__pick, .aw-sheet__key) { background: var(--v10-card) !important; }
+:root :is(.aw, #calm) .aw-sheet tbody tr:hover > td:is(.aw-sheet__n, .aw-sheet__pick, .aw-sheet__key) { background: color-mix(in srgb, var(--v10-soft) 60%, var(--v10-card)) !important; }
+:root :is(.aw, #calm) .aw-sheet tbody tr.is-picked > td:is(.aw-sheet__n, .aw-sheet__pick, .aw-sheet__key) { background: var(--accent-3, var(--v10-signal-soft)) !important; }
 :root :is(.aw, #calm) .aw-sheet.has-letters thead tr.aw-sheet__letters th {
   top: 0 !important; height: 24px !important; padding: 0 6px !important; line-height: 24px !important; text-align: center !important;
   font-family: var(--aw-mono) !important; font-size: 10.5px !important; font-weight: 400 !important; color: var(--aw-faint) !important;

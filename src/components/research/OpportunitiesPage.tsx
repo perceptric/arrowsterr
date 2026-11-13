@@ -3,7 +3,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { addCalendarItems, deleteCalendarItems, updateCalendarItem, type KeywordRun, type Site } from "@/lib/db";
-import { groupOf, isOpportunity, LEVELS, listOpportunities, OPP_STATES, oppState, OTHER_GROUP, STAGE_LABEL, type OppCluster, type OppItem, type OppState } from "@/lib/oppData";
+import { isOpportunity, LEVELS, listOpportunities, OPP_STATES, oppState, STAGE_LABEL, type OppCluster, type OppItem, type OppState } from "@/lib/oppData";
 import { slots } from "@/lib/research";
 import type { RunAuth } from "@/lib/runner";
 import { useStash } from "@/lib/stash";
@@ -12,7 +12,7 @@ import { importPatch } from "@/lib/writerImport";
 import { askConfirm } from "../Dialogs";
 import { EmptyScreen } from "../Drawing";
 import { EngineName } from "../Engines";
-import { Sheet, type Col, type SheetGroups } from "../Sheet";
+import { Sheet, type Col } from "../Sheet";
 import { SidePanel, Thinking } from "../ui";
 import { PlanProgress } from "./AgenticResearch";
 import { toItem, type Refresh } from "./EditorialCalendar";
@@ -247,6 +247,14 @@ export function OpportunitiesPage({ sb, auth, site, canEdit, refresh, onDrafts }
       ),
     },
     {
+      id: "cluster",
+      label: "Cluster",
+      type: "list",
+      width: 200,
+      options: [...clusters.map((c) => c.name), "Other ideas"],
+      value: (i) => (i.cluster_id && clusterIds.has(i.cluster_id) ? clusterName(i.cluster_id) : "Other ideas"),
+    },
+    {
       id: "state",
       label: "Status",
       type: "list",
@@ -310,37 +318,6 @@ export function OpportunitiesPage({ sb, auth, site, canEdit, refresh, onDrafts }
     { id: "rank", label: "Your rank", type: "number", width: 105, value: (i) => i.current_rank },
   ];
 
-  const groups: SheetGroups<OppItem> = {
-    of: (i) => groupOf(i, clusterIds),
-    list: [
-      ...clusters.map((c) => {
-        const rows = items.filter((i) => i.cluster_id === c.id);
-        const vol = rows.reduce((n, i) => n + (i.volume ?? 0), 0);
-        const fresh = rows.filter((i) => oppState(i) === "new");
-        return {
-          id: c.id,
-          name: c.name,
-          meta: `${rows.length} ${rows.length === 1 ? "page" : "pages"}, ${fmt(vol)} searches a month`,
-          tools:
-            canEdit && fresh.length ? (
-              <span className="flex items-center gap-1">
-                <button type="button" className="aw-text-link text-[12px]" onClick={() => addToCalendar(fresh.sort((a, b) => Number(b.cluster_role === "pillar") - Number(a.cluster_role === "pillar")))}>
-                  Add to calendar
-                </button>
-                <span className="text-faint" aria-hidden="true">
-                  |
-                </span>
-                <button type="button" className="aw-text-link text-[12px]" onClick={() => addToDrafts(fresh)}>
-                  Add to Drafts
-                </button>
-              </span>
-            ) : null,
-        };
-      }),
-      { id: OTHER_GROUP, name: clusters.length ? "Other ideas" : "Ideas", meta: `${items.filter((i) => groupOf(i, clusterIds) === OTHER_GROUP).length} pages` },
-    ],
-  };
-
   const bulk = pickedRows.length ? (
     <span className="flex flex-wrap items-center gap-2">
       <span className="text-[13px] font-medium text-ink">{pickedRows.length} selected</span>
@@ -372,7 +349,6 @@ export function OpportunitiesPage({ sb, auth, site, canEdit, refresh, onDrafts }
         cols={cols}
         rowKey={(i) => i.id}
         sort={{ key: "score", desc: true }}
-        groups={groups}
         letters
         selected={canEdit ? picked : undefined}
         onSelect={canEdit ? setPicked : undefined}

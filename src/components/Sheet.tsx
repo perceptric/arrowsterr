@@ -1317,7 +1317,7 @@ export function Sheet<T>({
                         onMouseDown={(e) => onCellDown(e, { r: i, c: g })}
                         onMouseEnter={() => onCellEnter({ r: i, c: g })}
                         aria-selected={inBox(i, g)}
-                        className={`${c.type === "number" ? "is-num" : ""} ${widthOf(c) ? "overflow-hidden text-ellipsis whitespace-nowrap" : ""} ${stickyCls(c)} ${inBox(i, g) ? "is-in-range" : ""} ${isAt ? "is-active" : ""} ${c.edit ? "is-editable" : ""} ${ed && (ed.kind === "text" || ed.kind === "number") ? "is-editing" : ""} ${opener ? "has-open" : ""}`}
+                        className={`${c.type === "number" ? "is-num" : ""} ${widthOf(c) && c.type !== "number" ? "overflow-hidden text-ellipsis whitespace-nowrap" : ""} ${stickyCls(c)} ${inBox(i, g) ? "is-in-range" : ""} ${isAt ? "is-active" : ""} ${c.edit ? "is-editable" : ""} ${ed && (ed.kind === "text" || ed.kind === "number") ? "is-editing" : ""} ${opener ? "has-open" : ""}`}
                       >
                         {ed && (ed.kind === "text" || ed.kind === "number") ? (
                           <TextEditor row={r} col={c} init={editing!.init} onSave={(v) => apply([{ row: r, col: c, value: v }])} onDone={(mv) => endEdit({ r: i, c: g }, mv)} />
