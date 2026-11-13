@@ -12,9 +12,10 @@ import { ENGINE_LOGOS } from "./Engines";
 import { Dropdown } from "./Pickers";
 import { Logo } from "./Logo";
 import { Thinking } from "./ui";
+import { PersonaCard, SharperBox, type Built } from "./WriterPersona";
 
 export type NewBrand = Omit<Brand, "id" | "workspace_id" | "daily">;
-type Step = "you" | "workspace" | "about" | "site" | "topics" | "prompts" | "done";
+type Step = "you" | "workspace" | "about" | "site" | "topics" | "prompts" | "writer" | "done";
 /** A new account's first steps: who they are and what to call the workspace. null skips that step. */
 export type Welcome = { you: { first: string; last: string } | null; workspace: string | null; about: About | null };
 /** Who the person is and what kind of company they work at, asked once at the start. */
@@ -33,7 +34,7 @@ export const COMPANY_TYPES: { id: string; label: string; business: BusinessType 
 type TopicPick = PickedTopic & { on: boolean };
 type PromptPick = { text: string; angle: Angle; on: boolean };
 type PlanTopic = { name: string; prompts: PromptPick[] };
-type Saved = { step: Step; website: string; name: string; domain: string; url: string; logo: string; profile: Profile; topics: TopicPick[]; plan: PlanTopic[] };
+type Saved = { step: Step; website: string; name: string; domain: string; url: string; logo: string; profile: Profile; topics: TopicPick[]; plan: PlanTopic[]; brandId?: string };
 type PromptsReply = { topics: { name: string; prompts: { text: string; angle: Angle }[] }[] };
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
@@ -101,7 +102,8 @@ export function Onboarding({
   engines?: string[]; // AI engines the first check runs on
   checkEvery?: number; // days between checks on this plan
   auth: RunAuth;
-  onDone: (b: NewBrand) => Promise<void>;
+  /** Adds the brand and returns its id. */
+  onDone: (b: NewBrand) => Promise<string | void>;
   onExit: () => void; // leave the finish screen
   onCancel?: () => void;
   importCount: number;
@@ -112,7 +114,7 @@ export function Onboarding({
   const [saved] = useState<Saved | null>(() => {
     try {
       const v = JSON.parse(localStorage.getItem(saveKey) || "null") as Saved | null;
-      return v && ["site", "topics", "prompts"].includes(v.step) && Array.isArray(v.topics) ? v : null;
+      return v && (["site", "topics", "prompts"].includes(v.step) || (v.step === "writer" && v.brandId)) && Array.isArray(v.topics) ? v : null;
     } catch {
       return null;
     }
@@ -138,6 +140,7 @@ export function Onboarding({
   const [profile, setProfile] = useState<Profile>(saved?.profile ?? { country: "United States" });
   const [topics, setTopics] = useState<TopicPick[]>(saved?.topics ?? []);
   const [plan, setPlan] = useState<PlanTopic[]>(saved?.plan ?? []);
+  const [brandId, setBrandId] = useState(saved?.brandId ?? "");
   // The Brand Kit step shows while the research runs. role can change on the first step.
   const [kitOpen, setKitOpen] = useState(false);
   const [role, setRole] = useState(kit?.role ?? "");
@@ -147,9 +150,9 @@ export function Onboarding({
   useEffect(() => {
     try {
       if (step === "done") localStorage.removeItem(saveKey);
-      else if (step !== "site" || website) localStorage.setItem(saveKey, JSON.stringify({ step, website, name, domain, url, logo, profile, topics, plan } satisfies Saved));
+      else if (step !== "site" || website) localStorage.setItem(saveKey, JSON.stringify({ step, website, name, domain, url, logo, profile, topics, plan, brandId } satisfies Saved));
     } catch {}
-  }, [saveKey, step, website, name, domain, url, logo, profile, topics, plan]);
+  }, [saveKey, step, website, name, domain, url, logo, profile, topics, plan, brandId]);
 
   const go = (s: Step) => {
     setStep(s);
@@ -188,11 +191,23 @@ export function Onboarding({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, ready]);
 
+  // The writer persona is built while the person picks topics and prompts, so "Your writer" opens at once.
+  const personaJob = useRef<{ key: string; promise: Promise<Built> } | null>(null);
+  const getPersona = (site = domain, brand = name, added: { urls?: string[]; text?: string } = {}, fresh = false) => {
+    const key = JSON.stringify({ site, added });
+    if (fresh || personaJob.current?.key !== key) {
+      const promise = call("/api/writer-persona", auth, { action: "build", domain: site, name: brand, ...added }) as Promise<Built>;
+      promise.catch(() => {});
+      personaJob.current = { key, promise };
+    }
+    return personaJob.current.promise;
+  };
+
   const finish = (final: PlanTopic[]) =>
     run(seo ? "Setting up your brand..." : "Setting up your brand and starting the first check...", async () => {
       const kept: Topic[] = final.map((t) => ({ name: t.name, prompts: t.prompts.filter((p) => p.on).map((p) => p.text) })).filter((t) => t.prompts.length);
       const site = domain.replace(/^https?:\/\//, "").replace(/\/.*$/, "").toLowerCase();
-      await onDone({
+      const id = await onDone({
         name: name.trim(),
         domain: site,
         url: url || `https://${site}`,
@@ -202,7 +217,10 @@ export function Onboarding({
         topics: kept,
         prompts: flatPrompts(kept),
       });
-      go("done");
+      if (id) {
+        setBrandId(id);
+        go("writer");
+      } else go("done");
     });
 
   const advance = (to: Step) => {
@@ -230,12 +248,14 @@ export function Onboarding({
       if (said && said.id !== "agency" && kit) d.profile = { ...d.profile, businessType: said.business };
       setProfile(d.profile);
       setTopics((d.topics as PickedTopic[]).map((t) => ({ ...t, on: true })));
+      void getPersona(d.domain, d.name);
       if (seo) {
         // Organic Research only: no prompts to track, so the brand is ready now.
         setBusy("Setting up your brand...");
         const p = d.profile as Profile;
-        await onDone({ name: d.name, domain: d.domain, url: d.url, logo: d.logo, category: BUSINESS_TYPES.find((b) => b.id === p.businessType)?.label ?? "", profile: p, topics: [], prompts: [] });
-        setReady("done");
+        const id = await onDone({ name: d.name, domain: d.domain, url: d.url, logo: d.logo, category: BUSINESS_TYPES.find((b) => b.id === p.businessType)?.label ?? "", profile: p, topics: [], prompts: [] });
+        if (id) setBrandId(id);
+        setReady(id ? "writer" : "done");
       } else setReady("topics");
     });
   };
@@ -275,6 +295,7 @@ export function Onboarding({
   const steps: { id: Step; label: string }[] = [
     { id: "topics", label: "Topics" },
     { id: "prompts", label: "Prompts" },
+    { id: "writer", label: "Your writer" },
   ];
   const at = step === "done" ? steps.length : steps.findIndex((s) => s.id === step);
 
@@ -286,7 +307,7 @@ export function Onboarding({
           <ol className="aw-steps" aria-label="Steps">
             {steps.map((s, i) => (
               <li key={s.id} className={`aw-steps__item ${i === at ? "is-on" : i < at ? "is-done" : ""}`}>
-                <button type="button" disabled={i > at || Boolean(busy) || step === "done" || (s.id === "prompts" && !plan.length)} onClick={() => go(s.id)} aria-current={i === at ? "step" : undefined}>
+                <button type="button" disabled={i > at || Boolean(busy) || step === "done" || step === "writer" || (s.id === "prompts" && !plan.length)} onClick={() => go(s.id)} aria-current={i === at ? "step" : undefined}>
                   <span className="aw-steps__dot">{i < at ? "✓" : i + 1}</span>
                   <span className="aw-steps__label">{s.label}</span>
                 </button>
@@ -317,10 +338,10 @@ export function Onboarding({
         {kitOpen && kit ? <KitStep auth={auth} website={website} agency={role === "Agency" || companyType === "agency"} agencySite={kit.agencySite} onClose={() => setKitOpen(false)} /> : null}
         {(busy || ready) && !kitOpen ? (
           <div className="mx-auto w-full max-w-4xl">
-            <Thinking text={leaving ? (ready === "done" ? "Opening your brand..." : "Loading your topics...") : ready ? (ready === "done" ? "Setup done" : "Research done") : busy} done={Boolean(ready) && !leaving}>
+            <Thinking text={leaving ? (ready === "done" ? "Opening your brand..." : ready === "writer" ? "Opening your writer..." : "Loading your topics...") : ready ? (ready === "done" || ready === "writer" ? "Setup done" : "Research done") : busy} done={Boolean(ready) && !leaving}>
               {ready && !leaving ? (
                 <button type="button" className="aw-btn aw-btn--accent aw-btn--lg" onClick={() => advance(ready)}>
-                  {ready === "done" ? "Your brand is ready" : "Your topics are ready"} →
+                  {ready === "done" ? "Your brand is ready" : ready === "writer" ? "Meet your writer" : "Your topics are ready"} →
                 </button>
               ) : (
                 <Musing />
@@ -384,6 +405,17 @@ export function Onboarding({
           <PromptsStep plan={plan} setPlan={setPlan} used={used} cap={cap} engines={engines} checkEvery={checkEvery} onBack={() => go("topics")} onNext={() => finish(plan)} />
         ) : null}
 
+        {step === "writer" && !busy && !ready ? (
+          <WriterStep
+            auth={auth}
+            name={name}
+            logo={logo}
+            brandId={brandId}
+            build={(added, fresh) => getPersona(domain, name, added, fresh)}
+            onNext={() => go("done")}
+          />
+        ) : null}
+
         {step === "done" && !busy && !ready ? <DoneStep name={name} logo={logo} seo={seo} engines={engines} prompts={used} checking={checking ?? null} onExit={onExit} /> : null}
       </div>
     </main>
@@ -436,6 +468,86 @@ function KitStep({ auth, website, agency, agencySite, onClose }: { auth: RunAuth
       <span className="aw-onb__kicker">Your brand</span>
       <KitLearn key={site} auth={auth} website={site} onDone={confirm} onAnother={() => setSite(null)} onSkip={onClose} />
     </div>
+  );
+}
+
+/**
+ * "Your writer": the persona built from the brand's site and posts, with its sample paragraph. Looks right saves it
+ * to the brand's voice and to Knowledge. The brand already exists here, so there is no way back to the prompts.
+ */
+function WriterStep({ auth, name, logo, brandId, build, onNext }: { auth: RunAuth; name: string; logo: string; brandId: string; build: (added?: { urls?: string[]; text?: string }, fresh?: boolean) => Promise<Built>; onNext: () => void }) {
+  const [built, setBuilt] = useState<Built | null>(null);
+  const [edit, setEdit] = useState(false);
+  const [busy, setBusy] = useState<"" | "build" | "save">("build");
+  const [error, setError] = useState("");
+  const load = (added?: { urls?: string[]; text?: string }, fresh = false) => {
+    setBusy("build");
+    setError("");
+    build(added, fresh)
+      .then((b) => {
+        setBuilt(b);
+        setEdit(false);
+      })
+      .catch((e) => setError(message(e)))
+      .finally(() => setBusy(""));
+  };
+  useEffect(() => {
+    // Once: the job started while the person picked topics.
+    build()
+      .then(setBuilt)
+      .catch((e) => setError(message(e)))
+      .finally(() => setBusy(""));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const save = async () => {
+    if (!built) return;
+    setBusy("save");
+    setError("");
+    try {
+      await call("/api/writer-persona", auth, { action: "save", brandId, persona: built.persona, stats: built.stats, postText: built.postText });
+      onNext();
+    } catch (e) {
+      setError(message(e));
+      setBusy("");
+    }
+  };
+  return (
+    <>
+      <div className="flex items-center gap-3">
+        {logo ? <BrandLogo src={logo} name={name} size={36} /> : null}
+        <StepHead n={3} kicker={name || "Your writer"} title="Your writer">
+          Every article is written by this persona, from your own pages and posts.
+        </StepHead>
+      </div>
+      {error ? (
+        <div className="flex flex-wrap items-center gap-3">
+          <p className="aw-error">{error}</p>
+          <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => load(undefined, true)}>
+            Retry
+          </button>
+          {!built ? (
+            <button type="button" className="aw-text-link text-[13px]" onClick={onNext}>
+              Set it up later in Brand
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+      {busy === "build" ? <Thinking text={`Reading ${name || "your site"}'s pages and posts...`} /> : null}
+      {built && busy !== "build" ? (
+        <>
+          <PersonaCard persona={built.persona} stats={built.stats} edit={edit} onChange={(persona) => setBuilt({ ...built, persona })} />
+          {built.noBlog ? <SharperBox busy={Boolean(busy)} onBuild={(urls, text) => load({ urls, text }, true)} /> : null}
+          <div className="aw-onb__foot">
+            <button type="button" className="aw-btn aw-btn--secondary" disabled={Boolean(busy)} onClick={() => setEdit(!edit)}>
+              {edit ? "Done editing" : "Edit"}
+            </button>
+            <button type="button" className="aw-btn aw-btn--accent aw-btn--lg" disabled={Boolean(busy) || !built.persona.tone.length || !built.persona.reader} onClick={() => void save()}>
+              {busy === "save" ? "Saving..." : "Looks right"} →
+            </button>
+          </div>
+        </>
+      ) : null}
+    </>
   );
 }
 

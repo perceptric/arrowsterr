@@ -15,6 +15,7 @@ import { BrandLogo } from "./BrandLogo";
 import { BrandGuidelines } from "./BrandGuidelines";
 import { BrandKitPanel } from "./BrandKit";
 import { BrandVoiceSettings } from "./BrandVoice";
+import { WriterPersonaSettings } from "./WriterPersona";
 import { favicon, Thinking } from "./ui";
 import { ShoppingSwitch } from "./ShoppingPage";
 
@@ -54,7 +55,10 @@ export function BrandSettings({
         </label>
       ) : null}
       {tab === "voice" ? (
-        <BrandVoiceSettings key={brand.id} auth={auth} brand={brand} canEdit={canEdit} />
+        <div className="flex flex-col gap-10">
+          <WriterPersonaSettings key={`p${brand.id}`} auth={auth} brand={brand} canEdit={canEdit} />
+          <BrandVoiceSettings key={brand.id} auth={auth} brand={brand} canEdit={canEdit} />
+        </div>
       ) : tab === "kit" ? (
         <BrandKitPanel key={brand.id} sb={sb} auth={auth} canEdit={canEdit} brand={brand} />
       ) : tab === "guidelines" ? (

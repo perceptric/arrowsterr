@@ -195,7 +195,11 @@ This step is required. The first draft waits for it.
 | 4. Technical SEO and linking skills | 2 | The tools in 3.2, the new plays, the 18 technical and linking skills | Each skill runs on 3 test sites and every proposed change waits for approval |
 | 5. The rest of the catalog | 1 | On-page, AI visibility, research, reporting and writing skills in chat | Every system skill names only tools Zippie has |
 
-**Status, November 13, 2026:** Phases 3, 4 and 5 shipped in #136. The sidebar has Home and Zippie tabs, the chat bar floats on every page and opens Zippie on the right, and Skills and Knowledge have their own pages. All 50 system skills and the new tools are live. The skill-picking evals and the 3-site runs are still to do. Phases 1 and 2 are next.
+**Status, November 13, 2026:** Phases 3, 4 and 5 shipped in #136. The sidebar has Home and Zippie tabs, the chat bar floats on every page and opens Zippie on the right, and Skills and Knowledge have their own pages. All 50 system skills and the new tools are live. The skill-picking evals and the 3-site runs are still to do.
+
+**Phase 1 shipped (writer persona).** Onboarding starts building the persona as soon as the site is read, and "Your writer" is the last step: the persona card, the measured voice stats and the sample paragraph, with Edit and Looks right. Saving writes the voice and the persona to `brand_voices` (087), the brand's own posts as the voice sample when it has none, and the Knowledge page "Persona: {Brand} writer". Every writer prompt now carries the persona: who writes, the point of view, approved proof and claims to never make. Brand > Tone of voice shows it with Edit and Build again. Code: `src/lib/writerPersona.ts` (pure), `writerPersonaRead.ts`, `writerPersonaServer.ts`, `/api/writer-persona`, `src/components/WriterPersona.tsx`.
+
+Tried on 5 real brands (perceptric.com, ahrefs.com, basecamp.com, allbirds.com, stripe.com) with `scripts/writer-persona-try.mjs`: 53 of 54 proof lines quoted their page word for word and were kept, the one that didn't was dropped, every sample paragraph passed the house rules on the first try, and a build took 12 to 25 seconds. Phase 2 is next.
 
 About 8 weeks for one engineer. Phase 2 is the same work as Phase 5 of `docs/draft-and-write-build.md`, so they ship together.
 
@@ -207,12 +211,12 @@ Claude Sonnet 5.5 at $2 in and $10 out per million tokens (check). Beta is 50 te
 
 | Line | Each | Beta a month | Growth a month |
 |---|---|---|---|
-| Writer persona (pages read free, 1 call about 30K in and 4K out) | ~$0.10 a brand | ~$15 in the first month, ~$3 after | ~$150 first month, ~$30 after |
+| Writer persona (pages read free, 1 call: measured about 19K in and 2.5K out on 5 brands) | ~$0.06 a brand | ~$9 in the first month, ~$2 after | ~$90 first month, ~$20 after |
 | Bigger cached skill text (about 60K tokens, read about 7 times a draft) | ~$0.08 an article | ~$40 | ~$400 |
 | Humanize-in-persona and ProseShape passes | ~$0.06 an article | ~$30 | ~$300 |
 | Zippie skill runs (20 a team a month, ~$0.10 each) | ~$0.10 a run | ~$100 | ~$1,000 |
 | Crawls, link checks, robots | our VPS | $0 | $0 |
 | PageSpeed Insights | free quota (check) | $0 | $0 |
-| **Added a month** | | **~$173** (first month ~$185) | **~$1,730** (first month ~$1,850) |
+| **Added a month** | | **~$172** (first month ~$179) | **~$1,720** (first month ~$1,790) |
 
 The voice check, claim ledger, copyedit and proof passes are counted in `docs/draft-and-write-build.md` and are left out here.
