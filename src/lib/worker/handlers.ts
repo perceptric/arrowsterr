@@ -16,6 +16,7 @@ import { queueShopWork } from "../shopServer";
 import { queueMatching, saveCards } from "../shopMatchServer";
 import { queueShopRuns } from "../shopRunsServer";
 import { queueRankChecks } from "../rankTrackServer";
+import { auditJob, queueAudits } from "../audit/crawlServer";
 import { afterDaily, dispatch } from "../integrations";
 import { emailJob } from "../notify";
 import { briefEmail, planEmail } from "../emails";
@@ -54,6 +55,7 @@ export async function schedule(db: SupabaseClient, job: Job) {
   await queueMatching(db).catch((e) => console.error("AI Shopping matching failed:", e instanceof Error ? e.message : e));
   await queueShopRuns(db).catch((e) => console.error("AI Shopping runs failed:", e instanceof Error ? e.message : e));
   await queueRankChecks(db).catch((e) => console.error("Rank checks failed:", e instanceof Error ? e.message : e));
+  await queueAudits(db).catch((e) => console.error("Audit crawls failed:", e instanceof Error ? e.message : e));
   const engines = availableEngines();
   if (!engines.length) return finish(job.id);
   const now = new Date();
@@ -295,11 +297,9 @@ export async function plan(db: SupabaseClient, job: Job) {
   await finish(job.id);
 }
 
-// ─────────────── Zippie: change sets ───────────────
-// Technical SEO was removed (Site Audit, On-page Audit, Indexing, Speed): its jobs still in the queue just finish.
-export async function audit(_db: SupabaseClient, job: Job) {
-  await finish(job.id);
-}
+// ─────────────── audit: one crawl of a brand's site, in short turns (docs/audit-plan.md, section 4.5) ───────────────
+// Site Audit jobs from before Technical SEO was removed have no auditId and just finish.
+export const audit = auditJob;
 
 // Local Research, Perception and Content Map were removed: their jobs still in the queue just finish.
 const retired = async (_db: SupabaseClient, job: Job) => finish(job.id);

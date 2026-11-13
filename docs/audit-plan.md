@@ -9,6 +9,15 @@ Every finding ends in a button that does the fix: a link added for you in the br
 
 Every feature, its release (v1, v2, Later) and its definition of done are in `docs/audit-features.md`. The Live Writer is built in its own track; Audit only sends it a refresh request (`docs/audit-features.md`, D9). Technical SEO stays out of the app (`docs/archive/technical-seo-plan.md`): Audit runs no technical checks and has no health score.
 
+**Phase 1 built (November 2026).** The link crawler, the Audit home and the Pages tab:
+- `supabase/085_audits.sql` adds `audits`, `audit_urls` (the queue), `audit_pages` and `audit_links`. Each page row keeps the hashes of the pages it links to (`links_to`, `body_links_to`), so the graph step reads page rows only, even on a 50,000-page crawl.
+- One `audit` job per crawl runs in turns of up to 85 seconds (`src/lib/audit/crawlServer.ts`): seed (robots.txt, sitemaps, AI-cited pages), fetch, then graph. A lease on the crawl row (`lease_until`) keeps two jobs off one crawl. The scheduler resumes crawls with no heartbeat for 20 minutes and starts each brand's scheduled crawl (`queueAudits`).
+- The rules with no network are pure and tested: `src/lib/audit/crawl.ts` (addresses, scope, page reading, firewall pages, Crawl-delay, partial reasons) and `src/lib/audit/graph.ts` (depth, links in, link score, orphans, page value, stats).
+- `/api/audit`: overview, status, pages, page, start, settings. Plan limits are `auditPages` and `auditEveryDays` in `plans.ts`.
+- The screen (`src/components/AuditPage.tsx`) has Overview, Internal links and Pages, crawl progress, crawl settings and the page panel. Pages is a table paged on the server, 100 rows at a time, with quick views and search, and a list on phones.
+- Not yet: the Content decay tab (it needs Search Console, phase 2), the Overview's summary sentences and Connections panel, and the link suggestions (phase 3). The Internal links tab shows the problems and opens each list in Pages.
+- `node scripts/audit-crawl-check.mjs` (with `FREE_TEST_RESOLVE=127.0.0.1`) crawls a local test site end to end: one long turn, many short turns, turns killed mid-batch, two jobs racing, a firewall and the page limit all give the expected result.
+
 Written November 2026. Prices marked "check" couldn't be confirmed on the vendor's own page. Learns from the tools we built and removed this month (`docs/archive/site-structure.md`, `content-map.md`) and from the Refresh idea in `docs/content-v3-backend.md` (section 7).
 
 ---
@@ -334,17 +343,14 @@ One migration per phase, starting at `085`, each safe to run twice. Old tables s
 
 | Job | Started by | Key | At once | Notes |
 |---|---|---|---|---|
-| `audit_start` | Crawl now, weekly schedule | brand + week, or audit id for Crawl now | 1 per brand, 1 per host across workspaces | Replaces the `audit` stub |
-| `audit_fetch` | `audit_start`, then itself | audit id + turn | 1 per audit | 90 s turns, requeues itself |
-| `audit_graph` | Fetch done | audit id | 1 | Depth, links in, link score, orphans |
-| `audit_score` | `audit_graph` | audit id | 1 | Link checks, scores, summary |
-| `link_suggest` | `audit_score`, a publish, Get links, Fix this cluster | brand + target set | 2 per workspace | Section 6.2 |
+| `audit` | Crawl now, the scheduled crawl, a resume | `audit:<id>`, or `audit:<id>:resume:<n>` | 1 turn per crawl at a time (the crawl's lease) | Seed, fetch, then graph, in turns of up to 85 s; each turn puts the job back with a 1-second wait that uses no attempt |
+| `link_suggest` | The end of a crawl, a publish, Get links, Fix this cluster | brand + target set | 2 per workspace | Section 6.2 (phase 3) |
 | `gsc_sync` | Nightly, connect (backfill) | brand + day | 4 overall | Replaces the stub |
 | `decay_check` | After `gsc_sync`, weekly without Search Console | brand + day | 4 overall | Sections 7.2 to 7.4 |
 
 - The `link_check` and `cwv_sync` stubs are removed from `JobKind` and `HANDLERS`.
 - **Weekly crawl:** each brand crawls a week after its last full crawl, spread across the day by brand id (the `startMinute` idea from rank tracking). Brands start weekly crawls only after their first crawl. Editors can turn it off.
-- **Heartbeat:** every `audit_fetch` turn writes `audits.heartbeat_at`. A crawl with no heartbeat for 20 minutes is resumed by the next job. After 3 resumes, it's marked failed and keeps what it read.
+- **Heartbeat:** every batch of pages writes `audits.heartbeat_at`. A crawl with no heartbeat for 20 minutes is resumed by the next job. After 3 resumes, it's marked failed and keeps what it read.
 - **Alerts,** through `emailAlert` to people with alerts on, at most one email per brand per day:
   - link health drops 5 or more points against the last full crawl;
   - a page with value starts answering 4xx or 5xx (it will decay next);
@@ -371,7 +377,7 @@ A false alarm costs more than a missing finding. These are part of each phase's 
 
 **Tests:**
 
-- `tests/auditCrawl.test.ts`: a local 300-page test site with redirects, loops, an endless calendar, slow pages, robots rules, sitemaps and an orphan. The crawl finds exactly the expected pages, depths, links in and orphans, and gives the same result when split across many short jobs or killed and resumed.
+- `tests/audit.test.ts` covers the crawl and graph rules. `scripts/audit-crawl-check.mjs` (built) crawls a local test site with redirects, a loop, a flaky page, robots rules, a sitemap, an orphan and an endless calendar, and gives the same result split into many turns or killed mid-batch. Still to grow it to: a local 300-page test site with redirects, loops, an endless calendar, slow pages, robots rules, sitemaps and an orphan. The crawl finds exactly the expected pages, depths, links in and orphans, and gives the same result when split across many short jobs or killed and resumed.
 - `tests/auditLinks.test.ts`: every suggestion's anchor is in its paragraph and outside headings and links; no page gets more than 3; a changed paragraph turns the suggestion stale; nav links count once.
 - `tests/decay.test.ts` on recorded Search Console data: a seasonal page goes to Watching; a site-wide drop shows one banner and only pages that fell further; a one-week dip never shows; a real two-week slide shows the next day; cannibalization finds the other page.
 - `tests/gscSync.test.ts`: syncing the same day twice leaves the same rows.

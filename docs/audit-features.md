@@ -90,7 +90,7 @@ These sit under both parts.
 
 ### A7. Pages sheet
 
-- Every crawled URL in the sheet component (`Sheet.tsx`), at `/audit/pages`.
+- Every crawled URL in a table at `/audit/pages`, paged on the server 100 rows at a time (the sheet component holds every row in the browser, which doesn't scale to 50,000). Phones get a list.
 - Columns: URL, status, title, words, depth, links in, links out, link score, clicks, impressions, position, AI citations, value, decay state, findings.
 - Filters on any column, plus quick views: Orphans, Deep pages, Starved, Decaying, Written by Arrowsterr.
 - Saved views per person.
@@ -486,7 +486,7 @@ type RefreshRequest = {
 
 | Order | Ships | Features | Weeks |
 |---|---|---|---|
-| 1 | Link crawler and Audit home | A1, A3, A5, A6, A7, A8, A10, L1 | 2.5 |
+| 1 | Link crawler and Audit home (built November 2026) | A1, A3, A5, A6, A7, A8, A10, L1 | 2.5 |
 | 2 | Search Console | A4, D1 | 1.5 |
 | 3 | Internal Linking | A9, L2 to L8 | 2 |
 | 4 | Content Decay | D2 to D13 | 2.5 |

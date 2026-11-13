@@ -74,11 +74,12 @@ import { VisitorsPage } from "./VisitorsPage";
 import { ZippieWidget } from "./ZippieWidget";
 import { LibraryPage } from "./writer/LibraryPage";
 import { ShoppingPage } from "./ShoppingPage";
+import { AuditPage } from "./AuditPage";
 import { shopOn, type ShopMode } from "@/lib/shopDetect";
 import { CONTENT_ALIASES, CONTENT_SLUGS, type ContentPage } from "@/lib/contentRoutes";
 
 export type { Brand } from "@/lib/db";
-type Page = "prompts" | "competitors" | "domains" | "urls" | "shopping" | "rank" | "traffic" | "visitors" | "keywords" | "domain" | "gap" | ContentPage | "summary" | SettingsTab;
+type Page = "prompts" | "competitors" | "domains" | "urls" | "shopping" | "rank" | "audit" | "auditlinks" | "auditpages" | "traffic" | "visitors" | "keywords" | "domain" | "gap" | ContentPage | "summary" | SettingsTab;
 const RESEARCH: Page[] = ["keywords", "domain", "gap", "calendar", "opportunities"];
 const VISIBILITY: Page[] = ["prompts", "competitors", "domains", "urls"];
 /** Pages with their own PDF (docs/reports.md, section 32.3). */
@@ -94,6 +95,9 @@ const SLUGS: Record<Page, string> = {
   urls: "/sources/urls",
   shopping: "/ai-shopping",
   rank: "/traffic",
+  audit: "/audit",
+  auditlinks: "/audit/links",
+  auditpages: "/audit/pages",
   traffic: "/analytics",
   visitors: "/visitors",
   keywords: "/research/keywords",
@@ -145,6 +149,9 @@ const ALIASES: Record<string, Page> = {
   "/brand-voice": "voice",
   "/settings/brand-voice": "voice",
   "/plan": "billing",
+  // Audit (docs/audit-plan.md): the old link screens open Internal links.
+  "/site-structure": "auditlinks",
+  "/content-map": "auditlinks",
   "/billing": "billing",
 };
 const isSettings = (p: Page): p is SettingsTab => SETTINGS_TABS.some((t) => t.id === p);
@@ -972,6 +979,15 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
               }}
               onPlans={() => go("billing")}
             />
+          ) : page === "audit" || page === "auditlinks" || page === "auditpages" ? (
+            <AuditPage
+              key={view.brand.id}
+              auth={auth}
+              canEdit={canEdit}
+              brand={{ id: view.brand.id, name: view.brand.name, domain: view.brand.domain }}
+              tab={page === "auditlinks" ? "links" : page === "auditpages" ? "pages" : "overview"}
+              onTab={(t) => go(t === "links" ? "auditlinks" : t === "pages" ? "auditpages" : "audit")}
+            />
           ) : page === "rank" ? (
             <TrafficProjects key={ws.id} auth={auth} canEdit={canEdit} brandId={view.brand.id} brandDomain={view.brand.domain} />
           ) : (page as string) === "publishing" ? (
@@ -1101,7 +1117,7 @@ function NavIcon({ name }: { name: string }) {
 
 /** The toolset a page belongs to. Starter opens one of them. */
 const trackOf = (page: Page): Track | null =>
-  ["prompts", "competitors", "domains", "urls", "shopping"].includes(page) ? "visibility" : ["keywords", "domain", "gap", "calendar", "library", "opportunities"].includes(page) ? "seo" : null;
+  ["prompts", "competitors", "domains", "urls", "shopping"].includes(page) ? "visibility" : ["keywords", "domain", "gap", "calendar", "library", "opportunities", "audit", "auditlinks", "auditpages"].includes(page) ? "seo" : null;
 
 /** The big modules of the app. Each opens to its own pages. */
 const NAV: { group: string; icon: string; items: { id: Page; label: string; icon: string; also?: Page[] }[] }[] = [
@@ -1114,6 +1130,15 @@ const NAV: { group: string; icon: string; items: { id: Page; label: string; icon
       { id: "competitors", label: "Competitors", icon: "competitors" },
       { id: "domains", label: "Sources", icon: "sources", also: ["urls"] },
       { id: "shopping", label: "AI Shopping", icon: "bag" },
+    ],
+  },
+  {
+    group: "Audit",
+    icon: "check",
+    items: [
+      { id: "audit", label: "Overview", icon: "gauge" },
+      { id: "auditlinks", label: "Internal links", icon: "chain" },
+      { id: "auditpages", label: "Pages", icon: "index" },
     ],
   },
   {
