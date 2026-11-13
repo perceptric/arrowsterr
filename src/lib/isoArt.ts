@@ -71,14 +71,14 @@ export class Iso {
   }
 
   /** A box at (x, y, z), w along x, d along y, h tall. */
-  box(x: number, y: number, z: number, w: number, d: number, h: number, role: Role, opacity = 1) {
+  box(x: number, y: number, z: number, w: number, d: number, h: number, role: Role, opacity = 1, depth?: number) {
     const P = (a: number, b: number, c: number) => this.p(a, b, c);
     const o = opacity < 1 ? ` fill-opacity="${opacity}"` : "";
     const svg =
       this.poly([P(x + w, y, z), P(x + w, y + d, z), P(x + w, y + d, z + h), P(x + w, y, z + h)], fill(role, "r"), o) +
       this.poly([P(x, y + d, z), P(x + w, y + d, z), P(x + w, y + d, z + h), P(x, y + d, z + h)], fill(role, "l"), o) +
       this.poly([P(x, y, z + h), P(x + w, y, z + h), P(x + w, y + d, z + h), P(x, y + d, z + h)], fill(role), o);
-    return this.add(x + y + z + (w + d) / 2, svg);
+    return this.add(depth ?? x + y + z + (w + d) / 2, svg);
   }
 
   /** A flat shape lying at height z, points on the ground plane. */
@@ -474,6 +474,47 @@ export const DRAWINGS = {
     s.line(pts.map(([x, z]) => [x, 3.95, z] as [number, number, number]), "blue", 3, 8.6);
     s.step = 3;
     pts.forEach(([x, z]) => s.at(x, 3.95, z, 8.7, (a, b) => `<circle cx="${n(a)}" cy="${n(b)}" r="3" fill="${fill("paper")}" stroke="${fill("blue")}" stroke-width="2"/>`, 4));
+  },
+  opportunities: (s: Iso) => {
+    s.plate({ cx: 4.2, cy: 4, r: 3 });
+    // Three bars rising to the right, and a spark over the tallest: the next thing worth writing.
+    s.step = 1;
+    s.box(0.9, 3.0, 0, 1.8, 1.8, 1.8, "gray");
+    s.step = 2;
+    s.box(3.1, 3.0, 0, 1.8, 1.8, 3.3, "sky");
+    s.step = 3;
+    s.box(5.3, 3.0, 0, 1.8, 1.8, 5.0, "blue");
+    s.step = 4;
+    s.at(6.2, 3.9, 6.6, 30, (x, y) => `<path d="M${n(x)} ${n(y - 13)}c1.6 6 3.4 7.8 9.4 9.4-6 1.6-7.8 3.4-9.4 9.4-1.6-6-3.4-7.8-9.4-9.4 6-1.6 7.8-3.4 9.4-9.4z" fill="${fill("gold")}"/>`, 14);
+  },
+  queue: (s: Iso) => {
+    s.plate({ cx: 4, cy: 4, r: 3.2 });
+    // A belt carrying pages to be published; the first one is out, in blue, with its check.
+    s.step = 1;
+    s.box(0.3, 2.5, 0, 7.4, 3.0, 0.8, "gray", 1, 1); // the belt is behind everything on it
+    s.step = 2;
+    s.box(0.8, 2.9, 0.8, 2.0, 2.2, 0.3, "mist");
+    s.box(0.95, 2.75, 1.1, 2.0, 2.2, 0.3, "paper");
+    s.box(3.1, 2.9, 0.8, 2.0, 2.2, 0.3, "paper");
+    s.step = 3;
+    s.box(5.4, 2.9, 0.8, 2.0, 2.2, 0.3, "blue");
+    s.disc(6.4, 4.0, 1.11, 0.62, "green", "", 20);
+    s.at(6.4, 4.0, 1.11, 21, (x, y) => `<path d="M${n(x - 4.5)} ${n(y)}l3 3 6-6" fill="none" stroke="${fill("paper")}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`);
+  },
+  refresh: (s: Iso) => {
+    s.plate({ cx: 4, cy: 4, r: 3.2 });
+    // A page standing in a ring of arrows: an old page coming back up to date.
+    s.step = 1;
+    s.loop(4, 4, 0.5, 3.1, 3.1, 0.45, "sky", "", 1);
+    s.step = 2;
+    s.box(2.6, 3.8, 0, 2.8, 0.4, 3.8, "paper");
+    s.face("y", 3.8, 3.0, 2.9, 5.0, 3.25, "blue", "", 11);
+    s.face("y", 3.8, 3.0, 2.2, 4.8, 2.45, "mist", "", 11);
+    s.face("y", 3.8, 3.0, 1.6, 4.6, 1.85, "mist", "", 11);
+    s.face("y", 3.8, 3.0, 1.0, 4.2, 1.25, "mist", "", 11);
+    s.step = 3;
+    s.at(4 + 3.1 * Math.cos(-0.35), 4 + 3.1 * Math.sin(-0.35), 0.5, 25, (x, y) => `<path d="M${n(x - 10)} ${n(y - 7)}L${n(x + 9)} ${n(y + 1.5)}L${n(x - 6)} ${n(y + 10)}Z" fill="${fill("blue")}"/>`, 11);
+    s.at(4 + 3.1 * Math.cos(Math.PI - 0.35), 4 + 3.1 * Math.sin(Math.PI - 0.35), 0.5, 2, (x, y) => `<path d="M${n(x + 10)} ${n(y + 7)}L${n(x - 9)} ${n(y - 1.5)}L${n(x + 6)} ${n(y - 10)}Z" fill="${fill("blue")}"/>`, 11);
   },
   shop: (s: Iso) => {
     s.plate({ cx: 4, cy: 4, r: 2.9 });
