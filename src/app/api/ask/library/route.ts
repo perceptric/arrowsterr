@@ -2,7 +2,8 @@ import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
 import * as cheerio from "cheerio";
 import { skillsOf } from "@/lib/ask";
-import { BUILTIN_SKILLS } from "@/lib/zippieSkills";
+import { filesProblems, MAIN } from "@/lib/skills/format";
+import { SYSTEM_SKILLS } from "@/lib/skills/system";
 import { adminClient, requireRole } from "@/lib/serverAuth";
 
 export const maxDuration = 60;
@@ -10,7 +11,7 @@ export const maxDuration = 60;
 const str = (v: unknown, n: number) => String(v ?? "").trim().slice(0, n);
 const err = (error: string, status = 400) => Response.json({ error }, { status });
 const MAX_CHARS = 400_000;
-const SETUP = "Run supabase/037_zippie.sql in Supabase to turn on projects, knowledge and skills.";
+const SETUP = "Run supabase/037_zippie.sql and 086_zippie_skills.sql in Supabase to turn on Knowledge and skills.";
 
 /** Block addresses inside private networks, so a pasted link can't reach the server's own network. */
 function privateIp(ip: string): boolean {
@@ -53,31 +54,70 @@ async function readPdf(base64: string): Promise<string> {
   return String(text).replace(/[ \t]+/g, " ").trim();
 }
 
-// Zippie's library: projects that group chats, knowledge that teaches him, and skills.
-//   list: {}                                                 viewers
-//   project_save: { id?, name, instructions }   project_delete: { id }                editors
-//   knowledge_add: { kind: file|url|note, name, content?, pdf?, url?, projectId? }      editors
-//   knowledge_delete: { id }                                                            editors
-//   skill_save: { id?, name, description, instructions }   skill_toggle: { key, enabled }   skill_delete: { id }   editors
+// Zippie's library: Knowledge that teaches him and skills that tell him how to do a job (docs/zippie-skills-plan.md).
+// Both come in Workspace (the team's) and Personal (only yours) scope. System skills live in code.
+//   list: {}                                                                viewers
+//   knowledge_get: { id }                                                   viewers
+//   knowledge_add: { kind: file|url|note, name, content?, pdf?, url?, scope? }   editors
+//   knowledge_save: { id?, name, content, scope? }   knowledge_delete: { id }    editors
+//   skill_save: { id?, files, scope? }   skill_delete: { id }                    editors
+//   project_save: { id?, name, instructions }   project_delete: { id }           editors (older chats)
 export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
-  const auth = await requireRole(request, body.workspaceId, body.action === "list" ? "viewer" : "editor");
+  const auth = await requireRole(request, body.workspaceId, body.action === "list" || body.action === "knowledge_get" ? "viewer" : "editor");
   if ("denied" in auth) return auth.denied;
   const db = adminClient();
   if (!db) return err("Add SUPABASE_SECRET_KEY to the server's settings.", 500);
   const ws = String(body.workspaceId);
-  const { data: me } = await auth.sb.auth.getUser();
-  const userId = me.user?.id ?? null;
-  const missing = (e: { message: string } | null) => e && /ask_projects|ask_knowledge|ask_skills|project_id/.test(e.message);
+  const { data: who } = await auth.sb.auth.getUser();
+  const userId = who.user?.id ?? null;
+  const missing = (e: { message: string } | null) => e && /ask_projects|ask_knowledge|ask_skills|project_id|scope|owner_id|files/.test(e.message);
+  const me = userId ?? "";
+  const scopeOf = (v: unknown) => (v === "personal" ? "personal" : "workspace");
+  const KN = "id, kind, name, source, chars, project_id, scope, owner_id, created_at, updated_at";
+  /** A Knowledge row this person may change: their own Personal one, or any Workspace one. */
+  const ownKnowledge = async (id: unknown) => {
+    const { data } = await db.from("ask_knowledge").select("id, scope, owner_id").eq("id", str(id, 60)).eq("workspace_id", ws).maybeSingle();
+    return data && (data.scope !== "personal" || data.owner_id === me) ? data : null;
+  };
 
   if (body.action === "list") {
-    const [projects, knowledge] = await Promise.all([
-      db.from("ask_projects").select("id, name, instructions, updated_at").eq("workspace_id", ws).order("updated_at", { ascending: false }),
-      db.from("ask_knowledge").select("id, kind, name, source, chars, project_id, created_at").eq("workspace_id", ws).order("created_at", { ascending: false }),
-    ]);
-    if (missing(projects.error) || missing(knowledge.error)) return Response.json({ projects: [], knowledge: [], skills: BUILTIN_SKILLS.map((s) => ({ ...s, builtin: true, enabled: true })), setup: SETUP });
-    if (projects.error || knowledge.error) return err((projects.error ?? knowledge.error)!.message, 500);
-    return Response.json({ projects: projects.data, knowledge: knowledge.data, skills: await skillsOf(db, ws) });
+    const knowledge = await db.from("ask_knowledge").select(KN).eq("workspace_id", ws).is("project_id", null).order("updated_at", { ascending: false });
+    if (missing(knowledge.error)) return Response.json({ knowledge: [], skills: SYSTEM_SKILLS, me, setup: SETUP });
+    if (knowledge.error) return err(knowledge.error.message, 500);
+    const visible = (knowledge.data ?? []).filter((k) => k.scope !== "personal" || k.owner_id === me);
+    return Response.json({ knowledge: visible, skills: await skillsOf(db, ws, me), me });
+  }
+
+  if (body.action === "knowledge_get") {
+    const { data } = await db.from("ask_knowledge").select(`${KN}, content`).eq("id", str(body.id, 60)).eq("workspace_id", ws).maybeSingle();
+    if (!data || (data.scope === "personal" && data.owner_id !== me)) return err("Page not found.", 404);
+    return Response.json({ item: data });
+  }
+
+  if (body.action === "knowledge_save") {
+    const name = str(body.name, 200) || "Untitled";
+    const content = String(body.content ?? "").replace(/\u0000/g, "").slice(0, MAX_CHARS);
+    const now = new Date().toISOString();
+    if (body.id) {
+      if (!(await ownKnowledge(body.id))) return err("Page not found.", 404);
+      const { data, error } = await db.from("ask_knowledge").update({ name, content, chars: content.length, updated_at: now, ...(body.scope ? { scope: scopeOf(body.scope) } : {}) }).eq("id", str(body.id, 60)).select(KN).single();
+      if (error) return err(error.message, 500);
+      return Response.json({ item: data });
+    }
+    // replaces: a page from a chat card that takes the place of an older one with that title.
+    if (body.replaces) {
+      const { data: old } = await db.from("ask_knowledge").select("id, scope, owner_id").eq("workspace_id", ws).eq("name", str(body.replaces, 200)).limit(1).maybeSingle();
+      if (old && (old.scope !== "personal" || old.owner_id === me)) {
+        const { data, error } = await db.from("ask_knowledge").update({ name, content, chars: content.length, updated_at: now }).eq("id", old.id).select(KN).single();
+        if (error) return err(error.message, 500);
+        return Response.json({ item: data, replaced: true });
+      }
+    }
+    const { data, error } = await db.from("ask_knowledge").insert({ workspace_id: ws, kind: "note", name, source: "", content, chars: content.length, scope: scopeOf(body.scope), owner_id: me || null, created_by: userId }).select(KN).single();
+    if (missing(error)) return err(SETUP, 500);
+    if (error) return err(error.message, 500);
+    return Response.json({ item: data });
   }
 
   if (body.action === "project_save") {
@@ -133,8 +173,8 @@ export async function POST(request: Request) {
     }
     const { data, error } = await db
       .from("ask_knowledge")
-      .insert({ workspace_id: ws, project_id: projectId, kind, name, source, content: content.slice(0, MAX_CHARS), chars: Math.min(content.length, MAX_CHARS), created_by: userId })
-      .select("id, kind, name, source, chars, project_id, created_at")
+      .insert({ workspace_id: ws, project_id: projectId, kind, name, source, content: content.slice(0, MAX_CHARS), chars: Math.min(content.length, MAX_CHARS), created_by: userId, scope: scopeOf(body.scope), owner_id: me || null })
+      .select(KN)
       .single();
     if (missing(error)) return err(SETUP, 500);
     if (error) return err(error.message, 500);
@@ -142,37 +182,40 @@ export async function POST(request: Request) {
   }
 
   if (body.action === "knowledge_delete") {
-    const { error } = await db.from("ask_knowledge").delete().eq("id", str(body.id, 60)).eq("workspace_id", ws);
+    const ids = (Array.isArray(body.ids) ? body.ids : [body.id]).map((x: unknown) => str(x, 60)).filter(Boolean).slice(0, 200);
+    const mine: string[] = [];
+    for (const id of ids) if (await ownKnowledge(id)) mine.push(id);
+    if (!mine.length) return err("Page not found.", 404);
+    const { error } = await db.from("ask_knowledge").delete().in("id", mine).eq("workspace_id", ws);
     if (error) return err(error.message, 500);
     return Response.json({ ok: true });
   }
 
   if (body.action === "skill_save") {
-    const row = { name: str(body.name, 80), description: str(body.description, 300), instructions: str(body.instructions, 12_000) };
-    if (!row.name || !row.instructions) return err("Give the skill a name and instructions.");
-    const q = body.id ? db.from("ask_skills").update(row).eq("id", str(body.id, 60)).eq("workspace_id", ws).is("builtin", null) : db.from("ask_skills").insert({ ...row, workspace_id: ws, created_by: userId });
-    const { error } = await q;
+    const raw = body.files && typeof body.files === "object" ? (body.files as Record<string, unknown>) : {};
+    const files = Object.fromEntries(Object.entries(raw).filter(([k, v]) => typeof v === "string" && k.trim()).map(([k, v]) => [k.trim(), v as string]));
+    const problems = filesProblems(files);
+    if (problems.length) return err(problems[0]);
+    const now = new Date().toISOString();
+    if (body.id) {
+      const { data: old } = await db.from("ask_skills").select("id, scope, owner_id").eq("id", str(body.id, 60)).eq("workspace_id", ws).is("builtin", null).maybeSingle();
+      if (!old || (old.scope === "personal" && old.owner_id !== me)) return err("Skill not found.", 404);
+      const { data, error } = await db.from("ask_skills").update({ files, updated_at: now, ...(body.scope ? { scope: scopeOf(body.scope) } : {}) }).eq("id", old.id).select("id").single();
+      if (error) return err(error.message, 500);
+      return Response.json({ id: data.id, skills: await skillsOf(db, ws, me) });
+    }
+    const { data, error } = await db.from("ask_skills").insert({ workspace_id: ws, scope: scopeOf(body.scope), owner_id: me || null, files, name: files[MAIN].match(/^# (.+)$/m)?.[1]?.slice(0, 80) ?? "", created_by: userId }).select("id").single();
     if (missing(error)) return err(SETUP, 500);
     if (error) return err(error.message, 500);
-    return Response.json({ skills: await skillsOf(db, ws) });
-  }
-
-  if (body.action === "skill_toggle") {
-    const key = str(body.key, 80);
-    const enabled = Boolean(body.enabled);
-    const builtin = BUILTIN_SKILLS.some((s) => s.key === key);
-    const { error } = builtin
-      ? await db.from("ask_skills").upsert({ workspace_id: ws, builtin: key, enabled, created_by: userId }, { onConflict: "workspace_id,builtin" })
-      : await db.from("ask_skills").update({ enabled }).eq("id", key).eq("workspace_id", ws);
-    if (missing(error)) return err(SETUP, 500);
-    if (error) return err(error.message, 500);
-    return Response.json({ skills: await skillsOf(db, ws) });
+    return Response.json({ id: data.id, skills: await skillsOf(db, ws, me) });
   }
 
   if (body.action === "skill_delete") {
-    const { error } = await db.from("ask_skills").delete().eq("id", str(body.id, 60)).eq("workspace_id", ws).is("builtin", null);
+    const { data: old } = await db.from("ask_skills").select("id, scope, owner_id").eq("id", str(body.id, 60)).eq("workspace_id", ws).is("builtin", null).maybeSingle();
+    if (!old || (old.scope === "personal" && old.owner_id !== me)) return err("Skill not found.", 404);
+    const { error } = await db.from("ask_skills").delete().eq("id", old.id);
     if (error) return err(error.message, 500);
-    return Response.json({ skills: await skillsOf(db, ws) });
+    return Response.json({ skills: await skillsOf(db, ws, me) });
   }
 
   return err("Unknown action.");

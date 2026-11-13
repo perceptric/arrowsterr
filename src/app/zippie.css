@@ -1,0 +1,149 @@
+/* Zippie everywhere (docs/zippie-skills-plan.md): the Home and Zippie tabs in the sidebar, the chat bar floating on every
+   page, the panel on the right, the Zippie page, and Skills and Knowledge laid out like Omniscient's. Brand v10 tokens. */
+
+/* ─────────── Sidebar: Home and Zippie tabs, Zippie's list ─────────── */
+:root :is(.aw, #calm) .aw-side-tabs { grid-template-columns: 1fr 1fr; gap: 2px; padding: 3px; margin: 8px 2px 10px; border-radius: 10px; background: var(--v10-soft); }
+:root :is(.aw, #calm) .aw-side-tabs button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 30px; border-radius: 8px; font-size: 13px; font-weight: 500; color: var(--v10-muted); }
+:root :is(.aw, #calm) .aw-side-tabs button:hover { color: var(--v10-ink); }
+:root :is(.aw, #calm) .aw-side-tabs button[aria-selected="true"] { background: var(--v10-card); color: var(--v10-ink); box-shadow: var(--shadow-rest) !important; }
+:root :is(.aw, #calm) .aw-side-tabs button[aria-selected="true"]:last-child .aw-nav__icon { color: var(--v10-signal); }
+:root :is(.aw, #calm) .aw-side-tabs .aw-nav__icon { width: 15px; height: 15px; }
+:root :is(.aw, #calm) .aw-side-new { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 34px; padding: 0 10px; margin-bottom: 6px; border-radius: 8px; background: var(--v10-card); box-shadow: var(--shadow-rest) !important; font-size: 13px; font-weight: 500; color: var(--v10-ink); }
+:root :is(.aw, #calm) .aw-side-new:hover { box-shadow: var(--shadow-hover) !important; }
+:root :is(.aw, #calm) .aw-side-new .aw-nav__icon { width: 15px; height: 15px; }
+:root :is(.aw, #calm) .aw-side-label { padding: 14px 10px 4px; font-size: 12px; font-weight: 500; color: var(--v10-muted); }
+:root :is(.aw, #calm) .aw-side-chat { display: flex; align-items: flex-start; gap: 4px; min-height: 32px; padding: 6px 4px 6px 10px; border-radius: 8px; font-size: 13px; line-height: 1.4; color: var(--v10-ink-2); }
+:root :is(.aw, #calm) .aw-side-chat:hover { background: var(--v10-soft); color: var(--v10-ink); }
+:root :is(.aw, #calm) .aw-side-chat.is-on { background: var(--v10-signal-soft); color: var(--v10-signal-strong); font-weight: 500; }
+:root :is(.aw, #calm) .aw-side-chat__del { display: grid; place-items: center; width: 20px; height: 20px; flex: none; border-radius: 5px; color: var(--v10-faint); opacity: 0; }
+:root :is(.aw, #calm) .aw-side-chat:hover .aw-side-chat__del, :root :is(.aw, #calm) .aw-side-chat__del:focus-visible { opacity: 1; }
+:root :is(.aw, #calm) .aw-side-chat__del:hover { background: var(--v10-border); color: var(--v10-ink); }
+:root :is(.aw, #calm) .aw-side-chat__del .aw-nav__icon { width: 12px; height: 12px; }
+
+/* ─────────── The chat box ─────────── */
+:root :is(.aw, #calm) .zp-cbox { background: var(--v10-card); border-radius: 18px; box-shadow: 0 0 0 1px var(--v10-border), var(--v10-shadow-lg) !important; }
+:root :is(.aw, #calm) .zp-cbox:focus-within { box-shadow: 0 0 0 2px var(--v10-signal-ring), var(--v10-shadow-lg) !important; }
+:root :is(.aw, #calm) .zp-cbox--big { border-radius: 20px; }
+:root :is(.aw, #calm) .zp-cbox__chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 12px 0; }
+:root :is(.aw, #calm) .zp-cbox__input { display: block; width: 100%; min-height: 44px; max-height: 200px; resize: none; border: 0 !important; box-shadow: none !important; background: transparent !important; padding: 10px 16px 4px !important; font-size: 14px; line-height: 1.5; color: var(--v10-ink); outline: none; }
+:root :is(.aw, #calm) .zp-cbox--big .zp-cbox__input { min-height: 64px; font-size: 15px; }
+:root :is(.aw, #calm) .zp-cbox__input::placeholder { color: var(--v10-faint); }
+:root :is(.aw, #calm) .zp-cbox__bar { display: flex; align-items: center; gap: 4px; padding: 4px 8px 8px; }
+:root :is(.aw, #calm) .zp-cbox__hint { font-size: 12px; color: var(--v10-faint); }
+:root :is(.aw, #calm) .zp-cbox .zp-send { width: 32px; height: 32px; }
+:root :is(.aw, #calm) .zp-chip { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; min-height: 24px; padding: 2px 3px 2px 8px; border-radius: 6px; font-size: 12px; background: var(--v10-soft); color: var(--v10-ink-2); }
+:root :is(.aw, #calm) .zp-chip--skill { background: var(--v10-signal-soft); color: var(--v10-signal-strong); font-weight: 500; }
+:root :is(.aw, #calm) .zp-chip button { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 4px; opacity: 0.7; }
+:root :is(.aw, #calm) .zp-chip button:hover { background: var(--v10-border); opacity: 1; }
+:root :is(.aw, #calm) .zp-thread .zp-chip { padding-right: 8px; }
+
+/* The / menu: the list, and the highlighted skill's description beside it. */
+:root :is(.aw, #calm) .zp-slash { position: absolute; left: 0; right: 0; bottom: calc(100% + 8px); z-index: 40; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); max-height: min(420px, 55vh); overflow: hidden; border-radius: 12px; background: var(--v10-card); box-shadow: 0 0 0 1px var(--v10-border), var(--v10-shadow-xl) !important; }
+:root :is(.aw, #calm) .zp-slash__list { overflow-y: auto; padding: 6px; border-right: 1px solid var(--v10-border); }
+:root :is(.aw, #calm) .zp-slash__group { padding: 8px 8px 4px; font-size: 11.5px; font-weight: 500; color: var(--v10-faint); }
+:root :is(.aw, #calm) .zp-slash__opt { display: flex; align-items: flex-start; gap: 8px; width: 100%; padding: 6px 8px; border-radius: 7px; text-align: left; font-size: 13px; color: var(--v10-ink-2); }
+:root :is(.aw, #calm) .zp-slash__opt svg { margin-top: 2px; color: var(--v10-faint); flex: none; }
+:root :is(.aw, #calm) .zp-slash__opt[aria-selected="true"] { background: var(--v10-soft); color: var(--v10-ink); }
+:root :is(.aw, #calm) .zp-slash__prev { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; padding: 14px; font-size: 12.5px; line-height: 1.55; color: var(--v10-muted); }
+:root :is(.aw, #calm) .zp-slash__prev b { font-size: 13.5px; color: var(--v10-ink); }
+@media (max-width: 640px) { :root :is(.aw, #calm) .zp-slash { grid-template-columns: 1fr; } :root :is(.aw, #calm) .zp-slash__prev { display: none; } }
+
+/* ─────────── The chat bar on every page ─────────── */
+/* A sticky band of no height at the bottom of the page column: the box floats over the page and stays in view. */
+:root :is(.aw, #calm) .zp-dock-wrap { position: sticky; bottom: 0; z-index: 30; height: 0; pointer-events: none; }
+:root :is(.aw, #calm) .zp-dock-in { position: absolute; bottom: max(16px, env(safe-area-inset-bottom, 0px)); left: 16px; right: 16px; margin: 0 auto; max-width: 680px; pointer-events: auto; }
+@media (min-width: 768px) { :root :is(.aw, #calm) .zp-dock-in { left: calc(24px + var(--zp-offset, 0px)); right: 24px; } }
+:root :is(.aw, #calm) .zp-sugg { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-bottom: 8px; }
+:root :is(.aw, #calm) .zp-sugg--left { justify-content: flex-start; }
+:root :is(.aw, #calm) .zp-sugg button { min-height: 28px; padding: 3px 12px; border-radius: 9999px; background: var(--v10-card); box-shadow: var(--shadow-rest) !important; font-size: 12.5px; color: var(--v10-ink-2); text-align: left; }
+:root :is(.aw, #calm) .zp-sugg button:hover { color: var(--v10-ink); box-shadow: var(--shadow-hover) !important; }
+
+/* ─────────── The panel on the right ─────────── */
+:root :is(.aw, #calm) .zp-panel { display: flex; flex-direction: column; width: 400px; flex: none; background: var(--v10-card); border-left: 1px solid var(--v10-border); }
+@media (min-width: 1100px) { :root :is(.aw, #calm) .zp-panel { position: sticky; top: 0; height: 100vh; } }
+@media (max-width: 1099px) { :root :is(.aw, #calm) .zp-panel { position: fixed; inset: 0 0 0 auto; z-index: 60; width: min(420px, 100%); padding-top: env(safe-area-inset-top, 0px); box-shadow: var(--v10-shadow-xl) !important; } }
+:root :is(.aw, #calm) .zp-panel__head { display: flex; align-items: center; gap: 6px; min-height: 52px; padding: 8px 8px 8px 14px; border-bottom: 1px solid var(--v10-border); }
+:root :is(.aw, #calm) .zp-panel__head .zp-icon-btn { width: 30px; height: 30px; }
+:root :is(.aw, #calm) .zp-panel__body { display: flex; flex: 1; min-height: 0; flex-direction: column; overflow-y: auto; }
+:root :is(.aw, #calm) .zp-panel__empty { margin-top: auto; display: flex; flex-direction: column; gap: 10px; padding: 16px; }
+:root :is(.aw, #calm) .zp-panel__foot { padding: 6px 10px max(10px, env(safe-area-inset-bottom, 0px)); }
+:root :is(.aw, #calm) .zp-panel__foot .zp-cbox { border-radius: 14px; box-shadow: 0 0 0 1px var(--v10-border-strong) !important; }
+:root :is(.aw, #calm) .zp-thread--compact { gap: 18px; padding: 16px 14px 8px; max-width: none; }
+:root :is(.aw, #calm) .zp-thread--compact .zp-user { font-size: 13.5px; padding: 8px 12px; border-radius: 14px; }
+:root :is(.aw, #calm) .zp-thread--compact .zp-reply { gap: 10px; }
+:root :is(.aw, #calm) .zp-used { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: var(--v10-signal-strong); }
+
+/* ─────────── The Zippie page ─────────── */
+:root :is(.aw, #calm) .zp-page-body { padding: 0 !important; display: flex; flex-direction: column; }
+:root :is(.aw, #calm) .zp-home { display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: center; gap: 16px; min-height: calc(100vh - 80px); padding: 32px 16px 48px; }
+:root :is(.aw, #calm) .zp-full { display: flex; flex-direction: column; min-height: calc(100vh - 80px); }
+:root :is(.aw, #calm) .zp-full__scroll { flex: 1; }
+:root :is(.aw, #calm) .zp-full__foot { position: sticky; bottom: 0; padding: 8px 16px max(16px, env(safe-area-inset-bottom, 0px)); background: var(--v10-card); }
+:root :is(.aw, #calm) .zp-full__foot > * { max-width: 780px; margin: 0 auto; }
+
+/* ─────────── Skills and Knowledge: a tree on the left, the open item on the right ─────────── */
+:root :is(.aw, #calm) .zp-split { display: flex; flex: 1; min-height: 0; }
+@media (min-width: 768px) { :root :is(.aw, #calm) .zp-split { height: calc(100vh - 72px); } }
+@media (max-width: 767px) { :root :is(.aw, #calm) .zp-split { flex-direction: column; } :root :is(.aw, #calm) .zp-tree { width: 100% !important; max-height: 280px; border-right: 0 !important; border-bottom: 1px solid var(--v10-border); } }
+:root :is(.aw, #calm) .zp-tree { flex: none; overflow-y: auto; padding: 0 8px 24px; background: var(--v10-card); border-right: 1px solid var(--v10-border); }
+:root :is(.aw, #calm) .zp-tree__head { display: flex; align-items: center; gap: 4px; padding-top: 12px; }
+:root :is(.aw, #calm) .zp-tree__tog { display: flex; flex: 1; align-items: center; gap: 6px; min-height: 28px; padding: 0 8px; border-radius: 7px; font-size: 12px; font-weight: 500; color: var(--v10-muted); text-align: left; }
+:root :is(.aw, #calm) .zp-tree__tog:hover { background: var(--v10-soft); color: var(--v10-ink); }
+:root :is(.aw, #calm) .zp-caret { display: inline-flex; transition: transform 120ms ease; }
+:root :is(.aw, #calm) .zp-caret.is-open { transform: rotate(90deg); }
+:root :is(.aw, #calm) .zp-tree__row { display: flex; align-items: flex-start; gap: 8px; width: 100%; min-height: 32px; padding: 6px 8px 6px 12px; border-radius: 7px; font-size: 13px; color: var(--v10-ink-2); text-align: left; }
+:root :is(.aw, #calm) .zp-tree__row svg { margin-top: 2px; flex: none; color: var(--v10-faint); }
+:root :is(.aw, #calm) .zp-tree__row.is-deep { padding-left: 34px; }
+:root :is(.aw, #calm) .zp-tree__row:hover { background: var(--v10-soft); color: var(--v10-ink); }
+:root :is(.aw, #calm) .zp-tree__row.is-on { background: var(--v10-card); color: var(--v10-ink); font-weight: 500; box-shadow: var(--shadow-rest) !important; }
+:root :is(.aw, #calm) .zp-tree__row.is-on svg { color: var(--v10-signal); }
+:root :is(.aw, #calm) .zp-tree__file { display: flex; align-items: center; gap: 7px; width: 100%; min-height: 26px; padding: 3px 8px 3px 38px; border-radius: 7px; font-size: 12px; color: var(--v10-muted); text-align: left; }
+:root :is(.aw, #calm) .zp-tree__file.is-deep { padding-left: 58px; }
+:root :is(.aw, #calm) .zp-tree__file.is-on { color: var(--v10-ink); font-weight: 500; }
+:root :is(.aw, #calm) .zp-tree__file:hover { background: var(--v10-soft); color: var(--v10-ink); }
+:root :is(.aw, #calm) .zp-tree__folder { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 32px; padding: 4px 8px 4px 12px; border-radius: 7px; font-size: 13px; color: var(--v10-ink-2); text-align: left; }
+:root :is(.aw, #calm) .zp-tree__folder svg { color: var(--v10-faint); }
+:root :is(.aw, #calm) .zp-tree__folder:hover { background: var(--v10-soft); color: var(--v10-ink); }
+:root :is(.aw, #calm) .zp-tree__none { padding: 4px 34px; font-size: 12px; color: var(--v10-faint); }
+:root :is(.aw, #calm) .zp-pane { flex: 1; min-width: 0; overflow-y: auto; background: var(--v10-canvas); }
+:root :is(.aw, #calm) .zp-pane__in { max-width: 800px; margin: 0 auto; padding: 24px 28px 200px; }
+:root :is(.aw, #calm) .zp-pane__wide { max-width: 1040px; margin: 0 auto; padding: 24px 28px 200px; }
+@media (max-width: 767px) { :root :is(.aw, #calm) :is(.zp-pane__in, .zp-pane__wide) { padding-left: 16px; padding-right: 16px; } }
+:root :is(.aw, #calm) .zp-h2 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.02em; color: var(--v10-ink); }
+:root :is(.aw, #calm) .zp-lbl { font-size: 12px; font-weight: 500; color: var(--v10-muted); }
+:root :is(.aw, #calm) .zp-tabs { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 14px; border-bottom: 1px solid var(--v10-border); }
+:root :is(.aw, #calm) .zp-tabs button { display: inline-flex; gap: 5px; margin-bottom: -1px; padding: 8px 10px; border-bottom: 2px solid transparent; font-size: 13px; font-weight: 500; color: var(--v10-muted); }
+:root :is(.aw, #calm) .zp-tabs button[aria-selected="true"] { border-color: var(--v10-ink); color: var(--v10-ink); }
+:root :is(.aw, #calm) .zp-grid { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+:root :is(.aw, #calm) .zp-skillcard { display: flex; flex-direction: column; gap: 6px; padding: 12px; border-radius: 12px; background: var(--v10-card); box-shadow: var(--shadow-rest) !important; text-align: left; transition: box-shadow 150ms ease; }
+:root :is(.aw, #calm) .zp-skillcard:hover { box-shadow: var(--shadow-hover) !important; }
+:root :is(.aw, #calm) .zp-badge { display: inline-flex; align-items: center; height: 20px; padding: 0 7px; border-radius: 6px; font-size: 11.5px; font-weight: 500; white-space: nowrap; background: var(--v10-soft); color: var(--v10-ink-2); }
+:root :is(.aw, #calm) .zp-badge--brand { background: var(--v10-signal-soft); color: var(--v10-signal-strong); }
+:root :is(.aw, #calm) .zp-badge--violet { background: rgb(109 63 214 / 0.1); color: #6D3FD6; }
+:root :is(.aw, #calm) .zp-badge--warn { background: var(--v10-warning-soft); color: var(--v10-warning); }
+:root :is(.aw, #calm) .zp-seg { display: inline-flex; padding: 2px; border-radius: 8px; background: var(--v10-soft); }
+:root :is(.aw, #calm) .zp-seg button { height: 26px; padding: 0 10px; border-radius: 6px; font-size: 12.5px; font-weight: 500; color: var(--v10-muted); }
+:root :is(.aw, #calm) .zp-seg button[aria-pressed="true"] { background: var(--v10-card); color: var(--v10-ink); box-shadow: var(--shadow-rest) !important; }
+:root :is(.aw, #calm) .zp-stitle { display: flex; align-items: center; gap: 12px; margin: 16px 0 0; font-size: 24px; font-weight: 600; letter-spacing: -0.02em; color: var(--v10-ink); }
+:root :is(.aw, #calm) .zp-stitle__box { display: grid; place-items: center; width: 40px; height: 40px; flex: none; border-radius: 10px; background: var(--v10-card); box-shadow: var(--shadow-rest) !important; color: var(--v10-ink-2); }
+:root :is(.aw, #calm) .zp-facts { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px 24px; margin: 18px 0 0; font-size: 13px; }
+:root :is(.aw, #calm) .zp-facts dt { color: var(--v10-muted); }
+:root :is(.aw, #calm) .zp-facts dd { margin: 0; min-width: 0; color: var(--v10-ink); }
+:root :is(.aw, #calm) .zp-tool { padding: 2px 6px; border-radius: 4px; background: var(--v10-soft); font-family: var(--aw-mono); font-size: 11px; color: var(--v10-ink-2); }
+:root :is(.aw, #calm) .zp-filechip { display: inline-flex; align-items: center; gap: 6px; min-height: 26px; padding: 2px 8px; border-radius: 7px; background: var(--v10-card); box-shadow: var(--shadow-rest) !important; font-size: 12px; color: var(--v10-ink-2); }
+:root :is(.aw, #calm) .zp-filechip.is-on { background: var(--v10-signal-soft); color: var(--v10-signal-strong); font-weight: 500; box-shadow: 0 0 0 1px var(--v10-signal-ring) !important; }
+:root :is(.aw, #calm) .zp-filebox { margin-top: 16px; overflow: hidden; border-radius: 12px; background: var(--v10-card); box-shadow: var(--shadow-rest) !important; }
+:root :is(.aw, #calm) .zp-filebox__head { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid var(--v10-border); font-size: 12px; color: var(--v10-muted); }
+:root :is(.aw, #calm) .zp-filebox__pre { margin: 0; padding: 16px 18px; font-family: var(--aw-mono); font-size: 12.5px; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--v10-ink-2); }
+:root :is(.aw, #calm) .zp-filebox__edit { display: block; width: 100%; min-height: 420px; resize: vertical; border: 0 !important; box-shadow: none !important; padding: 16px 18px !important; background: transparent !important; font-family: var(--aw-mono); font-size: 12.5px; line-height: 1.65; color: var(--v10-ink-2); outline: none; }
+:root :is(.aw, #calm) .zp-filebox__edit--prose { font-family: inherit; font-size: 14.5px; line-height: 1.7; }
+:root :is(.aw, #calm) .zp-md { padding: 18px 22px; font-size: 14.5px; line-height: 1.7; color: var(--v10-ink-2); }
+:root :is(.aw, #calm) .zp-kn-title { width: 100%; margin-top: 14px; border: 0 !important; box-shadow: none !important; background: transparent !important; padding: 0 !important; font-size: 26px; font-weight: 600; letter-spacing: -0.02em; color: var(--v10-ink); outline: none; }
+
+/* A skill or Knowledge page Zippie wrote, with Save. */
+:root :is(.aw, #calm) .zp-pcard { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 12px; background: var(--v10-card); box-shadow: var(--shadow-rest) !important; }
+:root :is(.aw, #calm) .zp-pcard__pre { max-height: 280px; overflow: auto; margin: 0; padding: 10px 12px; border-radius: 8px; background: var(--v10-soft); font-family: var(--aw-mono); font-size: 11.5px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--v10-ink-2); }
+@media (prefers-reduced-motion: reduce) { :root :is(.aw, #calm) :is(.zp-caret, .zp-skillcard) { transition: none; } }
+
+/* Bare fields inside a framed box: the box shows focus, the field doesn't. */
+:root :is(.aw, #calm) :is(.zp-cbox__input, .zp-kn-title, .zp-filebox__edit):is(:focus, :focus-visible, :hover) { outline: none !important; box-shadow: none !important; }
