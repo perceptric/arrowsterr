@@ -4,6 +4,8 @@ From a gap to a lead: **Opportunities** finds what to write, grouped into cluste
 
 Written November 2026. Prices marked "check" couldn't be confirmed on the vendor's own page.
 
+The algorithms, jobs and tables behind it are in `docs/content-v3-backend.md`.
+
 ---
 
 ## 1. The sidebar
