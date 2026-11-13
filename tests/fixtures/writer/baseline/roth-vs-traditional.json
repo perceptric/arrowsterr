@@ -1,0 +1,965 @@
+{
+ "slug": "roth-vs-traditional",
+ "keyword": "roth ira vs traditional ira",
+ "kind": "publisher",
+ "stage": "mofu",
+ "model": "claude-sonnet-5-5",
+ "at": "2026-11-13T10:03:40.421Z",
+ "seconds": 234,
+ "usage": {
+  "calls": 22,
+  "input": 48418,
+  "cacheRead": 705684,
+  "cacheWrite": 111973,
+  "output": 29870
+ },
+ "score": {
+  "words": 2313,
+  "sections": 9,
+  "lint": 6,
+  "lintRules": {
+   "dashes": 1,
+   "adverbs": 3,
+   "sentences": 2
+  },
+  "numbers": 26,
+  "unsourced": [],
+  "links": 52,
+  "strayLinks": [],
+  "images": 4,
+  "modules": 1
+ },
+ "title": "Roth IRA vs Traditional IRA: How to Choose in Your 20s and 30s",
+ "brief": {
+  "titles": [
+   "Roth IRA vs Traditional IRA: Which Fits You?",
+   "Roth IRA vs Traditional IRA: How to Choose in Your 20s, 30s",
+   "Roth IRA vs Traditional IRA: 2026 Limits and Rules"
+  ],
+  "h1": "Roth IRA vs Traditional IRA: How to Choose in Your 20s and 30s",
+  "metaDescription": "Roth IRA vs traditional IRA, explained plainly: taxes, 2026 limits, income caps and withdrawals, plus how to pick one in your 20s or 30s.",
+  "slug": "roth-ira-vs-traditional-ira",
+  "searchIntent": "The searcher wants to know how the two accounts differ and which one to open. A plain comparison with current 2026 numbers, a clear way to decide and short answers to common questions serves them best.",
+  "reader": "Adults in their 20s and 30s who have started to save, may have a workplace plan, and know little about IRAs. They want to pick an account, learn how much they can put in this year and know what to do first.",
+  "angle": "We treat the choice as a few simple questions about taxes now, taxes later, income and a workplace plan, instead of a long list of features. We also cover the details top pages skip, such as the single combined limit, the deduction rule with a workplace plan and the 6% excess contribution tax.",
+  "wordTarget": 1800,
+  "outline": [
+   {
+    "h2": "Roth IRA vs traditional IRA: the short version",
+    "points": [
+     "Say that both are individual retirement accounts for saving for retirement and that the main difference is when you get the tax break.",
+     "Traditional: contributions may be deductible now if you qualify, money grows tax deferred, and withdrawals are generally taxed.",
+     "Roth: contributions are made with after-tax money and aren't deductible, and qualified distributions are tax free.",
+     "Tell the reader we'll end with a short quiz to help them pick."
+    ],
+    "h3": [],
+    "sources": [
+     3,
+     4,
+     6
+    ]
+   },
+   {
+    "h2": "How a Roth IRA and a traditional IRA differ side by side",
+    "points": [
+     "Use a short list or table covering tax on contributions, tax on withdrawals, income limits, required minimum distributions and early withdrawals.",
+     "Explain tax deferred growth in plain words.",
+     "Note that both types share one combined yearly limit."
+    ],
+    "h3": [
+     {
+      "title": "Taxes when you put money in",
+      "points": [
+       "Traditional contributions may be deductible if you qualify.",
+       "Roth contributions aren't deductible and use after-tax funds."
+      ]
+     },
+     {
+      "title": "Taxes when you take money out",
+      "points": [
+       "Deductible contributions and earnings withdrawn from a traditional IRA are taxable.",
+       "Qualified Roth distributions are tax free; otherwise part may be taxable."
+      ]
+     }
+    ],
+    "sources": [
+     3,
+     4,
+     6
+    ]
+   },
+   {
+    "h2": "2026 IRA contribution limits",
+    "points": [
+     "For 2026 the total across all your traditional and Roth IRAs can't be more than $7,500, or $8,600 if you're 50 or older, or your taxable compensation if that's less.",
+     "The $8,600 figure is the $7,500 limit plus an extra $1,100 for people 50 and older.",
+     "The limit is combined, so you can split money between the two types but can't fill both.",
+     "For 2025 and 2024 the limit was $7,000 ($8,000 if 50 or older).",
+     "The deadline to contribute for a year is the tax return filing deadline, not counting extensions.",
+     "Contributing too much triggers a 6% tax each year the excess stays in the account, unless you withdraw the excess and its earnings by the return due date including extensions.",
+     "Mention a spousal IRA: on a joint return, a spouse with no compensation may contribute if the other spouse has enough taxable compensation."
+    ],
+    "h3": [],
+    "sources": [
+     2,
+     3,
+     4
+    ]
+   },
+   {
+    "h2": "Who can contribute and who can deduct",
+    "points": [
+     "Anyone with taxable compensation can contribute to a traditional IRA, and there is no age limit for regular contributions for 2020 and later.",
+     "Roth contributions depend on income: for 2026, single filers earning less than $153,000 and joint filers earning less than $242,000 can contribute fully, and the amount may be reduced or eliminated above that.",
+     "You can have a workplace plan and still contribute to either type.",
+     "The traditional IRA deduction may be limited if you or your spouse are covered by a workplace plan and income is above certain levels.",
+     "A minor with earned income can own an IRA, controlled by a custodian until a certain age."
+    ],
+    "h3": [
+     {
+      "title": "If you have a 401(k) at work",
+      "points": [
+       "You can still contribute to an IRA.",
+       "Your traditional deduction may shrink, and Roth eligibility still depends on income."
+      ]
+     }
+    ],
+    "sources": [
+     2,
+     3,
+     5,
+     6
+    ]
+   },
+   {
+    "h2": "Withdrawal rules and required minimum distributions",
+    "points": [
+     "Traditional: withdrawals before age 59½ may carry an extra 10% tax unless an exception applies, and minimum withdrawals must start at a certain age.",
+     "Roth: no required minimum distributions for the original owner, and qualified distributions are tax free.",
+     "A Roth withdrawal that isn't qualified may be partly taxable and may carry the 10% tax before 59½.",
+     "Explain that Roth contributions can usually be taken out without tax or penalty and flag that earnings are treated differently (see checks).",
+     "Keep the tone calm and say to check the exceptions before withdrawing early."
+    ],
+    "h3": [],
+    "sources": [
+     3,
+     4,
+     6
+    ]
+   },
+   {
+    "h2": "How to choose in your 20s and 30s",
+    "points": [
+     "Frame it as three questions: do you want a tax break now, do you expect a higher tax bracket in retirement, and does your income allow a Roth.",
+     "Vanguard says younger investors and those expected to be in a higher bracket later typically benefit more from a Roth.",
+     "A traditional IRA suits someone who wants a tax break in the current year.",
+     "Because the limit is combined, you can split between the two types.",
+     "Say what to do if you're unsure: pick one, start small and adjust next year."
+    ],
+    "h3": [],
+    "sources": [
+     2,
+     6
+    ]
+   },
+   {
+    "h2": "Mistakes to avoid",
+    "points": [
+     "Putting in more than the combined limit or more than your taxable compensation.",
+     "Assuming a traditional contribution is always deductible when a workplace plan and income may limit it.",
+     "Missing the contribution deadline, which is the tax filing deadline without extensions.",
+     "Treating a Roth as a first-choice emergency fund, since earnings withdrawals may be taxed or penalized.",
+     "Give each mistake a plain fix."
+    ],
+    "h3": [],
+    "sources": [
+     2,
+     3,
+     6
+    ]
+   }
+  ],
+  "entities": [
+   "Roth IRA",
+   "traditional IRA",
+   "individual retirement account",
+   "Internal Revenue Service",
+   "tax deferred",
+   "after-tax contributions",
+   "tax-deductible contributions",
+   "qualified distribution",
+   "required minimum distribution",
+   "modified adjusted gross income",
+   "taxable compensation",
+   "contribution limit",
+   "catch-up contribution",
+   "early withdrawal 10% additional tax",
+   "age 59½",
+   "spousal IRA",
+   "workplace retirement plan",
+   "excess contribution 6% tax",
+   "tax bracket",
+   "custodial IRA",
+   "Publication 590-A",
+   "Publication 590-B"
+  ],
+  "gaps": [
+   "Top pages state the tax now vs tax later idea but rarely give a short set of questions a reader can answer to decide.",
+   "Some IRS pages still show older limits (2021 to 2024) and the older age 72 minimum distribution rule, so readers can see mixed numbers.",
+   "Few pages state plainly that the limit is one combined limit across both account types and that you can split it.",
+   "The deduction rule for people with a workplace plan is often buried.",
+   "The 6% excess contribution tax and how to fix it are usually skipped.",
+   "Most pages are written for general savers and not for people in their 20s and 30s with a first job and a small budget."
+  ],
+  "faqs": [
+   {
+    "question": "Should a 30-year-old have a Roth or traditional IRA?",
+    "answer": "Say it depends on income and tax bracket, that younger savers and those expecting a higher bracket later typically benefit more from a Roth, and that a traditional IRA fits someone who wants a deduction now. Mention that income limits can rule out a Roth."
+   },
+   {
+    "question": "What is the downside of having a Roth IRA?",
+    "answer": "Contributions aren't deductible, income can reduce or remove your ability to contribute, and a withdrawal that isn't qualified may be partly taxable with a possible 10% additional tax before 59½."
+   },
+   {
+    "question": "Who should not do a Roth IRA?",
+    "answer": "Say it may not fit people above the income limits, who can't contribute directly, or people who want a tax deduction this year. Keep it kind and say they can still use a traditional IRA."
+   },
+   {
+    "question": "What happens if I put $2,000 in a Roth IRA?",
+    "answer": "It counts toward the combined yearly limit, is made with after-tax money with no deduction, and grows tax free. You need at least that much taxable compensation, and qualified withdrawals are tax free."
+   },
+   {
+    "question": "Can I have both a Roth IRA and a traditional IRA?",
+    "answer": "Yes, but the total you put into all your IRAs can't exceed the yearly limit ($7,500 for 2026, or $8,600 if 50 or older) or your taxable compensation if less."
+   },
+   {
+    "question": "Can I open an IRA if I have a 401(k) at work?",
+    "answer": "Yes. You can contribute to either type, but your traditional deduction may be limited and Roth eligibility depends on income."
+   }
+  ],
+  "internalLinks": [
+   {
+    "url": "https://clearmoney.example/blog/money-basics",
+    "anchor": "money basics",
+    "where": "Roth IRA vs traditional IRA: the short version"
+   },
+   {
+    "url": "https://clearmoney.example/tools/budget-calculator",
+    "anchor": "budget calculator",
+    "where": "2026 IRA contribution limits"
+   },
+   {
+    "url": "https://clearmoney.example/retirement",
+    "anchor": "retirement saving guides",
+    "where": "How to choose in your 20s and 30s"
+   },
+   {
+    "url": "https://clearmoney.example/budgeting",
+    "anchor": "build a budget",
+    "where": "Mistakes to avoid"
+   },
+   {
+    "url": "https://clearmoney.example/saving",
+    "anchor": "saving tips",
+    "where": "Mistakes to avoid"
+   }
+  ],
+  "cta": {
+   "text": "Pick the account that fits you today, then choose an amount you can add every month. For more steps, read our retirement guides.",
+   "where": "End of the article, after the last H2, linking to https://clearmoney.example/retirement"
+  },
+  "modules": [
+   {
+    "type": "quiz",
+    "title": "Which IRA fits you?",
+    "purpose": "Help the reader see whether a Roth IRA, a traditional IRA or a split fits their situation.",
+    "placement": "How to choose in your 20s and 30s",
+    "inputs": [
+     "Do you or your spouse (if filing jointly) have taxable compensation this year?",
+     "Is your income under the Roth limit for your filing status?",
+     "Do you expect your tax bracket to be higher in retirement than it is now?",
+     "Do you want a tax break this year?",
+     "Are you or your spouse covered by a workplace plan?"
+    ],
+    "outputs": [
+     "Leans Roth IRA",
+     "Leans traditional IRA",
+     "Either one or a split between both within one combined limit",
+     "Result reminder with the 2026 limit and a note that this is general guidance"
+    ],
+    "data": "Question 1: no taxable compensation means no contribution, unless a joint return lets a spouse with compensation support a spousal IRA [2]. Question 2: for 2026 the Roth full-contribution limits are under $153,000 for single filers and under $242,000 for joint filers, and may be reduced or eliminated above that [6]; over the limit points to traditional. Question 3: higher later leans Roth [6]. Question 4: yes leans traditional, and a workplace plan may limit the deduction [2][6]. Results show the combined 2026 limit of $7,500 ($8,600 if 50 or older) or taxable compensation if less [2][4].",
+    "why": "The choice depends on several personal facts, and a short quiz gives the reader a clear lean in under a minute, which a plain list can't do."
+   }
+  ],
+  "images": [
+   {
+    "placement": "How a Roth IRA and a traditional IRA differ side by side",
+    "shows": "Roth IRA and traditional IRA side by side: tax on contributions, tax on withdrawals, income limits and required minimum distributions.",
+    "alt": "Side-by-side comparison of a Roth IRA and a traditional IRA showing when each is taxed.",
+    "kind": "comparison",
+    "sources": [
+     3,
+     4,
+     6
+    ]
+   },
+   {
+    "placement": "2026 IRA contribution limits",
+    "shows": "Combined IRA limits by year and age group.",
+    "alt": "Bar chart of yearly IRA contribution limits for 2024, 2025 and 2026 for people under 50 and 50 or older.",
+    "kind": "chart",
+    "numbers": "2024 under 50: $7,000; 2024 age 50 or older: $8,000; 2025 under 50: $7,000; 2025 age 50 or older: $8,000; 2026 under 50: $7,500; 2026 age 50 or older: $8,600",
+    "sources": [
+     2,
+     4
+    ]
+   },
+   {
+    "placement": "How to choose in your 20s and 30s",
+    "shows": "Four steps to choose: check income and compensation, decide on a tax break now or later, check for a workplace plan, then pick or split.",
+    "alt": "Four-step flow showing how to choose between a Roth IRA and a traditional IRA.",
+    "kind": "steps",
+    "sources": [
+     2,
+     6
+    ]
+   },
+   {
+    "placement": "Mistakes to avoid",
+    "shows": "Checklist before you contribute: under the combined limit, within your compensation, before the deadline, and deduction rules checked.",
+    "alt": "Checklist of four things to check before making an IRA contribution.",
+    "kind": "checklist",
+    "sources": [
+     2,
+     3
+    ]
+   }
+  ],
+  "examples": [],
+  "checks": [
+   "Required minimum distribution age: IRS page [3] says age 72, which is out of date, and AI answers say 73 (Gemini adds rising to 75). Confirm against Publication 590-B before stating an age.",
+   "Roth contributions can be withdrawn tax and penalty free at any time: this comes from the AI answers and Google overview, not the IRS pages provided. Confirm with Publication 590-B.",
+   "Exact 2026 traditional IRA deduction phaseout income amounts for people with a workplace plan are not in the sources.",
+   "The upper end of the Roth income phaseout range for 2026 is not in the sources; only the $153,000 and $242,000 starting points from Vanguard are.",
+   "The full definition of a qualified Roth distribution, including the five-year rule, is not in the sources.",
+   "The 2026 contribution deadline date is not in the sources; only the rule that it's the filing deadline without extensions.",
+   "How to open an IRA and where, including provider names and fees, is not covered in the sources."
+  ],
+  "research": {
+   "sources": [
+    {
+     "n": 1,
+     "url": "https://www.irs.gov/",
+     "title": "Internal Revenue Service | An official website of the United States government",
+     "domain": "irs.gov",
+     "kind": "serp",
+     "position": 4,
+     "words": 356
+    },
+    {
+     "n": 2,
+     "url": "https://www.irs.gov/retirement-plans/plan-participant-employee/retirement-topics-ira-contribution-limits",
+     "title": "Retirement topics - IRA contribution limits | Internal Revenue Service",
+     "domain": "irs.gov",
+     "kind": "ai",
+     "position": null,
+     "words": 757
+    },
+    {
+     "n": 3,
+     "url": "https://www.irs.gov/retirement-plans/traditional-and-roth-iras",
+     "title": "Traditional and Roth IRAs | Internal Revenue Service",
+     "domain": "irs.gov",
+     "kind": "ai",
+     "position": null,
+     "words": 546
+    },
+    {
+     "n": 4,
+     "url": "https://www.irs.gov/newsroom/saving-for-retirement-iras-are-an-option",
+     "title": "Saving for retirement? IRAs are an option | Internal Revenue Service",
+     "domain": "irs.gov",
+     "kind": "ai",
+     "position": null,
+     "words": 283
+    },
+    {
+     "n": 5,
+     "url": "https://www.irs.gov/publications/p590a",
+     "title": "Publication 590-A (2025), Contributions to Individual Retirement Arrangements (IRAs) | Internal Revenue Service",
+     "domain": "irs.gov",
+     "kind": "ai",
+     "position": null,
+     "words": 9552
+    },
+    {
+     "n": 6,
+     "url": "https://investor.vanguard.com/investor-resources-education/iras/roth-vs-traditional-ira",
+     "title": "Roth IRA vs. Traditional IRA: Rules & Tax Benefits\t| Vanguard",
+     "domain": "investor.vanguard.com",
+     "kind": "ai",
+     "position": null,
+     "words": 1535
+    }
+   ],
+   "questions": [
+    "What is the downside of having a Roth IRA?",
+    "Should a 30 year old have a Roth or traditional IRA?",
+    "Who should not do a Roth IRA?",
+    "What happens if I put $2000 in a Roth IRA?"
+   ],
+   "engines": [
+    "ChatGPT",
+    "Gemini",
+    "AI Mode"
+   ],
+   "topPages": "Google's top results are mainly IRS pages: the homepage, a short comparison page of about 550 words, a limits page of about 750 words and a 9,500-word publication. Vanguard's 1,535-word comparison adds a table and short sections on eligibility, contribution rules, tax advantages and withdrawals. They all cover the tax timing difference, contribution limits, income rules and withdrawals. IRS pages are plain but some show older years, and few help a young reader decide.",
+   "aiAnswers": "ChatGPT leans toward a Roth for younger savers and people who expect higher income, and says a traditional IRA suits people in a high bracket now. Gemini and AI Mode call it a choice between paying taxes now or later. All three give a comparison table and the 2026 limits of $7,500 and $8,600. They cite IRS pages, Vanguard, Fidelity, Schwab, PNC and NerdWallet."
+  },
+  "model": "claude-sonnet-5-5",
+  "at": "2026-11-13T10:00:50.555Z"
+ },
+ "sections": [
+  {
+   "key": "intro",
+   "h2": "",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "You've started saving for retirement, and you've heard you should open an IRA. When you look at the two choices, a Roth IRA and a traditional IRA, it's hard to tell which one fits a first job and a small budget.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "In this guide, we compare the Roth IRA vs traditional IRA in plain words, starting with how each one handles taxes. [The Internal Revenue Service explains](https://www.irs.gov/retirement-plans/traditional-and-roth-iras) how both accounts help you save for retirement.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Along the way, you'll see the 2026 limits and the withdrawal rules. We'll also give you a short set of questions to help you pick.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-0",
+   "h2": "Roth IRA vs traditional IRA: the short version",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "A Roth IRA and a traditional IRA are both individual retirement accounts, which means they're accounts built for saving for retirement. As you can see in the [Internal Revenue Service overview](https://www.irs.gov/retirement-plans/traditional-and-roth-iras), the main difference is when you get the tax break.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You can find more beginner topics in our [money basics](https://clearmoney.example/blog/money-basics) section, and here's a quick look at each account.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "With a traditional IRA, you may be able to [deduct your contributions](https://www.irs.gov/newsroom/saving-for-retirement-iras-are-an-option) if you qualify, which can lower your taxes now.",
+      "The money in a traditional IRA grows tax deferred, and generally it isn't taxed until you [withdraw it](https://www.irs.gov/newsroom/saving-for-retirement-iras-are-an-option).",
+      "With a Roth IRA, your contributions are [made with after-tax funds and aren't deductible](https://www.irs.gov/newsroom/saving-for-retirement-iras-are-an-option), so you don't get a tax break today.",
+      "In exchange, qualified Roth distributions are [tax free](https://www.irs.gov/newsroom/saving-for-retirement-iras-are-an-option), which is why some savers like it for the long run."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "With a traditional IRA you may get the tax break now, and with a Roth IRA you get it later when you take qualified money out. [Vanguard describes the same trade](https://investor.vanguard.com/investor-resources-education/iras/roth-vs-traditional-ira) as a choice based on your current financial situation and the tax bracket you expect in retirement.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Luckily, you don't have to figure this out in one go. We'll walk through the details step by step and end with a short quiz to help you pick.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-1",
+   "h2": "How a Roth IRA and a traditional IRA differ side by side",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Both accounts help you save for retirement, but they follow different tax rules at different times. The table below shows how they compare, based on the [Internal Revenue Service](https://www.irs.gov/retirement-plans/traditional-and-roth-iras) and [Vanguard](https://investor.vanguard.com/investor-resources-education/iras/roth-vs-traditional-ira).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "table",
+     "text": "",
+     "items": [],
+     "rows": [
+      [
+       "Topic",
+       "Traditional IRA",
+       "Roth IRA"
+      ],
+      [
+       "Tax on contributions",
+       "You may be able to deduct them if you qualify.",
+       "They aren't deductible and use after-tax funds."
+      ],
+      [
+       "Tax on withdrawals",
+       "Deductible contributions and earnings you withdraw are taxable.",
+       "Qualified distributions are tax free."
+      ],
+      [
+       "Income limits",
+       "Anyone with taxable compensation can contribute, though your income can affect the deduction.",
+       "Your income can reduce or eliminate how much you can contribute."
+      ],
+      [
+       "Required minimum distributions",
+       "You must start taking them at a certain age.",
+       "None for the original owner."
+      ]
+     ]
+    },
+    {
+     "type": "p",
+     "text": "Tax deferred growth means you don't pay tax on your earnings each year while the money stays in the account. With a traditional IRA, the IRS says the money [generally isn't taxed until it's withdrawn](https://www.irs.gov/newsroom/saving-for-retirement-iras-are-an-option).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The two types also share a single yearly limit. The IRS says the [limit applies to the combined amount](https://www.irs.gov/newsroom/saving-for-retirement-iras-are-an-option) you put into your traditional and Roth IRAs, so you can split money between them but can't fill both.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Taxes when you put money in",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Traditional IRA contributions may be [deductible if you qualify](https://www.irs.gov/retirement-plans/traditional-and-roth-iras), which can lower your tax bill now.",
+      "Roth IRA contributions [aren't deductible](https://www.irs.gov/retirement-plans/traditional-and-roth-iras) and are made with after-tax funds, so you pay tax on that money today."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Taxes when you take money out",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Deductible contributions and earnings you withdraw from a traditional IRA [are taxable](https://www.irs.gov/retirement-plans/traditional-and-roth-iras).",
+      "Qualified Roth distributions are tax free, and otherwise [part of a withdrawal may be taxable](https://www.irs.gov/retirement-plans/traditional-and-roth-iras)."
+     ],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-2",
+   "h2": "2026 IRA contribution limits",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "For 2026, the [Internal Revenue Service](https://www.irs.gov/retirement-plans/plan-participant-employee/retirement-topics-ira-contribution-limits) says the total you put into all of your traditional and Roth IRAs can't be more than $7,500, or $8,600 if you're age 50 or older.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If your taxable compensation for the year is lower than that amount, your compensation becomes your limit. The extra amount for people 50 and older is [$1,100](https://www.irs.gov/newsroom/saving-for-retirement-iras-are-an-option), which is how $7,500 becomes $8,600.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here are the main points to keep in mind as you plan your yearly amount:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "The limit is combined, so you can split your money between a traditional and a Roth IRA but you can't fill both.",
+      "For 2025 and 2024, the limit was [$7,000, or $8,000 if you were 50 or older](https://www.irs.gov/retirement-plans/plan-participant-employee/retirement-topics-ira-contribution-limits).",
+      "You can make contributions for a year until your [tax return filing deadline, not counting extensions](https://www.irs.gov/retirement-plans/traditional-and-roth-iras).",
+      "If you file a joint return, a spouse with no compensation may still contribute as long as the other spouse has enough [taxable compensation](https://www.irs.gov/retirement-plans/plan-participant-employee/retirement-topics-ira-contribution-limits)."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Not sure how much you can comfortably add each month? Our [budget calculator](https://clearmoney.example/tools/budget-calculator) can help you find a number that fits.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Luckily, staying under the limit is easy to plan for, and it matters because the IRS says [excess contributions are taxed at 6% per year](https://www.irs.gov/retirement-plans/plan-participant-employee/retirement-topics-ira-contribution-limits) for each year the extra amount stays in the IRA.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "To avoid that tax, you must withdraw the excess and any income it earned by the due date of your tax return, including extensions.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-3",
+   "h2": "Who can contribute and who can deduct",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Who can put money into each account depends on whether you earned money this year and, for a Roth, how much you earned. Here are the rules for each type.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "For a traditional IRA, you can contribute if you (or your spouse, if you file jointly) have [taxable compensation](https://www.irs.gov/retirement-plans/traditional-and-roth-iras).",
+      "For 2020 and later, there is [no age limit](https://www.irs.gov/retirement-plans/plan-participant-employee/retirement-topics-ira-contribution-limits) on regular contributions to either type.",
+      "For a Roth IRA, your income decides how much you can add, and for 2026 [Vanguard](https://investor.vanguard.com/investor-resources-education/iras/roth-vs-traditional-ira) says single filers earning less than $153,000 and joint filers earning less than $242,000 can contribute fully, with the amount possibly reduced or eliminated above those levels."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here are a few more rules that may apply to you:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "A minor with earned income can own an IRA, and a parent or another adult acts as the [custodian](https://investor.vanguard.com/investor-resources-education/iras/roth-vs-traditional-ira) until the minor reaches a certain age, typically 18 or 21.",
+      "You can use either type of IRA even if you already have a retirement plan through your employer."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "If you have a 401(k) at work",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Having a plan at work doesn't stop you from opening an IRA, and the IRS says you can [contribute to a traditional or Roth IRA](https://www.irs.gov/retirement-plans/plan-participant-employee/retirement-topics-ira-contribution-limits) even if you take part in another plan through your employer.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Your traditional deduction may shrink, though, because it can be limited if you or your spouse is covered by a plan at work and your income is above [certain levels](https://www.irs.gov/retirement-plans/plan-participant-employee/retirement-topics-ira-contribution-limits). Roth eligibility still depends on your income, and you can find more detail in [Publication 590-A](https://www.irs.gov/publications/p590a) before you file.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-4",
+   "h2": "Withdrawal rules and required minimum distributions",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Here's how the two accounts handle withdrawals, according to the [Internal Revenue Service](https://www.irs.gov/retirement-plans/traditional-and-roth-iras).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Traditional IRA withdrawals",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Any deductible contributions and earnings you take out of a traditional IRA are taxable. If you're under age 59½, you may also owe an [additional 10% tax](https://www.irs.gov/retirement-plans/traditional-and-roth-iras) unless you qualify for an exception.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A traditional IRA also comes with required minimum distributions, which means you must start taking money out at a certain age. Some IRS pages still list age 72, which is out of date, so check [Publication 590-B](https://www.irs.gov/retirement-plans/traditional-and-roth-iras) for the current starting age before you plan around it.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Roth IRA withdrawals",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A Roth IRA has no required minimum distributions if you're the [original owner](https://www.irs.gov/newsroom/saving-for-retirement-iras-are-an-option). A qualified distribution is also [tax free](https://www.irs.gov/newsroom/saving-for-retirement-iras-are-an-option).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If a withdrawal isn't a qualified distribution, part of it may be taxable, and you may owe the same [10% additional tax](https://www.irs.gov/retirement-plans/traditional-and-roth-iras) before age 59½. Many guides say you can take your original contributions back without tax or penalty, but earnings are treated differently. Please confirm the details in Publication 590-B before you rely on that rule.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Honestly, early withdrawals aren't something to panic about, since a few exceptions exist. Here's how to stay calm and careful:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Check whether your situation matches an IRS exception before you take money out.",
+      "Find out whether the amount you want is a contribution or earnings.",
+      "Ask yourself whether the Roth distribution would be qualified.",
+      "Look at the current rules in Publication 590-B when you're close to a withdrawal."
+     ],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-5",
+   "h2": "How to choose in your 20s and 30s",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Picking between these two accounts gets easier when you break it into a few plain questions. Here's how to think it through, and you can answer each one in a minute or two.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "Do you want a tax break this year? A traditional IRA may give you a deduction now if you qualify, which can lower the tax you owe for the year.",
+      "Do you expect to be in a higher tax bracket when you retire? Vanguard says [younger investors and those expected to be in a higher bracket later typically benefit more from a Roth IRA](https://investor.vanguard.com/investor-resources-education/iras/roth-vs-traditional-ira).",
+      "Does your income allow a Roth? Roth eligibility depends on your income, so check the starting amounts we covered earlier before you open one."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you answered yes to the first question, a traditional IRA is usually the better fit, because the tax break arrives in the current year. If you answered yes to the second and your income allows it, a Roth IRA is the one many people in their 20s and 30s lean toward.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You don't have to commit to only one. The yearly limit is [combined across all of your traditional and Roth IRAs](https://www.irs.gov/retirement-plans/plan-participant-employee/retirement-topics-ira-contribution-limits), so you can split your money between the two types as long as the total stays under the limit.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "What if you're still unsure after the three questions? Luckily, you don't need a perfect answer today, so pick one account, start with a small amount you can keep adding to, and adjust next year once you know more about your income and taxes.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "For more help with the next step, take a look at our [retirement saving guides](https://clearmoney.example/retirement), where we walk through the details in plain language.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-6",
+   "h2": "Mistakes to avoid",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Most IRA mistakes are easy to avoid once you know where they hide. Here are the four we see most often, along with a plain fix for each one.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "You put in more than the combined limit or more than your taxable compensation. For 2026, the total across all your traditional and Roth IRAs can't be more than $7,500, or your taxable compensation if that's less, according to the [IRS contribution limits page](https://www.irs.gov/retirement-plans/plan-participant-employee/retirement-topics-ira-contribution-limits). To fix it, add up every IRA deposit before you make the last one, and withdraw any excess and its earnings by your return due date, including extensions, to avoid the 6% yearly tax.",
+      "You assume a traditional contribution is always deductible. If you or your spouse is covered by a workplace plan, the [deduction may be limited](https://www.irs.gov/retirement-plans/plan-participant-employee/retirement-topics-ira-contribution-limits) once your income passes certain levels. To fix it, check the deduction rules before you count on the tax break when you plan your budget.",
+      "You miss the contribution deadline. The deadline is your tax return filing deadline, [not including extensions](https://www.irs.gov/retirement-plans/traditional-and-roth-iras). To fix it, put the date on your calendar early and set up a small automatic deposit so you aren't rushing in April.",
+      "You treat a Roth IRA as your first emergency fund. If a withdrawal isn't a qualified distribution, [part of it may be taxable](https://www.irs.gov/retirement-plans/traditional-and-roth-iras), and you may owe an extra 10% tax before age 59½ unless you qualify for an exception. To fix it, keep a separate savings cushion for surprises and let your IRA stay focused on retirement."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A short monthly check-in helps with all four. If you want a simple place to start, [build a budget](https://clearmoney.example/budgeting) that sets aside a fixed IRA amount, and browse our [saving tips](https://clearmoney.example/saving) for ways to build that emergency cushion.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Pick the account that fits you today, then choose an amount you can add every month. For more steps, read our retirement guides.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "faq",
+   "h2": "Frequently asked questions",
+   "blocks": [
+    {
+     "type": "h3",
+     "text": "Should a 30-year-old have a Roth or traditional IRA?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "It depends on your income and your tax bracket. [Vanguard says](https://investor.vanguard.com/investor-resources-education/iras/roth-vs-traditional-ira) younger investors and those expected to be in a higher tax bracket later typically benefit more from a Roth IRA, while a traditional IRA suits someone who wants a tax break in the current year. Keep in mind that income limits can rule out a Roth for some savers.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What is the downside of having a Roth IRA?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Roth contributions [aren't deductible](https://www.irs.gov/retirement-plans/traditional-and-roth-iras), so you don't get a tax break this year. Your income can also reduce or remove your ability to contribute. A withdrawal that isn't a qualified distribution may be partly taxable, and you may owe an extra 10% tax before age 59½ unless you qualify for an exception.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Who should not do a Roth IRA?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A Roth may not fit you if your income is above the limits and you can't contribute directly, or if you want a tax deduction this year. [Roth eligibility depends on income](https://investor.vanguard.com/investor-resources-education/iras/roth-vs-traditional-ira), while anyone with earned income can contribute to a traditional IRA. Luckily, that means you still have a good option if a Roth isn't open to you.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What happens if I put $2,000 in a Roth IRA?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The $2,000 counts toward your [combined yearly limit](https://www.irs.gov/retirement-plans/plan-participant-employee/retirement-topics-ira-contribution-limits) across all your traditional and Roth IRAs, and you need at least that much taxable compensation for the year. It goes in as after-tax money with no deduction, and [qualified distributions are tax free](https://www.irs.gov/newsroom/saving-for-retirement-iras-are-an-option) later on.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Can I have both a Roth IRA and a traditional IRA?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Yes, you can have both. The total you put into all your IRAs can't be more than [$7,500 for 2026, or $8,600 if you're 50 or older](https://www.irs.gov/retirement-plans/plan-participant-employee/retirement-topics-ira-contribution-limits), or your taxable compensation for the year if that's less.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Can I open an IRA if I have a 401(k) at work?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Yes. The IRS says you can contribute to a traditional or Roth IRA [even if you take part in a workplace plan](https://www.irs.gov/retirement-plans/plan-participant-employee/retirement-topics-ira-contribution-limits). Your traditional IRA deduction may be limited, and your Roth eligibility still depends on your income.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  }
+ ],
+ "cut": [
+  {
+   "id": "4.3.i1",
+   "why": "The Vanguard source says income limits are based on the minor's income, but this sentence is stated without a source link and extends beyond the cited line; the claim is supported in source 6 only loosely for Roth limits specifically, so verify the scope."
+  },
+  {
+   "id": "5.0.0",
+   "why": "Says you can usually take money out of an IRA at any time; only IRS page [3] supports this and it is broad. Withdrawal timing and tax claims should be narrowed to what sources state."
+  },
+  {
+   "id": "2.1.r5",
+   "why": "The Roth early-withdrawal cell attributes the extra 10% tax to the part of a withdrawal that isn't qualified; sources say part may be taxable and may carry the 10% tax, but the 'part of a withdrawal that isn't qualified' scoping is a restatement that goes slightly beyond the source wording."
+  }
+ ],
+ "styleLeft": [
+  {
+   "id": "3.3.i2",
+   "rule": "dashes",
+   "before": "a \"not X, Y\" contrast",
+   "after": null
+  },
+  {
+   "id": "3.5.0",
+   "rule": "adverbs",
+   "before": "\"luckily\" used twice",
+   "after": null
+  },
+  {
+   "id": "6.4.1",
+   "rule": "adverbs",
+   "before": "\"luckily\" used twice",
+   "after": null
+  },
+  {
+   "id": "8.5.2",
+   "rule": "adverbs",
+   "before": "\"luckily\" used twice",
+   "after": null
+  },
+  {
+   "id": "8.9.0",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "8.11.0",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  }
+ ],
+ "modules": [
+  {
+   "status": "ok",
+   "error": null
+  }
+ ]
+}

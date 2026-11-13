@@ -1,0 +1,1193 @@
+{
+ "slug": "running-shoes-beginners",
+ "keyword": "best running shoes for beginners",
+ "kind": "store",
+ "stage": "bofu",
+ "model": "claude-sonnet-5-5",
+ "at": "2026-11-13T10:07:41.239Z",
+ "seconds": 253,
+ "usage": {
+  "calls": 25,
+  "input": 59702,
+  "cacheRead": 1071486,
+  "cacheWrite": 144850,
+  "output": 35025
+ },
+ "score": {
+  "words": 3049,
+  "sections": 11,
+  "lint": 8,
+  "lintRules": {
+   "sentences": 7,
+   "adverbs": 1
+  },
+  "numbers": 21,
+  "unsourced": [],
+  "links": 61,
+  "strayLinks": [],
+  "images": 0,
+  "modules": 0
+ },
+ "title": "7 Best Running Shoes for Beginners in 2026",
+ "brief": {
+  "titles": [
+   "7 Best Running Shoes for Beginners in 2026",
+   "7 Best Running Shoes for New Runners in 2026",
+   "7 Best Beginner Running Shoes to Buy in 2026"
+  ],
+  "h1": "7 Best Running Shoes for Beginners in 2026",
+  "metaDescription": "See 7 of the best running shoes for beginners in 2026, with prices, pros, cons and who should skip each, plus how to pick your first pair.",
+  "slug": "best-running-shoes-for-beginners",
+  "searchIntent": "The searcher is ready to buy a first pair of running shoes and wants a short ranked list with clear reasons, prices and who each shoe suits. A listicle with a quick comparison and a simple way to choose serves this best.",
+  "reader": "A new or casual runner shopping online who knows little shoe jargon, may be starting with a walk to run plan or a first 5K, and wants to pick one pair and buy with confidence. Next they want to check fit and price, then buy.",
+  "angle": "We rank seven shoes in plain words, say who should skip each one, and show prices with the source and date so new runners do not have to decode lab scores. We also keep the list to shoes built for beginners, unlike pages that mix in race shoes.",
+  "wordTarget": 3200,
+  "outline": [
+   {
+    "h2": "How we picked these beginner running shoes",
+    "points": [
+     "Say plainly that Stride Running picks from published tests and buyer guides, and name the test sites: RTINGS, RunRepeat, Fleet Feet and Run Weekly.",
+     "List the picking checks in plain words: cushioning, stability, true to size fit, weight, price and whether the shoe feels good with no break-in.",
+     "Explain that beginners should look for a cushioned daily trainer and skip carbon plated race shoes.",
+     "Note that shoe models update often, so the article says which version each source tested."
+    ],
+    "h3": [],
+    "sources": [
+     1,
+     4,
+     6,
+     7,
+     8,
+     9
+    ]
+   },
+   {
+    "h2": "1. ASICS Novablast 6: best overall for new runners",
+    "points": [
+     "What it does well: RTINGS calls it the best beginner shoe it tested, with cushioning that protects your legs as you get used to regular training.",
+     "Numbers in plain words: cushioning 8.5, stability 7.1 and true to size 9.4, with a weight of 247.7 g (8.74 oz) and a heel stack of 41.9 mm.",
+     "Pros: wide sizing is available, it is light enough for regular runs, and it can cover a first 5K or 10K.",
+     "Pricing: the sources give no price, so use the current Stride Running price or flag it for the editor.",
+     "Who should skip it: runners who want a lot of structure, since the stability score of 7.1 sits just above the 7.0 mark RTINGS calls decent."
+    ],
+    "h3": [],
+    "sources": [
+     6
+    ]
+   },
+   {
+    "h2": "2. Brooks Ghost 17: best for a classic daily trainer",
+    "points": [
+     "What it does well: it is a top pick in Fleet Feet's list and named as a neutral shoe most beginners start in.",
+     "Run Weekly says Brooks has been reliable for new runners in the author's experience, so use that as one tester's view.",
+     "Pros: a neutral daily trainer that suits most beginners who do not overpronate.",
+     "Pricing: no price in the sources, so the editor must add a current price.",
+     "Who should skip it: runners whose ankles collapse inward a lot, who may do better in a stability shoe."
+    ],
+    "h3": [],
+    "sources": [
+     1,
+     4,
+     8
+    ]
+   },
+   {
+    "h2": "3. HOKA Clifton 10: best for soft, cushioned miles",
+    "points": [
+     "What it does well: Run Weekly calls it Hoka's most popular daily trainer and says the compression-moulded EVA foam absorbs impact well.",
+     "Pros: soft cushioning that does not feel clunky, and it appears in Fleet Feet's top 10 and in Shoe Station's neutral picks.",
+     "Cons and who should skip it: anyone who wants a firmer ground feel, since the sources describe soft cushioning.",
+     "Pricing: no price in the sources, so the editor must add one."
+    ],
+    "h3": [],
+    "sources": [
+     1,
+     4,
+     8
+    ]
+   },
+   {
+    "h2": "4. adidas Adizero Evo SL: best for one shoe that does it all",
+    "points": [
+     "What it does well: Run Weekly says it suits easy days, tempo runs and most things between, so a beginner can own one pair.",
+     "Pros: Lightstrike Pro foam, a light 7.9 oz (223 g) build, a RunRepeat score of 94 and very breathable upper.",
+     "Pricing: Run Weekly lists it at £120, and RunRepeat shows a $150 list price with a $65 deal at Shoebacca at the time it was written, so say prices move.",
+     "Cons: RunRepeat lists poor quality laces, a short non-gusseted tongue and toebox durability.",
+     "Who should skip it: runners who need support, because RunRepeat says the narrow midsole and minimal support suit neutral runners only."
+    ],
+    "h3": [],
+    "sources": [
+     1,
+     7
+    ]
+   },
+   {
+    "h2": "5. PUMA Velocity Nitro 5: best for grip and bounce",
+    "points": [
+     "What it does well: RunRepeat names it best overall for beginners, with comfort, grippy control and plenty of bounce.",
+     "Numbers in plain words: 40% more flexible than average, a wet grip score of 0.78, and energy return of 64.0% in the heel and 69.3% in the forefoot.",
+     "Pricing: $140 list price, with $102 shown through KICKS CREW at the time of the source.",
+     "Who should skip it: runners with overpronation or stability concerns, since RunRepeat calls it a neutral shoe and points them to a structured trainer.",
+     "Add cons only if the editor can confirm them from the full RunRepeat page."
+    ],
+    "h3": [],
+    "sources": [
+     9
+    ]
+   },
+   {
+    "h2": "6. ASICS GT-1000 15: best for extra stability",
+    "points": [
+     "What it does well: RunRepeat picks it as the best stability shoe for beginners.",
+     "Explain stability in plain words: if your ankles collapse inward when you walk or run, a stability shoe uses firmer foam or guide rails to keep your stride lined up.",
+     "Pricing: $115 list price, with $100 shown at Running Warehouse at the time of the source.",
+     "Who should skip it: runners with a neutral gait, who are better in the neutral picks above.",
+     "Pros and cons beyond the pick need an editor check against the full RunRepeat page."
+    ],
+    "h3": [],
+    "sources": [
+     8,
+     9
+    ]
+   },
+   {
+    "h2": "7. adidas Questar 4: best on a budget",
+    "points": [
+     "What it does well: RTINGS names it the best budget beginner shoe that can handle regular running.",
+     "Numbers in plain words: cushioning 7.0, stability 8.1 and true to size 9.3, at 305.5 g (10.78 oz) with a heel stack of 38.2 mm.",
+     "Pros: a stability score of 8.1 is higher than the Novablast 6 score of 7.1.",
+     "Cons: no wide sizing, and less cushioning and more weight than the Novablast 6.",
+     "Pricing: no price in the sources, so the editor must add a current one."
+    ],
+    "h3": [],
+    "sources": [
+     6
+    ]
+   },
+   {
+    "h2": "How to choose your first pair",
+    "points": [
+     "Walk the reader through neutral or stability, then fit, then budget.",
+     "Give the fit checks as a list: leave about a thumb's width at the toes, try shoes on later in the day, and expect comfort from the first run.",
+     "Explain how long shoes last: about 300 to 500 miles, or six to nine months at three runs a week.",
+     "Tell the reader to skip flat lifestyle sneakers and carbon plated race shoes."
+    ],
+    "h3": [
+     {
+      "title": "Neutral or stability?",
+      "points": [
+       "Most beginners start in neutral shoes.",
+       "Choose stability if your ankles collapse inward a lot."
+      ]
+     },
+     {
+      "title": "Check the fit",
+      "points": [
+       "Leave about a thumb's width at the toes, and know your running size may differ from your everyday size.",
+       "There should be no break-in period."
+      ]
+     },
+     {
+      "title": "Budget and shoe life",
+      "points": [
+       "You do not need the most expensive shoe to start, and entry level models give beginners what they need.",
+       "Plan to replace shoes after about 300 to 500 miles."
+      ]
+     }
+    ],
+    "sources": [
+     1,
+     6,
+     8,
+     9
+    ]
+   }
+  ],
+  "entities": [
+   "ASICS Novablast 6",
+   "Brooks Ghost 17",
+   "HOKA Clifton 10",
+   "adidas Adizero Evo SL",
+   "PUMA Velocity Nitro 5",
+   "ASICS GT-1000 15",
+   "adidas Questar 4",
+   "Nike Pegasus 41",
+   "Nike Revolution 8",
+   "Nike Winflo 12",
+   "ASICS Gel-Nimbus 27",
+   "ASICS Gel-Kayano",
+   "RTINGS",
+   "RunRepeat",
+   "Fleet Feet",
+   "Run Weekly",
+   "Shoe Station",
+   "daily trainer",
+   "neutral shoe",
+   "stability shoe",
+   "overpronation",
+   "cushioning",
+   "true to size",
+   "heel stack height",
+   "wide sizing",
+   "carbon plate",
+   "break-in period",
+   "thumb's width"
+  ],
+  "gaps": [
+   "Top pages use lab terms such as SA, energy return and stack height with little plain explanation for new runners.",
+   "Several pages mix beginner shoes with race and tempo shoes such as carbon plated models, which do not suit new runners.",
+   "Most pages give no clear line on who should skip each shoe.",
+   "Prices are missing or change by shop, and the sources show list prices next to deal prices without a date.",
+   "Pages and AI answers mix model versions, such as Ghost 17 and 18 or Clifton 10 and 11, so this article must name the version each source tested.",
+   "Few pages connect shoe choice to simple fit rules, shoe life and a first 5K plan."
+  ],
+  "faqs": [
+   {
+    "question": "Should running shoes be a little tight at first?",
+    "answer": "No. Say shoes should feel good from the first run with no break-in, and should leave about a thumb's width at the toes."
+   },
+   {
+    "question": "How do I choose my first running shoes?",
+    "answer": "Say to pick neutral or stability first, then check fit, then pick cushioning and budget, using the how to choose section."
+   },
+   {
+    "question": "What Nike shoes are good for beginner runners?",
+    "answer": "Name the Nike Pegasus 41 from Run Weekly and Fleet Feet, and RunRepeat's Nike Winflo 12 as best daily trainer and Nike Revolution 8 as best budget for beginners."
+   },
+   {
+    "question": "Do I need expensive shoes to start running?",
+    "answer": "Say no, since entry level models from major brands give beginners what they need at a lower price."
+   },
+   {
+    "question": "How long will my first pair of running shoes last?",
+    "answer": "Say about 300 to 500 miles, which is about six to nine months for a beginner running three times a week."
+   }
+  ],
+  "internalLinks": [
+   {
+    "url": "https://striderunning.example/guides/running-shoes",
+    "anchor": "our running shoe guide",
+    "where": "How we picked these beginner running shoes"
+   },
+   {
+    "url": "https://striderunning.example/shoes/road",
+    "anchor": "road running shoes",
+    "where": "1. ASICS Novablast 6: best overall for new runners"
+   },
+   {
+    "url": "https://striderunning.example/shoes/stability",
+    "anchor": "stability running shoes",
+    "where": "6. ASICS GT-1000 15: best for extra stability"
+   },
+   {
+    "url": "https://striderunning.example/guides/shoe-fit",
+    "anchor": "how running shoes should fit",
+    "where": "How to choose your first pair"
+   },
+   {
+    "url": "https://striderunning.example/blog/running-shoe-lifespan",
+    "anchor": "how long running shoes last",
+    "where": "How to choose your first pair"
+   },
+   {
+    "url": "https://striderunning.example/guides/first-5k",
+    "anchor": "first 5K plan",
+    "where": "How to choose your first pair"
+   }
+  ],
+  "cta": {
+   "text": "Ready to pick your pair? Browse road shoes at Stride Running, then use our shoe fit guide to check your size before you buy.",
+   "where": "End of the article, after How to choose your first pair, linking to https://striderunning.example/shoes/road"
+  },
+  "modules": [],
+  "images": [],
+  "examples": [],
+  "checks": [],
+  "research": {
+   "sources": [
+    {
+     "n": 1,
+     "url": "https://www.runweekly.com/best-running-shoes-for-beginners/",
+     "title": "Best Running Shoes for Beginners in 2025: Top Picks for New Runners",
+     "domain": "runweekly.com",
+     "kind": "serp",
+     "position": 1,
+     "words": 3551
+    },
+    {
+     "n": 2,
+     "url": "https://www.runnersworld.com/",
+     "title": "Runner's World",
+     "domain": "runnersworld.com",
+     "kind": "serp",
+     "position": 3,
+     "words": 1356
+    },
+    {
+     "n": 3,
+     "url": "https://www.chalktalksports.com/",
+     "title": "Exclusive Sports Gifts & Apparel - ChalkTalk SPORTS",
+     "domain": "chalktalksports.com",
+     "kind": "serp",
+     "position": 5,
+     "words": 346
+    },
+    {
+     "n": 4,
+     "url": "https://www.fleetfeet.com/running-shoe-buyers-guide",
+     "title": "The 10 Best Running Shoes of 2026 | Tested & Reviewed",
+     "domain": "fleetfeet.com",
+     "kind": "serp",
+     "position": 6,
+     "words": 4904
+    },
+    {
+     "n": 5,
+     "url": "https://www.youtube.com/watch?v=IyjCS9zFo6s",
+     "title": "Our Top 6 Running Shoes for Beginners This Summer - YouTube",
+     "domain": "youtube.com",
+     "kind": "serp",
+     "position": 7,
+     "words": 399
+    },
+    {
+     "n": 6,
+     "url": "https://www.rtings.com/running-shoes/reviews/best/beginners",
+     "title": "The 5 Best Running Shoes For Beginners of 2026",
+     "domain": "rtings.com",
+     "kind": "ai",
+     "position": null,
+     "words": 3518
+    },
+    {
+     "n": 7,
+     "url": "https://runrepeat.com/guides/best-running-shoes",
+     "title": "7 Best Running Shoes in 2026",
+     "domain": "runrepeat.com",
+     "kind": "ai",
+     "position": null,
+     "words": 9088
+    },
+    {
+     "n": 8,
+     "url": "https://www.shoestation.com/blog/2026-running-shoes-for-beginners",
+     "title": "From Couch to 5K: How to Choose Your First Pair of Running Shoes for Maximum Comfort",
+     "domain": "shoestation.com",
+     "kind": "ai",
+     "position": null,
+     "words": 788
+    },
+    {
+     "n": 9,
+     "url": "https://runrepeat.com/guides/best-for-beginners-running-shoes",
+     "title": "7 Best Running Shoes For Beginners in 2026",
+     "domain": "runrepeat.com",
+     "kind": "ai",
+     "position": null,
+     "words": 7541
+    }
+   ],
+   "questions": [
+    "Should running shoes be a little tight at first?",
+    "Are my running shoes causing knee pain?",
+    "What Nike shoes are good for beginner runners?",
+    "How to choose the first running shoes?"
+   ],
+   "engines": [
+    "ChatGPT",
+    "Gemini",
+    "AI Mode"
+   ],
+   "topPages": "",
+   "aiAnswers": ""
+  },
+  "model": "claude-sonnet-5-5",
+  "at": "2026-11-13T10:04:52.645Z"
+ },
+ "sections": [
+  {
+   "key": "intro",
+   "h2": "",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "This guide ranks seven of the **best running shoes for beginners** in plain words, with who each one suits and who should skip it. If you're standing in front of a wall of shoes or scrolling through dozens of tabs, we want your first purchase to feel easier than your first run.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Most guides lean on lab terms that mean little when you're new, and some mix in race shoes that don't suit a beginner at all. We pulled from published tests at [RTINGS](https://www.rtings.com/running-shoes/reviews/best/beginners), [RunRepeat](https://runrepeat.com/guides/best-for-beginners-running-shoes), [Fleet Feet](https://www.fleetfeet.com/running-shoe-buyers-guide) and [Run Weekly](https://www.runweekly.com/best-running-shoes-for-beginners/), and we name the model version each one tested.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "To get the most from it, you can follow these steps:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "Read the seven picks and note who each shoe suits and who should skip it.",
+      "Check the fit tips at the end of the guide.",
+      "Choose one pair and buy with confidence."
+     ],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-0",
+   "h2": "How we picked these beginner running shoes",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Stride Running doesn't test shoes in a lab ourselves, so we pick from published tests and buyer guides and explain the results in plain words for new runners. For this list, we drew on [RTINGS](https://www.rtings.com/running-shoes/reviews/best/beginners), [RunRepeat](https://runrepeat.com/guides/best-for-beginners-running-shoes), [Fleet Feet](https://www.fleetfeet.com/running-shoe-buyers-guide) and [Run Weekly](https://www.runweekly.com/best-running-shoes-for-beginners/), and we also read [Shoe Station's beginner guide](https://www.shoestation.com/blog/2026-running-shoes-for-beginners).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how we narrowed the field. We looked for the same checks across those sources, and we explain each one in everyday words so you can use it when you shop.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Cushioning is how well the shoe absorbs each landing, so hard ground feels less harsh on your legs, and [RTINGS](https://www.rtings.com/running-shoes/reviews/best/beginners) treats a score of 7.5 or higher as good.",
+      "Stability is how controlled the shoe feels when you land and push off, and RTINGS counts a score of 7.0 or higher as decent.",
+      "True to size fit tells you whether your usual running size is a safe starting point, and RTINGS says a score of 9 or higher suggests it is.",
+      "Weight matters because most beginners want a shoe that is [supportive and cushioned without feeling like a brick](https://www.runweekly.com/best-running-shoes-for-beginners/) on their feet.",
+      "Price counts too, since [you do not need the most expensive shoe to start](https://www.shoestation.com/blog/2026-running-shoes-for-beginners).",
+      "Comfort from the first run matters, because a good running shoe should have [no break-in period](https://www.shoestation.com/blog/2026-running-shoes-for-beginners)."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "We also kept the list to shoes built for new runners, since [RunRepeat](https://runrepeat.com/guides/best-for-beginners-running-shoes) says carbon plates are not good for beginners and points new runners toward a cushioned daily trainer instead. A **daily trainer** is a comfortable everyday shoe you can use for most of your runs, so that is what you'll find below.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Shoe models update often, so we say which version each source tested. If you want a wider view first, [our running shoe guide](https://striderunning.example/guides/running-shoes) covers the basics.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-1",
+   "h2": "1. ASICS Novablast 6: best overall for new runners",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "ASICS Novablast 6 is a cushioned daily running shoe from ASICS that suits new runners who want comfort from the first mile. [RTINGS calls it the best running shoe for beginners it has tested](https://www.rtings.com/running-shoes/reviews/best/beginners), so it earns our top spot.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The big strength is cushioning that does an excellent job of protecting your legs from impact as you get used to regular training. We think that matters a lot in a first pair, because your legs are still adapting to the pounding of each run.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here are the RTINGS numbers, in plain words:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "[Cushioning scores 8.5](https://www.rtings.com/running-shoes/reviews/best/beginners), which is above the 7.5 mark RTINGS calls good.",
+      "[Stability scores 7.1](https://www.rtings.com/running-shoes/reviews/best/beginners), which sits just above the 7.0 mark RTINGS calls decent.",
+      "[True to size scores 9.4](https://www.rtings.com/running-shoes/reviews/best/beginners), so your usual running size is a safe place to start.",
+      "[The shoe weighs 247.7 g (8.74 oz) with a heel stack height of 41.9 mm](https://www.rtings.com/running-shoes/reviews/best/beginners), and heel stack height is how much shoe sits under your heel."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Why it works: [RTINGS says it is light enough that it doesn't feel cumbersome on regular runs](https://www.rtings.com/running-shoes/reviews/best/beginners), and the cushioning gives back a decent amount of energy as you push off. That helps faster running feel less labored as you gain confidence.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's what it offers you, and you can look for the same things when you shop other [road running shoes](https://striderunning.example/shoes/road):",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Wide sizing is available, so check the width options if your feet need more room.",
+      "It can cover your regular runs and a first 5K or 10K, especially if your goal is to finish comfortably.",
+      "You won't need to upgrade right away, since it stays capable as your runs get longer and you pick up the pace."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Price: the sources we used don't list one, so check the current Stride Running price on the shoe page before you buy. [RTINGS links to several shops for current prices](https://www.rtings.com/running-shoes/reviews/best/beginners) if you want to compare.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Who should skip it: runners who want a lot of structure underfoot. Its stability score of 7.1 is only just above the 7.0 decent mark, so if you want more control, the stability pick later in this list may suit you better.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-2",
+   "h2": "2. Brooks Ghost 17: best for a classic daily trainer",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Brooks Ghost 17 is a running shoe from Brooks that works as a neutral daily trainer for easy, regular miles.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Shoe Station](https://www.shoestation.com/blog/2026-running-shoes-for-beginners) names the Brooks Ghost as a top pick for neutral running shoes, the type it says most beginners start with. Those shoes are versatile and give even cushioning without extra structural inserts, so your foot can move naturally.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The author at Run Weekly, who offers one tester's view, says that [Brooks, Hoka and Saucony have been reliable for new runners](https://www.runweekly.com/best-running-shoes-for-beginners/), at least in their experience, so treat that as one person's opinion alongside the other guides.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's what the sources tell us about why it suits a first pair:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "It is a neutral daily trainer, which is where most beginners start.",
+      "It suits new runners who do not overpronate, meaning their ankles do not collapse inward much when they walk or run."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Price: the sources we used don't list one for this shoe, so check the current Stride Running price on the shoe page before you buy, since prices change by shop and by week.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Who should skip it: runners whose ankles collapse inward a lot. Shoe Station says a stability shoe can help in that case, because it uses [firmer foam or guide rails on the inside of the arch](https://www.shoestation.com/blog/2026-running-shoes-for-beginners) to keep your stride lined up.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you notice your ankles rolling inward on your walks or runs, look at the stability pick later in this list, and if they don't, a neutral shoe like the Ghost 17 is a sensible place to begin.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-3",
+   "h2": "3. HOKA Clifton 10: best for soft, cushioned miles",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "HOKA Clifton 10 is a running shoe from Hoka that works as a soft, cushioned daily trainer for road miles.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Run Weekly says the soft feel doesn't come across as clunky, and that the compression-moulded EVA foam does a great job of absorbing impact, which is what new runners need as they build up their mileage.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "It also shows up on more than one buying list, and you can find it in these places:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "It is one of the ten shoes in [Fleet Feet's best running shoes list](https://www.fleetfeet.com/running-shoe-buyers-guide), which covers every type of runner.",
+      "It is named among the neutral picks in [Shoe Station's beginner guide](https://www.shoestation.com/blog/2026-running-shoes-for-beginners), alongside the Brooks Ghost and the ASICS Gel Nimbus."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Because Shoe Station lists it as a neutral shoe, it fits the group most beginners start in, and neutral shoes give even cushioning without extra structure so your foot can move in its natural way.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Price: the sources we used don't list one for this shoe, so check the current Stride Running price on the shoe page before you buy. Prices change by shop and by week, so a quick look right before you order is worth the minute.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Who should skip it? Surprisingly, this comes down to how you like the ground to feel, because the sources describe soft cushioning and you may enjoy a different shoe on this list more if you want a firmer, more connected feel underfoot.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If your ankles collapse inward a lot when you walk or run, Shoe Station suggests a stability shoe instead.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-4",
+   "h2": "4. adidas Adizero Evo SL: best for one shoe that does it all",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "The adidas Adizero Evo SL is a running shoe from adidas that is built to handle easy days, faster tempo runs and most things in between. [Run Weekly](https://www.runweekly.com/best-running-shoes-for-beginners/) says that range is ideal for beginners who want one solid pair instead of a whole rotation.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's why it works for new runners, based on what the two sources say:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "It uses Lightstrike Pro foam, which Run Weekly says gives a nice mix of comfort and pop, soft enough for longer runs with a bit of bounce when you push the pace.",
+      "It weighs 7.9 oz (223 g), and [RunRepeat](https://runrepeat.com/guides/best-running-shoes) says that minimal build adds to its effortless feel.",
+      "Run Weekly's tester put about 50 miles on a pair and says they are holding up nicely."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Price: Run Weekly lists the Evo SL at £120, which the author calls pretty good value. RunRepeat showed a $150 list price with a $65 deal at Shoebacca when it wrote its guide, so prices move and it's worth checking the current Stride Running price before you buy.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "RunRepeat lists a few things to know before you order:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "The toebox may wear out sooner than the rest of the shoe."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Who should skip it? RunRepeat says the narrow midsole and minimal support make the Evo SL ideal only for neutral runners, so if you need more structure, a stability shoe will suit you better.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-5",
+   "h2": "5. PUMA Velocity Nitro 5: best for grip and bounce",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "PUMA Velocity Nitro 5 is a running shoe from PUMA that is built as a daily trainer for people who are building their miles. [RunRepeat names it the best running shoe for beginners overall](https://runrepeat.com/guides/best-for-beginners-running-shoes), saying it has the comfort, grippy control and bounce a new runner needs.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how RunRepeat's lab numbers look in plain words, and why they matter when you're building up your miles:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Flexibility: in a 30 degree bend test, the shoe is [40% more flexible than average](https://runrepeat.com/guides/best-for-beginners-running-shoes), which RunRepeat says keeps the ride natural and enjoyable for beginners.",
+      "Wet grip: the PUMAGRIP rubber outsole scored 0.78 in RunRepeat's wet-condition test, so you can expect steady footing if you meet wet pavement or rain.",
+      "Bounce: energy return was [64.0% in the heel and 69.3% in the forefoot](https://runrepeat.com/guides/best-for-beginners-running-shoes), which means the foam gives back a good share of the energy you put in."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "As you can see, those numbers add up to a shoe with good bounce and wet grip, and RunRepeat also notes a secure lockdown and good durability from top to bottom.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Price: [RunRepeat shows a $140 list price](https://runrepeat.com/guides/best-for-beginners-running-shoes), with $102 listed through KICKS CREW when it wrote its guide. Prices change from shop to shop, so check the current Stride Running price before you buy.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Who should skip it? This comes down to your stride, because RunRepeat describes the Velocity Nitro 5 as a neutral shoe and advises runners with overpronation or added stability concerns to choose a more structured trainer. If your ankles tend to roll inward, look at the stability pick further down this list before you decide.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-6",
+   "h2": "6. ASICS GT-1000 15: best for extra stability",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "The ASICS GT-1000 15 is a stability running shoe from ASICS that [RunRepeat picks as the best stability shoe for beginners](https://runrepeat.com/guides/best-for-beginners-running-shoes). If you want a shoe that keeps your stride steady while you build up your miles, it's a good one to try.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "What does stability mean here? If your ankles collapse inward when you walk or run, which is called **overpronation**, a [stability shoe can help by using firmer foam or guide rails on the inside of the arch](https://www.shoestation.com/blog/2026-running-shoes-for-beginners) to keep your stride lined up.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You can browse our full range of [stability running shoes](https://striderunning.example/shoes/stability) if you'd like to compare this pick with other supportive models.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Price: RunRepeat shows a [$115 list price, with $100 listed at Running Warehouse](https://runrepeat.com/guides/best-for-beginners-running-shoes) when it wrote its guide. Prices change from shop to shop, so check the current Stride Running price before you buy.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how to tell whether this shoe suits you:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Choose it if your ankles roll inward a lot when you walk or run and you want a shoe that keeps your stride lined up.",
+      "Choose it if you're starting out and want a stability shoe that testers have picked as a good first pair.",
+      "Skip it if you have a neutral gait, because you'll likely feel better in one of the neutral shoes higher up this list.",
+      "Skip it if you're not sure which type you are, and check how your ankles move before you decide."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Surprisingly, most beginners do well in neutral shoes, and [Shoe Station notes that most new runners start there](https://www.shoestation.com/blog/2026-running-shoes-for-beginners).",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-7",
+   "h2": "7. adidas Questar 4: best on a budget",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "adidas Questar 4 is a running shoe from adidas that [RTINGS names the best budget pick for beginners](https://www.rtings.com/running-shoes/reviews/best/beginners) that can still handle regular running. We like it as a starting point if price matters to you.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how its numbers look in plain words, based on [RTINGS test results](https://www.rtings.com/running-shoes/reviews/best/beginners):",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Cushioning scores 7.0, which tells you how well the shoe softens each landing on hard surfaces.",
+      "Stability scores 8.1, which tells you how controlled the shoe feels when you land and push off.",
+      "True to size scores 9.3, so you can usually start with your normal running shoe size.",
+      "It weighs 305.5 g (10.78 oz), and the heel stack height is 38.2 mm."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Why it works: the stability score of 8.1 is higher than the 7.1 that [RTINGS gave the ASICS Novablast 6](https://www.rtings.com/running-shoes/reviews/best/beginners). If you feel wobbly while you get used to running, that extra control can help you feel more confident.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "This table puts the two shoes side by side so you can compare the scores and details that matter most.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "table",
+     "text": "",
+     "items": [],
+     "rows": [
+      [
+       "Point",
+       "adidas Questar 4",
+       "ASICS Novablast 6"
+      ],
+      [
+       "Cushioning",
+       "7.0",
+       "8.5"
+      ],
+      [
+       "Stability",
+       "8.1",
+       "7.1"
+      ],
+      [
+       "Weight",
+       "305.5 g (10.78 oz)",
+       "247.7 g (8.74 oz)"
+      ],
+      [
+       "Wide sizing",
+       "No",
+       "Yes"
+      ]
+     ]
+    },
+    {
+     "type": "p",
+     "text": "As you can see, the Questar 4 has less cushioning and weighs more than the Novablast 6, and [RTINGS lists no wide sizing](https://www.rtings.com/running-shoes/reviews/best/beginners) for it. If you have wider feet or want the softest ride, you may prefer a shoe higher up this list.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Price: our sources don't give a price for this shoe, so check the current Stride Running price before you buy. If a lower price is your main goal right now, the Questar 4 is the budget pick RTINGS recommends for regular running.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-8",
+   "h2": "How to choose your first pair",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "You can pick your first pair in three steps: decide between a neutral and a stability shoe, check the fit, then set your budget. Here's how each step works, so you can buy with confidence.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Neutral or stability?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Most beginners start in neutral shoes](https://www.shoestation.com/blog/2026-running-shoes-for-beginners), which give even cushioning and let your foot move naturally.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If your ankles collapse inward a lot when you walk or run, a stability shoe may suit you better. [Shoe Station explains](https://www.shoestation.com/blog/2026-running-shoes-for-beginners) that these use firmer foam or guide rails on the inside of the arch to keep your stride lined up.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Check the fit",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Once you know which type of shoe you want, take a few minutes to check the fit, and our guide on [how running shoes should fit](https://striderunning.example/guides/shoe-fit) goes into more detail. These checks come from our sources:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Leave about a thumb's width between your toes and the front of the shoe, because [your feet swell as they warm up during a run](https://www.shoestation.com/blog/2026-running-shoes-for-beginners).",
+      "Expect comfort from the first run, since [proper running shoes should not need a break-in period](https://www.runweekly.com/best-running-shoes-for-beginners/).",
+      "Remember that [your running shoe size may differ from your everyday size](https://www.rtings.com/running-shoes/reviews/best/beginners), so don't assume the two match."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Budget and shoe life",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You don't need the most expensive shoe to start. [Shoe Station notes](https://www.shoestation.com/blog/2026-running-shoes-for-beginners) that many entry level models give beginners everything they need at a friendlier price.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A useful question to ask is how long a pair will last you. [Shoe Station says](https://www.shoestation.com/blog/2026-running-shoes-for-beginners) to expect about 300 to 500 miles from a quality pair, which usually means six to nine months if you run three times a week, and our guide on [how long running shoes last](https://striderunning.example/blog/running-shoe-lifespan) shows what to look for as a pair wears out.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "These two kinds of shoe are worth skipping at the start:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Skip flat lifestyle sneakers, because [they lack the impact absorbing foam and support you need for running](https://www.shoestation.com/blog/2026-running-shoes-for-beginners).",
+      "Skip carbon plated race shoes, because [RunRepeat says carbon plates are not good for beginners](https://runrepeat.com/guides/best-for-beginners-running-shoes) and a cushioned daily trainer is the better place to begin."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Next, pick one shoe from the list above and browse road shoes at Stride Running, then use our [how running shoes should fit](https://striderunning.example/guides/shoe-fit) guide to check your size before you buy. After that, our [first 5K plan](https://striderunning.example/guides/first-5k) shows you how to build up your miles.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "faq",
+   "h2": "Frequently asked questions",
+   "blocks": [
+    {
+     "type": "h3",
+     "text": "Should running shoes be a little tight at first?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "No. Shoes should feel good from your very first run with no break-in period, and [Shoe Station](https://www.shoestation.com/blog/2026-running-shoes-for-beginners) says that if they don't feel great when you lace them up, they aren't the right pair.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You also want about a thumb's width of space between your toes and the end of the shoe, because your feet swell as they warm up.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "How do I choose my first running shoes?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Shoe Station](https://www.shoestation.com/blog/2026-running-shoes-for-beginners) says most beginners begin in neutral shoes, so start by deciding between a neutral shoe and a stability shoe. Our how to choose section above walks you through each step.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "Decide between a neutral shoe and a stability shoe.",
+      "Check the fit.",
+      "Pick the cushioning and budget that suit you."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What Nike shoes are good for beginner runners?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[RunRepeat](https://runrepeat.com/guides/best-for-beginners-running-shoes) also picks two other Nike shoes for beginners:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "The Nike Revolution 8 is its best budget choice."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Do I need expensive shoes to start running?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "No. [Shoe Station](https://www.shoestation.com/blog/2026-running-shoes-for-beginners) says many entry level models from major brands give beginners everything they need at a lower price. A comfortable, cushioned daily trainer is a better place to start than a high-end shoe with advanced foam.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "How long will my first pair of running shoes last?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Shoe Station](https://www.shoestation.com/blog/2026-running-shoes-for-beginners) says to expect about 300 to 500 miles from a quality pair. For most beginners running three times a week, that works out to about six to nine months before you need a new pair.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  }
+ ],
+ "cut": [
+  {
+   "id": "1.4.1",
+   "why": "Fleet Feet source lists the ASICS Gel-Nimbus 27 but it says it tested/reviews Clifton 10 via a Clifton 9 review note; the claim that these are exact versions tested is not clearly stated, and 'newer ones' is unsupported."
+  },
+  {
+   "id": "3.0.1",
+   "why": "Source only lists Ghost 17 in Fleet Feet's top picks; the claim that this explains why many new runners end up in a pair is unsupported."
+  },
+  {
+   "id": "3.4.i2",
+   "why": "Claims 'more than one shop and tester point to it' for Ghost 17, but only Fleet Feet lists the Ghost 17; Run Weekly only mentions the Brooks brand and Shoe Station the Ghost generally."
+  },
+  {
+   "id": "4.0.1",
+   "why": "Run Weekly excerpt says it is one of the author's favourites and Hoka's most popular daily trainer, which is supported; however the statement is attributed to the section start and fine. Kept flagged only for combined claim risk."
+  },
+  {
+   "id": "4.3.i2",
+   "why": "Attributes to Run Weekly a description that it suits runners still getting used to regular impact; source says it absorbs impact for new runners building up, but 'soft daily trainer' phrasing is a paraphrase beyond the source."
+  },
+  {
+   "id": "5.2.i2",
+   "why": "RunRepeat score of 94 is supported, but 'out of 100' is not stated in the source."
+  },
+  {
+   "id": "5.5.i0",
+   "why": "RunRepeat lists poor-quality laces, but advice to swap them for a spare pair is fine; however the claim is not unsupported. Flagged due to elaboration risk."
+  },
+  {
+   "id": "5.5.i1",
+   "why": "'Which means it has no side straps holding it in place' is an invented definition of non-gusseted; the source only lists 'short, non-gusseted tongue'."
+  },
+  {
+   "id": "6.2.i3",
+   "why": "The 129 SA / 101 SA figures are supported, but 'higher SA number means more shock absorption' is an explanation not in the source."
+  },
+  {
+   "id": "9.2.1",
+   "why": "Shoe Station lists ASICS Gel Nimbus (generic), not specifically Gel-Nimbus; minor, but versioning unsupported."
+  },
+  {
+   "id": "9.6.i1",
+   "why": "Advice to try shoes on later in the day is attributed within a list said to come from our sources and is supported by Shoe Station; however it has no citation link while claim of source is made."
+  },
+  {
+   "id": "10.8.i0",
+   "why": "RunRepeat names Nike Winflo 12 as best daily trainer for beginners (supported); flagged for no issue."
+  },
+  {
+   "id": "10.7.0",
+   "why": "Nike Pegasus 41 appears in Run Weekly's headings but Fleet Feet's list contains Nike Air Zoom Pegasus 41, supported; no issue."
+  }
+ ],
+ "styleLeft": [
+  {
+   "id": "1.1.0",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "4.6.0",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "5.6.0",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "6.5.0",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "7.1.0",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "7.6.0",
+   "rule": "adverbs",
+   "before": "\"surprisingly\" used twice",
+   "after": null
+  },
+  {
+   "id": "10.1.0",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "10.10.0",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  }
+ ],
+ "modules": []
+}

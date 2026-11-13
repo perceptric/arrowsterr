@@ -1,0 +1,1580 @@
+{
+ "slug": "pm-software-small-teams",
+ "keyword": "best project management software for small teams",
+ "kind": "saas",
+ "stage": "bofu",
+ "model": "claude-sonnet-5-5",
+ "at": "2026-11-13T09:46:01.239Z",
+ "seconds": 287,
+ "usage": {
+  "calls": 26,
+  "input": 60740,
+  "cacheRead": 1019210,
+  "cacheWrite": 261073,
+  "output": 41634
+ },
+ "score": {
+  "words": 3142,
+  "sections": 11,
+  "lint": 4,
+  "lintRules": {
+   "sentences": 2,
+   "adverbs": 2
+  },
+  "numbers": 26,
+  "unsourced": [
+   "110",
+   "275"
+  ],
+  "links": 63,
+  "strayLinks": [],
+  "images": 8,
+  "modules": 1
+ },
+ "title": "7 Best Project Management Software for Small Teams in 2026",
+ "brief": {
+  "titles": [
+   "7 Best Project Management Software for Small Teams in 2026",
+   "Best Project Management Software for Small Teams (2026 List)",
+   "7 Best Project Management Tools for Small Teams in 2026"
+  ],
+  "h1": "7 Best Project Management Software for Small Teams in 2026",
+  "metaDescription": "Compare 7 project management tools for small teams in 2026, with pricing, pros, cons and who should skip each, so you can pick with confidence.",
+  "slug": "best-project-management-software-for-small-teams",
+  "searchIntent": "The searcher is ready to choose a tool and wants a ranked shortlist with real prices, pros, cons and a clear sense of which one fits their team. A listicle with one section per tool, a comparison they can filter and a short how-to-choose section serves this best.",
+  "reader": "Team leads at companies with 10 to 200 people who run several projects at once. They know what a task board is, they may already use spreadsheets or a tool that has become hard to manage, and they want to shortlist two or three tools to trial this week.",
+  "angle": "Every option gets the same treatment: what it does well, what it costs on the vendor's own pricing page, honest pros and cons, and who should skip it. We also show how to compare per-user pricing with flat pricing for your own headcount, which the top pages leave to the reader.",
+  "wordTarget": 3600,
+  "outline": [
+   {
+    "h2": "How we picked these project management tools for small teams",
+    "points": [
+     "Say what a small team needs: quick setup, a fair price, clear views of several projects and few steps to get people using it.",
+     "List the checks used for every tool: a free plan or trial, starting price per user, views offered, what reviewers say works and what they say is hard.",
+     "Explain that prices come from each vendor's pricing page and ratings come from the review sources, and name the source whenever a number appears.",
+     "Note that Planwise is on the list and is held to the same rules as the others, including a who-should-skip line."
+    ],
+    "h3": [],
+    "sources": [
+     2,
+     3,
+     7,
+     9
+    ]
+   },
+   {
+    "h2": "1. Planwise: best for team leads running several projects at once",
+    "points": [
+     "Open with one plain sentence on what Planwise is and who it serves.",
+     "What it does well: Gantt and Kanban views for planning several projects side by side and a project brief template to start work consistently.",
+     "Pricing: point readers to the pricing page and state only confirmed plan prices (editor to confirm, see checks).",
+     "Pros and cons stated plainly and kindly, with the same level of detail as the other tools.",
+     "Who should skip it: name an honest case, such as teams that need a feature Planwise does not offer (editor to confirm)."
+    ],
+    "h3": [],
+    "sources": []
+   },
+   {
+    "h2": "2. ClickUp: best for an all-in-one workspace",
+    "points": [
+     "What it does well: tasks, docs, chat and many project views in one place; over a dozen views per Sonary and Kanban, Calendar and time tracking on the free plan per ClickUp.",
+     "Pricing from ClickUp's pricing page: Free Forever at $0 with unlimited tasks and free members, Core at $9 per user per month billed yearly, Business at $17.",
+     "Pros: flexible, time tracking and a built-in document editor for real-time collaboration.",
+     "Cons from Sonary: it can be hard to master because the platform is so wide, and the Everything view can make owners hard to see.",
+     "Who should skip it: teams that want a very small tool they can learn in an afternoon."
+    ],
+    "h3": [],
+    "sources": [
+     3,
+     6,
+     7
+    ]
+   },
+   {
+    "h2": "3. Asana: best for team collaboration",
+    "points": [
+     "What it does well: list, board and calendar views on every plan, with timeline and Gantt views from Starter.",
+     "Pricing from Asana's pricing page: Personal is free for up to 2 users, Starter is $10.99 per user per month billed annually, Advanced is $24.99.",
+     "Starter adds forms, unlimited automations and reporting dashboards; resource management and portfolios sit in Advanced.",
+     "Cloudwards lists Asana as best for usability, with a 4.3 rating.",
+     "Who should skip it: teams of three or more that need to stay free, or that need resource management without paying the Advanced price."
+    ],
+    "h3": [],
+    "sources": [
+     2,
+     3,
+     9
+    ]
+   },
+   {
+    "h2": "4. monday.com: best for visual project tracking",
+    "points": [
+     "What it does well: visual boards, custom dashboards, 200+ templates and 40+ integrations including Zoom, plus a free mobile app per Sonary.",
+     "Pricing: from $9 per user per month with a 14-day free trial per Sonary (editor to check the free plan note, see checks).",
+     "Pros from Sonary reviewers: easy to navigate and an effective layout.",
+     "Cons from Sonary: the help and support area could offer more options, and there is no multilingual support.",
+     "Cloudwards names it best overall for project management with a 4.35 rating.",
+     "Who should skip it: teams that need support in several languages."
+    ],
+    "h3": [],
+    "sources": [
+     2,
+     3,
+     10
+    ]
+   },
+   {
+    "h2": "5. Teamhub: best for one flat price",
+    "points": [
+     "What it does well: projects, team chat and docs in a single platform, with Kanban, Table, List, People, Calendar and Gantt views.",
+     "Pricing from Teamhub's site: $99 per month for unlimited users, with a free trial that needs no credit card.",
+     "Teamhub migrates your data free of charge from tools such as Asana, ClickUp or Trello, or from Excel files.",
+     "Show the reader how to compare the flat price with per-user prices by multiplying per-user prices by their own headcount.",
+     "Who should skip it: very small teams that pay less on a per-user plan, and teams that want a long list of third-party reviews (the sources only show vendor testimonials)."
+    ],
+    "h3": [],
+    "sources": [
+     5
+    ]
+   },
+   {
+    "h2": "6. Zoho Projects: best for budget-conscious teams",
+    "points": [
+     "What it does well: simple to use, with built-in time tracking that connects to invoicing and project budgeting, per Sonary.",
+     "Pricing: starting price $0 per month with a free plan per Sonary (editor to add paid plan prices, see checks).",
+     "Pros: Sonary reviewers praise the help documents covering every part of the app.",
+     "Cons from Sonary: some features have been removed to encourage subscriptions to other Zoho products, and the interface looks simpler than similar tools.",
+     "Who should skip it: teams that want every feature inside one product and do not plan to use other Zoho tools."
+    ],
+    "h3": [],
+    "sources": [
+     3
+    ]
+   },
+   {
+    "h2": "7. Wrike: best for complex custom workflows",
+    "points": [
+     "What it does well: grid, Gantt, calendar and card views with custom workflows and dashboards; Wrike says it is trusted by 20,000+ customers.",
+     "Pricing: a free plan is available (editor to add paid prices, see checks).",
+     "Pros from Sonary: strong support for all users, easy integration with other tools and easy use despite customizable dashboards.",
+     "Cons from Sonary: pricing could be better for smaller businesses, and the timer is task-based so it can be hard to find.",
+     "Who should skip it: small teams with simple processes that do not need custom workflows."
+    ],
+    "h3": [],
+    "sources": [
+     3
+    ]
+   },
+   {
+    "h2": "How to choose the right project management software for your small team",
+    "points": [
+     "Start with how your team works: visual boards, docs and chat in one place, spreadsheets or custom workflows.",
+     "Check price per user against flat pricing using your own headcount, and look at which features sit behind higher plans.",
+     "Trial two tools on one real project for a week before you commit.",
+     "Write a short project brief first so both trials start from the same plan.",
+     "Give the reader a next step: review Planwise pricing and try the template."
+    ],
+    "h3": [
+     {
+      "title": "Match the tool to your team size and budget",
+      "points": [
+       "Free plans exist at ClickUp, Zoho Projects, Wrike and Asana (2 users only); paid starting prices run from $9 to $10.99 per user per month on the pages cited.",
+       "Flat pricing such as Teamhub's $99 per month favors larger small teams."
+      ]
+     },
+     {
+      "title": "Match the tool to how your team works",
+      "points": [
+       "Boards and dashboards, docs and chat together, spreadsheet style or custom workflows each point to different tools in this list."
+      ]
+     }
+    ],
+    "sources": [
+     2,
+     3,
+     5,
+     7,
+     9
+    ]
+   }
+  ],
+  "entities": [
+   "Planwise",
+   "ClickUp",
+   "Asana",
+   "monday.com",
+   "Teamhub",
+   "Zoho Projects",
+   "Wrike",
+   "Smartsheet",
+   "Trello",
+   "Notion",
+   "Cloudwards",
+   "Sonary",
+   "Gantt chart",
+   "Kanban board",
+   "project management software",
+   "per-user pricing",
+   "flat pricing",
+   "free plan",
+   "free trial",
+   "timeline view",
+   "time tracking",
+   "automations",
+   "dashboards",
+   "resource management",
+   "integrations",
+   "templates",
+   "AI agents",
+   "G2"
+  ],
+  "gaps": [
+   "Sonary's page is long and ranks tools mostly by category label; it does not tell readers who should skip each tool.",
+   "Nifty's page ranks personal project tools for individuals, not small teams that manage several projects.",
+   "The Cloudwards, PickrTech and Teamhub pages are a homepage, a hub page and a vendor page, so no top page gives a clear shortlist with prices side by side.",
+   "Prices differ across AI answers and vendor pages (for example ClickUp at about $7 in ChatGPT and $9 on ClickUp's pricing page), so this article will use vendor pages and name them.",
+   "No top page shows how to compare per-user and flat pricing using your own headcount.",
+   "Free plan limits get little attention, such as Asana's 2-user cap and ClickUp's 60 MB free storage."
+  ],
+  "faqs": [
+   {
+    "question": "What is the best project management software for small teams?",
+    "answer": "Say there is no single best tool and point to the list: ClickUp for all-in-one flexibility, Asana for collaboration, monday.com for visual tracking, Teamhub for one flat price, Zoho Projects for budget and Wrike for custom workflows, with Planwise for team leads running several projects. Link to the comparison."
+   },
+   {
+    "question": "Is there free project management software for small teams?",
+    "answer": "Yes. ClickUp has a Free Forever plan at $0 with unlimited tasks and free members, Zoho Projects and Wrike list free plans, and Asana's Personal plan is free for 2 users. Mention the limits, such as ClickUp's 60 MB storage."
+   },
+   {
+    "question": "How much does project management software cost?",
+    "answer": "Cite the pricing pages: ClickUp Core is $9 per user per month billed yearly, Asana Starter is $10.99, monday.com starts at $9 per user per month per Sonary and Teamhub is $99 per month for unlimited users. Tell the reader to multiply by their own headcount."
+   },
+   {
+    "question": "Which project management tool is easiest to use?",
+    "answer": "Cloudwards rates Asana best for usability at 4.3, and Sonary reviewers call monday.com easy to navigate. Say ease depends on the team and suggest trialing two tools."
+   },
+   {
+    "question": "What is project management software?",
+    "answer": "It helps you plan, run and track a project from start to finish, and it can map how tasks depend on each other in one place, per Nifty. Keep it to two sentences and link to the Planwise project management basics post."
+   }
+  ],
+  "internalLinks": [
+   {
+    "url": "https://planwise.example/blog/project-management-basics",
+    "anchor": "project management basics",
+    "where": "How we picked these project management tools for small teams"
+   },
+   {
+    "url": "https://planwise.example/features/gantt",
+    "anchor": "Gantt view",
+    "where": "1. Planwise: best for team leads running several projects at once"
+   },
+   {
+    "url": "https://planwise.example/features/kanban",
+    "anchor": "Kanban boards",
+    "where": "1. Planwise: best for team leads running several projects at once"
+   },
+   {
+    "url": "https://planwise.example/pricing",
+    "anchor": "Planwise pricing",
+    "where": "1. Planwise: best for team leads running several projects at once"
+   },
+   {
+    "url": "https://planwise.example/templates/project-brief",
+    "anchor": "project brief template",
+    "where": "How to choose the right project management software for your small team"
+   },
+   {
+    "url": "https://planwise.example/blog/agile-for-small-teams",
+    "anchor": "agile for small teams",
+    "where": "How to choose the right project management software for your small team"
+   }
+  ],
+  "cta": {
+   "text": "Ready to try it on a real project? See Planwise pricing and pick the plan that fits your team.",
+   "where": "End of the article, after the how-to-choose section, linking to https://planwise.example/pricing"
+  },
+  "modules": [
+   {
+    "type": "comparison",
+    "title": "Compare the 7 tools and filter by what matters to you",
+    "purpose": "Let the reader narrow the seven options by price, free plan and how their team likes to work.",
+    "placement": "7. Wrike: best for complex custom workflows",
+    "inputs": [
+     "Free plan available (yes or no)",
+     "Maximum starting price per user per month",
+     "Pricing style (per user or flat)",
+     "Team style (visual boards, docs and chat together, spreadsheet style, custom workflows, several projects at once)"
+    ],
+    "outputs": [
+     "A filtered list of matching tools",
+     "For each tool: starting price, free plan or trial, views offered and best-for label",
+     "A link to each tool's section"
+    ],
+    "data": "Rows: Planwise (best for team leads running several projects; price and free plan to be filled from planwise.example/pricing); ClickUp (Free Forever $0, Core $9, Business $17 per user per month, [7]; over a dozen views, [3]); Asana (free for 2 users, Starter $10.99, Advanced $24.99 per user per month, [9]); monday.com (from $9 per user per month, 14-day free trial, [3]); Teamhub ($99 per month for unlimited users, free trial, [5]); Zoho Projects (free plan, starting $0, [3]); Wrike (free plan, grid, Gantt, calendar and card views, [3]).",
+    "why": "Readers care about different things such as budget, free plans and style, so filters get them to a shortlist faster than seven separate sections."
+   }
+  ],
+  "images": [
+   {
+    "placement": "How we picked these project management tools for small teams",
+    "shows": "Cloudwards user ratings for the three project management tools it lists, side by side.",
+    "alt": "Bar chart of Cloudwards ratings: ClickUp 4.45, monday.com 4.35 and Asana 4.3.",
+    "kind": "chart",
+    "numbers": "ClickUp 4.45; monday.com 4.35; Asana 4.3",
+    "sources": [
+     2
+    ]
+   },
+   {
+    "placement": "1. Planwise: best for team leads running several projects at once",
+    "shows": "The Planwise home page.",
+    "alt": "Screenshot of the Planwise home page.",
+    "kind": "screenshot",
+    "url": "https://planwise.example/"
+   },
+   {
+    "placement": "2. ClickUp: best for an all-in-one workspace",
+    "shows": "ClickUp's pricing page with the Free Forever, Core and Business plans.",
+    "alt": "Screenshot of the ClickUp pricing page showing its plans.",
+    "kind": "screenshot",
+    "url": "https://clickup.com/pricing"
+   },
+   {
+    "placement": "3. Asana: best for team collaboration",
+    "shows": "Asana's pricing page with the Personal, Starter and Advanced plans.",
+    "alt": "Screenshot of the Asana pricing page showing its plans.",
+    "kind": "screenshot",
+    "url": "https://asana.com/pricing"
+   },
+   {
+    "placement": "4. monday.com: best for visual project tracking",
+    "shows": "The monday.com home page.",
+    "alt": "Screenshot of the monday.com home page.",
+    "kind": "screenshot",
+    "url": "https://monday.com/"
+   },
+   {
+    "placement": "5. Teamhub: best for one flat price",
+    "shows": "The Teamhub home page with its flat price and views.",
+    "alt": "Screenshot of the Teamhub home page showing its $99 per month plan.",
+    "kind": "screenshot",
+    "url": "https://teamhub.com/"
+   },
+   {
+    "placement": "6. Zoho Projects: best for budget-conscious teams",
+    "shows": "The Zoho Projects product page.",
+    "alt": "Screenshot of the Zoho Projects product page.",
+    "kind": "screenshot",
+    "url": "https://www.zoho.com/projects/"
+   },
+   {
+    "placement": "7. Wrike: best for complex custom workflows",
+    "shows": "The Wrike home page.",
+    "alt": "Screenshot of the Wrike home page.",
+    "kind": "screenshot",
+    "url": "https://www.wrike.com/"
+   }
+  ],
+  "examples": [
+   {
+    "name": "Planwise",
+    "url": "https://planwise.example/",
+    "kind": "project management software",
+    "opener": "Planwise is a project management software that helps team leads plan and track several projects at once.",
+    "facts": [
+     "Planwise offers Gantt and Kanban views and a project brief template (from the brand's own pages).",
+     "Pricing is on planwise.example/pricing; the editor must confirm plan names and prices before writing."
+    ],
+    "sources": []
+   },
+   {
+    "name": "ClickUp",
+    "url": "https://clickup.com/",
+    "kind": "work management software",
+    "opener": "ClickUp is a work management software company that brings tasks, docs, chat and AI into one workspace.",
+    "facts": [
+     "Free Forever costs $0 with unlimited tasks and subtasks and unlimited free members.",
+     "Core costs $9 per user per month billed yearly, and Business costs $17.",
+     "Sonary lists over a dozen project views as a pro and a hard learning curve as a con.",
+     "Cloudwards rates ClickUp 4.45 and names it best price."
+    ],
+    "sources": [
+     2,
+     3,
+     6,
+     7
+    ]
+   },
+   {
+    "name": "Asana",
+    "url": "https://asana.com/",
+    "kind": "work management software",
+    "opener": "Asana is a work management software company that helps teams plan, track and run projects with AI Teammates.",
+    "facts": [
+     "Personal is free for 2 users with list, board and calendar views.",
+     "Starter costs $10.99 per user per month billed annually and adds timeline and Gantt views.",
+     "Advanced costs $24.99 per user per month and adds portfolios, goals and resource management.",
+     "Cloudwards rates Asana 4.3 and names it best usability."
+    ],
+    "sources": [
+     2,
+     8,
+     9
+    ]
+   },
+   {
+    "name": "monday.com",
+    "url": "https://monday.com/",
+    "kind": "work management platform",
+    "opener": "monday.com is a work management platform that helps teams build workflows, automate manual work and use AI agents.",
+    "facts": [
+     "Sonary lists a 14-day free trial and a starting price of $9 per user per month.",
+     "It offers 200+ templates, 40+ integrations including Zoom and a free mobile app.",
+     "Sonary lists no multilingual support and a limited help area as cons.",
+     "Cloudwards rates monday.com 4.35 and names it best overall."
+    ],
+    "sources": [
+     2,
+     3,
+     10
+    ]
+   },
+   {
+    "name": "Teamhub",
+    "url": "https://teamhub.com/",
+    "kind": "project management software",
+    "opener": "Teamhub is a software company that puts projects, chat and docs in a single platform.",
+    "facts": [
+     "The price is $99 per month for unlimited users, with a free trial that needs no credit card.",
+     "It offers Kanban, Table, List, People, Calendar and Gantt views.",
+     "Teamhub migrates your data free of charge from tools such as Asana, ClickUp or Trello."
+    ],
+    "sources": [
+     5
+    ]
+   },
+   {
+    "name": "Zoho Projects",
+    "url": "https://www.zoho.com/projects/",
+    "kind": "project management software",
+    "opener": "Zoho Projects is a project management software that helps teams run projects with time tracking and budgeting.",
+    "facts": [
+     "Sonary lists a free plan and a starting price of $0 per month.",
+     "Pros include built-in time tracking with invoicing integrations and project budgeting.",
+     "A con is that some features were removed to encourage subscriptions to other Zoho products.",
+     "Sonary rates it 4.4 from 2 reviews."
+    ],
+    "sources": [
+     3
+    ]
+   }
+  ],
+  "checks": [],
+  "research": {
+   "sources": [
+    {
+     "n": 1,
+     "url": "https://niftypm.com/blog/personal-project-management-software/",
+     "title": "Top 9 Personal Project Management Software in 2026",
+     "domain": "niftypm.com",
+     "kind": "serp",
+     "position": 1,
+     "words": 3891
+    },
+    {
+     "n": 2,
+     "url": "https://www.cloudwards.net/",
+     "title": "Cloudwards.net | Software & Online Security Tools Reviewed",
+     "domain": "cloudwards.net",
+     "kind": "serp",
+     "position": 3,
+     "words": 847
+    },
+    {
+     "n": 3,
+     "url": "https://sonary.com/project-management",
+     "title": "Best Project Management Software 2026 for Small Teams",
+     "domain": "sonary.com",
+     "kind": "serp",
+     "position": 6,
+     "words": 6559
+    },
+    {
+     "n": 4,
+     "url": "https://pickrtech.com/",
+     "title": "Practical SaaS & AI Tool Guides | PickrTech",
+     "domain": "pickrtech.com",
+     "kind": "serp",
+     "position": 7,
+     "words": 401
+    },
+    {
+     "n": 5,
+     "url": "https://teamhub.com/",
+     "title": "Teamhub.com | Projects, Chat and Docs in a single platform",
+     "domain": "teamhub.com",
+     "kind": "serp",
+     "position": 8,
+     "words": 1285
+    },
+    {
+     "n": 6,
+     "url": "https://clickup.com",
+     "title": "ClickUp™ | Maximize productivity • Software, AI, and humans converge",
+     "domain": "clickup.com",
+     "kind": "ai",
+     "position": null,
+     "words": 707
+    },
+    {
+     "n": 7,
+     "url": "https://clickup.com/pricing",
+     "title": "ClickUp Pricing and Plans",
+     "domain": "clickup.com",
+     "kind": "ai",
+     "position": null,
+     "words": 1055
+    },
+    {
+     "n": 8,
+     "url": "https://asana.com",
+     "title": "Asana: The OS for human-agent teams",
+     "domain": "asana.com",
+     "kind": "ai",
+     "position": null,
+     "words": 917
+    },
+    {
+     "n": 9,
+     "url": "https://asana.com/pricing",
+     "title": "Asana Pricing | Personal, Starter, Advanced, & Enterprise plans • Asana",
+     "domain": "asana.com",
+     "kind": "ai",
+     "position": null,
+     "words": 1655
+    },
+    {
+     "n": 10,
+     "url": "https://monday.com",
+     "title": "The AI Workspace for People & Agents | monday.com",
+     "domain": "monday.com",
+     "kind": "ai",
+     "position": null,
+     "words": 864
+    }
+   ],
+   "questions": [
+    "Does Microsoft Teams have a project management tool?",
+    "Why is task management important?",
+    "Is Notion free for project management?",
+    "Which AI task manager is the best?"
+   ],
+   "engines": [
+    "ChatGPT",
+    "Gemini",
+    "AI Mode"
+   ],
+   "topPages": "",
+   "aiAnswers": ""
+  },
+  "model": "claude-sonnet-5-5",
+  "at": "2026-11-13T09:42:33.645Z"
+ },
+ "sections": [
+  {
+   "key": "intro",
+   "h2": "",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "If you lead a team of 10 to 200 people and run several projects at once, you probably know the feeling of a tool that has grown hard to manage. Spreadsheets pile up and deadlines live in different places, so a new teammate needs a long walkthrough before they can find anything.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "So in this guide, we're sharing the best project management software for small teams. For each tool you get real starting prices from the vendors and review sites, honest pros and cons, and a plain note on who should skip it.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "We also show you how to compare per-user pricing with flat pricing using your own headcount, which most lists leave to you. Here's what you'll get from the guide:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "A ranked shortlist of seven tools, including Planwise, that you can trial this week.",
+      "Pricing taken from vendor pages such as [ClickUp's pricing page](https://clickup.com/pricing) and [Asana's pricing page](https://asana.com/pricing), with the source named each time.",
+      "A short how-to-choose section so you can match a tool to your team size, budget and way of working."
+     ],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-0",
+   "h2": "How we picked these project management tools for small teams",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "A small team has different needs than a large company. You want a tool that sets up quickly, costs a fair amount for your headcount, and shows several projects clearly at once, with few steps between signing up and getting your whole team to use it. If you want a refresher before you compare, our [project management basics](https://planwise.example/blog/project-management-basics) guide covers the terms.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "We ran every tool through the same set of checks, so you can compare them side by side without guessing.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Each tool has a free plan or a free trial, or we say it doesn't.",
+      "Each tool lists a starting price per user, or a flat price for the whole team.",
+      "Each tool shows which views it offers, such as list, board, calendar, timeline or Gantt.",
+      "Each tool includes what reviewers say works well.",
+      "Each tool includes what reviewers say is hard or missing."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Where a vendor lists its own prices, we use that page, for example [ClickUp's pricing page](https://clickup.com/pricing) and [Asana's pricing page](https://asana.com/pricing).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Whenever a number appears in this guide, we name where it came from. Prices and plan limits change often, and different sites can list slightly different starting prices for the same tool, so check the vendor page before you commit.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Planwise is on this list too, and we hold it to the same rules as every other tool, including the same level of detail, honest pros and cons, and a line on who should skip it. That way you can judge it the way you judge the rest.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Each section follows the same order so it's easy to scan, and here's how every tool entry runs:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "A plain sentence on what the tool is and who it serves.",
+      "What it does well, with the views and features that matter for small teams.",
+      "Pricing from the vendor or a named review source.",
+      "Pros and cons stated kindly and plainly.",
+      "Who should skip it, so you can rule a tool out quickly."
+     ],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-1",
+   "h2": "1. Planwise: best for team leads running several projects at once",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Planwise is a project management software that helps team leads plan and track several projects at once.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Pricing",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Check [Planwise pricing](https://planwise.example/pricing) for the current plan names and prices, so you see the exact numbers from our own page. We don't list a price here until it's confirmed, because plan details change.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Who should skip it",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If your team needs a feature Planwise doesn't offer, such as a specific built-in tool you already rely on, a different option may fit you better.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you're not sure, trial Planwise and one other tool on the same real project for a week, then compare how each one felt to use.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-2",
+   "h2": "2. ClickUp: best for an all-in-one workspace",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "ClickUp is a work management software company that brings tasks, docs, chat and AI into one workspace. You can visit [ClickUp](https://clickup.com/) to see how it presents the whole product in one place.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "What it does well is keep a lot of project work under one roof. [Sonary](https://sonary.com/project-management) lists over a dozen project views as a pro, and [ClickUp](https://clickup.com) says its free plan includes Kanban boards, a calendar view and time tracking.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What ClickUp costs",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here are the plans as listed on [ClickUp's pricing page](https://clickup.com/pricing). Honestly, it helps that the free plan is a real option and not just a short trial.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Free Forever costs $0 and includes unlimited tasks and subtasks, plus unlimited free members.",
+      "Core costs $9 per user per month when billed yearly.",
+      "Business costs $17 per user per month when billed yearly."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The free plan also comes with 60 MB of storage, so check that number against the files your team shares before you rely on it.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What we like",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Reviewers point to a few strengths that matter when you run several projects at once. Here's what [Sonary](https://sonary.com/project-management) lists as pros:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Workload and time log tracking are built in, so you can see where hours go.",
+      "A built-in document editor lets people collaborate on a doc in real time.",
+      "A dedicated chat interface helps your team talk without leaving the tool."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What to watch for",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The same review names two cons. [Sonary](https://sonary.com/project-management) says ClickUp can be difficult to master because the platform is so expansive, and that in the Everything view it can be hard to tell who owns what.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Luckily, you can lower that risk by picking a few views to start with and agreeing on who owns each task before you invite the whole team.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Who should skip it",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you want a very small tool that your team can learn in an afternoon, ClickUp may feel like more than you need. Teams that value a short setup over a long feature list will likely be happier with a simpler option from this guide.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-3",
+   "h2": "3. Asana: best for team collaboration",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Asana is a work management software company that helps teams plan, track and run projects with AI Teammates. You can see its full lineup on the [Asana site](https://asana.com/), and its pricing page lays out what each plan includes.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Cloudwards lists Asana as best for usability, with a [4.3 rating](https://www.cloudwards.net/).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What it does well",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Asana gives every plan the same core ways to look at work. The [Personal plan](https://asana.com/pricing) includes list, board and calendar views, so you can flip between details, flow and deadlines without losing context.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "When you move up to Starter, you also get timeline and Gantt views. Honestly, that is the point where Asana starts to feel built for teams that run several projects at once.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What it costs",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here are the prices from [Asana's pricing page](https://asana.com/pricing), along with what each plan adds:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "table",
+     "text": "",
+     "items": [],
+     "rows": [
+      [
+       "Plan",
+       "Price",
+       "What it adds"
+      ],
+      [
+       "Personal",
+       "Free for up to 2 users",
+       "List, board and calendar views, unlimited tasks and projects"
+      ],
+      [
+       "Starter",
+       "$10.99 per user per month, billed annually",
+       "Timeline and Gantt views, forms, unlimited automations and reporting dashboards"
+      ],
+      [
+       "Advanced",
+       "$24.99 per user per month, billed annually",
+       "Portfolios, goals and resource management"
+      ]
+     ]
+    },
+    {
+     "type": "p",
+     "text": "Portfolios, goals and resource management sit in the top tier. If you need to see who has capacity, plan for the Advanced price from the start.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Who should skip it",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Asana may not be the right fit in two cases, and it helps to know them before you start a trial:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Your team has three or more people and needs to stay on a free plan, because the [Personal plan](https://asana.com/pricing) covers only 2 users.",
+      "You need resource management but would rather not pay the Advanced price, since [Asana lists it in that plan](https://asana.com/pricing)."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If neither case describes you, Asana is a strong candidate to trial on one real project, so you can see how its views and plan steps fit your own team.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-4",
+   "h2": "4. monday.com: best for visual project tracking",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "[monday.com](https://monday.com/) is a work management platform that helps teams build workflows, automate manual work and use AI agents.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how Sonary describes it: [visual boards, custom dashboards for project tracking, 200+ templates and 40+ integrations including Zoom](https://sonary.com/project-management).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What it does well",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you want to see several projects at a glance, the dashboards and boards are the main reason to look at monday.com. The template library also gives you a starting point for new work.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "You get visual boards that show where each project stands.",
+      "Custom dashboards let you track progress across projects in one place.",
+      "More than 200 templates give you a quick way to set up new work, per [Sonary](https://sonary.com/project-management).",
+      "More than 40 integrations, including Zoom, connect it to tools your team already uses, per [Sonary](https://sonary.com/project-management).",
+      "A free mobile app lets you check work away from your desk."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What it costs",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Sonary lists a starting price of [$9 per user per month with a 14-day free trial](https://sonary.com/project-management). The best way to judge it is to use that trial on one real project, and you can check the vendor's pricing page for the current plan details before you commit.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Pros and cons",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Cloudwards also names it the [best overall project management software, with a 4.35 rating](https://www.cloudwards.net/).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "On the other side, Sonary notes that [the help and support area could offer more options and that there is no multilingual support](https://sonary.com/project-management).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Who should skip it",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If your team needs the tool and its support in several languages, check that need before you start a trial, since Sonary lists no multilingual support. For everyone else, it's a good candidate for a one-week trial on a live project.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-5",
+   "h2": "5. Teamhub: best for one flat price",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "[Teamhub](https://teamhub.com/) is a software company that puts projects, chat and docs in a single platform.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how it works in practice.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What it does well",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You can [see your tasks in six views](https://teamhub.com/), which gives each person a way to look at work that suits them:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Kanban view for moving tasks across columns.",
+      "Table view and List view for scanning details quickly.",
+      "People view for seeing who has what.",
+      "Calendar view for deadlines.",
+      "Gantt view for timelines."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Chat sits at the center of the product, and Teamhub lets you [convert a comment to a task in one click](https://teamhub.com/). That means a decision made in a conversation can land on your project board without anyone retyping it.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What it costs",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Teamhub lists [$99 per month for unlimited users](https://teamhub.com/), and you can start a free trial with no credit card.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "To compare this with per-user pricing, multiply a tool's per-user price by your own headcount. For example, a plan at $10.99 per user per month for 10 people comes to about $110 a month, while the same plan for 25 people is about $275.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Run that math with your real team size and with the plan tier you would actually need. Surprisingly, the answer changes quickly as your team grows, so it helps to check it once now and again when you hire.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Moving over from another tool",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Teamhub says it will [migrate your data free of charge](https://teamhub.com/) whether you use Asana, ClickUp or Trello, or keep everything in local Excel files. That lowers the effort of a trial, since you can test it with your real projects instead of a blank workspace.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Who should skip it",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If your team is very small, a per-user plan may cost you less than $99 a month, so check your own numbers first. Teams that want a long list of outside reviews may also want to look elsewhere, because the Teamhub page we reviewed only shows testimonials from its own customers.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-6",
+   "h2": "6. Zoho Projects: best for budget-conscious teams",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Zoho Projects is a project management software that helps teams run projects with time tracking and budgeting.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What it does well",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Sonary describes Zoho Projects as a [simple application to use](https://sonary.com/project-management), which matters when you want your team working in it quickly.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Sonary also notes that you can set up project budgeting, so you can watch spend next to your tasks instead of in a separate spreadsheet.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What it costs",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Sonary lists a [free plan with a starting price of $0 per month](https://sonary.com/project-management). We haven't confirmed the paid plan prices, so check Zoho's own pricing page before you budget for more than the free tier.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Pros and cons",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how Sonary's review sums up the good and the trade-offs:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Sonary reviewers say the [help documents cover every aspect of the application](https://sonary.com/project-management), which makes it easier for new teammates to learn on their own.",
+      "Sonary reviewers like that time tracking, invoicing integrations and budgeting sit in one place.",
+      "Sonary says [many features have been removed to encourage subscriptions to Zoho's other products](https://sonary.com/project-management), so you may find yourself looking at extra tools.",
+      "Sonary also describes the interface as bland compared with similar products."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Who should skip it",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you want every feature inside one product and don't plan to use other Zoho tools, you may run into those removed features. In that case, a tool that keeps more in a single plan may suit you better.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Luckily, you can test the fit at no cost, so try the free plan on one real project and see whether the simpler look works for your team.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-7",
+   "h2": "7. Wrike: best for complex custom workflows",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Wrike is a work management software company that helps teams plan and track projects with custom workflows. Its [Sonary listing](https://sonary.com/project-management) shows grid, Gantt, calendar and card views, plus custom dashboards that give you a quick read on how work is going.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What it costs",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Sonary](https://sonary.com/project-management) lists a free plan, with a starting price of $0 per month. We haven't confirmed the paid plan prices, so check Wrike's own pricing page before you budget beyond the free tier.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Pros and cons",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how Sonary's reviewers describe the good and the trade-offs:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Sonary reviewers say [Wrike offers strong support for all users](https://sonary.com/project-management), and especially for enterprise businesses and applications.",
+      "Sonary reviewers say it is easy to integrate other tools with Wrike, which helps if your team already relies on several apps.",
+      "Sonary reviewers find it very easy to use, even with the customizable dashboards.",
+      "Sonary says [pricing could be better for smaller businesses](https://sonary.com/project-management), so you may want to compare plans against your headcount.",
+      "Sonary also says the timer is task-based rather than account-based, and it can be tricky for some people to find."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Who should skip it",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If your team runs simple processes and doesn't need custom workflows, Wrike may give you more flexibility than you will use. A lighter tool from earlier in this list could get your team up and running faster.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Try the free plan on one real project, and see whether the custom views match how your team works.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-8",
+   "h2": "How to choose the right project management software for your small team",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Next, pick two or three of the seven tools and test them on real work. Here's how we'd narrow the list for a team of 10 to 200 people running several projects at once.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Match the tool to your team size and budget",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Start with price, because it rules tools in or out quickly. [ClickUp's pricing page](https://clickup.com/pricing) lists a Free Forever plan at $0, and [Sonary](https://sonary.com/project-management) lists free plans for Zoho Projects and Wrike. [Asana's pricing page](https://asana.com/pricing) says its free Personal plan covers 2 users, so a larger team will need a paid plan.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Paid starting prices on the pages we cited run from $9 per user per month at [ClickUp Core](https://clickup.com/pricing) to $10.99 per user per month at [Asana Starter](https://asana.com/pricing). Teamhub takes a different approach, with [$99 per month for unlimited users](https://teamhub.com/).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how to compare the two pricing styles for your own team:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "Count the people who would use the tool every week, including part-time contributors.",
+      "Multiply that number by the per-user price of each tool, using the yearly billing price where one is listed.",
+      "Compare each total with the flat monthly price, and note which plan holds the features you need.",
+      "Check which features sit behind higher plans, such as [Asana's resource management and portfolios in Advanced](https://asana.com/pricing), before you settle on a number."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Flat pricing such as Teamhub's tends to favor the larger end of the small-team range, while per-user plans often cost less for a handful of people.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Match the tool to how your team works",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Next, think about how your team already plans its work, since each habit points toward a different tool from this list. Which of these sounds most like your week?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "If you want docs and chat beside your tasks, look at Teamhub, which puts [projects, chat and docs in one platform](https://teamhub.com/), or at ClickUp.",
+      "If your team lives in spreadsheets, a spreadsheet-style tool such as Zoho Projects or Wrike may feel closer to what you use today, and both have free plans per [Sonary](https://sonary.com/project-management).",
+      "If your processes have many steps, look at [Wrike](https://sonary.com/project-management), which Sonary lists for complex custom workflows."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A fair test is to run two tools on one real project for a week before you commit. Write a short project brief first, using our [project brief template](https://planwise.example/templates/project-brief), so both trials start from the same plan and you can compare them side by side.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If your team is growing, our guide to [agile for small teams](https://planwise.example/blog/agile-for-small-teams) shows how to keep that plan light as you add people.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Ready to try it on a real project? See [Planwise pricing](https://planwise.example/pricing) and pick the plan that fits your team.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "faq",
+   "h2": "Frequently asked questions",
+   "blocks": [
+    {
+     "type": "h3",
+     "text": "What is the best project management software for small teams?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The right pick depends on how your team works, so we match each tool to a working style. Planwise is built for team leads who run several projects at once.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "[ClickUp](https://clickup.com/pricing) suits an all-in-one workspace.",
+      "[Asana](https://asana.com/pricing) suits team collaboration.",
+      "monday.com suits visual tracking.",
+      "Teamhub suits one flat price.",
+      "Zoho Projects suits a tight budget.",
+      "Wrike suits custom workflows."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Is there free project management software for small teams?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Yes, several tools have a free plan, and each one has limits you should check before you commit.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "[ClickUp's Free Forever plan](https://clickup.com/pricing) costs $0 with unlimited tasks and free members, though it includes only 60 MB of storage.",
+      "[Asana's Personal plan](https://asana.com/pricing) is free for 2 users.",
+      "[Sonary](https://sonary.com/project-management) lists free plans for Zoho Projects and Wrike."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "How much does project management software cost?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "On the vendor pages, these are the starting prices we found for paid plans.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "[ClickUp Core](https://clickup.com/pricing) is $9 per user per month billed yearly.",
+      "[Asana Starter](https://asana.com/pricing) is $10.99 per user per month billed annually.",
+      "[Sonary](https://sonary.com/project-management) lists monday.com from $9 per user per month.",
+      "[Teamhub](https://teamhub.com/) charges $99 per month for unlimited users."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "To compare a per-user price with a flat price, multiply each per-user price by your own headcount.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Which project management tool is easiest to use?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Cloudwards](https://www.cloudwards.net/) rates Asana best for usability at 4.3, and [Sonary](https://sonary.com/project-management) reviewers call monday.com easy to navigate. We suggest you trial two tools on one real project before you decide, since your own team will be the best judge.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What is project management software?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "For a plain-language primer, read our [project management basics](https://planwise.example/blog/project-management-basics) post.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  }
+ ],
+ "cut": [
+  {
+   "id": "2.0.1",
+   "why": "Brand claim about Planwise not supported by sources; no source describes Planwise."
+  },
+  {
+   "id": "2.2.0",
+   "why": "Planwise Gantt capability and what it lets you do is not in any numbered source."
+  },
+  {
+   "id": "2.2.1",
+   "why": "Planwise Kanban detail not in sources."
+  },
+  {
+   "id": "2.3.0",
+   "why": "Planwise project brief template detail not in sources."
+  },
+  {
+   "id": "2.7.i0",
+   "why": "Planwise product claim not in sources."
+  },
+  {
+   "id": "2.7.i1",
+   "why": "Planwise product claim not in sources."
+  },
+  {
+   "id": "2.7.i2",
+   "why": "Planwise product claim not in sources."
+  },
+  {
+   "id": "2.7.i3",
+   "why": "Claim about Planwise's scope is not in sources."
+  },
+  {
+   "id": "3.8.i0",
+   "why": "Flexibility is not stated in the Sonary pros list; it comes from the brief only, and the source gives no 'shape it around your team' detail."
+  },
+  {
+   "id": "6.0.1",
+   "why": "Source says trusted by small business owners; 'lean teams who want fewer tools' framing is not stated."
+  },
+  {
+   "id": "6.1.0",
+   "why": "Fine in wording but attributes claim; source says 'Trusted by thousands of small business owners', so this is supported; kept only if needed (low risk)."
+  },
+  {
+   "id": "6.7.1",
+   "why": "Source says Teamhub stays $99/mo as team grows, so this is supported; but keep check on 'free trial no credit card' which is supported. (No cut needed.)"
+  },
+  {
+   "id": "7.0.1",
+   "why": "Sonary labels Zoho 'Best for Budget-Conscious Teams' in headings, supported; but 4.4 from 2 reviews is supported. (No cut needed.)"
+  },
+  {
+   "id": "7.2.1",
+   "why": "Sonary pro says built-in time tracking with integrations for direct invoicing, supported. (No cut needed.)"
+  },
+  {
+   "id": "10.13.0",
+   "why": "Attributes a definition to the Nifty page that is only partly stated; the 'map dependencies' claim is supported, but the 'from start to finish' linkage is loosely cited."
+  },
+  {
+   "id": "8.1.0",
+   "why": "Source says Trusted by 20,000+ customers worldwide, supported. (No cut needed.)"
+  },
+  {
+   "id": "6.3.0",
+   "why": "Teamhub combining task boards, chat and docs editor is supported. (No cut needed.)"
+  },
+  {
+   "id": "1.3.1",
+   "why": "Says prices for monday.com, Zoho Projects and Wrike come from Sonary but Wrike's price ($0 free) is fine; however ratings from Cloudwards for monday.com 4.35 is supported. (No cut needed.)"
+  },
+  {
+   "id": "5.1.1",
+   "why": "Free, fully functional mobile app is in Sonary listing, supported. (No cut needed.)"
+  },
+  {
+   "id": "5.8.0",
+   "why": "Sonary pros say easy to navigate and organization effective; 'well organized' is a fair paraphrase. (No cut needed.)"
+  },
+  {
+   "id": "9.9.i0",
+   "why": "Sonary labels monday.com 'Best for Visual Project Tracking' in headings, supported. (No cut needed.)"
+  }
+ ],
+ "styleLeft": [
+  {
+   "id": "3.10.0",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "4.4.1",
+   "rule": "adverbs",
+   "before": "\"honestly\" used twice",
+   "after": null
+  },
+  {
+   "id": "6.1.1",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "7.11.0",
+   "rule": "adverbs",
+   "before": "\"luckily\" used twice",
+   "after": null
+  }
+ ],
+ "modules": [
+  {
+   "status": "ok",
+   "error": null
+  }
+ ]
+}

@@ -1,0 +1,1033 @@
+{
+ "slug": "credit-score",
+ "keyword": "how to improve your credit score",
+ "kind": "publisher",
+ "stage": "tofu",
+ "model": "claude-sonnet-5-5",
+ "at": "2026-11-13T10:07:33.642Z",
+ "seconds": 233,
+ "usage": {
+  "calls": 24,
+  "input": 52562,
+  "cacheRead": 826219,
+  "cacheWrite": 125735,
+  "output": 32976
+ },
+ "score": {
+  "words": 2048,
+  "sections": 10,
+  "lint": 2,
+  "lintRules": {
+   "sentences": 2
+  },
+  "numbers": 7,
+  "unsourced": [],
+  "links": 60,
+  "strayLinks": [],
+  "images": 4,
+  "modules": 1
+ },
+ "title": "How to Improve Your Credit Score, Step by Step",
+ "brief": {
+  "titles": [
+   "How to Improve Your Credit Score, Step by Step",
+   "How to Improve Your Credit Score: A Plain Guide",
+   "Improve Your Credit Score: What Works and How Long"
+  ],
+  "h1": "How to Improve Your Credit Score, Step by Step",
+  "metaDescription": "Learn how to improve your credit score with clear steps: pay on time, lower balances, fix report errors, and know how long it takes.",
+  "slug": "how-to-improve-your-credit-score",
+  "searchIntent": "The searcher wants a short list of actions that raise a credit score and an honest idea of how long each takes. A plain step-by-step guide with a few lists and one way to work out their own numbers serves them best.",
+  "reader": "An adult in their 20s or 30s who knows a credit score matters for renting, cards and loans but isn't sure which habits move it. They want to pick two or three actions to start this week and know when to expect a change.",
+  "angle": "Most top pages are bank hub pages or short tips. We give a clear order of steps, explain why timing around the statement closing date matters, and set honest expectations by reconciling the 'fast' advice in [3] with the 'no quick fix' warning in [8].",
+  "wordTarget": 1900,
+  "outline": [
+   {
+    "h2": "What goes into your credit score",
+    "points": [
+     "Explain that your payments are reported to the three nationwide credit reporting companies, which create your credit report [5].",
+     "Payment history is 35% of a FICO Score and credit utilization is 30% [8][3]. Most credit scores treat repayment history as the number one factor [7].",
+     "Recent credit activity and length of credit history also play a part [7].",
+     "Say plainly that these two biggest factors are where to start."
+    ],
+    "h3": [],
+    "sources": [
+     3,
+     5,
+     7,
+     8
+    ]
+   },
+   {
+    "h2": "Pay every bill on time",
+    "points": [
+     "Set up automatic payments or electronic reminders [7][8].",
+     "'On time' means the payment reaches the company by the due date, so if you pay by mail, send it a few days early [9].",
+     "A payment reported as 30 days past due can significantly affect a FICO Score [8].",
+     "If you've missed payments, get current and stay current; the impact of past problems fades as time passes and recent on-time payments build up [8].",
+     "Paying off a collection account does not remove it from your report; it stays for seven years [8]."
+    ],
+    "h3": [],
+    "sources": [
+     7,
+     8,
+     9
+    ]
+   },
+   {
+    "h2": "Lower your credit card balances",
+    "points": [
+     "Credit scoring models look at how much of your limit you use. Aim for under 30%, and the highest scorers often use under 10% [7][3].",
+     "You don't need to carry a balance to get a good score; paying in full each month also keeps interest low [7].",
+     "Pay down balances a few days before the statement closing date, because the statement balance is what gets reported [3].",
+     "Pay off debt rather than moving it around, and put extra money toward the highest-interest card first while paying minimums on the others [8].",
+     "Asking for a higher limit can lower utilization if you keep spending the same [3]. Point readers to the calculator below."
+    ],
+    "h3": [
+     {
+      "title": "Time your payment around the statement date",
+      "points": [
+       "Find your statement closing date, pay down the balance a few days before it, and the lower number is what the bureaus see [3]."
+      ]
+     },
+     {
+      "title": "Ask for a higher credit limit",
+      "points": [
+       "Call your issuer; many approve if you've made on-time payments, and you can ask for a soft inquiry [3]. Flag the soft-inquiry point as issuer-dependent."
+      ]
+     }
+    ],
+    "sources": [
+     3,
+     7,
+     8
+    ]
+   },
+   {
+    "h2": "Check your credit reports and fix errors",
+    "points": [
+     "Get a free copy of each report from the three nationwide credit reporting companies every 12 months at annualcreditreport.com [9].",
+     "Equifax offers six additional free reports every 12 months through December 31, 2026 [9].",
+     "Checking your own report or FICO Score has no impact on your score [8].",
+     "Look for late payments you made on time, accounts that aren't yours, wrong balances or limits, and duplicate accounts [3].",
+     "File a dispute with the credit reporting company and with the company that supplied the information [8][9]. Bureaus have 30 days to verify a claim [3]."
+    ],
+    "h3": [],
+    "sources": [
+     3,
+     8,
+     9
+    ]
+   },
+   {
+    "h2": "Start or rebuild with the right tools",
+    "points": [
+     "Ask your bank, credit union or a local nonprofit credit counseling agency about products built to start or rebuild credit [5][7].",
+     "On-time payments on these products are reported to the credit reporting companies, which is how they help [5]."
+    ],
+    "h3": [
+     {
+      "title": "Products that can help",
+      "points": [
+       "Secured credit card: you put in cash, for example $500, and can spend up to that amount [5]. Fees and interest can be high, so read the terms [9].",
+       "Credit builder loan: the money is held for you as savings while you make small payments over usually six to 24 months [5].",
+       "Retail or store card: often a low limit, which makes big bills less likely [5].",
+       "Authorized user: if someone you trust adds you to a card with a solid history, that history can appear on your report [3]. Add a plain note to check with the issuer."
+      ]
+     },
+     {
+      "title": "Things that usually don't help",
+      "points": [
+       "Debit card or cash, prepaid cards, payday loans and 'buy here, pay here' car loans typically aren't reported to the credit reporting companies [5][9]."
+      ]
+     }
+    ],
+    "sources": [
+     3,
+     5,
+     7,
+     9
+    ]
+   },
+   {
+    "h2": "What to avoid while you work on it",
+    "points": [
+     "Don't close unused cards as a short-term trick, because it reduces your available credit and raises your utilization [8][3].",
+     "Don't apply for a lot of credit in a short time; that includes a new card for a balance transfer or a store card for a discount [9][7].",
+     "Be wary of advice that promises a fast fix; quick-fix efforts are the most likely to backfire [8].",
+     "If you're struggling to make ends meet, contact creditors or a legitimate credit counselor; credit counseling won't hurt your FICO Score [8].",
+     "Keep an eye on old unused cards in case an identity thief is using them [7]."
+    ],
+    "h3": [],
+    "sources": [
+     3,
+     7,
+     8,
+     9
+    ]
+   },
+   {
+    "h2": "How long it takes to see a change",
+    "points": [
+     "Lower card balances can show up within 30 to 60 days because utilization updates quickly, while payment history takes months to build [3].",
+     "In general, small changes may start in three to six months, and recovery from late payments or high utilization takes longer [8].",
+     "Axos gives a rough timeline: 30 days for lower use and disputes, 60 to 90 days for momentum, 6+ months for bigger recovery [3].",
+     "Negative items stay on your report for set periods: late payment 7 years, Chapter 13 7 years, Chapter 7 10 years, foreclosure 7 years [9].",
+     "Recent negative information affects your score more than older information [9]."
+    ],
+    "h3": [],
+    "sources": [
+     3,
+     8,
+     9
+    ]
+   },
+   {
+    "h2": "A simple plan you can start this week",
+    "points": [
+     "Step 1: pull your free credit reports and dispute anything wrong [9][3].",
+     "Step 2: set up autopay or reminders so no bill is late [7][8].",
+     "Step 3: pay card balances down before the statement closing date and work toward under 30%, then under 10% [3][7].",
+     "Step 4: hold off on new applications unless you need the credit [7][9].",
+     "Step 5: if you have little or damaged history, ask about a secured card or credit builder loan [5][9].",
+     "Close with the CTA."
+    ],
+    "h3": [],
+    "sources": [
+     3,
+     5,
+     7,
+     8,
+     9
+    ]
+   }
+  ],
+  "entities": [
+   "credit score",
+   "FICO Score",
+   "credit report",
+   "Equifax",
+   "Experian",
+   "TransUnion",
+   "three nationwide credit reporting companies",
+   "AnnualCreditReport.com",
+   "Consumer Financial Protection Bureau",
+   "payment history",
+   "credit utilization",
+   "credit limit",
+   "credit limit increase",
+   "statement closing date",
+   "hard inquiry",
+   "soft inquiry",
+   "dispute",
+   "autopay",
+   "secured credit card",
+   "credit builder loan",
+   "retail or store credit card",
+   "authorized user",
+   "collection account",
+   "credit counselor",
+   "payday loan"
+  ],
+  "gaps": [
+   "Three of the top results ([1], [4], [6]) are bank homepages with almost no advice, and [2] is a hub page of links, so readers get little real help.",
+   "Few pages explain why paying before the statement closing date matters; only [3] does.",
+   "The top pages mix 'fast' advice ([3]) with 'no quick fix' ([8]) without reconciling them; we will set honest expectations.",
+   "No top page lets readers work out their own utilization or the amount to pay down to reach 30% or 10%.",
+   "Few pages list what does not help (debit, prepaid, payday, buy here pay here) next to what does [5][9].",
+   "Few pages show how long negative items stay on a report [9].",
+   "Authorized user advice appears only in [3] with no caveats."
+  ],
+  "faqs": [
+   {
+    "question": "How long does it take to improve your credit score?",
+    "answer": "Say lower card balances can show up within 30 to 60 days [3], small changes may start in three to six months, and bigger recovery takes longer [8]."
+   },
+   {
+    "question": "Can you improve your credit score fast?",
+    "answer": "Say the quickest levers are lower card balances, fixing report errors and asking for a higher limit [3], but there is no quick way to fix a score and shortcut promises can backfire [8]."
+   },
+   {
+    "question": "Does checking your own credit score hurt it?",
+    "answer": "Say checking your own credit report or FICO Score has no impact on your score [8]."
+   },
+   {
+    "question": "How often can you get your credit reports for free?",
+    "answer": "Say you can get a free report from each of the three nationwide credit reporting companies every 12 months at annualcreditreport.com, plus six extra Equifax reports through December 31, 2026 [9]."
+   },
+   {
+    "question": "How long does it take to get a credit score from 500 to 700?",
+    "answer": "Say no set time exists; it depends on your situation and actions, and significant changes take longer if you're recovering from late payments or high utilization [8]."
+   }
+  ],
+  "internalLinks": [
+   {
+    "url": "https://clearmoney.example/blog/credit-score-guide",
+    "anchor": "our credit score guide",
+    "where": "What goes into your credit score"
+   },
+   {
+    "url": "https://clearmoney.example/budgeting",
+    "anchor": "build a budget that leaves room for extra card payments",
+    "where": "Lower your credit card balances"
+   },
+   {
+    "url": "https://clearmoney.example/saving",
+    "anchor": "set aside the cash for a deposit",
+    "where": "Start or rebuild with the right tools"
+   },
+   {
+    "url": "https://clearmoney.example/credit",
+    "anchor": "more on building credit",
+    "where": "Start or rebuild with the right tools"
+   },
+   {
+    "url": "https://clearmoney.example/blog/money-basics",
+    "anchor": "money basics",
+    "where": "A simple plan you can start this week"
+   },
+   {
+    "url": "https://clearmoney.example/tools/budget-calculator",
+    "anchor": "budget calculator",
+    "where": "A simple plan you can start this week"
+   }
+  ],
+  "cta": {
+   "text": "Pick one step from the plan today, then use our budget calculator to find the extra money for your next card payment.",
+   "where": "End of the last H2, 'A simple plan you can start this week', linking to https://clearmoney.example/tools/budget-calculator"
+  },
+  "modules": [
+   {
+    "type": "calculator",
+    "title": "Your credit card use calculator",
+    "purpose": "Lets the reader see how much of their total credit limit they use and how much to pay down to reach 30% and 10%.",
+    "placement": "Lower your credit card balances",
+    "inputs": [
+     "Balance on each card (up to five cards)",
+     "Credit limit on each card"
+    ],
+    "outputs": [
+     "Total balance divided by total limit, shown as a percentage",
+     "Balance that equals 30% of the total limit and the amount to pay down to get there",
+     "Balance that equals 10% of the total limit and the amount to pay down to get there"
+    ],
+    "data": "Formula: total balances divided by total credit limits. Targets: under 30% of total limit, ideally under 10% [3][7]. Show a short note that paying before the statement closing date lowers the reported balance [3].",
+    "why": "Readers can see their own number and a clear target instead of doing the math by hand, which makes the advice something they can act on right away."
+   }
+  ],
+  "images": [
+   {
+    "placement": "What goes into your credit score",
+    "shows": "The two biggest parts of a FICO Score: payment history and credit utilization.",
+    "alt": "Bar chart showing payment history at 35% and credit utilization at 30% of a FICO Score.",
+    "kind": "chart",
+    "numbers": "Payment history: 35%; Credit utilization: 30%",
+    "sources": [
+     8
+    ]
+   },
+   {
+    "placement": "Lower your credit card balances",
+    "shows": "How paying before the statement closing date lowers the balance the bureaus see.",
+    "alt": "Four-step diagram: find your closing date, pay down early, statement shows a lower balance, bureaus see it.",
+    "kind": "steps"
+   },
+   {
+    "placement": "Start or rebuild with the right tools",
+    "shows": "Secured card, credit builder loan and store card side by side: how each works.",
+    "alt": "Three-column comparison of a secured credit card, a credit builder loan and a store credit card.",
+    "kind": "comparison"
+   },
+   {
+    "placement": "How long it takes to see a change",
+    "shows": "A rough timeline: 30 days, 60 to 90 days, and 6+ months.",
+    "alt": "Timeline showing what to expect at 30 days, 60 to 90 days and six months or more.",
+    "kind": "steps"
+   }
+  ],
+  "examples": [],
+  "checks": [
+   "Length of credit history at 15%, new credit at 10% and credit mix appear in AI answers but not in the numbered sources; confirm before using.",
+   "The AI Overview mentions free weekly credit reports, while [9] says every 12 months plus six extra Equifax reports through December 31, 2026; confirm the current rule.",
+   "Authorized user advice comes only from [3]; confirm the issuer must report the account and that it helps.",
+   "The soft-inquiry option for credit limit increases comes only from [3]; confirm it varies by issuer.",
+   "No source says whether credit repair companies work; the answer must stay careful or be checked.",
+   "No source gives a timeline for going from 500 to 700.",
+   "Experian Boost and reporting utility or streaming payments appear only in AI Mode; confirm before mentioning.",
+   "[7] shows a 'last reviewed' date of Oct 29, 2026; confirm the page date before citing."
+  ],
+  "research": {
+   "sources": [
+    {
+     "n": 1,
+     "url": "https://www.fswb.bank/",
+     "title": "Home | First Southwest Bank",
+     "domain": "fswb.bank",
+     "kind": "serp",
+     "position": 1,
+     "words": 239
+    },
+    {
+     "n": 2,
+     "url": "https://www.wellsfargo.com/goals-credit/smarter-credit/improve-credit/",
+     "title": "Rebuild Credit or Improve Your Credit Score | Wells Fargo",
+     "domain": "wellsfargo.com",
+     "kind": "serp",
+     "position": 2,
+     "words": 426
+    },
+    {
+     "n": 3,
+     "url": "https://www.axosbank.com/personal/insights/credit/building-credit/how-to-improve-credit-score-fast",
+     "title": "How to Improve Credit Score Fast | Lower Credit Utilization",
+     "domain": "axosbank.com",
+     "kind": "serp",
+     "position": 3,
+     "words": 553
+    },
+    {
+     "n": 4,
+     "url": "https://www.td.com/",
+     "title": "Online Banking, Loans, Credit Cards & Home Lending | TD Bank",
+     "domain": "td.com",
+     "kind": "serp",
+     "position": 4,
+     "words": 902
+    },
+    {
+     "n": 5,
+     "url": "https://www.consumerfinance.gov/ask-cfpb/what-are-some-ways-to-start-or-rebuild-a-good-credit-history-en-2155/",
+     "title": "What are some ways to start or rebuild a good credit history? | Consumer Financial Protection Bureau",
+     "domain": "consumerfinance.gov",
+     "kind": "serp",
+     "position": 5,
+     "words": 557
+    },
+    {
+     "n": 6,
+     "url": "https://www.communityfirstfl.org/",
+     "title": "Community First Credit Union of Florida | Best-in-class banking to help you live your best and just be yourself.",
+     "domain": "communityfirstfl.org",
+     "kind": "serp",
+     "position": 8,
+     "words": 332
+    },
+    {
+     "n": 7,
+     "url": "https://www.consumerfinance.gov/ask-cfpb/how-do-i-get-and-keep-a-good-credit-score-en-318",
+     "title": "How do I get and keep a good credit score? | Consumer Financial Protection Bureau",
+     "domain": "consumerfinance.gov",
+     "kind": "ai",
+     "position": null,
+     "words": 424
+    },
+    {
+     "n": 8,
+     "url": "https://www.myfico.com/credit-education/improve-your-credit-score",
+     "title": "Discover How to Improve Your Credit Score Effectively | myFICO",
+     "domain": "myfico.com",
+     "kind": "ai",
+     "position": null,
+     "words": 1267
+    },
+    {
+     "n": 9,
+     "url": "https://www.consumerfinance.gov/consumer-tools/credit-reports-and-scores/how-to-rebuild-your-credit",
+     "title": "How to rebuild your credit | Consumer Financial Protection Bureau",
+     "domain": "consumerfinance.gov",
+     "kind": "ai",
+     "position": null,
+     "words": 654
+    }
+   ],
+   "questions": [
+    "Do credit repair companies really work?",
+    "How can I check my credit score with Wells Fargo?",
+    "How long does it take to get a credit score from 500 to 700?",
+    "How often should I check my credit score?"
+   ],
+   "engines": [
+    "ChatGPT",
+    "Gemini",
+    "AI Mode"
+   ],
+   "topPages": "Results are mixed. Only [3] (Axos, 553 words), [5] (CFPB, 557 words) and the Wells Fargo hub [2] cover the topic, while [1], [4] and [6] are bank homepages with just a credit monitoring mention. The useful pages run 400 to 600 words, use short numbered steps, and all cover on-time payments, low balances and checking reports. The AI-cited pages [7], [8] and [9] are the CFPB and myFICO guides, which go deeper on factors, timing and what doesn't help.",
+   "aiAnswers": "ChatGPT lists eight ways to improve a score and cites myFICO, the CFPB and the FTC. Gemini explains each factor with its weight and cites nothing. AI Mode splits advice into fast actions (30 to 60 days) and long-term habits and cites CFPB, TD, Wells Fargo, Experian and others. All lead with on-time payments and keeping utilization under 30%, ideally under 10%."
+  },
+  "model": "claude-sonnet-5-5",
+  "at": "2026-11-13T10:04:52.557Z"
+ },
+ "sections": [
+  {
+   "key": "intro",
+   "h2": "",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "You know your credit score matters for renting, cards and loans, but it's hard to tell which habits actually move it. Many pages give you a long list of tips that doesn't say where to begin.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "In this guide, we walk you through how to improve your credit score in a clear order, from the habits that count most to the small timing tricks that help. For each step, we explain why it works and what you can do this week, and we're honest about how long a change takes, since [there is no quick way to fix a credit score](https://www.myfico.com/credit-education/improve-your-credit-score).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how to pick two or three actions and start today.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-0",
+   "h2": "What goes into your credit score",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Every time you make a payment on a loan or card, it's reported to the [three nationwide credit reporting companies](https://www.consumerfinance.gov/ask-cfpb/what-are-some-ways-to-start-or-rebuild-a-good-credit-history-en-2155/), and they use that information to create your credit report. Your credit score is then built from what's in that report, so the habits you keep show up in the number.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Two factors carry the most weight: [payment history makes up 35% of a FICO Score](https://www.myfico.com/credit-education/improve-your-credit-score), and your credit utilization, which is how much of your credit limit you're using, [accounts for 30%](https://www.axosbank.com/personal/insights/credit/building-credit/how-to-improve-credit-score-fast).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The Consumer Financial Protection Bureau also notes that [most credit scores treat repayment history as the number one factor](https://www.consumerfinance.gov/ask-cfpb/how-do-i-get-and-keep-a-good-credit-score-en-318). The same source says these other things play a part:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Your recent credit activity matters, because applying for a lot of credit in a short time may appear to lenders as though you're dealing with financial setbacks."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The smaller factors matter less than getting the two big ones right, so we start with paying on time and keeping your card balances low. You can find more background in [our credit score guide](https://clearmoney.example/blog/credit-score-guide).",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-1",
+   "h2": "Pay every bill on time",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Paying on time is the habit that moves your score the most, so it's worth making it as automatic as you can. Both the [Consumer Financial Protection Bureau](https://www.consumerfinance.gov/ask-cfpb/how-do-i-get-and-keep-a-good-credit-score-en-318) and [myFICO](https://www.myfico.com/credit-education/improve-your-credit-score) point to the same simple setup: automatic payments or electronic reminders.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how to make it easy to stay on track:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Use the payment reminders in your bank's online portal if it offers them.",
+      "If you pay by mail, drop the payment in the mail a few days before the due date, since \"on time\" means it [reaches the company by the day the bill is due](https://www.consumerfinance.gov/consumer-tools/credit-reports-and-scores/how-to-rebuild-your-credit)."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "It matters because a payment reported as 30 days past due can [significantly affect your FICO Score](https://www.myfico.com/credit-education/improve-your-credit-score), even if it's only one missed payment.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you've already missed payments, the fix is to get current and stay current.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "One thing to know about collections is that [paying off a collection account does not remove it from your credit report](https://www.myfico.com/credit-education/improve-your-credit-score), and it stays there for seven years.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-2",
+   "h2": "Lower your credit card balances",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Credit scoring models look at how much of your credit limit you're using, so lower balances help your score. Many experts suggest staying under 30 percent of your total limit, and [people with the highest scores often use under 10 percent](https://www.consumerfinance.gov/ask-cfpb/how-do-i-get-and-keep-a-good-credit-score-en-318). Axos Bank also notes that [credit utilization makes up 30% of your score](https://www.axosbank.com/personal/insights/credit/building-credit/how-to-improve-credit-score-fast).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You don't need to carry a balance to get a good score. [Paying the balance in full each month](https://www.consumerfinance.gov/ask-cfpb/how-do-i-get-and-keep-a-good-credit-score-en-318) helps you get the best scores and keeps your interest costs as low as possible.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how to bring your balances down without moving debt around:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Put extra money toward the card with the highest interest rate first, and keep making minimum payments on your other accounts, as [myFICO suggests](https://www.myfico.com/credit-education/improve-your-credit-score).",
+      "Pay off debt instead of shifting it between cards, since owing the same amount across fewer accounts may lower your scores."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you'd like help finding that money, you can [build a budget that leaves room for extra card payments](https://clearmoney.example/budgeting).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Not sure where you stand?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Time your payment around the statement date",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Find your statement closing date and pay the balance down a few days before it, so the lower balance is the one the bureaus see.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Ask for a higher credit limit",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If your issuer raises your limit and you keep spending the same amount, [your utilization drops automatically](https://www.axosbank.com/personal/insights/credit/building-credit/how-to-improve-credit-score-fast). Call your issuer and ask, since many approve it if you've been making on-time payments.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You can also ask whether the request can be handled as a soft inquiry, which won't affect your score.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-3",
+   "h2": "Check your credit reports and fix errors",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Your credit report is where your payment history gets recorded, so it helps to read it before you try to change your score. The Consumer Financial Protection Bureau says you can get a free copy of each report from the [three nationwide credit reporting companies every 12 months at annualcreditreport.com](https://www.consumerfinance.gov/consumer-tools/credit-reports-and-scores/how-to-rebuild-your-credit).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Equifax also offers six additional free reports every 12 months through December 31, 2026, according to the [same CFPB page](https://www.consumerfinance.gov/consumer-tools/credit-reports-and-scores/how-to-rebuild-your-credit).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Luckily, looking at your own information is safe, because [checking your own credit report or FICO Score has no impact on your credit score](https://www.myfico.com/credit-education/improve-your-credit-score).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "As you read each report, here's what to look for, based on the list from [Axos](https://www.axosbank.com/personal/insights/credit/building-credit/how-to-improve-credit-score-fast):",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Late payments that you actually made on time.",
+      "Accounts that aren't yours.",
+      "Wrong balances or credit limits.",
+      "Duplicate accounts that show up twice."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you find a mistake, you can [file a dispute with the credit reporting company and with the company that supplied the information](https://www.myfico.com/credit-education/improve-your-credit-score), as the CFPB also advises.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Axos notes that [credit bureaus have 30 days to verify your claim](https://www.axosbank.com/personal/insights/credit/building-credit/how-to-improve-credit-score-fast), so it's worth sending your dispute soon.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-4",
+   "h2": "Start or rebuild with the right tools",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Ask your bank, credit union or a local nonprofit credit counseling agency about [credit cards and loans that help you start or rebuild credit](https://www.consumerfinance.gov/ask-cfpb/what-are-some-ways-to-start-or-rebuild-a-good-credit-history-en-2155/). The [Consumer Financial Protection Bureau](https://www.consumerfinance.gov/ask-cfpb/how-do-i-get-and-keep-a-good-credit-score-en-318) also suggests looking at products designed for people who are new to credit or need to improve it.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "These products help because your on-time payments are [reported to the three nationwide credit reporting companies](https://www.consumerfinance.gov/ask-cfpb/what-are-some-ways-to-start-or-rebuild-a-good-credit-history-en-2155/), which is what builds your history.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Products that can help",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "A **secured credit card** works like this: you put in an amount of cash, for example $500, and then [you can spend up to that amount](https://www.consumerfinance.gov/ask-cfpb/what-are-some-ways-to-start-or-rebuild-a-good-credit-history-en-2155/).",
+      "Fees and interest can be high on secured cards, so [read the terms before you apply](https://www.consumerfinance.gov/consumer-tools/credit-reports-and-scores/how-to-rebuild-your-credit).",
+      "A **credit builder loan** holds the money for you as savings while you make small payments, [usually over six to 24 months](https://www.consumerfinance.gov/ask-cfpb/what-are-some-ways-to-start-or-rebuild-a-good-credit-history-en-2155/).",
+      "A **retail or store credit card** often comes with [a relatively low credit limit](https://www.consumerfinance.gov/ask-cfpb/what-are-some-ways-to-start-or-rebuild-a-good-credit-history-en-2155/), which makes it less likely you'll run up a big bill."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Before you ask to be added as an authorized user, check with the card issuer to confirm how they report the account.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Things that usually don't help",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Debit card and cash payments, prepaid cards, payday loans and \"buy here, pay here\" car loans [typically aren't reported to the credit reporting companies](https://www.consumerfinance.gov/ask-cfpb/what-are-some-ways-to-start-or-rebuild-a-good-credit-history-en-2155/). The CFPB also notes that [on-time payments on these might not help your credit](https://www.consumerfinance.gov/consumer-tools/credit-reports-and-scores/how-to-rebuild-your-credit), so you may want to put your effort into the products above.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-5",
+   "h2": "What to avoid while you work on it",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "A few common moves can slow your progress, so here's what to steer clear of while your score recovers.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Don't close unused credit cards as a short-term trick, because [closing a card reduces your available credit and raises your utilization](https://www.myfico.com/credit-education/improve-your-credit-score).",
+      "Don't apply for a lot of credit in a short time, since [your score may go down if you open many new accounts quickly](https://www.consumerfinance.gov/consumer-tools/credit-reports-and-scores/how-to-rebuild-your-credit), including a new card for a balance transfer or a store card for a discount.",
+      "Don't take advice that promises a fast fix, because [quick-fix efforts are the most likely to backfire](https://www.myfico.com/credit-education/improve-your-credit-score).",
+      "Do [keep an eye on old unused cards](https://www.consumerfinance.gov/ask-cfpb/how-do-i-get-and-keep-a-good-credit-score-en-318) to make sure an identity thief isn't using them."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Applying for lots of credit at once can also [look to lenders like you're dealing with financial setbacks](https://www.consumerfinance.gov/ask-cfpb/how-do-i-get-and-keep-a-good-credit-score-en-318), so it helps to apply only when you truly need the credit.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you're struggling to make ends meet, you can [contact your creditors or a legitimate credit counselor](https://www.myfico.com/credit-education/improve-your-credit-score). This won't rebuild your score right away, but it helps you get back to paying on time, and [credit counseling won't hurt your FICO Score](https://www.myfico.com/credit-education/improve-your-credit-score).",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-6",
+   "h2": "How long it takes to see a change",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Most changes to your score come in stages, so it helps to know what to expect and when. Lower card balances can show up within 30 to 60 days, because [credit utilization updates quickly, while payment history can take months to build](https://www.axosbank.com/personal/insights/credit/building-credit/how-to-improve-credit-score-fast).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "In general, [small changes may start within three to six months](https://www.myfico.com/credit-education/improve-your-credit-score), and bigger recoveries from late payments or high utilization take longer. Axos gives a rough timeline you can use as a guide:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Between 60 and 90 days, consistent good habits start building momentum and raising your score."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Negative items also stay on your report for set periods, and the Consumer Financial Protection Bureau lists them in this table.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "table",
+     "text": "",
+     "items": [],
+     "rows": [
+      [
+       "Negative item",
+       "How long it generally stays on your report"
+      ],
+      [
+       "Late payment",
+       "7 years"
+      ],
+      [
+       "Chapter 13 bankruptcy",
+       "7 years"
+      ],
+      [
+       "Chapter 7 bankruptcy",
+       "10 years"
+      ],
+      [
+       "Foreclosure",
+       "7 years"
+      ],
+      [
+       "Lawsuits and judgments",
+       "7 years or longer"
+      ]
+     ]
+    },
+    {
+     "type": "p",
+     "text": "Thankfully, [recent negative information affects your score more than older information](https://www.consumerfinance.gov/consumer-tools/credit-reports-and-scores/how-to-rebuild-your-credit), so older marks carry less weight over time.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-7",
+   "h2": "A simple plan you can start this week",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Here's how to put everything above into action. You don't have to do it all in one day, so work through these steps in order.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "Pull your free credit reports and dispute anything that looks wrong, such as accounts that aren't yours or late payments you made on time, using the [steps from the Consumer Financial Protection Bureau](https://www.consumerfinance.gov/consumer-tools/credit-reports-and-scores/how-to-rebuild-your-credit).",
+      "Use the [error checklist from Axos](https://www.axosbank.com/personal/insights/credit/building-credit/how-to-improve-credit-score-fast) to spot wrong balances, wrong limits and duplicate accounts as you read each report.",
+      "Set up autopay or electronic reminders so no bill is ever late, since the Consumer Financial Protection Bureau says [most credit scores treat repayment history as the number one factor](https://www.consumerfinance.gov/ask-cfpb/how-do-i-get-and-keep-a-good-credit-score-en-318).",
+      "Know that myFICO adds that [payment history makes up 35% of a FICO Score](https://www.myfico.com/credit-education/improve-your-credit-score), which is why autopay comes before everything else on this list.",
+      "Pay your card balances down a few days before the statement closing date, because [that is the balance the bureaus see](https://www.axosbank.com/personal/insights/credit/building-credit/how-to-improve-credit-score-fast).",
+      "Then work toward using under 30% of your limit and later under 10%, as the [Consumer Financial Protection Bureau suggests](https://www.consumerfinance.gov/ask-cfpb/how-do-i-get-and-keep-a-good-credit-score-en-318).",
+      "Hold off on new applications unless you truly need the credit, since [applying for a lot of credit in a short time can lower your score](https://www.consumerfinance.gov/consumer-tools/credit-reports-and-scores/how-to-rebuild-your-credit).",
+      "Remember that a burst of applications [may look like financial setbacks to lenders](https://www.consumerfinance.gov/ask-cfpb/how-do-i-get-and-keep-a-good-credit-score-en-318).",
+      "If you have little or damaged history, ask your bank or credit union about a [secured credit card or credit builder loan](https://www.consumerfinance.gov/ask-cfpb/what-are-some-ways-to-start-or-rebuild-a-good-credit-history-en-2155/).",
+      "Read the fees and interest first, because [they can be high on secured cards](https://www.consumerfinance.gov/consumer-tools/credit-reports-and-scores/how-to-rebuild-your-credit)."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you want a simple place to keep these habits organized, our [money basics](https://clearmoney.example/blog/money-basics) pages cover more of the first steps you can take with your money. You don't need a perfect score this month, and a plan you can stick with is enough to start.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Pick one step from the plan today, then use our [budget calculator](https://clearmoney.example/tools/budget-calculator) to find the extra money for your next card payment.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "faq",
+   "h2": "Frequently asked questions",
+   "blocks": [
+    {
+     "type": "h3",
+     "text": "How long does it take to improve your credit score?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "It depends on what you change. Lower card balances can show up within [30 to 60 days](https://www.axosbank.com/personal/insights/credit/building-credit/how-to-improve-credit-score-fast), because credit utilization updates quickly while payment history takes months to build. In general, [small changes may start within three to six months](https://www.myfico.com/credit-education/improve-your-credit-score), and bigger recovery takes longer.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Can you improve your credit score fast?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The quickest levers are [lowering card balances, fixing report errors and asking for a higher limit](https://www.axosbank.com/personal/insights/credit/building-credit/how-to-improve-credit-score-fast). Even so, myFICO says [there is no quick way to fix a credit score](https://www.myfico.com/credit-education/improve-your-credit-score), and quick-fix efforts are the most likely to backfire, so build the habits behind those levers and expect a gradual change.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Does checking your own credit score hurt it?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "No, because according to myFICO, [checking your own credit report or FICO Score has no impact on your credit score](https://www.myfico.com/credit-education/improve-your-credit-score), so it's safe to review your reports for errors.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "How often can you get your credit reports for free?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You can get a free report from each of the three nationwide credit reporting companies [every 12 months at annualcreditreport.com](https://www.consumerfinance.gov/consumer-tools/credit-reports-and-scores/how-to-rebuild-your-credit). The Consumer Financial Protection Bureau also says Equifax offers six additional free reports every 12 months through December 31, 2026.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  }
+ ],
+ "cut": [
+  {
+   "id": "1.3.i1",
+   "why": "Source [7] says the more experience with on-time payments the more information lenders have, but this narrows to the draft's framing; acceptable. However 'length of credit history matters' is stated as a factor, which [7] supports; borderline but fine, so not cut."
+  },
+  {
+   "id": "2.2.i0",
+   "why": "Details that money is drafted from your bank account each month; [8] says drafted from bank account but 'each month' is an unsupported detail."
+  },
+  {
+   "id": "3.5.1",
+   "why": "Refers to a calculator below that the brief says is built separately; promises specific functionality not in sources."
+  },
+  {
+   "id": "3.11.1",
+   "why": "Source [3] says 'Most major issuers can do this'; fine, but the soft-inquiry point is flagged as unconfirmed by the brief. Retained claim 'Axos says most major issuers can do this' is supported, but 3.11.0 asserts soft inquiry won't affect score as fact."
+  },
+  {
+   "id": "5.3.i4",
+   "why": "Authorized user advice comes only from [3] and the brief says it is unconfirmed that it helps; stated as fact."
+  },
+  {
+   "id": "6.1.i1",
+   "why": "Closing a card shortening average credit age is from [3], supported. Not cut."
+  },
+  {
+   "id": "7.2.i0",
+   "why": "Source [3] says lower credit use gets reported and errors get disputed in 30 days, not that disputed errors are 'verified and fixed'."
+  },
+  {
+   "id": "7.2.i2",
+   "why": "Source [3] says significant recovery reflected in score at 6+ months; supported. Not cut."
+  },
+  {
+   "id": "3.7.0",
+   "why": "Attributes 'credit bureaus see what's on your statement' as supported by [3]; fine. Not cut."
+  },
+  {
+   "id": "2.5.1",
+   "why": "Advises 'use the seven-year window to plan how long the account will remain'; advice only. Not cut."
+  },
+  {
+   "id": "9.9.0",
+   "why": "Asserts that none of our sources names a number of months, which is a claim about the sources, but the sources do give timelines (30-60 days, three to six months), making this misleading."
+  },
+  {
+   "id": "5.1.1",
+   "why": "Claims some products like a secured card ask for cash up front; supported by [5]. Not cut."
+  },
+  {
+   "id": "3.3.i2",
+   "why": "Not a sourced claim; advice only. Not cut."
+  },
+  {
+   "id": "2.4.1",
+   "why": "Supported by [8]. Not cut."
+  }
+ ],
+ "styleLeft": [
+  {
+   "id": "3.5.0",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "7.5.0",
+   "rule": "adverbs",
+   "before": "\"thankfully\" used twice",
+   "after": null
+  },
+  {
+   "id": "9.1.0",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  }
+ ],
+ "modules": [
+  {
+   "status": "ok",
+   "error": null
+  }
+ ]
+}

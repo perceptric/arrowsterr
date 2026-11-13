@@ -84,7 +84,23 @@ Found while running the baseline: Sonnet 5.5 thinks on its own, and on a brief i
 
 Found while recording: Google now sends most results as `google.com/goto` links that land on `www.google.com/goto` first, and the app followed only one step. Most top-10 pages fell back to Google's breadcrumb, and a breadcrumb cut short with "..." became a broken address. `fixSerpItems` now follows up to 3 steps and drops cut-off breadcrumb parts. That fixes article research, the rank tracker, keyword research and briefs.
 
-**Done when** the 20 packs load in tests with no network and the baseline summary is saved.
+**Done when** the 20 packs load in tests with no network and the baseline summary is saved. Done November 13, 2026.
+
+**The baseline** (`tests/fixtures/writer/baseline/summary.json`, today's writer with the thinking fix, Claude Sonnet 5.5):
+
+| Measure | Result | What it means for the plan |
+|---|---|---|
+| Articles finished | 20 of 20 | |
+| Words | 2,398 on average | |
+| House rule findings left | 4.6 per article: 59 sentence length, 26 feeling adverbs, 5 paragraph length, 1 dash | Phase 5 (house lint port and fixes) |
+| Money, percent and large numbers with no match in the research | 3 of 248 | The fact notes (Phase 1) tie each number to a quote |
+| Links outside the sources and the brand's pages | 0 | |
+| Images planned | 3.4 per article | Phase 2 plans visuals by rule |
+| Interactive modules | 11 built of 15 planned: 4 dropped (3 loaded an outside file, 1 had broken script) | Phase 3 moves to fixed templates |
+| Time | about 4 minutes an article | |
+| Claude cost | $20.18 for 20, about **$1.01 an article** (check) | Higher than the ~$0.82 in `docs/agentic-writing.md` |
+
+The scorer checks that a number appears somewhere in the research, which is loose. Phase 1's fact notes make it strict (the number has to be in the quote its note cites).
 
 ### Phase 1. Generate draft (1.5 weeks)
 
@@ -238,7 +254,7 @@ Claude Sonnet 5.5 at $2 in and $10 out per million tokens (check). 10 articles a
 | | Beta (50 teams) | Growth (500 teams) |
 |---|---|---|
 | Added a month | **~$120** | **~$1,200** |
-| Writer total with today's ~$0.82 an article | ~$530 | ~$5,300 |
+| Writer total with today's measured ~$1.01 an article (Phase 0 baseline) | ~$625 | ~$6,250 |
 
 This replaces the ~$95 and ~$950 in the plan, which left out the fact notes call.
 

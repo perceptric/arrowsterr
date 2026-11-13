@@ -1,0 +1,1063 @@
+{
+ "slug": "replace-running-shoes",
+ "keyword": "how often to replace running shoes",
+ "kind": "store",
+ "stage": "tofu",
+ "model": "claude-sonnet-5-5",
+ "at": "2026-11-13T10:11:20.234Z",
+ "seconds": 219,
+ "usage": {
+  "calls": 24,
+  "input": 50792,
+  "cacheRead": 863803,
+  "cacheWrite": 138003,
+  "output": 30599
+ },
+ "score": {
+  "words": 2113,
+  "sections": 10,
+  "lint": 5,
+  "lintRules": {
+   "adverbs": 2,
+   "sentences": 3
+  },
+  "numbers": 26,
+  "unsourced": [],
+  "links": 41,
+  "strayLinks": [],
+  "images": 3,
+  "modules": 1
+ },
+ "title": "How Often to Replace Running Shoes (and How to Tell)",
+ "brief": {
+  "titles": [
+   "How Often to Replace Running Shoes: A Simple Guide",
+   "When to Replace Running Shoes: Miles, Months and Signs",
+   "How Often Should You Replace Running Shoes? Signs and Miles"
+  ],
+  "h1": "How Often to Replace Running Shoes (and How to Tell)",
+  "metaDescription": "Most running shoes last 300 to 500 miles. Learn how often to replace yours by shoe type and weekly mileage, plus the signs that say it's time.",
+  "slug": "how-often-to-replace-running-shoes",
+  "searchIntent": "The searcher wants a clear number or time frame for swapping out running shoes, plus a way to check their own pair. A plain how-to guide with a mileage range, a by-runner timeline and a signs checklist serves this best.",
+  "reader": "A new or casual runner who owns one or two pairs, knows the shoes feel older but has never tracked miles, and wants to decide whether to buy a new pair now or wait. Next they want to pick a replacement and avoid pain or injury.",
+  "angle": "We turn the 300 to 500 mile rule into a number the reader can work out for their own running, using shoe type and weekly miles, and we show how to check the midsole, which the top pages say wears out first. We also explain where the 500 mile rule came from, so a casual runner knows it is a guide and not a deadline.",
+  "wordTarget": 1800,
+  "outline": [
+   {
+    "h2": "So, how often should you replace running shoes?",
+    "points": [
+     "Give the short answer first: most running shoes last 300 to 500 miles, which is about 500 to 800 kilometers.",
+     "Say the range is wide and Nike running coaches say there is no hard and fast rule, so the rest of the article helps the reader narrow it down.",
+     "Say Brooks gives 4 to 6 months of regular use as the typical lifespan for performance running shoes.",
+     "Preview the three ways to decide: miles, time and how the shoes and your body feel."
+    ],
+    "h3": [],
+    "sources": [
+     4,
+     5,
+     6,
+     7
+    ]
+   },
+   {
+    "h2": "How long different types of running shoes last",
+    "points": [
+     "Lightweight and racing shoes last about 250 to 300 miles, daily trainers 300 to 500 miles, and trail shoes 300 to 500 miles, per Runners Need.",
+     "Max-cushion shoes use softer, higher-stack foam that can feel comfortable longer but compress faster under heavy mileage or higher body weight, per Nike.",
+     "Daily walking or work use breaks down the mesh and cushioning faster than running only, per Brooks.",
+     "Link the road and trail shoe pages here for readers who want to see shoe types."
+    ],
+    "h3": [
+     {
+      "title": "Road shoes and daily trainers",
+      "points": [
+       "300 to 500 miles; pavement is hard on shoes but wear is fairly even, per Runners Need."
+      ]
+     },
+     {
+      "title": "Trail shoes",
+      "points": [
+       "300 to 500 miles, but mud, rocks and roots can wear shoes out faster; trail shoes may also break down more quickly on pavement, per Runners Need and Nike."
+      ]
+     }
+    ],
+    "sources": [
+     6,
+     4,
+     7
+    ]
+   },
+   {
+    "h2": "How long your shoes last based on how much you run",
+    "points": [
+     "Use the Nike coach framework: under 10 miles a week gives about 8 to 12 months.",
+     "10 to 20 miles a week (5K or 10K training) gives 5 to 8 months; 20 to 40 miles a week (half marathon) gives 4 to 6 months; 40 miles or more a week (marathon) gives about 2 to 3 months.",
+     "Tell casual runners that Brooks's 4 to 6 months is a typical figure for regular use, so a once or twice a week runner can often go longer, while still checking the signs.",
+     "Link the first 5K guide for readers just starting a plan."
+    ],
+    "h3": [],
+    "sources": [
+     4,
+     5,
+     7
+    ]
+   },
+   {
+    "h2": "Signs it's time for new running shoes",
+    "points": [
+     "Start with the midsole, the foam layer that absorbs impact. Foam that feels flat or dense, or does not rebound when you press it with your thumb, means the cushioning has worn down.",
+     "The outsole (the tread) is usually the last part to go, so a shoe can look fine and still be done; smooth tread, a compressed midsole and frayed upper fabric are all worth checking.",
+     "Uneven wear between the left and right shoe can change your gait or stride and lead to discomfort or pain, per Nike.",
+     "New foot, knee or shin soreness without a change in your routine can mean the cushioning and support have broken down, per Brooks; aches in the ankles, knees and hips are also flagged by Runners Need.",
+     "Give a short reminder to check the shoes and your body together, and link the shoe fit guide."
+    ],
+    "h3": [
+     {
+      "title": "Check the midsole",
+      "points": [
+       "Press the foam with your thumb and see whether it springs back, per Nike.",
+       "Look for a compressed midsole, per Brooks."
+      ]
+     },
+     {
+      "title": "Check the outsole and upper",
+      "points": [
+       "Look for smooth, worn tread and tears or fraying in the upper, including the heel lining and toe box, per Brooks.",
+       "Look at where wear shows up on the sole to learn how you land, per Runners Need."
+      ]
+     },
+     {
+      "title": "Check how you feel",
+      "points": [
+       "New soreness, flat feel or unsupportive feel are all reasons to look at the shoes first."
+      ]
+     }
+    ],
+    "sources": [
+     4,
+     5,
+     6,
+     7,
+     2
+    ]
+   },
+   {
+    "h2": "What makes running shoes wear out faster or slower",
+    "points": [
+     "Explain that the same shoe lasts differently for different runners; list the main factors in plain words.",
+     "Body weight, stride pattern, foot strike, running gait, heat, terrain and how often you run all change midsole wear, per The Green Runners.",
+     "Frequency matters because the midsole needs time to recover its shape between runs, which is why people who run a lot often rotate a couple of pairs, per The Green Runners.",
+     "Running surface and running style (heel strikers wear the heel first, forefoot strikers wear the front) also matter, per Runners Need and Nike.",
+     "Quality of the shoe and how far and how often you run are the simplest levers for a casual runner, per Nike."
+    ],
+    "h3": [],
+    "sources": [
+     2,
+     4,
+     6
+    ]
+   },
+   {
+    "h2": "Where the 500 mile rule comes from and how far to trust it",
+    "points": [
+     "Explain in plain words that the origin of the 500 mile rule is largely unclear; a 1996 study suggested replacing shoes every 500 to 700 kilometers (310 to 425 miles), and The Green Runners notes it is almost 30 years old.",
+     "Brands often test midsole foam with compression tests, and The Green Runners notes lab tests use standard conditions that differ from real roads.",
+     "Strava has an alert at 400 km, per The Green Runners, and its author's own trail shoes lasted over 1000 miles, which shows the range is wide.",
+     "Tell the reader to treat the number as a planning guide and use the signs from the earlier section to confirm."
+    ],
+    "h3": [],
+    "sources": [
+     2
+    ]
+   },
+   {
+    "h2": "How to make your running shoes last longer",
+    "points": [
+     "Only wear running shoes for running, since walking or work use can break down materials faster, per Brooks and Runners Need.",
+     "Rotate two or more pairs so the foam can recover, per Brooks, Runners Need and The Green Runners.",
+     "Undo and redo laces, keep shoes clean and wear the right socks, per Runners Need headings.",
+     "Store shoes in a cool, dry, ventilated place, since unworn shoes can still deteriorate, especially the adhesives, per Brooks.",
+     "Use only the tips the sources describe in enough detail and keep each to one plain sentence."
+    ],
+    "h3": [],
+    "sources": [
+     6,
+     7,
+     2
+    ]
+   },
+   {
+    "h2": "How to track your shoe mileage and plan your next pair",
+    "points": [
+     "Offer simple tracking options: log miles in a running app (Strava has a shoe alert at 400 km, per The Green Runners), or write the purchase date on the insole and use Brooks's 4 to 6 months as a check.",
+     "Suggest buying the next pair before the current one is finished so the reader is not running on worn shoes while they wait.",
+     "Point to the road, trail and stability shoe pages and the shoe fit guide for choosing the next pair."
+    ],
+    "h3": [],
+    "sources": [
+     2,
+     7,
+     6
+    ]
+   }
+  ],
+  "entities": [
+   "running shoes",
+   "midsole",
+   "outsole",
+   "upper",
+   "cushioning",
+   "foam compression",
+   "300 to 500 mile rule",
+   "mileage",
+   "shoe rotation",
+   "road running shoes",
+   "trail running shoes",
+   "lightweight and racing shoes",
+   "daily trainers",
+   "max-cushion shoes",
+   "foot strike",
+   "gait",
+   "overpronation",
+   "Strava",
+   "Nike",
+   "Brooks",
+   "Runners Need",
+   "The Green Runners",
+   "1996 study on shoe replacement",
+   "compression test"
+  ],
+  "gaps": [
+   "Most top pages give a single mileage range without helping a casual runner work out a time frame for their own weekly miles.",
+   "Pages disagree on time (Nike says 8 to 12 months for under 10 miles a week, Brooks says 4 to 6 months of regular use), and none explains which fits a new runner.",
+   "The origin of the 500 mile rule is rarely explained; only The Green Runners covers the 1996 study and brand testing.",
+   "The outsole is usually the last part to wear out, so looking at tread alone can mislead; the midsole is the key check.",
+   "Few pages mention that unworn shoes age too, or that walking and work use wears shoes faster.",
+   "No page links the answer to buying a new pair, shoe fit or what to do next."
+  ],
+  "faqs": [
+   {
+    "question": "Is it normal to wear running shoes every day?",
+    "answer": "Say daily walking or work wear makes the mesh and cushioning break down faster than running alone, per Brooks, and suggest keeping one pair for runs and rotating between pairs."
+   },
+   {
+    "question": "Is 2 years too long for running shoes?",
+    "answer": "Say it is likely too long for regular runners: Brooks gives 4 to 6 months of regular use, and unworn shoes can still deteriorate over time, especially the adhesives. A casual runner under 10 miles a week may go 8 to 12 months, per Nike, then should check the signs."
+   },
+   {
+    "question": "How do I know my shoes are worn out if I don't track miles?",
+    "answer": "Say to check for smooth tread, a compressed midsole, frayed upper fabric, a flat feel and new aches, and to use the time since purchase as a guide, per Brooks and Nike."
+   },
+   {
+    "question": "Do racing or lightweight shoes wear out faster?",
+    "answer": "Say lightweight and racing shoes are listed at about 250 to 300 miles by Runners Need, compared with 300 to 500 for daily trainers."
+   },
+   {
+    "question": "Does rotating running shoes help?",
+    "answer": "Say yes: rotating two or more pairs gives the foam time to recover its shape and is recommended by Brooks, Runners Need and The Green Runners."
+   }
+  ],
+  "internalLinks": [
+   {
+    "url": "https://striderunning.example/blog/running-shoe-lifespan",
+    "anchor": "how long running shoes last",
+    "where": "So, how often should you replace running shoes?"
+   },
+   {
+    "url": "https://striderunning.example/shoes/road",
+    "anchor": "road running shoes",
+    "where": "How long different types of running shoes last"
+   },
+   {
+    "url": "https://striderunning.example/shoes/trail",
+    "anchor": "trail running shoes",
+    "where": "How long different types of running shoes last"
+   },
+   {
+    "url": "https://striderunning.example/guides/first-5k",
+    "anchor": "first 5K plan",
+    "where": "How long your shoes last based on how much you run"
+   },
+   {
+    "url": "https://striderunning.example/guides/shoe-fit",
+    "anchor": "shoe fit guide",
+    "where": "Signs it's time for new running shoes"
+   },
+   {
+    "url": "https://striderunning.example/guides/running-shoes",
+    "anchor": "running shoe buying guide",
+    "where": "How to track your shoe mileage and plan your next pair"
+   }
+  ],
+  "cta": {
+   "text": "Ready for your next pair? Read our running shoe buying guide, then browse our road shoes and pick the pair that fits the way you run.",
+   "where": "End of the article, after the last H2, linking to the running shoe guide and the road shoes page"
+  },
+  "modules": [
+   {
+    "type": "calculator",
+    "title": "How many miles are left in your shoes?",
+    "purpose": "Lets the reader estimate how many weeks they have before they should replace their shoes, based on shoe type, weekly miles and miles already run.",
+    "placement": "How long your shoes last based on how much you run",
+    "inputs": [
+     "Shoe type: lightweight or racing, daily trainer, or trail",
+     "Miles you run per week",
+     "Miles already on the shoes (0 if new or unknown)"
+    ],
+    "outputs": [
+     "Replacement range in miles for that shoe type",
+     "Miles left in the low and high case",
+     "Weeks left in the low and high case (miles left divided by weekly miles)",
+     "A reminder to check the midsole and the other signs before deciding"
+    ],
+    "data": "Replacement ranges per Runners Need [6]: lightweight and racing shoes 250 to 300 miles; daily trainers 300 to 500 miles; trail shoes 300 to 500 miles. The general range of 300 to 500 miles also appears in Nike [4] and Brooks [7]. Weeks left is simple division of miles left by weekly miles. Show the Nike by-runner windows [4] as a cross-check: under 10 miles a week 8 to 12 months; 10 to 20 miles 5 to 8 months; 20 to 40 miles 4 to 6 months; 40 miles or more 2 to 3 months.",
+    "why": "New runners rarely know their weekly miles or how a range turns into months, and this gives them their own number in seconds."
+   }
+  ],
+  "images": [
+   {
+    "placement": "How long different types of running shoes last",
+    "shows": "Bar ranges of replacement miles for lightweight or racing shoes, daily trainers and trail shoes.",
+    "alt": "Chart comparing how many miles lightweight racing shoes, daily trainers and trail shoes usually last.",
+    "kind": "chart",
+    "numbers": "Lightweight and racing shoes: 250 to 300 miles. Daily trainers: 300 to 500 miles. Trail shoes: 300 to 500 miles.",
+    "sources": [
+     6
+    ]
+   },
+   {
+    "placement": "Signs it's time for new running shoes",
+    "shows": "A running shoe with the upper, midsole and outsole labeled and a note on what to check on each.",
+    "alt": "Diagram of a running shoe with the upper, midsole and outsole labeled.",
+    "kind": "anatomy",
+    "sources": [
+     2,
+     4,
+     7
+    ]
+   },
+   {
+    "placement": "How to make your running shoes last longer",
+    "shows": "A short checklist of shoe care habits: run only in them, rotate pairs, undo laces, keep them clean and store them cool and dry.",
+    "alt": "Checklist of habits that help running shoes last longer.",
+    "kind": "checklist",
+    "sources": [
+     6,
+     7
+    ]
+   }
+  ],
+  "examples": [],
+  "checks": [
+   "The 1996 study is mentioned only by The Green Runners without the authors or title; the editor should verify before naming it or keep the wording general.",
+   "The Strava 400 km shoe alert comes from a 2024 post and should be confirmed as still current.",
+   "Carbon-plated racing shoes lasting 100 to 250 miles appears only in an AI answer citing sources not provided; leave out unless confirmed.",
+   "Shoes older than 1 year losing shock absorption appears only in an AI answer; Brooks only says unworn shoes can deteriorate, so confirm before using a number.",
+   "The Runners Need sections on tracking mileage, weight and build, and the care tips are truncated; confirm details before expanding them.",
+   "Model-specific lifespans (for example the Nike Alphafly 3) are not in the sources; skip unless a source is added.",
+   "Confirm that the Stride Running blog post on running shoe lifespan does not repeat this article, and check what each linked Stride page covers."
+  ],
+  "research": {
+   "sources": [
+    {
+     "n": 1,
+     "url": "https://www.fleetfeet.com/",
+     "title": "Fleet Feet | Shop Running Shoes, Clothes & Gear | Est. 1976",
+     "domain": "fleetfeet.com",
+     "kind": "serp",
+     "position": 2,
+     "words": 556
+    },
+    {
+     "n": 2,
+     "url": "https://thegreenrunners.com/the-ultimate-guide-when-to-replace-your-running-shoes/",
+     "title": "The Ultimate Guide: When to replace your running shoes - The Green Runners CIC",
+     "domain": "thegreenrunners.com",
+     "kind": "serp",
+     "position": 4,
+     "words": 1472
+    },
+    {
+     "n": 3,
+     "url": "https://blog.bonsecours.com/",
+     "title": "Bon Secours Blog",
+     "domain": "blog.bonsecours.com",
+     "kind": "serp",
+     "position": 6,
+     "words": 477
+    },
+    {
+     "n": 4,
+     "url": "https://www.nike.com/au/a/how-often-to-replace-running-shoes",
+     "title": "How often should I replace my running shoes?",
+     "domain": "nike.com",
+     "kind": "serp",
+     "position": 8,
+     "words": 1655
+    },
+    {
+     "n": 5,
+     "url": "https://www.nike.com/a/how-often-to-replace-running-shoes",
+     "title": "How Often Should I Replace My Running Shoes?",
+     "domain": "nike.com",
+     "kind": "ai",
+     "position": null,
+     "words": 1681
+    },
+    {
+     "n": 6,
+     "url": "https://www.runnersneed.com/expert-advice/gear-guides/replace-running-shoes.html",
+     "title": "When to Replace Your Running Shoes: A Guide",
+     "domain": "runnersneed.com",
+     "kind": "ai",
+     "position": null,
+     "words": 2580
+    },
+    {
+     "n": 7,
+     "url": "https://support.brooksrunning.com/hc/en-us/articles/10043139042843-When-is-it-time-to-replace-my-shoes",
+     "title": "When is it time to replace my shoes?",
+     "domain": "support.brooksrunning.com",
+     "kind": "ai",
+     "position": null,
+     "words": 347
+    }
+   ],
+   "questions": [
+    "How long does Nike Alphafly 3 last?",
+    "What is the 10 minute rule in running?",
+    "Is it normal to wear running shoes every day?",
+    "Is 2 years too long for running shoes?"
+   ],
+   "engines": [
+    "ChatGPT",
+    "Gemini",
+    "AI Mode"
+   ],
+   "topPages": "The top pages are long how-to guides from running brands and retailers (Nike, Runners Need, The Green Runners) of about 1,500 to 2,600 words, built around H2s on mileage, signs of wear, what affects shoe life and how to extend it. All of them give the 300 to 500 mile range and list worn tread, flat cushioning and new aches as signs. Brooks's support page is short, about 350 words, and adds a time guide of 4 to 6 months. The Fleet Feet homepage and Bon Secours blog index are not guides to this topic and give nothing to build on.",
+   "aiAnswers": "ChatGPT, Gemini, Google's AI Overview and AI Mode all say to replace shoes every 300 to 500 miles (about 480 to 800 km), and most add that time frames run from roughly 3 to 8 months depending on how often you run. They split the answer by shoe type and by weekly miles, and list signs such as flat midsoles, worn soles and new aches. They cite Nike, Runners Need, Brooks support, REI, ASICS, adidas, Runna and the NYT, so the article should cover the same ground clearly and add the mileage calculator."
+  },
+  "model": "claude-sonnet-5-5",
+  "at": "2026-11-13T10:08:48.191Z"
+ },
+ "sections": [
+  {
+   "key": "intro",
+   "h2": "",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "If your running shoes look a little tired, you may be wondering whether it's time for a new pair.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "In this guide, we'll show you how often to replace running shoes, using a simple mileage range, a timeline based on how much you run and a few checks you can do at home. As you can see, there is no single number that fits everyone, so we'll help you work out yours.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You can decide in three steps:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "Start with the mileage range.",
+      "Check the shoe itself, including the foam and the tread.",
+      "Notice how your body feels when you run."
+     ],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-0",
+   "h2": "So, how often should you replace running shoes?",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "That is a wide range, and Nike running coaches say there is [no hard and fast rule](https://www.nike.com/au/a/how-often-to-replace-running-shoes).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "How long a pair lasts depends on where you run, how far and how often, so the rest of this guide helps you narrow the range down for your own running. If you want a quick refresher later, you can also read our notes on [how long running shoes last](https://striderunning.example/blog/running-shoe-lifespan).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "For time, Brooks says [4 to 6 months of regular use](https://support.brooksrunning.com/hc/en-us/articles/10043139042843-When-is-it-time-to-replace-my-shoes) is the typical lifespan for performance running shoes. Honestly, that figure is a useful starting point, because it gives you something to compare against even if you have never tracked a single mile.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "We suggest you use three checks together to decide when your pair is done:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Miles: add up roughly how far you have run in the shoes and compare it with the 300 to 500 mile range.",
+      "Time: think about how many months you have worn them and compare that with your own running schedule.",
+      "Feel: look at the shoe and notice whether your feet, knees or hips feel different after a run."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Why it works: no single check is perfect on its own, but when two or three point the same way, you can feel confident about buying a new pair.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-1",
+   "h2": "How long different types of running shoes last",
+   "blocks": [
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Lightweight and racing shoes last about 250 to 300 miles, according to [Runners Need](https://www.runnersneed.com/expert-advice/gear-guides/replace-running-shoes.html).",
+      "Daily trainers last about 300 to 500 miles, according to the same Runners Need guide.",
+      "Trail shoes also last about 300 to 500 miles, although the terrain you run on can change that."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Max-cushion shoes use softer, higher-stack foam, so they may feel comfortable for longer. [Nike explains](https://www.nike.com/au/a/how-often-to-replace-running-shoes) that this softer foam can compress faster under heavy mileage or higher body weight.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The way you use your shoes matters too, because [Brooks says](https://support.brooksrunning.com/hc/en-us/articles/10043139042843-When-is-it-time-to-replace-my-shoes) that wearing them as a daily walking or work shoe puts steady pressure on the mesh and cushioning, which can make the materials break down faster than running alone.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Road shoes and daily trainers",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Our [road running shoes](https://striderunning.example/shoes/road) fall into this group of daily trainers, which last about 300 to 500 miles according to Runners Need.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Trail shoes",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Trail shoes also run 300 to 500 miles, but Runners Need says mud, rocks and roots can chew them up faster. Nike adds that trail shoes may break down more quickly on pavement, so it helps to keep them on the dirt.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You can browse our [trail running shoes](https://striderunning.example/shoes/trail) to see what's available.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-2",
+   "h2": "How long your shoes last based on how much you run",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Your weekly miles are the easiest way to turn the 300 to 500 mile range into a time frame you can use.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "If you run under 10 miles a week, you can typically stick with the same pair for around 8 to 12 months before you notice any problems.",
+      "If you run 10 to 20 miles a week, which is common when you're training for a 5K or 10K, your shoes will last about 5 to 8 months.",
+      "If you run 20 to 40 miles a week, which is common when you're prepping for a half marathon, plan on new shoes about every 4 to 6 months.",
+      "If you run 40 miles or more a week, which is common for a dedicated marathon runner, expect to replace shoes about every 2 to 3 months."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you're just starting out, our [first 5K plan](https://striderunning.example/guides/first-5k) shows how many miles a week most beginners cover.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Brooks says [4 to 6 months of regular use](https://support.brooksrunning.com/hc/en-us/articles/10043139042843-When-is-it-time-to-replace-my-shoes) is the typical lifespan for performance running shoes. If you run once or twice a week, you can often go longer than that, as you can see from the first row of the list above.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Whatever number you land on, use it as a starting point and still check the signs we cover next.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-3",
+   "h2": "Signs it's time for new running shoes",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Over many steps the foam [flattens and compresses](https://www.nike.com/a/how-often-to-replace-running-shoes), which reduces shock absorption and can put more stress on your joints.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The outsole, which is the tread on the bottom, is [usually the last part to go](https://www.nike.com/a/how-often-to-replace-running-shoes), so a shoe can look fine and still be done. Checking the midsole, the outsole and the upper together gives you the clearest picture.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Check the midsole",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Press the foam with your thumb and see whether it springs back, because [foam that feels dense or does not rebound](https://www.nike.com/a/how-often-to-replace-running-shoes) means the cushioning has worn down.",
+      "Look for a [compressed midsole](https://support.brooksrunning.com/hc/en-us/articles/10043139042843-When-is-it-time-to-replace-my-shoes), which is one of the key signs of wear."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Check the outsole and upper",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Look for smooth, worn tread and [tears or fraying in the upper](https://support.brooksrunning.com/hc/en-us/articles/10043139042843-When-is-it-time-to-replace-my-shoes), including the heel lining and toe box.",
+      "Look at where wear shows up on the sole, since [those spots show how you land](https://www.runnersneed.com/expert-advice/gear-guides/replace-running-shoes.html).",
+      "Compare the left and right shoe, because one shoe more worn than the other [can change your gait or stride](https://www.nike.com/a/how-often-to-replace-running-shoes) and lead to discomfort or pain."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Check how you feel",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "New foot, knee or shin soreness without a change in your routine can mean [the cushioning and support have broken down](https://support.brooksrunning.com/hc/en-us/articles/10043139042843-When-is-it-time-to-replace-my-shoes).",
+      "Aches in the ankles, knees and hips are also [worth taking seriously](https://www.runnersneed.com/expert-advice/gear-guides/replace-running-shoes.html), since worn shoes raise your chance of injury.",
+      "Brooks says shoes that [feel flat or unsupportive](https://support.brooksrunning.com/hc/en-us/articles/10043139042843-When-is-it-time-to-replace-my-shoes) are a good reason to look at the cushioning and support first."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Check the shoes and your body together, and if a new pair feels off, our [shoe fit guide](https://striderunning.example/guides/shoe-fit) can help you pick one that suits you.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-4",
+   "h2": "What makes running shoes wear out faster or slower",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "The same pair of shoes can last a few months for one runner and over a year for another. That's because wear depends on the runner as much as the shoe, and these are the main factors that change what happens inside your shoes.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "They list these factors as the ones that change how fast the midsole wears down:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Your body weight, since a lighter runner squashes the midsole less.",
+      "Your stride pattern, because more strides mean more impacts on the foam.",
+      "Your foot strike, since how you land changes how the midsole wears.",
+      "Heat, because higher temperatures wear the midsole down faster.",
+      "Terrain, since road running puts a greater beating on the midsole.",
+      "Your running gait, because running lighter on your feet extends the life of the midsole.",
+      "How often you run, since the midsole needs time to recover its shape between runs."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "That last point is why people who run a lot often rotate a couple of pairs, and you can borrow the same idea if you start running more.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Your running surface and style also leave a mark.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Honestly, you can't change your body or your stride overnight, so the simplest levers are the quality of the shoe and [how far and how often you run](https://www.nike.com/au/a/how-often-to-replace-running-shoes). Start there when you plan your next pair.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-5",
+   "h2": "Where the 500 mile rule comes from and how far to trust it",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "According to [The Green Runners](https://thegreenrunners.com/the-ultimate-guide-when-to-replace-your-running-shoes/), the origin of the 500-mile rule is largely lost to time. They point to a 1996 study suggesting that running injuries could be reduced by replacing shoes every 500 to 700 kilometers (310 to 425 miles), but that study is almost 30 years old.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Brands often check midsole foam with a compression test, and The Green Runners explains that lab tests rely on standard subjects and standard conditions.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how to use the number well:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Treat 300 to 500 miles as a planning guide that tells you roughly when to start shopping.",
+      "Use the signs from the earlier section, like a flat midsole or new soreness, to confirm that your pair is done.",
+      "Replace your shoes when your pair shows those signs, even if the miles say you have more to go."
+     ],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-6",
+   "h2": "How to make your running shoes last longer",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Small habits can add real life to a pair of running shoes, and most of them cost nothing. These four steps help you get more miles out of your shoes while keeping them comfortable.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Wear your running shoes only for running, because [walking or work use can break down the mesh and cushioning faster](https://support.brooksrunning.com/hc/en-us/articles/10043139042843-When-is-it-time-to-replace-my-shoes) than running alone.",
+      "Rotate between two or more pairs, since [Brooks says this helps keep performance and support high](https://support.brooksrunning.com/hc/en-us/articles/10043139042843-When-is-it-time-to-replace-my-shoes) and the foam gets time to recover between runs.",
+      "Keep your shoes on the surface they were made for, because [road, trail and track shoes each use materials and grip built for that ground](https://www.runnersneed.com/expert-advice/gear-guides/replace-running-shoes.html).",
+      "Store your shoes in a cool, dry, ventilated place, since [unworn shoes can still deteriorate over time, especially the adhesives](https://support.brooksrunning.com/hc/en-us/articles/10043139042843-When-is-it-time-to-replace-my-shoes)."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you run a few times a week, rotation is a good habit to try. [The Green Runners notes that your midsole needs time to recover its shape](https://thegreenrunners.com/the-ultimate-guide-when-to-replace-your-running-shoes/), which is why people who run often tend to keep a couple of pairs.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Runners Need also lists undoing and redoing your laces, keeping your shoes clean and wearing the right socks](https://www.runnersneed.com/expert-advice/gear-guides/replace-running-shoes.html) among its tips for making shoes last. Luckily, these are easy habits to add, and they take only a minute or two before each run.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-7",
+   "h2": "How to track your shoe mileage and plan your next pair",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "You don't need a fancy app to keep track of when your shoes are getting tired, because a few simple habits will do the job and you can start today. Here are three easy ways to keep count:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Write the purchase date on the insole with a marker, then use the 4 to 6 months that [Brooks](https://support.brooksrunning.com/hc/en-us/articles/10043139042843-When-is-it-time-to-replace-my-shoes) gives as the typical lifespan for performance running shoes as a check.",
+      "Add a quick note to your calendar for the four month mark, so you remember to look over the midsole, outsole and upper."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Either way, the signs we covered earlier are your final check, because mileage and dates are only a guide.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Luckily, you don't have to wait until your current pair is finished before you shop. Buying the next pair a little early means you won't end up running in worn shoes while you wait for a delivery.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "When you're ready to choose, these pages can help you pick the right pair:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Browse our [road running shoes](https://striderunning.example/shoes/road) if most of your miles are on pavement.",
+      "Look at our [trail running shoes](https://striderunning.example/shoes/trail) if you head off-road.",
+      "Check our [shoe fit guide](https://striderunning.example/guides/shoe-fit) so the new pair feels right from the first run."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Ready for your next pair? Read our [running shoe buying guide](https://striderunning.example/guides/running-shoes), then browse our road shoes and pick the pair that fits the way you run.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "faq",
+   "h2": "Frequently asked questions",
+   "blocks": [
+    {
+     "type": "h3",
+     "text": "Is it normal to wear running shoes every day?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Brooks](https://support.brooksrunning.com/hc/en-us/articles/10043139042843-When-is-it-time-to-replace-my-shoes) says the steady, sustained pressure on the mesh and cushioning breaks those materials down faster than running alone. We suggest keeping one pair just for your runs and rotating between pairs if you can.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Is 2 years too long for running shoes?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you run under 10 miles a week, [Nike says you can often stay in one pair for 8 to 12 months](https://www.nike.com/a/how-often-to-replace-running-shoes) before problems show up. After that, check the midsole, tread and fit before you decide to keep going.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "How do I know my shoes are worn out if I don't track miles?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Look for smooth tread, a compressed midsole, frayed upper fabric, a flat or unsupportive feel and new aches that you can't link to a change in your routine, as [Brooks lists](https://support.brooksrunning.com/hc/en-us/articles/10043139042843-When-is-it-time-to-replace-my-shoes). You can also press the foam with your thumb, since [Nike notes](https://www.nike.com/a/how-often-to-replace-running-shoes) that healthy cushioning should compress and spring back quickly.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Do racing or lightweight shoes wear out faster?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Yes, they usually do. [Runners Need](https://www.runnersneed.com/expert-advice/gear-guides/replace-running-shoes.html) lists lightweight and racing shoes at about 250 to 300 miles, compared with 300 to 500 miles for daily trainers. If you own a pair of each, we'd save the lighter pair for race days and do most of your training in the sturdier one.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Does rotating running shoes help?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "It does. [Brooks](https://support.brooksrunning.com/hc/en-us/articles/10043139042843-When-is-it-time-to-replace-my-shoes) says rotating between two or more pairs helps keep performance and support at their best, and [The Green Runners](https://thegreenrunners.com/the-ultimate-guide-when-to-replace-your-running-shoes/) explains that the midsole needs time to recover its shape between runs.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  }
+ ],
+ "cut": [
+  {
+   "id": "0.0.1",
+   "why": "Claims buying too soon wastes money and waiting leaves joints taking more impact; partly supported but framed as a general claim, however it is common sense advice, so low risk (kept minimal)"
+  },
+  {
+   "id": "2.5.1",
+   "why": "Runners Need says pavement is hard on shoes but wear is fairly even; supported, but attributed together with road shoe claim; fine"
+  },
+  {
+   "id": "4.0.0",
+   "why": "States the midsole tells you the most; sources say it is the main indicator brands use, loosely supported but overstated"
+  },
+  {
+   "id": "4.7.1",
+   "why": "Runners Need source text is truncated; 'raise your chance of injury' is supported but 'worth taking seriously' fine; borderline"
+  },
+  {
+   "id": "5.1.0",
+   "why": "Describes The Green Runners as 'a running organization'; sources only name it as The Green Runners CIC, not what it is"
+  },
+  {
+   "id": "5.4.1",
+   "why": "Describes Runners Need as 'a running retailer'; the sources do not say what kind of company it is, and the heel/forefoot wear claim is attributed to Runners Need but is supported only loosely"
+  },
+  {
+   "id": "6.0.0",
+   "why": "Frames the 500 mile number as the commonly cited rule and then says 'every 500 miles'; the Green Runners piece supports it but the draft's framing is fine; low risk"
+  },
+  {
+   "id": "6.1.1",
+   "why": "Claims about real roads and hot days versus the lab are partly from the source, but 'the result can only be a rough guide for you' is an unsupported conclusion"
+  },
+  {
+   "id": "6.2.0",
+   "why": "Strava alert at 400 km comes from a 2024 post and is flagged as unconfirmed as still current"
+  },
+  {
+   "id": "6.2.1",
+   "why": "Source says the author's INOV8 trail shoes lasted over 1000 miles; draft says 'same author' which is fine but 'trail shoes' is supported; low risk"
+  },
+  {
+   "id": "8.1.i0",
+   "why": "Strava 400 km shoe alert is flagged as unconfirmed as still current"
+  },
+  {
+   "id": "9.3.0",
+   "why": "'Two years is likely too long' and 'unworn shoes can still deteriorate' are only partly supported; two-year framing is not in sources"
+  },
+  {
+   "id": "9.5.2",
+   "why": "Brooks says time since purchase is an indicator, but 'handy guide too' is fine; low risk"
+  },
+  {
+   "id": "1.0.0",
+   "why": "Attributes 300 to 500 miles to Nike and Runners Need together; Nike says 300 to 500 miles but this is fine; low risk"
+  },
+  {
+   "id": "3.0.1",
+   "why": "Calls the weekly mileage list the framework Nike running coaches use; supported by source"
+  },
+  {
+   "id": "8.2.0",
+   "why": "Claims once or twice a week runners won't have many miles to count; unsupported inference but minor"
+  },
+  {
+   "id": "2.0.0",
+   "why": "Says foam, sole and the way you use them all play a part; generic framing, minor"
+  },
+  {
+   "id": "9.1.0",
+   "why": "Says it's common to wear running shoes as daily walking or work shoes; the sources do not say this is common"
+  },
+  {
+   "id": "9.9.2",
+   "why": "Claims rotating gives a backup pair when one is damp or due for replacement; not stated in sources"
+  }
+ ],
+ "styleLeft": [
+  {
+   "id": "5.5.0",
+   "rule": "adverbs",
+   "before": "\"honestly\" used twice",
+   "after": null
+  },
+  {
+   "id": "6.0.0",
+   "rule": "reader",
+   "before": "a section that opens with a question",
+   "after": null
+  },
+  {
+   "id": "8.3.0",
+   "rule": "adverbs",
+   "before": "\"luckily\" used twice",
+   "after": null
+  },
+  {
+   "id": "8.6.0",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "9.3.0",
+   "rule": "paragraphs",
+   "before": "a long paragraph",
+   "after": null
+  },
+  {
+   "id": "9.7.0",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "9.9.0",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  }
+ ],
+ "modules": [
+  {
+   "status": "ok",
+   "error": null
+  }
+ ]
+}

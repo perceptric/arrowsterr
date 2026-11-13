@@ -1,0 +1,1072 @@
+{
+ "slug": "water-heater-cost",
+ "keyword": "how much does a water heater replacement cost",
+ "kind": "local",
+ "stage": "bofu",
+ "model": "claude-sonnet-5-5",
+ "at": "2026-11-13T09:59:03.868Z",
+ "seconds": 232,
+ "usage": {
+  "calls": 23,
+  "input": 54054,
+  "cacheRead": 982837,
+  "cacheWrite": 147527,
+  "output": 32032
+ },
+ "score": {
+  "words": 2581,
+  "sections": 10,
+  "lint": 4,
+  "lintRules": {
+   "adverbs": 2,
+   "sentences": 2
+  },
+  "numbers": 55,
+  "unsourced": [],
+  "links": 50,
+  "strayLinks": [],
+  "images": 0,
+  "modules": 0
+ },
+ "title": "6 Best Water Heater Replacement Options and Their Costs in 2026",
+ "brief": {
+  "titles": [
+   "6 Best Water Heater Replacement Costs in 2026, by Type",
+   "6 Best Water Heater Replacement Options and Their Costs in 2026",
+   "How Much Does a Water Heater Replacement Cost? 6 Best Types"
+  ],
+  "h1": "6 Best Water Heater Replacement Options and Their Costs in 2026",
+  "metaDescription": "Compare the 6 most common water heater replacements and what each costs installed in 2026, from $1,100 to $6,300, plus how to choose for your home.",
+  "slug": "best-how-much-does-a-water-heater-replacement-costs",
+  "searchIntent": "The searcher wants a real installed price for replacing a water heater and wants to know which type fits their home and budget. A ranked list of the six common types, each with its installed price range and who it suits, answers both questions in one read.",
+  "reader": "An Austin, Texas homeowner whose water heater is leaking, failing or getting old. They know roughly what a tank is, have seen quotes that vary widely and don't know which type to pick. They want a fair number to expect, a way to choose, and a next step such as asking Brightwater Plumbing for a written quote.",
+  "angle": "The top pages give one wide range ($500 to $3,000, or $1,200 to $3,500) that leaves you guessing. This article gives an installed range for each type, shows what pushes the price up, and ends with a way to match a type to your fuel, household size and space.",
+  "wordTarget": 2400,
+  "outline": [
+   {
+    "h2": "How we picked these 6 water heater replacements",
+    "points": [
+     "Say the six types cover the options most homeowners are quoted: gas tank, electric tank, heat pump, gas tankless, electric tankless and gas power vent.",
+     "Explain that each price is a total installed cost, meaning the unit plus labor, and name Paul Bunyan Plumbing's 2026 dataset as the main source [6].",
+     "Explain why the ranges differ between pages: type, tank size, fuel source, local labor rates and any plumbing or electrical upgrades [6][8].",
+     "State that the prices come from national or other-city sources, so an Austin quote can differ and a written quote is the way to confirm it.",
+     "Say how each section is scored: installed cost, expected lifespan, install needs and running cost."
+    ],
+    "h3": [],
+    "sources": [
+     6,
+     8,
+     7,
+     1
+    ]
+   },
+   {
+    "h2": "1. Gas tank water heater: best for most homes with gas service",
+    "points": [
+     "Say what it does well: it is the most common and most affordable mid-range option, with fast recovery times [6].",
+     "Give pricing: unit $800 to $2,850, labor $500 to $1,200, total installed $1,300 to $4,050, average about $2,000 [6].",
+     "Give the tank-size effect: a 50 gallon gas unit typically runs $1,100 to $3,200 installed and is the most common replacement [6].",
+     "Pros: lower upfront cost, simpler install, minimal maintenance [8][7].",
+     "Cons: standby heat loss means higher running costs than tankless, and the lifespan is shorter at about 8 to 12 years [8][7].",
+     "Who should skip it: homes without gas service, or homeowners who want endless hot water."
+    ],
+    "h3": [],
+    "sources": [
+     6,
+     8,
+     7,
+     1
+    ]
+   },
+   {
+    "h2": "2. Electric tank water heater: best for the lowest upfront price",
+    "points": [
+     "Pricing: unit $700 to $1,800, labor $500 to $1,200, total installed $1,200 to $3,000, average about $1,500 [6].",
+     "What it does well: it is cheap to install [9].",
+     "Con: a standard electric resistance tank has higher operating costs than a heat pump unit [9].",
+     "Tell readers an electric replacement is a good moment to compare a heat pump model before defaulting to another tank [9].",
+     "Who should skip it: homeowners planning to stay long enough for energy savings to matter."
+    ],
+    "h3": [],
+    "sources": [
+     6,
+     9,
+     8,
+     7
+    ]
+   },
+   {
+    "h2": "3. Heat pump water heater: best for lower energy bills",
+    "points": [
+     "Explain that it uses electricity to move heat from the surrounding air into the tank instead of making heat directly [9].",
+     "Pricing: unit $1,200 to $4,800, labor $800 to $1,500, total installed $2,000 to $6,300, average about $3,000 [6]. Another source lists $2,000 to $4,600 [8].",
+     "Pro: highest long-term energy savings, using roughly a third the energy of a standard electric tank [6][9]. Lifespan of 12 to 15 years with proper maintenance [2].",
+     "Con and who should skip it: it needs enough airflow, typically 700 to 1,000 cubic feet of space or ducting and louvered doors, and it cools and adds some noise to its room, so a small closet may not work [6][9].",
+     "Tell readers to check current rebate and incentive availability with their utility before buying, because terms change [6][10]."
+    ],
+    "h3": [],
+    "sources": [
+     6,
+     9,
+     2,
+     8,
+     10
+    ]
+   },
+   {
+    "h2": "4. Gas tankless water heater: best for long life and endless hot water",
+    "points": [
+     "Explain that it heats water on demand and avoids standby heat loss [1][7].",
+     "Pricing: unit $1,800 to $2,750, labor $1,500 to $3,500, total installed $3,300 to $6,250, average about $4,250, roughly 2 to 3 times a standard tank [6].",
+     "Pro: a 15 to 20 year lifespan can offset the premium over time [6][8].",
+     "Cons: it may need venting and gas-line upgrades, must be sized for your simultaneous hot water use, and a limited flow rate can struggle at peak use [9][7][8].",
+     "Who should skip it: homeowners who want the lowest upfront cost or who plan to move soon."
+    ],
+    "h3": [],
+    "sources": [
+     6,
+     8,
+     9,
+     7,
+     1
+    ]
+   },
+   {
+    "h2": "5. Electric tankless water heater: best for on-demand hot water with a strong electrical setup",
+    "points": [
+     "Pricing: unit $800 to $1,500, labor $300 to $1,200, total installed $1,100 to $2,700, average about $1,900 [6].",
+     "What it does well: on-demand hot water and a lower installed price than gas tankless [6][1].",
+     "Con: the heating elements draw substantial instantaneous power, so have a licensed electrician or plumber confirm your electrical requirements first [9][8].",
+     "Con: the limited flow rate can struggle during peak use [8].",
+     "Who should skip it: homes with a busy hot water schedule or limited electrical service."
+    ],
+    "h3": [],
+    "sources": [
+     6,
+     9,
+     8,
+     1
+    ]
+   },
+   {
+    "h2": "6. Gas power vent water heater: best for homes where venting needs more work",
+    "points": [
+     "Pricing: unit $1,750 to $3,250, labor $1,500 to $2,750, total installed $3,250 to $6,000, average about $4,500 [6].",
+     "Point out that labor is the larger share of this type's cost, which is why it sits near gas tankless in price [6].",
+     "Tell readers to ask the plumber why this type fits their venting situation before agreeing to it [7].",
+     "Who should skip it: homeowners with a straightforward gas tank swap, where a standard gas tank is the lower-priced match [6]."
+    ],
+    "h3": [],
+    "sources": [
+     6,
+     7
+    ]
+   },
+   {
+    "h2": "How to choose the right water heater replacement",
+    "points": [
+     "Match tank size to household size, since moving from a 40 to a 75 gallon tank can more than double replacement cost and oversizing can add 15 to 20% to water heating costs [6].",
+     "Use the household guide: 30 gallons for 1 to 2 people, 40 gallons for 1 to 4, 50 gallons for 3 to 5, 75 gallons for 4 to 6 [6].",
+     "Know the signs it's time: strange noises, leaks, inconsistent hot water, rust, pooling water, a leaking relief valve, or an age of 8 to 12 years for a tank [1][9].",
+     "Replace on your schedule, because waiting for a failure can add an emergency premium [7]."
+    ],
+    "h3": [
+     {
+      "title": "What a fair quote includes",
+      "points": [
+       "The unit and its capacity, labor for removal and installation, the permit and inspection where required, disposal of the old unit and any code upgrades [7].",
+       "Compare installed totals, not store prices for the unit alone [7]."
+      ]
+     },
+     {
+      "title": "Extra costs to ask about",
+      "points": [
+       "An expansion tank, new venting, gas-line resizing, electrical work, and repair of water or sediment damage [7].",
+       "Ask the plumber to list any that apply before work starts, since a surprise on the invoice often means the quote was incomplete [7]."
+      ]
+     },
+     {
+      "title": "Ways to lower the cost",
+      "points": [
+       "Right-size the unit, ask about manufacturer or utility rebates, and replace before the old unit fails [7].",
+       "Hard water can shorten a heater's life, so ask about a water softener if you have it [1][7]."
+      ]
+     }
+    ],
+    "sources": [
+     6,
+     7,
+     1,
+     9,
+     8
+    ]
+   }
+  ],
+  "entities": [
+   "Brightwater Plumbing",
+   "Austin, Texas",
+   "water heater replacement cost",
+   "installed cost",
+   "unit cost",
+   "labor cost",
+   "gas tank water heater",
+   "electric tank water heater",
+   "heat pump (hybrid) water heater",
+   "gas tankless water heater",
+   "electric tankless water heater",
+   "gas power vent water heater",
+   "standby heat loss",
+   "tank size in gallons",
+   "expansion tank",
+   "venting",
+   "gas line",
+   "permit and inspection",
+   "relief valve",
+   "sediment buildup",
+   "hard water",
+   "water softener",
+   "ENERGY STAR",
+   "utility rebates",
+   "federal 25C tax credit",
+   "written itemized quote"
+  ],
+  "gaps": [
+   "The top pages give one wide range ($500 to $3,000 on one, $2,300 to $5,800 for a tank on another) and don't explain why they differ.",
+   "No source covers Austin prices, Austin permits or Austin utility rebates, so this article must tell readers to confirm local numbers in a written quote.",
+   "Several pages quote the price of the unit alone, which hides labor, permits, disposal and code upgrades. This article uses installed totals.",
+   "Most pages list factors but never help the reader decide, so this article adds a plain way to match type to fuel, household size, space and budget.",
+   "The federal tax credit for efficient water heaters applied only to improvements through December 31, 2025, and some older pages still talk about it [10].",
+   "Few pages show running cost next to installed cost, so this article states that tank heaters cost more to run than tankless or heat pump units [8][9].",
+   "Some ranking results (Modernize, This Old House archive, Houzz) are not water heater cost pages, so the topic has few strong local answers."
+  ],
+  "faqs": [
+   {
+    "question": "How much does a water heater replacement cost?",
+    "answer": "Say it depends on type, with installed averages from about $1,500 for an electric tank to about $4,500 for a gas power vent unit [6]. Add that the prices are national, so a written Austin quote is the way to confirm your number."
+   },
+   {
+    "question": "What's the average lifespan of a water heater?",
+    "answer": "Say tank models generally last 8 to 12 years and tankless models 15 to 20 years [1][6][8]. Add that heat pump models last 12 to 15 years with proper maintenance [2]."
+   },
+   {
+    "question": "How much does it cost to install a water heater, not counting the unit?",
+    "answer": "Say labor for a tank runs $500 to $1,200, while gas tankless labor runs $1,500 to $3,500 [6]. Add that a retailer's price for the unit alone is not the real cost, so compare installed totals [7]."
+   },
+   {
+    "question": "Is a tankless water heater worth the higher cost?",
+    "answer": "Say it costs more upfront, often 2 to 3 times a standard tank, but its 15 to 20 year lifespan can offset the premium over time [6]. Add that venting and gas-line work can raise the bill and that it must be sized for your hot water use [9]."
+   },
+   {
+    "question": "Do I need a permit to replace a water heater?",
+    "answer": "Say a fair quote lists the permit and inspection where required [7]. Add that rules differ by city, so ask your plumber whether Austin requires one for your job."
+   }
+  ],
+  "internalLinks": [
+   {
+    "url": "https://brightwaterplumbing.example/pricing",
+    "anchor": "how we price our work",
+    "where": "How we picked these 6 water heater replacements"
+   },
+   {
+    "url": "https://brightwaterplumbing.example/services/water-heaters",
+    "anchor": "water heater replacement and installation",
+    "where": "1. Gas tank water heater: best for most homes with gas service"
+   },
+   {
+    "url": "https://brightwaterplumbing.example/blog/water-heater-guide",
+    "anchor": "our water heater guide",
+    "where": "How to choose the right water heater replacement"
+   },
+   {
+    "url": "https://brightwaterplumbing.example/services/emergency",
+    "anchor": "emergency plumbing help",
+    "where": "How to choose the right water heater replacement"
+   },
+   {
+    "url": "https://brightwaterplumbing.example/contact",
+    "anchor": "contact Brightwater Plumbing",
+    "where": "How to choose the right water heater replacement"
+   }
+  ],
+  "cta": {
+   "text": "Ready to plan your replacement? Contact Brightwater Plumbing, tell us your heater type, fuel and tank size, and we'll help you get a written, itemized quote.",
+   "where": "End of the article, below the last FAQ, linking to https://brightwaterplumbing.example/contact"
+  },
+  "modules": [],
+  "images": [],
+  "examples": [],
+  "checks": [],
+  "research": {
+   "sources": [
+    {
+     "n": 1,
+     "url": "https://www.benjaminfranklinplumbing.com/league-city/blog/2024/december/how-much-is-a-water-heater-replacement-costs-and-considerations/",
+     "title": "How Much Is a Water Heater Replacement: Costs and Considerations",
+     "domain": "benjaminfranklinplumbing.com",
+     "kind": "serp",
+     "position": 1,
+     "words": 2892
+    },
+    {
+     "n": 2,
+     "url": "https://www.callmattioni.com/blog/t-water-heater-cost",
+     "title": "How Much Does A Water Heater Cost? 9 Pricing Factors",
+     "domain": "callmattioni.com",
+     "kind": "serp",
+     "position": 2,
+     "words": 2550
+    },
+    {
+     "n": 3,
+     "url": "https://modernize.com/",
+     "title": "Modernize: Find the Best Home Improvement Contractors Near You",
+     "domain": "modernize.com",
+     "kind": "serp",
+     "position": 5,
+     "words": 475
+    },
+    {
+     "n": 4,
+     "url": "https://www.thisoldhouse.com/Plumbing",
+     "title": "Plumbing Archives",
+     "domain": "thisoldhouse.com",
+     "kind": "serp",
+     "position": 6,
+     "words": 589
+    },
+    {
+     "n": 5,
+     "url": "https://www.houzz.com/",
+     "title": "Houzz for Pros and Homeowners | Build and Design Software | Try Free for 30 Days",
+     "domain": "houzz.com",
+     "kind": "serp",
+     "position": 7,
+     "words": 761
+    },
+    {
+     "n": 6,
+     "url": "https://paulbunyanplumbing.com/blog/average-water-heater-replacement-cost",
+     "title": "Average Water Heater Replacement Cost, 2026",
+     "domain": "paulbunyanplumbing.com",
+     "kind": "ai",
+     "position": null,
+     "words": 1753
+    },
+    {
+     "n": 7,
+     "url": "https://www.newyorkplumbingdirectory.com/resources/water-heater-replacement-cost-new-york",
+     "title": "Water Heater Replacement Cost in New York (2026)",
+     "domain": "newyorkplumbingdirectory.com",
+     "kind": "ai",
+     "position": null,
+     "words": 688
+    },
+    {
+     "n": 8,
+     "url": "https://homeguide.com/costs/water-heater-installation-cost",
+     "title": "How Much Does Water Heater Installation or Replacement Cost? (2026)",
+     "domain": "homeguide.com",
+     "kind": "ai",
+     "position": null,
+     "words": 2750
+    },
+    {
+     "n": 9,
+     "url": "https://servhom.com/guides/nyc-water-heater-replacement-cost",
+     "title": "How Much Does Water Heater Replacement Cost in NYC?",
+     "domain": "servhom.com",
+     "kind": "ai",
+     "position": null,
+     "words": 1552
+    },
+    {
+     "n": 10,
+     "url": "https://abendplumbingandheating.com/expert-tips/water-heater-replacement-cost-in-maryland-tank-tankless-and-permit-fees",
+     "title": "Cost to Replace Water Heater in Maryland: 2026 Prices",
+     "domain": "abendplumbingandheating.com",
+     "kind": "ai",
+     "position": null,
+     "words": 3531
+    }
+   ],
+   "questions": [
+    "Does Costco sell water heaters?",
+    "What's the average lifespan of a water heater?",
+    "How much does Lowe's charge to install a hot water heater?",
+    "How much to replace a water heater control valve?"
+   ],
+   "engines": [
+    "ChatGPT",
+    "Gemini",
+    "AI Mode"
+   ],
+   "topPages": "",
+   "aiAnswers": ""
+  },
+  "model": "claude-sonnet-5-5",
+  "at": "2026-11-13T09:56:38.695Z"
+ },
+ "sections": [
+  {
+   "key": "intro",
+   "h2": "",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "If your water heater leaks, rumbles or runs out of hot water, you probably want a clear number for what a replacement will cost.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "In this guide, we walk you through six common water heater types, each with its installed price range and who it suits best. As you can see, your fuel, your household size and your space all affect which type fits, so we finish with a simple way to match them.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-0",
+   "h2": "How we picked these 6 water heater replacements",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "We picked the six water heater types that most homeowners are quoted when a heater needs replacing. Here's how we built the list and how you can read the prices that follow.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "A gas tank water heater is the most common option for homes with gas service.",
+      "An electric tank water heater is the simplest choice for homes without gas.",
+      "A heat pump (hybrid) water heater moves heat from the surrounding air into the tank.",
+      "A gas tankless water heater heats water on demand using a gas line.",
+      "An electric tankless water heater heats water on demand using electricity.",
+      "A gas power vent water heater uses a fan to push exhaust out through a vent."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Every price in this guide is a total installed cost, which means the unit plus labor. Our main source is the [2026 dataset from Paul Bunyan Plumbing](https://paulbunyanplumbing.com/blog/average-water-heater-replacement-cost), and we added other pages where they filled in a gap.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You may notice that ranges differ from page to page. That happens because [price depends on unit type, tank size, fuel source and local labor rates](https://paulbunyanplumbing.com/blog/average-water-heater-replacement-cost), and [any plumbing or electrical upgrades a retrofit needs can add to the total](https://homeguide.com/costs/water-heater-installation-cost).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You can use those ranges as a planning guide. They come from national or other-city sources, so an Austin quote can differ, and a written quote is the best way to confirm your real number. If you're curious how we build ours, here's [how we price our work](https://brightwaterplumbing.example/pricing).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "We score each type on the same four points so you can compare them side by side:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "We look at installed cost, which comes from the unit and labor together.",
+      "We look at expected lifespan, since a longer-lasting heater can offset a higher price over time.",
+      "We look at install needs, such as venting, gas lines or electrical work."
+     ],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-1",
+   "h2": "1. Gas tank water heater: best for most homes with gas service",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "A gas tank water heater is the most common and most affordable mid-range option, and it recovers quickly after you use up the hot water, according to [Paul Bunyan Plumbing's 2026 data](https://paulbunyanplumbing.com/blog/average-water-heater-replacement-cost). If your home has natural gas service, this is usually where we start the conversation.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The unit itself runs $800 to $2,850 and labor adds $500 to $1,200, which puts the total installed cost at $1,300 to $4,050, with an average near $2,000, as [that same dataset](https://paulbunyanplumbing.com/blog/average-water-heater-replacement-cost) shows.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Tank size moves the price too, since a 50 gallon gas unit typically runs $1,100 to $3,200 fully installed and is the [most common replacement](https://paulbunyanplumbing.com/blog/average-water-heater-replacement-cost). That makes it a handy number to keep in mind when you compare quotes for [water heater replacement and installation](https://brightwaterplumbing.example/services/water-heaters).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's what a gas tank does well:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "It has a lower upfront cost than tankless and heat pump models, which helps if you need a new heater soon.",
+      "The install is simpler because tank units need [fewer modifications and less labor](https://homeguide.com/costs/water-heater-installation-cost) than other types.",
+      "Maintenance stays minimal, so you won't have much to keep up with after the install."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's what to weigh against those strengths:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "The tank keeps water hot all day, which causes [standby heat loss](https://homeguide.com/costs/water-heater-installation-cost) and means higher running costs than a tankless unit."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "This type isn't the right match if your home doesn't have gas service or if you want endless hot water, because a tank can run out when several people use hot water back to back.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-2",
+   "h2": "2. Electric tank water heater: best for the lowest upfront price",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "An electric tank is a low-priced way to get hot water back in your home. [Paul Bunyan Plumbing's 2026 cost data](https://paulbunyanplumbing.com/blog/average-water-heater-replacement-cost) puts the unit at $700 to $1,800 and labor at $500 to $1,200, for a total installed cost of $1,200 to $3,000.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The average in that same dataset is about $1,500, so most homeowners land near the middle of the range. These are national figures, so a written quote from us is the best way to confirm what you'd pay in Austin.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "For a homeowner who needs hot water soon, three things stand out:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "The installed price is lower than heat pump, gas tankless or power vent models, which helps if your budget is tight.",
+      "A standard electric resistance tank has higher operating costs than a heat pump unit, so your monthly bills can run higher over time."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you're replacing an electric heater, this is a good moment to compare a heat pump model before you default to another tank. [A heat pump unit](https://servhom.com/guides/nyc-water-heater-replacement-cost) uses electricity to move heat from the surrounding air into the tank, which makes for a very different operating-cost picture, and we cover that type in the next section.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You may want to skip an electric tank if you plan to stay in your home long enough for energy savings to matter. In that case, the higher running cost can add up, and a more efficient type may cost you less over the years.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-3",
+   "h2": "3. Heat pump water heater: best for lower energy bills",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "A heat pump water heater is an electric water heater that uses electricity to [move heat from the surrounding air into the tank](https://servhom.com/guides/nyc-water-heater-replacement-cost) instead of making heat directly, which is why its operating costs look so different from a standard electric tank.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "One source puts the unit at [$1,200 to $4,800 and labor at $800 to $1,500](https://paulbunyanplumbing.com/blog/average-water-heater-replacement-cost), for a total installed cost of $2,000 to $6,300 and an average near $3,000.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's why it works for many homes, and what you should weigh before you choose one:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "It offers the highest long-term energy savings, using [roughly a third the energy of a standard electric tank](https://servhom.com/guides/nyc-water-heater-replacement-cost), according to a New York City guide from ServHom.",
+      "With proper maintenance, one plumbing company says these units typically [last 12 to 15 years](https://www.callmattioni.com/blog/t-water-heater-cost).",
+      "It needs enough airflow, which is typically [700 to 1,000 cubic feet of space](https://paulbunyanplumbing.com/blog/average-water-heater-replacement-cost) or proper ducting and louvered doors.",
+      "It cools and adds some noise to the room it sits in, so [a small enclosed closet is not always a good fit](https://servhom.com/guides/nyc-water-heater-replacement-cost)."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You may want to skip this type if your heater lives in a tight closet with little air around it, so ask your plumber whether your space is suitable before you commit.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Incentives for heat pump units have shifted recently. The [federal tax credit for efficient water heaters covered only improvements made through December 31, 2025](https://abendplumbingandheating.com/expert-tips/water-heater-replacement-cost-in-maryland-tank-tankless-and-permit-fees), and the [national dataset we use advises checking current rebate availability](https://paulbunyanplumbing.com/blog/average-water-heater-replacement-cost) because terms may change.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Honestly, none of these sources cover Austin utility rebates, so ask your utility what it offers today before you buy, and we're happy to help you plan around it.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-4",
+   "h2": "4. Gas tankless water heater: best for long life and endless hot water",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "A gas tankless water heater heats water only when you open a tap, so it has no tank of hot water sitting around losing heat. This is why [tankless units avoid standby heat loss](https://homeguide.com/costs/water-heater-installation-cost) and can give you a steady supply of hot water on demand.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "For pricing, [Paul Bunyan Plumbing's 2026 data](https://paulbunyanplumbing.com/blog/average-water-heater-replacement-cost) puts the unit at $1,800 to $2,750 and labor at $1,500 to $3,500. The total installed cost runs $3,300 to $6,250, with an average near $4,250, which is roughly 2 to 3 times the cost of a standard tank.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's why it works for some homes, and what you should weigh before you choose one:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "It may need venting and gas-line upgrades, and [HomeGuide notes that installation is more complex](https://homeguide.com/costs/water-heater-installation-cost) than for a tank.",
+      "It must be sized for your simultaneous hot water use, and [one New York guide says to confirm sizing](https://servhom.com/guides/nyc-water-heater-replacement-cost) against how much hot water your home runs at once.",
+      "A limited flow rate can [struggle to keep up during peak use](https://homeguide.com/costs/water-heater-installation-cost), which is when several taps run at the same time."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You may want to skip this type if you want the lowest upfront cost or plan to move soon, because the savings take years to add up.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you're weighing this type, ask your plumber how a tankless unit would handle your home's peak hot water use.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-5",
+   "h2": "5. Electric tankless water heater: best for on-demand hot water with a strong electrical setup",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "An electric tankless unit heats water only when you open a tap, so you get on-demand hot water without a storage tank. Paul Bunyan Plumbing's 2026 data puts the [unit cost at $800 to $1,500 and labor at $300 to $1,200](https://paulbunyanplumbing.com/blog/average-water-heater-replacement-cost), for a total installed cost of $1,100 to $2,700 and an average near $1,900.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "In that same dataset, gas tankless units average about $4,250 installed, so the electric type has the lower installed price.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's what you should weigh before you choose one:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "The heating elements draw substantial instantaneous power, so a licensed electrician or plumber should [confirm the unit's electrical requirements](https://servhom.com/guides/nyc-water-heater-replacement-cost) against your home's service before you buy.",
+      "HomeGuide lists [upgrades to gas lines, electrical wiring or ventilation](https://homeguide.com/costs/water-heater-installation-cost) as part of the more complex installation that tankless units can need.",
+      "A [restricted flow rate](https://homeguide.com/costs/water-heater-installation-cost) may struggle to provide enough hot water during peak use, such as when two showers run at once."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You may want to skip this type if your home has a busy hot water schedule or limited electrical service. Honestly, asking a licensed pro to confirm your electrical requirements before you buy can spare you a surprise on the invoice.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Does your family tend to run several hot water fixtures at the same time? If so, ask your plumber to size the unit for that demand before you agree to a quote.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-6",
+   "h2": "6. Gas power vent water heater: best for homes where venting needs more work",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "According to [Paul Bunyan Plumbing's 2026 data](https://paulbunyanplumbing.com/blog/average-water-heater-replacement-cost), the unit costs $1,750 to $3,250, and labor adds $1,500 to $2,750.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "That brings the total installed cost to $3,250 to $6,000, with an average of about $4,500.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's what you should do before you agree to this type:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Ask your plumber to explain why a power vent unit fits your venting situation.",
+      "Ask whether a standard gas tank could use your existing vent instead.",
+      "Ask for an itemized quote that lists venting work as its own line, since [a complete quote should list each part of the job](https://www.newyorkplumbingdirectory.com/resources/water-heater-replacement-cost-new-york)."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Once your plumber has seen where your heater sits and how it vents today, these questions are much easier to answer. Does your current vent have room for a standard tank, or does your space call for something different?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Honestly, you may want to skip this type if you have a straightforward gas tank swap. In that case, a standard gas tank is the lower-priced match, with [total installed costs of $1,300 to $4,050](https://paulbunyanplumbing.com/blog/average-water-heater-replacement-cost) and an average near $2,000.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-7",
+   "h2": "How to choose the right water heater replacement",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "To pick a water heater, you match tank size to your household, fuel type to your home, and price to your budget. Here's how we'd walk through it with you.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Start with size. According to [Paul Bunyan Plumbing's 2026 data](https://paulbunyanplumbing.com/blog/average-water-heater-replacement-cost), moving from a 40 gallon tank to a 75 gallon tank can more than double your total replacement cost, and oversizing can add 15 to 20% to your water heating costs because the tank keeps heating water your household never uses.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "For a tank-style heater, [this household guide](https://paulbunyanplumbing.com/blog/average-water-heater-replacement-cost) is a good starting point:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "30 gallons suits a household of 1 to 2 people.",
+      "40 gallons suits a household of 1 to 4 people.",
+      "50 gallons suits a household of 3 to 5 people.",
+      "75 gallons suits a household of 4 to 6 people."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[ServHom](https://servhom.com/guides/nyc-water-heater-replacement-cost) adds rust, pooling water and a leaking relief valve to the list of warning signs.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Luckily, the best time to replace is before the heater fails, and [New York Plumbing Directory](https://www.newyorkplumbingdirectory.com/resources/water-heater-replacement-cost-new-york) notes that replacing on your own schedule helps you avoid paying an emergency premium. If you're already dealing with a leak, we offer [emergency plumbing help](https://brightwaterplumbing.example/services/emergency), and our [water heater guide](https://brightwaterplumbing.example/blog/water-heater-guide) can help you plan ahead.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What a fair quote includes",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A complete quote should list each part of the job, according to [New York Plumbing Directory](https://www.newyorkplumbingdirectory.com/resources/water-heater-replacement-cost-new-york). Here's what to look for:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "The water heater unit and its capacity.",
+      "Labor for removing the old unit and installing the new one.",
+      "The permit and inspection where required.",
+      "Disposal of the old unit.",
+      "Any code upgrades needed to bring the install current."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Compare installed totals instead of store prices for the unit alone, because the same source points out that labor, permits, hauling and code upgrades are where quotes differ.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Extra costs to ask about",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Some line items can turn a low quote into a higher final bill, as [New York Plumbing Directory](https://www.newyorkplumbingdirectory.com/resources/water-heater-replacement-cost-new-york) explains. Ask whether any of these apply to your home:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "An expansion tank.",
+      "New venting for the unit.",
+      "Gas-line resizing for a higher-demand heater.",
+      "Electrical work for an electric or hybrid unit.",
+      "Repair of water or sediment damage from the old unit."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Ask your plumber to list any that apply before work starts, since a surprise on the invoice often means the quote was incomplete.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Ways to lower the cost",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Right-size the unit to your household so you aren't paying to heat water you never use.",
+      "Ask your plumber about manufacturer or utility rebates, which [New York Plumbing Directory](https://www.newyorkplumbingdirectory.com/resources/water-heater-replacement-cost-new-york) lists as a way to save.",
+      "Replace the old unit before it fails so you avoid an emergency premium."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Hard water can also shorten a heater's life, so ask about a water softener if you have hard water, as [Benjamin Franklin Plumbing](https://www.benjaminfranklinplumbing.com/league-city/blog/2024/december/how-much-is-a-water-heater-replacement-costs-and-considerations/) suggests.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Ready to plan your replacement? [Contact Brightwater Plumbing](https://brightwaterplumbing.example/contact), tell us your heater type, fuel and tank size, and we'll help you get a written, itemized quote.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "faq",
+   "h2": "Frequently asked questions",
+   "blocks": [
+    {
+     "type": "h3",
+     "text": "How much does a water heater replacement cost?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Those prices are national, so a written Austin quote is the best way to confirm your number.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What's the average lifespan of a water heater?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Tank models generally last 8 to 12 years, and tankless models can last 15 to 20 years, as [HomeGuide](https://homeguide.com/costs/water-heater-installation-cost) explains. [Mattioni](https://www.callmattioni.com/blog/t-water-heater-cost) notes that heat pump models typically last 12 to 15 years with proper maintenance.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "How much does it cost to install a water heater, not counting the unit?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Labor for a tank runs $500 to $1,200, while gas tankless labor runs $1,500 to $3,500, based on [Paul Bunyan Plumbing's labor figures](https://paulbunyanplumbing.com/blog/average-water-heater-replacement-cost). A store price for the unit alone is not the real cost, so [New York Plumbing Directory](https://www.newyorkplumbingdirectory.com/resources/water-heater-replacement-cost-new-york) suggests comparing installed totals.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Is a tankless water heater worth the higher cost?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A tankless unit often costs 2 to 3 times as much as a standard tank, but its 15 to 20 year lifespan can offset that premium over time, as [Paul Bunyan Plumbing](https://paulbunyanplumbing.com/blog/average-water-heater-replacement-cost) points out.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Venting and gas-line work can raise the bill, and [Servhom](https://servhom.com/guides/nyc-water-heater-replacement-cost) says the unit must be sized for how much hot water you use at the same time.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Do I need a permit to replace a water heater?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A fair quote lists the permit and inspection where required, as [New York Plumbing Directory](https://www.newyorkplumbingdirectory.com/resources/water-heater-replacement-cost-new-york) explains. We suggest asking your plumber whether your job needs a permit in Austin, and having that listed in your written quote.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  }
+ ],
+ "cut": [
+  {
+   "id": "0.0.1",
+   "why": "The $600 to $3,100 range appears in the HomeGuide source, but for a tank in general. The $1,300 to $4,050 gas tank figure is from the Paul Bunyan source, not HomeGuide, and the link is attached to the wrong claim."
+  },
+  {
+   "id": "1.6.i3",
+   "why": "HomeGuide is cited for tank heaters costing more to run than tankless or heat pump units, but the HomeGuide source only compares tank and tankless, not heat pump."
+  },
+  {
+   "id": "2.6.i1",
+   "why": "The 8 to 12 year lifespan is cited to New York Plumbing Directory, but that source gives it for tanks generally. It is a different page, though the claim is broadly supported; the citation is also contextually stretched to gas tanks."
+  },
+  {
+   "id": "3.2.0",
+   "why": "The cheap-to-install claim comes from the ServHom source, but it is cited as 'one plumbing directory' linking to ServHom, which discusses NYC electric tanks. Fine, but 3.3.i0 claims it is cheaper than heat pump, gas tankless or power vent models, which is supported only partly by the table; the 'usu"
+  },
+  {
+   "id": "3.3.i1",
+   "why": "The claim that a like-for-like electric swap needs fewer changes than other types is not stated in any source."
+  },
+  {
+   "id": "5.3.i0",
+   "why": "HomeGuide lists a 15 to 20 year tankless lifespan, but the sentence attributes both the offset claim and HomeGuide's lifespan to separate links accurately; however the Paul Bunyan source is fine. Kept low risk. The unsupported part is none."
+  },
+  {
+   "id": "5.4.1",
+   "why": "Attributes 'Plumbers recommend asking for itemized quotes' to New York Plumbing Directory, which says to compare itemized quotes but not that venting and gas-line work show up; the specific recommendation is overstated."
+  },
+  {
+   "id": "8.4.0",
+   "why": "Benjamin Franklin Plumbing source lists strange noises, leaks and inconsistent hot water and 8 to 12 years, which is supported. No issue."
+  },
+  {
+   "id": "7.0.0",
+   "why": "Describing a gas power vent water heater as a tank-style heater built for homes where venting takes more work is not stated in any source; the sources give only pricing for this type."
+  },
+  {
+   "id": "7.1.1",
+   "why": "Claim that labor is the larger share of power vent cost is not supported: labor $1,500 to $2,750 versus unit $1,750 to $3,250 shows the unit is the larger share."
+  },
+  {
+   "id": "6.1.1",
+   "why": "HomeGuide's statement about tankless heating water only when necessary is supported, but the sentence frames it as an electric-specific point; minor. Low risk."
+  },
+  {
+   "id": "9.1.0",
+   "why": "Says installed averages run from about $1,500 for an electric tank to about $4,500 for a gas power vent unit; supported by Paul Bunyan table. No issue."
+  },
+  {
+   "id": "4.1.1",
+   "why": "HomeGuide lists the hybrid heat pump installed at $2,000 to $4,600, supported. No issue."
+  }
+ ],
+ "styleLeft": [
+  {
+   "id": "6.4.1",
+   "rule": "adverbs",
+   "before": "\"honestly\" used twice",
+   "after": null
+  },
+  {
+   "id": "7.5.0",
+   "rule": "adverbs",
+   "before": "\"honestly\" used twice",
+   "after": null
+  },
+  {
+   "id": "8.1.0",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "8.17.0",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  }
+ ],
+ "modules": []
+}

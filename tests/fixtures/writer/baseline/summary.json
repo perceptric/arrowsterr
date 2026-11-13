@@ -1,0 +1,83 @@
+{
+ "model": "claude-sonnet-5-5",
+ "at": "2026-11-13",
+ "articles": 20,
+ "wordsAvg": 2398,
+ "lintPerArticle": 4.6,
+ "unsourcedNumbers": 3,
+ "checkedNumbers": 248,
+ "strayLinks": 0,
+ "imagesAvg": 3.4,
+ "modulesAvg": 0.6,
+ "lintRules": {
+  "sentences": 59,
+  "adverbs": 26,
+  "dashes": 1,
+  "paragraphs": 5
+ },
+ "modulesPlanned": 15,
+ "modulesBuilt": 11,
+ "imagesPlannedAvg": 3.4,
+ "usage": {
+  "calls": 474,
+  "input": 1066785,
+  "cacheRead": 17817038,
+  "cacheWrite": 3036428,
+  "output": 688712
+ },
+ "costTotal": 20.18,
+ "costPerArticle": 1.01,
+ "secondsAvg": 248,
+ "byKind": {
+  "saas": {
+   "articles": 4,
+   "wordsAvg": 2511,
+   "lintPerArticle": 3.8,
+   "unsourcedNumbers": 2,
+   "checkedNumbers": 27,
+   "strayLinks": 0,
+   "imagesAvg": 5,
+   "modulesAvg": 0.8
+  },
+  "store": {
+   "articles": 4,
+   "wordsAvg": 2518,
+   "lintPerArticle": 5.8,
+   "unsourcedNumbers": 1,
+   "checkedNumbers": 64,
+   "strayLinks": 0,
+   "imagesAvg": 1.5,
+   "modulesAvg": 0.5
+  },
+  "agency": {
+   "articles": 4,
+   "wordsAvg": 2588,
+   "lintPerArticle": 3.3,
+   "unsourcedNumbers": 0,
+   "checkedNumbers": 14,
+   "strayLinks": 0,
+   "imagesAvg": 3,
+   "modulesAvg": 0.3
+  },
+  "local": {
+   "articles": 4,
+   "wordsAvg": 2210,
+   "lintPerArticle": 6.8,
+   "unsourcedNumbers": 0,
+   "checkedNumbers": 86,
+   "strayLinks": 0,
+   "imagesAvg": 2.8,
+   "modulesAvg": 0.5
+  },
+  "publisher": {
+   "articles": 4,
+   "wordsAvg": 2161,
+   "lintPerArticle": 3.3,
+   "unsourcedNumbers": 0,
+   "checkedNumbers": 57,
+   "strayLinks": 0,
+   "imagesAvg": 4.5,
+   "modulesAvg": 0.8
+  }
+ }
+}
