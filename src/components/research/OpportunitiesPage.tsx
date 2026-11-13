@@ -193,7 +193,7 @@ export function OpportunitiesPage({ sb, auth, site, canEdit, refresh, onDrafts }
   ) : null;
   const head = (
     <header className="flex flex-wrap items-center justify-between gap-3">
-      <h1 className="aw-h2 mb-0!">Opportunities</h1>
+      <h1 className="aw-h2 mb-0!">Content Opportunities</h1>
       {items.length ? (
         <span className="flex flex-wrap items-center gap-3">
           {lastDone ? <span className="text-[13px] text-muted">Found {short(new Date(lastDone.created_at))}</span> : null}

@@ -1,12 +1,11 @@
 "use client";
 
-import { EmptyNote } from "./Drawing";
 import { useEffect, useState } from "react";
 import { CMS, type CmsConnection, type CmsKind } from "@/lib/cmsTypes";
 import type { RunAuth } from "@/lib/runner";
 import { ConnectWizard } from "./ConnectWizard";
 import { CmsLogo } from "./CmsLogo";
-import { Dropdown, Pop, useAnchoredPop } from "./Pickers";
+import { Dropdown } from "./Pickers";
 import { Confirm } from "./reports/Dialog";
 import { post } from "./research/shared";
 
@@ -22,7 +21,6 @@ export function CmsSettings({ auth, isAdmin, brand, brands }: { auth: RunAuth; i
   const [error, setError] = useState("");
   const [done, setDone] = useState("");
   const [removing, setRemoving] = useState<CmsConnection | null>(null);
-  const menu = useAnchoredPop();
 
   useEffect(() => {
     let live = true;
@@ -83,7 +81,7 @@ export function CmsSettings({ auth, isAdmin, brand, brands }: { auth: RunAuth; i
   }
 
   return (
-    <section className="flex flex-col gap-3">
+    <section className="flex flex-col gap-6">
       {setup ? <div className="aw-callout max-w-2xl">{setup}</div> : null}
       {notice && isAdmin ? (
         <div className="aw-callout flex max-w-2xl items-start justify-between gap-3">
@@ -97,75 +95,68 @@ export function CmsSettings({ auth, isAdmin, brand, brands }: { auth: RunAuth; i
       {done ? <div className="aw-callout max-w-2xl">{done}</div> : null}
 
       {list?.length ? (
-        <ul className="aw-frame flex max-w-2xl flex-col divide-y divide-rule-faint">
-          {list.map((c) => (
-            <li key={c.id} className="flex items-center justify-between gap-3 px-5 py-3">
-              <span className="flex min-w-0 items-center gap-3">
-                <CmsLogo kind={c.kind} size={44} />
-                <span className="flex min-w-0 flex-col">
-                  <span className="text-[15px] text-ink">{c.name}</span>
-                  <span className="text-[12px] text-muted">{CMS.find((x) => x.id === c.kind)?.label}</span>
-                </span>
-              </span>
-              {isAdmin ? (
-                <span className="flex items-center gap-3">
-                  {brands.length > 1 ? (
-                    <Dropdown label="Brand" value={brand.id} onChange={(to) => move(c, to)} className="aw-dropdown--sm" options={brands.map((b) => ({ id: b.id, label: b.name }))} />
-                  ) : null}
-                  <button type="button" className="aw-text-link text-[13px] text-neg!" onClick={() => setRemoving(c)}>
-                    Disconnect
-                  </button>
-                </span>
-              ) : null}
-            </li>
-          ))}
-        </ul>
-      ) : list && !setup ? (
-        <EmptyNote drawing="plug">Connect a site to publish {brand.name}&apos;s drafts to WordPress, Webflow, Framer and more.</EmptyNote>
+        <section className="flex flex-col gap-3">
+          <h2 className="aw-int-head">Connected</h2>
+          <ul className="aw-int-grid">
+            {list.map((c) => (
+              <li key={c.id} className="aw-int-card">
+                <div className="flex items-start justify-between gap-3">
+                  <CmsLogo kind={c.kind} size={48} />
+                  <span className="aw-status aw-status--ranked">Connected</span>
+                </div>
+                <div className="flex min-w-0 flex-col gap-0.5">
+                  <span className="text-[15px] font-medium text-ink wrap-anywhere">{c.name}</span>
+                  <span className="text-[13px] text-muted">{CMS.find((x) => x.id === c.kind)?.label}</span>
+                </div>
+                {isAdmin ? (
+                  <div className="mt-auto flex flex-wrap items-center gap-2 pt-1">
+                    {brands.length > 1 ? (
+                      <Dropdown label="Brand" value={brand.id} onChange={(to) => move(c, to)} className="aw-dropdown--sm" options={brands.map((b) => ({ id: b.id, label: b.name }))} />
+                    ) : null}
+                    <button type="button" className="aw-btn aw-btn--ghost aw-btn--sm text-neg!" onClick={() => setRemoving(c)}>
+                      Disconnect
+                    </button>
+                  </div>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </section>
       ) : null}
+
       {list?.some((c) => c.kind === "wordpress") || kind === "wordpress" ? (
-        <div className="aw-callout flex max-w-2xl flex-col gap-2 text-[14px]">
-          <span className="font-medium text-ink">Arrowsterr Connector for WordPress (1.1)</span>
-          <span>
-            Install it so articles publish with their interactive modules and SEO titles, and Zippie can set meta descriptions and structured data. It works with Yoast SEO and Rank Math. In WordPress, open Plugins → Add New → Upload Plugin, pick the file, then Activate. To update, upload the new file and choose Replace current with uploaded.
+        <div className="aw-int-note">
+          <CmsLogo kind="wordpress" size={36} />
+          <span className="flex-1 text-[14px] text-body">
+            <span className="font-medium text-ink">Arrowsterr Connector for WordPress (1.1)</span> carries interactive modules, SEO titles and structured data. Works with Yoast SEO and Rank Math.
           </span>
-          <a href="/downloads/arrowsterr-connector.zip" download className="aw-btn aw-btn--secondary aw-btn--sm self-start">
+          <a href="/downloads/arrowsterr-connector.zip" download className="aw-btn aw-btn--secondary aw-btn--sm">
             Download the plugin
           </a>
         </div>
       ) : null}
 
-      {isAdmin && !setup ? (
-        <div>
-          <button type="button" className="aw-btn aw-btn--primary inline-flex items-center gap-2" aria-haspopup="menu" aria-expanded={Boolean(menu.anchor)} onClick={(e) => menu.toggle(e.currentTarget)}>
-            Add a site
-            <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true">
-              <path d="M6 9h12l-6 7z" />
-            </svg>
-          </button>
-          {menu.anchor ? (
-            <Pop anchor={menu.anchor} onClose={menu.close} width={320} label="Add a site">
-              <div className="flex flex-col p-1.5" role="menu">
-                {CMS.map((c) => (
-                  <button
-                    key={c.id}
-                    type="button"
-                    role="menuitem"
-                    className="aw-cms-option"
-                    onClick={() => {
-                      setKind(c.id);
-                      menu.close();
-                    }}
-                  >
-                    <CmsLogo kind={c.id} size={44} />
-                    <span className="flex-1 text-left">{c.label}</span>
-                    {list?.some((x) => x.kind === c.id) ? <span className="aw-status aw-status--ranked">Connected</span> : null}
+      {!setup ? (
+        <section className="flex flex-col gap-3">
+          <h2 className="aw-int-head">{list?.length ? "Add another" : "Connect where you publish"}</h2>
+          <ul className="aw-int-grid">
+            {CMS.map((c) => {
+              const count = list?.filter((x) => x.kind === c.id).length ?? 0;
+              return (
+                <li key={c.id} className="aw-int-card aw-int-card--add">
+                  <div className="flex items-start justify-between gap-3">
+                    <CmsLogo kind={c.id} size={48} />
+                    {count ? <span className="text-[12px] text-muted">{count} connected</span> : null}
+                  </div>
+                  <span className="text-[15px] font-medium text-ink">{c.label}</span>
+                  <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm mt-auto self-start" disabled={!isAdmin} title={isAdmin ? undefined : "Admins connect sites"} onClick={() => setKind(c.id)}>
+                    Connect
                   </button>
-                ))}
-              </div>
-            </Pop>
-          ) : null}
-        </div>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
       ) : null}
 
       {kind ? (

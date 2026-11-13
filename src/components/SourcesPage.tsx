@@ -12,8 +12,6 @@ import {
   competitorDomains,
   domainRows,
   pageKey,
-  promptRows,
-  rankOf,
   typeShares,
   urlGroups,
   urlRows,
@@ -27,12 +25,11 @@ import { isAnswered, type Run } from "@/lib/chats";
 import type { View } from "@/lib/view";
 import type { Scope } from "./research/DomainResearch";
 import { BrandLogo } from "./BrandLogo";
-import { StopButton, stopped } from "./research/shared";
 import { ENGINE_LOGOS, EngineName } from "./Engines";
 import { Markdown } from "./Markdown";
 import { cleanAnswer } from "@/lib/answerText";
 import { homeOf, hostOf, isGenericTitle, nameFromTitle, siteName } from "@/lib/linkTitles";
-import { Card, favicon, pct, Seg, SidePanel, sortRows, SortTh, Tip, TIPS, useSort } from "./ui";
+import { favicon, pct, Seg, SidePanel, sortRows, SortTh, Tip, TIPS, useSort } from "./ui";
 
 export const TYPE_COLORS: Record<SourceType, string> = {
   You: "#0943B0",
@@ -53,20 +50,6 @@ export function TypeTag({ type }: { type: SourceType }) {
   );
 }
 
-type Insights = {
-  summary: string;
-  actions: { title: string; why: string; how: string }[];
-  pages: { url: string; verdict: "strong" | "okay" | "weak"; note: string }[];
-  at: string;
-};
-
-const readCache = (key: string): Insights | null => {
-  try {
-    return JSON.parse(localStorage.getItem(key) ?? "null");
-  } catch {
-    return null;
-  }
-};
 const pageTitle = (title: string | null, url: string) => {
   if (title) return cleanTitle(title);
   try {
@@ -127,7 +110,6 @@ const pathOnly = (u: string) => {
     return u.toLowerCase();
   }
 };
-const VERDICT: Record<string, string> = { strong: "aw-status--ranked", okay: "aw-status--pending", weak: "aw-status--missed" };
 
 type Group = "owned" | "third" | "reviews";
 const GROUPS: { id: Group; label: string; color: string; help: string }[] = [
@@ -143,7 +125,7 @@ type AiPages = { pages: { path: string; visits: number; engines: Record<string, 
 const TOP = 20; // rows in the list before "Open all"
 
 export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseClient; view: View; auth: RunAuth | null; reader: RunAuth; onSeo: (target: string, scope: Scope) => void }) {
-  const { brand, current, filter, days, topics, engines } = view;
+  const { brand, current, filter, days, topics } = view;
   const [group, setGroup] = useState<Group>("third");
   const [list, setList] = useState<"sites" | "links">("links");
   const [focus, setFocus] = useState<string | null>(null);
@@ -177,11 +159,6 @@ export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseCli
     const path = pathOnly(url);
     return aiPages.pages.filter((p) => pathOnly(p.path) === path).reduce((n, p) => n + p.visits, 0);
   };
-  const cacheKey = `arrowsterr.insights.${brand.id}.${days}`;
-  const [insights, setInsights] = useState<Insights | null>(() => readCache(cacheKey));
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const [analyzing, setAnalyzing] = useState<AbortController | null>(null);
 
   const chats = answered(current, filter);
   if (!chats.length)
@@ -206,59 +183,11 @@ export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseCli
   const sites = urlGroups(urls, domains).filter((g) => groupOf(g.type) === group && (!focus || g.domain === focus));
   const links = urls.filter((u) => groupOf(u.type) === group && (!focus || u.domain === focus));
   const boxes = treemap(inGroup.slice(0, 30), (d) => d.chats);
-  const notes = new Map((insights?.pages ?? []).map((p) => [pageKey(p.url), p]));
   const pickGroup = (g: Group) => {
     setGroup(g);
     setFocus(null);
   };
 
-  async function analyze() {
-    if (!auth) return;
-    const ctl = new AbortController();
-    setAnalyzing(ctl);
-    setBusy(true);
-    setError("");
-    try {
-      const me = stats.find((s) => s.isYou)!;
-      const missed = promptRows(current, topics, engines, brand.name, filter)
-        .filter((r) => r.answers && !r.visibility)
-        .slice(0, 8)
-        .map((r) => ({ prompt: r.prompt, namedInstead: r.topBrands.slice(0, 4).map((b) => b.name) }));
-      const data = {
-        days,
-        scores: {
-          visibility: Math.round(me.visibility),
-          sentiment: me.sentiment === null ? null : Math.round(me.sentiment),
-          position: me.position === null ? null : Number(me.position.toFixed(1)),
-          visibilityRank: rankOf(stats, "visibility"),
-          topCompetitors: stats.filter((s) => !s.isYou).slice(0, 5).map((s) => ({ name: s.name, visibility: Math.round(s.visibility) })),
-        },
-        siteTypes: Object.fromEntries(shares.map((s) => [s.type, Math.round(s.share)])),
-        topSites: domains.slice(0, 12).map((d) => ({ domain: d.domain, type: d.type, used: Math.round(d.used) })),
-        ownPages: urls.filter((u) => u.type === "You").slice(0, 10).map((u) => ({ title: u.title, url: u.url, used: Math.round(u.used), prompts: u.prompts.length })),
-        competitorPages: urls.filter((u) => u.type === "Competitor").slice(0, 8).map((u) => ({ title: u.title, url: u.url, used: Math.round(u.used) })),
-        missedPrompts: missed,
-      };
-      const res = await fetch("/api/insights", {
-        method: "POST",
-        signal: ctl.signal,
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${await auth.token()}` },
-        body: JSON.stringify({ workspaceId: auth.workspaceId, brand: brand.name, domain: brand.domain, data }),
-      });
-      const out = await res.json().catch(() => ({ error: `The server returned ${res.status}.` }));
-      if (!res.ok) throw new Error(out.error || `Error ${res.status}`);
-      setInsights(out);
-      try {
-        localStorage.setItem(cacheKey, JSON.stringify(out));
-      } catch {
-        // Storage blocked. The summary still shows until the page reloads.
-      }
-    } catch (e) {
-      if (!stopped(e)) setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setBusy(false);
-    }
-  }
 
   const toggle = (set: Set<string>, key: string) => (set.has(key) ? new Set([...set].filter((x) => x !== key)) : new Set([...set, key]));
   const total = list === "sites" ? sites.length : Math.min(links.length, 300);
@@ -332,7 +261,7 @@ export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseCli
                       {isOpen
                         ? [...g.pages]
                             .sort((x, y) => y.chats - x.chats)
-                            .map((u) => <LinkRow key={u.url} u={u} note={notes.get(pageKey(u.url))} indent onOpen={() => setDeep(u)} />)
+                            .map((u) => <LinkRow key={u.url} u={u} indent onOpen={() => setDeep(u)} />)
                         : null}
                     </Fragment>
                   );
@@ -366,7 +295,7 @@ export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseCli
                 {sortRows(links.slice(0, 300), linkSort, { title: (u) => shownTitle(u.title, u.url, fetched, names), used: (u) => u.used, chats: (u) => u.chats, prompts: (u) => u.prompts.length })
                   .slice(0, max)
                   .map((u, i) => (
-                  <LinkRow key={u.url} u={u} n={i + 1} note={notes.get(pageKey(u.url))} ai={aiPages && group === "owned" ? aiVisitsOf(u.url) : undefined} onOpen={() => setDeep(u)} />
+                  <LinkRow key={u.url} u={u} n={i + 1} ai={aiPages && group === "owned" ? aiVisitsOf(u.url) : undefined} onOpen={() => setDeep(u)} />
                 ))}
               </tbody>
             </table>
@@ -521,43 +450,7 @@ export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseCli
 
       {deep ? <LinkPanel sb={sb} brandId={brand.id} aiVisits={deep.type === "You" ? aiVisitsOf(deep.url) : null} u={deep} runs={current} filter={filter} topics={topics} days={days} onSeo={onSeo} onClose={() => setDeep(null)} /> : null}
 
-      <Card
-        title="Executive summary"
-        action={
-          auth ? (
-            <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={analyze} disabled={busy}>
-              {busy ? "Analyzing..." : insights ? "Refresh" : "Analyze"}
-            </button>
-          ) : null
-        }
-      >
-        <div className="flex flex-col gap-4 p-5">
-          {error ? <p className="aw-error">{error}</p> : null}
-          {busy ? (
-            <span className="flex items-center gap-3 text-[14px] text-ink">
-              Reading your sources...
-              <StopButton onStop={() => analyzing?.abort()} />
-            </span>
-          ) : insights ? (
-            <>
-              <p className="text-[14px] leading-relaxed text-body">{insights.summary}</p>
-              <ol className="grid gap-4 lg:grid-cols-3">
-                {insights.actions.map((a, i) => (
-                  <li key={a.title} className="flex gap-3">
-                    <span className="aw-num flex h-6 w-6 shrink-0 items-center justify-center border border-rule text-[12px] text-ink">{i + 1}</span>
-                    <span className="flex flex-col gap-1">
-                      <span className="text-[14px] font-medium text-ink">{a.title}</span>
-                      <span className="text-[13px] text-muted">{a.why}</span>
-                      <span className="text-[13px] text-body">{a.how}</span>
-                    </span>
-                  </li>
-                ))}
-              </ol>
-              <span className="aw-label">Made {new Date(insights.at).toLocaleString()}</span>
-            </>
-          ) : null}
-        </div>
-      </Card>
+
     </div>
     </NamesCtx.Provider>
     </TitlesCtx.Provider>
@@ -565,7 +458,7 @@ export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseCli
 }
 
 /** One cited link: title, address, share of answers and prompts. */
-function LinkRow({ u, n, note, indent = false, ai, onOpen }: { u: UrlRow; n?: number; note?: Insights["pages"][number]; indent?: boolean; ai?: number | null; onOpen: () => void }) {
+function LinkRow({ u, n, indent = false, ai, onOpen }: { u: UrlRow; n?: number; indent?: boolean; ai?: number | null; onOpen: () => void }) {
   const fetched = useContext(TitlesCtx);
   const names = useContext(NamesCtx);
   return (
@@ -580,12 +473,6 @@ function LinkRow({ u, n, note, indent = false, ai, onOpen }: { u: UrlRow; n?: nu
             {!indent ? <BrandLogo src={favicon(u.domain)} name={u.domain} size={12} /> : null}
             <span className="max-w-xl truncate">{u.url.replace(/^https?:\/\/(www\.)?/, "")}</span>
           </span>
-          {note ? (
-            <span className="flex items-start gap-2 text-[13px] text-body">
-              <span className={`aw-status ${VERDICT[note.verdict]}`}>{note.verdict}</span>
-              <span className="pt-0.5">{note.note}</span>
-            </span>
-          ) : null}
         </span>
       </td>
       <td className="aw-num">{pct(u.used)}</td>

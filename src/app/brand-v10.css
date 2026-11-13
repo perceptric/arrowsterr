@@ -364,3 +364,10 @@ html, body { background: var(--v10-canvas) !important; }
 :root :is(.aw, #calm) .aw-cms-logo img { display: block; object-fit: contain; }
 :root :is(.aw, #calm) .aw-cms-option { display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px 10px; border-radius: 8px; font-size: 14px; font-weight: 500; color: var(--v10-ink); cursor: pointer; }
 :root :is(.aw, #calm) .aw-cms-option:hover, :root :is(.aw, #calm) .aw-cms-option:focus-visible { background: var(--v10-soft); outline: none; }
+
+/* ─────────────── Publish › Integrations ─────────────── */
+:root :is(.aw, #calm) .aw-int-head { font-size: 13px; font-weight: 600; color: var(--v10-muted); }
+:root :is(.aw, #calm) .aw-int-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+:root :is(.aw, #calm) .aw-int-card { display: flex; flex-direction: column; gap: 12px; min-height: 164px; padding: 16px; border-radius: 12px; background: var(--v10-card); border: 1px solid var(--v10-border); }
+:root :is(.aw, #calm) .aw-int-card--add:hover { border-color: var(--v10-border-strong); }
+:root :is(.aw, #calm) .aw-int-note { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; background: var(--v10-soft); }
