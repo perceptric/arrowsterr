@@ -79,7 +79,7 @@ export async function buildClientReport(input: BuildInput): Promise<Built> {
     on.has("visitors") || on.has("content") ? soft(brandVisitors(db, brand.id, cur)) : Promise.resolve(null),
     on.has("content") ? soft(calendarFor(db, brand)) : Promise.resolve(null),
   ]);
-  // Content Map and Local Research were removed: new reports have no SEO block.
+  // The SEO tools were removed: new reports have no SEO block.
   const seo = null;
   const t = Date.parse;
   const current = runs.filter((r) => t(r.at) >= cur.startAt);

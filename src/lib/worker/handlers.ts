@@ -296,28 +296,14 @@ export async function plan(db: SupabaseClient, job: Job) {
 }
 
 // ─────────────── Zippie: change sets ───────────────
-// Technical SEO was removed (Site Audit, On-page Audit, Indexing, Speed): its jobs still in the queue just finish.
-export async function audit(_db: SupabaseClient, job: Job) {
-  await finish(job.id);
-}
 
-// Local Research, Perception and Content Map were removed: their jobs still in the queue just finish.
+// Perception was removed: its jobs still in the queue just finish.
 const retired = async (_db: SupabaseClient, job: Job) => finish(job.id);
-export const local_fetch = retired;
-export const local_profile = retired;
-export const local_reviews = retired;
-export const local_ai = retired;
-export const local_alert = retired;
-export const content_map = retired;
 export const perception = retired;
 export const perception_probe = retired;
 
 // Link Building was removed: link checks still in the queue just finish.
 export async function link_check(_db: SupabaseClient, job: Job) {
-  await finish(job.id);
-}
-
-export async function onpage(_db: SupabaseClient, job: Job) {
   await finish(job.id);
 }
 
@@ -426,13 +412,6 @@ export async function clean_brands(db: SupabaseClient, job: Job) {
   await finish(job.id);
 }
 
-export async function gsc_sync(_db: SupabaseClient, job: Job) {
-  await finish(job.id);
-}
-
-export async function cwv_sync(_db: SupabaseClient, job: Job) {
-  await finish(job.id);
-}
 
 // ─────────────── AI Shopping: which brands get it, and each catalog's daily sync (shopServer.ts) ───────────────
 export { shopDetectJob as shop_detect, shopCatalogSyncJob as shop_catalog_sync } from "../shopServer";

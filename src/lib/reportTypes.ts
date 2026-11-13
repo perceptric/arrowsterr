@@ -53,7 +53,7 @@ export type ReportSnapshot = {
   traffic: { visits: number; visitsBefore: number | null; ai: number; aiBefore: number | null; byEngine: { engine: string; visits: number; prev: number | null }[] } | null; // before: null with no comparison
   visitors: { total: number; hot: number; actions: number; top: { name: string; emoji: string; score: number; label: string; source: string }[] } | null;
   content: { published: number; writing: number; briefs: number; planned: number; pages: ContentRow[] } | null;
-  /** The content map and Google Maps (older reports also carry site health, on-page and backlinks). Missing on reports made before it. */
+  /** Backlinks and links won, on reports made before those tools were removed. New reports have none. */
   seo?: SeoSnapshot | null;
   wins: { text: string; change: number; unit: string; area: string }[];
   drops: { text: string; change: number; unit: string; area: string }[];

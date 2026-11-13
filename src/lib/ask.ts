@@ -23,7 +23,6 @@ export type AskEvent =
   | { type: "tool"; name: string; label: string }
   | { type: "tool_done"; name: string; ok: boolean }
   | { type: "changeset"; id: string; title: string }
-  | { type: "audit"; id: string }
   | { type: "setup"; id: string }
   | { type: "done" }
   | { type: "error"; error: string };
