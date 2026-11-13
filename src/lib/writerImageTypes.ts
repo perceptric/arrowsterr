@@ -4,15 +4,6 @@
 /** What an image is. Screenshots are taken of a real page; the others are drawn from a spec in the Brand Kit. */
 export const IMAGE_KINDS = ["featured", "screenshot", "chart", "steps", "comparison", "checklist", "anatomy"] as const;
 export type ImageKind = (typeof IMAGE_KINDS)[number];
-export const IMAGE_KIND_LABEL: Record<ImageKind, string> = {
-  featured: "Featured image",
-  screenshot: "Screenshot",
-  chart: "Chart",
-  steps: "Steps",
-  comparison: "Comparison",
-  checklist: "Checklist",
-  anatomy: "Anatomy",
-};
 
 /**
  * Where the brief says an image helps: the H2 it goes under ("intro" for the intro), what it shows and its alt text.

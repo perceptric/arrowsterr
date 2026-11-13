@@ -1,7 +1,4 @@
-// AI Shopping: the brand's catalog (docs/ai-shopping-plan.md, section 3). Pure, no network, so tests run it.
-// Shopify, Google Merchant Center and CSV files all become the same product rows, with variants folded in.
 
-export type CatalogSource = "shopify" | "merchant" | "csv";
 
 /** One sellable version of a product (a size or color), as a source gives it. */
 export type SourceVariant = { sku?: string | null; gtin?: string | null; mpn?: string | null; price?: number | null; currency?: string | null; inStock?: boolean | null };

@@ -92,9 +92,6 @@ html, body { background: var(--bg-primary) !important; }
 :root .aw .aw-text-link, :root .aw a.aw-text-link:is(:link, :visited) { color: var(--text-primary) !important; text-decoration: underline !important; text-underline-offset: 3px; text-decoration-thickness: 1px; }
 
 /* Section labels: Inter, in brackets. */
-:root .aw .aw-nav-section { font-family: var(--font-sans) !important; font-size: 12px !important; font-weight: 500 !important; color: var(--text-tertiary) !important; }
-:root .aw .aw-nav-section > :first-child::before, :root .aw .aw-nav-section:not(:has(> *))::before { content: "[ "; }
-:root .aw .aw-nav-section > :first-child::after, :root .aw .aw-nav-section:not(:has(> *))::after { content: " ]"; }
 
 /* ─────────────── 4. App shell ───────────────
    White edge to edge. A black rule splits the sidebar from the page; the
@@ -196,7 +193,7 @@ html, body { background: var(--bg-primary) !important; }
   background: var(--bg-primary) !important; border: 1px solid var(--frame) !important;
 }
 :root .aw .aw-frame .aw-table-wrap, :root .aw .aw-frame .aw-frame { border-color: var(--border-medium) !important; }
-:root .aw .aw-frame__body--flush .aw-table-wrap, :root .aw .aw-frame > .aw-table-wrap { border: 0 !important; }
+:root .aw .aw-frame > .aw-table-wrap { border: 0 !important; }
 :root .aw .aw-frame__head {
   min-height: 44px; background: var(--bg-primary) !important; border-bottom: 1px solid var(--border-medium) !important;
   font-size: 13px !important; font-weight: 600 !important; color: var(--text-primary) !important;
@@ -247,9 +244,6 @@ html, body { background: var(--bg-primary) !important; }
 
 /* ─────────────── 11. Tool intros ───────────────
    The first screen of a tool: plain white cards in a black frame. */
-:root .aw .aw-intro__card { padding: 0 !important; background: var(--bg-primary) !important; border: 1px solid var(--frame) !important; }
-:root .aw .aw-intro__vis { min-height: 156px; background: var(--bg-primary) !important; border: 0 !important; border-bottom: 1px solid var(--border-medium) !important; }
-:root .aw .aw-intro__card:not(:has(.aw-intro__vis)) .aw-intro__copy { background: var(--bg-primary) !important; border: 0 !important; }
 :root .aw .aw-think__icon { border-color: var(--frame) !important; background: var(--bg-primary) !important; }
 
 /* ─────────────── 12. Motion ─────────────── */

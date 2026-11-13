@@ -37,17 +37,6 @@ export type WriterAgentResult =
   | { task: "links"; links: { anchor: string; url: string }[] }
   | { task: "alt"; alt: string };
 
-/** Quick asks for a passage the writer picked: each is an instruction for the rewrite job. */
-export const REWRITES: { label: string; ask: string }[] = [
-  { label: "Rewrite", ask: "Rewrite it to read better. Keep the meaning and the facts." },
-  { label: "Shorter", ask: "Make it shorter and tighter. Keep every fact that matters." },
-  { label: "Expand", ask: "Expand it with more useful detail, an example or a step the reader needs." },
-  { label: "Clearer", ask: "Make it clearer and simpler for a 9th-grade reader." },
-  { label: "On-brand", ask: "Rewrite it in the brand's voice from the guideline." },
-  { label: "As a list", ask: "Turn it into a short bulleted list." },
-  { label: "Add proof", ask: "Add a concrete proof point from the product knowledge. Use [brackets] if a fact is missing." },
-];
-
 /** What the writing agent knows about the product, from the brand profile and the facts the team saved. */
 export function knowledgeText(p: {
   card?: { who: string[]; whereTo: string[]; howTo: string[]; whySo: string[] };

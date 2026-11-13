@@ -48,21 +48,20 @@
 @media (min-width: 640px) {
   :root .aw h1.aw-h2 { font-size: 30px !important; line-height: 36px !important; }
 }
-:root .aw .aw-hero, :root .aw .aw-display, :root .aw .aw-intro__title, :root .aw .aw-onb__title {
+:root .aw .aw-display, :root .aw .aw-onb__title {
   font-family: var(--font-sans) !important; font-size: 30px !important; line-height: 36px !important; font-weight: 600 !important; letter-spacing: -0.025em !important;
 }
-:root .aw .aw-h1, :root .aw .aw-h2, :root .aw .tw-modal__title, :root .aw .tw-side-panel__title h2 {
+:root .aw .aw-h2, :root .aw .tw-modal__title, :root .aw .tw-side-panel__title h2 {
   font-family: var(--font-sans) !important; font-size: 18px !important; line-height: 28px !important; font-weight: 600 !important; letter-spacing: -0.015em !important;
 }
 :root .aw .aw-h3 { font-size: 14px !important; line-height: 20px !important; font-weight: 600 !important; letter-spacing: 0 !important; }
 :root .aw .aw-h4 { font-size: 14px !important; line-height: 20px !important; font-weight: 500 !important; letter-spacing: 0 !important; }
-:root .aw .aw-text, :root .aw .md, :root .aw .aw-lede, :root .aw .aw-lg { font-size: 14px !important; line-height: 20px !important; font-weight: 400 !important; letter-spacing: 0 !important; }
-:root .aw .aw-intro__lead { font-size: 15px !important; line-height: 22px !important; letter-spacing: 0 !important; }
-:root .aw .aw-small, :root .aw .aw-sm { font-size: 13px !important; line-height: 18px !important; }
+:root .aw .md, :root .aw .aw-lede { font-size: 14px !important; line-height: 20px !important; font-weight: 400 !important; letter-spacing: 0 !important; }
+:root .aw .aw-small { font-size: 13px !important; line-height: 18px !important; }
 :root .aw .aw-label, :root .aw label > .aw-label, :root .aw .tw-field__label { font-size: 13px !important; line-height: 18px !important; font-weight: 500 !important; color: var(--text-primary) !important; letter-spacing: 0 !important; }
-:root .aw .aw-micro, :root .aw .aw-nav-section { font-size: 12px !important; line-height: 16px !important; font-weight: 500 !important; }
+:root .aw .aw-micro { font-size: 12px !important; line-height: 16px !important; font-weight: 500 !important; }
 :root .aw .aw-stat__lab { font-family: var(--font-sans) !important; font-size: 14px !important; line-height: 20px !important; font-weight: 500 !important; color: var(--text-secondary) !important; text-transform: none !important; letter-spacing: 0 !important; margin-bottom: 6px !important; }
-:root .aw .aw-stat__num, :root .aw .aw-kpi__num {
+:root .aw .aw-stat__num {
   font-family: var(--font-sans) !important; font-size: 30px !important; line-height: 36px !important; font-weight: 600 !important; letter-spacing: -0.025em !important; color: var(--text-primary) !important; font-variant-numeric: tabular-nums;
 }
 
@@ -71,17 +70,16 @@
 :root .aw .aw-btn--sm { height: 28px !important; min-height: 28px !important; }
 :root .aw .aw-btn--lg { height: 36px !important; min-height: 36px !important; padding: 0 var(--space-4) !important; }
 :root .aw .aw-ctl { height: 32px !important; font-size: 14px !important; font-weight: 500 !important; }
-:root .aw .aw-input:not(.aw-input--hero):not(.aw-input--lg), :root .aw .aw-select, :root .aw .aw-dropdown, :root .aw .aw-dropdown--field { min-height: 32px; height: auto; border-radius: var(--radius-md) !important; letter-spacing: 0; }
+:root .aw .aw-input:not(.aw-input--hero):not(.aw-input--lg), :root .aw .aw-dropdown, :root .aw .aw-dropdown--field { min-height: 32px; height: auto; border-radius: var(--radius-md) !important; letter-spacing: 0; }
 :root .aw input:is([type="text"], [type="email"], [type="url"], [type="search"], [type="password"], [type="number"], [type="tel"], [type="date"], [type="time"], :not([type])):not(.aw-sheet__input):not(.aw-docs__title):not(.tw-bare):not(.aw-input--hero):not(.aw-input--lg) { min-height: 32px; border-radius: var(--radius-md) !important; letter-spacing: 0; }
 :root .aw .aw-textarea, :root .aw textarea:not(.aw-sheet__input):not(.tw-bare) { border-radius: var(--radius-md) !important; line-height: 20px !important; }
 
 /* ─────────────── 4. Tags ─────────────── */
-:root .aw .aw-chip, :root .aw .aw-status, :root .aw .aw-sbadge, :root .aw .aw-badge, :root .aw .aw-tag, :root .aw .aw-pill, :root .aw .aw-pri, :root .aw .aw-engine { letter-spacing: 0 !important; }
-:root .aw .aw-stat__delta { font-family: var(--font-sans) !important; font-size: 12px !important; font-weight: 500 !important; letter-spacing: 0 !important; }
+:root .aw .aw-chip, :root .aw .aw-status, :root .aw .aw-sbadge, :root .aw .aw-badge, :root .aw .aw-tag { letter-spacing: 0 !important; }
 
 /* ─────────────── 5. Shell and cards ─────────────── */
 /* Frames and table wraps: a white card set in a grey shell. The shell is a 3px ring plus its hairline. */
-:root .aw .aw-frame, :root .aw .aw-table-wrap, :root .aw .aw-kpi, :root .aw .aw-card-stat {
+:root .aw .aw-frame, :root .aw .aw-table-wrap, :root .aw .aw-card-stat {
   background: var(--bg-primary) !important; border: 1px solid var(--card-border) !important; border-radius: var(--radius-lg) !important;
   box-shadow: 0 0 0 3px var(--shell), 0 0 0 4px var(--shell-border), var(--card-lift) !important;
 }
@@ -100,7 +98,6 @@
   padding: var(--space-4) var(--space-5) !important;
 }
 :root .aw .aw-stats--tight .aw-stat { padding: var(--space-3) var(--space-4) !important; }
-:root .aw .aw-card, :root .aw .aw-tile, :root .aw .aw-intro__card { border-color: var(--card-border) !important; border-radius: var(--radius-lg) !important; }
 
 /* ─────────────── 6. Tables ─────────────── */
 /* 14px cells with 10px above and below, a 12px grey header, row lines only. The sheet keeps its grid. */
@@ -141,16 +138,15 @@
 
 /* ─────────────── 8. App shell ─────────────── */
 :root .aw .aw-sidebar, :root .aw .aw-rail { background: var(--bg-secondary) !important; }
-:root .aw .aw-nav-link, :root .aw .aw-mod, :root .aw .aw-mod--sm, :root .aw .aw-mod__item {
+:root .aw .aw-nav-link, :root .aw .aw-mod__item {
   height: 32px !important; min-height: 32px !important; border-radius: var(--radius-md) !important;
   font-size: 14px !important; font-weight: 500 !important; letter-spacing: 0 !important; color: var(--text-sidebar) !important;
 }
-:root .aw .aw-nav-link:hover, :root .aw .aw-mod:hover, :root .aw .aw-mod__item:hover { background: var(--bg-tertiary) !important; color: var(--text-sidebar) !important; }
-:root .aw .aw-nav-link.is-on, :root .aw .aw-nav-link[aria-current="page"], :root .aw .aw-mod.is-on, :root .aw .aw-mod--sm.is-on, :root .aw .aw-mod__item.is-on {
+:root .aw .aw-nav-link:hover, :root .aw .aw-mod__item:hover { background: var(--bg-tertiary) !important; color: var(--text-sidebar) !important; }
+:root .aw .aw-nav-link.is-on, :root .aw .aw-nav-link[aria-current="page"], :root .aw .aw-mod__item.is-on {
   background: var(--bg-tertiary) !important; color: var(--text-sidebar) !important; font-weight: 500 !important;
 }
 :root .aw .aw-nav-link .aw-nav__icon, :root .aw .aw-nav__icon { color: var(--text-sidebar) !important; }
-:root .aw .aw-nav-section { color: var(--text-tertiary) !important; }
 :root .aw .aw-ws-switch { font-size: 14px !important; font-weight: 600 !important; letter-spacing: 0; }
 :root .aw .aw-page-title { font-size: 14px !important; font-weight: 500 !important; letter-spacing: 0 !important; color: var(--text-primary) !important; }
 :root .aw .aw-page-title__group { color: var(--text-secondary) !important; font-weight: 500 !important; }
@@ -210,16 +206,13 @@
 :root .aw :is(.aw-chip:not(.aw-chip--btn), .aw-status, .aw-sbadge, .aw-badge, .aw-tag, .aw-pill, .aw-pri, .aw-engine) {
   height: 22px !important; padding: 0 7px !important; border-radius: 6px !important; corner-shape: squircle; font-size: 13px !important; font-weight: 500 !important;
 }
-:root .aw .aw-status--ranked, :root .aw .aw-sbadge--success { background: color-mix(in oklab, oklch(55% .109 155) 10%, transparent) !important; color: var(--green-11) !important; }
-:root .aw .aw-status--missed, :root .aw .aw-sbadge--danger { background: color-mix(in oklab, oklch(59% .192 27) 10%, transparent) !important; color: var(--red-11) !important; }
-:root .aw .aw-status--warn, :root .aw .aw-sbadge--warning { background: color-mix(in oklab, oklch(57% .113 55) 10%, transparent) !important; color: var(--orange-11) !important; }
-:root .aw .aw-stat__delta { display: inline-flex; align-items: center; gap: 4px; margin-left: 0; white-space: nowrap; height: 22px; padding: 0 7px; border-radius: 6px; background: color-mix(in oklab, oklch(55% .109 155) 10%, transparent); color: var(--green-11) !important; font-size: 13px !important; }
+:root .aw .aw-status--ranked { background: color-mix(in oklab, oklch(55% .109 155) 10%, transparent) !important; color: var(--green-11) !important; }
+:root .aw .aw-status--missed { background: color-mix(in oklab, oklch(59% .192 27) 10%, transparent) !important; color: var(--red-11) !important; }
+:root .aw .aw-status--warn { background: color-mix(in oklab, oklch(57% .113 55) 10%, transparent) !important; color: var(--orange-11) !important; }
 
 /* ─────────────── 11. Panels ─────────────── */
 :root .aw .aw-page-body { border-radius: 12px !important; }
 :root .aw .aw-side-panel, :root .aw .tw-side-panel { border-radius: 16px !important; }
-:root .aw .aw-stat__delta--down { background: color-mix(in oklab, oklch(59% .192 27) 10%, transparent); color: var(--red-11) !important; }
-:root .aw .aw-stat__delta--flat { background: var(--bg-tertiary); color: var(--text-secondary) !important; }
 
 /* ─────────────── 12. Cited sites in AI answers ───────────────
    A run of cited sites shows as one small tag, "eve.legal +2", like the engines do. */
@@ -249,26 +242,8 @@
   .aw-table th, .aw-sheet thead th, .aw-field-label, .aw-chart-label, .aw-embed__tag, .aw-onb__kicker, .aw-onb__group, .aw-tag, .tracking-\[0\.08em\]) {
   text-transform: none !important; letter-spacing: 0 !important;
 }
-:root .aw .aw-eyebrow { font-size: 13px !important; font-weight: 500 !important; line-height: 18px !important; }
 :root .aw .aw-tag { font-size: 12px !important; font-weight: 500 !important; }
 
 /* ─────────────── 14. Tool intros ───────────────
    Each feature is a small piece of the product: a white card in a grey shell, its name and one line under it.
    No numbers, no dotted grid. Cards without a picture put their words in the white card. */
-:root .aw .aw-intro__grid { gap: 16px; }
-:root .aw .aw-intro__card {
-  overflow: visible; padding: 3px; background: var(--shell) !important; border: 1px solid var(--shell-border) !important;
-  border-radius: 18px !important; box-shadow: none !important;
-}
-:root .aw .aw-intro__vis {
-  height: auto !important; min-height: 156px; padding: 20px 22px !important;
-  background: var(--bg-primary) !important; background-image: none !important;
-  border: 1px solid var(--card-border) !important; border-radius: 14px; box-shadow: var(--card-lift);
-}
-:root .aw .aw-intro__copy { gap: 4px; padding: 12px 14px 14px; }
-:root .aw .aw-intro__card:not(:has(.aw-intro__vis)) .aw-intro__copy {
-  min-height: 120px; padding: 18px 20px; background: var(--bg-primary); border: 1px solid var(--card-border); border-radius: 14px; box-shadow: var(--card-lift);
-}
-:root .aw .aw-intro__t { font-size: 14px !important; line-height: 20px !important; font-weight: 600 !important; color: var(--text-primary) !important; letter-spacing: 0 !important; }
-:root .aw .aw-intro__x { font-size: 13px !important; line-height: 20px !important; color: var(--text-secondary) !important; }
-:root .aw .aw-intro__n { display: none !important; }

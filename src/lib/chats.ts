@@ -30,7 +30,6 @@ export function ownMention(chat: Chat, brandName: string): BrandMention | null {
 }
 
 const key = (brandId: string) => `arrowsterr.runs.${brandId}`;
-const MAX_RUNS = 120;
 
 export function loadRuns(brandId: string): Run[] {
   try {
@@ -41,21 +40,5 @@ export function loadRuns(brandId: string): Run[] {
     return old ? [old] : [];
   } catch {
     return [];
-  }
-}
-
-/** Keep the numbers, drop the long answer text, and trim the oldest runs if storage is full. */
-export function saveRuns(brandId: string, runs: Run[]) {
-  let slim = runs.slice(-MAX_RUNS).map((r) => ({
-    ...r,
-    chats: r.chats.map((c) => ({ ...c, answered: isAnswered(c), text: "" })),
-  }));
-  while (slim.length) {
-    try {
-      localStorage.setItem(key(brandId), JSON.stringify(slim));
-      return;
-    } catch {
-      slim = slim.slice(1);
-    }
   }
 }

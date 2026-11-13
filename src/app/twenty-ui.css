@@ -133,21 +133,20 @@ html, body { background: var(--bg-secondary); }
 
 /* ─────────────── 3. Type: Inter only, 400 to 600, no tracking ─────────────── */
 :root .aw, :root .aw h1, :root .aw h2, :root .aw h3, :root .aw h4, :root .aw h5, :root .aw h6, :root .aw button, :root .aw input, :root .aw textarea, :root .aw select { font-family: var(--font-sans); letter-spacing: 0; }
-:root .aw .aw-hero, :root .aw .aw-display, :root .aw .aw-intro__title, :root .aw .aw-onb__title {
+:root .aw .aw-display, :root .aw .aw-onb__title {
   font-family: var(--font-sans) !important; font-size: 24px !important; line-height: 1.1 !important; font-weight: 600 !important; letter-spacing: 0 !important; color: var(--text-primary) !important;
 }
-:root .aw .aw-h1, :root .aw .aw-h2 { font-family: var(--font-sans) !important; font-size: 20px !important; line-height: 1.1 !important; font-weight: 600 !important; letter-spacing: 0 !important; color: var(--text-primary) !important; }
+:root .aw .aw-h2 { font-family: var(--font-sans) !important; font-size: 20px !important; line-height: 1.1 !important; font-weight: 600 !important; letter-spacing: 0 !important; color: var(--text-primary) !important; }
 :root .aw .aw-h3 { font-family: var(--font-sans) !important; font-size: 16px !important; line-height: 1.1 !important; font-weight: 600 !important; letter-spacing: 0 !important; color: var(--text-primary) !important; }
 :root .aw .aw-h4 { font-family: var(--font-sans) !important; font-size: 13px !important; line-height: 1.5 !important; font-weight: 600 !important; letter-spacing: 0 !important; color: var(--text-primary) !important; }
-:root .aw .aw-lede, :root .aw .aw-lg { font-size: 13px !important; line-height: 1.5 !important; color: var(--text-secondary) !important; }
-:root .aw .aw-text { font-size: 13px !important; color: var(--text-primary); }
-:root .aw .aw-small, :root .aw .aw-sm { font-size: 12px !important; color: var(--text-secondary) !important; }
-:root .aw .aw-micro, :root .aw .aw-eyebrow, :root .aw .aw-onb__kicker, :root .aw .aw-intro__n {
+:root .aw .aw-lede { font-size: 13px !important; line-height: 1.5 !important; color: var(--text-secondary) !important; }
+:root .aw .aw-small { font-size: 12px !important; color: var(--text-secondary) !important; }
+:root .aw .aw-micro, :root .aw .aw-onb__kicker {
   font-family: var(--font-sans) !important; font-size: 11px !important; font-weight: 500 !important; letter-spacing: 0 !important; text-transform: none !important; color: var(--text-secondary) !important;
 }
 :root .aw .aw-label, :root .aw label > .aw-label { font-family: var(--font-sans) !important; font-size: 12px !important; font-weight: 500 !important; line-height: 1.1 !important; letter-spacing: 0 !important; text-transform: none !important; color: var(--text-secondary) !important; }
 :root .aw .aw-label--brand { color: var(--accent-11) !important; }
-:root .aw .aw-num, :root .aw .aw-stat__num, :root .aw .aw-kpi__num, :root .aw .aw-rank { font-family: var(--font-sans) !important; font-variant-numeric: tabular-nums; letter-spacing: 0 !important; }
+:root .aw .aw-num, :root .aw .aw-stat__num, :root .aw .aw-rank { font-family: var(--font-sans) !important; font-variant-numeric: tabular-nums; letter-spacing: 0 !important; }
 :root .aw .aw-mono, :root .aw code, :root .aw kbd, :root .aw .font-mono { font-family: var(--font-mono) !important; letter-spacing: 0 !important; }
 :root .aw code { font-size: 12px; background: var(--bg-tertiary); border-radius: var(--radius-xs); padding: 0 var(--space-1); }
 :root .aw strong, :root .aw b, :root .aw .font-bold, :root .aw .font-extrabold, :root .aw .font-black { font-weight: 600 !important; }
@@ -185,10 +184,10 @@ html, body { background: var(--bg-secondary); }
 :root .aw .aw-btn:hover, :root .aw .aw-btn:active { transform: none !important; box-shadow: none !important; }
 :root .aw .aw-btn svg { width: var(--icon-md); height: var(--icon-md); }
 
-:root .aw .aw-btn--primary, :root .aw .aw-btn--accent, :root .aw .aw-btn--brand, :root .aw a.aw-btn--primary:link, :root .aw a.aw-btn--primary:visited, :root .aw a.aw-btn--accent:link, :root .aw a.aw-btn--accent:visited {
+:root .aw .aw-btn--primary, :root .aw .aw-btn--accent, :root .aw a.aw-btn--primary:link, :root .aw a.aw-btn--primary:visited, :root .aw a.aw-btn--accent:link, :root .aw a.aw-btn--accent:visited {
   background: var(--accent-9) !important; color: var(--text-on-accent) !important; border-color: var(--accent-9) !important;
 }
-:root .aw .aw-btn--primary:hover, :root .aw .aw-btn--accent:hover, :root .aw .aw-btn--brand:hover { background: var(--accent-10) !important; border-color: var(--accent-10) !important; color: var(--text-on-accent) !important; }
+:root .aw .aw-btn--primary:hover, :root .aw .aw-btn--accent:hover { background: var(--accent-10) !important; border-color: var(--accent-10) !important; color: var(--text-on-accent) !important; }
 
 :root .aw .aw-btn--secondary, :root .aw a.aw-btn--secondary:link, :root .aw a.aw-btn--secondary:visited, :root .aw .aw-ctl {
   background: var(--bg-primary) !important; color: var(--text-secondary) !important; border-color: var(--border-medium) !important;
@@ -196,10 +195,10 @@ html, body { background: var(--bg-secondary); }
 :root .aw .aw-btn--secondary:hover, :root .aw .aw-ctl:hover { background: var(--bg-tertiary) !important; color: var(--text-primary) !important; }
 :root .aw .aw-btn--secondary:active { background: var(--bg-quaternary) !important; }
 
-:root .aw .aw-btn--ghost, :root .aw .aw-btn--tertiary, :root .aw .aw-btn--text {
+:root .aw .aw-btn--ghost {
   background: transparent !important; color: var(--text-secondary) !important; border-color: transparent !important;
 }
-:root .aw .aw-btn--ghost:hover, :root .aw .aw-btn--tertiary:hover, :root .aw .aw-btn--text:hover { background: var(--bg-tertiary) !important; color: var(--text-primary) !important; }
+:root .aw .aw-btn--ghost:hover { background: var(--bg-tertiary) !important; color: var(--text-primary) !important; }
 
 :root .aw .aw-btn--danger, :root .aw .aw-btn.bg-neg\!, :root .aw .aw-btn--primary.bg-neg\! { background: var(--bg-danger) !important; color: var(--red-11) !important; border-color: var(--border-danger) !important; }
 :root .aw .aw-btn--danger:hover, :root .aw .aw-btn.bg-neg\!:hover { background: var(--red-3) !important; color: var(--red-11) !important; }
@@ -230,9 +229,7 @@ html, body { background: var(--bg-secondary); }
 /* ─────────────── 5. Inputs ───────────────
    32px, grey fill, hairline border. Hover darkens the border; focus turns
    the field white with a blue border and a soft blue halo. */
-:root .aw .aw-input, :root .aw .aw-textarea, :root .aw .aw-select, :root .aw .aw-dropdown--field, :root .aw .aw-pop__field, :root .aw .aw-pop__search,
-:root .aw input:is([type="text"], [type="email"], [type="url"], [type="search"], [type="password"], [type="number"], [type="tel"], [type="date"], [type="time"], :not([type])):not(.aw-sheet__input):not(.aw-docs__title):not(.tw-bare),
-:root .aw textarea:not(.aw-sheet__input):not(.tw-bare), :root .aw select {
+:root .aw .aw-input, :root .aw .aw-textarea, :root .aw .aw-dropdown--field, :root .aw .aw-pop__field, :root .aw .aw-pop__search, :root .aw input:is([type="text"], [type="email"], [type="url"], [type="search"], [type="password"], [type="number"], [type="tel"], [type="date"], [type="time"], :not([type])):not(.aw-sheet__input):not(.aw-docs__title):not(.tw-bare), :root .aw textarea:not(.aw-sheet__input):not(.tw-bare), :root .aw select {
   min-height: 32px; padding: 0 var(--space-2); font-family: var(--font-sans) !important; font-size: 13px !important; color: var(--text-primary) !important;
   background: var(--bg-tertiary) !important; border: 1px solid var(--border-medium) !important; border-radius: var(--radius-sm) !important; box-shadow: none !important;
   transition: background 0.1s ease, border-color 0.1s ease, box-shadow 0.1s ease;
@@ -242,14 +239,12 @@ html, body { background: var(--bg-secondary); }
 :root .aw .aw-input:hover, :root .aw .aw-textarea:hover, :root .aw .aw-dropdown--field:hover,
 :root .aw input:is([type="text"], [type="email"], [type="url"], [type="search"], [type="password"], [type="number"], [type="tel"], [type="date"], :not([type])):not(.aw-sheet__input):not(.aw-docs__title):not(.tw-bare):hover,
 :root .aw textarea:not(.aw-sheet__input):not(.tw-bare):hover { border-color: var(--border-strong) !important; }
-:root .aw .aw-input:focus, :root .aw .aw-textarea:focus, :root .aw .aw-select:focus, :root .aw .aw-pop__field:focus, :root .aw .aw-pop__search:focus,
-:root .aw input:is([type="text"], [type="email"], [type="url"], [type="search"], [type="password"], [type="number"], [type="tel"], [type="date"], :not([type])):not(.aw-sheet__input):not(.aw-docs__title):not(.tw-bare):focus,
-:root .aw textarea:not(.aw-sheet__input):not(.tw-bare):focus, :root .aw select:focus {
+:root .aw .aw-input:focus, :root .aw .aw-textarea:focus, :root .aw .aw-pop__field:focus, :root .aw .aw-pop__search:focus, :root .aw input:is([type="text"], [type="email"], [type="url"], [type="search"], [type="password"], [type="number"], [type="tel"], [type="date"], :not([type])):not(.aw-sheet__input):not(.aw-docs__title):not(.tw-bare):focus, :root .aw textarea:not(.aw-sheet__input):not(.tw-bare):focus, :root .aw select:focus {
   outline: none !important; background: var(--bg-primary) !important; border-color: var(--accent-9) !important; box-shadow: 0 0 0 3px var(--accent-5) !important;
 }
 :root .aw input:disabled, :root .aw textarea:disabled, :root .aw select:disabled, :root .aw .aw-input:disabled { color: var(--text-light) !important; background: var(--bg-tertiary) !important; border-color: var(--border-light) !important; cursor: not-allowed; }
 :root .aw input[aria-invalid="true"], :root .aw textarea[aria-invalid="true"] { border-color: var(--border-danger) !important; }
-:root .aw .aw-input--hero, :root .aw .aw-input--lg { min-height: 40px; font-size: 13px !important; }
+:root .aw .aw-input--hero { min-height: 40px; font-size: 13px !important; }
 
 /* Picker buttons that look like fields */
 :root .aw .aw-dropdown, :root .aw .aw-dropdown--field, :root .aw .aw-dropdown--sm {
@@ -264,27 +259,20 @@ html, body { background: var(--bg-secondary); }
 :root .aw input[type="checkbox"]:checked { background-color: var(--accent-9) !important; border-color: var(--accent-9) !important; }
 
 /* Toggle: a small pill switch */
-:root .aw .aw-toggle {
-  appearance: none; width: 28px !important; height: 16px !important; margin: 0; padding: 0; border: 0 !important;
-  border-radius: var(--radius-pill) !important; background: var(--border-strong) !important; position: relative; cursor: pointer; transition: background 0.15s ease;
-}
-:root .aw .aw-toggle::after { content: ""; position: absolute; top: 2px !important; left: 2px !important; width: 12px !important; height: 12px !important; border: 0 !important; border-radius: var(--radius-rounded) !important; background: #FFFFFF !important; transition: transform 0.15s ease, left 0s; }
-:root .aw .aw-toggle.is-on, :root .aw .aw-toggle[aria-checked="true"] { background: var(--accent-9) !important; }
-:root .aw .aw-toggle.is-on::after, :root .aw .aw-toggle[aria-checked="true"]::after { left: 2px !important; transform: translateX(12px); }
 
 /* ─────────────── 6. Tags ───────────────
    20px pills, 12px medium, step 3 fill with step 11 text. */
-:root .aw .aw-chip, :root .aw .aw-status, :root .aw .aw-sbadge, :root .aw .aw-badge, :root .aw .aw-tag, :root .aw .aw-pill, :root .aw .aw-pri, :root .aw .aw-engine {
+:root .aw .aw-chip, :root .aw .aw-status, :root .aw .aw-sbadge, :root .aw .aw-badge, :root .aw .aw-tag {
   display: inline-flex !important; align-items: center; gap: var(--space-1); height: 20px !important; padding: 0 var(--space-2) !important;
   font-family: var(--font-sans) !important; font-size: 12px !important; font-weight: 500 !important; line-height: 1 !important; letter-spacing: 0 !important; text-transform: none !important;
   border: 0 !important; border-radius: var(--radius-pill) !important; box-shadow: none !important; white-space: nowrap;
   background: var(--gray-3) !important; color: var(--gray-11) !important;
 }
 :root .aw .aw-status--pending { background: var(--gray-3) !important; color: var(--gray-11) !important; box-shadow: inset 0 0 0 1px var(--border-medium) !important; }
-:root .aw .aw-status--ranked, :root .aw .aw-sbadge--success { background: var(--green-3) !important; color: var(--green-11) !important; }
-:root .aw .aw-status--missed, :root .aw .aw-sbadge--danger { background: var(--red-3) !important; color: var(--red-11) !important; }
-:root .aw .aw-status--warn, :root .aw .aw-sbadge--warning { background: var(--orange-3) !important; color: var(--orange-11) !important; }
-:root .aw .aw-chip--brand, :root .aw .aw-badge, :root .aw .aw-status--info { background: var(--blue-3) !important; color: var(--blue-11) !important; }
+:root .aw .aw-status--ranked { background: var(--green-3) !important; color: var(--green-11) !important; }
+:root .aw .aw-status--missed { background: var(--red-3) !important; color: var(--red-11) !important; }
+:root .aw .aw-status--warn { background: var(--orange-3) !important; color: var(--orange-11) !important; }
+:root .aw .aw-chip--brand, :root .aw .aw-badge { background: var(--blue-3) !important; color: var(--blue-11) !important; }
 :root .aw .aw-chip--btn { background: var(--bg-primary) !important; color: var(--text-secondary) !important; box-shadow: inset 0 0 0 1px var(--border-medium) !important; cursor: pointer; transition: background 0.1s ease; }
 :root .aw .aw-chip--btn:hover { background: var(--bg-tertiary) !important; color: var(--text-primary) !important; }
 :root .aw .aw-chip--btn.is-on, :root .aw .aw-chip--btn[aria-pressed="true"] { background: var(--accent-3) !important; color: var(--accent-11) !important; box-shadow: inset 0 0 0 1px var(--border-blue) !important; }
@@ -292,13 +280,12 @@ html, body { background: var(--bg-secondary); }
 
 /* ─────────────── 7. Surfaces ───────────────
    Panels and cards: white, 8px, hairline border, no shadow in the page flow. */
-:root .aw .aw-frame, :root .aw .aw-card, :root .aw .aw-stats, :root .aw .aw-table-wrap, :root .aw .aw-kpi, :root .aw .aw-card-stat, :root .aw .aw-intro__card, :root .aw .aw-tile {
+:root .aw .aw-frame, :root .aw .aw-stats, :root .aw .aw-table-wrap, :root .aw .aw-card-stat {
   background: var(--bg-primary) !important; border: 1px solid var(--border-medium) !important; border-radius: var(--radius-md) !important; box-shadow: none !important;
 }
 :root .aw .aw-frame::before, :root .aw .aw-frame::after { display: none !important; }
 :root .aw .aw-frame__head { min-height: 40px; padding: var(--space-2) var(--space-3) !important; border-bottom: 1px solid var(--border-medium) !important; font-size: 13px; font-weight: 500; }
 :root .aw .aw-frame__body { padding: var(--space-4) !important; }
-:root .aw .aw-frame__foot { border-top: 1px solid var(--border-medium) !important; }
 :root .aw .aw-stat { padding: var(--space-3) var(--space-4) !important; }
 :root .aw .aw-stat__lab { font-size: 12px !important; font-weight: 500 !important; color: var(--text-secondary) !important; text-transform: none !important; letter-spacing: 0 !important; }
 :root .aw .aw-stat__num { font-size: 20px !important; line-height: 1.1 !important; font-weight: 600 !important; color: var(--text-primary) !important; }
@@ -329,8 +316,8 @@ html, body { background: var(--bg-secondary); }
 :root .aw .aw-table th:last-child, :root .aw .aw-table td:last-child, :root .aw table th:last-child, :root .aw table td:last-child { border-right: 0 !important; }
 :root .aw .aw-table tbody tr:hover > td, :root .aw .aw-sheet tbody tr:hover > td, :root .aw table tbody tr:hover > td { background: var(--bg-tertiary) !important; }
 :root .aw tr[aria-selected="true"] > td, :root .aw .aw-sheet tr.is-picked > td, :root .aw .aw-table tr.is-you > td { background: var(--accent-3) !important; }
-:root .aw .aw-table--compact th, :root .aw .aw-table--dense th, :root .aw .aw-table--tight th { height: 32px !important; font-size: 12px !important; }
-:root .aw .aw-table--compact td, :root .aw .aw-table--dense td, :root .aw .aw-table--tight td { height: 32px; padding: var(--space-1) var(--space-2) !important; }
+:root .aw .aw-table--compact th, :root .aw .aw-table--tight th { height: 32px !important; font-size: 12px !important; }
+:root .aw .aw-table--compact td, :root .aw .aw-table--tight td { height: 32px; padding: var(--space-1) var(--space-2) !important; }
 :root .aw .aw-sheet td.aw-sheet__n, :root .aw .aw-sheet th.aw-sheet__n { width: 32px; background: var(--bg-primary) !important; color: var(--text-tertiary) !important; font-size: 12px !important; text-align: center; }
 :root .aw .aw-sheet__input { font-family: var(--font-sans) !important; font-size: 13px !important; border: 0 !important; outline: 2px solid var(--accent-9) !important; outline-offset: -2px; border-radius: 0 !important; box-shadow: none !important; background: var(--bg-primary) !important; }
 :root .aw .aw-cellpick__caret { color: var(--text-tertiary); }
@@ -356,10 +343,6 @@ html, body { background: var(--bg-secondary); }
 :root .aw .aw-tabs > button[aria-selected="true"]::after, :root .aw .aw-seg > button.is-on::after, :root .aw .aw-seg > button[aria-selected="true"]::after {
   content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px !important; background: var(--text-primary) !important;
 }
-:root .aw .aw-viewbar { min-height: 40px; padding: var(--space-1) var(--space-2); border-bottom: 1px solid var(--border-medium) !important; }
-:root .aw .aw-viewbtn { height: 24px; padding: 0 var(--space-2); border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; color: var(--text-secondary); background: transparent; transition: background 0.1s ease; }
-:root .aw .aw-viewbtn:hover { background: var(--bg-tertiary); color: var(--text-primary); }
-:root .aw .aw-viewbtn.is-on, :root .aw .aw-viewbtn[aria-pressed="true"] { background: var(--bg-quaternary); color: var(--text-primary); }
 
 /* ─────────────── 10. Menus and pop-ups ───────────────
    8px, hairline, strong shadow, 32px items with 4px corners. */
@@ -423,18 +406,13 @@ html, body { background: var(--bg-secondary); }
    220px sidebar on the canvas grey; the page floats in a white panel 8px
    from the edges; a 48px header with the breadcrumb on the left. */
 :root .aw .aw-sidebar, :root .aw .aw-rail { background: var(--bg-secondary) !important; border: 0 !important; box-shadow: none !important; }
-:root .aw .aw-nav-section {
-  height: auto !important; margin-top: var(--space-2) !important; padding: var(--space-4) var(--space-2) var(--space-1) !important;
-  font-size: 11px !important; font-weight: 500 !important; color: var(--text-secondary) !important; text-transform: none !important; letter-spacing: 0 !important;
-}
-:root .aw .aw-nav-section:hover { color: var(--text-primary) !important; background: transparent !important; }
-:root .aw .aw-nav-link, :root .aw .aw-mod, :root .aw .aw-mod--sm, :root .aw .aw-mod__item {
+:root .aw .aw-nav-link, :root .aw .aw-mod__item {
   display: flex; align-items: center; gap: var(--space-2) !important; width: 100%; height: 32px !important; min-height: 32px !important; padding: 0 var(--space-2) !important;
   border: 0 !important; border-radius: var(--radius-sm) !important; background: transparent !important; box-shadow: none !important;
   font-size: 13px !important; font-weight: 400 !important; color: var(--text-secondary) !important; text-align: left; text-decoration: none !important; transition: background 0.1s ease;
 }
-:root .aw .aw-nav-link:hover, :root .aw .aw-mod:hover, :root .aw .aw-mod__item:hover { background: var(--bg-tertiary) !important; color: var(--text-secondary) !important; }
-:root .aw .aw-nav-link.is-on, :root .aw .aw-nav-link[aria-current="page"], :root .aw .aw-mod.is-on, :root .aw .aw-mod--sm.is-on, :root .aw .aw-mod__item.is-on {
+:root .aw .aw-nav-link:hover, :root .aw .aw-mod__item:hover { background: var(--bg-tertiary) !important; color: var(--text-secondary) !important; }
+:root .aw .aw-nav-link.is-on, :root .aw .aw-nav-link[aria-current="page"], :root .aw .aw-mod__item.is-on {
   background: var(--bg-tertiary) !important; color: var(--text-primary) !important; font-weight: 500 !important;
 }
 :root .aw .aw-mod__item.is-on::before { display: none !important; }
@@ -456,11 +434,6 @@ html, body { background: var(--bg-secondary); }
 :root .aw .aw-live { font-size: 12px !important; color: var(--text-secondary) !important; }
 
 /* ─────────────── 13. Tool intros and empty states ─────────────── */
-:root .aw .aw-intro { gap: var(--space-6) !important; }
-:root .aw .aw-intro__lead { font-size: 13px !important; line-height: 1.5 !important; color: var(--text-secondary) !important; }
-:root .aw .aw-intro__t { font-size: 13px !important; line-height: 1.5 !important; font-weight: 600 !important; color: var(--text-primary) !important; }
-:root .aw .aw-intro__x { font-size: 13px !important; color: var(--text-secondary) !important; }
-:root .aw .aw-intro__vis { background: var(--bg-secondary) !important; border-bottom: 1px solid var(--border-medium) !important; }
 :root .aw .aw-try { height: 24px; padding: 0 var(--space-2); border: 1px solid var(--border-medium) !important; border-radius: var(--radius-pill) !important; background: var(--bg-primary) !important; color: var(--text-secondary) !important; font-size: 12px !important; font-weight: 500 !important; cursor: pointer; }
 :root .aw .aw-try:hover { background: var(--bg-tertiary) !important; color: var(--text-primary) !important; }
 :root .aw .aw-dotgrid, :root .aw .tw-canvas { background-color: var(--bg-secondary); background-image: radial-gradient(var(--border-strong) 1px, transparent 1px) !important; background-size: 16px 16px !important; }
@@ -469,14 +442,8 @@ html, body { background: var(--bg-secondary); }
 :root .aw .aw-think__icon { color: var(--accent-9) !important; }
 :root .aw .aw-think__bar { background: var(--accent-9) !important; }
 :root .aw .aw-shimmer { background: linear-gradient(90deg, var(--bg-tertiary), var(--bg-quaternary), var(--bg-tertiary)) !important; background-size: 200% 100%; animation-duration: var(--duration-slow) !important; }
-:root .aw .aw-docs__bar, :root .aw .aw-docs__briefbar { background: var(--bg-primary) !important; border-color: var(--border-medium) !important; }
-:root .aw .aw-docs__desk { background: var(--bg-secondary) !important; }
-:root .aw .aw-docs__page { border-color: var(--border-medium) !important; box-shadow: var(--shadow-light) !important; }
 
 /* Charts follow the accent */
-:root .aw .aw-chart-bar--hl, :root .aw .aw-chart-area { fill: var(--accent-9); }
-:root .aw .aw-chart-line, :root .aw .aw-chart-dot { stroke: var(--accent-9); }
-:root .aw .aw-chart-dot--end { fill: var(--accent-9); }
 :root .aw .aw-chart-label { font-family: var(--font-sans) !important; letter-spacing: 0 !important; text-transform: none !important; font-size: 11px; fill: var(--text-secondary); }
 
 /* ─────────────── 15. Twenty component classes for new markup ─────────────── */
@@ -517,7 +484,7 @@ html, body { background: var(--bg-secondary); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :root .aw .aw-btn, :root .aw .tw-btn, :root .aw .aw-toggle, :root .aw .aw-toggle::after, :root .aw .aw-nav-link, :root .aw .aw-pop__opt, :root .aw .aw-pop__item { transition: none !important; }
+  :root .aw .aw-btn, :root .aw .tw-btn, :root .aw .aw-nav-link, :root .aw .aw-pop__opt, :root .aw .aw-pop__item { transition: none !important; }
 }
 
 /* The writing area itself never gets a focus box: the cursor shows where you are. */

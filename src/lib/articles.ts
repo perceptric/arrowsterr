@@ -1,7 +1,6 @@
 // Content (docs/content-v2.md): the brand's article library. Articles are the writer's drafts (docs),
 // with the keyword, plan status and brief sources of the Content Plan piece they were written for.
 // Pure helpers are shared by the browser and tests.
-import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Published } from "./cmsTypes.ts";
 
 export type ArticleStatus = "Draft" | "Ready" | "CMS draft" | "Published";
@@ -58,22 +57,6 @@ export function toArticle(r: Row): Article {
     sources: Array.isArray(plan?.sources) ? plan.sources.length : null,
     url: live?.url ?? plan?.url ?? null,
   };
-}
-
-const COLS = "id, site_id, calendar_item_id, title, words, updated_at";
-
-/** The brand's articles, newest first. Works before 021_doc_meta.sql, without statuses. */
-export async function listArticles(sb: SupabaseClient, siteId: string): Promise<Article[]> {
-  const res = await sb
-    .from("docs")
-    .select(`${COLS}, meta, calendar_items(keyword, status, due_date, url, sources:brief->brief->sources)`)
-    .eq("site_id", siteId)
-    .order("updated_at", { ascending: false });
-  if (!res.error) return (res.data as unknown as Row[]).map(toArticle);
-  if (!/meta|brief|calendar_items/.test(res.error.message)) throw new Error(res.error.message);
-  const plain = await sb.from("docs").select(COLS).eq("site_id", siteId).order("updated_at", { ascending: false });
-  if (plain.error) throw new Error(plain.error.message);
-  return (plain.data as Row[]).map(toArticle);
 }
 
 // ─────────────── Markdown export ───────────────

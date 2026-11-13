@@ -85,14 +85,6 @@ export const getBrief = async (sb: SupabaseClient, id: string) =>
 export type FullDraft = DraftLite & { sections: (Section | null)[]; modules: (ModuleState | null)[]; checked: unknown | null; note: string | null };
 export const getDraft = async (sb: SupabaseClient, id: string) => check(await sb.from("writer_drafts").select(`${DRAFT_COLS}, sections, modules, checked, note`).eq("id", id).maybeSingle()) as FullDraft | null;
 
-/** How far a research run is: its status, and pages read out of pages queued. */
-export async function researchProgress(sb: SupabaseClient, runId: string): Promise<{ status: string; read: number; total: number; error: string | null } | null> {
-  const [run, pages] = await Promise.all([sb.from("article_runs").select("status, error").eq("id", runId).maybeSingle(), sb.from("article_pages").select("status").eq("run_id", runId)]);
-  if (run.error || !run.data) return null;
-  const list = (pages.data ?? []) as { status: string }[];
-  return { status: run.data.status, error: run.data.error, read: list.filter((p) => p.status === "done").length, total: list.length };
-}
-
 // ─────────────── labels ───────────────
 const STATUS: Record<string, string> = { generating: "Generating", ready: "Ready", approved: "Approved", failed: "Failed" };
 export const statusLabel = (s: string) => STATUS[s] ?? s;

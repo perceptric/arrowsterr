@@ -20,7 +20,6 @@ const today = () => new Date().toISOString().slice(0, 10);
 const ENGINES: ShopEngine[] = ["gpt", "aim"];
 const DFS: Record<ShopEngine, DfsEngine> = { gpt: "ChatGPT", aim: "AI Mode" };
 export const MAX_PROMPTS = 40;
-export const SAMPLES_A_DAY = 2;
 export const DEEP_RUNS = 20;
 const GIVE_UP_MS = 3 * 60 * 60_000;
 

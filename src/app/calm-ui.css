@@ -104,10 +104,7 @@ html, body { background: var(--paper-deep) !important; }
 :root :is(.aw, #calm) :is(.aw-h1, .aw-h2, .tw-modal__title, .tw-side-panel__title h2) { letter-spacing: -0.01em !important; }
 :root :is(.aw, #calm) h1.aw-h2 { letter-spacing: -0.035em !important; }
 :root :is(.aw, #calm) :is(.aw-stat__num, .aw-kpi__num) { font-size: 22px !important; line-height: 28px !important; font-weight: 500 !important; letter-spacing: -0.02em !important; }
-:root :is(.aw, #calm) .aw-nav-section { font-size: 12px !important; font-weight: 500 !important; color: var(--text-tertiary) !important; }
 /* Section labels lose their brackets: plain words in the calm style. */
-:root :is(.aw, #calm) .aw-nav-section > :first-child::before, :root :is(.aw, #calm) .aw-nav-section:not(:has(> *))::before,
-:root :is(.aw, #calm) .aw-nav-section > :first-child::after, :root :is(.aw, #calm) .aw-nav-section:not(:has(> *))::after { content: none !important; }
 
 /* ─────────────── 3. App shell ───────────────
    A light gray shell holds the side rail and the page panel. The panel sits 8px from the edges on 12px corners and a
@@ -210,7 +207,7 @@ html, body { background: var(--paper-deep) !important; }
 :root :is(.aw, #calm) :is(.aw-card, .aw-tile, .aw-module, .aw-run):is(button, a):hover { box-shadow: var(--shadow-hover) !important; }
 /* A card inside a card is a quiet well. */
 :root :is(.aw, #calm) :is(.aw-frame, .aw-card, .aw-module) :is(.aw-frame, .aw-table-wrap, .aw-card, .aw-tile) { box-shadow: 0 0 0 1px var(--border-medium) !important; border-radius: 10px !important; }
-:root :is(.aw, #calm) .aw-frame__body--flush .aw-table-wrap, :root :is(.aw, #calm) .aw-frame > .aw-table-wrap { box-shadow: none !important; border-radius: 0 !important; }
+:root :is(.aw, #calm) .aw-frame > .aw-table-wrap { box-shadow: none !important; border-radius: 0 !important; }
 :root :is(.aw, #calm) .aw-frame__head { border-radius: 12px 12px 0 0 !important; background: var(--bg-primary) !important; border-bottom: 1px solid var(--border-medium) !important; font-size: 15px !important; font-weight: 500 !important; letter-spacing: -0.01em; color: var(--text-strong) !important; }
 :root :is(.aw, #calm) .aw-frame__head :is(.aw-h4, h2, h3) { font-size: 15px !important; font-weight: 500 !important; letter-spacing: -0.01em !important; }
 :root :is(.aw, #calm) .aw-stats { border-radius: 12px !important; border-color: transparent !important; box-shadow: var(--shadow-rest) !important; }
@@ -290,8 +287,6 @@ html, body { background: var(--paper-deep) !important; }
 :root :is(.aw, #calm) .aw-checks__bar { height: 6px !important; border-radius: 9999px !important; background: var(--bg-quaternary) !important; }
 :root :is(.aw, #calm) .aw-checks__fill { border-radius: 9999px !important; background: var(--signal) !important; }
 :root :is(.aw, #calm) .aw-checks li.is-done .aw-checks__fill { background: var(--green-11) !important; }
-:root :is(.aw, #calm) .aw-onb__id, :root :is(.aw, #calm) .aw-onb__verdict { border-radius: 12px !important; }
-:root :is(.aw, #calm) .aw-onb__mono { border-radius: 12px !important; }
 
 /* ─────────────── 10. Floating layer ─────────────── */
 :root :is(.aw, #calm) :is(.aw-pop, .aw-menu, .aw-popover, .aw-toast, .aw-undo) { background: var(--bg-primary) !important; border-color: transparent !important; border-radius: 12px !important; box-shadow: var(--shadow-menu) !important; }
@@ -306,9 +301,6 @@ html, body { background: var(--paper-deep) !important; }
 :root :is(.aw, #calm) :is(.tw-overlay, .tw-side-overlay) { background: rgb(0 0 0 / .18) !important; }
 
 /* ─────────────── 11. Tool intros ─────────────── */
-:root :is(.aw, #calm) .aw-intro__title { letter-spacing: -0.035em !important; }
-:root :is(.aw, #calm) .aw-intro__card { background: var(--bg-primary) !important; border-color: transparent !important; border-radius: 12px !important; box-shadow: var(--shadow-rest) !important; overflow: hidden; }
-:root :is(.aw, #calm) .aw-intro__vis { background: var(--bg-secondary) !important; border-bottom: 1px solid var(--border-medium) !important; }
 :root :is(.aw, #calm) .aw-think__icon { border-color: transparent !important; border-radius: 12px !important; background: var(--signal-soft) !important; box-shadow: var(--shadow-chip) !important; }
 :root :is(.aw, #calm) .aw-think__icon svg { fill: var(--signal) !important; }
 :root :is(.aw, #calm) .aw-think__bar::after { background: var(--signal) !important; }

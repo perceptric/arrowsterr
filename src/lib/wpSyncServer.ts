@@ -138,7 +138,6 @@ export const pubView = (p: Pub) => ({
   pushedAt: p.pushed_at,
   syncedAt: p.synced_at,
 });
-export type PubView = ReturnType<typeof pubView>;
 
 /** Keep docs.meta.published (what the library reads) in step with the WordPress records. Other CMSs' entries stay. */
 export async function mirrorMeta(db: SupabaseClient, docId: string, extra: Record<string, unknown> = {}) {

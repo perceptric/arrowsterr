@@ -55,33 +55,6 @@ export const TEMPLATES: ReportTheme[] = [
 
 const HEX = /^#[0-9a-f]{6}$/i;
 
-/** Keep only values a theme may hold. Anything missing or broken falls back to the base template. */
-export function cleanTheme(x: unknown, base: ReportTheme = TEMPLATES[0]): ReportTheme {
-  const o = (x && typeof x === "object" ? x : {}) as Record<string, unknown>;
-  const color = (k: keyof ReportTheme) => (typeof o[k] === "string" && HEX.test(o[k] as string) ? (o[k] as string) : (base[k] as string));
-  const font = (k: "heading" | "body" | "label") => (FONTS.includes(o[k] as Font) ? (o[k] as Font) : base[k]);
-  return {
-    template: typeof o.template === "string" ? o.template.slice(0, 40) : base.template,
-    name: typeof o.name === "string" && o.name.trim() ? o.name.trim().slice(0, 40) : base.name,
-    accent: color("accent"),
-    accent2: color("accent2"),
-    ink: color("ink"),
-    text: color("text"),
-    muted: color("muted"),
-    paper: color("paper"),
-    surface: color("surface"),
-    line: color("line"),
-    heroBg: color("heroBg"),
-    heroText: color("heroText"),
-    heading: font("heading"),
-    body: font("body"),
-    label: font("label"),
-    radius: typeof o.radius === "number" && o.radius >= 0 && o.radius <= 32 ? Math.round(o.radius) : base.radius,
-    hero: ["dark", "gradient", "light", "split"].includes(o.hero as string) ? (o.hero as Hero) : base.hero,
-    cards: ["elevated", "outline", "tinted", "flat"].includes(o.cards as string) ? (o.cards as Cards) : base.cards,
-  };
-}
-
 /** The theme for a report. Old reports only have one color: they get the Perceptric template in that color. */
 export function themeOf(style: { color: string; theme?: ReportTheme }): ReportTheme {
   if (style.theme) return style.theme;

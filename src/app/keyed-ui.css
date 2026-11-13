@@ -41,7 +41,7 @@
 :root :is(.aw, #calm) .aw-stats > :first-child { border-top-left-radius: 16px !important; border-bottom-left-radius: 16px !important; }
 :root :is(.aw, #calm) .aw-stats > :last-child { border-top-right-radius: 16px !important; border-bottom-right-radius: 16px !important; }
 :root :is(.aw, #calm) :is(.aw-frame, .aw-card, .aw-module) :is(.aw-frame, .aw-table-wrap, .aw-card, .aw-tile) { border-radius: 12px !important; }
-:root :is(.aw, #calm) .aw-frame__body--flush .aw-table-wrap, :root :is(.aw, #calm) .aw-frame > .aw-table-wrap { border-radius: 0 !important; }
+:root :is(.aw, #calm) .aw-frame > .aw-table-wrap { border-radius: 0 !important; }
 @media (min-width: 768px) {
   :root :is(.aw, #calm) div:has(> .aw-page-body) { border-radius: 16px !important; }
   :root :is(.aw, #calm) div:has(> .aw-page-body) > .aw-page-head { border-radius: 16px 16px 0 0 !important; }
@@ -75,8 +75,6 @@
 :root :is(.aw, #calm) .aw-strip__num.is-brand { color: var(--signal-ink); }
 :root :is(.aw, #calm) .aw-strip__sub { font-size: 12px; color: var(--text-secondary); }
 :root :is(.aw, #calm) .aw-strip__spark { position: absolute; right: 0; bottom: 0; width: 58%; height: 46px; pointer-events: none; }
-:root :is(.aw, #calm) .aw-strip__bar { display: flex; gap: 2px; height: 6px; margin-top: 8px; border-radius: 3px; overflow: hidden; }
-:root :is(.aw, #calm) .aw-strip__bar > i { display: block; min-width: 4px; border-radius: 2px; }
 @media (max-width: 900px) {
   :root :is(.aw, #calm) .aw-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   :root :is(.aw, #calm) .aw-strip__lead { grid-column: 1 / -1; border-radius: 16px 16px 0 0; }
@@ -86,7 +84,6 @@
 
 /* The lead cell of the Prompts summary: the same tint, with your visibility trend behind the number. */
 :root :is(.aw, #calm) .aw-lead { background: var(--signal-soft); overflow: hidden; }
-:root :is(.aw, #calm) .aw-lead__spark { position: absolute; right: 0; top: 18px; width: 46%; height: 64px; pointer-events: none; }
 @media (min-width: 640px) { :root :is(.aw, #calm) .aw-lead { border-bottom-left-radius: 16px; } }
 
 /* Usage meters as one card of rows: label, bar, count. */

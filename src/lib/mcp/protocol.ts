@@ -16,7 +16,6 @@ export const PARSE_ERROR = -32700;
 export const INVALID_REQUEST = -32600;
 export const NO_METHOD = -32601;
 export const BAD_PARAMS = -32602;
-export const INTERNAL = -32603;
 
 /** A JSON Schema for a tool's input, in the small subset MCP clients read. */
 export type Schema = { type: "object"; properties: Record<string, Record<string, unknown>>; required?: string[]; additionalProperties?: boolean };

@@ -41,23 +41,6 @@ export function Donut({ slices, center, size = 140, label }: { slices: Slice[]; 
   );
 }
 
-export function Legend({ slices }: { slices: Slice[] }) {
-  const total = slices.reduce((n, s) => n + s.value, 0) || 1;
-  return (
-    <ul className="flex w-full min-w-0 flex-col gap-2.5">
-      {slices.map((s) => (
-        <li key={s.label} className="flex items-center justify-between gap-3 text-[14px]">
-          <span className="flex min-w-0 items-center gap-2 text-body">
-            <i className="inline-block h-2.5 w-2.5 shrink-0" style={{ background: s.color }} />
-            <span className="truncate">{s.label}</span>
-          </span>
-          <span className="aw-num font-medium text-ink">{Math.round((s.value / total) * 100)}%</span>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
 /** One score out of 100 as a filled ring, like Ahrefs' DR ring. */
 export function Gauge({ value, color = "var(--aw-brand)", size = 84, label }: { value: number | null; color?: string; size?: number; label: string }) {
   const v = value === null ? 0 : Math.max(0, Math.min(100, value));

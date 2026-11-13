@@ -5,14 +5,6 @@ import type { ReportTheme } from "./reportTheme.ts";
 import type { SeoSnapshot } from "./reportSeo.ts";
 
 export type ReportSection = "ai" | "competitors" | "traffic" | "visitors" | "content" | "seo";
-export const SECTIONS: { id: ReportSection; label: string }[] = [
-  { id: "ai", label: "AI visibility" },
-  { id: "competitors", label: "Competitors" },
-  { id: "traffic", label: "Traffic" },
-  { id: "visitors", label: "Visitors" },
-  { id: "content", label: "Content" },
-  { id: "seo", label: "SEO" },
-];
 
 /** White label settings. theme is missing on reports made before templates existed. */
 export type ReportStyle = {

@@ -7,8 +7,6 @@ import { kdWord, MARKETS, type DomainBulkRow, type DomainReport, type KeywordRep
 
 /** The research pages with a PDF. They are download-only: schedules never send them. */
 export type ResearchPage = "keywords" | "domain" | "gap";
-export const RESEARCH_PAGES: ResearchPage[] = ["keywords", "domain", "gap"];
-export const isResearchPage = (v: unknown): v is ResearchPage => RESEARCH_PAGES.includes(v as ResearchPage);
 
 /** What a research PDF was made from, cleaned from a request. */
 export type ResearchParams =
