@@ -195,6 +195,8 @@ This step is required. The first draft waits for it.
 | 4. Technical SEO and linking skills | 2 | The tools in 3.2, the new plays, the 18 technical and linking skills | Each skill runs on 3 test sites and every proposed change waits for approval |
 | 5. The rest of the catalog | 1 | On-page, AI visibility, research, reporting and writing skills in chat | Every system skill names only tools Zippie has |
 
+**Status, November 13, 2026:** Phases 3, 4 and 5 shipped in #136. The sidebar has Home and Zippie tabs, the chat bar floats on every page and opens Zippie on the right, and Skills and Knowledge have their own pages. All 50 system skills and the new tools are live. The skill-picking evals and the 3-site runs are still to do. Phases 1 and 2 are next.
+
 About 8 weeks for one engineer. Phase 2 is the same work as Phase 5 of `docs/draft-and-write-build.md`, so they ship together.
 
 ---
