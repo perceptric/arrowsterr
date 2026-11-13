@@ -341,7 +341,10 @@ html, body { background: var(--v10-canvas) !important; }
 :root :is(.aw, #calm) .aw-nav-group .aw-nav__icon { width: 16px; height: 16px; color: var(--v10-ink-2); flex: none; }
 :root :is(.aw, #calm) .aw-nav-group__caret { color: var(--v10-muted); flex: none; transition: transform 120ms ease; }
 :root :is(.aw, #calm) .aw-nav-group__caret.is-closed { transform: rotate(-90deg); }
-:root :is(.aw, #calm) .aw-nav-tree { display: flex; flex-direction: column; gap: 1px; margin-left: 15px; padding-left: 9px; border-left: 1px solid var(--v10-border); }
+:root :is(.aw, #calm) .aw-nav-tree { display: flex; flex-direction: column; gap: 1px; margin-left: 15px; padding-left: 6px; border-left: 1px solid var(--v10-border); }
+/* Labels are never cut off: a long one wraps onto a second line and the row grows. */
+:root :is(.aw, #calm) .aw-nav-link .aw-nav-label { white-space: normal; line-height: 1.25; overflow-wrap: anywhere; }
+:root :is(.aw, #calm) .aw-nav-tree .aw-nav-link { height: auto !important; min-height: 36px !important; padding-top: 6px; padding-bottom: 6px; }
 :root :is(.aw, #calm) .aw-nav-link--top { margin-top: 6px; font-weight: 600 !important; color: var(--v10-ink) !important; }
 @media (prefers-reduced-motion: reduce) { :root :is(.aw, #calm) .aw-nav-group__caret { transition: none; } }
 
@@ -371,3 +374,18 @@ html, body { background: var(--v10-canvas) !important; }
 :root :is(.aw, #calm) .aw-int-card { display: flex; flex-direction: column; gap: 12px; min-height: 164px; padding: 16px; border-radius: 12px; background: var(--v10-card); border: 1px solid var(--v10-border); }
 :root :is(.aw, #calm) .aw-int-card--add:hover { border-color: var(--v10-border-strong); }
 :root :is(.aw, #calm) .aw-int-note { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; background: var(--v10-soft); }
+
+/* ─────────────── Drafts grid: column letters, and Status as a tag that opens a picker ─────────────── */
+:root :is(.aw, #calm) table tr.aw-grid-letters > th {
+  height: 24px !important; padding-top: 0 !important; padding-bottom: 0 !important; line-height: 24px !important;
+  font-family: var(--aw-mono) !important; font-size: 10.5px !important; font-weight: 400 !important; color: var(--v10-faint) !important;
+}
+:root :is(.aw, #calm) table tr.aw-grid-letters + tr > th { font-size: 12.5px !important; font-weight: 500 !important; color: var(--v10-muted) !important; }
+:root :is(.aw, #calm) .aw-status-pick { display: inline-flex; align-items: center; gap: 4px; padding: 2px; border-radius: 9999px; color: var(--v10-faint); cursor: pointer; }
+:root :is(.aw, #calm) .aw-status-pick:hover { background: var(--v10-soft); color: var(--v10-ink-2); }
+/* Every cell is solid, so cells scrolling sideways never show through the sticky Keyword column or the header. */
+:root :is(.aw, #calm) table.aw-dgrid.aw-dgrid th { background: var(--v10-card) !important; }
+:root :is(.aw, #calm) table.aw-dgrid.aw-dgrid tr.aw-grid-letters > th { background: var(--v10-soft) !important; }
+:root :is(.aw, #calm) table.aw-dgrid.aw-dgrid td { background: var(--v10-card) !important; }
+:root :is(.aw, #calm) table.aw-dgrid.aw-dgrid tbody tr:hover > td { background: var(--v10-soft) !important; }
+:root :is(.aw, #calm) table.aw-dgrid.aw-dgrid .aw-dgrid__key { box-shadow: inset -1px 0 0 var(--v10-border-strong); }

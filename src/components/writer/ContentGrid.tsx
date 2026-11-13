@@ -11,7 +11,7 @@ import { statusChoice, statusPatch } from "@/lib/library";
 import { nextMonday } from "@/lib/research";
 import type { RunAuth } from "@/lib/runner";
 import { useStash } from "@/lib/stash";
-import { Dropdown, Pop } from "../Pickers";
+import { Pop, SelectPop } from "../Pickers";
 import { post, STATUS_PICK } from "../research/shared";
 import { libraryGroup, writeState, type WriteState } from "@/lib/writeFlow";
 import { Seg, Thinking } from "../ui";
@@ -56,6 +56,7 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
   const [error, setError] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [edit, setEdit] = useState<{ itemId: string; key: "metaTitle" | "description" | "slug"; anchor: DOMRect } | null>(null);
+  const [statusPick, setStatusPick] = useState<{ itemId: string; anchor: DOMRect } | null>(null);
   const [panel, setPanel] = useState<{ itemId: string; pair: number } | null>(null);
   const [starting, setStarting] = useState("");
   const [gen, setGen] = useState<{ itemId: string; only: number | null; reopen: boolean } | null>(null);
@@ -229,34 +230,28 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
 
   const head = "sticky z-20 border-r border-b border-rule bg-[var(--bg-secondary)] px-2 text-left font-medium text-muted";
   const cell = "border-r border-b border-rule bg-white px-2 py-1.5 align-top group-hover:bg-[var(--bg-secondary)]";
-  const tag = (l: string) => <span className="tw-tag shrink-0">{l}</span>;
   const muted = (t: string) => (t ? <span className="line-clamp-3 text-muted">{t}</span> : <span className="text-faint">–</span>);
 
   function metaCell(r: GridRow, key: "status" | "metaTitle" | "description" | "slug") {
     if (key === "status") {
       const job = jobOf(r);
+      const st = STATUS_PICK.find((x) => x.id === statusChoice(r.topic)) ?? STATUS_PICK[0];
+      const face = <span className={`aw-status ${st.tone}`}>{st.label}</span>;
       return (
-        <span className="flex flex-col gap-1.5">
-          <span className="flex items-center gap-1">
-            <Dropdown
-              label="Content status"
-              value={statusChoice(r.topic)}
-              disabled={!canEdit}
-              onChange={(v) => void run(setStatus(r, v))}
-              className="aw-dropdown--field h-7! min-w-0 flex-1 text-[12px]!"
-              options={STATUS_PICK.map((x) => ({ id: x.id as string, label: x.label, tone: x.tone }))}
-            />
-              {canEdit && !making(r) && (!r.topic.brief || r.topic.brief.status === "failed") ? (
-              <button type="button" className="aw-iconbtn shrink-0" disabled={busy.has(r.topic.id)} title="Write draft" aria-label="Write draft" onClick={() => void generate([r.topic.id])}>
-                <svg className="aw-icon" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M7 5v14l11-7z" />
-                </svg>
-              </button>
-            ) : null}
-          </span>
-          {job ? (
-            <span className={`tw-tag self-start ${job.tone}`} title={job.error}>
-              {job.label}
+        <span className="flex flex-wrap items-center gap-1.5">
+          {canEdit ? (
+            <button type="button" className="aw-status-pick" aria-haspopup="listbox" aria-label={`Content status: ${st.label}`} onClick={(e) => setStatusPick({ itemId: r.topic.id, anchor: e.currentTarget.getBoundingClientRect() })}>
+              {face}
+              <svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor" aria-hidden="true">
+                <path d="M6 9h12l-6 7z" />
+              </svg>
+            </button>
+          ) : (
+            face
+          )}
+          {job?.label === "Failed" ? (
+            <span className={`tw-tag ${job.tone}`} title={job.error}>
+              Failed
             </span>
           ) : null}
         </span>
@@ -313,23 +308,20 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
             ]}
           />
         </span>
-        {picked.length ? <span className="text-[12px] text-muted">{picked.length} selected</span> : null}
-        {canEdit ? (
-          <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setConnecting(true)}>
-            Connect site
-          </button>
-        ) : null}
-        {canEdit ? (
-          <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" disabled={!picked.length || picked.every((id) => busy.has(id))} onClick={() => void generate(picked)}>
-            Write drafts
-          </button>
+        {canEdit && picked.length ? (
+          <>
+            <span className="text-[13px] font-medium text-ink">{picked.length} selected</span>
+            <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" disabled={picked.every((id) => busy.has(id))} onClick={() => void generate(picked)}>
+              Write {picked.length === 1 ? "draft" : `${picked.length} drafts`}
+            </button>
+          </>
         ) : null}
       </div>
       {error ? <p className="aw-error">{error}</p> : null}
       {actions.error ? <p className="aw-error">{actions.error}</p> : null}
 
       <div className="aw-frame overflow-auto" style={{ maxHeight: "calc(100vh - 200px)" }}>
-        <table className="border-separate border-spacing-0 text-[13px]" style={{ tableLayout: "fixed", width }}>
+        <table className="aw-dgrid border-separate border-spacing-0 text-[13px]" style={{ tableLayout: "fixed", width }}>
           <colgroup>
             <col style={{ width: W.check }} />
             <col style={{ width: W.keyword }} />
@@ -343,36 +335,32 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
             <col style={{ width: W.add }} />
           </colgroup>
           <thead>
-            <tr>
-              <th rowSpan={2} className={`${head} top-0 left-0 z-30 px-2`}>
-                <input type="checkbox" aria-label="Select all" checked={allOn} onChange={() => setSelected(allOn ? new Set() : new Set(list.map((r) => r.topic.id)))} />
+            <tr className="aw-grid-letters">
+              <th className={`${head} top-0 left-0 z-30`} />
+              <th className={`${head} aw-dgrid__key top-0 z-30 text-center`} style={{ left: W.check }}>
+                A
               </th>
-              <th rowSpan={2} className={`${head} top-0 z-30`} style={{ left: W.check }}>
-                <span className="flex items-center gap-2">
-                  {tag("A")}
-                  Keyword
-                </span>
-              </th>
-              <th rowSpan={2} className={`${head} top-0 z-20`}>
-                Write
-              </th>
-              <th colSpan={metaCols.length} className={`${head} top-0 h-8 text-ink`}>
-                Metadata
-              </th>
-              <th colSpan={contentCols.length + 1} className={`${head} top-0 h-8 text-ink`}>
-                Content
-              </th>
-            </tr>
-            <tr>
-              {[...metaCols, ...contentCols].map((c, i) => (
-                <th key={c.key} className={`${head} top-8 h-8`}>
-                  <span className="flex items-center gap-2">
-                    {tag(letter(i + 1))}
-                    <span className="truncate">{c.name}</span>
-                  </span>
+              {["Write", ...metaCols.map((c) => c.key), ...contentCols.map((c) => c.key)].map((k, i) => (
+                <th key={k} className={`${head} top-0 text-center`}>
+                  {letter(i + 1)}
                 </th>
               ))}
-              <th className={`${head} top-8 h-8 px-1`}>
+              <th className={`${head} top-0`} />
+            </tr>
+            <tr>
+              <th className={`${head} top-6 left-0 z-30 h-9 px-2`}>
+                <input type="checkbox" aria-label="Select all" checked={allOn} onChange={() => setSelected(allOn ? new Set() : new Set(list.map((r) => r.topic.id)))} />
+              </th>
+              <th className={`${head} aw-dgrid__key top-6 z-30 h-9`} style={{ left: W.check }}>
+                Keyword
+              </th>
+              <th className={`${head} top-6 h-9`}>Write</th>
+              {[...metaCols, ...contentCols].map((c) => (
+                <th key={c.key} className={`${head} top-6 h-9`}>
+                  {c.name}
+                </th>
+              ))}
+              <th className={`${head} top-6 h-9 px-1`}>
                 {canEdit ? (
                   <button type="button" className="aw-iconbtn" title="Add a heading and section" aria-label="Add a heading and section" onClick={addPair}>
                     <svg className="aw-icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -386,7 +374,7 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
           <tbody>
             {list.map((r) => (
               <tr key={r.topic.id} className="group">
-                <td className={`${cell} sticky left-0 z-10`} style={{ height: 76 }}>
+                <td className={`${cell} sticky left-0 z-10`} style={{ height: 64 }}>
                   <input
                     type="checkbox"
                     className="mt-2"
@@ -402,8 +390,8 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
                     }
                   />
                 </td>
-                <td className={`${cell} sticky z-10`} style={{ left: W.check }}>
-                  <div className="flex h-[63px] flex-col items-start gap-1 overflow-hidden">
+                <td className={`${cell} aw-dgrid__key sticky z-10`} style={{ left: W.check }}>
+                  <div className="flex h-[51px] flex-col items-start gap-1 overflow-hidden">
                     <span className="w-full truncate font-medium text-ink">{r.topic.keyword}</span>
                     <span className="flex items-center gap-3">
                       {r.doc ? (
@@ -431,18 +419,18 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
                   </div>
                 </td>
                 <td className={cell}>
-                  <div className="flex h-[63px] items-start pt-1">
+                  <div className="flex h-[51px] items-start pt-1">
                     <WriteButton state={stateOf(r)} busy={actions.busy.has(r.topic.id)} canEdit={canEdit} onAct={() => void actions.act(r.topic, stateOf(r))} onOpen={() => actions.open(r.topic, stateOf(r))} />
                   </div>
                 </td>
                 {metaCols.map((c) => (
                   <td key={c.key} className={cell}>
-                    <div className="h-[63px] overflow-hidden">{metaCell(r, c.key)}</div>
+                    <div className="h-[51px] overflow-hidden">{metaCell(r, c.key)}</div>
                   </td>
                 ))}
                 {contentCols.map((c) => (
                   <td key={c.key} className={cell}>
-                    <div className="h-[63px] overflow-hidden">{contentCell(r, c)}</div>
+                    <div className="h-[51px] overflow-hidden">{contentCell(r, c)}</div>
                   </td>
                 ))}
                 <td className={cell} />
@@ -465,6 +453,20 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
           onClose={() => setEdit(null)}
         />
       ) : null}
+      {statusPick ? (
+        <SelectPop
+          anchor={statusPick.anchor}
+          label="Content status"
+          value={statusChoice(rows.find((r) => r.topic.id === statusPick.itemId)?.topic ?? { status: "planned", due_date: null })}
+          options={STATUS_PICK.map((x) => ({ id: x.id as string, label: x.label, tone: x.tone }))}
+          onPick={(v) => {
+            const r = rows.find((x) => x.topic.id === statusPick.itemId);
+            if (r && v) void run(setStatus(r, v));
+            setStatusPick(null);
+          }}
+          onClose={() => setStatusPick(null)}
+        />
+      ) : null}
       {panel && panelRow?.doc ? (
         <SectionPanel
           key={`${panel.itemId}:${panel.pair}`}
@@ -472,7 +474,7 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
           workspaceId={auth.workspaceId}
           docId={panelRow.doc.id}
           part={partOfPair(panel.pair)}
-          label={`${letter(6 + panel.pair * 2)} · Section ${panel.pair + 1}${panelPair?.heading ? ` · ${panelPair.heading}` : ""}`}
+          label={`${letter(7 + panel.pair * 2)}, Section ${panel.pair + 1}${panelPair?.heading ? `, ${panelPair.heading}` : ""}`}
           nodes={partNodes(panelRow.doc.content, partOfPair(panel.pair))}
           notes={notesFor(panelRow.plan, partOfPair(panel.pair), panelPair?.heading ?? "")}
           canEdit={canEdit}
