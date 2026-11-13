@@ -186,7 +186,7 @@ function Explore({ list, onOpen, onNew }: { list: Skill[]; onOpen: (key: string)
       </label>
       <div className="zp-tabs" role="tablist" aria-label="Skill groups">
         {tabs.map((t) => (
-          <button key={t.v} type="button" role="tab" aria-selected={group === t.v} onClick={() => setGroup(t.v)}>
+          <button key={t.v} type="button" role="tab" className="zp-tab" aria-selected={group === t.v} onClick={() => setGroup(t.v)}>
             {t.l}
             <span className="text-faint">{t.n}</span>
           </button>

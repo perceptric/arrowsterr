@@ -74,7 +74,7 @@
 :root :is(.aw, #calm) .zp-used { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: var(--v10-signal-strong); }
 
 /* ─────────── The Zippie page ─────────── */
-:root :is(.aw, #calm) .zp-page-body { padding: 0 !important; display: flex; flex-direction: column; }
+:root :is(.aw, #calm) main.aw-page-body.zp-page-body { padding: 0 !important; display: flex; flex-direction: column; }
 :root :is(.aw, #calm) .zp-home { display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: center; gap: 16px; min-height: calc(100vh - 80px); padding: 32px 16px 48px; }
 :root :is(.aw, #calm) .zp-full { display: flex; flex-direction: column; min-height: calc(100vh - 80px); }
 :root :is(.aw, #calm) .zp-full__scroll { flex: 1; }
@@ -111,9 +111,11 @@
 @media (max-width: 767px) { :root :is(.aw, #calm) :is(.zp-pane__in, .zp-pane__wide) { padding-left: 16px; padding-right: 16px; } }
 :root :is(.aw, #calm) .zp-h2 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.02em; color: var(--v10-ink); }
 :root :is(.aw, #calm) .zp-lbl { font-size: 12px; font-weight: 500; color: var(--v10-muted); }
-:root :is(.aw, #calm) .zp-tabs { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 14px; border-bottom: 1px solid var(--v10-border); }
-:root :is(.aw, #calm) .zp-tabs button { display: inline-flex; gap: 5px; margin-bottom: -1px; padding: 8px 10px; border-bottom: 2px solid transparent; font-size: 13px; font-weight: 500; color: var(--v10-muted); }
-:root :is(.aw, #calm) .zp-tabs button[aria-selected="true"] { border-color: var(--v10-ink); color: var(--v10-ink); }
+:root :is(.aw, #calm) .zp-tabs { display: flex; flex-wrap: nowrap; gap: 4px; margin-top: 14px; overflow-x: auto; scrollbar-width: none; box-shadow: inset 0 -1px 0 var(--v10-border) !important; }
+:root :is(.aw, #calm) .zp-tabs::-webkit-scrollbar { display: none; }
+:root :is(.aw, #calm) .zp-tabs button.zp-tab { flex: none; display: inline-flex; gap: 5px; white-space: nowrap; padding: 8px 10px; border: 0 !important; border-radius: 0 !important; background: transparent !important; box-shadow: inset 0 -2px 0 transparent !important; outline: none !important; font-size: 13px; font-weight: 500; color: var(--v10-muted); }
+:root :is(.aw, #calm) .zp-tabs button.zp-tab:hover { color: var(--v10-ink); }
+:root :is(.aw, #calm) .zp-tabs button.zp-tab[aria-selected="true"] { color: var(--v10-ink); box-shadow: inset 0 -2px 0 var(--v10-ink) !important; }
 :root :is(.aw, #calm) .zp-grid { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
 :root :is(.aw, #calm) .zp-skillcard { display: flex; flex-direction: column; gap: 6px; padding: 12px; border-radius: 12px; background: var(--v10-card); box-shadow: var(--shadow-rest) !important; text-align: left; transition: box-shadow 150ms ease; }
 :root :is(.aw, #calm) .zp-skillcard:hover { box-shadow: var(--shadow-hover) !important; }
@@ -146,4 +148,12 @@
 @media (prefers-reduced-motion: reduce) { :root :is(.aw, #calm) :is(.zp-caret, .zp-skillcard) { transition: none; } }
 
 /* Bare fields inside a framed box: the box shows focus, the field doesn't. */
-:root :is(.aw, #calm) :is(.zp-cbox__input, .zp-kn-title, .zp-filebox__edit):is(:focus, :focus-visible, :hover) { outline: none !important; box-shadow: none !important; }
+
+/* Bare fields inside a framed box: the box is the field, so the field itself shows no ring on hover or focus. */
+:root :is(.aw, #calm) :is(.zp-cbox, .zp-filebox, .zp-pane) :is(input, textarea).tw-bare.tw-bare:is(*, :hover, :focus, :focus-visible):not(.zp-none) { outline: none !important; box-shadow: none !important; border-color: transparent !important; background: transparent !important; }
+
+/* Every page scrolls past the chat bar, so its last line can sit above it. */
+:root :is(.aw, #calm) main.aw-page-body.aw-page-body:not(.zp-page-body) { padding-bottom: 220px !important; }
+
+/* No focus ring after a click or tap. The ring stays for people moving with the keyboard. */
+:root[data-pointer] :is(.aw, #calm) :focus-visible, :root[data-pointer] :is(.aw, #calm) :focus { outline: none !important; }
