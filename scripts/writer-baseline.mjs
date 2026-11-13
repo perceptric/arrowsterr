@@ -58,11 +58,16 @@ async function ask(prompt, opts) {
       usage.cacheRead += u.cache_read_input_tokens ?? 0;
       usage.cacheWrite += u.cache_creation_input_tokens ?? 0;
       usage.output += u.output_tokens ?? 0;
-      return msg.content.filter((b) => b.type === "text").map((b) => b.text).join("");
+      const text = msg.content.filter((b) => b.type === "text").map((b) => b.text).join("");
+      if (!text.includes("{")) {
+        const why = `no JSON in the reply (stop: ${msg.stop_reason}, blocks: ${msg.content.map((b) => b.type).join(",") || "none"}, output tokens: ${u.output_tokens}, text: ${JSON.stringify(text.slice(0, 200))})`;
+        throw Object.assign(new Error(why), { status: 0, final: true });
+      }
+      return text;
     } catch (e) {
       // A hiccup (busy, rate limit, network, 5xx) is tried again with growing waits.
       const status = e?.status ?? 0;
-      if (tries >= 4 || (status && status < 500 && status !== 429 && status !== 408)) throw e;
+      if (e?.final || tries >= 4 || (status && status < 500 && status !== 429 && status !== 408)) throw e;
       await new Promise((r) => setTimeout(r, 2000 * 2 ** tries));
     }
   }
