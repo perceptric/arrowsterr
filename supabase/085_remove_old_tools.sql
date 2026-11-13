@@ -1,9 +1,11 @@
--- Technical SEO was taken out of the app in November 2026 (docs: Site Audit, On-page Audit, Indexing, Speed, Site
--- structure, AI access). Its code is gone; this drops its tables and columns and the jobs still waiting in the queue.
--- The data is deleted for good. Safe to run twice. Nothing in the app reads any of these.
+-- Technical SEO (Site Audit, On-page Audit, Indexing, Speed), Content Map and Local Research (Google Maps) were taken
+-- out of the app in November 2026. Their code is gone; this drops their tables and columns and the jobs still waiting
+-- in the queue. The data is deleted for good. Safe to run twice. Nothing in the app reads any of these.
 
 -- Jobs of the removed kinds: no worker runs them any more.
-delete from public.jobs where kind in ('audit', 'onpage', 'gsc_sync', 'cwv_sync') and status in ('queued', 'running');
+delete from public.jobs
+where kind in ('audit', 'onpage', 'gsc_sync', 'cwv_sync', 'content_map', 'local_fetch', 'local_profile', 'local_reviews', 'local_ai', 'local_alert')
+  and status in ('queued', 'running');
 
 -- Site Audit and its crawler (036, 061, 067, 069). crawl_queue and crawl_pages point at site_audits, so they go first.
 drop table if exists public.crawl_pages;
@@ -22,6 +24,17 @@ drop table if exists public.gsc_connections;
 drop table if exists public.gsc_site_connections;
 drop table if exists public.cwv_urls;
 drop table if exists public.cwv_origin;
+
+-- Content Map (065).
+drop table if exists public.content_maps;
+
+-- Local Research, the Google Maps grid (066, 071 to 075). The rest point at local_locations, so it goes last.
+drop table if exists public.local_alerts;
+drop table if exists public.local_ai_scans;
+drop table if exists public.local_reviews;
+drop table if exists public.local_profiles;
+drop table if exists public.local_scans;
+drop table if exists public.local_locations;
 
 -- Columns that only those tools used.
 alter table public.brands drop column if exists audit_weekly;

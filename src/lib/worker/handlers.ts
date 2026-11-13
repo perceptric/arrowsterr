@@ -297,14 +297,8 @@ export async function plan(db: SupabaseClient, job: Job) {
 
 // ─────────────── Zippie: change sets ───────────────
 
-// Local Research, Perception and Content Map were removed: their jobs still in the queue just finish.
+// Perception was removed: its jobs still in the queue just finish.
 const retired = async (_db: SupabaseClient, job: Job) => finish(job.id);
-export const local_fetch = retired;
-export const local_profile = retired;
-export const local_reviews = retired;
-export const local_ai = retired;
-export const local_alert = retired;
-export const content_map = retired;
 export const perception = retired;
 export const perception_probe = retired;
 

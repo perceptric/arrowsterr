@@ -16,7 +16,7 @@ type LinkRow = LinkLock & { token: string; mode: "live" | "frozen"; brand_id: st
 const expired = (l: LinkLock, now: number) => Boolean(l.expires_at && Date.parse(l.expires_at) < now);
 // The kind is read from inside the snapshot, so the snapshot itself (up to a few MB) never loads here.
 const COLS = "id, token, mode, brand_id, kind:snapshot->>kind, locked, expires_at, revoked_at, views, last_viewed_at, created_at";
-const TITLES: Record<string, string> = { prompts: "AI Visibility by Prompt", competitors: "Competitive Analysis in AI Answers", intel: "Content Performance", pdf: "Local Research" };
+const TITLES: Record<string, string> = { prompts: "AI Visibility by Prompt", competitors: "Competitive Analysis in AI Answers", intel: "Content Performance", pdf: "PDF report" };
 const day = (t: string) => new Date(t).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
 export function LinksTab({ sb, auth, brands, canEdit, secure }: { sb: SupabaseClient; auth: RunAuth; brands: { id: string; name: string }[]; canEdit: boolean; secure: boolean }) {

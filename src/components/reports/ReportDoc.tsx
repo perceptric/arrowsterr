@@ -125,41 +125,18 @@ function Kpi({ label, value, sub, change }: { label: string; value: React.ReactN
   );
 }
 
-/** The "SEO" block: the content map and Google Maps. Older reports also carry backlinks. */
+/** The old "SEO" block: backlinks and links won, on reports made before those tools were removed. */
 function SeoBlock({ n, s }: { n: number; s: SeoSnapshot }) {
   const kpis: React.ReactNode[] = [];
   if (s.backlinks) kpis.push(<Kpi key="bl" label="Linking sites" value={num(s.backlinks.domains)} change={<Change now={s.backlinks.domains} before={s.backlinks.before} />} sub={`authority ${s.backlinks.rank}`} />);
   if (s.links) kpis.push(<Kpi key="links" label="Links won" value={s.links.wonInPeriod} sub={`${s.links.won} in total${s.links.gone ? `, ${s.links.gone} gone` : ""}`} />);
-  if (s.map) kpis.push(<Kpi key="map" label="Topics to write" value={s.map.missing} sub={`${s.map.covered} covered${s.map.overlap ? `, ${s.map.overlap} competing` : ""}`} />);
+  // Reports that saved only the content map or Google Maps have nothing left to show here.
+  if (!kpis.length) return null;
   return (
     <section className="sec">
       <SectionHead n={n} title="SEO" />
       {kpis.length ? <div className="grid g4">{kpis.slice(0, 4)}</div> : null}
       {kpis.length > 4 ? <div className="grid g4">{kpis.slice(4)}</div> : null}
-      {s.local?.length ? (
-        <div className="card">
-          <table>
-            <thead>
-              <tr>
-                <th>Google Maps keyword</th>
-                <th className="r">Average rank</th>
-                <th className="r">Top 3 on the map</th>
-              </tr>
-            </thead>
-            <tbody>
-              {s.local.map((l) => (
-                <tr key={l.keyword}>
-                  <td>{l.keyword}</td>
-                  <td className="r">
-                    {l.avg} <Change now={l.avg} before={l.before} lowerIsBetter />
-                  </td>
-                  <td className="r">{l.read ? pctOf((l.top3 / l.read) * 100) : "–"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : null}
     </section>
   );
 }
