@@ -1,0 +1,244 @@
+# Draft and Write: build plan
+
+How we build what the Live Writer demo shows, step by step, on top of the writer we already run. `docs/draft-and-write-plan.md` says what the product does. This file says how we get there, in what order, and how we prove each step works. Written November 2026.
+
+Demo: https://claude.ai/artifact/BhD5pSWsuQbcfJbHAUGWKw
+
+---
+
+## 1. Where we start
+
+Most of the engine exists. The work is a new outline with cards, a visual planner, two interactive templates, a live view and stricter passes.
+
+| Piece | Today | Change |
+|---|---|---|
+| Research | `article_research` reads Google's top 10, AI-cited pages and example pages (`articleResearch.ts`) | Add frozen **fact notes**: one fact per note with its exact quote |
+| Outline | `writer_brief` job writes `WriterBrief`: H2s with points, images, modules, examples, checks (`writerBrief.ts`) | Add brief lines, shape and a **card for each section** |
+| Review step | Generate goes straight to the draft (`chainDraft`) | Stop at the outline. **Write** starts the draft |
+| Images | Worker renders `featured`, `screenshot`, `chart`, `steps`, `comparison`, `checklist`, `anatomy` from specs (`imageTemplates.ts`, `writerImages.ts`) | Kinds picked by rules from the cards. Built when Write starts, beside the text |
+| Interactive | Claude writes free HTML modules from 13 kinds, checked and run in a sandbox (`writerModules.ts`, `moduleCatalog.ts`) | New articles use two fixed templates filled from a spec: **picker** and **calculator** |
+| Passes | Lint, style review, style fix, claim check (cut only), title count (`writerStyle.ts`, `houseRules.ts`) | Claim ledger, ported house lint, voice check, fact audit, copyedit, proof with Ship or Hold |
+| Progress | `DraftProgress` list of steps, polled | Live view: sections appear in the editor as they land, visuals fill in |
+| Publish | Publish panel for every CMS, modules publish through the `data-aw-module` contract (`wpModules.ts`) | Publish stays off on Hold or an open Detail needed |
+
+---
+
+## 2. Data
+
+One migration, `supabase/084_draft_write.sql`. The brief is already JSON, so most new fields live inside it.
+
+**On the brief (`writer_briefs.brief` JSON):**
+
+```ts
+type FactNote = { id: string; source: number; quote: string; fact: string; numbers: string[] };
+
+type Shape = { usual: string; others: string[]; picked: string; why: string };
+
+type VisualPlan = {
+  kind: "flowchart" | "chart" | "table" | "picker" | "calculator" | "screenshot" | "anatomy";
+  rule: string;   // which rule fired, e.g. "steps>=3"
+  why: string;    // the line shown on the card
+  spec?: unknown; // filled when Write starts
+  on: boolean;    // the person can turn it off
+};
+
+type SectionCard = {
+  key: string;
+  h2: string;
+  job: string;
+  points: string[];
+  facts: string[];          // FactNote ids
+  visual: VisualPlan | null;
+  words: number;
+  links: { url: string; anchor: string }[];
+  keyword?: string;         // where the keyword goes, if here
+  gaps: string[];           // Detail needed
+};
+
+// WriterBrief gains:
+notes?: FactNote[]; job?: string; pov?: string; shape?: Shape; leadingWord?: string; cards?: SectionCard[];
+```
+
+Older briefs have no cards. `cardsFrom(brief)` builds plain cards from `outline`, `images` and `modules`, so old drafts open and rewrite as before.
+
+**New columns on `writer_drafts`:** `ledger jsonb`, `voice jsonb`, `copyedit jsonb`, `proof jsonb` (with `verdict` Ship or Hold and the reasons), `visuals jsonb` (spec and status for each planned visual).
+
+---
+
+## 3. Build order
+
+Seven phases, about 7.5 weeks for one engineer. Each phase ships on its own and leaves the writer working.
+
+### Phase 0. Recorded topics (0.5 week)
+
+Every later step is tested offline on real research.
+
+1. `scripts/writer-record.mjs` records the research pack for 20 keywords across 5 kinds of site (SaaS, store, agency, local, publisher) into `tests/fixtures/writer/`.
+2. Record the current writer's output on the same 20, as the baseline to beat.
+
+**Done when** the 20 packs load in tests with no network.
+
+### Phase 1. Generate draft (1.5 weeks)
+
+1. **Fact notes** (`articleNotes.ts`). One Sonnet call reads the picked source pages and returns facts with quotes. Code keeps a note only when its quote appears word for word in that page's text (after spaces and quote marks are evened out) and every number in the fact appears in the quote. The rest are dropped. The notes are saved on the brief and frozen: the writer reads only these.
+2. **Brief and shape.** `BRIEF_SCHEMA` gains job, point of view, leading word and shape (the usual structure, two others, the pick and why). Prompt follows perceptric-writer steps 2 and 3.
+3. **Cards.** The outline call returns a card per section. `cleanCards` checks it in code:
+   - every fact id is a real note;
+   - links come from the sitemap or the sources;
+   - words split the target from the top pages' median;
+   - the keyword lands in the H1, one H2 and the intro card;
+   - a point that needs a fact with no note becomes a **Detail needed** gap.
+4. **Stop for review.** `chainDraft` stops at the outline. A workspace switch, "Write without review", keeps today's one-click path for bulk runs.
+5. **Outline screen** (`src/components/writer/OutlineView.tsx`), opened from the Drafts row:
+   - the brief lines at the top, then the H1, slug and meta;
+   - one row per section: editable heading, visual chip (click to turn off), words and the info button;
+   - the info button opens the card on the floating layer, readable on hover, focus or tap;
+   - the card can be edited: points, remove a fact, change or drop the visual;
+   - the primary button is **Write**.
+
+**Done when** every card on the 20 topics has a job, points and only real fact ids, and no note's quote is missing from its page.
+
+### Phase 2. Visual planner (1.5 weeks)
+
+1. **Rules** (`visualPlan.ts`, pure). Each card is read for one visual at most:
+
+   | Rule | Visual |
+   |---|---|
+   | 3 to 7 points that are ordered steps (verbs first, or numbered in the research) | Flowchart |
+   | 3 or more facts with numbers in the same unit | Chart |
+   | 3 or more items sharing 3 or more attributes | Table |
+   | The section asks the reader to choose between the article's own picks | Picker |
+   | A fact with a range or rate the reader can apply to their own number | Calculator |
+   | A named product or page with a URL | Screenshot |
+   | The parts of one thing | Anatomy |
+
+   Limits: about one per 300 words, at most 2 interactive, none in the intro (the featured image goes there), none without a rule.
+2. **Pick and spec.** One Sonnet call picks among the candidates code found and fills a small spec for each. A visual the rules didn't propose is dropped.
+3. **Spec checks** (`visualSpecs.ts`):
+   - flowchart: 3 to 7 steps, short labels;
+   - chart: every value points to a note and appears in its quote; the source line goes under the chart;
+   - table: same columns on every row;
+   - picker: every answer is one of the article's picks;
+   - calculator: the formula is one of a fixed set (divide a range, multiply, percent) and its numbers come from one note.
+
+   A failed spec is fixed once, then becomes a note in the draft.
+4. **Templates.** Flowchart extends the `steps` template with arrows and a row or column layout. Chart extends `chart` with a line option. Table uses the `comparison` template plus a real table block for search engines.
+5. **Built beside the text.** Specs need only the cards and notes, so image tasks are queued the moment Write is clicked and render on the worker while sections are written.
+
+**Done when** on the 20 topics every planned visual has a rule and a reason, and no chart value lacks a note.
+
+### Phase 3. Interactive templates (1 week)
+
+1. `interactiveTemplates.ts`: picker and calculator built from the spec into one self-contained HTML block in the Brand Kit's colors and fonts. Each passes `validateModule` and publishes through the existing `data-aw-module` contract, so every CMS path works as today.
+2. Keyboard and screen reader friendly. Each carries a plain text version (the answer table, the formula) for readers and crawlers without scripts.
+3. Test on WordPress, Webflow, Framer, Shopify and HubSpot test sites. Webflow's embed size limit (check) sets the template's size budget.
+4. Free HTML modules stay for older briefs. New briefs plan only template kinds.
+
+**Done when** both templates work on all five test sites and pass the module checks.
+
+### Phase 4. Write, live (1 week)
+
+1. **Write** approves the outline and starts the draft in one click, with today's guard against double clicks and double charges.
+2. **Live view** in the editor (`LiveDraft.tsx`). While the draft is generating, it asks `/api/writer/draft-live` every 1.5 seconds for the step, the sections written and each visual's status. New sections appear with a typing reveal in the browser. Each visual shows "Building the chart" until its image or module is ready. Text lands one section at a time, since each section is one call.
+3. **Steps bar** from `draft.step`: Sections, Visuals, Claim check, AI-tell review, Fact audit, Proof. It replaces `DraftProgress`.
+4. When the job ends, the editor opens for editing and the Ready card shows.
+
+**Done when** a draft can be watched from Write to Ready with no page reload, and a reload halfway shows the same state.
+
+### Phase 5. Write passes (1.5 weeks)
+
+New order in `runDraft`, each step saved before the next:
+
+1. Sections (as today, from cards and notes only).
+2. **Claim ledger.** The check returns each claim as supported, unsupported or uncertain, with its note id and a fix: remove, qualify or cite. Code applies the fix and checks the ledger the way `validate_claim_ledger.py` does.
+3. **House lint.** Port the checks in `perceptric-writer/scripts/lint.py` that `houseRules.ts` lacks, tested on the same cases.
+4. **AI-tell review and fix** (as today, with the anti-ai-writing strict review added to the method text).
+5. **Voice check.** One call names lines that could sit on any other blog and sections with no named thing. Fixed through the same fix path.
+6. **Copyedit.** One call at the medium level returns line edits.
+7. **Fact audit** (`factAudit.ts`). A port of `post_edit_audit.py`: numbers, dates, amounts, quotes, names, links, certainty words and word loss over 30%. It runs after steps 4, 5 and 6 and replaces `keepsFacts`. A BLOCK puts that section back.
+8. **Proof.** Code checks: counts against items, dates against weekdays, percentages against their total, leftover markers, repeated paragraphs and open Detail needed. The verdict is Ship or Hold, with the reasons.
+9. Wait for visuals, place them, save the doc.
+
+**Done when** on the 20 topics no fact changes through the passes, the lint finds no FAIL and each proof verdict matches a hand check.
+
+### Phase 6. Ready to publish (0.5 week)
+
+1. Meta, schema (FAQ, and HowTo when there's a flowchart), alt text on every image, and the card's internal links in place.
+2. **The gate** sits in the server's publish route, so the button, scheduling, bulk publish and the API all obey it. Hold or an open Detail needed keeps Publish off and lists what's left, each item a link to its line.
+
+**Done when** no path can publish a Hold draft, including a scheduled one.
+
+---
+
+## 4. Tests that prove it on flaky cases
+
+- A quote that differs from its page by one word is dropped, and the point becomes Detail needed.
+- A page read as blank or blocked gives no notes and the brief still finishes.
+- A card with a fact id that isn't a note fails `cleanCards`.
+- A chart value with no note drops the chart to a note in the draft.
+- A picker answer that isn't one of the article's picks fails its spec.
+- A job killed during the visuals restarts with no second image and no second charge.
+- Two quick clicks on Write make one draft.
+- A copyedit that changes "500 to 800 km" to "about 600 km" is put back by the fact audit.
+- A rewrite that drops "likely" from a claim is put back.
+- A scheduled publish of a Hold draft is refused.
+- A reload in the middle of Write shows the same sections and visuals.
+
+---
+
+## 5. What could go wrong
+
+| Risk | What we do |
+|---|---|
+| Pages built with scripts or PDFs give text that won't match quotes | Fact dropped, Detail needed shows where to look |
+| The worker is slow on images | The 10-minute wait (`WAIT_MS`) ends it: the draft finishes with notes |
+| A CMS strips scripts from posts | The template's plain text version still shows |
+| Claude plans more visuals than the limits | Code cuts by rule strength |
+| Old briefs and drafts | `cardsFrom` and the old module path keep them working |
+
+---
+
+## 6. How this fits with Drafts v4
+
+`docs/drafts-v4-plan.md` phase 2 (pins and the brief) becomes Phase 1 here. Its other phases (Drafts list, editor scores, Improve, publish rules) stay and come after Phase 6, using the live view's editor.
+
+---
+
+## 7. Running cost
+
+Claude Sonnet 5.5 at $2 in and $10 out per million tokens (check). 10 articles a team a month: 500 at Beta, 5,000 at Growth.
+
+| Line | Tokens per article | Each |
+|---|---|---|
+| Fact notes | 15K in, 3K out | ~$0.06 |
+| Brief, shape and cards (more than today's outline) | +4K in, +2K out | ~$0.03 |
+| Visual pick and specs | 8K in, 3K out | ~$0.05 |
+| Claim ledger (more than today's check) | +2K in, +1.5K out | ~$0.02 |
+| Voice check | 10K in, 2K out | ~$0.04 |
+| Copyedit | 10K in, 2K out | ~$0.04 |
+| House lint, fact audit, proof, rules | code | $0 |
+| Live view polling, templates | the VPS we have | $0 |
+| **Added per article** | | **~$0.24** |
+
+| | Beta (50 teams) | Growth (500 teams) |
+|---|---|---|
+| Added a month | **~$120** | **~$1,200** |
+| Writer total with today's ~$0.82 an article | ~$530 | ~$5,300 |
+
+This replaces the ~$95 and ~$950 in the plan, which left out the fact notes call.
+
+---
+
+## 8. Demo to product
+
+| In the demo | Ships in |
+|---|---|
+| Generate draft with Research, Brief, Shape, Outline, Visuals | Phase 1 and 2 |
+| Brief lines above the outline | Phase 1 |
+| Info button with the section card, Detail needed | Phase 1 |
+| Visual chips you can turn off | Phase 2 |
+| Write that fills the article live | Phase 4 |
+| Featured image, flowchart, table, chart | Phase 2 |
+| Shoe finder and calculator | Phase 3 |
+| Claim check, AI-tell review, fact audit, proof | Phase 5 |
+| Ready to publish, Publish and Send to review | Phase 6 |
