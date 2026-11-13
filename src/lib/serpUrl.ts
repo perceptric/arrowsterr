@@ -45,8 +45,10 @@ export function plainTarget(u: string): string | null {
  */
 export function breadcrumbUrl(b: string | null | undefined): string | null {
   const parts = (b ?? "").split(/\s*›\s*/).map((p) => p.trim()).filter(Boolean);
-  if (!parts.length || !/^https?:\/\/[^\s/]+/i.test(parts[0])) return null;
-  const origin = parts[0].replace(/\/+$/, "");
+  // The site is only the address at the start: Google can add a date or a count after it ("https://x.com · Sep 15, 2016").
+  const site = /^https?:\/\/[^\s/·•]+/i.exec(parts[0] ?? "");
+  if (!site) return null;
+  const origin = site[0];
   // A part Google cut short ("best-running-shoes-for-b...") is not the real path, so it counts as unreadable.
   const path = parts.slice(1).filter((p) => /^[\w.~%+-]+$/.test(p) && !/(\.\.\.|…)$/.test(p));
   if (GOOGLE.test(hostOf(origin))) return null;

@@ -10,7 +10,7 @@
 import { mkdir, writeFile, access } from "node:fs/promises";
 import { gzipSync } from "node:zlib";
 import { createRequire } from "node:module";
-import { asQuestion, citedToRead, cleanRead, pageUrlOk, readSerp, robotsAllows } from "../src/lib/articleResearch.ts";
+import { asQuestion, citedToRead, cleanRead, MAX_CITED, MIN_PAGES, pageUrlOk, readSerp, robotsAllows } from "../src/lib/articleResearch.ts";
 import { fixSerpItems } from "../src/lib/serpUrl.ts";
 import { cleanSources, linksInText } from "../src/lib/sources.ts";
 import { TOPICS } from "../tests/fixtures/writer/topics.mjs";
@@ -21,7 +21,7 @@ const OUT = "tests/fixtures/writer";
 const API = process.env.DFS_API_URL?.trim() || "https://api.dataforseo.com/v3";
 const AUTH = { Authorization: `Basic ${Buffer.from(`${process.env.DFS_LOGIN ?? ""}:${process.env.DFS_PASSWORD ?? ""}`).toString("base64")}` };
 const BODY_KEEP = 15_000; // characters of each page kept: enough for fact notes, small enough for the repo
-const CITED = 5; // cited pages read per topic, on top of the top 10
+const CITED = 5; // cited pages read per topic, on top of the top 10 (up to MAX_CITED when fewer than MIN_PAGES were read)
 const READ_MS = 20_000; // the worker's limit per page
 const ENGINES = {
   ChatGPT: { path: "ai_optimization/chat_gpt/llm_scraper", extra: { force_web_search: true } },
@@ -202,9 +202,15 @@ async function record(browser, t) {
   const s = await serp(t.keyword);
   const question = asQuestion(t.keyword);
   const answers = await Promise.all(Object.keys(ENGINES).map((e) => ask(e, question)));
-  const cited = citedToRead(answers.filter((a) => a.answer), s.organic.map((o) => o.url), CITED);
-  const list = [...s.organic.map((o) => ({ url: o.url, source: "serp", position: o.position })), ...cited.map((url) => ({ url, source: "ai", position: null }))];
+  const allCited = citedToRead(answers.filter((a) => a.answer), s.organic.map((o) => o.url), MAX_CITED);
+  const list = [...s.organic.map((o) => ({ url: o.url, source: "serp", position: o.position })), ...allCited.slice(0, CITED).map((url) => ({ url, source: "ai", position: null }))];
   const reads = await readAll(browser, list);
+  // Like the app, a topic with too few pages read takes more of the cited pages.
+  if (reads.filter((r) => r.ok).length < MIN_PAGES && allCited.length > CITED) {
+    const more = allCited.slice(CITED).map((url) => ({ url, source: "ai", position: null }));
+    list.push(...more);
+    reads.push(...(await readAll(browser, more)));
+  }
   const pages = [];
   const skipped = [];
   list.forEach((p, i) => {

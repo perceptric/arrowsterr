@@ -19,6 +19,9 @@ test("breadcrumbs give the site and, when the parts look like a path, the page",
   // Google cuts long parts short: a cut part is not the real path, so only the site is kept.
   assert.equal(breadcrumbUrl("https://www.runweekly.com › best-running-shoes-for-b..."), "https://www.runweekly.com/");
   assert.equal(breadcrumbUrl("https://www.runweekly.com › guides › best-running-shoes-for-b…"), "https://www.runweekly.com/");
+  // A date or a count after the site is not part of the address.
+  assert.equal(breadcrumbUrl("https://www.today.com · Sep 15, 2016"), "https://www.today.com/");
+  assert.equal(breadcrumbUrl("https://www.reddit.com › r › running · 30+ comments"), "https://www.reddit.com/");
   assert.equal(breadcrumbUrl("https://www.google.com › search"), null);
 });
 
