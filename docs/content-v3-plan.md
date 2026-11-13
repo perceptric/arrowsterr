@@ -85,9 +85,9 @@ Clusters rank by the sum of their pages' scores. The list shows the score as Hig
 
 ### 3.4 The screen
 
-- One list of clusters, each opening to its pages: keyword, stage, volume, difficulty, the reason it's here ("ChatGPT names Northpeak and not you", "You rank 8"), and its score.
-- Per page: **Research** (sends it to Research), **Add to calendar**, **Dismiss**. Per cluster: **Research all** and **Add all to calendar** (one a week, or 3 a week).
-- **Find opportunities** runs it again. The 30-day refresh rule stays.
+- Opportunities is the Content Plan: the same list, columns, Write button, wording and Build my plan as before (`EditorialCalendar.tsx`, mode "plan"). Calendar is the same component with the month and week.
+- The plan's new data shows as columns in that list: **Cluster** (with a Pillar tag), **Chance**, **Score** and **Why** ("ChatGPT names Northpeak and not you", "You rank 8"). No group rows: sort or filter by Cluster.
+- **Refresh plan** runs it again. The 30-day refresh rule stays.
 
 ### 3.5 Data
 

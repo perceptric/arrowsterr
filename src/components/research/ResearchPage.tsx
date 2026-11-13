@@ -13,7 +13,6 @@ import { EditorialCalendar, type Refresh } from "./EditorialCalendar";
 import { DomainResearch, type SeoStart } from "./DomainResearch";
 import { KeywordGap } from "./KeywordGap";
 import { KeywordOverview } from "./KeywordOverview";
-import { OpportunitiesPage } from "./OpportunitiesPage";
 import { AnalyzeSeo, ResearchKeyword } from "./shared";
 import type { WriterAccess } from "./shared";
 
@@ -38,7 +37,6 @@ export function ResearchPage({
   onSeo,
   refresh,
   writer,
-  onDrafts,
 }: {
   sb: SupabaseClient;
   auth: RunAuth;
@@ -51,7 +49,6 @@ export function ResearchPage({
   onSeo?: (target: string, scope: SeoStart["scope"]) => void;
   refresh?: Refresh;
   writer?: WriterAccess;
-  onDrafts?: () => void;
 }) {
   const brand = view.brand;
   const [site, setSite] = useStash<Site | null | undefined>(`site:${brand.id}`, undefined);
@@ -120,10 +117,19 @@ export function ResearchPage({
           stats={brandStats(answered(view.current, view.filter), { name: brand.name, domain: brand.domain })}
           me={{ name: brand.name, logo: brand.logo }}
         />
-      ) : tool === "opportunities" ? (
-        <OpportunitiesPage sb={sb} auth={auth} site={site} canEdit={canEdit} refresh={refresh} onDrafts={onDrafts} />
       ) : (
-        <EditorialCalendar sb={sb} auth={auth} site={site} canEdit={canEdit} refresh={refresh} writer={writer} brandName={brand.name} onSite={setSite} />
+        <EditorialCalendar
+          key={tool}
+          sb={sb}
+          auth={auth}
+          site={site}
+          canEdit={canEdit}
+          refresh={refresh}
+          writer={writer}
+          brandName={brand.name}
+          onSite={setSite}
+          mode={tool === "opportunities" ? "plan" : "calendar"}
+        />
       )}
     </div>
     </ResearchKeyword.Provider>

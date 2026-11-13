@@ -423,6 +423,13 @@ export type CalendarItem = {
   brief_error: string | null;
   brief_at: string | null;
   extra?: Record<string, string | number | null>; // values for custom columns
+  /** From the plan's clusters (082_opportunities.sql). Missing before that migration. */
+  cluster_id?: string | null;
+  cluster_role?: "pillar" | "page" | null;
+  score?: number | null;
+  level?: "high" | "medium" | "low" | null;
+  reason?: string | null;
+  reason_engine?: string | null;
 };
 export type NewCalendarItem = Omit<
   CalendarItem,
@@ -432,7 +439,12 @@ export type NewCalendarItem = Omit<
 export const CAL_COLS =
   "id, site_id, keyword, secondary, stage, theme, volume, difficulty, intent, cpc, status, due_date, owner, url, notes, source, created_at, action, current_url, current_rank, brief_status, brief_error, brief_at";
 
+const CLUSTER_COLS = "cluster_id, cluster_role, score, level, reason, reason_engine";
+
 export async function listCalendar(sb: SupabaseClient, siteId: string): Promise<CalendarItem[]> {
+  // With the cluster columns when 082_opportunities.sql has run; without them before.
+  const full = await sb.from("calendar_items").select(`${CAL_COLS}, extra, ${CLUSTER_COLS}`).eq("site_id", siteId).order("created_at");
+  if (!full.error) return (full.data ?? []) as unknown as CalendarItem[];
   const res = await sb.from("calendar_items").select(`${CAL_COLS}, extra`).eq("site_id", siteId).order("created_at");
   // Before 013_calendar_columns.sql the extra column is missing. Load without it.
   if (res.error && /extra/.test(res.error.message)) return check(await sb.from("calendar_items").select(CAL_COLS).eq("site_id", siteId).order("created_at")) as CalendarItem[];
@@ -564,4 +576,11 @@ export async function deleteDoc(sb: SupabaseClient, id: string) {
 export async function getGuideline(sb: SupabaseClient, siteId: string): Promise<BrandGuideline | null> {
   const row = check(await sb.from("sites").select("guideline").eq("id", siteId).single()) as { guideline: BrandGuideline | null };
   return row.guideline;
+}
+
+/** The plan's clusters for a site, by id: their names for the Cluster column. Empty before 082_opportunities.sql. */
+export async function clusterNames(sb: SupabaseClient, siteId: string): Promise<Map<string, string>> {
+  const res = await sb.from("content_clusters").select("id, name").eq("site_id", siteId).is("archived_at", null);
+  if (res.error) return new Map();
+  return new Map(((res.data ?? []) as { id: string; name: string }[]).map((c) => [c.id, c.name]));
 }

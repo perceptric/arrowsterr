@@ -3,7 +3,7 @@
 import { DateField, Dropdown } from "../Pickers";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { addCalendarItems, keywordRunResult, listMembers, saveSite, type BankRow, type CalendarItem, type CalendarStatus, type NewCalendarItem, type SheetColumn, type Site } from "@/lib/db";
+import { addCalendarItems, clusterNames, keywordRunResult, listMembers, saveSite, type BankRow, type CalendarItem, type CalendarStatus, type NewCalendarItem, type SheetColumn, type Site } from "@/lib/db";
 import { nextMonday, schedulePlan, slots, STAGES, type Stage } from "@/lib/research";
 import type { RunAuth } from "@/lib/runner";
 import { quietly, recordUndo } from "@/lib/undo";
@@ -21,6 +21,8 @@ import { DayPanel } from "./DayPanel";
 import { byStage, CalendarViewIcon, Difficulty, downloadCsv, FIELD, ListViewIcon, post, slugify, slugOf, STAGE_LABEL, StageTag, STATUS_PICK, STATUSES, statusLabel, ViewSwitch, type WriterAccess } from "./shared";
 import { PlanProgress, planRows } from "./AgenticResearch";
 import { EmptyScreen } from "../Drawing";
+import { EngineName } from "../Engines";
+import { LEVELS } from "@/lib/oppData";
 import { usePlan } from "./usePlan";
 
 const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -86,6 +88,7 @@ const icon = (d: React.ReactNode) => (
 const AiIconSmall = () => icon(<path d="M12 3c.6 4.6 1.9 5.9 6.5 6.5-4.6.6-5.9 1.9-6.5 6.5-.6-4.6-1.9-5.9-6.5-6.5C10.1 8.9 11.4 7.6 12 3Z" />);
 
 /**
+ * Opportunities (mode "plan") is the Content Plan as a list; Calendar (mode "calendar") adds the month and week.
  * The Editorial Calendar: every piece of the Content Plan as a list (a sheet edited like a spreadsheet), a month or
  * a week. In the calendar views every unscheduled piece waits in the sidebar to be dragged onto a day, and
  * Auto-schedule gives them all dates at a set pace. The Write column takes each piece from outline to draft to a
@@ -99,6 +102,7 @@ export function EditorialCalendar({
   writer,
   onSite,
   refresh,
+  mode = "calendar",
 }: {
   sb: SupabaseClient;
   auth: RunAuth;
@@ -108,9 +112,12 @@ export function EditorialCalendar({
   brandName: string;
   onSite: (s: Site) => void;
   refresh?: Refresh;
+  /** "plan" is Opportunities: the list only. "calendar" adds the month and week. */
+  mode?: "plan" | "calendar";
 }) {
   const { items, runs, error, setError, load, patch, addOn, remove: removeItems, importToWriter, toast } = usePlan({ sb, auth, site });
-  const [view, setViewState] = useState<CalView>(readView);
+  const [stored, setViewState] = useState<CalView>(readView);
+  const view: CalView = mode === "plan" ? "list" : stored;
   const setView = (v: CalView) => {
     setViewState(v);
     try {
@@ -141,6 +148,13 @@ export function EditorialCalendar({
     params.delete("item");
     window.history.replaceState(null, "", window.location.pathname + (params.size ? `?${params}` : ""));
   }, []);
+  // The plan's cluster names, for the Cluster column.
+  const [clusters, setClusters] = useState<Map<string, string>>(new Map());
+  useEffect(() => {
+    clusterNames(sb, site.id)
+      .then(setClusters)
+      .catch(() => {});
+  }, [sb, site.id, items?.length]);
   // Everyone in the workspace, to pick as a piece's owner.
   const [members, setMembers] = useState<string[]>([]);
   useEffect(() => {
@@ -287,6 +301,23 @@ export function EditorialCalendar({
     { id: "keyword", label: "Keyword", type: "text", value: (i) => i.keyword, width: 240, edit: ed(text("keyword")) },
     writeCol,
     {
+      id: "cluster",
+      label: "Cluster",
+      type: "list",
+      value: (i) => (i.cluster_id ? (clusters.get(i.cluster_id) ?? null) : null),
+      width: 200,
+      cell: (i) => {
+        const name = i.cluster_id ? clusters.get(i.cluster_id) : null;
+        if (!name) return <span className="text-muted">–</span>;
+        return (
+          <span className="inline-flex items-center gap-2">
+            {name}
+            {i.cluster_role === "pillar" ? <span className="aw-badge">Pillar</span> : null}
+          </span>
+        );
+      },
+    },
+    {
       id: "stage",
       label: "Impact",
       type: "list",
@@ -303,6 +334,16 @@ export function EditorialCalendar({
     },
     { id: "volume", label: "Volume", type: "number", value: (i) => i.volume, width: 90 },
     { id: "kd", label: "Difficulty", type: "number", value: (i) => i.difficulty, width: 110, cell: (i) => <Difficulty kd={i.difficulty} /> },
+    {
+      id: "level",
+      label: "Chance",
+      type: "list",
+      options: ["High", "Medium", "Low"],
+      value: (i) => (i.level ? LEVELS[i.level].label : null),
+      width: 110,
+      cell: (i) => (i.level ? <span className={`aw-status ${LEVELS[i.level].tone}`}>{LEVELS[i.level].label}</span> : <span className="text-muted">–</span>),
+    },
+    { id: "score", label: "Score", type: "number", value: (i) => (i.score === null || i.score === undefined ? null : Math.round(i.score)), width: 90 },
     {
       id: "slug",
       label: "Suggested slug",
@@ -386,6 +427,22 @@ export function EditorialCalendar({
     },
     { id: "notes", label: "Notes", type: "text", value: (i) => i.notes, width: 180, edit: ed(text("notes")) },
     { id: "rank", label: "Now ranks", type: "number", value: (i) => i.current_rank, cell: (i) => (i.current_rank ? `#${i.current_rank}` : <span className="text-muted">–</span>) },
+    {
+      id: "why",
+      label: "Why",
+      type: "text",
+      value: (i) => i.reason ?? null,
+      width: 280,
+      cell: (i) =>
+        i.reason ? (
+          <span className="inline-flex items-center gap-2">
+            {i.reason_engine ? <EngineName engine={i.reason_engine} size={16} /> : null}
+            {i.reason_engine && i.reason.startsWith(i.reason_engine) ? i.reason.slice(i.reason_engine.length).trim() : i.reason}
+          </span>
+        ) : (
+          <span className="text-muted">–</span>
+        ),
+    },
     { id: "also", label: "Also covers", type: "text", value: (i) => i.secondary.join(", "), width: 200, cell: (i) => <span className="block max-w-72 truncate" title={i.secondary.join("\n")}>{i.secondary.join(" · ") || "–"}</span> },
     { id: "source", label: "Source", type: "list", value: (i) => i.source },
     ...custom.map(
@@ -431,8 +488,8 @@ export function EditorialCalendar({
   const head = (
     <header className="flex flex-wrap items-center justify-between gap-3">
       <span className="flex flex-wrap items-center gap-3">
-        <h1 className="aw-h2 mb-0!">Calendar</h1>
-        {built ? <ViewSwitch value={view} onChange={setView} options={VIEWS} /> : null}
+        <h1 className="aw-h2 mb-0!">{mode === "plan" ? "Opportunities" : "Calendar"}</h1>
+        {built && mode !== "plan" ? <ViewSwitch value={view} onChange={setView} options={VIEWS} /> : null}
       </span>
       {built ? (
         <span className="flex flex-wrap items-center gap-2">
