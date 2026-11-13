@@ -11,7 +11,7 @@ import { ToolError } from "./mcp/protocol";
 import { TOOLS as MCP_TOOLS } from "./mcp/tools";
 import { charge, claudeCost } from "./meter";
 import { PLAYS, preparePlay, type Play } from "./plays";
-import { MAIN, skillCatalog, skillFromRow, skillPrompt, USE_SKILL, useSkillResult, type Skill } from "./skills/format";
+import { MAIN, skillCatalog, skillFromRow, skillPrompt, USE_SKILL, pickSkillResult, type Skill } from "./skills/format";
 import { SYSTEM_SKILLS } from "./skills/system";
 import { ZIPPIE_TOOLS, type Proposal } from "./zippieTools";
 
@@ -278,7 +278,7 @@ export function toolDefs(canEdit = false): Anthropic.Tool[] {
 async function runTool(ctx: AskCtx, name: string, args: Record<string, unknown>, emit: (e: AskEvent) => void, skills: Skill[]): Promise<{ text: string; ok: boolean }> {
   try {
     if (name === USE_SKILL.name) {
-      const r = useSkillResult(skills, args.key);
+      const r = pickSkillResult(skills, args.key);
       if (r.ok) emit({ type: "skill", title: r.title });
       return { text: r.text, ok: r.ok };
     }

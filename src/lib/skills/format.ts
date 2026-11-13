@@ -218,7 +218,7 @@ export const USE_SKILL = {
 };
 
 /** What use_skill returns for a key, or why it can't. */
-export function useSkillResult(list: Pick<Skill, "key" | "title" | "files" | "ready">[], key: unknown): { ok: true; title: string; text: string } | { ok: false; text: string } {
+export function pickSkillResult(list: Pick<Skill, "key" | "title" | "files" | "ready">[], key: unknown): { ok: true; title: string; text: string } | { ok: false; text: string } {
   const s = typeof key === "string" ? list.find((x) => x.key === key.trim()) : undefined;
   if (!s) return { ok: false, text: "No skill has that key. Answer without a skill, or pick a key from the list." };
   if (!s.ready) return { ok: false, text: `${s.title} isn't ready yet. Answer without it.` };

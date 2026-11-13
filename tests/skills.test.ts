@@ -2,7 +2,7 @@
 // only tools Zippie has, says when to use it, and passes the same checks a person's own skill must pass to save.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { filesProblems, MAIN, matchSkills, parseSkill, skillCatalog, skillFromRow, useSkillResult } from "../src/lib/skills/format.ts";
+import { filesProblems, MAIN, matchSkills, parseSkill, skillCatalog, skillFromRow, pickSkillResult } from "../src/lib/skills/format.ts";
 import { GROUPS, SKILL_TOOLS, SYSTEM_SKILLS } from "../src/lib/skills/system.ts";
 import { readFileSync } from "node:fs";
 
@@ -47,9 +47,9 @@ test("Zippie's catalog, use_skill and the / menu read skills the same way", () =
   const cat = skillCatalog(list);
   assert.match(cat, /system:page-audit \| Page audit/);
   assert.match(cat, /Monday check/);
-  const ok = useSkillResult(list, "system:anti-ai-review");
+  const ok = pickSkillResult(list, "system:anti-ai-review");
   assert.ok(ok.ok && ok.text.includes("<skill>") && ok.text.includes('<file name="anti-ai-writing.md">'));
-  assert.equal(useSkillResult(list, "system:made-up").ok, false);
+  assert.equal(pickSkillResult(list, "system:made-up").ok, false);
   assert.equal(matchSkills(list, "link")[0].title, "Link a new post");
   assert.ok(matchSkills(list, "audit").some((s) => s.slug === "page-audit"));
 });

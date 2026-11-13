@@ -18,6 +18,7 @@ import { PlainEditor, type SaveState } from "../content/PlainEditor";
 import { ConnectWizard } from "../ConnectWizard";
 import { Pop } from "../Pickers";
 import { PublishPanel } from "../research/PublishPanel";
+import { useZippieRecord } from "../zippie/ZippieContext";
 import { post } from "../research/shared";
 import { brandTables } from "../research/Writer";
 import { exportClean } from "../research/writerNodes";
@@ -223,6 +224,8 @@ function DraftView({ sb, auth, site, brandId, id, canEdit, onBack }: { sb: Supab
 
 /** An article's doc by its id: the one a writer started in the grid (Full view). */
 function DocView({ sb, auth, site, brandId, id, canEdit, onBack }: { sb: SupabaseClient; auth: RunAuth; site: Site; brandId: string; id: string; canEdit: boolean; onBack: () => void }) {
+  // Zippie reads this draft when someone asks about it from the chat bar.
+  useZippieRecord(id);
   const [doc, setDoc] = useState<Doc | null | undefined>(undefined);
   const [error, setError] = useState("");
   useEffect(() => {

@@ -71,14 +71,22 @@ import { SourcesPage } from "./SourcesPage";
 import { TrafficPage } from "./TrafficPage";
 import { ReportsPage } from "./reports/ReportsPage";
 import { VisitorsPage } from "./VisitorsPage";
-import { ZippieWidget } from "./ZippieWidget";
+import { ZippieDock, ZippieHome, ZippiePanel } from "./zippie/Chat";
+import { KnowledgePage } from "./zippie/KnowledgePage";
+import { SkillsPage, TREE_W } from "./zippie/SkillsPage";
+import { useZippie, ZippieProvider } from "./zippie/ZippieContext";
 import { LibraryPage } from "./writer/LibraryPage";
 import { ShoppingPage } from "./ShoppingPage";
 import { shopOn, type ShopMode } from "@/lib/shopDetect";
 import { CONTENT_ALIASES, CONTENT_SLUGS, type ContentPage } from "@/lib/contentRoutes";
 
 export type { Brand } from "@/lib/db";
-type Page = "prompts" | "competitors" | "domains" | "urls" | "shopping" | "rank" | "traffic" | "visitors" | "keywords" | "domain" | "gap" | ContentPage | "summary" | SettingsTab;
+type Page = "prompts" | "competitors" | "domains" | "urls" | "shopping" | "rank" | "traffic" | "visitors" | "keywords" | "domain" | "gap" | ContentPage | "summary" | ZippiePageId | SettingsTab;
+type ZippiePageId = "zippie" | "skills" | "knowledge";
+/** Zippie's own pages, in the sidebar's Zippie tab (docs/zippie-skills-plan.md). */
+const ZIPPIE_PAGES: Page[] = ["zippie", "skills", "knowledge"];
+const ZIPPIE_LABEL: Record<ZippiePageId, string> = { zippie: "Zippie", skills: "Skills", knowledge: "Knowledge" };
+const isZippie = (p: Page): p is ZippiePageId => ZIPPIE_PAGES.includes(p);
 const RESEARCH: Page[] = ["keywords", "domain", "gap", "calendar", "opportunities"];
 const VISIBILITY: Page[] = ["prompts", "competitors", "domains", "urls"];
 /** Pages with their own PDF (docs/reports.md, section 32.3). */
@@ -101,6 +109,9 @@ const SLUGS: Record<Page, string> = {
   gap: "/research/competitors",
   ...CONTENT_SLUGS,
   summary: "/reports",
+  zippie: "/zippie",
+  skills: "/zippie/skills",
+  knowledge: "/zippie/knowledge",
   profile: "/settings/profile",
   security: "/settings/security",
   notifications: "/settings/notifications",
@@ -124,9 +135,8 @@ const SLUGS: Record<Page, string> = {
 };
 /** Older addresses still open the right page. */
 const ALIASES: Record<string, Page> = {
-  "/zippie": "prompts",
-  "/ask": "prompts",
-  "/agent": "prompts",
+  "/ask": "zippie",
+  "/agent": "zippie",
   "/overview": "prompts",
   "/domains": "domains",
   "/urls": "urls",
@@ -148,9 +158,6 @@ const ALIASES: Record<string, Page> = {
   "/billing": "billing",
 };
 const isSettings = (p: Page): p is SettingsTab => SETTINGS_TABS.some((t) => t.id === p);
-/** Zippie's old addresses open the Ask Zippie panel, over Prompts. */
-const ZIPPIE_PATHS = ["/zippie", "/ask", "/agent"];
-const onZippiePath = () => ZIPPIE_PATHS.includes(window.location.pathname.replace(/\/+$/, ""));
 const pageFromPath = (path: string): Page => {
   const p = path.replace(/\/+$/, "") || "/";
   return (Object.entries(SLUGS).find(([, slug]) => slug === p)?.[0] as Page | undefined) ?? ALIASES[p] ?? "prompts";
@@ -162,7 +169,6 @@ const onOnboarding = () => window.location.pathname.replace(/\/+$/, "") === ONBO
 
 const INVITE_KEY = "arrowsterr.invite";
 const NAV_HIDDEN = "arrowsterr.navHidden";
-const ZIPPIE_OPEN = "arrowsterr.zippieOpen";
 const NAV_KEY = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform) ? "⌘B" : "Ctrl+B";
 const LEGACY_BRANDS = "arrowsterr.brands";
 
@@ -267,12 +273,6 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
   const [page, setPage] = useState<Page>(() => allowed(pageFromPath(window.location.pathname)));
   // Hide the sidebar for more room. Remembered on this device. ⌘B / Ctrl+B toggles it outside text fields.
   const [navHidden, setNavHidden] = useState(() => readLocal(NAV_HIDDEN) === "1");
-  // Ask Zippie's panel, open or closed, is remembered on this device.
-  const [zippie, setZippie] = useState(() => onZippiePath() || readLocal(ZIPPIE_OPEN) === "1");
-  const openZippie = useCallback((open: boolean) => {
-    setZippie(open);
-    writeLocal(ZIPPIE_OPEN, open ? "1" : null);
-  }, []);
   const toggleNav = useCallback(() => {
     setNavHidden((h) => {
       writeLocal(NAV_HIDDEN, h ? null : "1");
@@ -299,7 +299,6 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
   useEffect(() => {
     if (window.location.pathname !== SLUGS[page] && !onOnboarding()) window.history.replaceState(null, "", SLUGS[page] + window.location.search);
     const back = () => {
-      if (onZippiePath()) openZippie(true);
       setPage(allowed(pageFromPath(window.location.pathname)));
       setAdding(onOnboarding());
     };
@@ -713,8 +712,10 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
   const view: View | null = active
     ? { brand: active, current, previous, filter, topics: topicList, engines: model === "All" ? modelList : [model], days }
     : null;
+  const zippieWhere = { brand: active?.name ?? null, page: pageTitle(page).label };
 
   return (
+    <ZippieProvider key={ws.id} auth={auth} canEdit={canEdit} where={zippieWhere} onZippiePage={page === "zippie"}>
     <div className="flex min-h-screen flex-col md:flex-row">
       <UndoKeys />
       <Sidebar
@@ -748,7 +749,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
         }}
       />
       <div className="flex min-w-0 flex-1 flex-col md:pr-3 md:pb-3">
-        {!isSettings(page) ? (
+        {!isSettings(page) && !isZippie(page) ? (
           <TopBar
             title={pageTitle(page)}
             visibility={VISIBILITY.includes(page)}
@@ -814,7 +815,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
             <PageTitle {...pageTitle(page)} />
           </div>
         )}
-        <main className="aw-page-body min-w-0 flex-1 px-4 py-5 sm:px-6">
+        <main className={`aw-page-body min-w-0 flex-1 ${isZippie(page) ? "zp-page-body" : "px-4 py-5 pb-44 sm:px-6"}`}>
           {limitHit || (plan && plan.status === "read_only" && page !== "billing") ? (
             <div className="aw-callout aw-callout--warn mb-5 flex flex-wrap items-center justify-between gap-3">
               <span>{limitHit?.error || (plan?.plan === "trial" ? "Your free trial has ended. Your data is safe." : "This workspace is read-only. Your data is safe.")}</span>
@@ -890,7 +891,13 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
               </button>
             </div>
           ) : null}
-          {isSettings(page) ? (
+          {page === "zippie" ? (
+            <ZippieHome />
+          ) : page === "skills" ? (
+            <SkillsPage />
+          ) : page === "knowledge" ? (
+            <KnowledgePage />
+          ) : isSettings(page) ? (
             <SettingsPage tab={page} onTab={go}>
               {page === "billing" ? (
                 <BillingPage key={ws.id} sb={sb} ws={ws} auth={auth} onPlan={loadPlan} />
@@ -1050,9 +1057,11 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
             />
           )}
         </main>
+        {page !== "zippie" ? <ZippieDock offset={page === "skills" || page === "knowledge" ? TREE_W : 0} /> : null}
       </div>
-      <ZippieWidget key={ws.id} auth={auth} canEdit={canEdit} where={{ brand: active?.name ?? null, page: pageTitle(page).label }} open={zippie} onOpen={openZippie} />
+      <ZippiePanel onOpenFull={() => go("zippie")} />
     </div>
+    </ZippieProvider>
   );
 }
 
@@ -1093,6 +1102,10 @@ const ICONS: Record<string, string> = {
   bot: '<rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 4v4M9 13h.01M15 13h.01M9 17h6"/><circle cx="12" cy="3.5" r="1"/>',
   tree: '<rect x="9" y="3" width="6" height="5" rx="1"/><rect x="3" y="16" width="6" height="5" rx="1"/><rect x="15" y="16" width="6" height="5" rx="1"/><path d="M12 8v4M6 16v-4h12v4"/>',
   gauge: '<path d="M4 17a8 8 0 1 1 16 0"/><path d="M12 17l4-5"/><circle cx="12" cy="17" r="1"/>',
+  home: '<path d="M4 11 12 4l8 7v9h-5v-6H9v6H4z"/>',
+  box: '<path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  x: '<path d="M6 6l12 12M18 6 6 18"/>',
 };
 function NavIcon({ name }: { name: string }) {
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="aw-nav__icon" dangerouslySetInnerHTML={{ __html: ICONS[name] }} />;
@@ -1206,6 +1219,10 @@ function Sidebar({
   onHide: () => void;
 }) {
   const wsMenu = useAnchoredPop();
+  const z = useZippie();
+  // Home and Zippie, the two tabs on top (Lightfield style). Home goes back to the last app page.
+  const [lastHome, setLastHome] = useState<Page>(isZippie(page) ? "prompts" : page);
+  if (!isZippie(page) && page !== lastHome) setLastHome(page);
   const [closedGroups, setClosedGroups] = useState<Set<string>>(new Set());
   // On a phone the pages fold into a menu button, so the page comes first.
   const [menu, setMenu] = useState(false);
@@ -1314,6 +1331,80 @@ function Sidebar({
         ) : null}
       </div>
 
+      <div className={`${menu ? "grid" : "hidden"} aw-side-tabs md:grid`} role="tablist" aria-label="Home or Zippie">
+        <button type="button" role="tab" aria-selected={!isZippie(page)} onClick={() => onPage(lastHome)}>
+          <NavIcon name="home" />
+          Home
+        </button>
+        <button type="button" role="tab" aria-selected={isZippie(page)} onClick={() => onPage("zippie")}>
+          <NavIcon name="spark" />
+          Zippie
+        </button>
+      </div>
+
+      {isZippie(page) ? (
+        <nav className={`${menu ? "flex" : "hidden"} flex-col gap-0.5 md:flex`} aria-label="Zippie">
+          <button
+            type="button"
+            className="aw-side-new"
+            onClick={() => {
+              setMenu(false);
+              z.newChat();
+              onPage("zippie");
+            }}
+          >
+            <NavIcon name="plus" />
+            New chat
+          </button>
+          {(["skills", "knowledge"] as const).map((id) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => {
+                setMenu(false);
+                onPage(id);
+              }}
+              aria-current={page === id ? "page" : undefined}
+              className={`aw-nav-link ${page === id ? "is-on" : ""}`}
+            >
+              <NavIcon name={id === "skills" ? "box" : "book"} />
+              <span className="aw-nav-label min-w-0 flex-1">{ZIPPIE_LABEL[id]}</span>
+              <span className="text-[11px] text-faint tabular-nums">{id === "skills" ? z.lib.skills.length || "" : z.lib.knowledge.length || ""}</span>
+            </button>
+          ))}
+          {z.threads.length ? <div className="aw-side-label">Chats</div> : null}
+          {z.threads.slice(0, 40).map((t) => {
+            const on = page === "zippie" && z.threadId === t.id;
+            return (
+              <div key={t.id} className={`aw-side-chat ${on ? "is-on" : ""}`}>
+                <button
+                  type="button"
+                  className="min-w-0 flex-1 text-left wrap-break-word"
+                  aria-current={on ? "true" : undefined}
+                  onClick={() => {
+                    setMenu(false);
+                    z.openThread(t.id);
+                    onPage("zippie");
+                  }}
+                >
+                  {t.title}
+                </button>
+                <button
+                  type="button"
+                  className="aw-side-chat__del"
+                  aria-label={`Delete ${t.title}`}
+                  title="Delete chat"
+                  onClick={async () => {
+                    if (await askConfirm({ title: "Delete this chat?", text: t.title, action: "Delete", danger: true })) z.removeThread(t.id);
+                  }}
+                >
+                  <NavIcon name="x" />
+                </button>
+              </div>
+            );
+          })}
+        </nav>
+      ) : (
       <nav className={`${menu ? "flex" : "hidden"} flex-col gap-0.5 md:flex`} aria-label="Modules">
         {groups.map((g) => {
           const collapsed = closedGroups.has(g.group);
@@ -1363,6 +1454,7 @@ function Sidebar({
           );
         })}
       </nav>
+      )}
 
       <div className={`${menu ? "flex" : "hidden"} mt-auto flex-col gap-0.5 pt-4 md:flex`}>
         {plan ? <TaskBar plan={plan} onOpen={() => onPage("billing")} /> : null}
@@ -1396,6 +1488,7 @@ const TIMEFRAMES = [7, 30, 60, 90];
 
 /** Where a page sits in the sidebar, for the page header: "AI Visibility / Prompts". */
 function pageTitle(page: Page): { group: string; label: string } {
+  if (isZippie(page)) return { group: page === "zippie" ? "" : "Zippie", label: ZIPPIE_LABEL[page] };
   if (isSettings(page)) return { group: "Settings", label: page === "settings" ? "Workspace" : (SETTINGS_TABS.find((t) => t.id === page)?.label ?? page) };
   for (const g of NAV) {
     const item = g.items.find((i) => i.id === page || i.also?.includes(page));
