@@ -80,25 +80,8 @@ Each step saves before the next, so a stopped job picks up where it left off and
 
 ## 6. Phases
 
-| Phase | Weeks | Ships | Done when |
-|---|---|---|---|
-| 1. Generate draft | 1.5 | Brief, shape, outline with section cards and tooltips, Detail needed | Every card on 20 test topics has a job, points and sourced facts |
-| 2. Visual planner | 1.5 | The rules, the specs, flowchart and chart templates | On 20 outlines, every planned visual has a rule and a reason, and no chart number lacks a source |
-| 3. Interactive elements | 1 | Picker and calculator modules, publishing them to each CMS | Both work on WordPress, Webflow and Framer test sites |
-| 4. Write passes | 1.5 | House lint, AI-tell passes, voice check, fact audit, copyedit and proof with Hold | On 20 drafts, no fact changes through the passes and the lint finds no FAIL |
-
-About 5.5 weeks for one engineer.
+The build order, tests and risks are in `docs/draft-and-write-build.md`: seven phases, about 7.5 weeks for one engineer.
 
 ## 7. Running cost
 
-Assumptions: 10 articles a team a month (500 at Beta, 5,000 at Growth); Claude Sonnet 5.5 at $2 in and $10 out per million tokens (check).
-
-| Line | Each | Beta | Growth |
-|---|---|---|---|
-| Research agent (counted in Content v3) | ~$0.43 | already counted | already counted |
-| Brief, shape and outline with cards | ~$0.06 | ~$30 | ~$300 |
-| Visual specs (flowcharts, charts, interactive) | ~$0.05 | ~$25 | ~$250 |
-| Voice check, copyedit and proof passes | ~$0.08 | ~$40 | ~$400 |
-| Lint and fact audit | code | $0 | $0 |
-| Writing, style passes and images (today's ~$0.82) | already counted | already counted | already counted |
-| **Added a month** | | **~$95** | **~$950** |
+About $0.24 more per article: **~$120 a month at Beta** and **~$1,200 at Growth** (Claude Sonnet 5.5 prices, check). The line by line math is in `docs/draft-and-write-build.md`, section 7.
