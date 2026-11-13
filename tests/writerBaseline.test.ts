@@ -10,7 +10,7 @@ import { contextOf, loadFixture, packOf, topics } from "./writerFixtures.ts";
 const DIR = new URL("./fixtures/writer/baseline/", import.meta.url);
 const load = (slug: string) => JSON.parse(readFileSync(new URL(`${slug}.json`, DIR), "utf8"));
 
-test("every topic has a baseline article, and the scorer gives it the same numbers it was saved with (lint now stricter)", () => {
+test("every topic has a baseline article, and the scorer gives it the same numbers it was saved with (lint aside)", () => {
   for (const t of topics()) {
     assert.ok(existsSync(new URL(`${t.slug}.json`, DIR)), `${t.slug} has no baseline: run scripts/writer-baseline.mjs ${t.slug}`);
     const b = load(t.slug);
@@ -25,11 +25,10 @@ test("every topic has a baseline article, and the scorer gives it the same numbe
       images: (b.brief.images ?? []).length,
       modules: b.modules.filter((m: { status: string }) => m.status === "ok").length,
     });
-    // The house lint grew (houseLint.ts, the Perceptric lint port), so today's lint finds at least what it found then.
-    const { lint, lintRules: _rules, ...rest } = again;
-    const { lint: savedLint, lintRules: _savedRules, ...savedRest } = b.score;
+    // The lint changes as its rules do (the Perceptric port, the abbreviation-aware splitter), so only the rest must match.
+    const { lint: _lint, lintRules: _rules, ...rest } = again;
+    const { lint: _savedLint, lintRules: _savedRules, ...savedRest } = b.score;
     assert.deepEqual(rest, savedRest, t.slug);
-    assert.ok(lint >= savedLint, `${t.slug}: lint ${lint} < saved ${savedLint}`);
   }
 });
 

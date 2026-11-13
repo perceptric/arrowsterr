@@ -1,0 +1,1090 @@
+{
+ "slug": "project-brief",
+ "keyword": "how to write a project brief",
+ "kind": "saas",
+ "stage": "tofu",
+ "model": "claude-sonnet-5-5",
+ "at": "2026-11-13T14:15:21.979Z",
+ "seconds": 247,
+ "usage": {
+  "calls": 28,
+  "input": 60881,
+  "cacheRead": 956136,
+  "cacheWrite": 135114,
+  "output": 35133
+ },
+ "score": {
+  "words": 2462,
+  "sections": 10,
+  "lint": 0,
+  "lintRules": {},
+  "numbers": 0,
+  "unsourced": [],
+  "links": 56,
+  "strayLinks": [],
+  "images": 4,
+  "modules": 2
+ },
+ "title": "How to Write a Project Brief in 6 Steps (With Template)",
+ "brief": {
+  "titles": [
+   "How to Write a Project Brief in 6 Steps (With Template)",
+   "How to Write a Project Brief Your Team Will Read",
+   "How to Write a Project Brief for Several Projects at Once"
+  ],
+  "h1": "How to Write a Project Brief in 6 Steps (With Template)",
+  "metaDescription": "Learn how to write a project brief in six steps. See what to include, how long to make it, and start from a Planwise template.",
+  "slug": "how-to-write-a-project-brief",
+  "searchIntent": "The searcher wants a clear method for writing a project brief, plus a list of what goes in it and a template or example to copy. A step-by-step guide with a short element list, a comparison with similar documents and a fill-in template serves this best.",
+  "reader": "Team leads at companies with 10 to 200 people who run several projects at once. They know what a project is and have probably started work from a vague request. They want a repeatable, one-page way to get the team and stakeholders aligned before kickoff, and they will likely open the Planwise template next.",
+  "angle": "Most top pages are written for a single project manager handling one engagement. We write for a team lead with several projects running at once, so we cover how to keep every brief short and consistent, and how to settle the 'when do I write it' disagreement across sources by drafting early and refreshing as details firm up.",
+  "wordTarget": 2000,
+  "outline": [
+   {
+    "h2": "What is a project brief?",
+    "points": [
+     "A project brief is a short summary of the basic elements of a project that shares goals, strategy and timeline with stakeholders [5].",
+     "It outlines goals, scope, timeline and target audience in one place, so stakeholders get the key facts without every detail [7].",
+     "TeamGantt describes it as the document that defines the who, what, when, where and why, while the project plan covers how the work gets done [6].",
+     "Length runs from one paragraph to one page [5][7]; TeamGantt suggests aiming for one page so people will use it [6]."
+    ],
+    "h3": [],
+    "sources": [
+     5,
+     6,
+     7
+    ]
+   },
+   {
+    "h2": "Why a project brief is worth the time",
+    "points": [
+     "It gives the team information and clarity about the work and each person's role [6].",
+     "It builds a common understanding that reduces risk and confusion, and it can act as a light agreement if you are not doing a charter [6].",
+     "It rallies people in a pre-kickoff meeting and gives everyone a unified view of the project [6].",
+     "Asana calls it a central source of truth for key project information [7]."
+    ],
+    "h3": [],
+    "sources": [
+     6,
+     7
+    ]
+   },
+   {
+    "h2": "What to include in a project brief",
+    "points": [
+     "Smartsheet names three core elements: a project overview, a goal statement and an estimated timeline [5].",
+     "Asana lists four elements: background, objectives and success metrics, timeline, and target audience [7].",
+     "Raydyant adds problem, current situation, constraints, existing systems and how success might be measured [4].",
+     "Optional extras for larger projects or unfamiliar audiences: background about your team or company, success metrics and target market [5].",
+     "Smartsheet's simple template covers project name, purpose, goals, audience, story, team, budget and timeframe [8].",
+     "A brief does not need every answer; its job is to make the important questions visible [4]."
+    ],
+    "h3": [
+     {
+      "title": "The core elements",
+      "points": [
+       "Overview, goals and timeline, as in [5].",
+       "Add audience and background as in [7]."
+      ]
+     },
+     {
+      "title": "Extras worth adding when the project is bigger",
+      "points": [
+       "Constraints, existing systems and success measures [4].",
+       "Budget and team, as in the Smartsheet template [8]."
+      ]
+     }
+    ],
+    "sources": [
+     4,
+     5,
+     7,
+     8
+    ]
+   },
+   {
+    "h2": "How to write a project brief, step by step",
+    "points": [
+     "Draft the brief at the start of the work, before the internal kickoff [6][7]. Smartsheet suggests finalizing key details first, so write a first version early and update it as details settle [5].",
+     "Gather input from the team and stakeholders on goals, timing and strategy before you write [5]."
+    ],
+    "h3": [
+     {
+      "title": "1. Summarize the project and its purpose",
+      "points": [
+       "Say what the project is, why it is happening and the problem it solves in one or two short paragraphs [6][5]."
+      ]
+     },
+     {
+      "title": "2. State the goals and how you will measure success",
+      "points": [
+       "List concrete objectives and deliverables [5].",
+       "Add success metrics [7]. AI answers suggest SMART goals, but the sources only confirm success metrics, so keep the SMART mention light and attributed."
+      ]
+     },
+     {
+      "title": "3. Add background and your target audience",
+      "points": [
+       "Give context stakeholders might not have: why you are doing this, and which business need it meets [7].",
+       "Name who the work is for [7]."
+      ]
+     },
+     {
+      "title": "4. Name the key players and their roles",
+      "points": [
+       "Introduce who is involved and what each person does [6].",
+       "Say who owns the brief; TeamGantt says the project manager should own it, even if sales fills in a first draft [6]."
+      ]
+     },
+     {
+      "title": "5. List key deliverables with dates",
+      "points": [
+       "Include the projected start and end dates and the timing of major phases and deliverables [5][6]."
+      ]
+     },
+     {
+      "title": "6. Add scope limits, constraints and other notes",
+      "points": [
+       "State what is in and out of scope; the AI answers stress this as protection against scope creep.",
+       "Note constraints and existing systems [4] and any other items of note [6]."
+      ]
+     }
+    ],
+    "sources": [
+     4,
+     5,
+     6,
+     7
+    ]
+   },
+   {
+    "h2": "A project brief template you can copy",
+    "points": [
+     "Give a plain fill-in outline using the fields confirmed in the sources: project name, purpose, goals and success measures, background, audience, team and roles, deliverables with dates, scope in and out, constraints [4][5][7][8].",
+     "Use bracketed placeholders only. Do not invent a named company, numbers or results.",
+     "Point to the Planwise project brief template for a ready-made version."
+    ],
+    "h3": [],
+    "sources": [
+     4,
+     5,
+     7,
+     8
+    ]
+   },
+   {
+    "h2": "Project brief vs charter, plan and creative brief",
+    "points": [
+     "A project plan has seven elements, while the brief needs only four: objectives, timeline, target audience and scope [7].",
+     "A charter is longer and more formal and goes into the extra information left out of the brief; its goal is to secure approval [6]. Asana says a charter formally authorizes a project [7].",
+     "A creative brief guides creative work and covers audience, messaging, tone, budget, timeline and distribution [7].",
+     "An executive summary suits expansive projects with C-suite stakeholders, while a brief suits cross-functional collaborators who need quick alignment [7]."
+    ],
+    "h3": [],
+    "sources": [
+     5,
+     6,
+     7
+    ]
+   },
+   {
+    "h2": "Tips for keeping briefs useful across several projects",
+    "points": [
+     "Keep each brief to one page so people reference it [6]; Smartsheet says to keep it high level and leave out unnecessary details [5].",
+     "Use one shared structure for every project so stakeholders know where to look.",
+     "Refresh the brief whenever project details change [5].",
+     "Reuse the brief: condense it onto one slide for a kickoff meeting [5].",
+     "Walk the team through it and agree on it before work begins; AI answers suggest storing it in a shared space.",
+     "Link the dates in your brief to a timeline view, such as a Gantt chart, or a board, such as Kanban."
+    ],
+    "h3": [],
+    "sources": [
+     5,
+     6
+    ]
+   },
+   {
+    "h2": "Your next step",
+    "points": [
+     "Pick the project that starts soonest and fill in the six steps in under an hour.",
+     "Share the draft at your kickoff meeting and ask the team what is missing [6].",
+     "Open the Planwise project brief template to start."
+    ],
+    "h3": [],
+    "sources": [
+     6
+    ]
+   }
+  ],
+  "entities": [
+   "project brief",
+   "project plan",
+   "project charter",
+   "creative brief",
+   "executive summary",
+   "stakeholders",
+   "scope",
+   "scope creep",
+   "deliverables",
+   "success metrics",
+   "timeline and milestones",
+   "target audience",
+   "kickoff meeting",
+   "project manager",
+   "SMART goals",
+   "Smartsheet",
+   "Asana",
+   "TeamGantt",
+   "Raydyant",
+   "Planwise"
+  ],
+  "gaps": [
+   "Top pages assume one project manager on one engagement; none speak to a lead juggling several projects with a shared brief structure.",
+   "Sources disagree on timing: Smartsheet says write after finalizing details, TeamGantt and Asana say at the start. This article explains how to draft early and refresh.",
+   "Out-of-scope items appear mainly in AI answers; top pages focus on in-scope elements. We make 'what is not included' an explicit step.",
+   "Length guidance varies from one paragraph to one page to 1 to 2 pages. We give a clear default of one page and explain why.",
+   "Few pages show a plain, copyable fill-in outline without extra sales copy."
+  ],
+  "faqs": [
+   {
+    "question": "What is a project brief for?",
+    "answer": "It must say that a brief shares goals, scope and timeline in a short document so the team and stakeholders start with the same understanding [5][6][7]."
+   },
+   {
+    "question": "How long should a project brief be?",
+    "answer": "It must say one paragraph to one page [5][7], with TeamGantt advising one page [6], and note that AI answers often say 1 to 2 pages."
+   },
+   {
+    "question": "Who writes a project brief?",
+    "answer": "It must say the project manager owns it and works with the team and stakeholders, and that sales may start a draft [5][6]."
+   },
+   {
+    "question": "What is the difference between a project brief and a project charter?",
+    "answer": "It must say a charter is longer and more formal and secures approval, while the brief is a high-level summary [6][7]."
+   },
+   {
+    "question": "What should a project brief include?",
+    "answer": "It must list overview or background, goals and success metrics, timeline, and audience, and mention scope and constraints [4][5][7]."
+   }
+  ],
+  "internalLinks": [
+   {
+    "url": "https://planwise.example/blog/project-management-basics",
+    "anchor": "project management basics",
+    "where": "What is a project brief?"
+   },
+   {
+    "url": "https://planwise.example/templates/project-brief",
+    "anchor": "project brief template",
+    "where": "A project brief template you can copy"
+   },
+   {
+    "url": "https://planwise.example/features/gantt",
+    "anchor": "Gantt chart",
+    "where": "Tips for keeping briefs useful across several projects"
+   },
+   {
+    "url": "https://planwise.example/features/kanban",
+    "anchor": "Kanban board",
+    "where": "Tips for keeping briefs useful across several projects"
+   },
+   {
+    "url": "https://planwise.example/templates/project-brief",
+    "anchor": "Open the Planwise project brief template",
+    "where": "Your next step"
+   }
+  ],
+  "cta": {
+   "text": "Open the Planwise project brief template, fill it in for your next project, and share it at your kickoff.",
+   "where": "Under the final H2, Your next step"
+  },
+  "modules": [
+   {
+    "type": "checklist",
+    "title": "Is your project brief ready to share?",
+    "purpose": "Let the reader check a draft brief against the elements the sources recommend before sending it.",
+    "placement": "How to write a project brief, step by step",
+    "inputs": [
+     "Tick box for each item"
+    ],
+    "outputs": [
+     "Count of items complete",
+     "List of items still to add"
+    ],
+    "data": "Items: purpose stated in one or two short paragraphs [6]; goals and deliverables stated [5]; success metrics added [7]; background and audience described [7]; key players and roles named [6]; start and end dates with major phases and deliverables [5][6]; scope in and out listed; constraints noted [4]; fits on one page [6]; team and stakeholders have reviewed it [6].",
+    "why": "A team lead can check a draft in a minute and see what to fix, which a paragraph of advice cannot do."
+   },
+   {
+    "type": "table",
+    "title": "Project brief vs similar documents",
+    "purpose": "Show side by side how the brief differs from a charter, plan and creative brief.",
+    "placement": "Project brief vs charter, plan and creative brief",
+    "inputs": [],
+    "outputs": [],
+    "data": "Rows: Project brief (short summary; one paragraph to one page; goals, scope, timeline, audience; aligns the team) [5][7]. Project charter (longer and more formal; formally authorizes the project; secures approval) [6][7]. Project plan (seven elements: goals, success metrics, stakeholders and roles, budget, milestones and deliverables, timeline, communication plan) [7]. Creative brief (guides creative work; audience, messaging, tone, budget, timeline, distribution) [7].",
+    "why": "Readers compare four documents across the same attributes, which reads faster in columns than in paragraphs."
+   }
+  ],
+  "images": [
+   {
+    "placement": "What to include in a project brief",
+    "shows": "A one-page brief with labeled parts: overview, goals, background, audience, roles, timeline, scope and constraints.",
+    "alt": "A one-page project brief with each section labeled.",
+    "kind": "anatomy"
+   },
+   {
+    "placement": "How to write a project brief, step by step",
+    "shows": "The six steps in order, from summarizing the project to adding scope limits and notes.",
+    "alt": "Six steps for writing a project brief shown in order.",
+    "kind": "steps"
+   },
+   {
+    "placement": "Project brief vs charter, plan and creative brief",
+    "shows": "Brief, charter and plan side by side by length, formality and purpose.",
+    "alt": "A comparison of a project brief, a charter and a project plan.",
+    "kind": "comparison"
+   },
+   {
+    "placement": "Tips for keeping briefs useful across several projects",
+    "shows": "A short checklist for keeping briefs consistent across projects.",
+    "alt": "A checklist of habits for keeping project briefs short and current.",
+    "kind": "checklist"
+   }
+  ],
+  "examples": [],
+  "checks": [
+   "Sources 1, 2 and 3 are not about project briefs (a sample page, a shutting-down ad tool, and HR performance systems), so none are used.",
+   "Asana's page title contains a typo ('Project Drief') and shows an odd date (August 29th, 2026); do not cite its date.",
+   "Smartsheet says write the brief after finalizing details, while TeamGantt and Asana say at the start. Editor to confirm the 'draft early, then refresh' framing.",
+   "SMART goals appear only in AI answers, not in the sources; attribute lightly or leave out.",
+   "Out-of-scope guidance appears only in AI answers; keep it as advice without a stat.",
+   "Confirm what the Planwise project brief template contains before describing it, and whether it is free.",
+   "No source gives a complete worked brief example, so the sample must use placeholders only."
+  ],
+  "research": {
+   "sources": [
+    {
+     "n": 1,
+     "url": "https://dev.squarefit.co.in/blog/sample-preparing-a-project-brief",
+     "title": "Sample — Preparing a Project Brief | Square Fit",
+     "domain": "dev.squarefit.co.in",
+     "kind": "serp",
+     "position": 1,
+     "words": 394
+    },
+    {
+     "n": 2,
+     "url": "https://magicbrief.com/",
+     "title": "MagicBrief - Launch ads that win",
+     "domain": "magicbrief.com",
+     "kind": "serp",
+     "position": 4,
+     "words": 189
+    },
+    {
+     "n": 3,
+     "url": "https://superworks.com/PMS",
+     "title": "Top 5 Powerful Types of PMS in HR to Align Business Goals",
+     "domain": "superworks.com",
+     "kind": "serp",
+     "position": 7,
+     "words": 1843
+    },
+    {
+     "n": 4,
+     "url": "https://raydyant.com/blog/what-to-include-in-a-project-brief",
+     "title": "What to Include in a Good Project Brief",
+     "domain": "raydyant.com",
+     "kind": "serp",
+     "position": 9,
+     "words": 181
+    },
+    {
+     "n": 5,
+     "url": "https://www.smartsheet.com/content/project-brief",
+     "title": "Project Briefs | Smartsheet",
+     "domain": "smartsheet.com",
+     "kind": "ai",
+     "position": null,
+     "words": 2408
+    },
+    {
+     "n": 6,
+     "url": "https://www.teamgantt.com/resources/articles/project-brief",
+     "title": "How to Write a Project Brief: Template & Examples",
+     "domain": "teamgantt.com",
+     "kind": "ai",
+     "position": null,
+     "words": 2049
+    },
+    {
+     "n": 7,
+     "url": "https://asana.com/resources/project-brief",
+     "title": "Project Drief: Definition, Template, Examples + Steps [2026] • Asana",
+     "domain": "asana.com",
+     "kind": "ai",
+     "position": null,
+     "words": 1997
+    },
+    {
+     "n": 8,
+     "url": "https://www.smartsheet.com/content/project-brief-templates",
+     "title": "Free Project Brief Templates | Smartsheet",
+     "domain": "smartsheet.com",
+     "kind": "ai",
+     "position": null,
+     "words": 1942
+    }
+   ],
+   "questions": [
+    "What is a project brief for?",
+    "What is the format of a project report?",
+    "What are the 5 parts of a design brief?",
+    "How do you write a brief?"
+   ],
+   "engines": [
+    "ChatGPT",
+    "Gemini",
+    "AI Mode"
+   ],
+   "topPages": "The top pages are long how-to guides of about 2,000 to 2,400 words from Smartsheet, TeamGantt and Asana. They define the brief, explain its purpose and who writes it, list elements, compare it with a charter, plan and creative brief, give steps and offer a template or example. A shorter Raydyant page lists what to include in about 180 words. All stress keeping the brief short, from one paragraph to one page.",
+   "aiAnswers": "ChatGPT, Gemini and Google's AI Mode define the brief as a short document and give 6 to 10 sections, such as background, objectives, scope, deliverables, audience, timeline, stakeholders and budget. They suggest 1 to 2 pages, SMART goals and stating what is out of scope. ChatGPT cites Smartsheet, TeamGantt and Asana plus a few other sites; Gemini and AI Mode cite nothing."
+  },
+  "model": "claude-sonnet-5-5",
+  "at": "2026-11-13T14:12:14.030Z"
+ },
+ "sections": [
+  {
+   "key": "intro",
+   "h2": "",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "You get a request that sounds clear in the meeting, and two weeks later three people on your team have three different ideas of what the project is. When you run several projects at once, that kind of drift costs you hours you don't have, and it usually shows up right when a deadline is close.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "In this guide, we'll show you how to write a project brief that keeps your team and stakeholders aligned before kickoff.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's what you'll get: what goes in a brief, six steps to write one, a fill-in template and tips for keeping every brief consistent across your projects.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-0",
+   "h2": "What is a project brief?",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "A [project brief](https://www.smartsheet.com/content/project-brief) is a short summary of the basic elements of a project. It lets your team share goals, strategy and timelines with stakeholders, and it should stay a high-level overview that leaves out unnecessary details.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Asana](https://asana.com/resources/project-brief) describes the brief as one accessible place that outlines your project's goals, scope, timeline and target audience. Stakeholders and cross-functional collaborators get the key facts without wading through every detail.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[TeamGantt](https://www.teamgantt.com/resources/articles/project-brief) puts the difference in plain terms: a project plan details how a project will get done, while a brief defines the who, what, when, where and why. If you're new to this kind of planning, our [project management basics](https://planwise.example/blog/project-management-basics) guide explains the wider picture and how a brief fits into it.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "How long should a brief be, and does the length change with the size of the project? Both [Smartsheet](https://www.smartsheet.com/content/project-brief) and [Asana](https://asana.com/resources/project-brief) say it can run from one paragraph to one page, depending on the project.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "We suggest you follow TeamGantt and [aim for one page](https://www.teamgantt.com/resources/articles/project-brief), since people are more likely to reference a brief they can read in a couple of minutes. Here's why a short length helps when you run several projects:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Your team can read every brief quickly, even when several projects start in the same month.",
+      "Stakeholders can scan the brief and find the facts they need without asking you."
+     ],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-1",
+   "h2": "Why a project brief is worth the time",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "You might wonder if a brief is worth the extra step when your calendar is already full.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "It gives your team information and clarity. Outlining the who, what, when, where and why gets people up to speed on the work and shows each person their role and how they can contribute, as [TeamGantt](https://www.teamgantt.com/resources/articles/project-brief) explains.",
+      "It builds a common understanding that reduces risk and confusion. If you're not doing a project charter, [TeamGantt](https://www.teamgantt.com/resources/articles/project-brief) says you can use the brief as a sort of agreement, reviewing scope and goals together and addressing any gray areas.",
+      "It rallies people before kickoff. Sharing the brief in a pre-kickoff meeting lets you introduce everyone involved and set a unified vision, which [TeamGantt](https://www.teamgantt.com/resources/articles/project-brief) says helps create a \"We're all in this together\" environment."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "There is a fourth benefit that matters most when you run several projects at once. [Asana](https://asana.com/resources/project-brief) calls a brief a central source of truth for key project information, so people know where to look instead of asking you.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Honestly, pointing people to one page can save you a lot of repeated questions over a busy month. When a teammate or stakeholder wants a quick answer about a goal or a date, you can point them to the brief.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how that plays out in a normal week, from a new teammate's first day to your kickoff meeting. You can also use it as the agenda for your kickoff, so the conversation starts from shared facts.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-2",
+   "h2": "What to include in a project brief",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Most sources agree on a short list of must-have parts and then add a few extras that depend on your project. Here's how the lists compare, so you can pick what fits.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "The core elements",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Smartsheet says the three major elements of a brief are [a project overview, a goal statement and an estimated timeline](https://www.smartsheet.com/content/project-brief). Asana lists four elements, which are [background, objectives and success metrics, timeline, and target audience](https://asana.com/resources/project-brief).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you want one starting point, you can combine the two lists into the steps below. Here's what that looks like:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Write an overview that says what the project is, why it is happening and the problem it solves.",
+      "State the goals and any success metrics, so the team knows what done looks like.",
+      "Add a timeline with a projected start date, an end date and the timing of major phases.",
+      "Name the target audience, so everyone knows who the work is for.",
+      "Give the background that stakeholders might not already have."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Extras worth adding when the project is bigger",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Smartsheet notes that larger projects, or audiences who don't know your team, may need [background about your company, success metrics and the target market](https://www.smartsheet.com/content/project-brief). Raydyant adds a few more items to its brief: [the problem, the current situation, constraints, existing systems and how success might be measured](https://raydyant.com/blog/what-to-include-in-a-project-brief).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Smartsheet's simple template also covers [project name, purpose, goals, audience, story, team, budget and timeframe](https://www.smartsheet.com/content/project-brief-templates). Based on those sources, these are the extras we'd add when a project needs them:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Constraints, such as fixed dates or limits on people and tools.",
+      "Existing systems the work has to connect with.",
+      "A budget and the team members involved.",
+      "A plain description of how you will measure success."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You don't need an answer for every item on these lists, especially in the first draft of a brief. As Raydyant puts it, [the brief's job is to make the important questions visible](https://raydyant.com/blog/what-to-include-in-a-project-brief), so a short list of open questions is a fine thing to include.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-3",
+   "h2": "How to write a project brief, step by step",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Whether you write one brief a month or one a week, the steps below stay the same.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "We reconcile the two views this way: write a first version early, before your internal kickoff meeting, and update it as details settle. Before you write, talk with your team and stakeholders about goals, timing and strategy, as [Smartsheet](https://www.smartsheet.com/content/project-brief) recommends.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "1. Summarize the project and its purpose",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Say what the project is, why it is happening and which problem it solves. One or two short paragraphs is enough for this part, and you can add detail later if the project grows.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "2. State the goals and how you will measure success",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "List the concrete objectives and deliverables, as [Smartsheet](https://www.smartsheet.com/content/project-brief) advises. Then add [success metrics](https://asana.com/resources/project-brief) so the team knows what done looks like.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "3. Add background and your target audience",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Give the context your stakeholders might not have, such as why you are doing this project and which business need it meets, as [Asana](https://asana.com/resources/project-brief) suggests. Then name who the work is for, so every decision can be checked against that audience.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "4. Name the key players and their roles",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Introduce who is involved and what each person does, as [TeamGantt](https://www.teamgantt.com/resources/articles/project-brief) recommends.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "5. List key deliverables with dates",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Include a projected start date, an end date and the timing of each major phase and deliverable, as both [Smartsheet](https://www.smartsheet.com/content/project-brief) and [TeamGantt](https://www.teamgantt.com/resources/articles/project-brief) describe. A short dated list usually works better for the timeline section than a long paragraph does.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "6. Add scope limits, constraints and other notes",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "State what is in scope and what is out, because naming the out-of-scope items is a simple way to head off scope creep. Then note your constraints and existing systems, which [Raydyant](https://raydyant.com/blog/what-to-include-in-a-project-brief) lists as useful context, along with any [other items of note](https://www.teamgantt.com/resources/articles/project-brief).",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-4",
+   "h2": "A project brief template you can copy",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Here's a plain fill-in outline that you can paste into any document and complete for your next project. It pulls together the fields that the sources above agree on, so you can keep every brief in the same shape. Keep it to one page, as [TeamGantt suggests](https://www.teamgantt.com/resources/articles/project-brief), so people will actually use it.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "Project name: [name of the project]",
+      "Purpose: [what the project is, why it is happening now and the problem it solves]",
+      "Goals and success measures: [the objectives you want to reach and how you will know you reached them]",
+      "Background: [the context a stakeholder might not have, such as the business need behind the work]",
+      "Target audience: [who the work is for]",
+      "Team and roles: [project owner, the people doing the work and who approves each stage]",
+      "Deliverables with dates: [each deliverable, the start date, the end date and the timing of major phases]",
+      "Scope: [what is in scope and what is out of scope]",
+      "Constraints and existing systems: [limits on time, budget or tools, and the systems the work must fit with]"
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "This list follows the elements in [Asana's guide](https://asana.com/resources/project-brief) and [Smartsheet's brief guide](https://www.smartsheet.com/content/project-brief). The simple template from [Smartsheet](https://www.smartsheet.com/content/project-brief-templates) adds team, budget and timeframe, and [Raydyant](https://raydyant.com/blog/what-to-include-in-a-project-brief) adds constraints and existing systems.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You don't need every answer on day one, and a brief with a few open questions is still useful. As Raydyant notes, the brief's job is to make the important questions visible, so mark any gap as an open question and fill it in as details settle.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you'd rather start from a ready-made version, we've built a [project brief template](https://planwise.example/templates/project-brief) that you can fill in and share with your team.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-5",
+   "h2": "Project brief vs charter, plan and creative brief",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Project briefs often get mixed up with a few similar documents, so it helps to know where each one fits. Most of them cover the same project from a different distance, so you pick the one that fits who needs the information.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "We'll start with the project plan, since your brief gets compared to it most often. As [Asana explains](https://asana.com/resources/project-brief), a full project plan has seven elements, while your brief only needs four: objectives, timeline, target audience and scope.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A project charter is a different kind of document, and it serves a different purpose than the brief does. [TeamGantt says](https://www.teamgantt.com/resources/articles/project-brief) a charter is longer and more formal, and it goes into the extra information you left out of the brief so you can secure approval. [Asana adds](https://asana.com/resources/project-brief) that a charter formally authorizes a project.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The comparison below shows how the four documents differ, so you can see which one fits your situation.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "An executive summary is the last document on the list, and [according to Asana](https://asana.com/resources/project-brief), it suits expansive projects with C-suite stakeholders, while a brief suits cross-functional collaborators who need quick alignment.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Which of these documents do you need right now for the project that's waiting to start? If your team is waiting to start, a brief gets everyone moving, and you can add the longer documents later if the project calls for them.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-6",
+   "h2": "Tips for keeping briefs useful across several projects",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "When you run several projects at once, a brief only helps if people actually open it. Here's how to keep every one of yours useful from the first week to the last.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Keep each brief to one page, because [TeamGantt](https://www.teamgantt.com/resources/articles/project-brief) says a short brief is something people will actually want to reference.",
+      "Keep it high level and leave out unnecessary details, as [Smartsheet](https://www.smartsheet.com/content/project-brief) advises.",
+      "Use one shared structure for every project, so stakeholders always know where to find the goals, the timeline and the team.",
+      "Refresh the brief whenever project details change, since [Smartsheet](https://www.smartsheet.com/content/project-brief) says a brief should stay as up to date as possible.",
+      "Condense the brief onto a single slide for your kickoff meeting, which [Smartsheet](https://www.smartsheet.com/content/project-brief) suggests as a quick way to share a project's key points.",
+      "Link the dates in your brief to a timeline view, such as a [Gantt chart](https://planwise.example/features/gantt), or to a board, such as a [Kanban board](https://planwise.example/features/kanban)."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Why it works: a single page with the same layout every time means you spend your energy on the project instead of hunting for details. The shared structure matters most when you have five or six projects open and need to switch between them quickly.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "What you can borrow: pick the layout from your most recent brief and reuse it for the next one. If a detail changes mid-project, update the one page and tell the team where to look, so nobody works from an old version.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-7",
+   "h2": "Your next step",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "You've read the steps, so now you can put them to work on a real project, because a brief you finish is worth more than a perfect one that stays in your head.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how to start today:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "Pick the project that starts soonest, because that one will benefit from a brief the most.",
+      "Open a blank page and fill in the six steps: the purpose, the goals, the background and audience, the key players, the dates and the scope limits.",
+      "Write what you know now instead of waiting for every answer.",
+      "Mark any gaps as open questions, since a brief's job is to make the important questions visible."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Next, share the draft at your kickoff meeting. [TeamGantt](https://www.teamgantt.com/resources/articles/project-brief) suggests using the brief to introduce everyone involved and build a unified view of the work.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "When you share it, ask the team what is missing and what they would add.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Luckily, you don't have to build the layout from scratch, because we made a ready-to-fill version so every project in your queue can follow the same structure.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Open the Planwise project brief template](https://planwise.example/templates/project-brief), fill it in for your next project, and share it at your kickoff.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "faq",
+   "h2": "Frequently asked questions",
+   "blocks": [
+    {
+     "type": "h3",
+     "text": "What is a project brief for?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A project brief shares your project's goals, scope and timeline in a short document, so the team and stakeholders start with the same understanding. [Smartsheet](https://www.smartsheet.com/content/project-brief) describes it as a way to share goals, strategy and timelines with stakeholders. [TeamGantt](https://www.teamgantt.com/resources/articles/project-brief) adds that it clarifies each person's role, and [Asana](https://asana.com/resources/project-brief) calls it a central source of truth for key project information.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "How long should a project brief be?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Most briefs run from one paragraph to [one page](https://asana.com/resources/project-brief), depending on how big and complex your project is. [TeamGantt advises aiming for one page](https://www.teamgantt.com/resources/articles/project-brief) so people will actually use it.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Who writes a project brief?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The project manager owns the brief and works with the team and stakeholders to settle the goals, timing and strategy, as [Smartsheet](https://www.smartsheet.com/content/project-brief) explains. [TeamGantt](https://www.teamgantt.com/resources/articles/project-brief) notes that your sales team or account manager might start a first draft, but the project manager makes sure it is complete and that everyone understands it.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What is the difference between a project brief and a project charter?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A [project charter](https://www.teamgantt.com/resources/articles/project-brief) is longer and more formal, and it includes the extra details you left out of the brief so you can secure approval. [Asana](https://asana.com/resources/project-brief) says a charter formally authorizes a project, while a brief is a high-level summary that keeps your team aligned on goals, scope and timeline.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What should a project brief include?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "At a minimum, include an overview or background, your goals and success metrics, a timeline and your target audience, as listed by [Smartsheet](https://www.smartsheet.com/content/project-brief) and [Asana](https://asana.com/resources/project-brief). For larger projects, [Raydyant](https://raydyant.com/blog/what-to-include-in-a-project-brief) also suggests noting constraints, existing systems and how you will measure success, and it is wise to state what is out of scope.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  }
+ ],
+ "cut": [
+  {
+   "id": "0.1.1",
+   "why": "Sources give a range of one paragraph to one page; 'about one page' as best practice is only TeamGantt's advice and is stated here as general fact attributed to Smartsheet."
+  },
+  {
+   "id": "2.0.1",
+   "why": "Describing TeamGantt as a 'project management software company' is not stated in the sources."
+  },
+  {
+   "id": "4.0.1",
+   "why": "Smartsheet is said to suggest finalizing key details first (supported), but TeamGantt and Asana placing it 'at the very start' is partly supported; Asana says 'very beginning' and TeamGantt 'right at the start', so this is acceptable. Cut only if strict, but the stronger issue is none."
+  },
+  {
+   "id": "4.3.1",
+   "why": "Smartsheet calls the overview section 'project overview' but does not frame it as this step; TeamGantt framing of who/what/when/where/why is supported, yet the sentence merges the two claims loosely."
+  },
+  {
+   "id": "4.9.1",
+   "why": "The source says the project manager owns the brief and sales may start filling the template, which is supported; no issue, but the claim is attributed to 'the same page' ambiguously."
+  },
+  {
+   "id": "6.4.r1",
+   "why": "Table row about the brief's audience uses Asana's executive-summary comparison; claims are loosely mapped but not stated as a table in sources."
+  },
+  {
+   "id": "6.4.r2",
+   "why": "'Projects that need every element laid out in full' as the best-fit audience for a project plan is not stated in the sources."
+  },
+  {
+   "id": "6.4.r3",
+   "why": "'Projects that need formal sign-off' is an inference; sources say a charter secures approval and formally authorizes a project."
+  },
+  {
+   "id": "6.4.r4",
+   "why": "'Projects that include creative work' as audience is an inference; the source says the creative brief guides creative work."
+  },
+  {
+   "id": "9.3.2",
+   "why": "'Some AI answers say 1 to 2 pages' cites AI answers, but the ChatGPT answer says approximately 1-2 pages while Gemini and AI Mode differ; acceptable, yet it is not from the numbered sources."
+  },
+  {
+   "id": "7.1.i5",
+   "why": "Storing the brief in a shared space is only from AI answers, not the numbered sources."
+  },
+  {
+   "id": "4.5.2",
+   "why": "SMART goals come only from AI answers, not the numbered sources."
+  },
+  {
+   "id": "2.4.1",
+   "why": "Claim that a new teammate can see purpose, people and timing from the brief on day one is an illustration not stated in sources."
+  },
+  {
+   "id": "1.5.i2",
+   "why": "Claim that you can update the brief in minutes is not stated in the sources."
+  }
+ ],
+ "styleLeft": [
+  {
+   "id": "4.13.0",
+   "rule": "lists",
+   "before": "more than 300 words without a list",
+   "after": null
+  }
+ ],
+ "proof": {
+  "verdict": "Ship",
+  "reasons": [],
+  "lint": 0
+ },
+ "polish": {
+  "applied": 25,
+  "refused": []
+ },
+ "blocked": [
+  {
+   "key": "intro",
+   "why": "added link https://www.teamgantt.com/resources/articles/project-brief"
+  },
+  {
+   "key": "h2-2",
+   "why": "every softener is gone (\"many\", \"often\", \"usually\": 1 to 0), so a claim got stronger"
+  },
+  {
+   "key": "h2-3",
+   "why": "added link https://www.teamgantt.com/resources/articles/project-brief; every softener is gone (\"many\", \"often\", \"usually\": 1 to 0), so a claim got stronger"
+  },
+  {
+   "key": "h2-6",
+   "why": "lost link https://planwise.example/features/gantt, https://planwise.example/features/kanban"
+  },
+  {
+   "key": "faq",
+   "why": "lost number 1; number 2"
+  }
+ ],
+ "tidied": [
+  "Dropped \"Honestly,\" used a second time.",
+  "Dropped \"Honestly,\" used a second time."
+ ],
+ "factChanges": [],
+ "modules": [
+  {
+   "status": "ok",
+   "error": null
+  },
+  {
+   "status": "ok",
+   "error": null
+  }
+ ]
+}

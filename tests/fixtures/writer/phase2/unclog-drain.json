@@ -1,0 +1,1045 @@
+{
+ "slug": "unclog-drain",
+ "keyword": "how to unclog a drain without a plumber",
+ "kind": "local",
+ "stage": "tofu",
+ "model": "claude-sonnet-5-5",
+ "at": "2026-11-13T14:36:21.764Z",
+ "seconds": 246,
+ "usage": {
+  "calls": 27,
+  "input": 64149,
+  "cacheRead": 969247,
+  "cacheWrite": 159942,
+  "output": 35253
+ },
+ "score": {
+  "words": 2217,
+  "sections": 11,
+  "lint": 0,
+  "lintRules": {},
+  "numbers": 0,
+  "unsourced": [],
+  "links": 52,
+  "strayLinks": [],
+  "images": 4,
+  "modules": 1
+ },
+ "title": "How to Unclog a Drain Without a Plumber: Step by Step",
+ "brief": {
+  "titles": [
+   "How to Unclog a Drain Without a Plumber: Step by Step",
+   "How to Unclog a Drain Without a Plumber (Easy Steps)",
+   "Unclog a Drain Without a Plumber: Try These Fixes First"
+  ],
+  "h1": "How to Unclog a Drain Without a Plumber: Step by Step",
+  "metaDescription": "Try these safe, step-by-step ways to unclog a drain without a plumber, from hot water to a plunger, plus clear signs it's time to call us.",
+  "slug": "how-to-unclog-a-drain-without-a-plumber",
+  "searchIntent": "The searcher has a slow or stopped drain right now and wants to fix it at home with tools and ingredients they already own. A short intro, then numbered methods in order from easiest to hardest, each with steps, serves them best.",
+  "reader": "An Austin homeowner with a clogged kitchen sink, bathroom sink, shower or tub. They know basic tools such as a plunger and kettle, they want to save a service call, and next they will either try a method tonight or decide whether to phone a plumber.",
+  "angle": "We give one clear order to try fixes, from gentlest to most hands-on, with a safety check at each step (pipe type, fixture type, chemicals already used) and honest signs for when to stop. Most top pages either list recipes with no limits or push a service call, so we help the reader choose the right fix for their drain and know when to stop.",
+  "wordTarget": 1700,
+  "outline": [
+   {
+    "h2": "Before you start: find your clog type and stay safe",
+    "points": [
+     "Say which drain it is (kitchen sink, bathroom sink, shower or tub) and what likely caused the clog: hair and soap scum in a shower, food and grease in a kitchen sink.",
+     "Tell the reader to remove standing water first and wear rubber gloves.",
+     "Explain that a foreign object such as jewelry or large pieces of food will not be cleared by a homemade cleaner, so a snake, vacuum or trap cleaning fits better.",
+     "Warn that if a chemical cleaner is already in the drain, they should skip baking soda and vinegar (mixing is not safe) and skip plunging because of splash risk.",
+     "Introduce the order we recommend: hot water, baking soda and vinegar, plunger, snake or vacuum, then the P-trap."
+    ],
+    "h3": [],
+    "sources": [
+     1,
+     2,
+     4,
+     6
+    ]
+   },
+   {
+    "h2": "Start with hot water",
+    "points": [
+     "Hot water is the cheapest first try and often works on light grease and soap buildup.",
+     "Steps: remove standing water, heat the water, pour it in, wait, repeat several times if needed.",
+     "Boiling water can soften PVC joints over repeated use, so use very hot tap water if the home has PVC drain pipes.",
+     "Boiling water may also crack or damage porcelain, acrylic or natural stone sinks and can scald skin, so pour carefully."
+    ],
+    "h3": [
+     {
+      "title": "Add salt for extra scrubbing",
+      "points": [
+       "Pour about half a cup of table salt down the drain before the hot water.",
+       "Let it sit a few minutes, then flush with hot water; coarse salt scours the pipe wall."
+      ]
+     }
+    ],
+    "sources": [
+     1,
+     2,
+     4
+    ]
+   },
+   {
+    "h2": "Try baking soda and vinegar",
+    "points": [
+     "Give one clear recipe: half a cup of baking soda, then 1 cup of white vinegar, wait 15 minutes, flush with hot water [6]. Mention other sources use 1 cup each or half a cup each with 30 minutes, so exact amounts do not need to be precise [1,2,5].",
+     "Cover the drain with a plug or cloth so the fizz works down the pipe instead of out the top.",
+     "Why it works: the fizzing reaction loosens debris and the hot water flushes it out [6].",
+     "Set expectations: it suits simple clogs from toothpaste and soap scum and is ineffective against hair clogs [4].",
+     "Repeat a second or third time for stubborn clogs, and if the drain is still blocked, move on to a tool [6]."
+    ],
+    "h3": [],
+    "sources": [
+     1,
+     2,
+     4,
+     5,
+     6
+    ]
+   },
+   {
+    "h2": "Use a plunger the right way",
+    "points": [
+     "Use a cup-style sink plunger for sinks and tubs and keep the flange-style plunger for toilets [2]. Do not use a toilet plunger in a sink because of bacteria [4].",
+     "Steps: seal off a second sink bowl with a wet cloth or stopper, add enough water to cover the plunger cup, cover the overflow opening with tape or a rag, plunge, then flush with warm water [1,4].",
+     "Keep the seal while plunging so all the force goes to the clog instead of escaping through the overflow [4].",
+     "Remind the reader to wash their hands afterward."
+    ],
+    "h3": [],
+    "sources": [
+     1,
+     2,
+     4,
+     6
+    ]
+   },
+   {
+    "h2": "Reach deeper with a drain snake or wet/dry vacuum",
+    "points": [
+     "Say what each tool is: a drain snake (plumbing auger) is a long flexible tool that breaks up a clog or pulls it out [2,4].",
+     "Light-duty hand augers reach clogs beyond the P-trap, but they are less capable than professional tools [4]."
+    ],
+    "h3": [
+     {
+      "title": "Drain snake",
+      "points": [
+       "Insert it, turn the handle to extend it, and rotate it once you feel resistance to break up the clog, then pull it out [2].",
+       "Go slowly at resistance because older pipes can crack if forced [2]."
+      ]
+     },
+     {
+      "title": "Wet/dry vacuum",
+      "points": [
+       "Set it to wet mode, take out the filter, cover the overflow with a finger, rag or tape, and seal the hose over the drain [4].",
+       "Run it about a minute (about 30 seconds in another source), then check the drain [2,4]."
+      ]
+     }
+    ],
+    "sources": [
+     2,
+     4,
+     5
+    ]
+   },
+   {
+    "h2": "Clean the P-trap and check the garbage disposal",
+    "points": [
+     "Define the P-trap as the bent piece of drainpipe under the sink, usually in the cabinet, where debris can build up [1].",
+     "Steps: place a bucket underneath, unfasten the trap, clear out anything stuck, put it back, run water through it [1].",
+     "If there is a garbage disposal, unplug it first, use a flashlight to find the cause, and remove caught items with pliers or tongs. Never put a hand in the disposal [1].",
+     "A jammed flywheel may turn with the small wrench supplied by the maker; follow the maker's instructions [1].",
+     "Tip: run cold water, not hot, while the disposal runs so grease stays solid and gets ground up [2]."
+    ],
+    "h3": [
+     {
+      "title": "Clean the P-trap",
+      "points": [
+       "Have towels and a bucket ready because water and gunk will come out."
+      ]
+     },
+     {
+      "title": "Check the garbage disposal",
+      "points": [
+       "Unplug it before any inspection or clearing."
+      ]
+     }
+    ],
+    "sources": [
+     1,
+     2
+    ]
+   },
+   {
+    "h2": "Why we skip chemical drain cleaners",
+    "points": [
+     "Most are lye-based caustic cleaners that burn through the clog and work on common clogs, even grease and hair [4].",
+     "Downsides: vapors can irritate eyes and skin, direct contact is more dangerous, and they can damage some pipe materials [4].",
+     "Chemical cleaners can wear down older pipes [2].",
+     "If the reader does call a plumber after using chemicals, they should tell the plumber so the plumber can protect themselves [4]."
+    ],
+    "h3": [],
+    "sources": [
+     2,
+     4
+    ]
+   },
+   {
+    "h2": "When to call a plumber",
+    "points": [
+     "Stop and call if the drain is still blocked after plunger, snake and trap cleaning, because a larger undetected problem may exist [6].",
+     "A slow or clogged drain can be an early sign of deeper trouble such as grease buildup, pipe corrosion, damaged drain lines, tree roots or a sewer line blockage [2].",
+     "A sewer camera inspection shows where the blockage is and what caused it [2].",
+     "Give a short checklist: more than one drain backing up, the clog returns soon after clearing, nothing you try changes the water level, or a chemical cleaner is already in the pipe.",
+     "Say what we do at Brightwater Plumbing in plain words and link to drain cleaning, emergency service and pricing."
+    ],
+    "h3": [],
+    "sources": [
+     2,
+     4,
+     6
+    ]
+   },
+   {
+    "h2": "Keep your drains from clogging again",
+    "points": [
+     "Avoid pouring grease, oil and food scraps down the drain [2].",
+     "Use a drain strainer to catch hair and debris [2].",
+     "Clean the drain regularly with hot water and vinegar [2].",
+     "Clean the sink trap as part of regular care [6].",
+     "Link to the Brightwater Plumbing drain care blog for more habits."
+    ],
+    "h3": [],
+    "sources": [
+     2,
+     6
+    ]
+   }
+  ],
+  "entities": [
+   "Brightwater Plumbing",
+   "Austin, Texas",
+   "P-trap",
+   "cup plunger",
+   "flange plunger",
+   "drain snake (plumbing auger)",
+   "hand auger",
+   "wet/dry vacuum (shop vac)",
+   "garbage disposal",
+   "overflow opening",
+   "baking soda",
+   "white vinegar",
+   "table salt",
+   "PVC pipes",
+   "porcelain, acrylic and stone sinks",
+   "lye-based chemical drain cleaners",
+   "hydro jetting",
+   "sewer camera inspection",
+   "tree root intrusion",
+   "drain strainer"
+  ],
+  "gaps": [
+   "Top pages list recipes but give different amounts and wait times for baking soda and vinegar; this article picks one and says why amounts can vary.",
+   "Few pages tell the reader how to match the method to the drain and clog type (hair versus grease versus a dropped object).",
+   "Safety steps are scattered; this article puts pipe type, fixture type, chemicals already used and the overflow opening up front.",
+   "No top page ties tips to Austin homes; this article speaks to Austin homeowners and flags local details for an editor to confirm.",
+   "Several pages jump to a sales pitch; this article gives clear stop points and a plain checklist for when to call.",
+   "The Andrea Dekker page covers only bathroom drains and says it does not know about garbage disposals, so we cover kitchen sinks and disposals from other sources."
+  ],
+  "faqs": [
+   {
+    "question": "What naturally unblocks drains?",
+    "answer": "Say hot water first, then salt and hot water, or baking soda and vinegar followed by hot water, for light clogs such as grease and soap scum. Note that these will not move a solid object or reliably clear hair [1,4,6]."
+   },
+   {
+    "question": "Does the baking soda and vinegar trick actually work?",
+    "answer": "Say it can loosen simple clogs from toothpaste and soap scum, but it is ineffective against hair clogs and will not clear a foreign object [4,6]."
+   },
+   {
+    "question": "Can I pour boiling water down any drain?",
+    "answer": "Say no: boiling water can soften PVC joints and may crack porcelain, acrylic or natural stone sinks, so use very hot tap water on those [2,4]."
+   },
+   {
+    "question": "Are chemical drain cleaners safe to use?",
+    "answer": "Say most are lye-based, vapors can irritate eyes and skin, and they can damage some pipe materials, so we suggest the other methods first and a call to us if those fail [2,4]."
+   },
+   {
+    "question": "When should I call a plumber for a clogged drain?",
+    "answer": "Say call when plunging, snaking and trap cleaning have not worked, because a larger undetected problem may be in the line, and mention grease buildup, roots and sewer line blockages as possible causes [2,6]."
+   },
+   {
+    "question": "Can dish soap unclog a drain?",
+    "answer": "Say dish soap and hot water is commonly suggested for grease in kitchen sinks, and keep the answer short and modest because no numbered source covers it (see checks)."
+   }
+  ],
+  "internalLinks": [
+   {
+    "url": "https://brightwaterplumbing.example/services/drain-cleaning",
+    "anchor": "drain cleaning from Brightwater Plumbing",
+    "where": "When to call a plumber"
+   },
+   {
+    "url": "https://brightwaterplumbing.example/services/emergency",
+    "anchor": "emergency plumbing service",
+    "where": "When to call a plumber"
+   },
+   {
+    "url": "https://brightwaterplumbing.example/pricing",
+    "anchor": "what a drain visit costs",
+    "where": "When to call a plumber"
+   },
+   {
+    "url": "https://brightwaterplumbing.example/blog/drain-care",
+    "anchor": "our drain care guide",
+    "where": "Keep your drains from clogging again"
+   },
+   {
+    "url": "https://brightwaterplumbing.example/contact",
+    "anchor": "contact us",
+    "where": "Keep your drains from clogging again"
+   }
+  ],
+  "cta": {
+   "text": "If these fixes did not clear your drain, we're glad to take a look. Book drain cleaning with Brightwater Plumbing and we'll find what's causing the clog.",
+   "where": "Closing paragraph after the last H2 (Keep your drains from clogging again), linking to the drain cleaning page, with a second link to the contact page. Repeat a"
+  },
+  "modules": [
+   {
+    "type": "quiz",
+    "title": "Which fix should you try first?",
+    "purpose": "Help the reader pick the best first method for their own drain and clog.",
+    "placement": "Before you start: find your clog type and stay safe",
+    "inputs": [
+     "Which drain is clogged: kitchen sink, bathroom sink, shower or tub",
+     "What you think caused it: hair, grease or food, soap scum or toothpaste, a dropped object, or not sure",
+     "Whether a chemical cleaner is already in the drain: yes or no"
+    ],
+    "outputs": [
+     "A first method to try with a link to its H2 below",
+     "A safety note that fits their answers",
+     "A message to call us when the answers point to an object or a chemical cleaner already used"
+    ],
+    "data": "Rules from the sources only. Grease or soap scum: hot water first, then baking soda and vinegar [1,4,6]. Hair: a drain snake or wet/dry vacuum, because baking soda and vinegar is ineffective against hair clogs [2,4]. Dropped object or large food pieces: homemade cleaner will not help, so use a snake, vacuum or P-trap cleaning [6,1]. Chemical already in the drain: skip baking soda and vinegar [2] and skip plunging [4], and tell any plumber about the chemicals [4]. Kitchen sink with a disposal: check the disposal and P-trap [1].",
+    "why": "Readers have different drains and different clogs, and the right first step changes with both. A quiz gives one answer for their situation instead of making them read every method."
+   }
+  ],
+  "images": [
+   {
+    "placement": "Before you start: find your clog type and stay safe",
+    "shows": "A short safety checklist: gloves on, standing water removed, chemicals already used, pipe and sink material checked.",
+    "alt": "A checklist of safety steps to finish before trying to unclog a drain.",
+    "kind": "checklist"
+   },
+   {
+    "placement": "Use a plunger the right way",
+    "shows": "A sink plunger with a shallow cup next to a toilet plunger, labeled by where each one belongs.",
+    "alt": "Two plungers side by side showing which one to use in a sink and which in a toilet.",
+    "kind": "comparison"
+   },
+   {
+    "placement": "Clean the P-trap and check the garbage disposal",
+    "shows": "A cutaway of the pipes under a sink with the P-trap, bucket position and drain arm labeled.",
+    "alt": "A labeled diagram of the pipes under a sink with the P-trap highlighted.",
+    "kind": "anatomy"
+   },
+   {
+    "placement": "When to call a plumber",
+    "shows": "Warning signs that point to a deeper problem: still blocked after several tries, more than one drain slow, clog keeps returning.",
+    "alt": "A checklist of signs that a clogged drain needs a plumber.",
+    "kind": "checklist"
+   }
+  ],
+  "examples": [],
+  "checks": [
+   "Whether PVC drain pipes are common in Austin homes; source [2] says this only about DFW construction.",
+   "Water temperature to use instead of boiling (the Google AI Overview gives a range but no numbered source does).",
+   "How many plunger strokes to use; the AI answers disagree and no numbered source gives a number.",
+   "Whether dish soap and hot water clears grease; it appears in the Google AI Overview but not in sources 1 to 6.",
+   "Whether a wire coat hanger works as a snake; source [1] lists it but the text was cut off.",
+   "Austin-specific facts such as local water, pipe materials or rules, which none of the sources cover.",
+   "Brightwater Plumbing details such as service hours, pricing and what a camera inspection costs; none appear in the sources, so confirm with the team before stating them."
+  ],
+  "research": {
+   "sources": [
+    {
+     "n": 1,
+     "url": "https://www.atcoenergy.com/blog/ways-to-unclog-a-drain-without-a-plumber",
+     "title": "9 ways to unclog a drain without a plumber | ATCO Energy",
+     "domain": "atcoenergy.com",
+     "kind": "serp",
+     "position": 2,
+     "words": 1128
+    },
+    {
+     "n": 2,
+     "url": "https://www.crplumbingdfw.com/how-to-unclog-a-drain-without-harsh-chemicals/",
+     "title": "Tips for Unclogging Drain Without Chemicals | CR Plumbing",
+     "domain": "crplumbingdfw.com",
+     "kind": "serp",
+     "position": 3,
+     "words": 1601
+    },
+    {
+     "n": 3,
+     "url": "https://davidsuzuki.org/",
+     "title": "Home",
+     "domain": "davidsuzuki.org",
+     "kind": "serp",
+     "position": 4,
+     "words": 790
+    },
+    {
+     "n": 4,
+     "url": "https://www.rotorooter.com/blog/drains/lesser-known-tips-for-unclogging-a-drain/",
+     "title": "Lesser-Known Tips for Unclogging a Drain | Roto-Rooter",
+     "domain": "rotorooter.com",
+     "kind": "serp",
+     "position": 5,
+     "words": 1453
+    },
+    {
+     "n": 5,
+     "url": "https://andreadekker.com/clear-a-clogged-drain",
+     "title": "How to Clear a Clogged Drain in Less than 10 Minutes",
+     "domain": "andreadekker.com",
+     "kind": "ai",
+     "position": null,
+     "words": 688
+    },
+    {
+     "n": 6,
+     "url": "https://www.rotorooter.com/blog/drains/unclog-a-drain-naturally",
+     "title": "How to Unclog a Drain Naturally? | Roto-Rooter Blog",
+     "domain": "rotorooter.com",
+     "kind": "ai",
+     "position": null,
+     "words": 933
+    }
+   ],
+   "questions": [
+    "What's the best thing to pour down a drain to unclog it?",
+    "What naturally unblocks drains?",
+    "How to use coca cola to unclog drain?",
+    "Can Dawn dish soap unclog drains?"
+   ],
+   "engines": [
+    "ChatGPT",
+    "Gemini",
+    "AI Mode"
+   ],
+   "topPages": "The top pages are how-to lists of 700 to 1,600 words that put methods in order from easiest to hardest. All of them cover hot water or boiling water, baking soda and vinegar, a plunger and a drain snake. The ATCO Energy page adds salt, the P-trap and the garbage disposal, and the CR Plumbing and Roto-Rooter pages add a wet/dry vacuum and FAQs. Most end with a pitch to call their own plumbers, and the Andrea Dekker page is one bathroom recipe with affiliate links.",
+   "aiAnswers": "ChatGPT and Gemini give numbered methods in the same order (hot water, baking soda and vinegar, plunger, P-trap, snake) with short warnings about PVC and porcelain, and neither cites a source. Google AI Mode adds the wire hanger or snake and cites ATCO Energy, Andrea Dekker and Roto-Rooter. The Google AI Overview splits advice by hair in bathrooms versus grease and food in kitchens and adds dish soap and hot water for grease."
+  },
+  "model": "claude-sonnet-5-5",
+  "at": "2026-11-13T14:33:23.067Z"
+ },
+ "sections": [
+  {
+   "key": "intro",
+   "h2": "",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "A slow or stopped drain always seems to pick the worst moment, and a service call is not always the first thing you need. If you want to know how to unclog a drain without a plumber, you can begin with tools and ingredients you likely already own at home.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how we'd work through it, from the gentlest fix to the most hands-on, with a safety check at each step so you protect your pipes and yourself.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-0",
+   "h2": "Before you start: find your clog type and stay safe",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Knowing the likely cause helps you pick the right fix, so take a quick look at what you've been sending down that drain before you start.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's what we'd do before you try any method:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Remove as much standing water from the sink, tub or shower as you can, since every method works better without it, as [ATCO Energy notes](https://www.atcoenergy.com/blog/ways-to-unclog-a-drain-without-a-plumber).",
+      "Put on rubber gloves, because the water and gunk in a clogged drain are not pleasant to touch.",
+      "Check whether anyone already poured a chemical cleaner down the drain, because [CR Plumbing warns](https://www.crplumbingdfw.com/how-to-unclog-a-drain-without-harsh-chemicals/) that mixing it with baking soda and vinegar isn't safe, and [Roto-Rooter adds](https://www.rotorooter.com/blog/drains/lesser-known-tips-for-unclogging-a-drain/) that plunging can splash you with the cleaner."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If a chemical cleaner is already in the drain, skip the baking soda and vinegar and the plunger, and read the section on when to call a plumber instead. If the drain is free of chemicals, we suggest trying these fixes in this order, from gentlest to most hands-on:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "Hot water.",
+      "Baking soda and vinegar.",
+      "A plunger.",
+      "A snake or wet/dry vacuum.",
+      "The P-trap."
+     ],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-1",
+   "h2": "Start with hot water",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Hot water is the cheapest first try, and [ATCO Energy](https://www.atcoenergy.com/blog/ways-to-unclog-a-drain-without-a-plumber) says it often does the trick on its own, so it makes a good opening move for a slow drain.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how to do it:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "Remove as much standing water from the sink, tub or shower as you can.",
+      "Heat a kettle or pot of water.",
+      "Pour the water slowly down the drain.",
+      "Wait a few minutes so the heat has time to work on the clog.",
+      "Repeat several times if the water still drains slowly, as [ATCO Energy](https://www.atcoenergy.com/blog/ways-to-unclog-a-drain-without-a-plumber) suggests."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Before you pour, check what your drain pipes are made of, because the right water temperature depends on it. [CR Plumbing](https://www.crplumbingdfw.com/how-to-unclog-a-drain-without-harsh-chemicals/) says boiling water can soften PVC joints over repeated use, so if your home has PVC drain pipes, use very hot tap water instead.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Roto-Rooter](https://www.rotorooter.com/blog/drains/lesser-known-tips-for-unclogging-a-drain/) also notes that boiling water may crack or damage porcelain, acrylic or natural stone sinks and can scald skin, so pour carefully and keep your hands clear.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Add salt for extra scrubbing",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Pour about half a cup of table salt down the drain before the hot water.",
+      "Let it sit a few minutes, then flush with hot water to clear the mixture."
+     ],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-2",
+   "h2": "Try baking soda and vinegar",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Baking soda and vinegar is the next step if hot water alone didn't clear your drain, and you probably already have both in your kitchen.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how Roto-Rooter [recommends doing it](https://www.rotorooter.com/blog/drains/unclog-a-drain-naturally):",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "Remove the stopper and any standing water.",
+      "Pour half a cup of baking soda directly into the drain.",
+      "Pour in 1 cup of white vinegar and cover the drain with a plug or cloth so the fizz works down the pipe instead of out the top.",
+      "Wait 15 minutes, then flush with a pot of hot water."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Other pages use slightly different amounts, such as [1 cup of each](https://www.atcoenergy.com/blog/ways-to-unclog-a-drain-without-a-plumber) or [half a cup of each with a 30 minute wait](https://www.crplumbingdfw.com/how-to-unclog-a-drain-without-harsh-chemicals/).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Why it works: the fizzing reaction [loosens the debris](https://www.rotorooter.com/blog/drains/unclog-a-drain-naturally), and the hot water then flushes it out.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "This method suits simple clogs from toothpaste and soap scum best, and Roto-Rooter says it is [ineffective against hair clogs](https://www.rotorooter.com/blog/drains/lesser-known-tips-for-unclogging-a-drain/).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "For a stubborn clog, you can [repeat the process a second or third time](https://www.rotorooter.com/blog/drains/unclog-a-drain-naturally), and if the drain is still blocked after that, it's time to move on to a tool.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-3",
+   "h2": "Use a plunger the right way",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "A plunger is the next tool to try if hot water and baking soda did not clear your drain. Use a cup-style plunger for sinks and tubs, and keep the flange-style plunger for toilets, as [CR Plumbing explains](https://www.crplumbingdfw.com/how-to-unclog-a-drain-without-harsh-chemicals/). [Roto-Rooter adds](https://www.rotorooter.com/blog/drains/lesser-known-tips-for-unclogging-a-drain/) that a toilet plunger should stay out of the sink because you could move bacteria into the bowl.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how to plunge a sink or tub:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "If you have a double sink, seal off the second bowl with a wet cloth or stopper, as [ATCO Energy suggests](https://www.atcoenergy.com/blog/ways-to-unclog-a-drain-without-a-plumber).",
+      "Add enough water to cover the plunger cup, since the plunger needs a tight seal to work.",
+      "Cover the overflow opening with tape or a rag, so [all the force goes to the clog](https://www.rotorooter.com/blog/drains/lesser-known-tips-for-unclogging-a-drain/) instead of escaping through the overflow.",
+      "Place the plunger over the drain and pump firmly, keeping the seal the whole time.",
+      "Pull the plunger away and flush the drain well with warm water."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If the water level drops and the drain runs freely after plunging, the clog is cleared and you can stop there. Please wash your hands afterward, because plunging can splash dirty water and the plunger itself touches the drain.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-4",
+   "h2": "Reach deeper with a drain snake or wet/dry vacuum",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "A **drain snake**, also called a plumbing auger, is a long, flexible tool that reaches deep into the drain to [break up a clog or pull it out](https://www.crplumbingdfw.com/how-to-unclog-a-drain-without-harsh-chemicals/).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you want something light for home use, [Roto-Rooter](https://www.rotorooter.com/blog/drains/lesser-known-tips-for-unclogging-a-drain/) notes that light-duty hand augers are made for reaching clogs beyond the P-trap. They are less capable than the tools professionals use, so they suit light clogs better than a deep or stubborn blockage.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Drain snake",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how to use one, following the steps from [CR Plumbing](https://www.crplumbingdfw.com/how-to-unclog-a-drain-without-harsh-chemicals/):",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "Insert the snake into the drain and turn the handle to extend it.",
+      "Rotate the snake once you feel resistance, so it breaks up the clog.",
+      "Pull the snake out and check how the drain runs."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Go slowly when you hit resistance, because [older pipes can crack if you force the tool](https://www.crplumbingdfw.com/how-to-unclog-a-drain-without-harsh-chemicals/), so let the turning do the work instead of pushing hard.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Wet/dry vacuum",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how to use it, based on the steps from [Roto-Rooter](https://www.rotorooter.com/blog/drains/lesser-known-tips-for-unclogging-a-drain/):",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "Set the vacuum to wet mode and take out the filter.",
+      "Cover the overflow opening with a finger, a rag or a piece of tape.",
+      "Seal the hose over the drain and let the vacuum run for about a minute, then check the drain."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[CR Plumbing](https://www.crplumbingdfw.com/how-to-unclog-a-drain-without-harsh-chemicals/) suggests about 30 seconds of suction, so you can start short and run it longer if the drain stays slow. It's a good next step for a loose blockage sitting just below the opening.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-5",
+   "h2": "Clean the P-trap and check the garbage disposal",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "The P-trap is the bent piece of drainpipe under your sink, usually tucked away in the cabinet. [Debris can build up in that bend](https://www.atcoenergy.com/blog/ways-to-unclog-a-drain-without-a-plumber), and sometimes it just needs a good cleaning.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Clean the P-trap",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Have towels and a bucket ready, because water and gunk will come out, and here's how to do it, following the steps from [ATCO Energy](https://www.atcoenergy.com/blog/ways-to-unclog-a-drain-without-a-plumber):",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "Place a bucket underneath the P-trap before you remove anything.",
+      "Unfasten the P-trap from the drainpipe.",
+      "Clear out anything that's stuck inside it.",
+      "Put the P-trap back in place and run water through it to check that it drains."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Check the garbage disposal",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Unplug the disposal before any inspection or clearing, because [a garbage disposal can cause as much trouble as a clogged drain](https://www.atcoenergy.com/blog/ways-to-unclog-a-drain-without-a-plumber), and keep your hand out of it completely. Once it's unplugged, you can work through these steps:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Use a flashlight to find what's causing the problem.",
+      "Remove anything that's caught with pliers or tongs.",
+      "If the flywheel is jammed, you may be able to free it with the small wrench the maker supplied, so follow the maker's instructions for where to insert it and how to turn it."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Luckily, there's a simple daily habit that helps your disposal too. [Run cold water, not hot, while the disposal is on](https://www.crplumbingdfw.com/how-to-unclog-a-drain-without-harsh-chemicals/), because cold water keeps grease solid so the disposal can grind it up instead of pushing it further down the line.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-6",
+   "h2": "Why we skip chemical drain cleaners",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Most chemical drain cleaners are [lye-based caustic cleaners](https://www.rotorooter.com/blog/drains/lesser-known-tips-for-unclogging-a-drain/) that burn through the clog, and they work on common clogs, even grease and hair. We still skip them at home because of the downsides Roto-Rooter lists:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "The vapors can irritate your eyes and skin.",
+      "Direct contact with your eyes or skin is even more dangerous.",
+      "They can damage some pipe materials."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Older homes have one more concern, since [chemical drain cleaners can eat away at older pipes](https://www.crplumbingdfw.com/how-to-unclog-a-drain-without-harsh-chemicals/) and aren't great for your plumbing in the long run.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you have already poured a chemical cleaner down the drain and end up calling a plumber, please tell them. [Plumbers want to take precautions](https://www.rotorooter.com/blog/drains/lesser-known-tips-for-unclogging-a-drain/) to protect themselves from chemical exposure too.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-7",
+   "h2": "When to call a plumber",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Sometimes a clog needs more than a home fix, and knowing when to stop can protect your pipes and save you time. If your drain is still blocked after you have tried the plunger, the snake and cleaning the trap, [a larger undetected problem may be hiding in your plumbing](https://www.rotorooter.com/blog/drains/unclog-a-drain-naturally).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A slow or clogged drain is often an early warning of deeper trouble, such as [grease buildup, pipe corrosion, damaged drain lines, tree root intrusion or a sewer line blockage](https://www.crplumbingdfw.com/how-to-unclog-a-drain-without-harsh-chemicals/). Here's how to tell it's time to pick up the phone:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "More than one drain in your home is backing up at the same time.",
+      "The clog comes back soon after you clear it.",
+      "Nothing you try changes the water level in the sink, shower or tub.",
+      "You already poured a chemical cleaner into the pipe."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A [sewer camera inspection](https://www.crplumbingdfw.com/how-to-unclog-a-drain-without-harsh-chemicals/) is one way a plumber can see exactly where the blockage is and what caused it, so you know what you're dealing with.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You can read about [drain cleaning from Brightwater Plumbing](https://brightwaterplumbing.example/services/drain-cleaning), see [what a drain visit costs](https://brightwaterplumbing.example/pricing), or use our [emergency plumbing service](https://brightwaterplumbing.example/services/emergency) if water is backing up and you need help right away.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-8",
+   "h2": "Keep your drains from clogging again",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "You can lower the chance of another clog with a few small habits around your sink and tub. Most of these habits take less than a minute, and they help protect your pipes for years to come.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how to keep your drains moving freely:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Avoid pouring [grease, oil and food scraps](https://www.crplumbingdfw.com/how-to-unclog-a-drain-without-harsh-chemicals/) down the drain, and scrape plates into the trash first.",
+      "Use a [drain strainer](https://www.crplumbingdfw.com/how-to-unclog-a-drain-without-harsh-chemicals/) to catch hair and debris before they reach the pipe.",
+      "Clean the drain regularly with [hot water and vinegar](https://www.crplumbingdfw.com/how-to-unclog-a-drain-without-harsh-chemicals/) so buildup never gets a chance to harden.",
+      "Clean the [sink trap](https://www.rotorooter.com/blog/drains/unclog-a-drain-naturally) as part of your regular care, since debris can collect there over time."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you have a garbage disposal, run cold water while it works, because [cold water keeps grease solid](https://www.crplumbingdfw.com/how-to-unclog-a-drain-without-harsh-chemicals/) so the disposal can grind it up. You can find more everyday habits in [our drain care guide](https://brightwaterplumbing.example/blog/drain-care), or you can [contact us](https://brightwaterplumbing.example/contact) any time if you have a question.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If these fixes did not clear your drain, we're glad to take a look. Book drain cleaning with Brightwater Plumbing and we'll find what's causing the clog.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "faq",
+   "h2": "Frequently asked questions",
+   "blocks": [
+    {
+     "type": "h3",
+     "text": "What naturally unblocks drains?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "For light clogs such as grease and soap scum, start with [hot water](https://www.atcoenergy.com/blog/ways-to-unclog-a-drain-without-a-plumber), then try salt and hot water, or baking soda and vinegar followed by hot water. These work best on simple buildup, and as you can see from [Roto-Rooter's notes](https://www.rotorooter.com/blog/drains/lesser-known-tips-for-unclogging-a-drain/), they are ineffective against hair clogs. They also will not move a solid object, so a snake or vacuum fits better in that case.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Does the baking soda and vinegar trick actually work?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "It can loosen simple clogs from toothpaste and soap scum, because [the fizzing reaction helps break up debris](https://www.rotorooter.com/blog/drains/unclog-a-drain-naturally) before the hot water flushes it out. Honestly, it is [ineffective against hair clogs](https://www.rotorooter.com/blog/drains/lesser-known-tips-for-unclogging-a-drain/), and it will not clear a foreign object such as jewelry or large pieces of food. If one round does not help, you can repeat it a second or third time before moving on to a tool.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Can I pour boiling water down any drain?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "It may also [crack or damage porcelain, acrylic or natural stone sinks](https://www.rotorooter.com/blog/drains/lesser-known-tips-for-unclogging-a-drain/) and can scald your skin, so pour slowly and carefully.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Are chemical drain cleaners safe to use?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Most are [lye-based caustic cleaners](https://www.rotorooter.com/blog/drains/lesser-known-tips-for-unclogging-a-drain/) whose vapors can irritate eyes and skin, and they can damage some pipe materials. [Chemical cleaners can also wear down older pipes](https://www.crplumbingdfw.com/how-to-unclog-a-drain-without-harsh-chemicals/) over time. We suggest the other methods in this guide first, and you can call us if those do not clear the drain.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "When should I call a plumber for a clogged drain?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Call when plunging, snaking and trap cleaning have not worked, because [a larger undetected problem may be in the line](https://www.rotorooter.com/blog/drains/unclog-a-drain-naturally). A slow or clogged drain can also be an early sign of [grease buildup, pipe corrosion, damaged drain lines, tree root intrusion or a sewer line blockage](https://www.crplumbingdfw.com/how-to-unclog-a-drain-without-harsh-chemicals/).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Can dish soap unclog a drain?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Dish soap and hot water is a commonly suggested fix for grease in kitchen sinks, and it may help with a light grease clog. None of the sources we rely on cover it, so we would not count on it for a stubborn blockage. If your drain stays slow, move on to the plunger, snake or P-trap steps above.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  }
+ ],
+ "cut": [
+  {
+   "id": "1.0.0",
+   "why": "Source 4 does not link hair and soap scum to showers and food and grease to kitchen sinks. It only says clogs come from hair buildup or food and grease."
+  },
+  {
+   "id": "1.2.i2",
+   "why": "Attributes the foreign-object point to Roto-Rooter's natural drain page. Source 6 says homemade cleaner won't help with jewelry or large food pieces, but it does not recommend a snake, vacuum or trap cleaning."
+  },
+  {
+   "id": "3.3.1",
+   "why": "Source 5 says measurements need not be exact, but the draft attributes this to Andrea Dekker while the surrounding sentence frames it as a plain reassurance. The attribution adds scope beyond the source."
+  },
+  {
+   "id": "5.0.1",
+   "why": "Calling a wet/dry vacuum 'a good next step' once a plunger has failed comes from source 2, but the draft does not cite it. It also claims the home fixes above come first, which is not stated."
+  },
+  {
+   "id": "5.7.0",
+   "why": "Source 4 does not say a shop vac is commonly found in the garage. That detail comes from source 2, and the 'powerful appliance with lots of suction' line is from source 4, so the sentence blends and misattributes them."
+  },
+  {
+   "id": "8.3.0",
+   "why": "Presents 'tell us when you call so our plumber can take precautions' as Brightwater Plumbing practice. Source 4 only says this about Roto-Rooter plumbers, and no Brightwater details are in the sources."
+  },
+  {
+   "id": "10.5.0",
+   "why": "The 'No' answer implies a general rule about boiling water that sources do not support. Source 2 says very hot tap water for PVC, but it does not say boiling water is always unsafe."
+  },
+  {
+   "id": "2.6.0",
+   "why": "Source 1 says coarse salt scours the pipe, but 'removing more material than hot water alone' is stated in the source as a comparison the draft cites to ATCO. It is fine, but it is the only claim in this stretch of unsupported scope, so cut if unsure."
+  },
+  {
+   "id": "7.2.1",
+   "why": "Claims that if you don't know how old your pipes are, hot water and a plunger are safer. No source says this."
+  }
+ ],
+ "styleLeft": [],
+ "proof": {
+  "verdict": "Ship",
+  "reasons": [],
+  "lint": 0
+ },
+ "polish": {
+  "applied": 20,
+  "refused": []
+ },
+ "blocked": [
+  {
+   "key": "h2-8",
+   "why": "every softener is gone (\"many\", \"often\", \"usually\": 1 to 0), so a claim got stronger"
+  },
+  {
+   "key": "faq",
+   "why": "a hedge is gone (\"likely\", \"may\", \"about\" before a number and the like: 3 to 2), so a claim got stronger"
+  }
+ ],
+ "tidied": [],
+ "factChanges": [],
+ "modules": [
+  {
+   "status": "ok",
+   "error": null
+  }
+ ]
+}

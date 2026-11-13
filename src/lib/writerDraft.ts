@@ -11,13 +11,14 @@
 import type { BriefRow, Outcome, PlannedModule, ResearchPack, SourcePage, WriterBrief, WriterContext } from "./writerBrief.ts";
 import { contextPrefix } from "./writerBrief.ts";
 import { lintDraft, type Finding } from "./houseRules.ts";
-import { CLAIM_METHOD, findingsFor, fixPrompt, mergeFindings, proofreadTitle, reviewPrompt, styleResult } from "./writerStyle.ts";
+import { CLAIM_METHOD, findingsFor, fixPrompt, lengthPrompt, mergeFindings, proofreadTitle, reviewPrompt, styleResult } from "./writerStyle.ts";
 import { allowedTerms } from "./houseLint.ts";
 import { tidy } from "./tidy.ts";
 import { applyEdits, auditSection, cleanEdits, polishLines, polishPrompt, proofDraft, type Proof } from "./writerPolish.ts";
 import { personaText } from "./writerPersona.ts";
 import { modulePrompt, moduleStyle, validateModule, wrapModule, type Validation } from "./writerModules.ts";
 import type { ImagesOut, MissingImage, PlacedImage } from "./writerImageTypes.ts";
+import { splitSentences } from "./sentences.ts";
 
 // ─────────────── shapes ───────────────
 export type BlockType = "p" | "h3" | "ul" | "ol" | "quote" | "table";
@@ -37,6 +38,9 @@ export type Styled = {
   next?: number; // while the fixes run: the next section to fix
   /** 1: fixing what the lint and review found. 2: fixing what the lint still finds after round 1. 3: fixes done. */
   round?: 1 | 2 | 3;
+  /** The sentence-length round (Phase 2b): the next section to fix, and whether it's done. */
+  lengthNext?: number;
+  lengthDone?: boolean;
   /** The polish pass (writerPolish.ts): edits kept, and edits the fact audit or the lint refused. */
   polish?: { applied: StyleNote[]; refused: { id: string; why: string }[] } | null;
   /** Fixes code made with no AI (tidy.ts): quotes, a repeated adverb, long paragraphs split. */
@@ -203,8 +207,7 @@ export function exampleFor(b: Pick<WriterBrief, "examples">, h2: string) {
 }
 
 // ─────────────── step 2: check ───────────────
-const SENTENCE = /(?<=[.!?…]["”)\]]?)\s+(?=["“(\[]?[A-Z0-9])/; // the closing quote stays with its sentence
-export const sentences = (text: string) => text.split(SENTENCE).map((s) => s.trim()).filter(Boolean);
+export const sentences = splitSentences;
 export const stripLinks = (s: string) => s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, "$1 <$2>").replace(/\*\*([^*]+)\*\*/g, "$1");
 
 /** Every sentence, list item and table row with an id the check can name: section.block.sentence. */
@@ -544,6 +547,30 @@ export async function runDraft(store: DraftStore, deps: DraftDeps, id: string, v
       st = { ...st, sections: tidied.sections, tidied: [...(st.tidied ?? []), ...tidied.notes].slice(-100) };
       const left = lintDraft(tidied.sections, examples, allow);
       st = st.round === 1 && left.length && deps.styleFix ? { ...st, round: 2, findings: left, next: 0 } : { ...st, round: 3, next: 0 };
+      await save({ styled: st });
+    }
+    // The sentence-length round: what the lint still finds about sentence length, fixed section by section with a
+    // prompt that changes nothing else. Each rewrite passes the fact audit or is thrown away.
+    if (!st.lengthDone) {
+      const out = [...st.sections];
+      const findings = lintDraft(out, examples, allow).filter((f) => f.rule === "sentences");
+      const lines = new Map(claimLines(out).map((l) => [l.id, l.text]));
+      for (let si = st.lengthNext ?? 0; si < out.length; si++) {
+        const mine = findingsFor(findings, si);
+        if (mine.length && deps.styleFix) {
+          if (over()) return later;
+          const sec = out[si];
+          const raw = await deps.styleFix(prefix, lengthPrompt(sec, mine.map((f) => ({ ...f, text: lines.get(f.id) ?? "" }))));
+          const fixed = cleanSection(raw, planOf(sec));
+          const audit = fixed.blocks.length ? auditSection(sec, fixed, names) : { status: "BLOCK" as const, reasons: ["the rewrite came back empty"] };
+          if (audit.status !== "BLOCK" && lintDraft([fixed], [], allow).length <= lintDraft([sec], [], allow).length) out[si] = fixed;
+          else if (audit.status === "BLOCK") st = { ...st, blocked: [...(st.blocked ?? []), { key: sec.key, why: audit.reasons.join("; ") }].slice(-50) };
+        }
+        st = { ...st, sections: out, lengthNext: si + 1 };
+        await save({ styled: st });
+      }
+      const tidied = tidy(out);
+      st = { ...st, sections: tidied.sections, tidied: [...(st.tidied ?? []), ...tidied.notes].slice(-100), lengthDone: true };
       await save({ styled: st });
     }
     // The polish pass: one call, line edits, each audited.

@@ -1,0 +1,1041 @@
+{
+ "slug": "emergency-fund",
+ "keyword": "how to build an emergency fund",
+ "kind": "publisher",
+ "stage": "tofu",
+ "model": "claude-sonnet-5-5",
+ "at": "2026-11-13T14:17:50.161Z",
+ "seconds": 245,
+ "usage": {
+  "calls": 29,
+  "input": 66585,
+  "cacheRead": 1198876,
+  "cacheWrite": 180313,
+  "output": 35324
+ },
+ "score": {
+  "words": 2424,
+  "sections": 10,
+  "lint": 0,
+  "lintRules": {},
+  "numbers": 18,
+  "unsourced": [],
+  "links": 47,
+  "strayLinks": [],
+  "images": 3,
+  "modules": 1
+ },
+ "title": "How to Build an Emergency Fund, Step by Step",
+ "brief": {
+  "titles": [
+   "How to Build an Emergency Fund, Step by Step",
+   "How to Build an Emergency Fund When Money Feels Tight",
+   "How to Build an Emergency Fund: Start Small, Stay Steady"
+  ],
+  "h1": "How to Build an Emergency Fund, Step by Step",
+  "metaDescription": "Learn how to build an emergency fund in simple steps: set a starter goal, pick a safe account, automate your saving and know when to use it.",
+  "slug": "how-to-build-an-emergency-fund",
+  "searchIntent": "The searcher wants a clear, doable plan to start and grow savings for surprise costs, including how much to save and where to keep it. A step-by-step guide with a number they can work out for themselves serves this best.",
+  "reader": "An adult in their 20s or 30s who knows they should have savings but has none or very little, and may be living close to paycheck to paycheck. They want to pick a first goal, open or choose an account, and set up a transfer this week.",
+  "angle": "Most top pages open with the full 3 to 6 months target, which can feel out of reach. We start with a small first goal you can finish, then show how to grow it, and we explain why the FDIC says six months while other pages say 3 to 6. A calculator lets the reader work out their own starter goal and full target.",
+  "wordTarget": 1800,
+  "outline": [
+   {
+    "h2": "What an emergency fund is and why you need one",
+    "points": [
+     "An emergency fund is a cash reserve set aside for unplanned expenses or financial emergencies, such as car repairs, home repairs, medical bills or a loss of income [8].",
+     "Without savings, even a small financial shock can set you back, and if it turns into debt it can have a lasting impact [8].",
+     "People without savings may rely on credit cards or loans, which can be harder to pay off, or pull from retirement funds [8].",
+     "Cite the Federal Reserve 2025 household data as reported by Money Fit: 63 percent of adults said they could cover a $400 emergency expense with cash or its equivalent [3]. Name the source in the sentence.",
+     "Even a few hundred dollars can reduce the chance that one repair or bill turns into new debt [3]."
+    ],
+    "h3": [],
+    "sources": [
+     8,
+     3,
+     2
+    ]
+   },
+   {
+    "h2": "How much you need in your emergency fund",
+    "points": [
+     "Open with the idea that the amount depends on your situation, and that a first goal can be small [8,3].",
+     "Show that a starter goal of $250, $500 or one month of an important bill can be more useful than waiting until you can save three to six months of expenses [3].",
+     "Explain the common guideline of three to six months of living expenses [2,4], and note that the FDIC says experts generally recommend at least six months [9]. Tell the reader why the numbers differ: it depends on job stability, income, dependents and housing [2,4].",
+     "Walk through how to find your number: list essential monthly costs only (housing, utilities, food, transportation, health care, debt payments), leave out extras like eating out, travel and gifts, then multiply by the months you want to cover [2,4].",
+     "Tip from CFPB: think about the most common unexpected expenses you've had in the past and what they cost [8]."
+    ],
+    "h3": [
+     {
+      "title": "Start with a starter goal",
+      "points": [
+       "Examples of first targets: $250, $500, one month of groceries, one car insurance payment or one rent buffer [3].",
+       "A smaller goal you finish beats a larger goal that makes you quit [3]."
+      ]
+     },
+     {
+      "title": "Work toward a full fund",
+      "points": [
+       "Questions that change the size: rent or own, health concerns, job stability, who you support [2].",
+       "Use the same list of essentials for the calculator below."
+      ]
+     }
+    ],
+    "sources": [
+     2,
+     3,
+     4,
+     8,
+     9
+    ]
+   },
+   {
+    "h2": "How to build an emergency fund step by step",
+    "points": [
+     "Present a numbered list of steps drawn from Money Fit and CFPB, in this order: set a realistic starter goal, open or use a separate savings account, pick a contribution you can repeat, automate the transfer, use small windfalls, write down what counts as an emergency, rebuild after using it [3,8].",
+     "Starting amount: choose one that won't cause an overdraft or missed bill. Five dollars a week that stays saved beats a larger transfer you have to pull back [3].",
+     "Automation: schedule the transfer shortly after payday or use split direct deposit if your employer and bank allow it, so saving happens before the money is absorbed into the month [3].",
+     "Show the CFPB habit tips in plain words: set a goal, make consistent contributions, check your progress, celebrate wins [8].",
+     "Give the FDIC example: $20 into savings each pay period when paid every other week adds up to $520 a year, plus interest [9]."
+    ],
+    "h3": [],
+    "sources": [
+     3,
+     8,
+     9,
+     4
+    ]
+   },
+   {
+    "h2": "Where to keep your emergency fund",
+    "points": [
+     "The money should be safe, separate and available when needed. It should not be locked away so tightly you can't use it, or so easy to spend that it becomes extra checking money [3].",
+     "Options in a short list: a basic savings account, a money market deposit account (check fees, minimum balances and transfer limits) and a credit union share account (check access, insurance and timing) [3].",
+     "High-yield savings accounts offer higher interest than regular savings accounts and let you withdraw quickly without penalties [4]. Say to compare rates yourself and don't state a rate.",
+     "Check that the bank is FDIC insured or that the credit union is NCUA insured [3,4,9].",
+     "A savings account may limit withdrawals, which helps you avoid spending before you're ready. A CD usually has a penalty for early withdrawal, so check fees with your bank first [9]."
+    ],
+    "h3": [],
+    "sources": [
+     3,
+     4,
+     9,
+     8
+    ]
+   },
+   {
+    "h2": "Ways to find money to save",
+    "points": [
+     "Cut or reduce non-essential costs, such as unused subscriptions and eating out. This doesn't have to be permanent, and you can add things back once the fund is built [2].",
+     "Review recurring expenses, even small ones, and see what you can cut, downgrade or find a better deal on [9].",
+     "Put part of windfalls into the fund: tax refunds, overtime, bonuses, rebates, gift money or money from selling unused items. You don't have to save all of it [3,9].",
+     "The CFPB says managing cash flow or putting away a portion of a tax refund are the easiest ways to start if your ability to save is limited [8].",
+     "Save through work: split direct deposit if your employer allows it [2,3,8].",
+     "Mention that IRS VITA offers free basic tax preparation to qualified people, which can help you get credits you're eligible for [9]."
+    ],
+    "h3": [],
+    "sources": [
+     2,
+     3,
+     8,
+     9
+    ]
+   },
+   {
+    "h2": "What counts as an emergency",
+    "points": [
+     "Decide ahead of time what the fund is for. Good examples: necessary car repairs, urgent medical costs, temporary loss of income, or a home repair that protects safety or basic living needs [3].",
+     "Not for planned expenses or discretionary spending [4].",
+     "Include a short do and don't list: real emergencies versus things like a vacation or a sale. Use the Money Fit and Gemini framing, but only claim what [3] and [4] confirm.",
+     "The fund can also cover day-to-day costs, such as housing, utilities, food, transportation, health care and debt payments, if you're out of work for a while [2]."
+    ],
+    "h3": [],
+    "sources": [
+     3,
+     4,
+     2,
+     8
+    ]
+   },
+   {
+    "h2": "What to do after you use your fund",
+    "points": [
+     "Using the fund for a real emergency is not a failure, because it is the reason the fund exists [3].",
+     "Return to your regular contribution and rebuild the balance over time [3,4].",
+     "Your goal can grow over time as your life changes [3]. Keep this to what the source says."
+    ],
+    "h3": [],
+    "sources": [
+     3,
+     4,
+     8
+    ]
+   },
+   {
+    "h2": "Your next step this week",
+    "points": [
+     "Give three short actions: pick a starter goal, choose an insured account, set up a small automatic transfer.",
+     "Use the calculator result as the first number.",
+     "Point to Clear Money pages on saving and budgeting for the next step. Do not recap the article."
+    ],
+    "h3": [],
+    "sources": [
+     3,
+     8
+    ]
+   }
+  ],
+  "entities": [
+   "emergency fund",
+   "starter goal",
+   "three to six months of living expenses",
+   "essential expenses",
+   "high-yield savings account",
+   "savings account",
+   "money market deposit account",
+   "credit union share account",
+   "FDIC",
+   "NCUA",
+   "certificate of deposit (CD)",
+   "split direct deposit",
+   "automatic transfer",
+   "windfall",
+   "tax refund",
+   "IRS VITA",
+   "Consumer Financial Protection Bureau (CFPB)",
+   "Federal Reserve household data",
+   "Bankrate survey",
+   "Money Fit",
+   "paycheck to paycheck",
+   "high-interest debt",
+   "Clear Money"
+  ],
+  "gaps": [
+   "Most pages lead with the 3 to 6 month target, which can feel out of reach. Only Money Fit [3] starts with a small goal such as $250 or $500, so we will lead with that.",
+   "Pages disagree on size: 3 to 6 months [2,4] versus at least six months [9]. We will explain why and tie it to job stability, dependents and income.",
+   "The Ethos stat [2] comes from a 2021 article and a January Bankrate survey, so we will use the newer Federal Reserve figure from [3] and flag the older one.",
+   "No page gives the reader a way to work out their own starter goal, full target and time to reach it in one place. The calculator does that.",
+   "Few pages say what to do if you live paycheck to paycheck or have uneven pay. CFPB [8] says even a small amount helps and points to cash flow and tax refunds as easy starts.",
+   "Account choices are listed without trade-offs. We will cover savings withdrawal limits and CD early withdrawal penalties [9], and fees and minimums on money market accounts [3].",
+   "Pages stop at building the fund. We will cover rebuilding after you use it [3,4]."
+  ],
+  "faqs": [
+   {
+    "question": "How much should I have in my emergency fund?",
+    "answer": "Say that a common guideline is three to six months of essential living expenses [2,4], that the FDIC says experts generally recommend at least six months [9], and that a smaller starter goal such as $250 or $500 is a good first step [3]."
+   },
+   {
+    "question": "Where should I keep my emergency fund?",
+    "answer": "Say to keep it in a separate, insured account that you can reach when needed, such as a savings account, a money market deposit account or a credit union share account [3]. A high-yield savings account pays higher interest than a regular one [4]. Check for FDIC or NCUA insurance [4,9]."
+   },
+   {
+    "question": "Can I build an emergency fund if I live paycheck to paycheck?",
+    "answer": "Say yes. The CFPB says even a small amount provides some security, and managing cash flow or saving part of a tax refund are the easiest ways to start [8]. Money Fit says $5, $10 or $25 at a time still builds a cushion if you repeat it [3]."
+   },
+   {
+    "question": "What counts as an emergency?",
+    "answer": "Say it covers necessary car repairs, urgent medical costs, temporary loss of income and home repairs that protect safety or basic living needs [3]. Planned or discretionary spending is not an emergency [4]."
+   },
+   {
+    "question": "Should I save a little each week or wait until I can save more?",
+    "answer": "Say to start now with an amount you can repeat. Five dollars a week that stays saved beats a bigger transfer you have to pull back [3]. The FDIC example of $20 per pay period adding up to $520 a year shows small amounts add up [9]."
+   }
+  ],
+  "internalLinks": [
+   {
+    "url": "https://clearmoney.example/saving",
+    "anchor": "saving basics at Clear Money",
+    "where": "Your next step this week"
+   },
+   {
+    "url": "https://clearmoney.example/budgeting",
+    "anchor": "build a simple budget",
+    "where": "How much you need in your emergency fund"
+   },
+   {
+    "url": "https://clearmoney.example/tools/budget-calculator",
+    "anchor": "budget calculator",
+    "where": "Ways to find money to save"
+   },
+   {
+    "url": "https://clearmoney.example/credit",
+    "anchor": "how credit works",
+    "where": "What an emergency fund is and why you need one"
+   },
+   {
+    "url": "https://clearmoney.example/blog/money-basics",
+    "anchor": "money basics",
+    "where": "What an emergency fund is and why you need one"
+   }
+  ],
+  "cta": {
+   "text": "Pick your starter goal today, open a separate insured savings account, and set up a small transfer for your next payday. Then read more on our saving page for what to do after your first goal.",
+   "where": "Your next step this week, with a link to https://clearmoney.example/saving"
+  },
+  "modules": [
+   {
+    "type": "calculator",
+    "title": "Find your emergency fund number",
+    "purpose": "Let the reader work out a starter goal, a full fund target and how long it could take to get there.",
+    "placement": "How much you need in your emergency fund",
+    "inputs": [
+     "Essential monthly costs in dollars (housing, utilities, food, transportation, health care, debt payments)",
+     "Months of expenses to cover (1 to 6)",
+     "Amount saved per paycheck in dollars",
+     "Paychecks per year (52, 26, 24 or 12)"
+    ],
+    "outputs": [
+     "Full fund target (essential monthly costs times months)",
+     "Annual savings (amount per paycheck times paychecks per year)",
+     "Years and months to reach the target",
+     "Starter goal options to compare: $250, $500 or one month of an important bill"
+    ],
+    "data": "Fixed reference facts: starter goals of $250, $500 or one month of an important bill [3]; common guideline of 3 to 6 months of living expenses [2,4]; FDIC says at least six months [9]; sample from FDIC that $20 per pay period every other week equals $520 a year plus interest [9]. Show the months range as 1 to 6 and say interest is not included in the result.",
+    "why": "Each reader has different bills and pay, so a text list can't give them a number. Seeing a target and a timeline makes the goal feel doable and shows how small transfers add up."
+   }
+  ],
+  "images": [
+   {
+    "placement": "How to build an emergency fund step by step",
+    "shows": "The seven steps in order: set a starter goal, open a separate account, pick a repeatable amount, automate it, add windfalls, define emergencies, rebuild after use.",
+    "alt": "Seven numbered steps for building an emergency fund, from setting a starter goal to rebuilding after use.",
+    "kind": "steps"
+   },
+   {
+    "placement": "Where to keep your emergency fund",
+    "shows": "Savings account, money market deposit account and credit union share account side by side, with what to check for each.",
+    "alt": "Three account types for emergency savings compared by what to check before choosing.",
+    "kind": "comparison"
+   },
+   {
+    "placement": "What counts as an emergency",
+    "shows": "A short do and don't list of what the fund is for and what it is not for.",
+    "alt": "A checklist of real emergencies on one side and planned spending on the other.",
+    "kind": "checklist"
+   }
+  ],
+  "examples": [],
+  "checks": [
+   "Bankrate figure in [2] (39% could cover a $1,000 expense) is from a 2021 article. Confirm a current figure before using it, or leave it out.",
+   "The Federal Reserve 63 percent figure comes through [3], not from the Fed itself. Check the Fed's report wording before publishing.",
+   "The FDIC deposit insurance limit ($250,000, mentioned in Gemini) is not in the numbered sources. Confirm on fdic.gov and ncua.gov before stating it.",
+   "Current high-yield savings rates are not in the sources. Do not state any rate, or check a dated source.",
+   "The $1,000 starter amount appears in the AI answers but not in the numbered sources. The sources give $250, $500 or one month of a bill [3]. Confirm before using $1,000.",
+   "People Also Ask lists the 3 6 9 rule, the 70/20/10 rule and saving $10,000 in 3 months. The sources do not define these, so skip them or have an editor verify.",
+   "The CFPB page text [8] is cut off, so its sections on save through work, where to keep it and when to use it are only known from headings. Check the full page before quoting."
+  ],
+  "research": {
+   "sources": [
+    {
+     "n": 1,
+     "url": "https://theweek.com/",
+     "title": "The Week US | Because the news needs a curator",
+     "domain": "theweek.com",
+     "kind": "serp",
+     "position": 1,
+     "words": 548
+    },
+    {
+     "n": 2,
+     "url": "https://www.ethos.com/money/how-to-build-an-emergency-fund/",
+     "title": "How to Build an Emergency Fund | Ethos Life",
+     "domain": "ethos.com",
+     "kind": "serp",
+     "position": 2,
+     "words": 1752
+    },
+    {
+     "n": 3,
+     "url": "https://www.moneyfit.org/how-to-guides/saving-money/how-to-build-an-emergency-fund/",
+     "title": "How to Build an Emergency Fund",
+     "domain": "moneyfit.org",
+     "kind": "serp",
+     "position": 3,
+     "words": 1562
+    },
+    {
+     "n": 4,
+     "url": "https://www.members1stinvestments.com/blog/be-ready-for-anything-a-step-by-step-guide-to-building-an-emergency-fund",
+     "title": "Be Ready for Anything: A Step-by-Step Guide to Building an Emergency Fund",
+     "domain": "members1stinvestments.com",
+     "kind": "serp",
+     "position": 4,
+     "words": 565
+    },
+    {
+     "n": 5,
+     "url": "https://finance.yahoo.com/",
+     "title": "Yahoo Finance - Stock Market Live, Quotes, Business & Finance News",
+     "domain": "finance.yahoo.com",
+     "kind": "serp",
+     "position": 5,
+     "words": 1498
+    },
+    {
+     "n": 6,
+     "url": "https://helloskip.com/",
+     "title": "Skip",
+     "domain": "helloskip.com",
+     "kind": "serp",
+     "position": 6,
+     "words": 553
+    },
+    {
+     "n": 7,
+     "url": "https://www.netcredit.com/",
+     "title": "Online Loans & Lines of Credit | NetCredit: Credit to the People",
+     "domain": "netcredit.com",
+     "kind": "serp",
+     "position": 7,
+     "words": 619
+    },
+    {
+     "n": 8,
+     "url": "https://www.consumerfinance.gov/an-essential-guide-to-building-an-emergency-fund",
+     "title": "An essential guide to building an emergency fund | Consumer Financial Protection Bureau",
+     "domain": "consumerfinance.gov",
+     "kind": "ai",
+     "position": null,
+     "words": 1721
+    },
+    {
+     "n": 9,
+     "url": "https://www.fdic.gov/consumer-resource-center/2025-01/saving-unexpected-and-your-future",
+     "title": "Saving for the Unexpected and Your Future | FDIC.gov",
+     "domain": "fdic.gov",
+     "kind": "ai",
+     "position": null,
+     "words": 1042
+    }
+   ],
+   "questions": [
+    "What is the 3 6 9 rule in finance?",
+    "Can I save $10,000 in 3 months?",
+    "What is the 70/20/10 rule money?",
+    "Where to put savings?"
+   ],
+   "engines": [
+    "ChatGPT",
+    "Gemini",
+    "AI Mode"
+   ],
+   "topPages": "The relevant top results are Ethos [2], Money Fit [3], Members 1st [4], and the CFPB [8] and FDIC [9] pages, which are step-by-step guides of roughly 1,000 to 1,750 words, with Members 1st shorter at about 565. Most explain what an emergency fund is, list reasons to have one, give the 3 to 6 month guideline, and cover automatic saving, windfalls and where to keep the money. Money Fit is the only one that leads with a small starter goal and covers what counts as an emergency and rebuilding. Several results (The Week, Yahoo Finance, Skip, NetCredit) are unrelated and offer nothing to use.",
+   "aiAnswers": "ChatGPT, Gemini and AI Mode all give a short step-by-step plan: set a target (a $1,000 starter, then 3 to 6 months of essentials, or more for irregular income), pick a separate high-yield savings account, automate transfers and use windfalls. They also warn against keeping the money in stocks or crypto. ChatGPT and AI Mode cite the CFPB guide, and ChatGPT also cites the FDIC page and a Fidelity page, while Gemini cites nothing."
+  },
+  "model": "claude-sonnet-5-5",
+  "at": "2026-11-13T14:14:43.154Z"
+ },
+ "sections": [
+  {
+   "key": "intro",
+   "h2": "",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "An unexpected bill can land at the worst time, and if you have little or no savings, it can feel like a real setback. The [Consumer Financial Protection Bureau](https://www.consumerfinance.gov/an-essential-guide-to-building-an-emergency-fund) says even a small amount set aside can help you recover faster and get back on track.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "In this guide, we'll show you how to build an emergency fund one small step at a time, starting with a first goal you can actually finish. Here's what you'll learn in this guide, and each part helps you take one small step toward your first goal:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "How much you need to save, so you can work out your own starter goal.",
+      "Where to keep the money so it stays safe and easy to reach when you need it.",
+      "How to set up a transfer this week so saving happens on its own."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Whether you're living close to paycheck to paycheck or just starting out, you can begin with a few dollars and a goal you can finish.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-0",
+   "h2": "What an emergency fund is and why you need one",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "An **emergency fund** is a cash reserve that's set aside for unplanned expenses or financial emergencies, according to the [Consumer Financial Protection Bureau](https://www.consumerfinance.gov/an-essential-guide-to-building-an-emergency-fund). Common examples include car repairs, home repairs, medical bills or a loss of income.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Without savings, even a small financial shock can set you back, and if it turns into debt it can have a lasting impact. The CFPB also notes that people without savings may rely on credit cards or loans, which can be harder to pay off, or pull from other savings like retirement funds to cover these costs.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you'd like to see how borrowing affects your finances, we explain [how credit works](https://clearmoney.example/credit), and our [money basics](https://clearmoney.example/blog/money-basics) cover the rest of the starting points.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Money Fit](https://www.moneyfit.org/how-to-guides/saving-money/how-to-build-an-emergency-fund/) reports that the Federal Reserve's 2025 household data show 63 percent of adults said they could cover a $400 emergency expense with cash or its equivalent.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You don't need a big balance to make a difference, because Money Fit points out that even a few hundred dollars can reduce the chance that one repair or bill turns into new debt.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-1",
+   "h2": "How much you need in your emergency fund",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "The amount you need depends on your situation, and your first goal can be small. The [Consumer Financial Protection Bureau](https://www.consumerfinance.gov/an-essential-guide-to-building-an-emergency-fund) suggests thinking about the most common unexpected expenses you've had in the past and what they cost.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you want to see where your money goes first, you can [build a simple budget](https://clearmoney.example/budgeting) before you pick a number.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Start with a starter goal",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "It says a starter goal of $250, $500 or one month of an important bill can be more useful than waiting until you can save three to six months of expenses.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "It also says a smaller goal you reach is easier to stick with than a larger one you give up on.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here are some first targets that Money Fit suggests, so you can pick one that feels possible for you:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "$250 or $500 in a separate savings account.",
+      "One month of groceries.",
+      "One car insurance payment.",
+      "One rent or mortgage buffer."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Work toward a full fund",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A common guideline is to cover [three to six months of living expenses](https://www.members1stinvestments.com/blog/be-ready-for-anything-a-step-by-step-guide-to-building-an-emergency-fund), while the [FDIC](https://www.fdic.gov/consumer-resource-center/2025-01/saving-unexpected-and-your-future) says experts generally recommend at least six months. The numbers differ because the right size depends on your own life, and [Ethos](https://www.ethos.com/money/how-to-build-an-emergency-fund/) points to questions like these:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Do you rent, have a mortgage or own your home outright?",
+      "Do you have chronic health concerns, or are you generally healthy?",
+      "Is your job in a stable industry or one with more uncertainty?",
+      "Are you single, or do you support a family or children?"
+     ],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "List only your essential monthly costs, such as housing, utilities, food, transportation, health care and debt payments.",
+      "Leave out extras like eating out, travel and gifts.",
+      "Multiply that total by the number of months you want your fund to cover."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Use the same list of essentials for the calculator below.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-2",
+   "h2": "How to build an emergency fund step by step",
+   "blocks": [
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "Set a realistic starter goal that you can reach, such as $250 or $500.",
+      "Open or use a separate savings account so the money stays away from everyday spending.",
+      "Pick a contribution you can repeat every week or every pay period.",
+      "Automate the transfer so saving happens without you thinking about it.",
+      "Write down what counts as an emergency before you need the money.",
+      "Rebuild the fund after you use it, since that is what it's there for."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "For your starting amount, choose one that won't cause an overdraft or a missed bill. Five dollars a week that stays saved is better than a larger transfer you have to [pull back](https://www.moneyfit.org/how-to-guides/saving-money/how-to-build-an-emergency-fund/).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "To automate, schedule the transfer shortly after payday, or use split direct deposit if your employer and bank allow it. Honestly, this step does the most work, because [saving happens before the money is absorbed](https://www.moneyfit.org/how-to-guides/saving-money/how-to-build-an-emergency-fund/) into the rest of the month.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The CFPB shares a few habits that help you keep going, and here they are in plain words:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Set a specific goal so you stay motivated.",
+      "Make consistent contributions, even when they're small.",
+      "Check your progress on a regular schedule.",
+      "Celebrate your wins, and set a new goal when you reach one."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Small amounts add up faster than you might expect, and the FDIC gives a simple example. The [FDIC](https://www.fdic.gov/consumer-resource-center/2025-01/saving-unexpected-and-your-future) says that if you're paid every other week and put $20 into savings each pay period, that adds up to $520 a year, plus interest.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-3",
+   "h2": "Where to keep your emergency fund",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Your emergency fund should be safe, separate and ready when you need it. According to [Money Fit](https://www.moneyfit.org/how-to-guides/saving-money/how-to-build-an-emergency-fund/), it shouldn't be locked away so tightly that you can't use it, or so easy to spend that it turns into extra checking money.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here are the account types that [Money Fit](https://www.moneyfit.org/how-to-guides/saving-money/how-to-build-an-emergency-fund/) says can work well for emergency savings:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "A basic **savings account** keeps the fund apart from daily spending while keeping access fairly simple.",
+      "A **money market deposit account** can work too, but you'll want to review fees, minimum balance rules and transfer limits first.",
+      "A **credit union share account** may also fit, so check access, insurance coverage and transfer timing before you choose.",
+      "A **high-yield savings account** [offers higher interest than a regular savings account](https://www.members1stinvestments.com/blog/be-ready-for-anything-a-step-by-step-guide-to-building-an-emergency-fund) and lets you withdraw quickly without penalties, so compare current rates yourself."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Whichever you pick, check that the bank is FDIC insured or that the credit union is NCUA insured, as [Members 1st](https://www.members1stinvestments.com/blog/be-ready-for-anything-a-step-by-step-guide-to-building-an-emergency-fund) and the [FDIC](https://www.fdic.gov/consumer-resource-center/2025-01/saving-unexpected-and-your-future) both point out.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A traditional savings account may limit how many withdrawals you can make, which [helps you avoid spending your savings before you're ready](https://www.fdic.gov/consumer-resource-center/2025-01/saving-unexpected-and-your-future). A certificate of deposit (CD) usually has a penalty for early withdrawal, so ask your bank about fees first.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Which of these accounts would be easiest for you to reach in a pinch while still staying separate from your everyday spending money?",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-4",
+   "h2": "Ways to find money to save",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Extra dollars often hide in the budget you already have, and a few small moves can free them up. Here's how to find them, starting with the easiest places to look.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If your ability to save is limited, the [Consumer Financial Protection Bureau](https://www.consumerfinance.gov/an-essential-guide-to-building-an-emergency-fund) says managing your cash flow or putting away a portion of your tax refund are the easiest ways to get started. Our [budget calculator](https://clearmoney.example/tools/budget-calculator) can help you see where your money goes each month.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here are some places to look:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Cut or reduce non-essential costs like unused subscriptions and eating out. [Ethos](https://www.ethos.com/money/how-to-build-an-emergency-fund/) points out this doesn't have to be permanent, since you can add things back once the fund is built.",
+      "Review your recurring expenses, even small ones, and see what you can cut, downgrade or find a better deal on, as the [FDIC](https://www.fdic.gov/consumer-resource-center/2025-01/saving-unexpected-and-your-future) suggests.",
+      "Put part of any windfall into the fund, such as a tax refund, overtime, a bonus, a rebate, gift money or money from selling unused items. [Money Fit](https://www.moneyfit.org/how-to-guides/saving-money/how-to-build-an-emergency-fund/) says you don't have to save all of it."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Surprisingly, a tax refund can give your fund a real boost, and there is free help available to make sure you claim what you're owed. The FDIC notes that the IRS Volunteer Income Tax Assistance (VITA) program offers free basic tax preparation to qualified people, which can help you claim the credits you're eligible for.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Which of these could you start this week without much effort?",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-5",
+   "h2": "What counts as an emergency",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Before you need your emergency fund, it helps to decide what counts as an emergency. [Money Fit](https://www.moneyfit.org/how-to-guides/saving-money/how-to-build-an-emergency-fund/) suggests you write this down ahead of time so you aren't making the call while you're stressed. Good examples include necessary car repairs, urgent medical costs, temporary loss of income, or a home repair that protects safety or basic living needs.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The fund is for true emergencies, and [Members 1st](https://www.members1stinvestments.com/blog/be-ready-for-anything-a-step-by-step-guide-to-building-an-emergency-fund) says it shouldn't cover planned expenses or discretionary spending. Here's how that sorts out in real life, with a few do and don't examples you can check against:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Do use the fund for a necessary car repair that keeps you able to get to work.",
+      "Do use it for an urgent medical bill you didn't see coming.",
+      "Do use it to cover your bills if you lose your income for a while.",
+      "Don't use it for a vacation, since you can plan and save for that separately.",
+      "Don't use it for a sale or a nice-to-have purchase, even a good deal.",
+      "Don't use it for expenses you already knew were coming, like an annual bill."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The fund also isn't only for one-time surprises, because it can cover everyday costs too. [Ethos](https://www.ethos.com/money/how-to-build-an-emergency-fund/) explains that it can keep your day-to-day costs paid if you're out of work for an extended period, including housing, utilities, food, transportation, health care and debt payments.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you're unsure about a purchase, ask yourself whether it's both unexpected and necessary, because if it is, you can use the fund with confidence.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-6",
+   "h2": "What to do after you use your fund",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Using your emergency fund for a real emergency is not a failure, because [Money Fit](https://www.moneyfit.org/how-to-guides/saving-money/how-to-build-an-emergency-fund/) points out that spending it on a true need is the reason the fund exists. If a car repair or a surprise bill takes some of your balance, the money has done the job you set it aside for.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "After an emergency, the next move is to get back into your routine and rebuild. Money Fit says to [return to your regular contribution](https://www.moneyfit.org/how-to-guides/saving-money/how-to-build-an-emergency-fund/) and rebuild the balance over time, and Members 1st agrees that you should [focus on rebuilding the fund](https://www.members1stinvestments.com/blog/be-ready-for-anything-a-step-by-step-guide-to-building-an-emergency-fund) as soon as your financial situation settles.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how you can get started again after you've used some of your fund:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "Check your balance after the emergency so you know where you're starting from.",
+      "Restart the same automatic transfer you used before, even if the amount is small.",
+      "Wait until your finances feel steady before you try to save more than you did the first time.",
+      "Keep checking your progress, since the [CFPB suggests tracking your savings](https://www.consumerfinance.gov/an-essential-guide-to-building-an-emergency-fund) so you can see the balance grow."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Your goal doesn't have to stay the same either, since Money Fit notes that [your goal can grow over time](https://www.moneyfit.org/how-to-guides/saving-money/how-to-build-an-emergency-fund/) and a starter fund can become a bigger one as your life changes.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-7",
+   "h2": "Your next step this week",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "This week is a good time to turn the plan into action, and you can do it in three small steps. You don't have to finish all of them in one sitting, but starting this week gives you real momentum.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "Pick your starter goal. [Money Fit](https://www.moneyfit.org/how-to-guides/saving-money/how-to-build-an-emergency-fund/) suggests a first target such as $250, $500 or one month of an important bill, so use the number from our calculator as your starting point.",
+      "Choose an insured account that is separate from your everyday checking. Check that your bank is FDIC insured or that your credit union is NCUA insured before you move any money.",
+      "Set up a small automatic transfer for your next payday. Money Fit notes that scheduling it shortly after payday helps, because saving happens before the money gets absorbed into the rest of your month."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If your budget feels tight, start with an amount you can repeat without missing a bill. The [Consumer Financial Protection Bureau](https://www.consumerfinance.gov/an-essential-guide-to-building-an-emergency-fund) says even a small amount can give you some financial security, so a few dollars each payday still counts.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "For what comes after your first goal, our [saving basics at Clear Money](https://clearmoney.example/saving) page walks you through the next moves, and you can pair it with a simple budget to find more room to save.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Pick your starter goal today, open a separate insured savings account, and set up a small transfer for your next payday. Then read more on our [saving page](https://clearmoney.example/saving) for what to do after your first goal is reached.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "faq",
+   "h2": "Frequently asked questions",
+   "blocks": [
+    {
+     "type": "h3",
+     "text": "How much should I have in my emergency fund?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A common guideline is [three to six months of living expenses](https://www.ethos.com/money/how-to-build-an-emergency-fund/), and the [FDIC says experts generally recommend at least six months](https://www.fdic.gov/consumer-resource-center/2025-01/saving-unexpected-and-your-future). Your own number depends on things like job stability, income and who you support.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If that total feels far away, a smaller starter goal such as [$250 or $500](https://www.moneyfit.org/how-to-guides/saving-money/how-to-build-an-emergency-fund/) is a good first step.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Where should I keep my emergency fund?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Keep it in a separate, insured account that you can reach when you need it, as [Money Fit explains](https://www.moneyfit.org/how-to-guides/saving-money/how-to-build-an-emergency-fund/). Here are the options it lists:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "A savings account.",
+      "A money market deposit account.",
+      "A credit union share account."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A [high-yield savings account pays higher interest](https://www.members1stinvestments.com/blog/be-ready-for-anything-a-step-by-step-guide-to-building-an-emergency-fund) than a regular one. Whichever you pick, check that it has [FDIC or NCUA insurance](https://www.fdic.gov/consumer-resource-center/2025-01/saving-unexpected-and-your-future).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Can I build an emergency fund if I live paycheck to paycheck?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Yes, because the [CFPB says even a small amount can provide some financial security](https://www.consumerfinance.gov/an-essential-guide-to-building-an-emergency-fund). Managing your cash flow or saving part of a tax refund are the easiest ways to start.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Money Fit adds](https://www.moneyfit.org/how-to-guides/saving-money/how-to-build-an-emergency-fund/) that saving $5, $10 or $25 at a time still builds a useful cushion when you repeat it.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What counts as an emergency?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Money Fit lists](https://www.moneyfit.org/how-to-guides/saving-money/how-to-build-an-emergency-fund/) these as good examples:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Necessary car repairs.",
+      "Urgent medical costs.",
+      "Temporary loss of income.",
+      "Home repairs that protect safety or basic living needs."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Should I save a little each week or wait until I can save more?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Start now with an amount you can repeat, because [five dollars a week that stays saved](https://www.moneyfit.org/how-to-guides/saving-money/how-to-build-an-emergency-fund/) beats a bigger transfer you have to pull back.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The [FDIC gives an example](https://www.fdic.gov/consumer-resource-center/2025-01/saving-unexpected-and-your-future) of $20 per pay period adding up to $520 a year, plus interest, so small amounts really do add up.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  }
+ ],
+ "cut": [
+  {
+   "id": "2.3.0",
+   "why": "Describing Money Fit as a 'money education site that publishes how-to guides on saving' is not stated in the sources."
+  },
+  {
+   "id": "7.3.2",
+   "why": "Advice to wait until finances feel steady before saving more is not supported; sources only say to rebuild once the situation stabilizes."
+  },
+  {
+   "id": "3.1.i4",
+   "why": "Fine as a step but 'gift money' fine; however this item is supported. (no cut)"
+  },
+  {
+   "id": "1.3.0",
+   "why": "Claim that many households have only a thin cushion and 'the numbers show how common that is' is a framing generalization beyond the single 63 percent stat; mild, but not directly stated."
+  },
+  {
+   "id": "3.0.0",
+   "why": "Claim that we drew steps from the CFPB and ordered them to work for most people is a brand claim; the CFPB source does not contain the numbered step list."
+  },
+  {
+   "id": "5.3.i3",
+   "why": "Split direct deposit via employer is sourced, but this item attaches no source and states it as general fact; low risk but 'send part of each paycheck straight to savings' is a mild extension."
+  },
+  {
+   "id": "2.10.0",
+   "why": "Attributes the find-your-number steps to Members 1st, but its text does not list excluding extras or multiplying the way Ethos does; the attribution to both is not supported."
+  },
+  {
+   "id": "9.13.0",
+   "why": "Members 1st says the fund is not for planned or discretionary spending, but not that such spending 'should come from your regular budget'."
+  },
+  {
+   "id": "7.3.3",
+   "why": "Attributes to the CFPB a suggestion to track savings so you see the balance grow; the CFPB source does say to monitor progress, so this is supported. (no cut)"
+  }
+ ],
+ "styleLeft": [],
+ "proof": {
+  "verdict": "Ship",
+  "reasons": [],
+  "lint": 0
+ },
+ "polish": {
+  "applied": 23,
+  "refused": [
+   {
+    "id": "3.3.1",
+    "why": "every softener is gone (\"many\", \"often\", \"usually\": 1 to 0), so a claim got stronger"
+   }
+  ]
+ },
+ "blocked": [
+  {
+   "key": "faq",
+   "why": "lost link https://www.ethos.com/money/how-to-build-an-emergency-fund; added link https://www.moneyfit.org/how-to-guides/saving-money/how-to-build-an-emergency-fund"
+  }
+ ],
+ "tidied": [],
+ "factChanges": [],
+ "modules": [
+  {
+   "status": "ok",
+   "error": null
+  }
+ ]
+}

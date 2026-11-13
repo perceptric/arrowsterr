@@ -1,0 +1,715 @@
+{
+ "slug": "running-shoes-beginners",
+ "keyword": "best running shoes for beginners",
+ "kind": "store",
+ "stage": "bofu",
+ "model": "claude-sonnet-5-5",
+ "at": "2026-11-13T14:28:11.266Z",
+ "seconds": 195,
+ "usage": {
+  "calls": 10,
+  "input": 34550,
+  "cacheRead": 290907,
+  "cacheWrite": 162597,
+  "output": 27885
+ },
+ "score": {
+  "words": 1963,
+  "sections": 3,
+  "lint": 0,
+  "lintRules": {},
+  "numbers": 2,
+  "unsourced": [],
+  "links": 19,
+  "strayLinks": [],
+  "images": 0,
+  "modules": 0
+ },
+ "title": "1 Best Running Shoes for Beginners in 2026",
+ "brief": {
+  "titles": [
+   "7 Best Running Shoes for Beginners in 2026",
+   "7 Best Beginner Running Shoes in 2026: Picks for Every Budget",
+   "The 7 Best Running Shoes for Beginners in 2026, Ranked"
+  ],
+  "h1": "7 Best Running Shoes for Beginners in 2026",
+  "metaDescription": "We ranked 7 running shoes for beginners using lab and runner tests, with prices, pros, cons and who should skip each. Find your first pair.",
+  "slug": "best-running-shoes-for-beginners",
+  "searchIntent": "The searcher is close to buying and wants a short ranked list of specific shoes, with prices and a clear sense of who each one suits. A listicle with a quick-pick comparison and a plain buying guide serves this best.",
+  "reader": "New and casual runners shopping online who can't try shoes on in a store. They know they need running shoes but not the jargon (neutral, stability, stack height). Next they want to choose one or two pairs, check the fit advice and buy.",
+  "angle": "Every pick shows its price from a named source, a real drawback and who should skip it, so a beginner can rule shoes out as well as in. We explain the test scores in plain words and say openly that the list draws on published lab and runner tests, not Stride Running's own lab work.",
+  "wordTarget": 3400,
+  "outline": [
+   {
+    "h2": "How we picked these running shoes",
+    "points": [
+     "Say plainly that we compared published tests and did not run our own lab tests: RTINGS has bought and tested more than 300 shoes with its own money, RunRepeat buys its shoes and runs lab tests on more than 30 parameters, Fleet Feet tested hundreds of shoes and uses data from over 5 million foot scans, and Run Weekly's reviewer runs at least 25 miles in each shoe.",
+     "Explain what a beginner needs from a shoe: comfort from the first run, balanced cushioning, a stable feel and a fair price.",
+     "Explain the RTINGS scores in plain words: cushioning of 7.5 or higher is good, stability of 7.0 or higher is decent, and a true-to-size score of 9 or higher suggests starting with your usual running-shoe size.",
+     "Note that prices come from the named sources, differ by seller and date, and should be checked before buying."
+    ],
+    "h3": [],
+    "sources": [
+     1,
+     4,
+     6,
+     7,
+     9
+    ]
+   },
+   {
+    "h2": "1. ASICS Novablast 6: best overall",
+    "points": [
+     "What it does well: RTINGS calls it the best beginner running shoe it has tested, with cushioning (8.5) that protects your legs as you get used to regular training. It covers regular runs and a first 5K or 10K, and it returns some energy as you push off.",
+     "Numbers to show: stability 7.1, true to size 9.4, 247.7 g (8.74 oz), heel stack 41.9 mm, wide sizing available. Price is not in the excerpt, so use the retailer links in source 6 and flag it as a check.",
+     "Pros: stable without feeling over-controlling, light enough for regular runs, and it should last as your runs get longer.",
+     "Who should skip it: runners who want maximum support, since its stability score only just clears RTINGS's 7.0 line. Point them to the stability pick."
+    ],
+    "h3": [],
+    "sources": [
+     6
+    ]
+   }
+  ],
+  "entities": [],
+  "gaps": [],
+  "faqs": [],
+  "internalLinks": [],
+  "cta": {
+   "text": "",
+   "where": ""
+  },
+  "modules": [],
+  "images": [],
+  "examples": [],
+  "checks": [],
+  "research": {
+   "sources": [
+    {
+     "n": 1,
+     "url": "https://www.runweekly.com/best-running-shoes-for-beginners/",
+     "title": "Best Running Shoes for Beginners in 2025: Top Picks for New Runners",
+     "domain": "runweekly.com",
+     "kind": "serp",
+     "position": 1,
+     "words": 3551
+    },
+    {
+     "n": 2,
+     "url": "https://www.runnersworld.com/",
+     "title": "Runner's World",
+     "domain": "runnersworld.com",
+     "kind": "serp",
+     "position": 3,
+     "words": 1356
+    },
+    {
+     "n": 3,
+     "url": "https://www.chalktalksports.com/",
+     "title": "Exclusive Sports Gifts & Apparel - ChalkTalk SPORTS",
+     "domain": "chalktalksports.com",
+     "kind": "serp",
+     "position": 5,
+     "words": 346
+    },
+    {
+     "n": 4,
+     "url": "https://www.fleetfeet.com/running-shoe-buyers-guide",
+     "title": "The 10 Best Running Shoes of 2026 | Tested & Reviewed",
+     "domain": "fleetfeet.com",
+     "kind": "serp",
+     "position": 6,
+     "words": 4904
+    },
+    {
+     "n": 5,
+     "url": "https://www.youtube.com/watch?v=IyjCS9zFo6s",
+     "title": "Our Top 6 Running Shoes for Beginners This Summer - YouTube",
+     "domain": "youtube.com",
+     "kind": "serp",
+     "position": 7,
+     "words": 399
+    },
+    {
+     "n": 6,
+     "url": "https://www.rtings.com/running-shoes/reviews/best/beginners",
+     "title": "The 5 Best Running Shoes For Beginners of 2026",
+     "domain": "rtings.com",
+     "kind": "ai",
+     "position": null,
+     "words": 3518
+    },
+    {
+     "n": 7,
+     "url": "https://runrepeat.com/guides/best-running-shoes",
+     "title": "7 Best Running Shoes in 2026",
+     "domain": "runrepeat.com",
+     "kind": "ai",
+     "position": null,
+     "words": 9088
+    },
+    {
+     "n": 8,
+     "url": "https://www.shoestation.com/blog/2026-running-shoes-for-beginners",
+     "title": "From Couch to 5K: How to Choose Your First Pair of Running Shoes for Maximum Comfort",
+     "domain": "shoestation.com",
+     "kind": "ai",
+     "position": null,
+     "words": 788
+    },
+    {
+     "n": 9,
+     "url": "https://runrepeat.com/guides/best-for-beginners-running-shoes",
+     "title": "7 Best Running Shoes For Beginners in 2026",
+     "domain": "runrepeat.com",
+     "kind": "ai",
+     "position": null,
+     "words": 7541
+    }
+   ],
+   "questions": [
+    "Should running shoes be a little tight at first?",
+    "Are my running shoes causing knee pain?",
+    "What Nike shoes are good for beginner runners?",
+    "How to choose the first running shoes?"
+   ],
+   "engines": [
+    "ChatGPT",
+    "Gemini",
+    "AI Mode"
+   ],
+   "topPages": "",
+   "aiAnswers": ""
+  },
+  "model": "claude-sonnet-5-5",
+  "at": "2026-11-13T14:26:23.734Z"
+ },
+ "sections": [
+  {
+   "key": "intro",
+   "h2": "",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Picking your first pair of running shoes online can feel like guessing, because you can't try them on and the shop pages are full of words like stack height and pronation. We wrote this guide so you can narrow the list to one or two pairs without needing any of that jargon.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Below you'll find the best running shoes for beginners in 2026, each with its price from a named source, a real drawback and a note on who should skip it. We also explain the test scores in plain words, so a number like 7.1 means something to you.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "We want you to rule shoes out as well as in, so we say openly that this list draws on published lab and runner tests rather than Stride Running's own lab work. Next, we'll walk you through how we picked the shoes, and after that you can move on to our top choice.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-0",
+   "h2": "How we picked these running shoes",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Before you read our picks, we want to be clear about how we made this list. We did not run our own lab tests at Stride Running, so this list rests on the work of others. Instead, we compared published tests and runner reviews from sources that buy their own shoes and show their methods.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's what each source does, so you can judge how much weight to give its scores.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "RTINGS says it has [bought and tested more than 300 running shoes](https://www.rtings.com/running-shoes/reviews/best/beginners) with its own money, never supplied or sponsored by brands, and runs every shoe through the same methodology.",
+      "RunRepeat says it [purchases all shoes with its own money](https://runrepeat.com/guides/best-running-shoes), runs in them, and measures over 30 parameters in its lab, including shock absorption, energy return, traction and durability.",
+      "Fleet Feet says its editors and gear testers [tested hundreds of shoes](https://www.fleetfeet.com/running-shoe-buyers-guide) and used data from over 5 million foot scans to see how shoes fit on many different feet.",
+      "Run Weekly's reviewer says he [runs at least 25 miles in each shoe](https://www.runweekly.com/best-running-shoes-for-beginners/) across different surfaces and conditions, and checks for wear after several runs."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Using several sources helps because each one looks at shoes a little differently, and together they give you a fuller picture. A lab score tells you how a shoe measures up, and a long run in the shoe tells you how it feels on your feet.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What a beginner needs from a shoe",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "As a new runner, you don't need a racing shoe or a long list of features to get started. You need a shoe that helps you enjoy your first few miles and keeps you coming back for the next run.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's what we looked for when we compared the published tests, and each point below is something you can check yourself.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "The shoe feels stable underfoot, so you feel less wobbly while you get used to running."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Luckily, a good beginner shoe doesn't have to be the most expensive one on the shelf. A comfortable, stable daily trainer covers most of what you need.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "How to read the RTINGS scores",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Many of our picks include scores from RTINGS, so it helps to know what the numbers mean. [RTINGS lists three things to keep in mind](https://www.rtings.com/running-shoes/reviews/best/beginners) when you buy: cushioning, stability and true to size.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "table",
+     "text": "",
+     "items": [],
+     "rows": [
+      [
+       "Score",
+       "What it measures",
+       "What the number tells you"
+      ],
+      [
+       "Cushioning",
+       "How well the shoe absorbs the shock of each landing, so hard surfaces feel less harsh on your legs",
+       "A score of 7.5 or higher is good"
+      ],
+      [
+       "Stability",
+       "How controlled the shoe feels when you land and push off, which helps you feel less wobbly while you get used to running",
+       "A score of 7.0 or higher is decent"
+      ],
+      [
+       "True to Size",
+       "How closely the shoe's size matches your usual running-shoe size",
+       "A score of 9 or higher suggests starting with your usual running-shoe size"
+      ]
+     ]
+    },
+    {
+     "type": "p",
+     "text": "For example, a shoe with a cushioning score of 8.5 clears the 7.5 line with room to spare, and a stability score of 7.1 only just clears the 7.0 line. As you can see, a number near the line is a good sign but only a small margin, so we point it out when it matters.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Getting the size right",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If this is your first pair, [RTINGS suggests leaving about a thumb's width at the toes](https://www.rtings.com/running-shoes/reviews/best/beginners) so your feet have room to expand. It also notes that your running size may differ from your everyday size.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Shoe Station gives the same rule of thumb](https://www.shoestation.com/blog/2026-running-shoes-for-beginners) and adds that your feet swell as they warm up during a run. It also suggests trying shoes on later in the day, when your feet have naturally expanded.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You also shouldn't plan on a break-in period for a good pair of running shoes.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how to use these tips when you shop online, since you can't try the shoes on first.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "Check the true to size score when a source gives one, and start with your usual running-shoe size if it is 9 or higher.",
+      "Leave about a thumb's width between your longest toe and the front of the shoe.",
+      "Look at the wide sizing note if your feet tend to feel squeezed, because some of our picks come in wide sizes."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "A note on prices",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Every price in this guide comes from a named source, and we say which one each time. Prices differ by seller and change over time, so treat them as a guide and check the current price before you buy.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "When a source doesn't list a price, we say so and point you to its retailer links instead of guessing.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "With that in place, you know where our information comes from and how to read it, so you can compare the picks with confidence. Next up is the shoe that [RTINGS calls the best beginner running shoe it has tested](https://www.rtings.com/running-shoes/reviews/best/beginners).",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-1",
+   "h2": "1. ASICS Novablast 6: best overall",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "The ASICS Novablast 6 is a daily running shoe from ASICS that suits new runners who want a soft, steady ride. [RTINGS](https://www.rtings.com/running-shoes/reviews/best/beginners) names it the best running shoe for beginners it has tested, and the reasons come straight from its lab numbers.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What it does well",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "RTINGS says the Novablast 6 has [amazing cushioning](https://www.rtings.com/running-shoes/reviews/best/beginners) that does an excellent job of protecting your legs from impact as you get used to regular training. It scored 8.5 for cushioning, and RTINGS treats a score of 7.5 or higher as good.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "According to [RTINGS](https://www.rtings.com/running-shoes/reviews/best/beginners), the shoe can cover your regular runs and a first 5K or 10K, especially if your goal is to finish comfortably. Here's what that looks like in practice for a runner who is just getting started:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "It protects your legs from impact as you build a regular running habit.",
+      "It works for a first 5K or 10K if you want to finish comfortably.",
+      "It gives back some energy as you push off, which helps faster running feel less labored."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "On that last point, RTINGS says the cushioning [gives a decent amount of energy back](https://www.rtings.com/running-shoes/reviews/best/beginners) as you push off, so faster running feels less labored as you gain confidence and pick up the pace.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "The numbers at a glance",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here are the figures RTINGS lists for this shoe, so you can compare it with other pairs on your list.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "table",
+     "text": "",
+     "items": [],
+     "rows": [
+      [
+       "Measure",
+       "Novablast 6",
+       "What it tells you"
+      ],
+      [
+       "Cushioning",
+       "8.5",
+       "Above RTINGS's 7.5 line for good cushioning"
+      ],
+      [
+       "Stability",
+       "7.1",
+       "Just above RTINGS's 7.0 line for decent stability"
+      ],
+      [
+       "True to size",
+       "9.4",
+       "Above the 9 mark that suggests starting with your usual running-shoe size"
+      ],
+      [
+       "Weight",
+       "247.7 g (8.74 oz)",
+       "Light enough that it doesn't feel cumbersome on regular runs"
+      ],
+      [
+       "Heel stack height",
+       "41.9 mm",
+       "A tall, cushioned base under your heel"
+      ],
+      [
+       "Wide sizing",
+       "Available",
+       "Helpful if your feet need extra room"
+      ]
+     ]
+    },
+    {
+     "type": "p",
+     "text": "All of these figures come from [RTINGS's test results](https://www.rtings.com/running-shoes/reviews/best/beginners). Because RTINGS puts every shoe through the same tests, you can line this one up against any other shoe it has scored.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What the true to size score means for you",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "RTINGS says a true to size score of 9 or higher suggests starting with your usual running-shoe size. The Novablast 6 scores 9.4, so for most people that is a good place to begin.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "RTINGS also says that if this is your first pair, you should [leave about a thumb's width at the toes](https://www.rtings.com/running-shoes/reviews/best/beginners) for your feet to expand. It adds that your running size may differ from your everyday size, so don't assume your sneaker size will carry over.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Since you're likely buying online without a try-on, here's how to check the fit when the box arrives:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "Put the shoes on with the socks you plan to run in.",
+      "Stand up and press down at the front to find your longest toe.",
+      "Check that you have about a thumb's width of space past that toe.",
+      "Walk around the house and see whether anything rubs or pinches.",
+      "Take a short first run before you decide to keep them."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "A steady ride that stays light",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "RTINGS says the Novablast 6 is [stable enough underfoot without being overly controlling](https://www.rtings.com/running-shoes/reviews/best/beginners), and that it is light enough that it doesn't feel cumbersome on regular runs. That gives you a steady feel while you learn to run, and it is a big part of why we think it makes a good first pair.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Why it works as a first pair",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "RTINGS puts it this way: if you want one shoe to take you from your first few miles into regular weekly running, the [Novablast 6 is the best place to start](https://www.rtings.com/running-shoes/reviews/best/beginners). It also says you won't immediately need to upgrade, because the shoe remains capable as your runs get longer and you pick up the pace.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Pros at a glance",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "It is stable underfoot without feeling over-controlling, according to [RTINGS](https://www.rtings.com/running-shoes/reviews/best/beginners).",
+      "It is light enough that it doesn't feel cumbersome on regular runs.",
+      "It has cushioning that protects your legs while you adjust to regular training.",
+      "It stays capable as your runs get longer and faster, so you may not need to upgrade right away.",
+      "It comes in wide sizing, which gives more people a chance to find a good fit."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Who should skip it",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you want the most support you can get, another shoe may suit you better. The Novablast 6 scored 7.1 for stability, which only just clears the [7.0 line RTINGS calls decent](https://www.rtings.com/running-shoes/reviews/best/beginners).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "How stable do you want to feel on each step? These quick checks can help you decide:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Skip it if you want maximum support and a firmly guided stride.",
+      "Skip it if you want a more controlled ride than its stability score suggests.",
+      "Consider it if you like a soft, balanced feel and want one shoe for most of your runs."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "A note on price",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The RTINGS excerpt we used doesn't show a price for the Novablast 6.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Check the current price at those sellers before you buy, since prices change by store and by date.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What you can borrow from this pick",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The way RTINGS scores this shoe works as a checklist for any pair you compare, so you can reuse it on other shoes. Here's what you can borrow from the RTINGS scoring as you shop online:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Look for cushioning that scores 7.5 or higher if you want good protection from impact.",
+      "Look for stability that scores 7.0 or higher if you want to feel less wobbly while you get used to running.",
+      "Check the true to size score, and start with your usual running-shoe size if it is 9 or higher.",
+      "Leave a thumb's width at the toes, and remember your running size may differ from your everyday size.",
+      "Check whether wide sizing is available if your feet need more room."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If the Novablast 6 sounds right for you, check its current price at the retailer links on the [RTINGS page](https://www.rtings.com/running-shoes/reviews/best/beginners), then confirm the return policy before you order.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  }
+ ],
+ "cut": [
+  {
+   "id": "1.7.i0",
+   "why": "Source 9 does not say it rates first-run comfort as a beginner criterion; it only says it checks comfort level, general performance, traction and durability."
+  },
+  {
+   "id": "1.7.i1",
+   "why": "Shoe Station says look for a middle-ground foam that is not too mushy or too firm, but the 'without feeling clunky' phrasing comes from Run Weekly, so this mixes claims across sources."
+  },
+  {
+   "id": "1.7.i3",
+   "why": "Run Weekly says not everyone wants to drop a ton of money, but that does not establish a fair price as a published beginner criterion; the link attributes more than the source says."
+  },
+  {
+   "id": "1.16.1",
+   "why": "The Shoe Station claim that a pair which doesn't feel great at first lacing is not right is only partly in source 8; the combined attribution to both sources overreaches slightly, and 'agrees' is not clearly supported."
+  },
+  {
+   "id": "1.18.i3",
+   "why": "The return policy advice is not backed by any source and no retailer return policy information was supplied."
+  },
+  {
+   "id": "1.21.0",
+   "why": "The RunRepeat page shows prices with a crossed-out higher price and a lower retailer price, but describing it as a list price next to a lower named-retailer price goes beyond the excerpt's clear structure; the claim is not clearly stated by the source."
+  },
+  {
+   "id": "2.26.1",
+   "why": "The source lists Amazon, DicksSportingGoods.com and ChampsSports.com as retailer links, which is supported; however 'on the page' is fine, so this is low risk. Cut only if strict, since the excerpt names them as links."
+  },
+  {
+   "id": "2.27.1",
+   "why": "Return policy advice is not supported by any source."
+  },
+  {
+   "id": "2.4.i1",
+   "why": "The claim that you may not need a second pair right away is only loosely supported; RTINGS says you won't immediately need to upgrade, which is acceptable, but 'second pair' is a reframing beyond the source."
+  },
+  {
+   "id": "2.28.0",
+   "why": "Placeholder: none"
+  }
+ ],
+ "styleLeft": [],
+ "proof": {
+  "verdict": "Ship",
+  "reasons": [],
+  "lint": 0
+ },
+ "polish": {
+  "applied": 16,
+  "refused": [
+   {
+    "id": "2.23.0",
+    "why": "added number 6; number 7.1"
+   }
+  ]
+ },
+ "blocked": [
+  {
+   "key": "h2-0",
+   "why": "added link https://www.rtings.com/running-shoes/reviews/best/beginners"
+  }
+ ],
+ "tidied": [],
+ "factChanges": [],
+ "modules": []
+}

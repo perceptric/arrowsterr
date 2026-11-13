@@ -1,0 +1,1306 @@
+{
+ "slug": "keyword-research",
+ "keyword": "how to do keyword research",
+ "kind": "agency",
+ "stage": "tofu",
+ "model": "claude-sonnet-5-5",
+ "at": "2026-11-13T14:26:15.148Z",
+ "seconds": 320,
+ "usage": {
+  "calls": 32,
+  "input": 75771,
+  "cacheRead": 1290703,
+  "cacheWrite": 161548,
+  "output": 46842
+ },
+ "score": {
+  "words": 2815,
+  "sections": 10,
+  "lint": 5,
+  "lintRules": {
+   "sentences": 5
+  },
+  "numbers": 2,
+  "unsourced": [],
+  "links": 44,
+  "strayLinks": [],
+  "images": 4,
+  "modules": 1
+ },
+ "title": "How to Do Keyword Research: A 6-Step Guide for B2B Teams",
+ "brief": {
+  "titles": [
+   "How to Do Keyword Research: A 6-Step Guide for B2B Teams",
+   "How to Do Keyword Research in 6 Steps (With Free Tools)",
+   "Keyword Research for B2B Software: Step by Step"
+  ],
+  "h1": "How to Do Keyword Research: A 6-Step Guide for B2B Teams",
+  "metaDescription": "Learn how to do keyword research in six steps: build a seed list, expand it with free tools, check intent and pick the terms worth writing for.",
+  "slug": "how-to-do-keyword-research",
+  "searchIntent": "The searcher wants a clear, ordered process for finding the search terms their customers use, plus the tools and checks to pick the best ones. A step-by-step guide with a short tool section, a way to rank keywords and a few answers to common questions serves this best.",
+  "reader": "A marketing lead at a B2B software company who knows what SEO is and has a blog or a content plan, but has not built a keyword list from scratch. They want a process their team can follow this week, free tools to start with, and a way to decide which topics to write first.",
+  "angle": "The top pages are written for general beginners or sell a tool. We write for B2B software marketers: start from sales calls and support tickets, use free tools first, rank keywords with a simple score and finish by tracking results in Google Search Console.",
+  "wordTarget": 2800,
+  "outline": [
+   {
+    "h2": "What keyword research is and why it matters",
+    "points": [
+     "Define keyword research in one sentence: finding the search queries your target customers type into search engines to look for products, services and information.",
+     "Give the Ahrefs finding that 90.63% of pages get no traffic from Google, from a study of over 1 billion pages in its Content Explorer index, and name the source and year.",
+     "Explain that a page on a topic nobody searches for gets no Google traffic however good it is, and that research checks demand before you write.",
+     "List the three questions good research answers: what your audience searches for, which keywords your competitors rank for and which keywords have more traffic.",
+     "Give a short overview of the six steps in the guide, as a numbered list."
+    ],
+    "h3": [],
+    "sources": [
+     1,
+     3,
+     4
+    ]
+   },
+   {
+    "h2": "Step 1: Learn how your buyers talk about the problem",
+    "points": [
+     "Start with people, before any tool: talk to customers and note the words they use for your company, services and products.",
+     "Check customer emails, support requests and past conversations for common questions, and listen to sales calls.",
+     "Read online communities and forums in your niche to see the language buyers use, which can differ from your own product terms.",
+     "Ask yourself how you would describe the product to a friend, and write those words down.",
+     "Add a short, clearly labeled illustrative B2B example with no numbers, such as the words a buyer might use for a problem versus the words your product page uses."
+    ],
+    "h3": [],
+    "sources": [
+     3,
+     4
+    ]
+   },
+   {
+    "h2": "Step 2: Build a short seed keyword list",
+    "points": [
+     "Define seed keywords as short terms, usually one or two words with no modifiers, that are the starting point for every other keyword on your list.",
+     "Show how to come up with them: think about what people type into Google to find what you offer, and do not obsess over the first draft.",
+     "Use Ahrefs's own example of a coffee seller listing coffee, cappuccino, french press and nespresso, then show the same idea for a B2B software product.",
+     "Answer three questions to narrow the list: what do you want to rank for, what are your current rankings and what are your competitors' rankings.",
+     "Suggest checking Google Search Console for queries your site already ranks for."
+    ],
+    "h3": [],
+    "sources": [
+     1,
+     3,
+     4
+    ]
+   },
+   {
+    "h2": "Step 3: Expand your list with keyword tools",
+    "points": [
+     "Explain that a keyword tool takes a seed keyword and returns many related ideas, questions and rough metrics.",
+     "Say what each tool is good for and what limits it has, so readers choose with open eyes.",
+     "Remind readers that this step is where a free start is enough for most small teams."
+    ],
+    "h3": [
+     {
+      "title": "Free tools to start with",
+      "points": [
+       "Ahrefs Free Keyword Generator: for each seed keyword it returns 20 related keywords and 20 related questions, shows difficulty as easy, medium or hard and gives a rough monthly search count.",
+       "Google Keyword Planner: built for people who run Google ads. You can search for new keywords, use Discover new keywords or upload existing ones. Ahrefs notes it shows SEO metrics only if you run paid campaigns.",
+       "Google Trends: useful for broad and rising topics, but it does not give specific keyword ideas.",
+       "Answer the Public: uses Google autocomplete data to show related searches, with 3 searches a day on the free plan, according to Ahrefs.",
+       "ChatGPT: useful for brainstorming ideas from seed keywords, but it gives no real difficulty or monthly search numbers."
+      ]
+     },
+     {
+      "title": "Paid tools for deeper data",
+      "points": [
+       "Ahrefs Keywords Explorer and Semrush give larger keyword databases and competitor data. Ahrefs says its generator draws on over 8 billion queries, and Semrush lists 29 billion keywords on its homepage. Attribute both claims to the vendors.",
+       "Mention the Ahrefs Starter plan price shown on its page only with a note to confirm before publishing."
+      ]
+     },
+     {
+      "title": "Use Google Search Console for keywords you already have",
+      "points": [
+       "Search Console shows the queries that already bring people to your site, which makes it a good source of seed terms and quick opportunities."
+      ]
+     }
+    ],
+    "sources": [
+     1,
+     4,
+     5,
+     6,
+     7,
+     8
+    ]
+   },
+   {
+    "h2": "Step 4: Check search intent and competitor keywords",
+    "points": [
+     "Explain that intent is what the searcher wants to do, and that a keyword only helps if your page gives that person what they came for.",
+     "Show how to check intent by reading the top results for the keyword and noting the type of page they are.",
+     "Cover competitor research: look at which keywords your competitors rank for and which ones your site does not yet cover.",
+     "Describe the Ahrefs groupings: matching terms, related terms and keyword clusters, and how grouping keywords helps one page target a topic instead of one phrase.",
+     "Include the four questions from diib worth asking about each keyword: how it will rank, how much traffic it can bring, what content it needs and whether searchers are likely to become your audience."
+    ],
+    "h3": [],
+    "sources": [
+     1,
+     3,
+     4,
+     6
+    ]
+   },
+   {
+    "h2": "Step 5: Pick the keywords worth writing for",
+    "points": [
+     "Walk through the five checks from the Kuware guide: relevance, monthly volume, keyword difficulty, organic click-through rate and an overall priority.",
+     "Add Ahrefs's metrics to know about: search volume, traffic potential, keyword difficulty, cost per click, growth and business potential.",
+     "Explain how to use the checks together, for example a relevant keyword with modest volume and lower difficulty can beat a popular one that is hard to rank for. Use plain words and no invented figures.",
+     "Tell the reader to put business potential first when you sell software: the best keyword is one tied to a problem your product solves.",
+     "Show a simple keyword table layout: keyword, volume, difficulty, relevance, notes and a priority."
+    ],
+    "h3": [],
+    "sources": [
+     1,
+     4
+    ]
+   },
+   {
+    "h2": "Step 6: Use your keywords and track rankings",
+    "points": [
+     "Explain on-page use: put the main term where readers and search engines expect it, such as the title and headings, and write for the person first.",
+     "Say research is a continuous process, because new products and services keep appearing, per diib.",
+     "Show how to track results in Google Search Console as a numbered list: verify website ownership, submit your XML sitemap, open the Performance report, analyze top-performing pages, review search queries and identify keyword opportunities.",
+     "Tell the reader to revisit the list on a regular schedule and add new terms from queries Search Console shows."
+    ],
+    "h3": [
+     {
+      "title": "Use the keyword on the page",
+      "points": [
+       "Match the page to the intent you checked in Step 4 and cover related questions from your tool results."
+      ]
+     },
+     {
+      "title": "Track results in Google Search Console",
+      "points": [
+       "Give the six Kuware steps in order and say what each one tells you."
+      ]
+     }
+    ],
+    "sources": [
+     1,
+     3
+    ]
+   },
+   {
+    "h2": "How to adjust keyword research for AI search",
+    "points": [
+     "Note that people now ask full questions in AI tools and in Google's AI features, so keep question-style and conversational phrases on your list.",
+     "Point to the Ahrefs generator's question reports and the 20 related questions per seed as a way to find them.",
+     "Mention that Semrush now markets AI visibility tools alongside SEO, as a sign that search and AI answers are moving together. Attribute to the Semrush site.",
+     "Link to the Northline Digital AI search guide for readers who want to go further."
+    ],
+    "h3": [],
+    "sources": [
+     4,
+     6,
+     7
+    ]
+   }
+  ],
+  "entities": [
+   "keyword research",
+   "seed keywords",
+   "long-tail keywords",
+   "search intent",
+   "search volume",
+   "keyword difficulty",
+   "traffic potential",
+   "cost per click",
+   "organic click-through rate",
+   "keyword clusters",
+   "matching terms",
+   "related terms",
+   "Google Search Console",
+   "Google Keyword Planner",
+   "Google Trends",
+   "Ahrefs",
+   "Ahrefs Keywords Explorer",
+   "Ahrefs Free Keyword Generator",
+   "Semrush",
+   "Answer the Public",
+   "ChatGPT",
+   "Tim Soulo",
+   "Kuware",
+   "diib",
+   "XML sitemap",
+   "AI search"
+  ],
+  "gaps": [
+   "The top pages are written for general beginners or for tool buyers; none speaks to B2B software marketers or starts from sales calls and support tickets as the main source of seed terms.",
+   "Free tool limits are spread across pages. This article puts them side by side so a small team knows what to expect from each.",
+   "Intent is a short step in most beginner guides. We give a simple way to check it by reading the top results.",
+   "The Kuware guide stops at a list of criteria for prioritizing keywords. We turn them into a simple score the reader can apply.",
+   "Few pages cover AI search and question-style keywords. We add a short section on them.",
+   "The headline stat (90.63% of pages get no Google traffic) comes from a 2020 Ahrefs study. We name the source and year and do not present it as current."
+  ],
+  "faqs": [
+   {
+    "question": "What are keywords when doing research?",
+    "answer": "Keywords are the words and phrases people type into a search engine to find products, services or information, and keyword research is finding the ones your customers use. Source 4."
+   },
+   {
+    "question": "How do I use Google for keyword research?",
+    "answer": "Name the free Google tools: Search Console for queries you already rank for, Keyword Planner for ideas (full SEO metrics only with paid campaigns), and Trends for broad topics. Sources 1, 4, 5, 8."
+   },
+   {
+    "question": "What are long-tail keywords?",
+    "answer": "They are specific search queries that get a small number of searches a month and tend to be longer than head keywords. Say they can be easier to rank for, as Ahrefs describes in the Keyword Generator page. Source 6."
+   },
+   {
+    "question": "How many seed keywords should I start with?",
+    "answer": "Say to start small and not obsess over the first draft. Ahrefs says a few ideas are enough for its generator. Mention the AI overview suggestion of 5 to 10 broad topics only as a guide. Source 4."
+   },
+   {
+    "question": "Is keyword research a one-time task?",
+    "answer": "No. diib says it should be continuous because products and services keep changing, so revisit your list and check Search Console for new queries. Sources 1, 3."
+   },
+   {
+    "question": "Can I use ChatGPT for keyword research?",
+    "answer": "Yes, for brainstorming ideas from your seed list, but it gives no realistic difficulty or monthly search figures, so check ideas in an SEO tool. Source 4."
+   }
+  ],
+  "internalLinks": [
+   {
+    "url": "https://northlinedigital.example/blog/seo-basics",
+    "anchor": "SEO basics",
+    "where": "What keyword research is and why it matters"
+   },
+   {
+    "url": "https://northlinedigital.example/blog/content-strategy",
+    "anchor": "content strategy",
+    "where": "Step 5: Pick the keywords worth writing for"
+   },
+   {
+    "url": "https://northlinedigital.example/services/content",
+    "anchor": "content services",
+    "where": "Step 5: Pick the keywords worth writing for"
+   },
+   {
+    "url": "https://northlinedigital.example/services/seo",
+    "anchor": "SEO services",
+    "where": "Step 6: Use your keywords and track rankings"
+   },
+   {
+    "url": "https://northlinedigital.example/blog/ai-search-guide",
+    "anchor": "AI search guide",
+    "where": "How to adjust keyword research for AI search"
+   },
+   {
+    "url": "https://northlinedigital.example/services/ai-search",
+    "anchor": "AI search services",
+    "where": "How to adjust keyword research for AI search"
+   }
+  ],
+  "cta": {
+   "text": "Want a second pair of eyes on your keyword list? Talk with us about your seed terms and which topics to write first.",
+   "where": "End of the article, after the last H2, linking to https://northlinedigital.example/services/seo"
+  },
+  "modules": [
+   {
+    "type": "scorecard",
+    "title": "Score a keyword before you write",
+    "purpose": "Let the reader grade one keyword on the five checks from the Kuware guide and see whether to write it now, later or skip it.",
+    "placement": "Step 5: Pick the keywords worth writing for",
+    "inputs": [
+     "Relevance to your product (high, medium, low)",
+     "Monthly search volume from your tool (high, medium, low)",
+     "Keyword difficulty (easy, medium, hard, the labels Ahrefs uses)",
+     "Likely organic click-through rate (high, medium, low)"
+    ],
+    "outputs": [
+     "A total score for the keyword",
+     "A priority label: write now, write later or skip",
+     "A note on which check to improve first"
+    ],
+    "data": "Criteria taken from source 1: Relevance, Volume Per Month, Keyword Difficulty, Organic Click-Through Rate (CTR) and Priority. Difficulty labels easy, medium and hard come from source 4. No search numbers are preset; the reader supplies their own.",
+    "why": "Readers have several keywords and five checks to weigh at once. A scorecard gives them a quick, repeatable way to compare keywords that a paragraph or plain list can't."
+   }
+  ],
+  "images": [
+   {
+    "placement": "intro",
+    "shows": "The six steps of keyword research in order, from learning your buyers' words to tracking rankings.",
+    "alt": "A six-step process diagram showing the stages of keyword research from buyer language to tracking.",
+    "kind": "steps"
+   },
+   {
+    "placement": "Step 3: Expand your list with keyword tools",
+    "shows": "The Ahrefs Free Keyword Generator page where you enter a seed keyword.",
+    "alt": "Screenshot of the Ahrefs Free Keyword Generator page with the keyword entry box.",
+    "kind": "screenshot",
+    "url": "https://ahrefs.com/keyword-generator"
+   },
+   {
+    "placement": "Step 5: Pick the keywords worth writing for",
+    "shows": "A sample keyword table with labeled columns: keyword, volume, difficulty, relevance, click-through rate and priority. Use placeholder text and no real numbers.",
+    "alt": "A labeled example of a keyword table showing the columns used to rank keywords.",
+    "kind": "anatomy"
+   },
+   {
+    "placement": "Step 6: Use your keywords and track rankings",
+    "shows": "The six Google Search Console steps: verify ownership, submit sitemap, open Performance report, analyze top pages, review queries, find opportunities.",
+    "alt": "A numbered diagram of six steps for tracking keywords in Google Search Console.",
+    "kind": "steps",
+    "sources": [
+     1
+    ]
+   }
+  ],
+  "examples": [],
+  "checks": [
+   "Whether the 90.63% no-traffic figure from the 2020 Ahrefs study has been updated; the page shows November 2020.",
+   "The Ahrefs Starter price of $29 per month shown on the Keyword Generator page. Confirm before publishing or leave it out.",
+   "Whether Google Keyword Planner is free for users without a running ad campaign, and what metrics it shows without one; the sources say SEO metrics appear only with paid campaigns.",
+   "The four intent types (informational, navigational, commercial, transactional) appear only in an AI answer. Confirm with a source before listing them.",
+   "The 80/20 rule of SEO, listed in People Also Ask, has no support in the sources. Leave it out unless an editor finds a source.",
+   "Whether Adobe's acquisition of Semrush, mentioned on the Semrush homepage, is complete and worth naming. Leave out if unsure.",
+   "Free plan limits for Answer the Public (3 searches a day) may have changed since the Ahrefs guide was written.",
+   "No B2B-specific keyword statistics are in the sources, so any B2B example must be labeled illustrative with no numbers."
+  ],
+  "research": {
+   "sources": [
+    {
+     "n": 1,
+     "url": "https://kuware.com/blog/keyword-research-a-beginners-guide/",
+     "title": "Keyword Research: A Beginner’s Guide | How to do Keyword Research",
+     "domain": "kuware.com",
+     "kind": "serp",
+     "position": 4,
+     "words": 3258
+    },
+    {
+     "n": 2,
+     "url": "https://www.smarkuppstudios.com/",
+     "title": "Smarkupp Studios | Growth Marketing for Modern Businesses",
+     "domain": "smarkuppstudios.com",
+     "kind": "serp",
+     "position": 5,
+     "words": 1301
+    },
+    {
+     "n": 3,
+     "url": "https://diib.com/learn/how-to-perform-keyword-research/",
+     "title": "How to Perform Keyword Research - diib® - Learn",
+     "domain": "diib.com",
+     "kind": "serp",
+     "position": 7,
+     "words": 2591
+    },
+    {
+     "n": 4,
+     "url": "https://ahrefs.com/seo/keyword-research",
+     "title": "Keyword Research: The Beginner’s Guide by Ahrefs",
+     "domain": "ahrefs.com",
+     "kind": "ai",
+     "position": null,
+     "words": 5099
+    },
+    {
+     "n": 5,
+     "url": "https://ads.google.com/home/tools/keyword-planner",
+     "title": "Research Keywords for Campaigns with Keyword Planner – Google Ads",
+     "domain": "business.google.com",
+     "kind": "ai",
+     "position": null,
+     "words": 350
+    },
+    {
+     "n": 6,
+     "url": "https://ahrefs.com/keyword-generator",
+     "title": "Free Keyword Generator Tool: Find 100+ Keyword Ideas in Seconds",
+     "domain": "ahrefs.com",
+     "kind": "ai",
+     "position": null,
+     "words": 529
+    },
+    {
+     "n": 7,
+     "url": "https://www.semrush.com",
+     "title": "Semrush: Your Unfair Advantage for Growing Brand Visibility",
+     "domain": "semrush.com",
+     "kind": "ai",
+     "position": null,
+     "words": 839
+    },
+    {
+     "n": 8,
+     "url": "https://trends.google.com/trends",
+     "title": "Google Trends",
+     "domain": "trends.google.com",
+     "kind": "ai",
+     "position": null,
+     "words": 343
+    }
+   ],
+   "questions": [
+    "What are keywords when doing research?",
+    "What is the 80/20 rule of SEO?",
+    "How do I learn SEO as a beginner?",
+    "How to use Google for keyword research?"
+   ],
+   "engines": [
+    "ChatGPT",
+    "Gemini",
+    "AI Mode"
+   ],
+   "topPages": "The top pages are step-by-step guides that define keyword research, explain seed keywords, list tools and cover metrics such as volume and difficulty. They run from about 2,600 words (diib) and 3,300 words (Kuware) to about 5,100 words (Ahrefs), and tool pages from Google, Ahrefs and Semrush also rank. Most cover seed keywords, tools, difficulty and prioritizing. They rarely address B2B software teams or AI search. One result, the Smarkupp Studios homepage, is a marketing agency page with no how-to content, so we do not use it.",
+   "aiAnswers": "ChatGPT gives a step guide that starts with understanding your niche, then finding ideas with Google Keyword Planner, Ahrefs, Semrush and Google Trends, citing those tools' pages plus the Ahrefs guide, WordStream and Search Console. Gemini gives a similar step list covering seed keywords, tools, volume, difficulty and intent, with no citations. Google's AI Overview and AI Mode point to the Ahrefs and Semrush guides and also cite Mailchimp, Mangools and Squarespace. They advise 5 to 10 broad seed topics, mining sales calls, support tickets and reviews, checking Search Console and running a competitor gap analysis."
+  },
+  "model": "claude-sonnet-5-5",
+  "at": "2026-11-13T14:22:12.127Z"
+ },
+ "sections": [
+  {
+   "key": "intro",
+   "h2": "",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "If you run marketing at a B2B software company, you probably have a blog or a content plan, and you want to know which topics deserve your team's time. Publishing on a topic nobody searches for is easy to do, and it costs weeks of writing with little to show for it.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "In this guide, we show you **how to do keyword research** in six steps, starting from the sales calls and support tickets you already have. Along the way you'll get free tools to start with, a simple way to rank your keywords and a way to track results in Google Search Console.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Honestly, you can follow the whole process with your team this week, because most of it needs only a spreadsheet and a few free tools.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-0",
+   "h2": "What keyword research is and why it matters",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "**Keyword research** is the process of finding the search queries your target customers type into search engines to look for products, services and information, as [Ahrefs describes it](https://ahrefs.com/seo/keyword-research).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Ahrefs found that [90.63% of pages get no traffic from Google](https://ahrefs.com/seo/keyword-research), based on a 2020 study of over 1 billion pages in its Content Explorer index. We share it with the date attached, since the page shows November 2020 and the number may have changed since.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Why does this matter to you? A page on a topic nobody searches for gets no Google traffic, [no matter how hard you try](https://ahrefs.com/seo/keyword-research), so research lets you check that demand exists before you spend time writing.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "According to the [Kuware guide](https://kuware.com/blog/keyword-research-a-beginners-guide/), a well-built keyword research plan answers three main questions:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "What is your audience searching for, in the exact words and phrases your potential customers use?",
+      "Which keywords are your competitors ranking for, so you can see where they win traffic?",
+      "Which keywords have higher traffic, which points to their popularity and potential value in your niche?"
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how the six steps in this guide fit together, and each one builds on the step before it:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "Learn how your buyers talk about the problem, using sales calls, support tickets and customer conversations.",
+      "Build a short seed keyword list from the words you collected.",
+      "Expand that list with free and paid keyword tools.",
+      "Check search intent and see which keywords your competitors rank for.",
+      "Pick the keywords worth writing for by scoring them on a few simple checks.",
+      "Use your keywords on the page and track your rankings in Google Search Console."
+     ],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-1",
+   "h2": "Step 1: Learn how your buyers talk about the problem",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Before you open any tool, start with people. Your buyers already describe their problems in their own words, and those words are the best seed terms you can find.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Diib suggests [talking with your clients](https://diib.com/learn/how-to-perform-keyword-research/) to learn the terms they use for your company, brand, services and products. Here's how to gather those words this week:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Listen to recorded sales calls and note how prospects describe the problem before they hear your pitch.",
+      "Read customer emails and support requests, and write down the questions that come up again and again.",
+      "Check past conversations and interviews for common questions, and pay close attention to the type of language used.",
+      "Ask your customer success and sales teams which phrases they hear most often."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Online communities are another good source of buyer language, and it only takes a short time to read a few threads. Diib recommends joining [media networks and social forums](https://diib.com/learn/how-to-perform-keyword-research/) in your niche and reading the discussions for the problems people mention.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "One more simple exercise from diib is to [put yourself in the shoes of your potential clients](https://diib.com/learn/how-to-perform-keyword-research/). If you were describing the product to a friend, what words would you use? Write those words down, even if they sound casual, because casual phrases often match what buyers type.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "An illustrative example, with no real data, is a pair of phrases for the same problem: your product page says \"workflow orchestration platform,\" while a buyer on a sales call says \"we keep losing track of who owns each task.\" The buyer's phrase is the better clue for what they might type into Google, so you'd add it to your notes.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Keep a running document with two columns, one for buyer phrases and one for your product terms. Ahrefs says keyword research [starts from putting yourself in the shoes of your customers](https://ahrefs.com/seo/keyword-research), and this document is the raw material for Step 2.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-2",
+   "h2": "Step 2: Build a short seed keyword list",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Once you have a document full of buyer phrases, you're ready to turn them into **seed keywords**. [Seed keywords](https://kuware.com/blog/keyword-research-a-beginners-guide/) are short terms, usually one or two words with no modifiers, and they're the starting point for every other keyword on your list.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "To come up with them, think about what people type into Google to find what you offer. [Ahrefs](https://ahrefs.com/seo/keyword-research) suggests you don't obsess over your first draft, because you'll improve it as you go.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Ahrefs gives the example of a seller of coffee and coffee-making equipment, whose seed keywords might be [coffee, cappuccino, french press and nespresso](https://ahrefs.com/seo/keyword-research). Here's the same idea for a B2B software product, shown as an illustration with no real data:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "If you sell project management software, your seeds might be project management, task tracking and team workflow.",
+      "If you sell invoicing software, your seeds might be invoicing, billing automation and accounts receivable.",
+      "If you sell a customer support platform, your seeds might be help desk, ticketing and customer support."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Your list will probably have more terms than you need at first. The [Kuware guide](https://kuware.com/blog/keyword-research-a-beginners-guide/) says choosing the right seed words should be the most important part of your research plan, and it suggests answering three questions to narrow the list:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "What do you want to rank for?",
+      "What are your current rankings?",
+      "What are your competitors' rankings?"
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You may already have part of the answer to the second question. Kuware notes that [Google Search Console](https://kuware.com/blog/keyword-research-a-beginners-guide/) is a good place to start when you want to pull out seed terms.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Open it and look at the queries your site already ranks for, then add any that fit your product to your seed list. Aim for a short list you can expand in the next step.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-3",
+   "h2": "Step 3: Expand your list with keyword tools",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "A keyword tool takes one of your seed keywords and returns many related ideas, questions and rough numbers. Each tool has its own strengths and limits, and the notes below will help you choose. For most small teams, the free tools in this step are a good place to start.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Free tools to start with",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "The [Ahrefs Free Keyword Generator](https://ahrefs.com/seo/keyword-research) returns 20 related keywords and 20 related questions for every seed keyword, marks each as easy, medium or hard to rank for, and gives a rough monthly search count.",
+      "[Google Keyword Planner](https://ads.google.com/home/tools/keyword-planner) is built for people who run Google ads, and you can search for new keywords, use Discover new keywords or upload existing ones, though [Ahrefs notes](https://ahrefs.com/seo/keyword-research) that it shows SEO metrics only if you run paid campaigns.",
+      "[Google Trends](https://trends.google.com/trends) is useful for broad and rising topics, but [Ahrefs says](https://ahrefs.com/seo/keyword-research) it does not give specific keyword ideas.",
+      "Answer the Public uses Google autocomplete data to show related searches, and [according to Ahrefs](https://ahrefs.com/seo/keyword-research) the free plan allows 3 searches a day.",
+      "ChatGPT is handy for brainstorming ideas from your seed keywords, but [Ahrefs points out](https://ahrefs.com/seo/keyword-research) that it gives no real difficulty or monthly search numbers."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Paid tools for deeper data",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Ahrefs Keywords Explorer and Semrush give you larger keyword databases and competitor data.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The Ahrefs Starter plan is listed at $29 a month on its [Keyword Generator page](https://ahrefs.com/keyword-generator). [Editor note: confirm this price before publishing.]",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Use Google Search Console for keywords you already have",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "It lists the queries that already bring people to your site, which makes it a good source of seed terms and quick opportunities, as the [Kuware guide](https://kuware.com/blog/keyword-research-a-beginners-guide/) suggests.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-4",
+   "h2": "Step 4: Check search intent and competitor keywords",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Search intent is what the person typing a query wants to do, such as learn something, compare tools or buy. A keyword only helps you when your page gives that person what they came for, so it's worth checking intent before you write.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how to check it for any keyword on your list:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "Type the keyword into Google and open the first page of results.",
+      "Note what kind of page each top result is, such as a how-to guide, a list of tools, a product page or a comparison.",
+      "Decide whether you can publish that type of page, and whether it would help your buyer."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Next, look at your competitors. [Ahrefs](https://ahrefs.com/seo/keyword-research) suggests checking which keywords your competitors rank for, then comparing that list with the topics your own site already covers, and [Kuware](https://kuware.com/blog/keyword-research-a-beginners-guide/) lists this as one of the three questions good research answers.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "It also helps to know how Ahrefs groups the keywords you find:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "For example, a single page about how to choose a CRM could answer several related questions at once, which saves you from writing a thin page for each one.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Finally, ask four questions about each keyword. These come from [diib](https://diib.com/learn/how-to-perform-keyword-research/), and you can add them as notes beside every keyword on your list:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "How will this keyword rank?",
+      "How much traffic can it bring?",
+      "What type of content do you need to rank for it?",
+      "Are people searching for it likely to become part of your audience?"
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Once you have an answer to all four for a keyword, you can score it in Step 5 alongside the rest of your list.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-5",
+   "h2": "Step 5: Pick the keywords worth writing for",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Once you have a list of candidate keywords, you need a way to decide which ones to write for first. The [Kuware guide](https://kuware.com/blog/keyword-research-a-beginners-guide/) gives five checks you can run on every keyword, and they work well as a simple scoring routine for your team.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "Check how closely the keyword matches what you sell and what your buyers need, which is its relevance.",
+      "Look at how many times people search the term each month, which is its volume per month.",
+      "Check how hard it will be to rank for the term, which is its keyword difficulty.",
+      "Combine the first four checks into one overall call on what to write first, which is the priority."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Ahrefs lists a few more metrics worth knowing, and you will see most of them in its [keyword research guide](https://ahrefs.com/seo/keyword-research). We've listed each one below with what it tells you.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Keyword difficulty shows how hard the term is to rank for."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You won't find one number that picks the winner for you. A relevant keyword with modest volume and lower difficulty can beat a popular one that is hard to rank for, because you have a real chance of reaching page one and the right people will find you.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you sell software, put business potential first. The best keyword is one tied to a problem your product solves, even when its volume looks small next to a broader term.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "To keep everything in one place, build a simple table with one row per keyword and fill in the checks above. Then give each row a priority so your team can see what to write next.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "This table also feeds your wider [content strategy](https://northlinedigital.example/blog/content-strategy). Our [content services](https://northlinedigital.example/services/content) can help turn the top rows into published pages.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "table",
+     "text": "",
+     "items": [],
+     "rows": [
+      [
+       "Keyword",
+       "Volume",
+       "Difficulty",
+       "Relevance",
+       "Notes",
+       "Priority"
+      ],
+      [
+       "Your first keyword",
+       "From your tool",
+       "From your tool",
+       "High, medium or low",
+       "Problem it ties to",
+       "1"
+      ],
+      [
+       "Your second keyword",
+       "From your tool",
+       "From your tool",
+       "High, medium or low",
+       "Problem it ties to",
+       "2"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "key": "h2-6",
+   "h2": "Step 6: Use your keywords and track rankings",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Once your list is ready, the next job is to put the keywords to work and watch what happens. You'll want the right terms on real pages and a way to see whether they bring visitors.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Use the keyword on the page",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Start by matching the page to the intent you checked in Step 4, so the person who lands on it finds the answer they came for. Then work in the questions you collected from your tool results, because they show you the other things that reader wants to know.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Put the main term where readers and search engines expect it, such as the title and the headings, and write for the person first. If the phrase reads awkwardly in a sentence, rewrite the sentence so it flows.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Keep in mind that this work never really finishes. [diib notes](https://diib.com/learn/how-to-perform-keyword-research/) that keyword research should be a continuous process, because new products and services keep appearing.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Track results in Google Search Console",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Kuware's guide](https://kuware.com/blog/keyword-research-a-beginners-guide/) walks through six steps, and you can follow them in this order:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "Open the Performance report, which is where your search data lives.",
+      "Analyze your top-performing pages to see which topics already earn visits.",
+      "Review the search queries that bring people to those pages, so you can see the exact words buyers type.",
+      "Identify keyword opportunities, such as queries where you appear but have no page built for them yet."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Then set a regular schedule to revisit your list, for example once a month or once a quarter. Each time, add the new terms that Search Console shows you and move the best ones up your priority table.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you'd like help turning these steps into a routine, our [SEO services](https://northlinedigital.example/services/seo) can support your team.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-7",
+   "h2": "How to adjust keyword research for AI search",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "People now type full questions into AI tools and into Google's AI features, so your keyword list works best when it includes question-style and conversational phrases. For example, a buyer might ask \"how do I find keywords for a B2B software blog\" instead of typing two or three short words.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Thankfully, you don't need a new process for this, because the six steps above still apply. You can keep the six steps above and add a layer of questions to the list you already have.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Find question-style keywords",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The [Ahrefs Free Keyword Generator](https://ahrefs.com/keyword-generator) includes a report for keywords phrased as a question. As we covered in Step 3, [each seed keyword you enter returns 20 related questions](https://ahrefs.com/seo/keyword-research), which gives you a quick set of conversational phrases to review.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how to put them to work:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Run each of your seed keywords through the generator and open the questions report.",
+      "Pick the questions that match problems your product solves, and skip the ones that don't fit your buyers.",
+      "Add them to your keyword table with a note about the intent behind each one.",
+      "Answer the best questions inside the articles you already plan to write, using the question as a heading."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "A sign that search and AI answers are moving together",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Semrush is a software company that sells SEO and marketing tools.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "As you can see, a large SEO vendor now treats the two as one job, which is a good reason to keep your research focused on the questions your buyers ask, because those questions apply in both places.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you want to go further, our [AI search guide](https://northlinedigital.example/blog/ai-search-guide) covers how to show up in AI answers. You can also look at our [AI search services](https://northlinedigital.example/services/ai-search) if you'd like help from our team.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Want a second pair of eyes on your keyword list? Talk with us about your seed terms and which topics to write first.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "faq",
+   "h2": "Frequently asked questions",
+   "blocks": [
+    {
+     "type": "h3",
+     "text": "What are keywords when doing research?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Keywords are the words and phrases people type into a search engine to find products, services or information. [Keyword research](https://ahrefs.com/seo/keyword-research) is the process of finding the ones your target customers actually use. You then build pages around those terms so the right people can find you.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "How do I use Google for keyword research?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Google offers three free tools that help with keyword research:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "[Google Search Console](https://kuware.com/blog/keyword-research-a-beginners-guide/) shows the queries that already bring people to your site.",
+      "[Google Keyword Planner](https://ads.google.com/home/tools/keyword-planner) helps you search for new keyword ideas, although Ahrefs notes it shows SEO metrics only if you run paid ad campaigns.",
+      "[Google Trends](https://trends.google.com/trends) works best for broad topics and gives you few specific keyword ideas."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What are long-tail keywords?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "For a B2B software team, they often match the exact problem a buyer is trying to solve.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "How many seed keywords should I start with?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Start small and don't obsess over the first draft, because [Ahrefs says](https://ahrefs.com/seo/keyword-research) a few ideas are enough to put into its generator.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You can always add more once you see what the tools return.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Is keyword research a one-time task?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "No, because [diib says](https://diib.com/learn/how-to-perform-keyword-research/) keyword research should be a continuous process as products and services keep changing. Revisit your list on a regular schedule, and check [Search Console](https://kuware.com/blog/keyword-research-a-beginners-guide/) for new queries that bring people to your site.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Can I use ChatGPT for keyword research?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Yes, it works well for brainstorming ideas from your seed list. [Ahrefs points out](https://ahrefs.com/seo/keyword-research) that ChatGPT gives no realistic difficulty or monthly search figures, so you should check each idea in an SEO tool before you decide to write about it.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  }
+ ],
+ "cut": [
+  {
+   "id": "4.3.0",
+   "why": "The generator page names Bing, YouTube and Amazon, but the claim that this helps buyers search beyond Google is added framing; narrow to what the page says."
+  },
+  {
+   "id": "5.5.i0",
+   "why": "Source says phrase match is keywords containing the seed in the order written, and 'having same terms' contains all terms in any order; 'matching terms' is not defined that way for the seed 'or all of its words' mix-up, and the link is the keyword-generator page cited as the seo guide."
+  },
+  {
+   "id": "5.5.i1",
+   "why": "Defines related terms as keywords the top-ranking pages also rank for; the source's 'Also rank for' report is a generator report, not a definition of related terms in the Ahrefs guide excerpt."
+  },
+  {
+   "id": "5.5.i2",
+   "why": "Keyword cluster definition is not given in the supplied source text; the excerpt only lists the heading."
+  },
+  {
+   "id": "6.3.i0",
+   "why": "Definitions of Ahrefs metrics (search volume, traffic potential, cost per click, growth, business potential) are not given in the supplied excerpt, only the headings."
+  },
+  {
+   "id": "6.3.i1",
+   "why": "Traffic potential definition is not in the supplied source text."
+  },
+  {
+   "id": "6.3.i3",
+   "why": "Cost per click definition is not in the supplied source text."
+  },
+  {
+   "id": "6.3.i4",
+   "why": "Growth metric definition is not in the supplied source text."
+  },
+  {
+   "id": "6.3.i5",
+   "why": "Business potential definition is not in the supplied source text."
+  },
+  {
+   "id": "6.1.i3",
+   "why": "Source gives only the heading 'Organic Click-Through Rate (CTR)'; the explanation of what it means is not supported by the excerpt."
+  },
+  {
+   "id": "9.6.0",
+   "why": "Long-tail definition ('small number of searches per month, longer and more specific than head keywords') is supported by source 6, but 'tend to be longer than head keywords' is fine; however citing the claim as such is ok. Flagged for the 'a good place to find easier keywords' follow-up in 9.6.1 whi"
+  },
+  {
+   "id": "9.6.1",
+   "why": "Source 6 describes low-competition guidance in a separate guide, not long-tail keywords as easier to rank for; the attribution is stretched."
+  },
+  {
+   "id": "9.8.1",
+   "why": "The '5 to 10 broad topics' figure comes from the Google AI Overview, not a numbered source, so it is not a supported source claim."
+  },
+  {
+   "id": "4.5.1",
+   "why": "Semrush's 29 billion keywords is on the homepage, but 'over 8 billion queries' for the Ahrefs generator is supported; the combined statement is fine except that Semrush's page lists 29B 'Keywords' not 'queries'; low risk but the 'both come from vendors' framing is acceptable. Cut only if strict."
+  },
+  {
+   "id": "8.7.1",
+   "why": "Homepage states 'grow and measure brand visibility, from search results to AI answers' and AI visibility tools, which is supported; however 'markets alongside its SEO products' is acceptable. Flagged lightly for the claim that it is a 'software company that sells SEO and marketing tools', which the "
+  },
+  {
+   "id": "4.8.0",
+   "why": "The description of Google Search Console as a free tool showing how a site performs is not stated in the sources; sources only say it shows queries and top pages."
+  },
+  {
+   "id": "7.6.0",
+   "why": "Same unsupported description of Search Console as a free Google tool showing how a site appears in results; not stated in the sources."
+  },
+  {
+   "id": "7.7.i0",
+   "why": "The explanation that verifying ownership 'gives you access to its data' goes beyond the Kuware headings supplied."
+  },
+  {
+   "id": "7.7.i1",
+   "why": "The explanation of an XML sitemap as a file listing pages so Google can find them is not in the supplied excerpt."
+  },
+  {
+   "id": "1.5.0",
+   "why": "diib says research is time-consuming and foundational, but 'you don't need a big budget or a long project' is not supported by the source."
+  },
+  {
+   "id": "1.0.1",
+   "why": "Link to the SEO basics page is an internal link whose page content is not in the sources; also 'sits at the base of SEO basics' is framing, low risk."
+  },
+  {
+   "id": "2.4.0",
+   "why": "Claim that 'many B2B teams find their biggest surprise here' is not supported by any source."
+  },
+  {
+   "id": "2.4.1",
+   "why": "Diib says the language used may differ from what the audience uses, but this sentence reverses the framing; mild stretch."
+  },
+  {
+   "id": "5.2.i2",
+   "why": "'Google tends to show the page type that searchers have found most useful' is not stated in any source."
+  },
+  {
+   "id": "5.6.0",
+   "why": "Claim that one strong page can cover many phrases instead of thin pages is not stated in the supplied excerpts (Ahrefs cluster section is only a heading)."
+  }
+ ],
+ "styleLeft": [
+  {
+   "id": "1.2.0",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "2.6.0",
+   "rule": "sentences",
+   "before": "a sentence over 35 words",
+   "after": null
+  },
+  {
+   "id": "5.3.0",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "6.4.1",
+   "rule": "sentences",
+   "before": "a sentence over 35 words",
+   "after": null
+  },
+  {
+   "id": "8.8.0",
+   "rule": "sentences",
+   "before": "a sentence over 35 words",
+   "after": null
+  }
+ ],
+ "proof": {
+  "verdict": "Hold",
+  "reasons": [
+   "\"Step 6: Use your keywords and track rankings\" says six steps and lists 4"
+  ],
+  "lint": 5
+ },
+ "polish": {
+  "applied": 7,
+  "refused": [
+   {
+    "id": "1.2.0",
+    "why": "added number 2"
+   }
+  ]
+ },
+ "blocked": [
+  {
+   "key": "h2-0",
+   "why": "a hedge is gone (\"likely\", \"may\", \"about\" before a number and the like: 2 to 1), so a claim got stronger"
+  },
+  {
+   "key": "h2-1",
+   "why": "lost quote workflow orchestration platform,; number 2; added quote workflow orchestration platform"
+  },
+  {
+   "key": "h2-2",
+   "why": "a hedge is gone (\"likely\", \"may\", \"about\" before a number and the like: 6 to 5), so a claim got stronger"
+  },
+  {
+   "key": "h2-7",
+   "why": "lost quote how do i find keywords for a b2b software blog; a hedge is gone (\"likely\", \"may\", \"about\" before a number and the like: 1 to 0), so a claim got stronger"
+  },
+  {
+   "key": "faq",
+   "why": "lost number 2; number 5; number 10"
+  }
+ ],
+ "tidied": [
+  "Dropped \"Honestly,\" used a second time.",
+  "Dropped \"Luckily,\" used a second time."
+ ],
+ "factChanges": [],
+ "modules": [
+  {
+   "status": "ok",
+   "error": null
+  }
+ ]
+}

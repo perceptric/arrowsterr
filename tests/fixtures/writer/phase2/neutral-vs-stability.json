@@ -1,0 +1,992 @@
+{
+ "slug": "neutral-vs-stability",
+ "keyword": "neutral vs stability running shoes",
+ "kind": "store",
+ "stage": "mofu",
+ "model": "claude-sonnet-5-5",
+ "at": "2026-11-13T14:15:33.758Z",
+ "seconds": 262,
+ "usage": {
+  "calls": 25,
+  "input": 60949,
+  "cacheRead": 1012625,
+  "cacheWrite": 195424,
+  "output": 34385
+ },
+ "score": {
+  "words": 1737,
+  "sections": 9,
+  "lint": 2,
+  "lintRules": {
+   "sentences": 2
+  },
+  "numbers": 0,
+  "unsourced": [],
+  "links": 44,
+  "strayLinks": [],
+  "images": 4,
+  "modules": 1
+ },
+ "title": "Neutral vs Stability Running Shoes: How to Choose",
+ "brief": {
+  "titles": [
+   "Neutral vs Stability Running Shoes: How to Choose",
+   "Neutral vs Stability Running Shoes for Beginners",
+   "Neutral or Stability Running Shoes? A Simple Guide"
+  ],
+  "h1": "Neutral vs Stability Running Shoes: How to Choose",
+  "metaDescription": "Neutral vs stability running shoes explained for new runners: what each does, how to check your gait at home, and how to choose when you shop online.",
+  "slug": "neutral-vs-stability-running-shoes",
+  "searchIntent": "The searcher wants to know what the two shoe types are, which one fits their feet, and how to decide before buying. A plain explainer with a short answer up front, home tests and a clear way to choose serves them best.",
+  "reader": "A new or casual runner shopping for shoes online. They have seen the words neutral and stability on product pages, know little about pronation, and want to pick a pair with confidence and know what to do next.",
+  "angle": "We explain the choice in everyday words for someone who can't visit a store and treat the tests as a starting point. We say plainly that pronation is normal, that sources differ on how much stability shoes help, and that comfort is a fair guide when you're unsure.",
+  "wordTarget": 1400,
+  "outline": [
+   {
+    "h2": "What is the difference between neutral and stability running shoes?",
+    "points": [
+     "Give the short answer in two or three sentences: the difference is how much support the shoe gives your foot.",
+     "Neutral shoes have no stabilizing features and let the foot move without guidance. Stability shoes help offset excessive pronation, the inward rolling of the foot after impact.",
+     "Add a short side by side list covering feel, who each suits and typical features, so a skimming reader gets the answer fast.",
+     "Say that neither type is better for everyone and that the right one depends on how your foot moves."
+    ],
+    "h3": [],
+    "sources": [
+     1,
+     3,
+     7,
+     9,
+     10
+    ]
+   },
+   {
+    "h2": "What neutral running shoes do",
+    "points": [
+     "Neutral shoes focus on cushioning and flexibility and let the foot follow its natural motion.",
+     "They often feel more nimble and flexible. Because they have no extra stabilizing features, they tend to be a touch lighter than stability shoes.",
+     "They suit runners with a neutral gait or supination (rolling outward), and runners with normal to high arches.",
+     "Neutral shoes still have cushioning and heel support. They just leave out features that guide the inner side of the foot."
+    ],
+    "h3": [],
+    "sources": [
+     1,
+     3,
+     7,
+     9,
+     10
+    ]
+   },
+   {
+    "h2": "What stability running shoes do",
+    "points": [
+     "Stability shoes use design features that help manage overpronation, such as firmer foam on the inner side, a wider base or guide rails.",
+     "Source 9 says brands build support in different ways: a medial post (a dense piece of foam under the arch), guide rail systems such as those from Brooks and Altra, and HOKA's J-Frame.",
+     "Say that shoes sit on a continuum, so some neutral shoes are more stable than others and the same is true of stability shoes.",
+     "The added support is often most noticeable on longer runs, when tired muscles can no longer hold good form."
+    ],
+    "h3": [
+     {
+      "title": "How stability features have changed",
+      "points": [
+       "Stability shoes have moved from stiff motion-control designs to more flexible options, and the motion control category has become almost nonexistent.",
+       "Quote physical therapist Jay Dicharry (source 1) that shoes allowing the feet to move and flex naturally are the best starting point for most runners.",
+       "Modern stability shoes aim to guide gently and feel supportive without being stiff."
+      ]
+     }
+    ],
+    "sources": [
+     1,
+     3,
+     7,
+     9
+    ]
+   },
+   {
+    "h2": "What pronation is and why it matters",
+    "points": [
+     "Define pronation as the inward roll of the foot after it lands, which helps absorb impact.",
+     "Every runner pronates to some degree and that is fine. What differs is how much.",
+     "Explain the three patterns in plain words: neutral pronation, overpronation (a larger inward roll) and supination or underpronation (limited inward roll, more pressure on the outer edge).",
+     "Source 1 links excessive pronation to overuse injuries such as shin splints and runner's knee. Source 9 says the research is undecided on how much stability shoes help, so include both and keep the tone calm."
+    ],
+    "h3": [],
+    "sources": [
+     1,
+     3,
+     7,
+     9
+    ]
+   },
+   {
+    "h2": "How to tell which type you need at home",
+    "points": [
+     "Open by saying you don't need a lab to get a first idea, and that these checks are clues that work best together.",
+     "Close with a pointer to the quiz module, which pulls the results into one answer."
+    ],
+    "h3": [
+     {
+      "title": "The wet foot test",
+      "points": [
+       "Step on paper or cardboard with a wet foot. A full, flat footprint suggests lower arches and possible overpronation. A distinct curve suggests a neutral or high arch (sources 3 and 10).",
+       "Say honestly that source 9 calls this test less reliable than the others, so treat it as one clue."
+      ]
+     },
+     {
+      "title": "The wear pattern test",
+      "points": [
+       "Look at the soles of your current running shoes. Even wear through the center suggests neutral. Heavy wear on the inner edge suggests overpronation. Heavy wear on the outer edge suggests supination (sources 3 and 9).",
+       "First find out whether your current pair is a neutral or stability shoe, because that changes how you read the wear (source 9).",
+       "Tell readers who are still running in worn-out shoes that wear can mislead, and link to the shoe lifespan post."
+      ]
+     },
+     {
+      "title": "Gait analysis at a running store",
+      "points": [
+       "A staff member measures your feet and watches how you move, then helps you try shoes that suit you (sources 1 and 9).",
+       "Source 9 calls this the best way to find out. Source 3 says many running specialty stores offer it free.",
+       "Frame it as an option for readers who live near a store, with the home tests as the fallback."
+      ]
+     }
+    ],
+    "sources": [
+     1,
+     3,
+     7,
+     9,
+     10
+    ]
+   },
+   {
+    "h2": "Do you really need stability shoes?",
+    "points": [
+     "Most runners can wear neutral and stability shoes almost interchangeably without noticing a big change in comfort or performance, though some runners notice a clear difference (source 9).",
+     "Not everyone who overpronates needs stability. Only excessive overpronation that causes strain may benefit (source 3).",
+     "Dicharry says some recreational runners need more support than others, through mild stability shoes or neutral shoes with insoles, and that most runners can benefit from a bit of stability in the late miles of a long run (source 1).",
+     "If you switch from stability to neutral after running in stability for a long time, do it gradually because your muscles have adapted (source 3).",
+     "Tell the reader that comfort and how their body feels on runs are fair guides when the tests disagree."
+    ],
+    "h3": [],
+    "sources": [
+     1,
+     3,
+     9,
+     10
+    ]
+   },
+   {
+    "h2": "How to choose neutral or stability shoes when you shop online",
+    "points": [
+     "Give a short checklist: run the home tests, find out whether your current shoe is neutral or stability, note any aches such as shin splints or knee pain, and choose the type that matches most of your results.",
+     "Say that if the results are mixed, try both types or get a gait analysis (source 9).",
+     "Mention that some models come in different widths in both categories (source 10) and that fit matters beyond the type. Link to the shoe fit guide.",
+     "Tell readers to stay with a type that feels comfortable, and to compare how it feels over the first few runs."
+    ],
+    "h3": [],
+    "sources": [
+     1,
+     3,
+     9,
+     10
+    ]
+   }
+  ],
+  "entities": [
+   "neutral running shoes",
+   "stability running shoes",
+   "pronation",
+   "overpronation",
+   "supination (underpronation)",
+   "excessive pronation",
+   "motion control shoes",
+   "medial post",
+   "guide rails",
+   "HOKA J-Frame",
+   "Brooks",
+   "Altra",
+   "arch height",
+   "flat feet",
+   "gait analysis",
+   "wet foot test",
+   "wear pattern test",
+   "Jay Dicharry, MPT, director of the REP Lab in Bend, Oregon",
+   "Fleet Feet",
+   "shin splints",
+   "runner's knee",
+   "insoles"
+  ],
+  "gaps": [
+   "Most top pages are written for a store visit or push their own shoe lines. We write for a runner buying online who can't get a gait analysis.",
+   "Few pages say that pronation is normal and that most runners can wear either type. Only source 9 states it clearly.",
+   "Pages differ on the wet foot test. Source 9 calls it less reliable, while sources 3 and 10 present it as a plain method. We explain how to weigh each test.",
+   "Source 10 says that if your old shoes show inner edge wear, you need stability. Source 3 says only excessive overpronation that strains the body may benefit. We use the careful version.",
+   "Few pages say what to do when the tests disagree. We give a clear next step.",
+   "Source 9 says the research on stability shoes is undecided, and most pages skip it. We include it plainly and kindly.",
+   "Few pages tell readers to check whether their current shoe is neutral or stability before reading its wear pattern. Source 9 does, and we pass it on."
+  ],
+  "faqs": [
+   {
+    "question": "How do I know if I need neutral or stability running shoes?",
+    "answer": "Say to use the wet foot test, the wear pattern on old shoes and, if possible, a gait analysis at a running store. Note that the wet foot test is the least reliable, and that comfort and any recurring pain are also clues (sources 3, 9, 10)."
+   },
+   {
+    "question": "Can neutral runners use stability shoes?",
+    "answer": "Say that most runners can wear either type without noticing a big difference, though some do notice one (source 9). Add that Dicharry says most runners can benefit from a little stability late in a long run (source 1)."
+   },
+   {
+    "question": "Who should wear a neutral running shoe?",
+    "answer": "Say neutral shoes suit runners with a neutral gait or supination, and often those with normal to high arches (sources 7, 9, 10). Add that flexible, light feel is the main draw."
+   },
+   {
+    "question": "Do overpronators really need stability shoes?",
+    "answer": "Say that some pronation is natural and only excessive overpronation that causes strain may benefit from stability features (source 3). Add that the research is undecided (source 9) and that shoes allowing natural movement are a good starting point for most runners (source 1)."
+   },
+   {
+    "question": "Can I switch from stability to neutral shoes?",
+    "answer": "Say yes, but do it gradually, since muscles adapt to the support level you have been using (source 3)."
+   }
+  ],
+  "internalLinks": [
+   {
+    "url": "https://striderunning.example/guides/running-shoes",
+    "anchor": "our running shoe guide",
+    "where": "What is the difference between neutral and stability running shoes?"
+   },
+   {
+    "url": "https://striderunning.example/shoes/road",
+    "anchor": "road running shoes",
+    "where": "What neutral running shoes do"
+   },
+   {
+    "url": "https://striderunning.example/shoes/stability",
+    "anchor": "stability running shoes",
+    "where": "What stability running shoes do"
+   },
+   {
+    "url": "https://striderunning.example/blog/running-shoe-lifespan",
+    "anchor": "when to replace your running shoes",
+    "where": "How to tell which type you need at home"
+   },
+   {
+    "url": "https://striderunning.example/guides/shoe-fit",
+    "anchor": "how running shoes should fit",
+    "where": "How to choose neutral or stability shoes when you shop online"
+   },
+   {
+    "url": "https://striderunning.example/guides/first-5k",
+    "anchor": "first 5K plan",
+    "where": "Do you really need stability shoes?"
+   }
+  ],
+  "cta": {
+   "text": "Ready to pick a pair? Browse our stability shoes if your results lean that way, or start with our road shoes if you lean neutral. We're glad to help if you're still unsure.",
+   "where": "After the last H2 and the FAQs, as a closing block with links to the stability and road shoe pages."
+  },
+  "modules": [
+   {
+    "type": "quiz",
+    "title": "Which type are you leaning toward?",
+    "purpose": "Lets the reader combine the home checks into one result, either a lean toward neutral, a lean toward stability, or a mixed result with a next step.",
+    "placement": "How to tell which type you need at home",
+    "inputs": [
+     "Wet footprint: full and flat, or a distinct curve (sources 3, 10)",
+     "Wear on your current shoes: even or center wear, heavy inner edge wear, or heavy outer edge wear (sources 3, 9)",
+     "Whether your ankles seem to roll inward or your form breaks down when you're tired on long runs (sources 1, 10)",
+     "Whether you have recurring shin splints or knee pain (source 3)"
+    ],
+    "outputs": [
+     "Leans neutral: a distinct curve, even or outer wear, no recurring pain",
+     "Leans stability: a full flat footprint, heavy inner wear, ankles rolling inward or recurring shin or knee pain",
+     "Mixed answers: try both types or get a gait analysis (source 9), and treat comfort as the deciding factor",
+     "A reminder that the result is a starting point and that the wet foot test is the least reliable (source 9)"
+    ],
+    "data": "Use only the tests and meanings from sources 1, 3, 9 and 10. Add no numbers and no product names.",
+    "why": "A new runner would otherwise read three tests and weigh them alone. The quiz gives one answer from their own results and tells them what to do if the answers disagree."
+   }
+  ],
+  "images": [
+   {
+    "placement": "What is the difference between neutral and stability running shoes?",
+    "shows": "Neutral and stability shoes side by side on feel, who each suits and typical features.",
+    "alt": "A side by side comparison of neutral and stability running shoes showing feel, best fit and features.",
+    "kind": "comparison"
+   },
+   {
+    "placement": "What stability running shoes do",
+    "shows": "A running shoe with labels for the medial post, guide rails and wider base.",
+    "alt": "A labeled diagram of a stability running shoe showing the medial post, guide rails and wider base.",
+    "kind": "anatomy"
+   },
+   {
+    "placement": "How to tell which type you need at home",
+    "shows": "The wet foot test in steps: wet the foot, step on paper, then read the footprint.",
+    "alt": "Three steps showing how to do the wet foot test and read a flat or curved footprint.",
+    "kind": "steps"
+   },
+   {
+    "placement": "How to choose neutral or stability shoes when you shop online",
+    "shows": "A pre-purchase checklist: results of the home tests, current shoe type, any aches and the width you need.",
+    "alt": "A checklist to run through before buying neutral or stability running shoes online.",
+    "kind": "checklist"
+   }
+  ],
+  "examples": [],
+  "checks": [
+   "Confirm whether Stride Running offers gait analysis or fit advice online, and describe it only if it does.",
+   "Confirm Stride Running's return and exchange policy before telling readers they can swap a shoe that doesn't feel right.",
+   "ChatGPT's answer mentions a major review recommending comfort and fit over correcting pronation. No numbered source confirms it, so check the review before citing it.",
+   "ChatGPT says beginners with no known gait issue can start with neutral shoes. No numbered source states this, so confirm it or leave it out.",
+   "Source 10 says flat feet call for stability shoes, while ChatGPT and Gemini say flat feet alone don't. Check a medical or biomechanics source before taking a side.",
+   "Source 9 says stability shoes help overpronators avoid problems such as plantar fasciitis and bunions while also saying the research is undecided. Check the evidence before listing specific injuries.",
+   "Check that Stride Running's own stability range matches the features described, before naming any shoe."
+  ],
+  "research": {
+   "sources": [
+    {
+     "n": 1,
+     "url": "https://www.fleetfeet.com/blog/neutral-vs-stability-running-shoes?srsltid=AYCX9vJaqWTsWhntdMORf04QCK7xgydDhnXvYUpvi5deYJ0c5UCQGM9n",
+     "title": "Understanding Neutral vs. Stability Shoes | Fleet Feet",
+     "domain": "fleetfeet.com",
+     "kind": "serp",
+     "position": 1,
+     "words": 640
+    },
+    {
+     "n": 2,
+     "url": "https://www.on.com/",
+     "title": "On | Swiss Performance Running Shoes & Clothing",
+     "domain": "on.com",
+     "kind": "serp",
+     "position": 2,
+     "words": 378
+    },
+    {
+     "n": 3,
+     "url": "https://velocirunning.com/blogs/informational/neutral-vs-stability-running-shoes?srsltid=AYCX9vIMt1fgImHmqdoyI_IMwFnvhKlGx-EbbaW_3e2psiiEUMjVMj3a",
+     "title": "Neutral vs. Stability Running Shoes: How to Choose the Right Type",
+     "domain": "velocirunning.com",
+     "kind": "serp",
+     "position": 4,
+     "words": 982
+    },
+    {
+     "n": 4,
+     "url": "https://runpacers.com/",
+     "title": "Pacers Running - Online Running Store for Shoes & Gear",
+     "domain": "runpacers.com",
+     "kind": "serp",
+     "position": 5,
+     "words": 253
+    },
+    {
+     "n": 5,
+     "url": "https://shoestation.com/",
+     "title": "Online Shoe Store, Boots, Sandals, Sneakers | Shoe Station",
+     "domain": "shoestation.com",
+     "kind": "serp",
+     "position": 7,
+     "words": 309
+    },
+    {
+     "n": 6,
+     "url": "https://www.fleetfeet.com/blog/neutral-vs-stability-running-shoes",
+     "title": "Understanding Neutral vs. Stability Shoes | Fleet Feet",
+     "domain": "fleetfeet.com",
+     "kind": "ai",
+     "position": null,
+     "words": 640
+    },
+    {
+     "n": 7,
+     "url": "https://www.on.com/en-us/stories/neutral-vs-stability-running-shoes",
+     "title": "Neutral vs. stability running shoes: What's the difference?",
+     "domain": "on.com",
+     "kind": "ai",
+     "position": null,
+     "words": 1259
+    },
+    {
+     "n": 8,
+     "url": "https://velocirunning.com/blogs/informational/neutral-vs-stability-running-shoes",
+     "title": "Neutral vs. Stability Running Shoes: How to Choose the Right Type",
+     "domain": "velocirunning.com",
+     "kind": "ai",
+     "position": null,
+     "words": 982
+    },
+    {
+     "n": 9,
+     "url": "https://runpacers.com/blogs/running-tips/neutral-vs-stability-running-shoes",
+     "title": "Neutral vs Stability Running Shoes - Explanations & Expert Opinions",
+     "domain": "runpacers.com",
+     "kind": "ai",
+     "position": null,
+     "words": 1195
+    },
+    {
+     "n": 10,
+     "url": "https://www.shoestation.com/blog/neutral-vs-stability-running-shoes",
+     "title": "Neutral vs. Stability: How to Choose the Right Support Level for Your Running Style",
+     "domain": "shoestation.com",
+     "kind": "ai",
+     "position": null,
+     "words": 926
+    }
+   ],
+   "questions": [
+    "How do I know if I need neutral or stability running shoes?",
+    "Can neutral runners use stability shoes?",
+    "Who should wear a neutral running shoe?",
+    "Do overpronators really need stability shoes?"
+   ],
+   "engines": [
+    "ChatGPT",
+    "Gemini",
+    "AI Mode"
+   ],
+   "topPages": "The top pages are explainers of 640 to 1,259 words that define neutral and stability shoes, describe features, and give ways to tell which type you need. Most include the wet foot test or wear pattern check and a push toward a gait analysis in a store. Some of them promote their own shoes or stores, and a few add myths and FAQs. They agree that pronation is normal and that stability shoes are now more flexible than older designs.",
+   "aiAnswers": "The AI answers say neither type is better for everyone and the right one depends on how your foot moves. They describe neutral shoes as flexible and unguided, and stability shoes as supportive for overpronation, with a comparison table. Gemini cites On, Veloci, Pacers, Shoe Station, Scheels and Fleet Feet, and AI Mode cites Fleet Feet. ChatGPT cites nothing and adds advice to try both types if you're unsure."
+  },
+  "model": "claude-sonnet-5-5",
+  "at": "2026-11-13T14:12:12.107Z"
+ },
+ "sections": [
+  {
+   "key": "intro",
+   "h2": "",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "If you've seen the words neutral and stability on shoe pages and aren't sure what they mean for your feet, you're not alone.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "In this guide on neutral vs stability running shoes, we explain what each type does, how to check your own feet at home, and how to choose with confidence when you shop online.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-0",
+   "h2": "What is the difference between neutral and stability running shoes?",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "The difference between neutral and stability running shoes comes down to how much support the shoe gives your foot. Neutral shoes have [no stabilizing features and let the foot flex and move without guidance](https://www.fleetfeet.com/blog/neutral-vs-stability-running-shoes?srsltid=AYCX9vJaqWTsWhntdMORf04QCK7xgydDhnXvYUpvi5deYJ0c5UCQGM9n).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Stability shoes, on the other hand, are [designed to help offset excessive pronation, which is the inward rolling of the foot after impact](https://www.fleetfeet.com/blog/neutral-vs-stability-running-shoes?srsltid=AYCX9vJaqWTsWhntdMORf04QCK7xgydDhnXvYUpvi5deYJ0c5UCQGM9n).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how the two compare at a glance:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Neutral shoes often feel [more nimble and more flexible](https://www.fleetfeet.com/blog/neutral-vs-stability-running-shoes?srsltid=AYCX9vJaqWTsWhntdMORf04QCK7xgydDhnXvYUpvi5deYJ0c5UCQGM9n), and they suit runners with a neutral gait or normal to high arches.",
+      "Neutral shoes tend to have [uniform cushioning across the midsole](https://velocirunning.com/blogs/informational/neutral-vs-stability-running-shoes?srsltid=AYCX9vIMt1fgImHmqdoyI_IMwFnvhKlGx-EbbaW_3e2psiiEUMjVMj3a), while stability shoes add features such as firmer foam on the inner side or a wider base."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Neither type is better for everyone, and the right one depends on how your foot moves. If you'd like more help choosing a pair, you can read [our running shoe guide](https://striderunning.example/guides/running-shoes).",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-1",
+   "h2": "What neutral running shoes do",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Neutral shoes focus on cushioning and flexibility, and they let your foot follow its natural motion. [Fleet Feet](https://www.fleetfeet.com/blog/neutral-vs-stability-running-shoes?srsltid=AYCX9vJaqWTsWhntdMORf04QCK7xgydDhnXvYUpvi5deYJ0c5UCQGM9n) says they have no stabilizing features, so your foot can flex and move without any guidance.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Because of that, neutral shoes often feel more nimble and more flexible than stability shoes. [Pacers Running](https://runpacers.com/blogs/running-tips/neutral-vs-stability-running-shoes) adds that they tend to be a touch lighter, since they leave out the extra stabilizing parts.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's who neutral shoes usually suit:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Runners with a neutral gait, where the foot rolls in a balanced way, are a good match for a neutral shoe, according to [Veloci](https://velocirunning.com/blogs/informational/neutral-vs-stability-running-shoes?srsltid=AYCX9vIMt1fgImHmqdoyI_IMwFnvhKlGx-EbbaW_3e2psiiEUMjVMj3a).",
+      "Runners with supination, which means the foot rolls outward, can also do well in neutral shoes, as [Shoe Station](https://www.shoestation.com/blog/neutral-vs-stability-running-shoes) explains.",
+      "Runners with normal to high arches are often a fit too, and you can browse our [road running shoes](https://striderunning.example/shoes/road) to see neutral options."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Honestly, \"neutral\" can sound like it means \"no support,\" but that isn't the case. [Veloci](https://velocirunning.com/blogs/informational/neutral-vs-stability-running-shoes?srsltid=AYCX9vIMt1fgImHmqdoyI_IMwFnvhKlGx-EbbaW_3e2psiiEUMjVMj3a) points out that neutral shoes still give you cushioning, structure and heel support, and they leave out only the features that guide the inner side of your foot.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-2",
+   "h2": "What stability running shoes do",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Stability shoes use design features that help manage overpronation, which is when the foot rolls inward too much during each stride. [Veloci](https://velocirunning.com/blogs/informational/neutral-vs-stability-running-shoes?srsltid=AYCX9vIMt1fgImHmqdoyI_IMwFnvhKlGx-EbbaW_3e2psiiEUMjVMj3a) lists firmer foam on the inner side of the midsole, a wider base and guide rails as common examples.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Brands build that support in different ways, as [Pacers Running](https://runpacers.com/blogs/running-tips/neutral-vs-stability-running-shoes) explains:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "A medial post is a dense piece of foam under the arch, and some brands still use it.",
+      "Brooks and Altra use guide rail systems meant to give a more individual level of support.",
+      "HOKA uses a J-Frame, a dense piece of foam that cradles the heel and runs along the inside of the shoe."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Shoes sit on a continuum, so some neutral shoes are more stable than others, and the same is true of stability shoes. Pacers Running notes that midsole firmness, outsole width and upper construction all change how stable a shoe feels.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "How stability features have changed",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Fleet Feet](https://www.fleetfeet.com/blog/neutral-vs-stability-running-shoes?srsltid=AYCX9vJaqWTsWhntdMORf04QCK7xgydDhnXvYUpvi5deYJ0c5UCQGM9n) says stability shoes have moved from stiff motion-control designs to more flexible options, and the motion control category has become almost nonexistent. Physical therapist Jay Dicharry, MPT, director of the REP Lab in Bend, Oregon, welcomes the change.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "quote",
+     "text": "In his words, shoes that allow the feet to move and flex naturally are the best starting point for most runners.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Modern stability shoes aim to guide your foot gently and feel supportive without being stiff, as On describes it.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-3",
+   "h2": "What pronation is and why it matters",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Pronation is the inward roll your foot makes after it lands, and it works as your body's built-in shock absorber. [On explains](https://www.on.com/en-us/stories/neutral-vs-stability-running-shoes) that this movement is a normal part of a healthy stride and helps you adapt to different surfaces.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Every runner pronates to some degree, and [Fleet Feet says](https://www.fleetfeet.com/blog/neutral-vs-stability-running-shoes?srsltid=AYCX9vJaqWTsWhntdMORf04QCK7xgydDhnXvYUpvi5deYJ0c5UCQGM9n) that is fine. What differs from runner to runner is how much the foot rolls inward.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "On describes three patterns:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Neutral pronation is a balanced inward roll that feels smooth and even.",
+      "Overpronation is a more pronounced inward roll.",
+      "Supination, also called underpronation, is a limited inward roll that puts more pressure on the outer edge of the foot."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Fleet Feet links excessive pronation to overuse injuries such as shin splints and runner's knee. The research on how much stability shoes help is mixed, and [Pacers Running notes](https://runpacers.com/blogs/running-tips/neutral-vs-stability-running-shoes) that the literature is undecided about their medical benefits.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "So having some pronation is nothing to worry about.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-4",
+   "h2": "How to tell which type you need at home",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "You don't need a lab to get a first idea of what your feet need. Each check below gives you a clue, and they work best when you use them together.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "The wet foot test",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Step onto a piece of paper or cardboard with a wet foot and look at the print.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Luckily, you can do this one in a minute, but [Pacers Running calls this test less reliable than the others](https://runpacers.com/blogs/running-tips/neutral-vs-stability-running-shoes), so treat it as one clue to weigh alongside the rest.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "The wear pattern test",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Turn over your current running shoes and look at the soles. Here's how to read what you see:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Even wear through the center [suggests a neutral gait](https://velocirunning.com/blogs/informational/neutral-vs-stability-running-shoes?srsltid=AYCX9vIMt1fgImHmqdoyI_IMwFnvhKlGx-EbbaW_3e2psiiEUMjVMj3a).",
+      "Heavy wear on the inner edge suggests overpronation.",
+      "Heavy wear on the outer edge suggests supination."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "First find out whether your current pair is a neutral or stability shoe, because [that changes how you read the wear](https://runpacers.com/blogs/running-tips/neutral-vs-stability-running-shoes). If your shoes are already worn out, the pattern can mislead you, so check [when to replace your running shoes](https://striderunning.example/blog/running-shoe-lifespan).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Gait analysis at a running store",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[A staff member measures your feet and watches how you move, then helps you try on shoes that suit you](https://www.fleetfeet.com/blog/neutral-vs-stability-running-shoes?srsltid=AYCX9vJaqWTsWhntdMORf04QCK7xgydDhnXvYUpvi5deYJ0c5UCQGM9n).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you live near a store, it's a good option, and if you don't, the home tests above are a fine place to start. When you're ready, take the quiz below to pull your results into one answer.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-5",
+   "h2": "Do you really need stability shoes?",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Most runners can wear neutral and stability shoes almost interchangeably without noticing a big change in comfort or performance, [according to Pacers Running](https://runpacers.com/blogs/running-tips/neutral-vs-stability-running-shoes). Some runners do notice a clear difference, though, so it helps to know which group you might fall into.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Not everyone who overpronates needs a stability shoe either, because [Veloci Running](https://velocirunning.com/blogs/informational/neutral-vs-stability-running-shoes?srsltid=AYCX9vIMt1fgImHmqdoyI_IMwFnvhKlGx-EbbaW_3e2psiiEUMjVMj3a) says only excessive overpronation that causes strain may benefit from stability features.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Physical therapist Jay Dicharry, as quoted by [Fleet Feet](https://www.fleetfeet.com/blog/neutral-vs-stability-running-shoes?srsltid=AYCX9vJaqWTsWhntdMORf04QCK7xgydDhnXvYUpvi5deYJ0c5UCQGM9n), says some recreational runners need more support than others. Here's what he points to:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Some runners do well in a mild stability shoe.",
+      "Other runners do well in a neutral shoe with after-market insoles that add stability.",
+      "Most runners can benefit from a bit of stability in the late miles of a long run, when tired muscles in the feet and lower legs can't hold good form."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you've run in stability shoes for a long time and want to try neutral, [switch gradually](https://velocirunning.com/blogs/informational/neutral-vs-stability-running-shoes?srsltid=AYCX9vIMt1fgImHmqdoyI_IMwFnvhKlGx-EbbaW_3e2psiiEUMjVMj3a), because your muscles have adapted to that level of support. If you're also building up to a [first 5K plan](https://striderunning.example/guides/first-5k), keep the same shoe-type checks in mind as your mileage grows.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If your test results disagree, you may be wondering which one to trust, and you can use how your body feels on your runs as one guide alongside the tests, such as whether you finish without aches.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-6",
+   "h2": "How to choose neutral or stability shoes when you shop online",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Once you have your test results and a sense of how your body feels on runs, here's how to turn all of that into a decision you can make online.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "Run the home tests, including the wet foot test and a look at the wear pattern on your current shoes.",
+      "Find out whether your current pair is a neutral or stability shoe, because [that changes how you read the wear](https://runpacers.com/blogs/running-tips/neutral-vs-stability-running-shoes).",
+      "Note any aches you get, such as shin splints or knee pain, since [Fleet Feet links excessive pronation to overuse injuries like these](https://www.fleetfeet.com/blog/neutral-vs-stability-running-shoes?srsltid=AYCX9vJaqWTsWhntdMORf04QCK7xgydDhnXvYUpvi5deYJ0c5UCQGM9n).",
+      "Choose the type that matches most of your results."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If your results are mixed, [try both types or get a gait analysis](https://runpacers.com/blogs/running-tips/neutral-vs-stability-running-shoes) at a running store, since both give you more to go on.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Check [how running shoes should fit](https://striderunning.example/guides/shoe-fit) before you buy, and once your pair arrives, compare how it feels over your first few runs and stay with the type that feels comfortable.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Ready to pick a pair? Browse our [stability shoes](https://striderunning.example/shoes/stability) if your results lean that way, or start with our [road shoes](https://striderunning.example/shoes/road) if you lean neutral, and we're glad to help if you're still unsure.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "faq",
+   "h2": "Frequently asked questions",
+   "blocks": [
+    {
+     "type": "h3",
+     "text": "How do I know if I need neutral or stability running shoes?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Start with the [wet foot test](https://velocirunning.com/blogs/informational/neutral-vs-stability-running-shoes), the wear pattern on your old shoes and, if you can, a [gait analysis at a running store](https://runpacers.com/blogs/running-tips/neutral-vs-stability-running-shoes). Pacers Running calls the wet foot test the least reliable of these, so treat it as one clue among several.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Comfort and any recurring pain, such as shin splints or knee pain, are useful clues too, as [Veloci](https://velocirunning.com/blogs/informational/neutral-vs-stability-running-shoes) points out.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Can neutral runners use stability shoes?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "In many cases, yes, because [Pacers Running](https://runpacers.com/blogs/running-tips/neutral-vs-stability-running-shoes) says most runners can wear either type without noticing a big difference, though some runners do feel one. Jay Dicharry also says that [most runners can benefit from a bit of stability](https://www.fleetfeet.com/blog/neutral-vs-stability-running-shoes) in the later miles of a long run, when tired muscles can no longer hold good form.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Who should wear a neutral running shoe?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Neutral shoes suit runners with a [neutral gait or supination](https://velocirunning.com/blogs/informational/neutral-vs-stability-running-shoes), and often runners with [normal to high arches](https://runpacers.com/blogs/running-tips/neutral-vs-stability-running-shoes).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Do overpronators really need stability shoes?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Not always, because some pronation is natural, and [only excessive overpronation that causes strain may benefit](https://velocirunning.com/blogs/informational/neutral-vs-stability-running-shoes) from stability features. Pacers Running notes that [the research is undecided](https://runpacers.com/blogs/running-tips/neutral-vs-stability-running-shoes), and Dicharry says shoes that let your feet [move and flex naturally are the best starting point](https://www.fleetfeet.com/blog/neutral-vs-stability-running-shoes) for most runners.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Can I switch from stability to neutral shoes?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Yes, but do it gradually, because if you've run in stability shoes for a long time, [your muscles have adapted to that level of support](https://velocirunning.com/blogs/informational/neutral-vs-stability-running-shoes) and need time to adjust.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  }
+ ],
+ "cut": [
+  {
+   "id": "0.0.1",
+   "why": "Fleet Feet says the terms can make choosing feel overwhelming, but 'guides often note' generalizes beyond the source."
+  },
+  {
+   "id": "1.3.i1",
+   "why": "The claim that stability shoes suit runners whose feet roll inward more than average is a generalization not stated in the sources."
+  },
+  {
+   "id": "3.0.2",
+   "why": "Claims that Stride Running's stability shoes show these features is unconfirmed by the sources."
+  },
+  {
+   "id": "3.4.0",
+   "why": "On does not say this; the late-miles claim in the sources comes from Dicharry (Fleet Feet), and On only says support becomes more noticeable on longer runs where fatigue affects form, so attribution is partly unsupported."
+  },
+  {
+   "id": "4.5.1",
+   "why": "The advice about when to pay attention to pronation is not stated in the sources."
+  },
+  {
+   "id": "5.2.1",
+   "why": "Shoe Station's text is cut off before the wet foot method appears in the provided source, so the claim that it describes the same method is not confirmed."
+  },
+  {
+   "id": "5.9.1",
+   "why": "Veloci says many running specialty stores offer free gait analysis, but this passage attributes 'best way to find out' to Pacers correctly while the free claim is fine; the combined sentence is acceptable, but no, only the Veloci claim is supported and cited correctly."
+  },
+  {
+   "id": "7.3.0",
+   "why": "Shoe Station's width claim refers to top-tier models in both categories, but the text provided is truncated and the 'some models' wording is not clearly confirmed beyond that."
+  },
+  {
+   "id": "8.6.1",
+   "why": "Fleet Feet says neutral shoes allow the foot to move freely and feel nimble and flexible, which is supported; but 'many runners also like' is an unsupported claim about preferences."
+  }
+ ],
+ "styleLeft": [
+  {
+   "id": "6.5.0",
+   "rule": "sentences",
+   "before": "a sentence over 35 words",
+   "after": null
+  },
+  {
+   "id": "7.4.0",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  }
+ ],
+ "proof": {
+  "verdict": "Ship",
+  "reasons": [],
+  "lint": 2
+ },
+ "polish": {
+  "applied": 12,
+  "refused": [
+   {
+    "id": "3.8.0",
+    "why": "added link https://www.on.com/en-us/stories/neutral-vs-stability-running-shoes"
+   },
+   {
+    "id": "6.5.0",
+    "why": "a hedge is gone (\"likely\", \"may\", \"about\" before a number and the like: 1 to 0), so a claim got stronger"
+   }
+  ]
+ },
+ "blocked": [
+  {
+   "key": "intro",
+   "why": "every softener is gone (\"many\", \"often\", \"usually\": 1 to 0), so a claim got stronger"
+  },
+  {
+   "key": "h2-1",
+   "why": "lost quote no support,; hedges added (0 to 1)"
+  },
+  {
+   "key": "h2-2",
+   "why": "added link https://runpacers.com/blogs/running-tips/neutral-vs-stability-running-shoes, https://www.on.com/en-us/stories/neutral-vs-stability-running-shoes"
+  },
+  {
+   "key": "h2-3",
+   "why": "lost link https://www.fleetfeet.com/blog/neutral-vs-stability-running-shoes?srsltid=AYCX9vJaqWTsWhntdMORf04QCK7xgydDhnXvYUpvi5deYJ0c5UCQGM9n; added link https://www.fleetfeet.com/blog/neutral-vs-stability-running-shoes, https://www.fleetfeet.com/blog/neutral-vs-stability-running-shoes"
+  },
+  {
+   "key": "h2-5",
+   "why": "a hedge is gone (\"likely\", \"may\", \"about\" before a number and the like: 3 to 2), so a claim got stronger"
+  }
+ ],
+ "tidied": [
+  "Dropped \"Honestly,\" used a second time."
+ ],
+ "factChanges": [],
+ "modules": [
+  {
+   "status": "ok",
+   "error": null
+  }
+ ]
+}

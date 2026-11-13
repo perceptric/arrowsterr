@@ -2,18 +2,43 @@
 // straight, a feeling adverb used a second time dropped, and long paragraphs split between sentences. Words and
 // numbers are never changed, only quote marks, one leading adverb and where a paragraph breaks. Pure.
 import { FEELING } from "./houseRules.ts";
+import { LONG_SENTENCE } from "./houseLint.ts";
+import { splitSentences } from "./sentences.ts";
 
 type Block = { type: string; text: string; items: string[]; rows: string[][] };
 type Section<B extends Block = Block> = { key: string; h2: string; blocks: B[] };
 
-// The closing quote or bracket stays with its sentence, so joining the sentences back loses nothing.
-const SENT = /(?<=[.!?…]["”)\]]?)\s+(?=["“(\[]?[A-Z0-9])/;
-const split = (t: string) => t.split(SENT).map((s) => s.trim()).filter(Boolean);
+const split = splitSentences;
 const words = (t: string) => t.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").split(/\s+/).filter(Boolean).length;
 
 /** Curly quotes made straight, outside link addresses. */
 export const straighten = (t: string) =>
   t.replace(/(\]\([^)]*\))|[‘’]|[“”]/g, (m, link) => (link ? link : /[‘’]/.test(m) ? "'" : '"'));
+
+/**
+ * A sentence over 35 words split in two where it's safe to: at a semicolon, or at ", and" before a pronoun that
+ * starts a new clause ("..., and you can ..."), when both halves keep at least 10 words. The words stay; only a
+ * semicolon becomes a full stop, or ", and" goes, and the next word gets its capital. Returns the sentence unchanged
+ * when there's no safe place.
+ */
+export function splitLong(sentence: string): string[] {
+  if (words(sentence) <= LONG_SENTENCE) return [sentence];
+  const places = [...sentence.matchAll(/;\s+|,\s+and\s+(?=(?:you|we|it|they|this|that|these|those)\b)/gi)];
+  let best: { at: number; len: number; gap: number } | null = null;
+  for (const m of places) {
+    const head = sentence.slice(0, m.index!);
+    const tail = sentence.slice(m.index! + m[0].length);
+    const [a, b] = [words(head), words(tail)];
+    if (a < 10 || b < 10) continue;
+    const gap = Math.abs(a - b);
+    if (!best || gap < best.gap) best = { at: m.index!, len: m[0].length, gap };
+  }
+  if (!best) return [sentence];
+  const head = `${sentence.slice(0, best.at).trimEnd()}.`;
+  const rest = sentence.slice(best.at + best.len);
+  const tail = rest.replace(/^(\[?)([a-z])/, (_, b: string, c: string) => `${b}${c.toUpperCase()}`);
+  return [...splitLong(head), ...splitLong(tail)];
+}
 
 /** A paragraph's sentences in groups of at most 3, and at most about 75 words, kept in order. */
 export function splitParagraph(text: string): string[] {
@@ -67,7 +92,11 @@ export function tidy<B extends Block>(sections: Section<B>[]): { sections: Secti
           seen.add(w);
           return t;
         });
-        fixed.text = sentences.join(" ");
+        fixed.text = sentences.flatMap((t) => {
+          const parts = splitLong(t);
+          if (parts.length > 1) notes.push(`Split a ${words(t)}-word sentence in "${s.h2 || "the intro"}".`);
+          return parts;
+        }).join(" ");
       }
       if (fixed.type === "p") {
         const parts = splitParagraph(fixed.text);

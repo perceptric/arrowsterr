@@ -1,0 +1,1096 @@
+{
+ "slug": "water-heater-signs",
+ "keyword": "signs you need a new water heater",
+ "kind": "local",
+ "stage": "tofu",
+ "model": "claude-sonnet-5-5",
+ "at": "2026-11-13T14:26:19.853Z",
+ "seconds": 322,
+ "usage": {
+  "calls": 29,
+  "input": 70509,
+  "cacheRead": 1156045,
+  "cacheWrite": 166693,
+  "output": 48398
+ },
+ "score": {
+  "words": 1961,
+  "sections": 9,
+  "lint": 7,
+  "lintRules": {
+   "sentences": 6,
+   "dashes": 1
+  },
+  "numbers": 0,
+  "unsourced": [],
+  "links": 62,
+  "strayLinks": [],
+  "images": 2,
+  "modules": 0
+ },
+ "title": "Signs You Need a New Water Heater (and What to Do Next)",
+ "brief": {
+  "titles": [
+   "Signs You Need a New Water Heater: What to Check and Do",
+   "Signs You Need a New Water Heater: A Homeowner's Checklist",
+   "When to Replace a Water Heater: Signs to Look For"
+  ],
+  "h1": "Signs You Need a New Water Heater (and What to Do Next)",
+  "metaDescription": "Rust, leaks, noises and age can all mean your water heater is done. Here's how to check each sign and decide whether to repair or replace.",
+  "slug": "signs-you-need-a-new-water-heater",
+  "searchIntent": "The searcher has a water heater that is acting up, or is getting old, and wants to know whether it is failing and what to do about it. A scannable list of signs, each with what it means, plus a clear repair or replace decision path serves them best.",
+  "reader": "An Austin homeowner with a tank water heater (sometimes tankless) who has noticed something off, such as cold showers, odd noises, rusty water or a damp spot. They know little about how a water heater works. They want to know how worried to be, what they can safely check, and whether to call a plumber today.",
+  "angle": "Most top pages give a flat list of signs. This article sorts the signs by how urgent they are, gives a simple repair or replace rule the reader can apply to their own heater, and explains why lifespan numbers vary between sources so the reader isn't confused.",
+  "wordTarget": 1500,
+  "outline": [
+   {
+    "h2": "How long a water heater lasts and how to find its age",
+    "points": [
+     "Tank water heaters last about 8 to 12 years and tankless models about 15 to 20 or more years. Fast Water Heater, A.O. Smith and Rheem agree on this. Home Depot says six to 12 years for a tank with proper maintenance, so explain that the range varies with the source and the home.",
+     "Rheem explains why: a tank heats and stores water all day, which stresses its parts, while a tankless unit heats on demand and wears more slowly.",
+     "Hard water, heavy household use and skipped maintenance all speed up wear (Rheem). Location, design, installation quality and water quality also matter (A.O. Smith).",
+     "To find the age, look for the serial number label, usually on the top or side of the tank. The manufacture date is often encoded in the serial number (Fast Water Heater, Rheem).",
+     "If a tank is over 10 years old, it is time to start thinking about replacement (Fast Water Heater, Home Depot, A.O. Smith). Tell the reader to check the warranty for the most accurate timeline (Home Depot)."
+    ],
+    "h3": [],
+    "sources": [
+     3,
+     5,
+     6,
+     7
+    ]
+   },
+   {
+    "h2": "Warning signs you can see",
+    "points": [
+     "Open with one sentence saying these signs usually show up before a full failure, so noticing them early gives the reader time to plan.",
+     "Each sign gets a short what-you-see and what-it-means explanation in plain words."
+    ],
+    "h3": [
+     {
+      "title": "Water or dampness around the base of the tank",
+      "points": [
+       "Puddles, drips or dampness at the bottom (Fast Water Heater, Home Depot).",
+       "If the leak comes from the tank itself and not from pipes or valves, the tank has likely cracked, and that can't be repaired (Fast Water Heater).",
+       "Home Depot says leaks often come from pressure buildup when water pressure or temperature is too high or the relief valve isn't working."
+      ]
+     },
+     {
+      "title": "Rusty or discolored hot water",
+      "points": [
+       "Brown, red or metallic-tasting hot water means the inside of the tank is rusting (Fast Water Heater, Home Depot).",
+       "Help the reader check whether it happens on the hot side only, since that points to the tank.",
+       "A failing anode rod can sometimes be replaced early, but once rust reaches the faucets the tank is beyond saving (Fast Water Heater)."
+      ]
+     },
+     {
+      "title": "Cloudy or foul-smelling hot water",
+      "points": [
+       "Cloudy water may mean sediment buildup (Home Depot).",
+       "A rotten-egg smell can come from bacterial growth in an old tank (Fast Water Heater)."
+      ]
+     },
+     {
+      "title": "Rust on the outside of the tank",
+      "points": [
+       "Rust around fittings, valves or the bottom of the tank can mean the inside is already badly corroded (Fast Water Heater)."
+      ]
+     }
+    ],
+    "sources": [
+     3,
+     5
+    ]
+   },
+   {
+    "h2": "Warning signs you can hear or feel",
+    "points": [
+     "These signs show up in daily use, such as a cold shower or a loud tank, and a higher bill."
+    ],
+    "h3": [
+     {
+      "title": "Popping, rumbling or banging from the tank",
+      "points": [
+       "Sediment hardens at the bottom of the tank and makes noise as it heats (Fast Water Heater, Home Depot).",
+       "Flushing can help for a while, but in an older unit the noise can mean the glass lining is already compromised (Fast Water Heater)."
+      ]
+     },
+     {
+      "title": "Running out of hot water faster, or waiting longer for it",
+      "points": [
+       "Showers turn cold quickly, or you can't run the dishwasher and washing machine together anymore (Fast Water Heater).",
+       "Causes include sediment, a failing heating element or a thermostat problem (Fast Water Heater, A.O. Smith).",
+       "Mineral scale on the heating elements or burner can also make hot water slow to reach the fixtures (Fast Water Heater)."
+      ]
+     },
+     {
+      "title": "A higher energy bill",
+      "points": [
+       "A higher utility bill with no change in how you use hot water is a common sign of trouble (Home Depot).",
+       "Fast Water Heater says an older unit can waste 20 to 50 percent more energy. This needs an editor check before use."
+      ]
+     }
+    ],
+    "sources": [
+     3,
+     5,
+     6
+    ]
+   },
+   {
+    "h2": "When a sign means call us today",
+    "points": [
+     "Give a short, calm list of the signs that should not wait. Don't be alarmist.",
+     "A leaking tank is a major flood risk and can't be repaired, so Fast Water Heater says to call a professional right away. Home Depot says a leaking water heater must be replaced right away, and that ignoring a leak can lead to a tank failure.",
+     "Rust that has reached the faucets means the tank is beyond saving (Fast Water Heater).",
+     "A unit over 10 years old with several symptoms at once is a replace-it case (Fast Water Heater).",
+     "Valve or fitting leaks are different from a leaking tank body, so a plumber should look before anyone assumes the whole unit is done.",
+     "Point to Brightwater Plumbing's emergency service for active leaks."
+    ],
+    "h3": [],
+    "sources": [
+     3,
+     5
+    ]
+   },
+   {
+    "h2": "Repair or replace: how to decide",
+    "points": [
+     "Rheem says the right answer depends on the unit's age, the type of problem and how repair costs compare with replacement.",
+     "Fast Water Heater's rule of thumb: under 8 years old with a minor issue, repair usually makes sense. Over 10 years old with several symptoms, replace.",
+     "Fast Water Heater also says replacement is the smarter investment when repair costs reach 50 percent or more of a new unit.",
+     "Frequent repairs in the past 1 to 2 years are a sign to stop repairing (Fast Water Heater).",
+     "Warranty: read it first, since it shows what coverage applies to repair or replacement (A.O. Smith, Home Depot)."
+    ],
+    "h3": [
+     {
+      "title": "Problems that are often repairable",
+      "points": [
+       "Replaceable parts: burner assembly, heating elements, valves, thermostats, thermocouples, igniters and motors (Home Depot).",
+       "Repair may make sense if the unit is under 10 years old and a replaceable part is failing (Home Depot).",
+       "Examples from A.O. Smith: a failed heating element on an electric heater can leave you with some hot water but not enough."
+      ]
+     },
+     {
+      "title": "Problems that point to replacement",
+      "points": [
+       "Unit over 10 years old, poorly maintained, or showing the signs of wear above (Home Depot).",
+       "A leaking tank, a corroded tank, or rust reaching the faucets (Fast Water Heater, Home Depot)."
+      ]
+     }
+    ],
+    "sources": [
+     3,
+     5,
+     6,
+     7
+    ]
+   },
+   {
+    "h2": "What you can safely check before you call",
+    "points": [
+     "Give a short numbered or bulleted list of things a homeowner can do without tools or risk, and tell them to stop and call if anything is unclear.",
+     "No hot water: check the power supply. On a gas heater that means the pilot light, and on an electric heater the circuit breaker (A.O. Smith).",
+     "Water too hot or not hot enough: check the temperature or thermostat setting (A.O. Smith).",
+     "Not enough hot water: flushing the tank removes sediment (A.O. Smith).",
+     "Check the manual for the proper steps and call a professional to replace faulty parts (A.O. Smith).",
+     "Upkeep that helps a heater last: drain, flush and clean the tank at least once a year, and every six months if you have hard water (Home Depot)."
+    ],
+    "h3": [],
+    "sources": [
+     5,
+     6
+    ]
+   },
+   {
+    "h2": "What to think about when you replace",
+    "points": [
+     "Choose between tank and tankless based on lifespan and upkeep. Tankless units can last 15 to 20 or more years and need less maintenance than a tank (Rheem, Home Depot).",
+     "Replacing with a more energy-efficient model may lower energy costs. Federal tax credits and local utility rebates may be available (A.O. Smith).",
+     "Fast Water Heater's blog says the federal tax credit ended December 31, 2025, so tell the reader to check what is current. ENERGY STAR lists heat pump, high efficiency gas storage, solar and whole-home tankless gas water heaters as qualifying types.",
+     "Say what to expect from Brightwater Plumbing: we look at your unit, explain your options, and give you the choice."
+    ],
+    "h3": [],
+    "sources": [
+     3,
+     5,
+     6,
+     7,
+     8
+    ]
+   }
+  ],
+  "entities": [
+   "Brightwater Plumbing",
+   "Austin, Texas",
+   "tank water heater",
+   "tankless water heater",
+   "heat pump water heater",
+   "anode rod",
+   "sediment",
+   "heating element",
+   "thermostat",
+   "thermocouple",
+   "pilot light",
+   "relief valve",
+   "serial number label",
+   "glass lining",
+   "hard water",
+   "water heater warranty",
+   "ENERGY STAR",
+   "flushing the tank"
+  ],
+  "gaps": [
+   "The top pages are written for other regions (the West Coast, Portland, Southwest Florida) or are retail or brand pages. None speaks to an Austin homeowner.",
+   "Most pages give a flat list of signs with no order of urgency. This article separates signs that can wait from signs that mean call today.",
+   "Lifespan numbers differ (6 to 12, 8 to 12, 10 to 15 years). The article explains the range and why it varies, so the reader isn't left confused.",
+   "Few pages give a simple repair or replace path the reader can apply. This one has a clear age, symptom and repair-cost rule, plus a quiz.",
+   "Leak advice varies. Some sources say replace right away, while others note valve or fitting leaks can be repaired. The article explains the difference between a tank leak and a fitting leak.",
+   "Fast Water Heater's claims, such as efficiency 'dropped significantly' after 10 years, aren't backed by a cited study. The article should avoid repeating them as fact.",
+   "Jacobs Heating (1), Powerhouse Home Services (2) and Liberty+ (4) rank but carry little usable content on the topic, so the article doesn't draw on them."
+  ],
+  "faqs": [
+   {
+    "question": "How long does a hot water heater typically last?",
+    "answer": "Say a tank water heater lasts about 8 to 12 years, and a tankless one about 15 to 20 or more years (Fast Water Heater, A.O. Smith, Rheem, Home Depot), depending on water quality and upkeep."
+   },
+   {
+    "question": "How long should a heating element last in a hot water heater?",
+    "answer": "The sources give no number, so say it varies. Explain that a failed element on an electric heater can cause no hot water or not enough hot water (A.O. Smith, Home Depot) and is a repairable part. Send the reader to a plumber to test it."
+   },
+   {
+    "question": "What is usually the most common water heater problem?",
+    "answer": "Don't claim a single most common problem. List the ones the sources name: not enough hot water, no hot water, leaks, noises from sediment and rusty water (A.O. Smith, Home Depot, Fast Water Heater)."
+   },
+   {
+    "question": "What is the average cost to replace a water heater?",
+    "answer": "The sources give no Austin price. Say cost depends on the unit and the job, and point to the Brightwater Plumbing pricing page. Mention that repairs costing half of a new unit or more point to replacement (Fast Water Heater)."
+   },
+   {
+    "question": "Is a leaking water heater an emergency?",
+    "answer": "Say a leak from the tank itself can't be repaired and is a flood risk, so call a professional right away (Fast Water Heater, Home Depot). A leak at a valve or fitting may be fixable, so have a plumber check it."
+   },
+   {
+    "question": "Can flushing my water heater extend its life?",
+    "answer": "Say yes for upkeep. Home Depot recommends draining, flushing and cleaning the tank at least once a year, and every six months with hard water. In an older unit with noises, flushing may only help temporarily (Fast Water Heater)."
+   }
+  ],
+  "internalLinks": [
+   {
+    "url": "https://brightwaterplumbing.example/services/emergency",
+    "anchor": "emergency plumbing service",
+    "where": "When a sign means call us today"
+   },
+   {
+    "url": "https://brightwaterplumbing.example/pricing",
+    "anchor": "our pricing page",
+    "where": "Repair or replace: how to decide"
+   },
+   {
+    "url": "https://brightwaterplumbing.example/blog/water-heater-guide",
+    "anchor": "our water heater guide",
+    "where": "What to think about when you replace"
+   },
+   {
+    "url": "https://brightwaterplumbing.example/services/water-heaters",
+    "anchor": "water heater replacement",
+    "where": "What to think about when you replace"
+   },
+   {
+    "url": "https://brightwaterplumbing.example/contact",
+    "anchor": "contact us",
+    "where": "What you can safely check before you call"
+   }
+  ],
+  "cta": {
+   "text": "Not sure if your water heater can be repaired or needs replacing? Contact Brightwater Plumbing and we'll look at its age, its condition and the repair cost with you, so you can decide with the facts in front of you.",
+   "where": "Closing section after the last H2, linking to the contact page, with a short pointer to the water heaters service page."
+  },
+  "modules": [
+   {
+    "type": "quiz",
+    "title": "Repair or replace? Check your water heater",
+    "purpose": "Lets the reader enter their own water heater's age, symptoms and repair cost, and see whether repair or replacement is more likely, then be sent to Brightwater Plumbing for a check.",
+    "placement": "Repair or replace: how to decide",
+    "inputs": [
+     "Age of the water heater: under 8 years, 8 to 10 years, over 10 years, or not sure",
+     "Signs noticed (pick any): leak from the tank base, rusty hot water, rust on the tank, popping or rumbling noise, running out of hot water, higher energy bill",
+     "Repairs in the past 1 to 2 years: none, one, or several",
+     "Repair quote compared with a new unit: under half, half or more, or no quote yet"
+    ],
+    "outputs": [
+     "Likely repair",
+     "Likely replace",
+     "Not clear, have a plumber look at it",
+     "Call today if a leak from the tank or rust at the faucets is selected"
+    ],
+    "data": "Rules from the sources. Under 8 years old with a minor issue: repair usually makes sense (3). Over 10 years old with several symptoms: replace (3). Repair cost at 50 percent or more of a new unit: replace (3). Frequent repairs in the past 1 to 2 years: replace (3). Under 10 years old with a failing replaceable part: may be repairable (5). Over 10 years old, poorly maintained or showing signs of wear: consider replacing (5). A leaking tank or rust at the faucets: replace (3, 5). Ages 8 to 10 with a minor issue, or mixed answers, give the 'have a plumber look' result, since the sources don't cover that case.",
+    "why": "The reader has several facts to weigh at once: age, symptoms, repair history and cost. A quiz applies them together and gives a plain answer, which a list of rules can't do."
+   }
+  ],
+  "images": [
+   {
+    "placement": "How long a water heater lasts and how to find its age",
+    "shows": "Bar chart of the typical lifespan ranges for tank and tankless water heaters.",
+    "alt": "Bar chart showing tank water heaters last about 8 to 12 years and tankless water heaters about 15 to 20 or more years.",
+    "kind": "chart",
+    "numbers": "Tank water heater: 8 to 12 years. Tankless water heater: 15 to 20 or more years.",
+    "sources": [
+     3,
+     7
+    ]
+   },
+   {
+    "placement": "Warning signs you can see",
+    "shows": "A tank water heater with labels for where to look: serial number label on top or side, base of the tank for leaks, fittings and valves for rust, and hot water tap for discoloration.",
+    "alt": "Diagram of a tank water heater labeling the serial number label, the base where leaks show, and the fittings where rust appears.",
+    "kind": "anatomy",
+    "sources": [
+     3,
+     7
+    ]
+   }
+  ],
+  "examples": [],
+  "checks": [],
+  "research": {
+   "sources": [
+    {
+     "n": 1,
+     "url": "https://jacobsheating.com/Blog",
+     "title": "Jacobs Heating & Air Conditioning Blog",
+     "domain": "jacobsheating.com",
+     "kind": "serp",
+     "position": 4,
+     "words": 378
+    },
+    {
+     "n": 2,
+     "url": "https://www.powerhouseswfl.com/",
+     "title": "Home Repair Services in Southwest Florida | Powerhouse Home Services",
+     "domain": "powerhouseswfl.com",
+     "kind": "serp",
+     "position": 5,
+     "words": 538
+    },
+    {
+     "n": 3,
+     "url": "https://fastwaterheater.com/blog/10-signs-its-time-for-water-heater-replacement/",
+     "title": "10 Signs It's Time for Water Heater Replacement",
+     "domain": "fastwaterheater.com",
+     "kind": "serp",
+     "position": 6,
+     "words": 952
+    },
+    {
+     "n": 4,
+     "url": "https://libertyplus.libertymutual.com/",
+     "title": "Liberty+",
+     "domain": "libertyplus.libertymutual.com",
+     "kind": "serp",
+     "position": 7,
+     "words": 501
+    },
+    {
+     "n": 5,
+     "url": "https://www.homedepot.com/c/ai/when-to-replace-a-water-heater/9ba683603be9fa5395fab902705deac",
+     "title": "When to Replace a Water Heater - The Home Depot",
+     "domain": "homedepot.com",
+     "kind": "ai",
+     "position": null,
+     "words": 1004
+    },
+    {
+     "n": 6,
+     "url": "https://www.hotwater.com/info-center/when-to-repair-or-replace.html",
+     "title": "When to Repair or Replace Your Water Heater | A.O. Smith",
+     "domain": "hotwater.com",
+     "kind": "ai",
+     "position": null,
+     "words": 1652
+    },
+    {
+     "n": 7,
+     "url": "https://www.rheem.com/water-heating/articles/water-heater-lifespan-when-to-repair-vs-replace",
+     "title": "Water Heater Lifespan: When to Repair vs. Replace - Rheem Manufacturing Company",
+     "domain": "rheem.com",
+     "kind": "ai",
+     "position": null,
+     "words": 1648
+    },
+    {
+     "n": 8,
+     "url": "https://www.energystar.gov/products/water_heaters",
+     "title": "List of ENERGY STAR Energy Efficient Products",
+     "domain": "energystar.gov",
+     "kind": "ai",
+     "position": null,
+     "words": 185
+    }
+   ],
+   "questions": [
+    "How long should a heating element last in a hot water heater?",
+    "What is the average cost to replace a water heater?",
+    "What is usually the most common water heater problem?",
+    "How long does a hot water heater typically last?"
+   ],
+   "engines": [
+    "ChatGPT",
+    "Gemini",
+    "AI Mode"
+   ],
+   "topPages": "",
+   "aiAnswers": ""
+  },
+  "model": "claude-sonnet-5-5",
+  "at": "2026-11-13T14:22:25.044Z"
+ },
+ "sections": [
+  {
+   "key": "intro",
+   "h2": "",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Cold showers, a strange rumble from the garage or a damp spot near the tank can make any Austin homeowner wonder if the water heater is on its way out. If you're wondering how worried to be, the signs that you need a new water heater are usually easy to spot once you know what to look for.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Most tank heaters give you clues before they fail, according to [Fast Water Heater](https://fastwaterheater.com/blog/10-signs-its-time-for-water-heater-replacement/), so noticing them early gives you time to plan. Sorting those signs by urgency shows you which ones can wait, what you can safely check yourself and when to call us.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-0",
+   "h2": "How long a water heater lasts and how to find its age",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "[Fast Water Heater](https://fastwaterheater.com/blog/10-signs-its-time-for-water-heater-replacement/), [A.O. Smith](https://www.hotwater.com/info-center/when-to-repair-or-replace.html) and [Rheem](https://www.rheem.com/water-heating/articles/water-heater-lifespan-when-to-repair-vs-replace) all say a tank water heater lasts about 8 to 12 years, while a tankless model can last about 15 to 20 or more years.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You may see slightly different numbers elsewhere. [Home Depot](https://www.homedepot.com/c/ai/when-to-replace-a-water-heater/9ba683603be9fa5395fab902705deac) says a tank should last six to 12 years with proper maintenance, so the range depends on the source and on your home.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Rheem explains why](https://www.rheem.com/water-heating/articles/water-heater-lifespan-when-to-repair-vs-replace) tank units wear out sooner: they heat and store water all day, which puts steady stress on the parts inside, while a tankless unit heats water on demand and so wears more slowly.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Location, design, installation quality and water quality also change how long a unit lasts, according to [A.O. Smith](https://www.hotwater.com/info-center/when-to-repair-or-replace.html)."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "To find your heater's age, look for the serial number label, which is usually on the top or side of the tank, because the manufacture date is often encoded in that serial number, as noted by [Fast Water Heater](https://fastwaterheater.com/blog/10-signs-its-time-for-water-heater-replacement/) and [Rheem](https://www.rheem.com/water-heating/articles/water-heater-lifespan-when-to-repair-vs-replace).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If your tank is over 10 years old, it's time to start thinking about a replacement, as [Home Depot](https://www.homedepot.com/c/ai/when-to-replace-a-water-heater/9ba683603be9fa5395fab902705deac) also advises, and you can check your warranty for the most accurate timeline for your unit.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-1",
+   "h2": "Warning signs you can see",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "These signs usually show up before a water heater fails completely, so noticing them early gives you time to plan. Each sign below comes with what you'll see and what it tells you about your heater.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Water or dampness around the base of the tank",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Look for puddles, drips or dampness at the bottom of the unit, which both [Fast Water Heater](https://fastwaterheater.com/blog/10-signs-its-time-for-water-heater-replacement/) and [Home Depot](https://www.homedepot.com/c/ai/when-to-replace-a-water-heater/9ba683603be9fa5395fab902705deac) describe. If the water comes from the tank itself and not from the pipes or valves, the tank has likely cracked, and [that can't be repaired](https://fastwaterheater.com/blog/10-signs-its-time-for-water-heater-replacement/).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Home Depot says [leaks often come from pressure buildup](https://www.homedepot.com/c/ai/when-to-replace-a-water-heater/9ba683603be9fa5395fab902705deac), which happens when the water pressure or temperature is too high or the relief valve isn't working properly.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Rusty or discolored hot water",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Brown, red or metallic-tasting hot water [means the inside of the tank is rusting](https://fastwaterheater.com/blog/10-signs-its-time-for-water-heater-replacement/), and [Home Depot](https://www.homedepot.com/c/ai/when-to-replace-a-water-heater/9ba683603be9fa5395fab902705deac) says the same.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A failing anode rod can sometimes be replaced early, but [once rust reaches your faucets, the tank is beyond saving](https://fastwaterheater.com/blog/10-signs-its-time-for-water-heater-replacement/).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Cloudy or foul-smelling hot water",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Cloudy water [may mean sediment has built up in the tank](https://www.homedepot.com/c/ai/when-to-replace-a-water-heater/9ba683603be9fa5395fab902705deac). A rotten-egg smell can come from [bacterial growth in an old tank](https://fastwaterheater.com/blog/10-signs-its-time-for-water-heater-replacement/).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Rust on the outside of the tank",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Rust around the fittings, valves or bottom of the tank can mean the inside is [already badly corroded](https://fastwaterheater.com/blog/10-signs-its-time-for-water-heater-replacement/).",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-2",
+   "h2": "Warning signs you can hear or feel",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "These signs tend to show up in everyday use, such as a cold shower, a noisy tank or a bill that looks higher than usual, and we'll walk through how to read each one.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Popping, rumbling or banging from the tank",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Sediment hardens at the bottom of the tank and makes noise as the water heats, as [Fast Water Heater](https://fastwaterheater.com/blog/10-signs-its-time-for-water-heater-replacement/) and [Home Depot](https://www.homedepot.com/c/ai/when-to-replace-a-water-heater/9ba683603be9fa5395fab902705deac) both explain.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Running out of hot water faster, or waiting longer for it",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You might notice showers turning cold quickly, or find that you can't run the dishwasher and washing machine together anymore. [Fast Water Heater](https://fastwaterheater.com/blog/10-signs-its-time-for-water-heater-replacement/) and [A.O. Smith](https://www.hotwater.com/info-center/when-to-repair-or-replace.html) point to a few possible causes:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Sediment has built up inside the tank.",
+      "A heating element is failing.",
+      "The thermostat is not working properly."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Mineral scale on the heating elements or burner can also make hot water slow to reach your fixtures.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "A higher energy bill",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A higher utility bill with no change in how you use hot water is a common sign of trouble, according to [Home Depot](https://www.homedepot.com/c/ai/when-to-replace-a-water-heater/9ba683603be9fa5395fab902705deac).",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-3",
+   "h2": "When a sign means call us today",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Most of the signs we've covered so far can wait a few days while you plan. A handful of them can't wait, and we'd rather you know which ones before you find a puddle at 10 p.m.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how to tell when it's time to pick up the phone and call us today.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Water is pooling or dripping from the base of the tank itself, because [Fast Water Heater](https://fastwaterheater.com/blog/10-signs-its-time-for-water-heater-replacement/) says a cracked tank can't be repaired and is a major flood risk, so you should call a professional right away.",
+      "You've noticed a leak of any size, since [Home Depot](https://www.homedepot.com/c/ai/when-to-replace-a-water-heater/9ba683603be9fa5395fab902705deac) says a leaking water heater must be replaced right away and that ignoring a leak can lead to a tank failure.",
+      "Rust has reached your faucets, which means the tank is beyond saving, according to [Fast Water Heater](https://fastwaterheater.com/blog/10-signs-its-time-for-water-heater-replacement/).",
+      "Your unit is over 10 years old and shows several symptoms at the same time, which [Fast Water Heater](https://fastwaterheater.com/blog/10-signs-its-time-for-water-heater-replacement/) treats as a replace-it case."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If the water is active and you can't tell where it's coming from, call our [emergency plumbing service](https://brightwaterplumbing.example/services/emergency) and we'll get to you as quickly as we can.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A leak at a valve or fitting is a different story from a leaking tank body, so please let a plumber look before you assume the whole unit is finished. Honestly, a loose fitting can be a quick fix while a cracked tank can't be, and we can tell you which one you have.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-4",
+   "h2": "Repair or replace: how to decide",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Rheem says the [right answer depends on your unit's age](https://www.rheem.com/water-heating/articles/water-heater-lifespan-when-to-repair-vs-replace), the type of problem and how repair costs compare with replacement, so we'll look at each of them for your own heater.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Fast Water Heater gives a simple rule of thumb: a unit [under 8 years old with a minor issue](https://fastwaterheater.com/blog/10-signs-its-time-for-water-heater-replacement/) is usually worth repairing, while one over 10 years old with several symptoms should be replaced.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Fast Water Heater also says replacement is the smarter investment once repair costs reach 50 percent or more of a new unit. It doesn't cite a study for that figure, so treat it as a rough guide.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Count how many repairs you've paid for in the past 1 to 2 years, because [frequent repairs are a sign to stop repairing](https://fastwaterheater.com/blog/10-signs-its-time-for-water-heater-replacement/).",
+      "Read your warranty first, since it shows what coverage applies to [repair or replacement costs](https://www.hotwater.com/info-center/when-to-repair-or-replace.html), and Home Depot also says to [check it for the most accurate timeline](https://www.homedepot.com/c/ai/when-to-replace-a-water-heater/9ba683603be9fa5395fab902705deac)."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Problems that are often repairable",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Home Depot lists the parts that can be replaced: the [burner assembly, heating elements, valves, thermostats, thermocouples, igniters and motors](https://www.homedepot.com/c/ai/when-to-replace-a-water-heater/9ba683603be9fa5395fab902705deac). Repair may make sense if your unit is under 10 years old and one of those parts is failing.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "For example, A.O. Smith explains that a [failed heating element on an electric water heater](https://www.hotwater.com/info-center/when-to-repair-or-replace.html) can leave you with some hot water, but not enough.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Problems that point to replacement",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Home Depot says to consider replacing your unit if it is [more than 10 years old, has not been properly maintained or shows the signs of wear](https://www.homedepot.com/c/ai/when-to-replace-a-water-heater/9ba683603be9fa5395fab902705deac) we covered above.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A leaking tank, a corroded tank or rust that has reached your faucets also points to replacement, according to [Fast Water Heater](https://fastwaterheater.com/blog/10-signs-its-time-for-water-heater-replacement/).",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-5",
+   "h2": "What you can safely check before you call",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Some checks are safe for you to do without tools, and they can save you a service call. Many hot water problems start with a setting or a switch.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how to work through them, and if anything is unclear or you feel unsure at any point, stop and [contact us](https://brightwaterplumbing.example/contact) so we can take a look with you.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "If you have no hot water at all, check the power supply, which means the pilot light on a gas heater and the circuit breaker on an electric heater, as [A.O. Smith explains](https://www.hotwater.com/info-center/when-to-repair-or-replace.html).",
+      "If your water is too hot or not hot enough, look at the temperature or thermostat setting on the unit and see whether it needs a small change.",
+      "If you run out of hot water, [A.O. Smith suggests](https://www.hotwater.com/info-center/when-to-repair-or-replace.html) flushing the tank to remove sediment.",
+      "Look in your manual for the proper steps for your model, and call a professional to replace any faulty parts."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A little upkeep also helps your heater last longer, and it's easy to fit into your year. [Home Depot says](https://www.homedepot.com/c/ai/when-to-replace-a-water-heater/9ba683603be9fa5395fab902705deac) the tank should be drained, flushed and cleaned at least once a year.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Surprisingly, the timing changes if you live in an area with hard water, where the same source suggests servicing your water heater every six months.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-6",
+   "h2": "What to think about when you replace",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Once you know your heater is on its way out, you can start comparing what to put in its place. Here's how we'd think through the choice so it feels clear when the time comes.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Start with the type of heater you want, since that sets how long it lasts and how much upkeep it needs. [Rheem](https://www.rheem.com/water-heating/articles/water-heater-lifespan-when-to-repair-vs-replace) says tankless units can last 15 to 20 or more years, and [Home Depot](https://www.homedepot.com/c/ai/when-to-replace-a-water-heater/9ba683603be9fa5395fab902705deac) notes they need less maintenance than a tank model.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A newer, more energy-efficient model may also lower your energy costs, and [A.O. Smith](https://www.hotwater.com/info-center/when-to-repair-or-replace.html) says federal tax credits and local utility rebates may be available. Luckily, you can check what applies to you before you buy, so you won't be guessing at the price.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Check what is current before you count on a credit, because [Fast Water Heater](https://fastwaterheater.com/blog/10-signs-its-time-for-water-heater-replacement/) reports that the federal tax credit ended December 31, 2025.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you replace your heater with us, we look at your unit, explain your options in plain words and let you make the choice. You can read more in [our water heater guide](https://brightwaterplumbing.example/blog/water-heater-guide) or see how [water heater replacement](https://brightwaterplumbing.example/services/water-heaters) works with us.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Not sure if your water heater can be repaired or needs replacing? Contact Brightwater Plumbing and we'll go over its age, its condition and the repair cost with you, so you can compare your options with the numbers in front of you.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "faq",
+   "h2": "Frequently asked questions",
+   "blocks": [
+    {
+     "type": "h3",
+     "text": "How long does a hot water heater typically last?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A tank water heater lasts about 8 to 12 years, and a tankless model lasts about 15 to 20 or more years, according to [Fast Water Heater](https://fastwaterheater.com/blog/10-signs-its-time-for-water-heater-replacement/), [A.O. Smith](https://www.hotwater.com/info-center/when-to-repair-or-replace.html) and [Rheem](https://www.rheem.com/water-heating/articles/water-heater-lifespan-when-to-repair-vs-replace).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Home Depot](https://www.homedepot.com/c/ai/when-to-replace-a-water-heater/9ba683603be9fa5395fab902705deac) puts a well-kept tank at six to 12 years, so the exact number depends on your water quality and how well the unit is looked after.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What is usually the most common water heater problem?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Smith](https://www.hotwater.com/info-center/when-to-repair-or-replace.html), [Home Depot](https://www.homedepot.com/c/ai/when-to-replace-a-water-heater/9ba683603be9fa5395fab902705deac) and [Fast Water Heater](https://fastwaterheater.com/blog/10-signs-its-time-for-water-heater-replacement/):",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What is the average cost to replace a water heater?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You can see how we price our work on [our pricing page](https://brightwaterplumbing.example/pricing).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "As a rule of thumb, [Fast Water Heater](https://fastwaterheater.com/blog/10-signs-its-time-for-water-heater-replacement/) says repairs that cost half of a new unit or more point toward replacement.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Is a leaking water heater an emergency?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A leak from the tank itself can't be repaired and is a flood risk, so [Fast Water Heater](https://fastwaterheater.com/blog/10-signs-its-time-for-water-heater-replacement/) says to call a professional right away.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Home Depot](https://www.homedepot.com/c/ai/when-to-replace-a-water-heater/9ba683603be9fa5395fab902705deac) says a leaking unit must be replaced immediately, although a leak at a valve or fitting may be fixable, so have a plumber check where the water is coming from.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Can flushing my water heater extend its life?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Yes, flushing is part of good upkeep, and [Home Depot](https://www.homedepot.com/c/ai/when-to-replace-a-water-heater/9ba683603be9fa5395fab902705deac) recommends draining, flushing and cleaning the tank at least once a year, and every six months if you have hard water.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "In an older unit that already makes noise, [Fast Water Heater](https://fastwaterheater.com/blog/10-signs-its-time-for-water-heater-replacement/) says flushing may only help for a short time.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  }
+ ],
+ "cut": [
+  {
+   "id": "1.4.i0",
+   "why": "Rheem source text provided does not include hard water, heavy use and skipped maintenance as wear factors in the visible excerpt; brief attributes it to Rheem but visible text does not show it."
+  },
+  {
+   "id": "1.3.0",
+   "why": "Intro to a list of wear factors that rests on unsupported attribution."
+  },
+  {
+   "id": "2.5.1",
+   "why": "Hot-side-only check is supported in Fast Water Heater heading, but the run-cold-then-hot instruction adds a procedure not in the sources."
+  },
+  {
+   "id": "3.3.0",
+   "why": "Source says flushing can help temporarily, but this says it can help 'for a while' and ties noise to glass lining; the glass-lining claim is supported, though the added framing is acceptable. Cut for the unsupported 'for a while' phrasing only if strict."
+  },
+  {
+   "id": "3.10.0",
+   "why": "Claims a plumber can tell whether the heater is the cause of a higher bill; not stated in sources."
+  },
+  {
+   "id": "5.3.i2",
+   "why": "Advice to ask for a written quote is fine, but the claim that the pricing page shows how jobs are priced is a link to a page not backed by sources."
+  },
+  {
+   "id": "7.4.i0",
+   "why": "Definition of how heat pump water heaters work is not in the sources."
+  },
+  {
+   "id": "7.4.i1",
+   "why": "Claim that gas storage heaters use less gas than a standard tank is not in the sources."
+  },
+  {
+   "id": "7.4.i2",
+   "why": "Definition of how solar water heaters work is not in the sources."
+  },
+  {
+   "id": "7.4.i3",
+   "why": "Definition of tankless gas heaters is not in the sources."
+  },
+  {
+   "id": "7.3.1",
+   "why": "ENERGY STAR page lists these types, but calling it a 'qualifying list' is not stated."
+  },
+  {
+   "id": "8.4.0",
+   "why": "Heating element lifespan claim is not in the sources; sources give no figure and no statement about variation."
+  },
+  {
+   "id": "8.7.0",
+   "why": "Claim about the most common problem is not stated in the sources."
+  },
+  {
+   "id": "8.7.1",
+   "why": "Says the sources name these problems most often; sources do not rank them."
+  },
+  {
+   "id": "8.8.i0",
+   "why": "Part of a list presented as the most common problems, which the sources do not establish."
+  },
+  {
+   "id": "8.8.i1",
+   "why": "Part of a list presented as the most common problems, which the sources do not establish."
+  },
+  {
+   "id": "8.8.i2",
+   "why": "Part of a list presented as the most common problems, which the sources do not establish."
+  },
+  {
+   "id": "8.8.i3",
+   "why": "Part of a list presented as the most common problems, which the sources do not establish."
+  },
+  {
+   "id": "8.8.i4",
+   "why": "Part of a list presented as the most common problems, which the sources do not establish."
+  },
+  {
+   "id": "8.10.0",
+   "why": "States cost depends on unit type and job; sources give no cost basis for this statement."
+  },
+  {
+   "id": "8.5.0",
+   "why": "Claims a failed element can leave no hot water or not enough; A.O. Smith says some hot water but not enough for one case and no hot water for another, but a plumber testing the element is an added claim."
+  }
+ ],
+ "styleLeft": [
+  {
+   "id": "1.0.0",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "1.2.0",
+   "rule": "sentences",
+   "before": "a sentence over 35 words",
+   "after": null
+  },
+  {
+   "id": "1.5.0",
+   "rule": "sentences",
+   "before": "a sentence over 35 words",
+   "after": null
+  },
+  {
+   "id": "3.5.1",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "5.6.0",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "7.6.1",
+   "rule": "dashes",
+   "before": "a \"not X, it's Y\" contrast",
+   "after": null
+  },
+  {
+   "id": "8.1.1",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "8.5.0",
+   "rule": "sentences",
+   "before": "a sentence over 35 words",
+   "after": null
+  }
+ ],
+ "proof": {
+  "verdict": "Ship",
+  "reasons": [],
+  "lint": 7
+ },
+ "polish": {
+  "applied": 14,
+  "refused": []
+ },
+ "blocked": [
+  {
+   "key": "h2-0",
+   "why": "added number 10; added link https://www.rheem.com/water-heating/articles/water-heater-lifespan-when-to-repair-vs-replace, https://fastwaterheater.com/blog/10-signs-its-time-for-water-heater-replacement, https://www.hotwater.com/info-center/when-to-repair-or-replace.html; hedges added (5 to 6)"
+  },
+  {
+   "key": "h2-3",
+   "why": "lost number 10"
+  }
+ ],
+ "tidied": [
+  "Split a 2-sentence paragraph in \"Repair or replace: how to decide\"."
+ ],
+ "factChanges": [],
+ "modules": [
+  {
+   "status": "dropped",
+   "error": "It loads an outside file."
+  }
+ ]
+}
