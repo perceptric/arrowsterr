@@ -13,6 +13,7 @@ import { periodOf } from "./plans";
 import { DEFAULT_SAMPLE } from "./houseRules";
 import { pageText } from "./pageText";
 import { safeFetch } from "./safeFetch";
+import { POLISH_SCHEMA, POLISH_SYSTEM } from "./writerPolish";
 import { REVIEW_SCHEMA, STYLE_SYSTEM } from "./writerStyle";
 import { draftImages } from "./writerImagesServer";
 
@@ -178,6 +179,8 @@ const draftDeps = (db: SupabaseClient): DraftDeps => ({
   // The writing skills are the cached system prompt, shared by every article's review and fixes.
   styleReview: (prefix, prompt) => askJson(prompt, REVIEW_SCHEMA, { system: STYLE_SYSTEM, prefix, model: writerModel(), maxTokens: 6000 }),
   styleFix: (prefix, prompt) => askJson(prompt, SECTION_SCHEMA, { system: STYLE_SYSTEM, prefix, model: writerModel(), maxTokens: 5000 }),
+  // The polish pass: five more writing skills as their own cached system prompt (writerPolish.ts).
+  polish: (prefix, prompt) => askJson(prompt, POLISH_SCHEMA, { system: POLISH_SYSTEM, prefix, model: writerModel(), maxTokens: 8000 }),
   buildModule: (prefix, prompt) => askJson(prompt, MODULE_SCHEMA, { prefix, model: writerModel(), maxTokens: 12000 }),
   // Screenshots and branded images, made by the worker (writerImagesServer.ts, 057_writer_images.sql).
   images: draftImages(db, writerModel()),

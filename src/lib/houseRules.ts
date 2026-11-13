@@ -3,6 +3,7 @@
 // its own voice gets the default: the voice of the Perceptric blog, with the brand's own name. Pure, shared by the
 // server, the browser and tests.
 import type { BrandVoice } from "./brandVoice.ts";
+import { houseLint, LONG_SENTENCE } from "./houseLint.ts";
 
 export type HouseRule = { id: string; label: string; prompt: string };
 
@@ -119,14 +120,14 @@ export type LintBlock = { type: string; text: string; items: string[]; rows: str
 export type LintSection = { key: string; h2: string; blocks: LintBlock[] };
 export type Finding = { id: string; rule: string; why: string };
 
-const SENT = /(?<=[.!?…])["”)\]]?\s+(?=["“(\[]?[A-Z0-9])/;
+const SENT = /(?<=[.!?…]["”)\]]?)\s+(?=["“(\[]?[A-Z0-9])/;
 const split = (t: string) => t.split(SENT).map((s) => s.trim()).filter(Boolean);
 const plain = (t: string) => t.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").replace(/\*\*?([^*]+)\*\*?/g, "$1");
 const words = (t: string) => plain(t).split(/\s+/).filter(Boolean).length;
 const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /** Problems in one sentence or list item that code can see. */
-export function lintText(text: string, opts: { inList?: boolean } = {}): { rule: string; why: string }[] {
+export function lintText(text: string, opts: { inList?: boolean; allow?: string[] } = {}): { rule: string; why: string }[] {
   const t = plain(text);
   const out: { rule: string; why: string }[] = [];
   if (/[—–]/.test(t) || /\w \- \w/.test(t)) out.push({ rule: "dashes", why: "a dash" });
@@ -138,6 +139,15 @@ export function lintText(text: string, opts: { inList?: boolean } = {}): { rule:
   if (REVEAL.test(t.trim())) out.push({ rule: "plain", why: "a setup or reveal" });
   if (!opts.inList && !/:$/.test(t.trim()) && words(t) <= 6) out.push({ rule: "sentences", why: "a short sentence" });
   if (/^\*\*[^*]+\*\*:?\s/.test(text.trim()) && opts.inList) out.push({ rule: "lists", why: "a bold lead-in" });
+  if (!opts.inList && words(t) > LONG_SENTENCE) out.push({ rule: "sentences", why: `a sentence over ${LONG_SENTENCE} words` });
+  // The Perceptric house lint (houseLint.ts): what it finds that the checks above didn't.
+  const seen = new Set(out.map((f) => f.why.toLowerCase()));
+  for (const h of houseLint(text, opts.allow ?? [])) {
+    const k = h.why.toLowerCase();
+    if (seen.has(k) || (k === "a dash" && seen.has(k)) || (/dash/.test(k) && seen.has("a dash")) || (/contrast/.test(k) && [...seen].some((x) => x.includes("contrast"))) || (k === "an exclamation mark" && seen.has(k))) continue;
+    seen.add(k);
+    out.push(h);
+  }
   return out;
 }
 
@@ -146,7 +156,7 @@ export function lintText(text: string, opts: { inList?: boolean } = {}): { rule:
  * long paragraphs, long runs without a list, a feeling adverb used twice, a section that opens with a question,
  * and examples that don't open with "{Name} is a ...".
  */
-export function lintDraft(sections: LintSection[], examples: { name: string }[] = []): Finding[] {
+export function lintDraft(sections: LintSection[], examples: { name: string }[] = [], allow: string[] = []): Finding[] {
   const out: Finding[] = [];
   const add = (id: string, f: { rule: string; why: string }) => out.push({ id, ...f });
   const seenAdverb = new Set<string>();
@@ -156,7 +166,7 @@ export function lintDraft(sections: LintSection[], examples: { name: string }[] 
       if (b.type === "p" || b.type === "quote") {
         const list = split(b.text);
         list.forEach((t, k) => {
-          for (const f of lintText(t)) add(`${si}.${bi}.${k}`, f);
+          for (const f of lintText(t, { allow })) add(`${si}.${bi}.${k}`, f);
           const first = plain(t).match(/^([A-Za-z]+),/)?.[1]?.toLowerCase();
           if (first && FEELING.includes(first)) {
             if (seenAdverb.has(first)) add(`${si}.${bi}.${k}`, { rule: "adverbs", why: `"${first}" used twice` });
@@ -167,7 +177,7 @@ export function lintDraft(sections: LintSection[], examples: { name: string }[] 
         if (bi === 0 && s.key !== "faq" && /\?$/.test(list[0] ?? "")) add(`${si}.${bi}.0`, { rule: "reader", why: "a section that opens with a question" });
         since += words(b.text);
       } else if (b.type === "ul" || b.type === "ol") {
-        b.items.forEach((t, k) => lintText(t, { inList: true }).forEach((f) => add(`${si}.${bi}.i${k}`, f)));
+        b.items.forEach((t, k) => lintText(t, { inList: true, allow }).forEach((f) => add(`${si}.${bi}.i${k}`, f)));
         since = 0;
       } else if (b.type === "table") since = 0;
       if (since > 320 && s.key !== "faq") {

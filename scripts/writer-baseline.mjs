@@ -16,12 +16,14 @@ import { BRIEF_SCHEMA, runBrief } from "../src/lib/writerBrief.ts";
 import { CHECK_SCHEMA, runDraft, SECTION_SCHEMA } from "../src/lib/writerDraft.ts";
 import { REVIEW_SCHEMA, STYLE_SYSTEM } from "../src/lib/writerStyle.ts";
 import { MODULE_SCHEMA } from "../src/lib/writerModules.ts";
+import { POLISH_SCHEMA, POLISH_SYSTEM, auditSection } from "../src/lib/writerPolish.ts";
 import { isGrammarError, schemaPrompt } from "../src/lib/jsonReply.ts";
 import { replyText, requestBody, thinkingFix } from "../src/lib/claudeRequest.ts";
 import { scoreArticle, sumScores } from "../src/lib/writerScore.ts";
 import { contextOf, loadFixture, packOf, recorded, topics } from "../tests/writerFixtures.ts";
 
-const OUT = "tests/fixtures/writer/baseline";
+// WRITER_OUT runs the same topics into another folder (Phase 2 writes tests/fixtures/writer/phase2), so the baseline stays.
+const OUT = process.env.WRITER_OUT || "tests/fixtures/writer/baseline";
 const args = process.argv.slice(2);
 const FAKE = args.includes("--fake");
 const only = args.filter((a) => !a.startsWith("--"));
@@ -144,6 +146,7 @@ async function run(t) {
     check: (prefix, prompt) => askJson(prompt, CHECK_SCHEMA, { prefix, maxTokens: 3000 }),
     styleReview: (prefix, prompt) => askJson(prompt, REVIEW_SCHEMA, { system: STYLE_SYSTEM, prefix, maxTokens: 6000 }),
     styleFix: (prefix, prompt) => askJson(prompt, SECTION_SCHEMA, { system: STYLE_SYSTEM, prefix, maxTokens: 5000 }),
+    ...(process.env.WRITER_OUT ? { polish: (prefix, prompt) => askJson(prompt, POLISH_SCHEMA, { system: POLISH_SYSTEM, prefix, maxTokens: 8000 }) } : {}),
     buildModule: (prefix, prompt) => askJson(prompt, MODULE_SCHEMA, { prefix, maxTokens: 12000 }),
     model: MODEL,
     budgetMs: 60 * 60_000,
@@ -162,14 +165,24 @@ async function run(t) {
     images: (brief.brief.images ?? []).length,
     modules: draft.modules.filter((m) => m?.status === "ok").length,
   });
+  // No fact may change through the passes: each section as written against the same section after them.
+  const written = draft.sections.filter(Boolean);
+  const styledSecs = draft.styled?.sections ?? [];
+  const names = [ctx.brand.name, ...(brief.brief.examples ?? []).map((e) => e.name)];
+  const factChanges = written
+    .map((w) => ({ w, a: styledSecs.find((x) => x.key === w.key) }))
+    .filter(({ a }) => a)
+    .map(({ w, a }) => ({ key: w.key, audit: auditSection(w, a, names) }))
+    .filter((x) => x.audit.status === "BLOCK")
+    .map((x) => ({ key: x.key, why: x.audit.reasons }));
   const spent = Object.fromEntries(Object.entries(usage).map(([k, v]) => [k, v - before[k]]));
-  const result = { slug: t.slug, keyword: t.keyword, kind: t.kind, stage: t.stage, model: MODEL, at: new Date().toISOString(), seconds: Math.round((Date.now() - started) / 1000), usage: spent, score, title: doc?.title ?? null, brief: brief.brief, sections: final, cut: draft.checked?.cut ?? [], styleLeft: draft.styled?.left ?? [], modules: draft.modules.map((m) => ({ status: m?.status, error: m?.error ?? null })) };
+  const result = { slug: t.slug, keyword: t.keyword, kind: t.kind, stage: t.stage, model: MODEL, at: new Date().toISOString(), seconds: Math.round((Date.now() - started) / 1000), usage: spent, score, title: doc?.title ?? null, brief: brief.brief, sections: final, cut: draft.checked?.cut ?? [], styleLeft: draft.styled?.left ?? [], proof: draft.styled?.proof ?? null, polish: draft.styled?.polish ? { applied: draft.styled.polish.applied.length, refused: draft.styled.polish.refused } : null, blocked: draft.styled?.blocked ?? [], tidied: draft.styled?.tidied ?? [], factChanges, modules: draft.modules.map((m) => ({ status: m?.status, error: m?.error ?? null })) };
   if (FAKE) {
     console.log(`${t.slug}: wiring ok, ${final.length} sections, brief ${brief.status}, draft ${draft.status}, ${spent.calls} calls`);
     return null;
   }
   await writeFile(file, JSON.stringify(result, null, 1) + "\n");
-  console.log(`${t.slug}: ${score.words} words, ${score.lint} lint findings, ${score.unsourced.length} of ${score.numbers} numbers unsourced, ${score.strayLinks.length} stray links, ${score.modules} modules, ${spent.calls} calls, ${result.seconds}s`);
+  console.log(`${t.slug}: ${score.words} words, ${score.lint} lint findings, proof ${result.proof?.verdict ?? "none"}, ${factChanges.length} fact changes, ${score.unsourced.length} of ${score.numbers} numbers unsourced, ${score.strayLinks.length} stray links, ${score.modules} modules, ${spent.calls} calls, ${result.seconds}s`);
   return result;
 }
 

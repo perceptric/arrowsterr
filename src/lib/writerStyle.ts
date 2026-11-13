@@ -2,12 +2,13 @@
 //   1. Lint: code checks every line against the house rules (houseRules.ts). Free.
 //   2. Review: one call reads the whole draft with the writing skills (skills/, MIT) and the house rules, and names
 //      the lines that break them.
-//   3. Fix: each section with findings is rewritten once, keeping every fact, number and link. A rewrite that drops
-//      or adds a number or a link is thrown away and the section stays as it was.
+//   3. Fix: each section with findings is rewritten, keeping every fact, number and link. A rewrite the fact audit
+//      blocks (factAudit.ts) is thrown away and the section stays as it was.
 //   4. Proofread: a title's count must match the article ("11 Best" and 11 items).
 // Pure: the paid calls come in from writerDraft.ts, so tests run it offline.
 import { fixTitleCount, lintDraft, rulesText, sampleText, sectionOf, type Finding } from "./houseRules.ts";
 import { SKILL_TEXT } from "./skillText.ts";
+import { factAudit } from "./factAudit.ts";
 import type { Block, Section, StyleNote, Styled } from "./writerDraft.ts";
 
 const S = { type: "string" } as const;
@@ -74,16 +75,12 @@ Reply with the section's blocks in the same shape: p (a paragraph), h3, ul or ol
 }
 
 // ─────────────── keeping the facts ───────────────
-const blockText = (b: Block) => [b.text, ...b.items, ...b.rows.flat()].join(" ");
-const sectionText = (s: Section) => s.blocks.map(blockText).join(" ");
-const numbersIn = (t: string) => new Set((t.replace(/\[[^\]]*\]\(([^)]+)\)/g, " ").match(/\d[\d,.]*%?/g) ?? []).map((n) => n.replace(/[.,]$/, "").replace(/,/g, "")));
-const linksIn = (t: string) => new Set([...t.matchAll(/\]\(([^)\s]+)\)/g)].map((m) => m[1]));
+const blockText = (b: Block) => [b.text, ...b.items, ...b.rows.flat()].filter(Boolean).join("\n");
+const sectionText = (s: Section) => s.blocks.map(blockText).join("\n");
 
-/** True when the rewrite keeps every number and link of the original and adds none. */
-export function keepsFacts(before: Section, after: Section): boolean {
-  const [a, b] = [sectionText(before), sectionText(after)];
-  const same = (x: Set<string>, y: Set<string>) => x.size === y.size && [...x].every((v) => y.has(v));
-  return same(numbersIn(a), numbersIn(b)) && same(linksIn(a), linksIn(b));
+/** True when the rewrite passes the fact audit (factAudit.ts): same numbers, dates, quotes, links and hedges. */
+export function keepsFacts(before: Section, after: Section, names: string[] = []): boolean {
+  return factAudit(sectionText(before), sectionText(after), { names }).status !== "BLOCK";
 }
 
 /** The findings for one section, by its index. */
@@ -106,11 +103,11 @@ export function mergeFindings(lint: Finding[], review: unknown, ids: Set<string>
 }
 
 /** What the fixes changed (findings in sections that were rewritten) and what the lint still sees after them. */
-export function styleResult(before: Section[], after: Section[], findings: Finding[], examples: { name: string }[], lines: (s: Section[]) => IdLine[]): Pick<Styled, "fixed" | "left"> {
+export function styleResult(before: Section[], after: Section[], findings: Finding[], examples: { name: string }[], lines: (s: Section[]) => IdLine[], allow: string[] = []): Pick<Styled, "fixed" | "left"> {
   const text = new Map(lines(before).map((l) => [l.id, l.text]));
   const changed = (si: number) => JSON.stringify(before[si]?.blocks) !== JSON.stringify(after[si]?.blocks);
   const fixed: StyleNote[] = findings.filter((f) => changed(sectionOf(f.id))).map((f) => ({ id: f.id, rule: f.rule, before: text.get(f.id) ?? "", after: null }));
-  const left: StyleNote[] = lintDraft(after, examples).map((f) => ({ id: f.id, rule: f.rule, before: f.why, after: null }));
+  const left: StyleNote[] = lintDraft(after, examples, allow).map((f) => ({ id: f.id, rule: f.rule, before: f.why, after: null }));
   return { fixed: fixed.slice(0, 200), left: left.slice(0, 200) };
 }
 

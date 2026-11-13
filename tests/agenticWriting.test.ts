@@ -285,3 +285,60 @@ test("older briefs without image kinds keep their image notes", () => {
     ["heading", "paragraph", "note"],
   );
 });
+
+test("round 2 rewrites what the lint still finds, the polish keeps only audited edits, and the proof is saved", async () => {
+  const calls: Record<string, number> = {};
+  const { db, store } = memory();
+  let fixes = 0;
+  const d = deps(calls, {
+    // The first rewrite leaves a short sentence; round 2 is asked to fix only that.
+    fix: (prompt) => {
+      fixes++;
+      return fixes === 1
+        ? { blocks: [p("HubSpot is a CRM software company that helps teams sell [per A](https://a.com/x). It works."), p("HubSpot has a free plan for small teams that want to start without paying [per A](https://a.com/x).")] }
+        : (assert.match(prompt, /a short sentence/), { blocks: [p("HubSpot is a CRM software company that helps teams sell, and its blog shows how it works [per A](https://a.com/x)."), p("HubSpot has a free plan for small teams that want to start without paying [per A](https://a.com/x).")] });
+    },
+  });
+  d.polish = async (_prefix, prompt) => {
+    calls.polish = (calls.polish ?? 0) + 1;
+    assert.match(prompt, /1\.1\.0: HubSpot has a free plan/);
+    return {
+      edits: [
+        { id: "1.1.0", kind: "plain", text: "HubSpot has a free plan for small teams that want to begin without paying [per A](https://a.com/x).", why: "plainer" },
+        { id: "0.0.0", kind: "voice", text: "If you need a CRM, this list of 9 tools helps you pick one that fits your team and budget this year.", why: "specific" },
+        { id: "1.0.0", kind: "plain", text: "HubSpot is a robust CRM software company that helps teams sell, and its blog shows how it works [per A](https://a.com/x).", why: "x" },
+      ],
+    };
+  };
+  await runDraft(store, d, "d1", 1);
+  assert.equal(calls.fix, 2, "round 1, then round 2 for the short sentence");
+  assert.equal(calls.polish, 1);
+  const st = db.row.styled!;
+  assert.deepEqual(st.polish?.applied.map((a) => a.id), ["1.1.0"]);
+  assert.deepEqual(st.polish?.refused.map((r) => r.id).sort(), ["0.0.0", "1.0.0"]);
+  assert.ok(st.polish?.refused.some((r) => /added number 9/.test(r.why)), "a new number is refused");
+  assert.ok(st.polish?.refused.some((r) => /lint finds more/.test(r.why)), "a banned word is refused");
+  assert.match(JSON.stringify(db.row.checked?.sections), /want to begin without paying/);
+  assert.equal(st.proof?.verdict, "Ship");
+  assert.equal(st.left.length, 0, "nothing left for the lint");
+});
+
+test("the proof holds a draft with a marker, a paragraph printed twice, a wrong count or a wrong weekday", async () => {
+  const { proofDraft } = await import("../src/lib/writerPolish.ts");
+  const list = (items: string[]) => ({ type: "ul" as const, text: "", items, rows: [] });
+  const para = (text: string) => ({ type: "p" as const, text, items: [], rows: [] });
+  const ok = proofDraft([{ key: "a", h2: "Steps", blocks: [para("Follow these 3 steps to plan the month:"), list(["Pick topics.", "Write briefs.", "Publish."])] }]);
+  assert.equal(ok.verdict, "Ship");
+  const bad = proofDraft([
+    { key: "a", h2: "Steps", blocks: [para("Follow these 4 steps to plan the month:"), list(["Pick topics.", "Write briefs.", "Publish."])] },
+    { key: "b", h2: "Dates", blocks: [para("The sale starts on Monday, November 13, 2026 for every store in the country."), para("Add [DETAIL NEEDED: the client's result] here.")] },
+    { key: "c", h2: "Again", blocks: [para("The sale starts on Monday, November 13, 2026 for every store in the country."), para("Check the the price first.")] },
+  ]);
+  assert.equal(bad.verdict, "Hold");
+  const r = bad.reasons.join(" | ");
+  assert.match(r, /says 4 steps and lists 3/);
+  assert.match(r, /is a Friday/);
+  assert.match(r, /DETAIL NEEDED/);
+  assert.match(r, /appears twice/);
+  assert.match(r, /"the the"/);
+});
