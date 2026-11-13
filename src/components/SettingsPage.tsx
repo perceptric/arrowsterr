@@ -4,11 +4,11 @@ export type SettingsTab = "profile" | "security" | "notifications" | "settings" 
 
 /** Settings each brand has of its own (docs/content-v2.md, Per brand and per workspace). Brand's own page moved here. */
 export type BrandTab = "voice" | "kit" | "guidelines" | "publishing" | "google" | "shopsettings" | "alerts";
+/** Publishing sites moved to Publish › Sites (docs/content-v3-plan.md, section 1); the tab id stays for BrandSettings. */
 export const BRAND_TABS: { id: BrandTab; label: string }[] = [
   { id: "voice", label: "Tone of voice" },
   { id: "kit", label: "Brand Kit" },
   { id: "guidelines", label: "Guidelines" },
-  { id: "publishing", label: "Publishing sites" },
   { id: "google", label: "Google Analytics" },
   { id: "shopsettings", label: "AI Shopping" },
   { id: "alerts", label: "Slack and alerts" },

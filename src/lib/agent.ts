@@ -5,6 +5,7 @@ import { BUSINESS_TYPES } from "./onboarding";
 import type { Profile } from "./db";
 import { competitors, overview, Spend, research, topUrls, type Market } from "./keywords";
 import { cleanUrl, findPages } from "./sitemap";
+import { aiGaps, buildOpportunities, saveOpportunities, type GapInfo } from "./opportunities";
 import { FORMATS, GOALS, groupBySerp, marketOf, PATTERNS, pick, STAGES, stageCounts, type PlanBrief, type AgentKeyword, type AgentResult, type AgentUpdate, type Keyword, type SitePage, type Stage } from "./research";
 
 // Agentic Keyword Research: Claude writes keywords stage by stage, DataForSEO checks each one,
@@ -274,15 +275,55 @@ export async function runAgent(sb: SupabaseClient, runId: string, site: Site) {
     await pool(fresh, 8, async (k) => {
       serps.set(k.keyword, await topUrls(k.keyword, m, spend).catch(() => []));
     });
+    // Topics from AI answers that name competitors and leave out the brand (docs/content-v3-backend.md, section 2.2).
+    await step("Reading AI answers");
+    const gapLimit = (site.brief?.size ?? 120) <= 10 ? 2 : 12;
+    const { added, marked } = await aiGaps(sb, site.id, fresh, serps, themes ?? [], m, spend, (k) => topUrls(k, m, spend)).catch((e) => {
+      console.error("AI answer topics failed:", e instanceof Error ? e.message : e);
+      return { added: [], marked: new Map<string, GapInfo>() };
+    });
+    const all = [...fresh, ...added.slice(0, gapLimit)];
+    // Update pages need their results too, so they can join clusters.
+    await pool(updates.filter((u) => !serps.has(u.keyword)), 8, async (u) => {
+      serps.set(u.keyword, await topUrls(u.keyword, m, spend).catch(() => []));
+    });
+
     await step("Grouping keywords into pages");
-    const groups = groupBySerp(fresh, serps);
+    const groups = groupBySerp(all, serps);
+
+    // Clusters, pillars, names and scores, saved as ideas on the plan (section 2). When this fails, the plan still
+    // finishes and the page adds its rows the old way.
+    await step("Finding clusters");
+    let banked = false;
+    let clusters: { name: string; pillar: string; pages: number }[] = [];
+    try {
+      const ranks = new Map(ranked.filter((k) => k.rank).map((k) => [norm(k.keyword), k.rank!]));
+      const opp = await buildOpportunities({ domain: site.domain, keywords: all, groups, updates, serps, ranks, marked });
+      const { data: run } = await sb.from("keyword_runs").select("workspace_id, status").eq("id", runId).maybeSingle();
+      if (run?.workspace_id && run.status === "running") {
+        const rivalOf = new Map(all.filter((k) => k.competitor).map((k) => [k.keyword, k.competitor!]));
+        await saveOpportunities(sb, {
+          workspaceId: run.workspace_id,
+          siteId: site.id,
+          runId,
+          opp,
+          source: (x) => (x.action === "update" ? "content plan: your sitemap" : x.engine ? "ai answers" : rivalOf.get(x.keyword) ? `content plan: ${rivalOf.get(x.keyword)}` : "content plan"),
+        });
+        banked = true;
+        clusters = opp.clusters.map((c) => ({ name: c.name, pillar: c.pillar, pages: c.pages.length }));
+      }
+    } catch (e) {
+      console.error("Opportunities failed:", e instanceof Error ? e.message : e);
+    }
 
     const result: AgentResult = {
       brief: site.brief,
       themes: themes ?? [],
-      keywords: fresh,
+      keywords: all,
       groups,
       updates,
+      clusters,
+      banked,
       sitemap: { source: map.source, pages: map.pages.length, articles: articles.length, ranking: new Set(ranked.map((k) => k.url).filter(Boolean)).size },
       competitors: rivals.map((d, i) => ({ domain: d, keywords: rivalLists[i].length })),
       approved: [],

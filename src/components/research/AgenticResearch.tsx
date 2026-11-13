@@ -17,14 +17,18 @@ const STEPS = [
   "Writing brand awareness keywords",
   "Checking existing articles",
   "Reading Google results",
+  "Reading AI answers",
   "Grouping keywords into pages",
+  "Finding clusters",
 ];
 const stepIndex = (step: string) => {
   const fixed = ["Reading the sitemap", "Checking what the site", "Finding competitors"].findIndex((x) => step.startsWith(x));
   if (fixed >= 0) return fixed;
   if (step.startsWith("Checking") && step.includes("existing articles")) return 6;
   if (step.startsWith("Reading Google")) return 7;
-  if (step.startsWith("Grouping")) return 8;
+  if (step.startsWith("Reading AI")) return 8;
+  if (step.startsWith("Grouping")) return 9;
+  if (step.startsWith("Finding clusters")) return 10;
   const s = STAGES.findIndex((x) => step.includes(x.label));
   return s >= 0 ? s + 3 : 0;
 };

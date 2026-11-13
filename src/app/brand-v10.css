@@ -312,3 +312,21 @@ html, body { background: var(--v10-canvas) !important; }
 /* On a laptop the row stays on one line (no 3-and-2 wrap); on a tablet, in two columns, a last number left alone fills its row. */
 @media (min-width: 1025px) { :root :is(.aw, #calm) .aw-stats--tight { grid-template-columns: repeat(var(--cols, 4), minmax(0, 1fr)) !important; } }
 @media (max-width: 1024px) { :root :is(.aw, #calm) .aw-stats > .aw-stat:last-child:nth-child(odd) { grid-column: 1 / -1; } }
+
+/* ─────────────── Sheet: column letters and grouped rows (Opportunities) ─────────────── */
+:root :is(.aw, #calm) .aw-sheet.has-letters thead tr.aw-sheet__letters th {
+  top: 0 !important; height: 24px !important; padding: 0 6px !important; line-height: 24px !important; text-align: center !important;
+  font-family: var(--aw-mono) !important; font-size: 10.5px !important; font-weight: 400 !important; color: var(--aw-faint) !important;
+  background: var(--aw-surface-2) !important; cursor: pointer; user-select: none;
+}
+:root .aw .aw-sheet.has-letters thead tr.aw-sheet__letters th:hover { color: var(--aw-ink) !important; }
+:root .aw .aw-sheet.has-letters thead tr.aw-sheet__letters th.is-col-on { color: var(--aw-brand) !important; box-shadow: none; }
+:root :is(.aw, #calm) .aw-sheet.has-letters thead tr:not(.aw-sheet__letters) th { top: 24px !important; }
+.aw .aw-sheet tr.aw-sheet__group > td { background: var(--aw-surface-2) !important; }
+.aw .aw-sheet tr.aw-sheet__group > td.aw-sheet__grouphead { padding: 0 10px; height: 34px; }
+.aw .aw-sheet .aw-sheet__groupin { position: sticky; display: inline-flex; align-items: center; gap: 12px; }
+.aw .aw-sheet .aw-sheet__toggle { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; color: var(--aw-ink); }
+.aw .aw-sheet .aw-sheet__toggle svg { color: var(--aw-faint); transition: transform 120ms ease; }
+.aw .aw-sheet tr.aw-sheet__group.is-open .aw-sheet__toggle svg { transform: rotate(90deg); }
+.aw .aw-sheet .aw-sheet__groupmeta { font-size: 12px; color: var(--aw-muted); }
+@media (prefers-reduced-motion: reduce) { .aw .aw-sheet .aw-sheet__toggle svg { transition: none; } }

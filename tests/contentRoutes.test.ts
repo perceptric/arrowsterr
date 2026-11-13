@@ -3,12 +3,14 @@ import { test } from "node:test";
 import { CONTENT_ALIASES, CONTENT_SLUGS, contentPageFromPath } from "../src/lib/contentRoutes.ts";
 
 test("content: each page opens at its own address", () => {
-  assert.equal(contentPageFromPath("/editorial-calendar"), "calendar");
+  assert.equal(contentPageFromPath("/opportunities"), "opportunities");
+  assert.equal(contentPageFromPath("/calendar"), "calendar");
   assert.equal(contentPageFromPath("/drafts/"), "library");
 });
 
-test("content: old Opportunities, Calendar and Content Plan addresses open the Editorial Calendar", () => {
-  for (const p of ["/opportunities", "/calendar", "/content-plan", "/content-calendar", "/topic-bank", "/agentic-research", "/content-intelligence"]) assert.equal(contentPageFromPath(p), "calendar", p);
+test("content: old Content Plan names open Opportunities; the Editorial Calendar opens Calendar", () => {
+  for (const p of ["/content-plan", "/topic-bank", "/agentic-research", "/planner"]) assert.equal(contentPageFromPath(p), "opportunities", p);
+  for (const p of ["/editorial-calendar", "/content-calendar", "/content-intelligence"]) assert.equal(contentPageFromPath(p), "calendar", p);
 });
 
 test("content: /content, the Library and the old Agentic Writer open Drafts; Brand is in Settings now", () => {

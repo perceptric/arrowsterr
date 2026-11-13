@@ -77,7 +77,7 @@ import { CONTENT_ALIASES, CONTENT_SLUGS, type ContentPage } from "@/lib/contentR
 
 export type { Brand } from "@/lib/db";
 type Page = "prompts" | "competitors" | "domains" | "urls" | "shopping" | "traffic" | "visitors" | "keywords" | "domain" | "gap" | ContentPage | "summary" | SettingsTab;
-const RESEARCH: Page[] = ["keywords", "domain", "gap", "calendar"];
+const RESEARCH: Page[] = ["keywords", "domain", "gap", "calendar", "opportunities"];
 const VISIBILITY: Page[] = ["prompts", "competitors", "domains", "urls"];
 /** Pages with their own PDF (docs/reports.md, section 32.3). */
 const PDF_OF: Partial<Record<Page, PdfPage>> = { prompts: "prompts", competitors: "competitors", domains: "sources", urls: "sources", keywords: "keywords", domain: "domain", gap: "gap" };
@@ -93,9 +93,9 @@ const SLUGS: Record<Page, string> = {
   shopping: "/ai-shopping",
   traffic: "/traffic",
   visitors: "/visitors",
-  keywords: "/keywords",
-  domain: "/domain-research",
-  gap: "/competitive-analysis",
+  keywords: "/research/keywords",
+  domain: "/research/domains",
+  gap: "/research/competitors",
   ...CONTENT_SLUGS,
   summary: "/reports",
   profile: "/settings/profile",
@@ -111,7 +111,7 @@ const SLUGS: Record<Page, string> = {
   guidelines: "/settings/guidelines",
   retention: "/settings/data-retention",
   integrations: "/settings/integrations",
-  publishing: "/settings/publishing",
+  publishing: "/publish/sites",
   google: "/settings/google-analytics",
   shopsettings: "/settings/ai-shopping",
   alerts: "/settings/alerts",
@@ -129,6 +129,11 @@ const ALIASES: Record<string, Page> = {
   "/urls": "urls",
   "/analytics": "traffic",
   "/keyword-research": "keywords",
+  "/keywords": "keywords",
+  "/research": "keywords",
+  "/domain-research": "domain",
+  "/competitive-analysis": "gap",
+  "/settings/publishing": "publishing",
   "/keyword-gap": "gap",
   "/industry-research": "gap",
   "/ai-gap": "gap",
@@ -669,8 +674,8 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
         onDone={onboard}
         onExit={() => {
           setAdding(false);
-          // Starter on Organic Research lands on the Editorial Calendar; everyone else on their prompts.
-          go(plan && !plan.open.visibility ? "calendar" : "prompts");
+          // Starter on Organic Research lands on Opportunities; everyone else on their prompts.
+          go(plan && !plan.open.visibility ? "opportunities" : "prompts");
         }}
         engines={engines ?? []}
         checkEvery={plan?.limits.checkEvery ?? 1}
@@ -959,12 +964,28 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
               }}
               onPlans={() => go("billing")}
             />
+          ) : (page as string) === "publishing" ? (
+            <div className="flex flex-col gap-5">
+              <h1 className="aw-h2">Sites</h1>
+              <BrandSettings
+                key={ws.id}
+                sb={sb}
+                tab="publishing"
+                auth={auth}
+                brand={{ id: view.brand.id, name: view.brand.name, domain: view.brand.domain }}
+                brands={(brands ?? []).map((b) => ({ id: b.id, name: b.name, domain: b.domain }))}
+                canEdit={canEdit}
+                isAdmin={atLeast(ws.role, "admin")}
+                onBrand={setActiveId}
+              />
+            </div>
           ) : page === "library" ? (
             <LibraryPage key={view.brand.id} view={view} auth={auth} canEdit={canEdit} onCalendar={() => go("calendar")} />
           ) : RESEARCH.includes(page) ? (
             <ResearchPage key={view.brand.id} sb={sb} auth={auth} view={view} canEdit={canEdit} tool={page as Tool} onTool={(t) => go(t)} seoStart={seoStart}
               refresh={{ paid: Boolean(plan && plan.plan !== "free" && plan.plan !== "trial"), onUpgrade: () => go("billing") }}
               writer={{ open: !plan || plan.limits.writer === "full", onUpgrade: () => go("billing") }}
+              onDrafts={() => go("library")}
               onSeoStarted={() => setSeoStart(null)}
               onSeo={(target, scope) => {
                 setSeoStart({ target, scope });
@@ -1079,35 +1100,35 @@ function NavIcon({ name }: { name: string }) {
 
 /** The toolset a page belongs to. Starter opens one of them. */
 const trackOf = (page: Page): Track | null =>
-  ["prompts", "competitors", "domains", "urls", "shopping"].includes(page) ? "visibility" : ["keywords", "domain", "gap", "calendar", "library"].includes(page) ? "seo" : null;
+  ["prompts", "competitors", "domains", "urls", "shopping"].includes(page) ? "visibility" : ["keywords", "domain", "gap", "calendar", "library", "opportunities"].includes(page) ? "seo" : null;
 
 /** The big modules of the app. Each opens to its own pages. */
 const NAV: { group: string; icon: string; items: { id: Page; label: string; icon: string; also?: Page[] }[] }[] = [
   {
-    group: "AI Visibility",
+    group: "Plan & Create",
+    icon: "pen",
+    items: [
+      { id: "opportunities", label: "Opportunities", icon: "trend" },
+      { id: "keywords", label: "Research", icon: "search", also: ["domain", "gap"] },
+      { id: "library", label: "Drafts", icon: "book" },
+    ],
+  },
+  {
+    group: "Publish",
+    icon: "send",
+    items: [
+      { id: "calendar", label: "Calendar", icon: "calendar" },
+      { id: "publishing", label: "Sites", icon: "globe" },
+    ],
+  },
+  {
+    group: "Monitor",
     icon: "radar",
     items: [
       { id: "prompts", label: "Prompts", icon: "prompts" },
       { id: "competitors", label: "Competitors", icon: "competitors" },
       { id: "domains", label: "Sources", icon: "sources", also: ["urls"] },
       { id: "shopping", label: "AI Shopping", icon: "bag" },
-    ],
-  },
-  {
-    group: "Organic Research",
-    icon: "search",
-    items: [
-      { id: "keywords", label: "Keyword Research", icon: "search" },
-      { id: "domain", label: "Domain Research", icon: "globe" },
-      { id: "gap", label: "Competitive Analysis", icon: "gap" },
-    ],
-  },
-  {
-    group: "Content",
-    icon: "pen",
-    items: [
-      { id: "calendar", label: "Editorial Calendar", icon: "calendar" },
-      { id: "library", label: "Drafts", icon: "book" },
     ],
   },
   {

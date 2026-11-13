@@ -58,7 +58,7 @@ const readView = (): CalView => {
 };
 
 /** A plan row as a Content Plan item. */
-const toItem = (siteId: string, r: PlanRow & { due_date?: string | null }): NewCalendarItem => ({
+export const toItem = (siteId: string, r: PlanRow & { due_date?: string | null }): NewCalendarItem => ({
   site_id: siteId,
   keyword: r.keyword,
   secondary: r.others ?? [],
@@ -431,7 +431,7 @@ export function EditorialCalendar({
   const head = (
     <header className="flex flex-wrap items-center justify-between gap-3">
       <span className="flex flex-wrap items-center gap-3">
-        <h1 className="aw-h2 mb-0!">Editorial Calendar</h1>
+        <h1 className="aw-h2 mb-0!">Calendar</h1>
         {built ? <ViewSwitch value={view} onChange={setView} options={VIEWS} /> : null}
       </span>
       {built ? (

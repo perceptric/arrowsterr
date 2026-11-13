@@ -9,7 +9,7 @@ Everything runs on what we have: the jobs queue (`src/lib/jobs.ts`), the worker,
 ## 1. The flow in one picture
 
 ```
-Find opportunities ─► opp_find ─► content_clusters + calendar_items (ideas)
+Find opportunities ─► plan job ─► content_clusters + calendar_items (ideas)
                                         │  Research / Research cluster / Import
                                         ▼
                                   research_run (agent, resumable)
@@ -62,8 +62,9 @@ The reason text is built in code from the data, with no AI: "ChatGPT names North
 Before any grouping, each top-10 link is cleaned so the same page always matches:
 
 - lowercase host, drop `www.`, the query string, the `#` part and a trailing slash;
-- drop the brand's own domain;
-- drop any link that shows in more than 40% of this run's keyword results. Wikipedia, Amazon, Reddit and YouTube show up for almost everything, so they would join topics that have nothing to do with each other. The 40% rule finds them from the data with no fixed list.
+- drop the brand's own domain and Google's own links;
+- drop home pages and section pages (`/blog`, `/guides`). A link counts only when it ends in an article's slug: a hyphen, an underscore, a number, a file ending or a long word. Google often shortens a result's address to its section, and a home page is about a whole site, so both joined topics that had nothing in common on real results;
+- drop any link that shows in more than 40% of this run's keyword results (only with 5 or more result lists). Sites that show up for almost everything would join unrelated topics. The 40% rule finds them from the data with no fixed list.
 
 ### 2.4 Step 3: pages
 
@@ -71,19 +72,22 @@ Before any grouping, each top-10 link is cleaned so the same page always matches
 
 ### 2.5 Step 4: clusters
 
-1. Each page gets a link set: every cleaned link in its keywords' top 10.
-2. For every pair of pages, the edge weight is the number of links they share. Pairs with 0 have no edge.
-3. Sort the edges by weight, highest first. Ties go to the pair whose keywords come first in A to Z order, so the result never changes between runs.
-4. Walk the sorted edges and join the two pages' groups (union-find), but only when the joined group would be 12 pages or fewer.
-5. This is Kruskal's method with a size cap. The strongest links join first, so every cluster holds the pages that belong together most, and no cluster passes 12.
-6. A page with no edges joins the cluster in the same theme whose keywords share the most words with it (at least 30%), if that cluster has room. Otherwise it stands alone as a one-page cluster.
-7. Update rows (pages the site already has) go through the same steps. Any that end up alone go into one cluster named "Pages to update".
+Tested on 3 recorded plans (running shoes, project management software, bookkeeping) in `tests/fixtures/clusters`. On real results, different subtopics share few article links, so links alone left most pages alone. The rule uses the plan's themes as well:
+
+1. **Links between pages.** Two pages are linked when they share 2 or more top-10 pages, or 1 page and some words (10% overlap). Pages in the same theme are also linked when they share 2 or more sites and a fifth of their words, or 40% of their words. Pages in different themes need a shared page, so the plan's themes stay apart unless Google joins them.
+2. **Strength** = 3 × shared pages + shared sites + 4 × word overlap. Sort the links strongest first. Ties go to the pair whose keywords come first in A to Z order, so the result never changes between runs.
+3. **Join** the two pages' groups along each link (union-find), but only when the joined group would be 12 pages or fewer. This is Kruskal's method with a size cap: the strongest links join first, and no cluster passes 12.
+4. **Pages left alone** join the cluster in their theme that holds the most of their words (a quarter or more), if it has room.
+5. **Pages still alone** in the same theme form one cluster for that theme, 12 at a time.
+6. **Update rows** still alone go into one cluster named "Pages to update". Anything else stands alone.
+
+The code is `buildClusters` in `src/lib/clusters.ts`.
 
 ### 2.6 Step 5: pillar, name and link plan
 
-- **Pillar:** the page with the highest sum of edge weights inside its cluster. Ties go to more volume, then A to Z.
-- **Name:** Claude Haiku names the cluster in 2 to 4 words from its keywords. Code checks that every word (lowercased, with a trailing "s" removed) appears in the cluster's keywords. If the check fails, the pillar's keyword is the name. Names are cached by a hash of the sorted keywords, so a cluster that didn't change costs nothing to name again.
-- **Link plan:** every page links to its pillar, and the pillar links to every page. Stored on the cluster as a list of `[from item, to item]`.
+- **Pillar:** of the pages with at least half the cluster's top link strength, the one with the most searches. Ties go to more strength, then A to Z. On the recorded plans this picks the broad page ("best running shoes for beginners", "best trail running shoes", "marathon training plan").
+- **Name:** Claude Haiku names the clusters in one call, 2 to 4 words from their keywords. Code checks that every word (lowercased, with a trailing "s" removed) appears in the cluster's keywords. If the check fails, the pillar's keyword is the name.
+- **Link plan:** every page links to its pillar, and the pillar links to every page. The cluster stores its page keywords and the pillar, and each row knows if it is the pillar, so Drafts can read the plan.
 
 ### 2.7 Step 6: score
 
@@ -114,9 +118,10 @@ A new run must not scramble what people already did.
 
 ### 2.9 Job and limits
 
-- Job `opp_find`, keyed by site so only one runs at a time. It runs `runAgent` and then steps 1 to 6.
-- Steps 1 and 3 to 6 are pure functions in `src/lib/clusters.ts`, tested on recorded keyword sets.
-- The 30-day refresh rule on paid plans stays.
+- The existing `plan` job runs it, keyed by run, one run at a time per site. After `runAgent` reads the results, it reads AI answers ("Reading AI answers"), groups pages, then finds clusters and saves them ("Finding clusters"), all in `src/lib/opportunities.ts`.
+- When saving fails, the plan still finishes and the page adds its rows the old way, with no clusters.
+- The pure parts are in `src/lib/clusters.ts`, tested on the recorded plans.
+- The 30-day refresh rule on paid plans stays. A trial plan adds at most 2 AI-answer topics.
 
 ---
 
@@ -360,7 +365,7 @@ Every table has row-level security by workspace role, like the rest of the schem
 
 | Job | Started by | Key | At once | Retries |
 |---|---|---|---|---|
-| `opp_find` | Find opportunities, the 30-day refresh | site | 1 per site | 3 |
+| `plan` (adds clusters) | Find opportunities, the 30-day refresh | run | 1 per site | 2 |
 | `research_run` | Research, Research cluster, Import, Update | research id | 2 per workspace | Resumes after waits; 3 for errors |
 | `draft_from_research` | Send to Drafts | research id | as `writer_draft` | 3 |
 | `refresh_check` | Weekly | site + week | 4 overall | 3 |
@@ -413,7 +418,7 @@ The phases in `docs/content-v3-plan.md` stay. This doc adds what each phase buil
 
 | Phase | Backend |
 |---|---|
-| 1. Opportunities | Sections 2, 9 (clusters, calendar item columns), the `opp_find` job, the cluster tests |
+| 1. Opportunities | Sections 2, 9 (clusters, calendar item columns), clusters in the `plan` job, the cluster tests on recorded plans |
 | 2. Research | Section 3, `content_research`, the quote check and resume tests |
 | 3. Drafts | Section 4, `draft_from_research`, `moveDraft`, the sheet `PATCH` |
 | 4. Review | Sections 5.1 and 5.2, `doc_reviews`, threads, mentions, `canPublish`, the gate test |
