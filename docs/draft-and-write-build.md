@@ -78,6 +78,10 @@ Every later step is tested offline on real research.
 3. `src/lib/writerScore.ts` measures each article: words, house rule findings left, money, percent and large numbers the research doesn't have, links that are neither sources nor the brand's pages, images planned and modules built.
 4. `scripts/writer-baseline.mjs` runs today's writer (`runBrief`, `runDraft`, same prompts, schemas and limits as `writerServer.ts`) on the 20 topics and saves each article with its score in `tests/fixtures/writer/baseline/`, plus `summary.json`. It needs `ANTHROPIC_API_KEY`, about $16 for all 20 (check). `--fake` checks the wiring for free.
 
+To run the baseline on the VPS with the web app's key, without the key leaving the server: create a one-off Docker project with Hostinger's API (`POST /api/vps/v1/virtual-machines/2139771/docker`) whose service uses `node:22-bookworm-slim`, reads `env_file: /docker/arrowsterr-web/.env`, downloads the branch from `codeload.github.com` at a pinned commit and runs `sh scripts/writer-baseline-run.sh` (set `BASELINE_TOPICS` to run some topics). The results come back in the logs as `RESULT` lines (gzip and base64). Take the project down when it finishes.
+
+Found while running the baseline: Sonnet 5.5 thinks on its own, and on a brief it spent all 12,000 reply tokens thinking and returned no text. Every JSON call now turns thinking off (`claudeRequest.ts`). Sonnet 5.5 takes that as `"between_tools"` and refuses `"disabled"`, and the API's error names the right one, so `claude.ts` learns it per model. A reply that runs out of tokens with no text now fails with that reason, so the job retries.
+
 Found while recording: Google now sends most results as `google.com/goto` links that land on `www.google.com/goto` first, and the app followed only one step. Most top-10 pages fell back to Google's breadcrumb, and a breadcrumb cut short with "..." became a broken address. `fixSerpItems` now follows up to 3 steps and drops cut-off breadcrumb parts. That fixes article research, the rank tracker, keyword research and briefs.
 
 **Done when** the 20 packs load in tests with no network and the baseline summary is saved.
