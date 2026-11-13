@@ -24,6 +24,14 @@
 :root :is(.aw, #calm) .zp-cbox { background: var(--v10-card); border-radius: 18px; box-shadow: 0 0 0 1px var(--v10-border), var(--v10-shadow-lg) !important; }
 :root :is(.aw, #calm) .zp-cbox:focus-within { box-shadow: 0 0 0 2px var(--v10-signal-ring), var(--v10-shadow-lg) !important; }
 :root :is(.aw, #calm) .zp-cbox--big { border-radius: 20px; }
+/* The floating chat bar: one thin row. */
+:root :is(.aw, #calm) .zp-cbox--slim { display: flex; align-items: center; gap: 4px; min-height: 44px; padding: 0 6px 0 4px; border-radius: 14px; }
+:root :is(.aw, #calm) .zp-cbox--slim .zp-cbox__chips { flex: none; flex-wrap: nowrap; padding: 0 0 0 6px; }
+:root :is(.aw, #calm) .zp-cbox--slim .zp-cbox__input { flex: 1; min-width: 0; min-height: 40px; padding: 10px 8px !important; }
+:root :is(.aw, #calm) .zp-cbox--slim .zp-cbox__bar { flex: none; padding: 0; }
+:root :is(.aw, #calm) .zp-cbox--slim .zp-cbox__hint, :root :is(.aw, #calm) .zp-cbox--slim .zp-cbox__bar > .flex-1 { display: none; }
+:root :is(.aw, #calm) .zp-cbox--slim .zp-send { width: 30px; height: 30px; }
+@media (max-width: 640px) { :root :is(.aw, #calm) .zp-cbox--slim .zp-cbox__chips { display: none; } }
 :root :is(.aw, #calm) .zp-cbox__chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 12px 0; }
 :root :is(.aw, #calm) .zp-cbox__input { display: block; width: 100%; min-height: 44px; max-height: 200px; resize: none; border: 0 !important; box-shadow: none !important; background: transparent !important; padding: 10px 16px 4px !important; font-size: 14px; line-height: 1.5; color: var(--v10-ink); outline: none; }
 :root :is(.aw, #calm) .zp-cbox--big .zp-cbox__input { min-height: 64px; font-size: 15px; }
@@ -51,7 +59,7 @@
 /* ─────────── The chat bar on every page ─────────── */
 /* A sticky band of no height at the bottom of the page column: the box floats over the page and stays in view. */
 :root :is(.aw, #calm) .zp-dock-wrap { position: sticky; bottom: 0; z-index: 30; height: 0; pointer-events: none; }
-:root :is(.aw, #calm) .zp-dock-in { position: absolute; bottom: max(16px, env(safe-area-inset-bottom, 0px)); left: 16px; right: 16px; margin: 0 auto; max-width: 680px; pointer-events: auto; }
+:root :is(.aw, #calm) .zp-dock-in { position: absolute; bottom: max(12px, env(safe-area-inset-bottom, 0px)); left: 16px; right: 16px; margin: 0 auto; max-width: 880px; pointer-events: auto; }
 @media (min-width: 768px) { :root :is(.aw, #calm) .zp-dock-in { left: calc(24px + var(--zp-offset, 0px)); right: 24px; } }
 :root :is(.aw, #calm) .zp-sugg { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-bottom: 8px; }
 :root :is(.aw, #calm) .zp-sugg--left { justify-content: flex-start; }
@@ -106,8 +114,8 @@
 :root :is(.aw, #calm) .zp-tree__folder:hover { background: var(--v10-soft); color: var(--v10-ink); }
 :root :is(.aw, #calm) .zp-tree__none { padding: 4px 34px; font-size: 12px; color: var(--v10-faint); }
 :root :is(.aw, #calm) .zp-pane { flex: 1; min-width: 0; overflow-y: auto; background: var(--v10-canvas); }
-:root :is(.aw, #calm) .zp-pane__in { max-width: 800px; margin: 0 auto; padding: 24px 28px 200px; }
-:root :is(.aw, #calm) .zp-pane__wide { max-width: 1040px; margin: 0 auto; padding: 24px 28px 200px; }
+:root :is(.aw, #calm) .zp-pane__in { max-width: 800px; margin: 0 auto; padding: 24px 28px 96px; }
+:root :is(.aw, #calm) .zp-pane__wide { max-width: 1040px; margin: 0 auto; padding: 24px 28px 96px; }
 @media (max-width: 767px) { :root :is(.aw, #calm) :is(.zp-pane__in, .zp-pane__wide) { padding-left: 16px; padding-right: 16px; } }
 :root :is(.aw, #calm) .zp-h2 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.02em; color: var(--v10-ink); }
 :root :is(.aw, #calm) .zp-lbl { font-size: 12px; font-weight: 500; color: var(--v10-muted); }
@@ -153,7 +161,7 @@
 :root :is(.aw, #calm) :is(.zp-cbox, .zp-filebox, .zp-pane) :is(input, textarea).tw-bare.tw-bare:is(*, :hover, :focus, :focus-visible):not(.zp-none) { outline: none !important; box-shadow: none !important; border-color: transparent !important; background: transparent !important; }
 
 /* Every page scrolls past the chat bar, so its last line can sit above it. */
-:root :is(.aw, #calm) main.aw-page-body.aw-page-body:not(.zp-page-body) { padding-bottom: 220px !important; }
+:root :is(.aw, #calm) main.aw-page-body.aw-page-body:not(.zp-page-body) { padding-bottom: 96px !important; }
 
 /* No focus ring after a click or tap. The ring stays for people moving with the keyboard. */
 :root[data-pointer] :is(.aw, #calm) :focus-visible, :root[data-pointer] :is(.aw, #calm) :focus { outline: none !important; }

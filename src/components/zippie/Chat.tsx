@@ -69,19 +69,9 @@ function Thread({ compact = false }: { compact?: boolean }) {
 export function ZippieDock({ offset = 0 }: { offset?: number }) {
   const z = useZippie();
   if (z.panel) return null;
-  const sugg = SUGGEST[z.where.page] ?? START.slice(0, 3);
   return (
     <div className="zp-dock-wrap print:hidden" style={{ ["--zp-offset" as string]: `${offset}px` }}>
       <div className="zp-dock-in">
-        {!z.messages.length ? (
-          <div className="zp-sugg">
-            {sugg.map((s) => (
-              <button key={s} type="button" onClick={() => z.send(s)}>
-                {s}
-              </button>
-            ))}
-          </div>
-        ) : null}
         <Composer
           skills={z.lib.skills}
           busy={z.busy}
@@ -90,6 +80,7 @@ export function ZippieDock({ offset = 0 }: { offset?: number }) {
           onPending={z.setPending}
           onStop={z.stop}
           onSend={(t, k, withHere) => z.send(t, k, { here: withHere })}
+          slim
         />
       </div>
     </div>

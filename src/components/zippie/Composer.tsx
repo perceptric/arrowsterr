@@ -21,6 +21,7 @@ export function Composer({
   onPending,
   placeholder = "Ask Zippie, or type / for skills",
   big = false,
+  slim = false,
   autoFocus = false,
 }: {
   skills: Skill[];
@@ -32,6 +33,8 @@ export function Composer({
   onPending?: (s: Pick<Skill, "key" | "title"> | null) => void;
   placeholder?: string;
   big?: boolean;
+  /** One row: the chips, the text and the buttons side by side. The chat bar floating on every page uses it. */
+  slim?: boolean;
   autoFocus?: boolean;
 }) {
   const [text, setText] = useState("");
@@ -132,7 +135,7 @@ export function Composer({
           )}
         </div>
       ) : null}
-      <div className={`zp-cbox ${big ? "zp-cbox--big" : ""}`}>
+      <div className={`zp-cbox ${big ? "zp-cbox--big" : ""} ${slim ? "zp-cbox--slim" : ""}`}>
         {skill || (here && withHere) ? (
           <div className="zp-cbox__chips">
             {skill ? (
