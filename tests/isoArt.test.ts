@@ -3,7 +3,7 @@ import { test } from "node:test";
 import { DRAWING_KINDS, drawing, FRAME, isoVars, shade } from "../src/lib/isoArt.ts";
 
 test("every picture fits its frame, with room for the float", () => {
-  assert.equal(DRAWING_KINDS.length, 22);
+  assert.equal(DRAWING_KINDS.length, 25);
   for (const k of DRAWING_KINDS) {
     const { bounds: b } = drawing(k);
     for (const v of [b.x0, b.y0, b.x1, b.y1]) assert.ok(Number.isFinite(v), `${k}: ${v}`);
