@@ -4,17 +4,20 @@ import { adminClient, requireRole } from "@/lib/serverAuth";
 import { fold, fromCsv } from "@/lib/shopCatalog";
 import { shopOn, type ShopMode } from "@/lib/shopDetect";
 import { merchantAccounts, saveCatalog, storeAdded, pickMerchantAccount, type ShopSource } from "@/lib/shopServer";
+import { decide, rematch, reviewList } from "@/lib/shopMatchServer";
 
 // AI Shopping's catalog and switch for one brand (docs/ai-shopping-plan.md, sections 3 and 3.1).
 //   action "state" (viewers): the switch, the sources and the products.
 //   Editors: "mode" (auto, on, off), "shopify" (use a store from Publishing sites), "merchant" (Google's sign-in link),
-//   "accounts" and "account" (pick the Merchant Center account), "csv" (upload a file's text), "sync", "remove".
+//   "accounts" and "account" (pick the Merchant Center account), "csv" (upload a file's text), "sync", "remove",
+//   "decide" (Is this yours? yes with a product, or not ours) and "aliases" (other names the brand goes by).
+//   "review" (viewers): the cards in doubt.
 const MAX_CSV = 5_000_000;
 const SOURCE_COLS = "id, kind, name, account, email, status, error, products, variants, synced_at, cms_connection_id";
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
-  const auth = await requireRole(request, body.workspaceId, body.action === "state" ? "viewer" : "editor");
+  const auth = await requireRole(request, body.workspaceId, body.action === "state" || body.action === "review" ? "viewer" : "editor");
   if ("denied" in auth) return auth.denied;
   const db = adminClient();
   if (!db) return Response.json({ error: "Add SUPABASE_SECRET_KEY to the server's settings." }, { status: 500 });
@@ -36,7 +39,9 @@ export async function POST(request: Request) {
           db.from("cms_connections").select("id, name").eq("workspace_id", ws).eq("kind", "shopify").order("created_at"),
           db.from("shop_catalog").select("id, title, url, image, price_min, price_max, currency, in_stock, variants, product_type").eq("brand_id", brand.id).order("title").limit(2000),
         ]);
+        const { data: names } = await db.from("brands").select("shop_aliases").eq("id", brand.id).maybeSingle();
         return Response.json({
+          aliases: (names?.shop_aliases as string[] | undefined) ?? [],
           mode: brand.shop_mode,
           on: shopOn(brand.shop_mode as ShopMode, brand.shop_on),
           auto: { on: brand.shop_on, reason: brand.shop_reason, checkedAt: brand.shop_checked_at },
@@ -120,11 +125,34 @@ export async function POST(request: Request) {
         if (brand.shop_mode === "auto") await enqueue("shop_detect", { brandId: brand.id }, { workspaceId: ws, key: `shop_detect:${brand.id}:${Date.now()}` });
         return Response.json({ ok: true });
       }
+      case "review":
+        return Response.json({ groups: await reviewList(db, brand.id) });
+      case "decide": {
+        const keys = Array.isArray(body.keys) ? body.keys.filter((k: unknown): k is string => typeof k === "string") : [];
+        if (!keys.length) return fail("Nothing to decide.");
+        let productId: string | null = null;
+        if (body.productId) {
+          const { data: pr } = await db.from("shop_catalog").select("id").eq("id", String(body.productId)).eq("brand_id", brand.id).maybeSingle();
+          if (!pr) return fail("That product is not in this catalog.");
+          productId = pr.id as string;
+        }
+        const { data: user } = await auth.sb.auth.getUser(request.headers.get("authorization")!.replace(/^Bearer\s+/i, ""));
+        if (!user?.user) return fail("Please sign in again.", 401);
+        await decide(db, brand.id, ws, keys, productId, user.user.id);
+        return Response.json({ ok: true });
+      }
+      case "aliases": {
+        const list = (Array.isArray(body.aliases) ? body.aliases : []).map((a: unknown) => String(a).trim()).filter((a: string) => a.length >= 2 && a.length <= 60).slice(0, 10);
+        const { error } = await db.from("brands").update({ shop_aliases: [...new Set(list)] }).eq("id", brand.id);
+        if (error) throw new Error(error.message);
+        await rematch(brand.id, ws);
+        return Response.json({ ok: true });
+      }
       default:
         return fail("Unknown action.");
     }
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    return fail(/shop_sources|shop_catalog|shop_mode/.test(msg) ? "Run supabase/079_ai_shopping.sql on the database." : msg.slice(0, 300), 500);
+    return fail(/shop_cards|shop_ids|shop_aliases/.test(msg) ? "Run supabase/080_shop_matching.sql on the database." : /shop_sources|shop_catalog|shop_mode/.test(msg) ? "Run supabase/079_ai_shopping.sql on the database." : msg.slice(0, 300), 500);
   }
 }
