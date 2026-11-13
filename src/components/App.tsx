@@ -1334,7 +1334,7 @@ function Sidebar({
                 className={`aw-nav-link ${top ? "aw-nav-link--top" : ""} ${on ? "is-on" : ""}`}
               >
                 <NavIcon name={item.icon} />
-                <span className="min-w-0 truncate">{item.label}</span>
+                <span className="aw-nav-label min-w-0">{item.label}</span>
               </button>
             );
           };
