@@ -47,12 +47,12 @@
 
 /* The / menu: the list, and the highlighted skill's description beside it. */
 :root :is(.aw, #calm) .zp-slash { position: absolute; left: 0; right: 0; bottom: calc(100% + 8px); z-index: 40; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); max-height: min(420px, 55vh); overflow: hidden; border-radius: 12px; background: var(--v10-card); box-shadow: 0 0 0 1px var(--v10-border), var(--v10-shadow-xl) !important; }
-:root :is(.aw, #calm) .zp-slash__list { overflow-y: auto; padding: 6px; border-right: 1px solid var(--v10-border); }
+:root :is(.aw, #calm) .zp-slash__list { max-height: min(420px, 55vh); overflow-y: auto; overscroll-behavior: contain; padding: 6px; border-right: 1px solid var(--v10-border); }
 :root :is(.aw, #calm) .zp-slash__group { padding: 8px 8px 4px; font-size: 11.5px; font-weight: 500; color: var(--v10-faint); }
 :root :is(.aw, #calm) .zp-slash__opt { display: flex; align-items: flex-start; gap: 8px; width: 100%; padding: 6px 8px; border-radius: 7px; text-align: left; font-size: 13px; color: var(--v10-ink-2); }
 :root :is(.aw, #calm) .zp-slash__opt svg { margin-top: 2px; color: var(--v10-faint); flex: none; }
 :root :is(.aw, #calm) .zp-slash__opt[aria-selected="true"] { background: var(--v10-soft); color: var(--v10-ink); }
-:root :is(.aw, #calm) .zp-slash__prev { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; padding: 14px; font-size: 12.5px; line-height: 1.55; color: var(--v10-muted); }
+:root :is(.aw, #calm) .zp-slash__prev { display: flex; flex-direction: column; gap: 8px; max-height: min(420px, 55vh); overflow-y: auto; overscroll-behavior: contain; padding: 14px; font-size: 12.5px; line-height: 1.55; color: var(--v10-muted); }
 :root :is(.aw, #calm) .zp-slash__prev b { font-size: 13.5px; color: var(--v10-ink); }
 @media (max-width: 640px) { :root :is(.aw, #calm) .zp-slash { grid-template-columns: 1fr; } :root :is(.aw, #calm) .zp-slash__prev { display: none; } }
 
@@ -91,7 +91,12 @@
 
 /* ─────────── Skills and Knowledge: a tree on the left, the open item on the right ─────────── */
 :root :is(.aw, #calm) .zp-split { display: flex; flex: 1; min-height: 0; }
-@media (min-width: 768px) { :root :is(.aw, #calm) .zp-split { height: calc(100vh - 72px); } }
+/* On a computer the list and the open item each scroll on their own: the split is held to the window's height
+   (the page panel's 8px margins, its 56px head and the 12px gap under it), so it never grows with its content. */
+@media (min-width: 768px) {
+  :root :is(.aw, #calm) .zp-split { flex: none; height: calc(100dvh - 85px); min-height: 360px; overflow: hidden; }
+  :root :is(.aw, #calm) .zp-split > .zp-tree, :root :is(.aw, #calm) .zp-split > .zp-pane { height: 100%; overflow-y: auto; overscroll-behavior: contain; }
+}
 @media (max-width: 767px) { :root :is(.aw, #calm) .zp-split { flex-direction: column; } :root :is(.aw, #calm) .zp-tree { width: 100% !important; max-height: 280px; border-right: 0 !important; border-bottom: 1px solid var(--v10-border); } }
 :root :is(.aw, #calm) .zp-tree { flex: none; overflow-y: auto; padding: 0 8px 24px; background: var(--v10-card); border-right: 1px solid var(--v10-border); }
 :root :is(.aw, #calm) .zp-tree__head { display: flex; align-items: center; gap: 4px; padding-top: 12px; }

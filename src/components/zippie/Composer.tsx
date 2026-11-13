@@ -74,6 +74,11 @@ export function Composer({
     : [];
   const ordered = sections.flatMap((x) => x.items);
   const at = menu ? Math.min(menu.i, Math.max(0, ordered.length - 1)) : 0;
+  // The skill picked with the arrow keys stays in view as the list scrolls.
+  const list = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    list.current?.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: "nearest" });
+  }, [at, menu?.q]);
   const sel = ordered[at];
 
   const pick = (s: Skill) => {
@@ -94,10 +99,11 @@ export function Composer({
   return (
     <div className="relative">
       {menu ? (
-        <div className="zp-slash" role="listbox" aria-label="Skills">
+        // Pressing inside the menu (its scroll bar too) keeps the text box focused, so the menu stays open.
+        <div className="zp-slash" role="listbox" aria-label="Skills" onMouseDown={(e) => e.preventDefault()}>
           {ordered.length ? (
             <>
-              <div className="zp-slash__list">
+              <div className="zp-slash__list" ref={list}>
                 {sections.map((sec) => (
                   <div key={sec.key}>
                     <div className="zp-slash__group">{sec.label}</div>
