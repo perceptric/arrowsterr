@@ -39,6 +39,17 @@ export type Col<T> = {
   /** A column the user added, which they can delete. */
   onRemove?: () => void;
 };
+/** Rows shown in groups with a header row each, like a sheet's grouped rows. Each header opens and closes its rows. */
+export type SheetGroups<T> = {
+  of: (row: T) => string;
+  list: { id: string; name: string; meta?: React.ReactNode; tools?: React.ReactNode }[];
+};
+/** A, B, ... Z, AA, AB: a column's letter, like in a spreadsheet. */
+export function colLetter(i: number): string {
+  let s = "";
+  for (let n = i + 1; n > 0; n = Math.floor((n - 1) / 26)) s = String.fromCharCode(65 + ((n - 1) % 26)) + s;
+  return s;
+}
 type Layout = {
   hidden: string[];
   order: string[];
@@ -434,6 +445,8 @@ export function Sheet<T>({
   toolbar,
   tools = true,
   counts = true,
+  groups,
+  letters = false,
 }: {
   /** Saves this sheet's column layout in the browser. */
   id?: string;
@@ -463,11 +476,16 @@ export function Sheet<T>({
   tools?: boolean;
   /** False hides the row count above the sheet. */
   counts?: boolean;
+  /** Show rows in groups, each with a header row that opens and closes it. Paging is off with groups. */
+  groups?: SheetGroups<T>;
+  /** A row of column letters (A, B, C) above the column names. */
+  letters?: boolean;
 }) {
   const [sort, setSort] = useSort(initial.key, initial.desc);
   const [per, setPer] = useState(pageSize ?? 0);
   const [page, setPage] = useState(0);
   const [filters, setFilters] = useState<Record<string, Filter>>({});
+  const [closed, setClosed] = useState<Set<string>>(new Set());
   const [layout, setLayoutState] = useState<Layout>(() => readLayout(id));
   const menu = useAnchoredPop();
   const [colMenu, setColMenu] = useState<{ id: string; rect: DOMRect } | null>(null);
@@ -558,10 +576,14 @@ export function Sheet<T>({
     sort,
     Object.fromEntries(allCols.map((c) => [c.id, (r: T) => (c.type === "text" ? String(c.value(r) ?? "").toLowerCase() || null : c.value(r))])),
   );
-  const pages = per ? Math.max(1, Math.ceil(sorted.length / per)) : 1;
+  // Grouped rows keep the sort inside each group; a closed group shows only its header.
+  const grouped = groups ? groups.list.map((g) => ({ g, rows: sorted.filter((r) => groups.of(r) === g.id) })).filter((x) => x.rows.length) : null;
+  const base = grouped ? grouped.flatMap((x) => (closed.has(x.g.id) ? [] : x.rows)) : sorted;
+  const paged = Boolean(per) && !grouped;
+  const pages = paged ? Math.max(1, Math.ceil(base.length / per)) : 1;
   const pg = Math.min(page, pages - 1);
-  const first = per ? pg * per : 0;
-  const shown = per ? sorted.slice(first, first + per) : sorted;
+  const first = paged ? pg * per : 0;
+  const shown = paged ? base.slice(first, first + per) : base;
   const pickable = sorted.filter(canSelect);
   const allOn = pickable.length > 0 && pickable.every((r) => selected?.has(rowKey(r)));
   const someOn = pickable.some((r) => selected?.has(rowKey(r)));
@@ -578,6 +600,72 @@ export function Sheet<T>({
   const sized = (c: Col<T>) => {
     const w = widthOf(c);
     return w ? { width: w, minWidth: w, maxWidth: w } : c.width ? { minWidth: c.width } : undefined;
+  };
+
+  /** Header rows between the groups. Rows of an open group follow its header, in the order they are in shown. */
+  const withGroups = (els: React.ReactNode[]): React.ReactNode[] => {
+    if (!grouped) return els;
+    const out: React.ReactNode[] = [];
+    let k = 0;
+    for (const { g, rows: gr } of grouped) {
+      const open = !closed.has(g.id);
+      const keys = gr.filter(canSelect).map(rowKey);
+      const all = keys.length > 0 && keys.every((x) => selected?.has(x));
+      out.push(
+        <tr key={`group:${g.id}`} className={`aw-sheet__group ${open ? "is-open" : ""}`}>
+          <td className="aw-sheet__n" />
+          {onSelect ? (
+            <td className="aw-sheet__pick">
+              <input
+                type="checkbox"
+                aria-label={`Select ${g.name}`}
+                checked={all}
+                disabled={!keys.length}
+                onChange={(e) => {
+                  const next = new Set(selected);
+                  for (const x of keys) {
+                    if (e.target.checked) next.add(x);
+                    else next.delete(x);
+                  }
+                  onSelect(next);
+                }}
+              />
+            </td>
+          ) : null}
+          <td colSpan={cols.length} className="aw-sheet__grouphead">
+            <span className="aw-sheet__groupin" style={{ left: onSelect ? 76 : 44 }}>
+              <button
+                type="button"
+                className="aw-sheet__toggle"
+                aria-expanded={open}
+                onClick={() => {
+                  setClosed((x) => {
+                    const n = new Set(x);
+                    if (n.has(g.id)) n.delete(g.id);
+                    else n.add(g.id);
+                    return n;
+                  });
+                  setCur(null);
+                  setAnchor(null);
+                }}
+              >
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true">
+                  <path d="m9 6 6 6-6 6" />
+                </svg>
+                {g.name}
+              </button>
+              {g.meta ? <span className="aw-sheet__groupmeta">{g.meta}</span> : null}
+              {g.tools}
+            </span>
+          </td>
+        </tr>,
+      );
+      if (open) {
+        out.push(...els.slice(k, k + gr.length));
+        k += gr.length;
+      }
+    }
+    return out;
   };
 
   // ── Keyboard and selection, the way a spreadsheet works ──
@@ -1076,8 +1164,32 @@ export function Sheet<T>({
           paste(e.clipboardData.getData("text/plain"));
         }}
       >
-        <table className="aw-sheet" aria-label={label}>
+        <table className={`aw-sheet ${letters ? "has-letters" : ""}`} aria-label={label}>
           <thead>
+            {letters ? (
+              <tr className="aw-sheet__letters" aria-hidden="true">
+                <th className="aw-sheet__n" />
+                {onSelect ? <th className="aw-sheet__pick" /> : null}
+                {cols.map((c, j) => (
+                  <th
+                    key={c.id}
+                    style={sized(c)}
+                    className={`${stickyCls(c)} ${box && j + off >= box.c0 && j + off <= box.c1 ? "is-col-on" : ""}`}
+                    title={`Select column ${colLetter(j)}`}
+                    onMouseDown={(e) => {
+                      // A letter selects its whole column, like in a spreadsheet.
+                      e.preventDefault();
+                      if (!shown.length) return;
+                      setAnchor({ r: 0, c: j + off });
+                      setCur({ r: shown.length - 1, c: j + off });
+                      focusGrid();
+                    }}
+                  >
+                    {colLetter(j)}
+                  </th>
+                ))}
+              </tr>
+            ) : null}
             <tr>
               <th className="aw-sheet__n" aria-label="Row" />
               {onSelect ? (
@@ -1149,7 +1261,7 @@ export function Sheet<T>({
             </tr>
           </thead>
           <tbody>
-            {shown.map((r, i) => {
+            {withGroups(shown.map((r, i) => {
               const key = rowKey(r);
               const on = selected?.has(key) ?? false;
               const rowOn = box && i >= box.r0 && i <= box.r1;
@@ -1249,8 +1361,8 @@ export function Sheet<T>({
                   })}
                 </tr>
               );
-            })}
-            {!shown.length ? (
+            }))}
+            {!shown.length && !grouped?.length ? (
               <tr>
                 <td colSpan={cols.length + 2} className="aw-small">
                   No rows match these filters.
@@ -1260,7 +1372,7 @@ export function Sheet<T>({
           </tbody>
         </table>
       </div>
-      {per ? (
+      {paged ? (
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-rule px-4 py-2.5 text-[12px] text-muted">
           <label className="flex items-center gap-2">
             Rows per page

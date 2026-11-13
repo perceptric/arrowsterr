@@ -80,7 +80,8 @@ export type AgentResult = {
   sitemap?: { source: string | null; pages: number; articles: number; ranking: number };
   competitors?: { domain: string; keywords: number }[];
   approved?: string[];
-  banked?: boolean; // the plan's rows were copied into the Topic Bank
+  banked?: boolean; // the plan's rows are on the plan (saved by the server since Content v3)
+  clusters?: { name: string; pillar: string; pages: number }[]; // Opportunities' clusters from this run
   cost?: number;
 };
 
