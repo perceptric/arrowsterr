@@ -151,41 +151,68 @@ margin = z · sqrt(k(n − k)/n + z²/4) / (n + z²)          with z = 1.96
 
 The core step: each card is either one of the brand's products, a rival's product, or unknown. A wrong match is worse than no match (`docs` reliability rule), so matching only says yes when it's sure, and asks a person when it isn't.
 
-### 5.1 The order of checks
+Built in `src/lib/shopMatch.ts` (pure) and `src/lib/shopMatchServer.ts` (jobs). What follows is how it works now.
 
-1. **Remembered ID.** If an AI Mode card's `gid`, or a ChatGPT card's store and `product_id`, was matched before, it's that product. Confidence 1. This is how most cards are matched after the first week.
-2. **Own store link.** If the card's link or seller domain is the brand's store domain and its path is a catalog product's `handle` or `url`, it's that product. Confidence 1, and its `gid` is remembered.
-3. **Title, brand and price** (section 5.2), plus the picture when it's close (section 5.3).
-4. **Google product lookup**, only for cards still in doubt: DataForSEO Merchant Google product info by `product_id` returns specifications that can include a GTIN or MPN, matched against the catalog's (cost check, used for under 5% of cards).
+### 5.1 Models
 
-### 5.2 Title, brand and price
+Real stores list each color, shade or gender as its own product: "The Medium in Coast Blue", "Pro Filt'r Soft Matte Longwear Foundation — #485", "Men's Wool Runner - Natural Grey". Products that differ only in that are one **model**, and cards match models.
 
-- **Normalize:** lowercase; unify units ("10 oz", "10oz"); split letters from digits ("glide3" to "glide 3"); drop sizes and colors (a fixed list plus every value of the catalog's size and color options); drop words like "men's", "women's", "shoe", "running" that every product shares (any word in over 40% of the catalog's titles).
-- **Brand:** the card's title must start with, or contain, the brand or one of its aliases. Without the brand, it's not ours, however close the rest is.
-- **Model words must agree exactly.** Words with a digit ("3", "v2", "gen 2") and the words that tell sibling products apart are required on both sides. For each product, its **telling words** are the words it has that its nearest siblings (titles sharing over 60% of words) don't: "wide" for Glide 3 Wide, "trail" for Trail X, "kids" for Kids Dash. A card missing a telling word, or carrying another sibling's, can't match.
-- **Score:** TF-IDF cosine of the remaining words against each candidate in the same brand, weights from the catalog. The best candidate must beat the second by at least 0.15, or the card is in doubt.
-- **Price sanity:** a card priced under half or over twice the product's catalog range lowers the score by 0.2 (bundles, refurbished, wrong product). It never raises it.
+- **Variant part:** anything after " - ", " — ", " – " or " | " is a variant. " in " counts only when the name before it has several variants, the part after it follows several names, or it is all common colors and sizes.
+- **Same model:** titles with the same words in any order ("Classic Core Percale" and "Classic Percale Core"); men's and women's merge, kids' don't.
+- **Never the same model:** bundles, "set of 2", packs, duos, kits, samples, minis and refurbished. These are **markers**, and a card and a model must carry the same markers. "Dream" and "Dream Bundle" are two models.
+- **Left out:** $0 products (checkout helpers, content pages).
+- **The brand's name** comes off both sides: the brand, its other names (Settings › Brand › AI Shopping › Other names) and the catalog's vendor names.
+
+### 5.2 The order of checks
+
+1. **Remembered key.** Each card has keys, most exact first: Google's `gid` (AI Mode), the store and its product ID (ChatGPT), the link, then the card's product words. If a person, or an earlier sure match, decided a key, that decides the card. A key marked not ours makes the card another brand's.
+2. **Brand.** The card is the brand's only if its title names the brand (or another name), the store's name starts with it, or it links to the brand's own site (its domain, or wherever its catalog's product pages live). Otherwise it's a rival's or unknown.
+3. **Own store link.** A link to one of the catalog's `/products/<handle>` pages is that model. Confidence 1.
+4. **Words.**
+   - Colors, shades, sizes and amounts the catalog uses as variants come off the card ("Coast Blue", "1.08 oz", "#485", "Size 10").
+   - A model fits when all its words are on the card, the generations agree ("3", "2.0", "v2", "7\"" must be on both sides), and the markers agree.
+   - The most specific fitting model wins, unless the card carries a word that sets a more specific sibling apart without fitting it: "Glide 3 Wide" against Glide 3.
+   - When no model fits fully, a card naming only part of exactly one model is a question, and part of several is unclear.
+5. **Price.** A card under half or over twice the model's price loses 0.2. It never gains.
+6. **Picture** (section 5.3) for close calls.
+7. **Google product lookup** for AI Mode cards still in doubt (section 5.5).
 
 ### 5.3 Picture
 
-The card's `image_url` and the catalog's main image are reduced to a 64-bit difference hash (9 by 8 grayscale, adjacent-pixel comparison). A Hamming distance of 10 or under adds 0.1; over 24 subtracts 0.1. Pictures are fetched once per `gid` and cached.
+The card's picture and the model's main picture become 64-bit difference hashes (9 by 8 grayscale) with `sharp`, cached per picture address in `shop_image_hashes`. 10 bits apart or fewer adds 0.1; over 24 subtracts 0.1. Run only when words gave 0.8 to 0.99, so a far picture can turn a match into a question and a close one can settle a question. Without `sharp` on the server, matching works the same without pictures.
 
 ### 5.4 The decision
 
 | Score | Result |
 |---|---|
-| 0.90 and up, and clear of the runner-up | Matched. Its `gid` is remembered. |
-| 0.60 to 0.90 | In doubt. Counts toward the **brand** (it carries the brand's name) but not toward any product, and goes to the Catalog panel's "Is this yours?" list. One click confirms (the `gid` is remembered) or rejects (remembered as not ours). |
-| Under 0.60, brand present | The brand's product, not in the catalog (an old model, a bundle). Counts toward the brand. |
+| 0.90 and up | Matched. Its exact keys are remembered (never its words). |
+| 0.60 to 0.90 | In doubt. Counts toward the **brand**, not a product, and goes to "Is this yours?" in the Catalog panel. Yes (the suggested product, or one picked from the list) or Not ours is saved for every key of the card, and the last 30 days are matched again. |
+| Under 0.60, brand present | The brand's product, not in the catalog (an old model, a bundle, an either-or card). Counts toward the brand. |
 | No brand | A rival's or unknown. |
 
-### 5.5 Rivals
+Scores: all of a model's words on the card 0.95, less 0.03 for each word from a close sibling (one sharing half the model's words), at most 0.09; two models equally specific 0.70 and part of several 0.65, both asked without a suggestion (you pick the product); part of one model 0.60 to 0.85 by how much of it the card names, asked with it as the suggestion.
 
-A rival card's brand is the longest leading run of words that has started at least 3 different product titles across all runs (a dictionary built from the data), or the `seller` when the title starts with it. When that fails, Claude Haiku names the brand and the name must appear in the title, letter for letter, or it's left "Unknown". People can merge rival names ("Northpeak", "Northpeak Running").
+### 5.5 Google product lookup (confirmed November 2026)
 
-### 5.6 Tests
+DataForSEO Merchant Google `product_info` (task_post, then task_get/advanced) with the card's `product_id`. It costs $0.001 a product and takes up to 45 minutes in the standard queue. The result's `product_info_element` has `title`, `url`, `specifications[]` (`specification_name`, `specification_value`), `sellers[]` (`title`, `url`) and `variations`. The product tried returned no GTIN in its specifications, so the lookup settles a card only with one of these:
 
-Every rule has a test with the hard cases: "Glide 3" against "Glide 3 Wide" and "Glide 2"; a reseller title like "Stride Men's Glide 3 Running Shoe - Black/White Size 10 D(M) US"; a two-pack; "refurbished"; a lookalike from another brand with the same model words; a card with no brand; the same `gid` sold by three sellers; a remembered `gid` that a person later rejects.
+- a seller link to one of the brand's own product pages;
+- a GTIN, UPC or EAN, or a model or part number, that is in exactly one model.
+
+`shop_lookup` asks about at most 20 products a run, each once.
+
+### 5.6 Rivals
+
+A rival card's brand is the longest leading run of words (up to 3) that starts at least 3 different titles in the brand's last 30 days of cards, or the store when the title starts with its name. Otherwise Claude Haiku names it, up to 40 titles a run, and the name must appear in the title letter for letter, or it's left empty. Merging rival names comes with the Competitors view in phase 4.
+
+### 5.7 Tests (shipped)
+
+`tests/shopMatch.test.ts`, 14 tests:
+
+- **Real data:** 7 real Shopify stores' public catalogs (Allbirds, Glossier, Casper, Brooklinen, Away, Gymshark, Fenty Beauty; 5,462 products, 1,854 models) and 81 real ChatGPT and AI Mode answers plus their "buy" answers. That's 266 cards, all labeled by hand: 55 the brand's own (42 with a product, 13 that must not match one) and 211 other brands'.
+- **Results:** no wrong matches; 38 of the 42 products matched without asking (90%); the other 4 went to "Is this yours?" (a price far off, or a name that fits several products).
+- **Two labels were corrected after the first run,** both mistakes in the labels, checked against the catalog: Casper does sell "The One Mattress", and the towel card links to Brooklinen's own product page.
+- **Hard cases:** Glide 3 against Glide 3 Wide and Glide 2; a reseller's long title; a lookalike from another brand; no brand; two-packs, refurbished and bundles; telling words; price; the store's own link; one `gid` from three stores; a rejected key; pictures; the lookup; rival names.
 
 ---
 
@@ -237,11 +264,12 @@ For prompt q, engine e and run r, let C(q, e, r) be its cards in order. Position
 | `shop_catalog_prices` | Product, day, price, currency, in stock |
 | `shop_prompts` | Brand, prompt, category, engines, active |
 | `shop_runs` | Prompt, engine, run time, sample number, cards shown or not, the raw response (compressed, kept 30 days so a better parser can read it again) |
-| `shop_cards` | Run, block, position, title, seller, store, price fields, rating, `gid`, `product_id`, `mid`, image, matched product, score, how it matched, brand, sponsored |
-| `shop_ids` | `gid` to product, or to "not ours", with who decided and when |
+| `shop_cards` | Brand, day, engine, prompt, block, position, title, seller, store, link, price fields, `gid`, store product ID, image, keys, verdict, matched product and model, score, how, why, rival (phase 3 saves the cards from the daily tracking answers of brands with AI Shopping on; phase 4 adds its own runs) |
+| `shop_ids` | A card key (`g:` Google ID, `s:` store and product ID, `u:` link, `t:` product words) to a product, or to "not ours", with who decided and when |
+| `shop_image_hashes` | Picture address to its difference hash |
 | `shop_daily` | Brand, prompt, engine, day: runs, runs with cards, and per brand and product the counts behind section 6 |
 
-`brands` gets `shop_mode` (`auto`, `on`, `off`), `shop_on` (what Auto decided) and `shop_reason` (section 3.1). Every row carries `brand_id`. The screens read `shop_daily`, so they stay fast.
+`brands` gets `shop_mode` (`auto`, `on`, `off`), `shop_on` (what Auto decided), `shop_reason` (section 3.1) and `shop_aliases` (section 5.1). Every row carries `brand_id`. The screens read `shop_daily`, so they stay fast.
 
 ---
 
@@ -253,8 +281,8 @@ For prompt q, engine e and run r, let C(q, e, r) be its cards in order. Position
 | `shop_catalog_sync` | Daily, and on connect | Reads Shopify or Merchant Center into `shop_catalog` and the day's prices |
 | `shop_runs_post` | 4 times a day | Posts the day's runs to DataForSEO's standard queue, tagged with run IDs (key prompt + engine + day + sample, so a retry never posts twice) |
 | `shop_runs_collect` | Every 15 minutes | Collects finished tasks, saves the raw response, parses the cards |
-| `shop_match` | After collect | Matches cards (section 5), fills `shop_daily`, raises alerts |
-| `shop_rematch` | When a person confirms or rejects an ID, or the catalog changes | Matches the affected cards again and rebuilds those days |
+| `shop_match` | Every 10 minutes for brands with new cards; all of the last 30 days after a decision, a catalog sync or new other names | Matches cards (section 5); phase 4 adds `shop_daily` and alerts |
+| `shop_lookup` | After a match leaves AI Mode cards in doubt | Section 5.5 |
 
 All run on the existing jobs queue and worker.
 
@@ -266,7 +294,7 @@ All run on the existing jobs queue and worker.
 |---|---|---|---|
 | 1. Real data first (shipped) | 0.5 | 40 test prompts run on both engines; every raw response saved as a test fixture; parsers written against those fixtures | Every `chat_gpt_products` and `ai_overview_shopping` field in section 2 is confirmed from real responses, and the parser tests pass on all of them |
 | 2. Catalog (shipped) | 1 | Shopify `read_products`, Merchant Center sign-in, CSV, the Catalog side panel, `shop_detect` and the Settings switch | A Shopify store's 42 products load with variants folded in and daily prices; on 30 hand-labeled brands (15 that sell, 15 that don't), detection turns on every brand that sells and none that don't |
-| 3. Matching | 1.5 | Section 5 with its tests, "Is this yours?" | On 200 hand-labeled cards: no wrong matches, and at least 85% matched without asking |
+| 3. Matching (shipped) | 1.5 | Section 5 with its tests, "Is this yours?" | On 200 hand-labeled cards: no wrong matches, and at least 85% matched without asking |
 | 4. Numbers and screens | 1.5 | Sections 6 to 8, Overview, Products, Prompts, Stores, Sources, alerts | The numbers on 3 test brands match a hand count of the same runs |
 
 About 4.5 weeks for one engineer.
@@ -275,7 +303,7 @@ About 4.5 weeks for one engineer.
 
 ## 12. Running cost
 
-Phase 1 cost $0.32 once (80 live tasks at $0.004) and adds nothing a month: the parser runs on the worker that already exists. To record again: `NODE_USE_ENV_PROXY=1 node scripts/shop-record.mjs --again` (needs `DFS_LOGIN` and `DFS_PASSWORD`, or a proxy that adds them). `node scripts/shop-fields.mjs` lists every field and how often it's filled.
+Phase 1 cost $0.32 once (80 live tasks at $0.004) and adds nothing a month. Phase 3's test data cost $0.32 once (81 live answers, one lookup); its lookups and rival names are the two lines in the table below: the parser runs on the worker that already exists. To record again: `NODE_USE_ENV_PROXY=1 node scripts/shop-record.mjs --again` (needs `DFS_LOGIN` and `DFS_PASSWORD`, or a proxy that adds them). `node scripts/shop-fields.mjs` lists every field and how often it's filled.
 
 **Assumptions:** 1.3 brands per team; 30% of brands sell products and turn it on (20 brands at Beta, 195 at Growth); the other 70% run no shopping checks, only the weekly detection (section 3.1); 40 prompts, 2 engines, 2 runs a day each; DataForSEO standard queue at $0.0012 per run for both endpoints; product lookups for under 5% of new cards.
 
@@ -283,7 +311,7 @@ Phase 1 cost $0.32 once (80 live tasks at $0.004) and adds nothing a month: the 
 |---|---|---|---|
 | Card runs: 40 × 2 × 2 × 30 = 4,800 runs | $5.76 | $115 | $1,123 |
 | Deep checks (about 10 a month, 20 runs each, on 1 engine) | $0.24 | $5 | $47 |
-| Google product lookups (cost per product check) | ~$0.10 | $2 | $20 |
+| Google product lookups ($0.001 each, about 100 a brand a month) | ~$0.10 | $2 | $20 |
 | Claude Haiku: prompt ideas, brand names, one-line reasons | ~$0.15 | $3 | $29 |
 | Detection for every brand on Auto: 2 "buy <brand>" questions a week at $0.0012 (65 brands at Beta, 650 at Growth) | $0.01 | $1 | $7 |
 | Merchant Center and Shopify APIs | $0 | $0 | $0 |

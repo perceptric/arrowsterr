@@ -1,0 +1,73 @@
+{
+  "about": "Hand labels for every card that is the prompt's brand. A product ID means the card is that product's model (any product of the model counts). null means no single product is right: a bundle, an either-or card, or a model the catalog doesn't have. Every other card in these answers is another brand's.",
+  "brands": {
+    "allbirds.com": { "name": "Allbirds" },
+    "glossier.com": { "name": "Glossier" },
+    "casper.com": { "name": "Casper" },
+    "brooklinen.com": { "name": "Brooklinen" },
+    "awaytravel.com": { "name": "Away" },
+    "gymshark.com": { "name": "Gymshark" },
+    "fentybeauty.com": { "name": "Fenty Beauty", "aliases": ["Fenty"] }
+  },
+  "cards": {
+    "match/answers/allbirds--allbirds-tree-dasher-review--gpt.json#1.1": "6885126766672",
+    "match/answers/allbirds--allbirds-tree-runner-vs-wool-runner--gpt.json#1.1": "4870548979792",
+    "match/answers/allbirds--allbirds-tree-runner-vs-wool-runner--gpt.json#1.2": "1878193471557",
+    "match/answers/allbirds--best-machine-washable-sneakers--aim.json#1.2": null,
+    "match/answers/allbirds--best-machine-washable-sneakers--gpt.json#1.1": "1878193471557",
+    "match/answers/allbirds--best-wool-sneakers--gpt.json#1.1": "1878193471557",
+
+    "match/answers/awaytravel--away-the-bigger-carry-on-review--gpt.json#1.1": "10375748976824",
+    "match/answers/awaytravel--best-checked-luggage--gpt.json#1.2": "10438626967736",
+    "match/answers/awaytravel--best-hard-shell-carry-on--gpt.json#1.1": "10451778568376",
+    "match/answers/awaytravel--best-luggage-set--aim.json#1.2": null,
+    "probe/awaytravel.com.json#1.1": null,
+    "probe/awaytravel.com.json#1.2": "10438626967736",
+    "probe/awaytravel.com.json#1.3": "9952890257592",
+    "probe/awaytravel.com.gpt.json#1.1": "10375748976824",
+    "probe/awaytravel.com.gpt.json#1.2": "9884882010296",
+
+    "match/answers/brooklinen--best-bath-towels--gpt.json#1.3": "7394757869658",
+    "match/answers/brooklinen--best-down-comforter--gpt.json#1.3": "7719153107034",
+    "match/answers/brooklinen--best-duvet-cover--gpt.json#1.3": "7908067934298",
+    "match/answers/brooklinen--best-linen-sheets--aim.json#1.2": "7432567390298",
+    "match/answers/brooklinen--best-percale-sheets--gpt.json#1.5": "7296487424090",
+    "match/answers/brooklinen--brooklinen-luxe-sateen-review--gpt.json#1.1": "7908004560986",
+    "probe/brooklinen.com.json#1.1": "7296487424090",
+    "probe/brooklinen.com.json#1.2": null,
+    "probe/brooklinen.com.json#1.3": null,
+
+    "probe/casper.com.json#1.1": "7576114036817",
+    "probe/casper.com.json#1.2": "7550888181841",
+    "probe/casper.com.json#1.3": "7576114135121",
+    "probe/casper.com.json#1.4": "7576114167889",
+    "probe/casper.com.json#1.5": null,
+
+    "match/answers/fentybeauty--best-foundation-for-oily-skin--aim.json#1.3": "7090800754733",
+    "match/answers/fentybeauty--best-foundation-for-oily-skin--gpt.json#1.2": "15135169544237",
+    "match/answers/fentybeauty--best-highlighter-for-dark-skin--gpt.json#1.1": "5293605748781",
+    "match/answers/fentybeauty--best-lip-gloss--gpt.json#1.1": "5293600047149",
+    "match/answers/fentybeauty--best-setting-powder--gpt.json#1.4": "8113929289773",
+    "match/answers/fentybeauty--fenty-pro-filtr-foundation-review--gpt.json#1.1": "7090800754733",
+    "probe/fentybeauty.com.gpt.json#1.1": "5293600047149",
+    "probe/fentybeauty.com.gpt.json#1.2": "7090800754733",
+    "probe/fentybeauty.com.gpt.json#1.3": "5293605748781",
+    "probe/fentybeauty.com.gpt.json#1.4": "7412167901229",
+
+    "match/answers/glossier--glossier-boy-brow-review--gpt.json#1.1": "8058325532917",
+    "match/answers/glossier--glossier-you-perfume-worth-it--gpt.json#1.1": "8138352754933",
+    "probe/glossier.com.gpt.json#1.1": "8255637979381",
+
+    "match/answers/gymshark--best-gym-hoodie--gpt.json#1.2": "6806005645514",
+    "match/answers/gymshark--best-gym-leggings--gpt.json#1.2": null,
+    "match/answers/gymshark--best-gym-shorts-for-men--gpt.json#1.5": null,
+    "match/answers/gymshark--best-sports-bra-for-lifting--gpt.json#1.2": "6806594715850",
+    "match/answers/gymshark--best-squat-proof-leggings--gpt.json#1.2": null,
+    "match/answers/gymshark--gymshark-vital-seamless-review--gpt.json#1.1": "6806933700810",
+    "probe/gymshark.com.json#1.1": null,
+    "probe/gymshark.com.json#1.2": "6805688484042",
+    "probe/gymshark.com.json#1.3": null,
+    "probe/gymshark.com.json#1.4": "6806802858186",
+    "probe/gymshark.com.json#1.5": "6806918725834"
+  }
+}

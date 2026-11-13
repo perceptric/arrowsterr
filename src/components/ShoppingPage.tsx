@@ -15,7 +15,9 @@ import { favicon, Seg, SidePanel, Thinking } from "./ui";
 type BrandRef = { id: string; name: string; domain: string };
 type Source = { id: string; kind: "shopify" | "merchant" | "csv"; name: string | null; account: string | null; email: string | null; status: "new" | "syncing" | "ok" | "error"; error: string | null; products: number; variants: number; synced_at: string | null };
 type Product = { id: string; title: string; url: string | null; image: string | null; price_min: number | null; price_max: number | null; currency: string | null; in_stock: boolean | null; variants: number };
+type ReviewGroup = { keys: string[]; title: string; seller: string | null; price: number | null; image: string | null; engine: string; cards: number; score: number; suggestion: { productId: string; title: string; image: string | null; price: number | null } | null };
 export type ShopState = {
+  aliases?: string[];
   mode: ShopMode;
   on: boolean;
   auto: { on: boolean; reason: ShopReason | null; checkedAt: string | null };
@@ -95,6 +97,143 @@ export function ShoppingSwitch({ auth, brand, canEdit }: { auth: RunAuth; brand:
         </div>
         {state.mode === "auto" ? <span className="aw-small">{state.auto.on && state.auto.reason ? REASON[state.auto.reason] : state.auto.checkedAt ? "No products found" : "Checking"}</span> : null}
       </div>
+      <Aliases key={(state.aliases ?? []).join("|")} saved={state.aliases ?? []} canEdit={canEdit} onSave={async (aliases) => (await act("aliases", { aliases }), await reload())} />
+    </section>
+  );
+}
+
+/** Other names the brand goes by on product cards ("Fenty" for Fenty Beauty). */
+function Aliases({ saved, canEdit, onSave }: { saved: string[]; canEdit: boolean; onSave: (aliases: string[]) => Promise<void> }) {
+  const [text, setText] = useState(saved.join(", "));
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const list = text.split(",").map((x) => x.trim()).filter(Boolean);
+  const changed = list.join("|") !== saved.join("|");
+  return (
+    <div className="aw-frame flex flex-col gap-3 p-5">
+      <span className="text-[15px] font-medium text-ink">Other names</span>
+      <p className="aw-small">Names your brand goes by on product cards, separated by commas.</p>
+      {error ? <p className="aw-error">{error}</p> : null}
+      <div className="flex flex-wrap items-center gap-2">
+        <input className="aw-input min-w-0 flex-1" value={text} onChange={(e) => setText(e.target.value)} placeholder="Fenty, Fenty by Rihanna" aria-label="Other names" disabled={!canEdit || busy} />
+        {canEdit ? (
+          <button
+            type="button"
+            className="aw-btn aw-btn--primary"
+            disabled={busy || !changed}
+            onClick={async () => {
+              setBusy(true);
+              setError("");
+              try {
+                await onSave(list);
+              } catch (e) {
+                setError(e instanceof Error ? e.message : String(e));
+              } finally {
+                setBusy(false);
+              }
+            }}
+          >
+            Save
+          </button>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+/** A score as a ring, for "Is this yours?". */
+function Ring({ value }: { value: number }) {
+  const r = 15;
+  const c = 2 * Math.PI * r;
+  const pct = Math.round(value * 100);
+  return (
+    <svg width="40" height="40" viewBox="0 0 40 40" role="img" aria-label={`${pct}% sure`} className="shrink-0">
+      <circle cx="20" cy="20" r={r} fill="none" className="stroke-rule" strokeWidth="4" />
+      <circle cx="20" cy="20" r={r} fill="none" className={value >= 0.8 ? "stroke-pos" : "stroke-warn"} strokeWidth="4" strokeLinecap="round" strokeDasharray={`${(c * value).toFixed(1)} ${c.toFixed(1)}`} transform="rotate(-90 20 20)" />
+      <text x="20" y="24" textAnchor="middle" fontSize="10.5" fontWeight="600" fill="currentColor">
+        {pct}%
+      </text>
+    </svg>
+  );
+}
+
+const Picture = ({ src }: { src: string | null }) =>
+  src ? (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={src} alt="" className="size-12 shrink-0 rounded-md border border-rule object-cover" loading="lazy" />
+  ) : (
+    <span className="size-12 shrink-0 rounded-md bg-surface-2" />
+  );
+
+/** "Is this yours?": cards that might be the brand's products, each with one click to say yes or not ours. */
+function Review({ auth, brand, canEdit, products }: { auth: RunAuth; brand: BrandRef; canEdit: boolean; products: Product[] }) {
+  const [groups, setGroups] = useState<ReviewGroup[] | null>(null);
+  const [busy, setBusy] = useState("");
+  const [error, setError] = useState("");
+  const [pick, setPick] = useState<Record<string, string>>({});
+  useEffect(() => {
+    let live = true;
+    post<{ groups: ReviewGroup[] }>(auth, "/api/shop", { action: "review", brandId: brand.id })
+      .then((d) => live && setGroups(d.groups))
+      .catch((e) => live && setError(e instanceof Error ? e.message : String(e)));
+    return () => {
+      live = false;
+    };
+  }, [auth, brand.id]);
+  if (!groups?.length && !error) return null;
+  async function answer(g: ReviewGroup, productId: string | null) {
+    const id = g.keys[0];
+    setBusy(id);
+    setError("");
+    try {
+      await post(auth, "/api/shop", { action: "decide", brandId: brand.id, keys: g.keys, productId });
+      setGroups((list) => (list ?? []).filter((x) => x.keys[0] !== id));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy("");
+    }
+  }
+  return (
+    <section className="flex flex-col gap-3">
+      <div className="flex items-center justify-between gap-3">
+        <span className="aw-label">Is this yours?</span>
+        {groups?.length ? <span className="aw-status aw-status--warn">{groups.length}</span> : null}
+      </div>
+      {error ? <p className="aw-error">{error}</p> : null}
+      {(groups ?? []).map((g) => {
+        const id = g.keys[0];
+        const chosen = g.suggestion?.productId ?? pick[id] ?? "";
+        return (
+          <div key={id} className="aw-frame flex flex-col gap-3 p-3">
+            <div className="flex items-center gap-3">
+              <Picture src={g.image} />
+              <Ring value={g.score} />
+              <Picture src={g.suggestion?.image ?? null} />
+              <div className="flex min-w-0 flex-1 flex-col gap-0.5 text-[12.5px]">
+                <span className="break-words font-medium text-ink">{g.title}</span>
+                <span className="text-muted">{[g.seller, g.price !== null ? `$${g.price}` : null, g.cards > 1 ? `${g.cards} cards` : null].filter(Boolean).join(", ")}</span>
+                {g.suggestion ? <span className="break-words text-muted">{g.suggestion.title}?</span> : null}
+              </div>
+            </div>
+            {canEdit ? (
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                {!g.suggestion ? (
+                  <Dropdown label="Which product" value={pick[id] ?? ""} onChange={(v) => setPick((x) => ({ ...x, [id]: v }))} className="aw-dropdown--sm min-w-0 max-w-full" placeholder="Pick a product" options={products.map((p) => ({ id: p.id, label: p.title }))} />
+                ) : null}
+                <button type="button" className="aw-iconbtn" aria-label="Not ours" title="Not ours" disabled={busy === id} onClick={() => answer(g, null)}>
+                  <svg className="aw-icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M18 6 6 18M6 6l12 12" />
+                  </svg>
+                </button>
+                <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" disabled={busy === id || !chosen} onClick={() => answer(g, chosen)}>
+                  Yes, ours
+                </button>
+              </div>
+            ) : null}
+          </div>
+        );
+      })}
     </section>
   );
 }
@@ -201,6 +340,7 @@ export function CatalogPanel({ auth, brand, canEdit, onClose, onPublishing, noti
           {notice ? <div className="aw-callout">{notice}</div> : null}
           {fail || error ? <p className="aw-error">{fail || error}</p> : null}
           {total ? <span className="aw-label">{total.toLocaleString()} products</span> : null}
+          {state.products.length ? <Review auth={auth} brand={brand} canEdit={canEdit} products={state.products} /> : null}
 
           {tile(
             <BrandLogo src={favicon("shopify.com")} name="Shopify" size={22} />,

@@ -13,6 +13,7 @@ import { entitlement } from "../entitlements";
 import { enqueue, enqueueMany, finish, rateOk, retry, type Job } from "../jobs";
 import { cardNamesBrand } from "../shopDetect";
 import { queueShopWork } from "../shopServer";
+import { queueMatching, saveCards } from "../shopMatchServer";
 import { afterDaily, dispatch } from "../integrations";
 import { emailJob } from "../notify";
 import { briefEmail, planEmail } from "../emails";
@@ -48,6 +49,7 @@ export async function schedule(db: SupabaseClient, job: Job) {
   // Scheduled reports due this tick (docs/reports.md, section 32.4). A failure here never holds up the daily checks.
   await queueReportSends(db).catch((e) => console.error("Report schedules failed:", e instanceof Error ? e.message : e));
   await queueShopWork(db).catch((e) => console.error("AI Shopping jobs failed:", e instanceof Error ? e.message : e));
+  await queueMatching(db).catch((e) => console.error("AI Shopping matching failed:", e instanceof Error ? e.message : e));
   const engines = availableEngines();
   if (!engines.length) return finish(job.id);
   const now = new Date();
@@ -170,6 +172,7 @@ export async function check(db: SupabaseClient, job: Job) {
   }
   // Only the brand reading runs per brand. The answer itself was paid for once.
   await seenCards(db, p, answer);
+  if (job.workspace_id) await saveCards(db, { workspaceId: job.workspace_id, brandId: p.brandId, engine: p.engine, prompt: p.prompt, day: p.day }, answer);
   await record(db, job, p, await readAnswer(p.engine, p.prompt, answer, p.brand, p.domain));
 }
 
@@ -429,3 +432,4 @@ export async function cwv_sync(_db: SupabaseClient, job: Job) {
 
 // ─────────────── AI Shopping: which brands get it, and each catalog's daily sync (shopServer.ts) ───────────────
 export { shopDetectJob as shop_detect, shopCatalogSyncJob as shop_catalog_sync } from "../shopServer";
+export { shopMatchJob as shop_match, shopLookupJob as shop_lookup } from "../shopMatchServer";

@@ -13,7 +13,21 @@ export type DfsEngine = "ChatGPT" | "Gemini" | "AI Overview" | "AI Mode";
 export type Organic = { rank: number; domain: string; url: string };
 /** shown: Google showed an AI answer for the search. organic: Google's top 20 regular results (AI Overview only). */
 /** A product card in the answer, kept small (AI Shopping detection counts the ones that name the brand). */
-export type DfsCard = { title: string; seller: string | null; domain: string | null };
+export type DfsCard = {
+  title: string;
+  seller: string | null;
+  domain: string | null;
+  block?: number;
+  position?: number;
+  url?: string | null;
+  price?: number | null;
+  regular?: number | null;
+  currency?: string | null;
+  gid?: string | null;
+  productId?: string | null;
+  image?: string | null;
+  nameOnly?: boolean;
+};
 export type DfsAnswer = { text: string; sources: Source[]; shown?: boolean; organic?: Organic[]; queries?: string[]; cards?: DfsCard[] };
 
 const API = process.env.DFS_API_URL?.trim() || "https://api.dataforseo.com/v3";
@@ -108,7 +122,21 @@ function queriesOf(result: Record<string, unknown> | undefined): string[] | unde
 function cardsOf(engine: DfsEngine, result: unknown): DfsCard[] | undefined {
   if (engine !== "ChatGPT" && engine !== "AI Mode") return undefined;
   try {
-    const cards = readCards(engine === "ChatGPT" ? "gpt" : "aim", result).cards.map((c) => ({ title: c.title, seller: c.seller, domain: c.domain }));
+    const cards = readCards(engine === "ChatGPT" ? "gpt" : "aim", result).cards.map((c) => ({
+      title: c.title,
+      seller: c.seller,
+      domain: c.domain,
+      block: c.block,
+      position: c.position,
+      url: c.url,
+      price: c.price,
+      regular: c.regular,
+      currency: c.currency,
+      gid: c.gid,
+      productId: c.productId,
+      image: c.image,
+      nameOnly: c.nameOnly,
+    }));
     return cards.length ? cards.slice(0, 40) : undefined;
   } catch {
     return undefined;

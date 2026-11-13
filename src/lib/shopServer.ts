@@ -4,6 +4,7 @@ import { freshConfig, shopifyGql } from "./cmsTokens";
 import { getRaw, postRaw } from "./dataforseo";
 import { accessToken, api, seal } from "./google";
 import { enqueue, enqueueMany, finish, rateOk, retry, type Job } from "./jobs";
+import { rematch } from "./shopMatchServer";
 import { safeFetch } from "./safeFetch";
 import { fold, pullMerchant, pullShopify, SHOPIFY_PRODUCTS, type CatalogRow, type MerchantPage, type ShopifyPage, type SourceProduct } from "./shopCatalog";
 import { decide, probeFacts, productLinks, siteFacts, slimPage, type ProbeFacts, type ShopMode, type SiteFacts, type SlimPage } from "./shopDetect";
@@ -64,6 +65,8 @@ export async function saveCatalog(db: SupabaseClient, src: Pick<ShopSource, "id"
   for (let i = 0; i < gone.length; i += 200) await db.from("shop_catalog").delete().in("id", gone.slice(i, i + 200));
   const variants = rows.reduce((n, r) => n + r.variants, 0);
   await db.from("shop_sources").update({ status: "ok", error: null, products: rows.length, variants, synced_at: now }).eq("id", src.id);
+  // The catalog changed: match the last 30 days of cards again.
+  await rematch(src.brand_id, src.workspace_id).catch(() => undefined);
   return { products: rows.length, variants };
 }
 
