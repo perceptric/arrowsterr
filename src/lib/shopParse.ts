@@ -43,6 +43,8 @@ export type ShopCard = {
   inFeed: boolean;
   /** ChatGPT showed only a name and picture: no store, link or price. */
   nameOnly: boolean;
+  /** Pages cited in the AI's own words about the product (AI Mode). */
+  links: string[];
 };
 
 export type ShopRead = { engine: ShopEngine; cards: ShopCard[] };
@@ -138,6 +140,7 @@ function chatGpt(items: Obj[]): ShopCard[] {
           image: Array.isArray(e.images) ? str(e.images[0]) : null,
           tag: str(e.tag),
           text: null,
+          links: [],
           moreSellers: false,
           inFeed,
           nameOnly: !raw && !seller && price === null,
@@ -184,6 +187,7 @@ function aiMode(items: Obj[]): ShopCard[] {
           image: str(e.image_url),
           tag: null,
           text: str(e.text),
+          links: linksIn(str(e.markdown) ?? ""),
           moreSellers: Boolean(snippet && /&\s*more$/i.test(snippet)),
           inFeed: false,
           nameOnly: false,
@@ -191,6 +195,39 @@ function aiMode(items: Obj[]): ShopCard[] {
       });
   }
   return cards;
+}
+
+/** Web pages linked in a piece of markdown, leaving out Google's own pages and DataForSEO's picture copies. */
+export function linksIn(markdown: string): string[] {
+  const out = new Set<string>();
+  for (const m of markdown.matchAll(/\]\((https?:\/\/[^)\s]+)\)/g)) {
+    const u = m[1];
+    if (/^https?:\/\/([a-z0-9-]+\.)*(google\.[a-z.]+|gstatic\.com|dataforseo\.com)\//i.test(u)) continue;
+    out.add(u.replace(/[?#].*$/, (q) => (/[?&](utm_|srsltid)/.test(q) ? "" : q)));
+  }
+  return [...out];
+}
+
+/** The answer's sources: ChatGPT's cited pages, or AI Mode's references. Each page once. */
+export function answerSources(engine: ShopEngine, result: unknown): string[] {
+  const out = new Set<string>();
+  const add = (v: unknown) => {
+    for (const x of list(v)) {
+      const u = str(x.url);
+      if (u && !/^https?:\/\/([a-z0-9-]+\.)*(google\.[a-z.]+|dataforseo\.com)\//i.test(u)) out.add(cleanLink(u) ?? u);
+    }
+  };
+  const items = list(obj(result)?.items);
+  if (engine === "gpt") {
+    add(obj(result)?.sources);
+    for (const i of items) add(i.sources);
+  } else {
+    for (const i of items) {
+      add(i.references);
+      for (const b of list(i.items)) add(b.references);
+    }
+  }
+  return [...out];
 }
 
 /** Every product card in one task result. Ads (ai_overview_paid) are not cards and are left out. */

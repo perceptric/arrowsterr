@@ -6,6 +6,7 @@ import { enqueue, finish, rateOk, retry, type Job } from "./jobs";
 import { safeFetch } from "./safeFetch";
 import { gtin14 } from "./shopCatalog";
 import { shopOn, type ShopMode } from "./shopDetect";
+import { afterMatch } from "./shopRunsServer";
 import { buildIndex, dhash, hamming, idKeys, lookupMatch, matchCard, nameInTitle, pictureNudge, rivalDictionary, rivalName, type LookupItem, type MatchIndex, type MatchProduct } from "./shopMatch";
 
 // AI Shopping, phase 3 on the server (docs/ai-shopping-plan.md, section 5): save the cards from tracked answers,
@@ -51,7 +52,7 @@ export async function saveCards(db: SupabaseClient, p: { workspaceId: string; br
       image: c.image ?? null,
       name_only: Boolean(c.nameOnly),
     }));
-    const { error } = await db.from("shop_cards").upsert(rows, { onConflict: "brand_id,day,engine,prompt,block,position", ignoreDuplicates: true });
+    const { error } = await db.from("shop_cards").upsert(rows, { onConflict: "brand_id,day,engine,prompt,block,position,source_key", ignoreDuplicates: true });
     if (error) console.error("AI Shopping cards not saved:", error.message);
   } catch (e) {
     console.error("AI Shopping cards not saved:", say(e));
@@ -222,6 +223,10 @@ export async function shopMatchJob(db: SupabaseClient, job: Job) {
     if (res.error) throw new Error(res.error.message);
   }
   if (remember.length) await db.from("shop_ids").upsert(remember, { onConflict: "brand_id,key", ignoreDuplicates: true });
+
+  // Shopping runs' days: flags, the daily numbers, reasons and alerts (shopRunsServer.ts).
+  const runDays = [...new Set((cards as Record<string, unknown>[]).filter((c) => c.run_id).map((c) => c.day as string))];
+  await afterMatch(db, p.brandId, runDays);
 
   // Cards still in doubt that Google can describe go to the product lookup.
   const ask = (cards as CardRow[]).filter((c, i) => updates[i].verdict === "doubt" && c.gid && c.ext_id && !c.looked_up);
