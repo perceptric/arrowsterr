@@ -52,6 +52,7 @@ import { MembersPage } from "./MembersPage";
 import { isBrandTab, SettingsPage, SETTINGS_TABS, type SettingsTab } from "./SettingsPage";
 import { BrandSettings } from "./BrandSettings";
 import { TrafficProjects } from "./TrafficProjects";
+import { CmsSettings } from "./CmsSettings";
 import { NotificationSettings, ProfileSettings, SecuritySettings } from "./AccountSettings";
 import { AccessSettings, AiSettingsPage, RetentionSettings, TimezoneSetting } from "./WorkspaceSettings";
 import { BrandKitSettings } from "./BrandKit";
@@ -113,7 +114,7 @@ const SLUGS: Record<Page, string> = {
   guidelines: "/settings/guidelines",
   retention: "/settings/data-retention",
   integrations: "/settings/integrations",
-  publishing: "/publish/sites",
+  publishing: "/publish/integrations",
   google: "/settings/google-analytics",
   shopsettings: "/settings/ai-shopping",
   alerts: "/settings/alerts",
@@ -135,6 +136,7 @@ const ALIASES: Record<string, Page> = {
   "/domain-research": "domain",
   "/competitive-analysis": "gap",
   "/settings/publishing": "publishing",
+  "/publish/sites": "publishing",
   "/keyword-gap": "gap",
   "/industry-research": "gap",
   "/ai-gap": "gap",
@@ -973,19 +975,9 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
           ) : page === "rank" ? (
             <TrafficProjects key={ws.id} auth={auth} canEdit={canEdit} brandId={view.brand.id} brandDomain={view.brand.domain} />
           ) : (page as string) === "publishing" ? (
-            <div className="flex flex-col gap-5">
-              <h1 className="aw-h2">Sites</h1>
-              <BrandSettings
-                key={ws.id}
-                sb={sb}
-                tab="publishing"
-                auth={auth}
-                brand={{ id: view.brand.id, name: view.brand.name, domain: view.brand.domain }}
-                brands={(brands ?? []).map((b) => ({ id: b.id, name: b.name, domain: b.domain }))}
-                canEdit={canEdit}
-                isAdmin={atLeast(ws.role, "admin")}
-                onBrand={setActiveId}
-              />
+            <div className="flex flex-col gap-6">
+              <h1 className="aw-h2 mb-0!">Integrations</h1>
+              <CmsSettings key={view.brand.id} auth={auth} isAdmin={atLeast(ws.role, "admin")} brand={{ id: view.brand.id, name: view.brand.name }} brands={(brands ?? []).map((b) => ({ id: b.id, name: b.name }))} />
             </div>
           ) : page === "library" ? (
             <LibraryPage key={view.brand.id} view={view} auth={auth} canEdit={canEdit} onCalendar={() => go("calendar")} />
@@ -1076,6 +1068,7 @@ const ICONS: Record<string, string> = {
   sources: '<path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/>',
   bag: '<path d="M5 8h14l-1 12H6L5 8z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/>',
   search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
+  plug: '<path d="M9 7V3M15 7V3M6 7h12v4a6 6 0 0 1-12 0zM12 17v4"/>',
   globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/>',
   bank: '<path d="M6 4h12v16l-6-4-6 4z"/>',
   gap: '<circle cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6"/>',
@@ -1127,17 +1120,17 @@ const NAV: { group: string; icon: string; items: { id: Page; label: string; icon
     group: "Plan & Create",
     icon: "pen",
     items: [
-      { id: "opportunities", label: "Opportunities", icon: "trend" },
       { id: "keywords", label: "Research", icon: "search", also: ["domain", "gap"] },
-      { id: "library", label: "Drafts", icon: "book" },
+      { id: "opportunities", label: "Content Opportunities", icon: "trend" },
+      { id: "calendar", label: "Calendar", icon: "calendar" },
     ],
   },
   {
     group: "Publish",
     icon: "send",
     items: [
-      { id: "calendar", label: "Calendar", icon: "calendar" },
-      { id: "publishing", label: "Sites", icon: "globe" },
+      { id: "library", label: "Drafts", icon: "book" },
+      { id: "publishing", label: "Integrations", icon: "plug" },
     ],
   },
   {
