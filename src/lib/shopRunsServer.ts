@@ -322,7 +322,7 @@ export async function suggestPrompts(db: SupabaseClient, brandId: string): Promi
   const types = [...new Set(products.map((p) => p.product_type as string | null).filter(Boolean))].slice(0, 20);
   const sample = products.slice(0, 40).map((p) => `${p.title}${p.price_min ? ` ($${p.price_min})` : ""}`).join("; ");
   const r = await askJson<{ prompts: { prompt: string; category: string }[] }>(
-    `Write 40 questions shoppers ask ChatGPT or Google when they want to buy products like these. Mix "best <category>", "best <category> under $<price>", "<category> for <use or person>", and "<product> vs <rival>" for well-known rivals. Never name ${brand?.name ?? "the brand"} in a question. Give each a short category.\n\nCategories: ${types.join(", ") || "unknown"}\nProducts: ${sample}`,
+    `Write 40 questions shoppers ask ChatGPT or Google when they want to buy products like these. Mix "best <category>", "best <category> under $<price>", "<category> for <use or person>", and "<product> vs <competitor>" for well-known competitors. Never name ${brand?.name ?? "the brand"} in a question. Give each a short category.\n\nCategories: ${types.join(", ") || "unknown"}\nProducts: ${sample}`,
     SUGGEST_SCHEMA,
     { model: process.env.SHOP_MODEL || "claude-haiku-5-5", maxTokens: 3000, effort: "low" },
   );

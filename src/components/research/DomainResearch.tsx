@@ -419,7 +419,7 @@ export function DomainResearch({ sb, auth, site, canEdit, start, onStarted }: { 
 
       {!busy && !report ? (
         <EmptyScreen drawing="globe" title="See how any site wins search" examples={[site.domain, "hubspot.com", "notion.so"]} onExample={canEdit ? (x) => analyze(x, "domain") : undefined} fill={false}>
-          Type a domain to see its keywords, pages and rivals.
+          Type a domain to see its keywords, pages and competitors.
         </EmptyScreen>
       ) : null}
     </div>

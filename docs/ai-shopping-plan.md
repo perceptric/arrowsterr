@@ -1,6 +1,6 @@
 # AI Shopping: the plan
 
-Track a brand's products in the shopping cards AI answers show: which products appear, where, at what price, sold by whom, and next to which rivals. The demo is at the AI Shopping artifact; this is how it works underneath.
+Track a brand's products in the shopping cards AI answers show: which products appear, where, at what price, sold by whom, and next to which competitors. The demo is at the AI Shopping artifact; this is how it works underneath.
 
 Written November 2026. Prices marked "check" couldn't be confirmed on the vendor's own page. Field names marked "check" come from a summary of the vendor's docs, not a verbatim read, and are confirmed by recording real responses before any parser is written (section 11, step 1).
 
@@ -122,7 +122,7 @@ None of them means off. The job runs when a brand is set to Auto and once a week
 
 ### 4.1 Prompts
 
-Shopping questions, per brand: up to 40 active. Claude Haiku suggests 40 from the catalog's product types and products crossed with buyer words ("best", "under $X", "for <use>", "vs <rival>", "for <person>"), never naming the brand. Duplicates are merged (same words after dropping endings and sorting, `promptKey`), and a person ticks which to track or types their own. Each prompt keeps its category. Prompts can be paused or deleted (with their runs and numbers).
+Shopping questions, per brand: up to 40 active. Claude Haiku suggests 40 from the catalog's product types and products crossed with buyer words ("best", "under $X", "for <use>", "vs <competitor>", "for <person>"), never naming the brand. Duplicates are merged (same words after dropping endings and sorting, `promptKey`), and a person ticks which to track or types their own. Each prompt keeps its category. Prompts can be paused or deleted (with their runs and numbers).
 
 ### 4.2 Why several runs
 
@@ -150,7 +150,7 @@ margin = z · sqrt(k(n − k)/n + z²/4) / (n + z²)          with z = 1.96
 
 ## 5. Matching a card to a product
 
-The core step: each card is either one of the brand's products, a rival's product, or unknown. A wrong match is worse than no match (`docs` reliability rule), so matching only says yes when it's sure, and asks a person when it isn't.
+The core step: each card is either one of the brand's products, a competitor's product, or unknown. A wrong match is worse than no match (`docs` reliability rule), so matching only says yes when it's sure, and asks a person when it isn't.
 
 Built in `src/lib/shopMatch.ts` (pure) and `src/lib/shopMatchServer.ts` (jobs). What follows is how it works now.
 
@@ -167,7 +167,7 @@ Real stores list each color, shade or gender as its own product: "The Medium in 
 ### 5.2 The order of checks
 
 1. **Remembered key.** Each card has keys, most exact first: Google's `gid` (AI Mode), the store and its product ID (ChatGPT), the link, then the card's product words. If a person, or an earlier sure match, decided a key, that decides the card. A key marked not ours makes the card another brand's.
-2. **Brand.** The card is the brand's only if its title names the brand (or another name), the store's name starts with it, or it links to the brand's own site (its domain, or wherever its catalog's product pages live). Otherwise it's a rival's or unknown.
+2. **Brand.** The card is the brand's only if its title names the brand (or another name), the store's name starts with it, or it links to the brand's own site (its domain, or wherever its catalog's product pages live). Otherwise it's a competitor's or unknown.
 3. **Own store link.** A link to one of the catalog's `/products/<handle>` pages is that model. Confidence 1.
 4. **Words.**
    - Colors, shades, sizes and amounts the catalog uses as variants come off the card ("Coast Blue", "1.08 oz", "#485", "Size 10").
@@ -189,7 +189,7 @@ The card's picture and the model's main picture become 64-bit difference hashes 
 | 0.90 and up | Matched. Its exact keys are remembered (never its words). |
 | 0.60 to 0.90 | In doubt. Counts toward the **brand**, not a product, and goes to "Is this yours?" in the Catalog panel. Yes (the suggested product, or one picked from the list) or Not ours is saved for every key of the card, and the last 30 days are matched again. |
 | Under 0.60, brand present | The brand's product, not in the catalog (an old model, a bundle, an either-or card). Counts toward the brand. |
-| No brand | A rival's or unknown. |
+| No brand | A competitor's or unknown. |
 
 Scores: all of a model's words on the card 0.95, less 0.03 for each word from a close sibling (one sharing half the model's words), at most 0.09; two models equally specific 0.70 and part of several 0.65, both asked without a suggestion (you pick the product); part of one model 0.60 to 0.85 by how much of it the card names, asked with it as the suggestion.
 
@@ -202,9 +202,9 @@ DataForSEO Merchant Google `product_info` (task_post, then task_get/advanced) wi
 
 `shop_lookup` asks about at most 20 products a run, each once.
 
-### 5.6 Rivals
+### 5.6 Competitors
 
-A rival card's brand is the longest leading run of words (up to 3) that starts at least 3 different titles in the brand's last 30 days of cards, or the store when the title starts with its name. Otherwise Claude Haiku names it, up to 40 titles a run, and the name must appear in the title letter for letter, or it's left empty. Merging rival names comes with the Competitors view in phase 4.
+A competitor card's brand is the longest leading run of words (up to 3) that starts at least 3 different titles in the brand's last 30 days of cards, or the store when the title starts with its name. Otherwise Claude Haiku names it, up to 40 titles a run, and the name must appear in the title letter for letter, or it's left empty. Merging competitor names comes with the Competitors view in phase 4.
 
 ### 5.7 Tests (shipped)
 
@@ -213,7 +213,7 @@ A rival card's brand is the longest leading run of words (up to 3) that starts a
 - **Real data:** 7 real Shopify stores' public catalogs (Allbirds, Glossier, Casper, Brooklinen, Away, Gymshark, Fenty Beauty; 5,462 products, 1,854 models) and 81 real ChatGPT and AI Mode answers plus their "buy" answers. That's 266 cards, all labeled by hand: 55 the brand's own (42 with a product, 13 that must not match one) and 211 other brands'.
 - **Results:** no wrong matches; 38 of the 42 products matched without asking (90%); the other 4 went to "Is this yours?" (a price far off, or a name that fits several products).
 - **Two labels were corrected after the first run,** both mistakes in the labels, checked against the catalog: Casper does sell "The One Mattress", and the towel card links to Brooklinen's own product page.
-- **Hard cases:** Glide 3 against Glide 3 Wide and Glide 2; a reseller's long title; a lookalike from another brand; no brand; two-packs, refurbished and bundles; telling words; price; the store's own link; one `gid` from three stores; a rejected key; pictures; the lookup; rival names.
+- **Hard cases:** Glide 3 against Glide 3 Wide and Glide 2; a reseller's long title; a lookalike from another brand; no brand; two-packs, refurbished and bundles; telling words; price; the store's own link; one `gid` from three stores; a rejected key; pictures; the lookup; competitor names.
 
 ---
 
@@ -269,10 +269,10 @@ For prompt q, engine e and run r, let C(q, e, r) be its cards in order. Position
 | `shop_catalog_prices` | Product, day, price, currency, in stock |
 | `shop_prompts` | Brand, prompt, category, active |
 | `shop_runs` | Prompt, engine, day, daily or deep, sample number, task ID, status, cards, the answer's sources, the raw response (gzipped, kept 30 days so a better parser can read it again) |
-| `shop_cards` | Brand, day, engine, prompt, block, position, title, seller, store, link, price fields, `gid`, store product ID, image, keys, verdict, matched product and model, score, how, why, rival (phase 3 saves the cards from the daily tracking answers of brands with AI Shopping on; phase 4 adds its own runs) |
+| `shop_cards` | Brand, day, engine, prompt, block, position, title, seller, store, link, price fields, `gid`, store product ID, image, keys, verdict, matched product and model, score, how, why, competitor (phase 3 saves the cards from the daily tracking answers of brands with AI Shopping on; phase 4 adds its own runs) |
 | `shop_ids` | A card key (`g:` Google ID, `s:` store and product ID, `u:` link, `t:` product words) to a product, or to "not ours", with who decided and when |
 | `shop_image_hashes` | Picture address to its difference hash |
-| `shop_daily` | Brand, day, engine, prompt: runs, runs with cards, cards, and `stats` (the brand, each product, each rival, each store, flags and top sources: runs, cards, position and visibility sums) |
+| `shop_daily` | Brand, day, engine, prompt: runs, runs with cards, cards, and `stats` (the brand, each product, each competitor, each store, flags and top sources: runs, cards, position and visibility sums) |
 | `shop_reasons` | Product, one-line reason |
 | `shop_alerts_sent` | Brand, alert key |
 
@@ -310,12 +310,12 @@ About 4.5 weeks for one engineer.
 
 ## 11.1 Phase 4 as built
 
-- **Screens:** AI Shopping has Overview (product share with its range and a change colored only when it's real, average card position, products seen, prompts you're in, card rate; product share by week against the top 3 rivals; the Brands ranking; your top products), Products (share, position, prompts, store shown most, price shown against yours, reason, flags), Prompts (add, suggest, pause, delete, deep check), Stores and Sources. Both engines or one, over 7, 30 or 90 days. The Catalog panel has the retailer list and the price floor.
+- **Screens:** AI Shopping has Overview (product share with its range and a change colored only when it's real, average card position, products seen, prompts you're in, card rate; product share by week against the top 3 competitors; the Brands ranking; your top products), Products (share, position, prompts, store shown most, price shown against yours, reason, flags), Prompts (add, suggest, pause, delete, deep check), Stores and Sources. Both engines or one, over 7, 30 or 90 days. The Catalog panel has the retailer list and the price floor.
 - **Hand count:** `tests/shopNumbers.test.ts` runs the real answers of Allbirds, Away and Gymshark through parse, match, rollup and totals, and checks runs, runs with cards, cards, the brand's runs and cards, card rate, product share and its Wilson range, shelf share, average position, visibility, prompts you're in and products seen against numbers counted by hand from the card lists. They all match. Plus Wilson and change-test values against textbook ones, weeks, store names, price flags and reasons.
 
 ## 12. Running cost
 
-Phase 1 cost $0.32 once (80 live tasks at $0.004) and adds nothing a month. Phase 3's test data cost $0.32 once (81 live answers, one lookup); its lookups and rival names are the two lines in the table below: the parser runs on the worker that already exists. To record again: `NODE_USE_ENV_PROXY=1 node scripts/shop-record.mjs --again` (needs `DFS_LOGIN` and `DFS_PASSWORD`, or a proxy that adds them). `node scripts/shop-fields.mjs` lists every field and how often it's filled.
+Phase 1 cost $0.32 once (80 live tasks at $0.004) and adds nothing a month. Phase 3's test data cost $0.32 once (81 live answers, one lookup); its lookups and competitor names are the two lines in the table below: the parser runs on the worker that already exists. To record again: `NODE_USE_ENV_PROXY=1 node scripts/shop-record.mjs --again` (needs `DFS_LOGIN` and `DFS_PASSWORD`, or a proxy that adds them). `node scripts/shop-fields.mjs` lists every field and how often it's filled.
 
 **Assumptions:** 1.3 brands per team; 30% of brands sell products and turn it on (20 brands at Beta, 195 at Growth); the other 70% run no shopping checks, only the weekly detection (section 3.1); 40 prompts, 2 engines, 2 runs a day each; DataForSEO standard queue at $0.0012 per run for both endpoints; product lookups for under 5% of new cards.
 
