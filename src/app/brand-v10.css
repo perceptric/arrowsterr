@@ -383,3 +383,9 @@ html, body { background: var(--v10-canvas) !important; }
 :root :is(.aw, #calm) table tr.aw-grid-letters + tr > th { font-size: 12.5px !important; font-weight: 500 !important; color: var(--v10-muted) !important; }
 :root :is(.aw, #calm) .aw-status-pick { display: inline-flex; align-items: center; gap: 4px; padding: 2px; border-radius: 9999px; color: var(--v10-faint); cursor: pointer; }
 :root :is(.aw, #calm) .aw-status-pick:hover { background: var(--v10-soft); color: var(--v10-ink-2); }
+/* Every cell is solid, so cells scrolling sideways never show through the sticky Keyword column or the header. */
+:root :is(.aw, #calm) table.aw-dgrid.aw-dgrid th { background: var(--v10-card) !important; }
+:root :is(.aw, #calm) table.aw-dgrid.aw-dgrid tr.aw-grid-letters > th { background: var(--v10-soft) !important; }
+:root :is(.aw, #calm) table.aw-dgrid.aw-dgrid td { background: var(--v10-card) !important; }
+:root :is(.aw, #calm) table.aw-dgrid.aw-dgrid tbody tr:hover > td { background: var(--v10-soft) !important; }
+:root :is(.aw, #calm) table.aw-dgrid.aw-dgrid .aw-dgrid__key { box-shadow: inset -1px 0 0 var(--v10-border-strong); }

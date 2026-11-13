@@ -321,7 +321,7 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
       {actions.error ? <p className="aw-error">{actions.error}</p> : null}
 
       <div className="aw-frame overflow-auto" style={{ maxHeight: "calc(100vh - 200px)" }}>
-        <table className="border-separate border-spacing-0 text-[13px]" style={{ tableLayout: "fixed", width }}>
+        <table className="aw-dgrid border-separate border-spacing-0 text-[13px]" style={{ tableLayout: "fixed", width }}>
           <colgroup>
             <col style={{ width: W.check }} />
             <col style={{ width: W.keyword }} />
@@ -337,7 +337,7 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
           <thead>
             <tr className="aw-grid-letters">
               <th className={`${head} top-0 left-0 z-30`} />
-              <th className={`${head} top-0 z-30 text-center`} style={{ left: W.check }}>
+              <th className={`${head} aw-dgrid__key top-0 z-30 text-center`} style={{ left: W.check }}>
                 A
               </th>
               {["Write", ...metaCols.map((c) => c.key), ...contentCols.map((c) => c.key)].map((k, i) => (
@@ -351,7 +351,7 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
               <th className={`${head} top-6 left-0 z-30 h-9 px-2`}>
                 <input type="checkbox" aria-label="Select all" checked={allOn} onChange={() => setSelected(allOn ? new Set() : new Set(list.map((r) => r.topic.id)))} />
               </th>
-              <th className={`${head} top-6 z-30 h-9`} style={{ left: W.check }}>
+              <th className={`${head} aw-dgrid__key top-6 z-30 h-9`} style={{ left: W.check }}>
                 Keyword
               </th>
               <th className={`${head} top-6 h-9`}>Write</th>
@@ -390,7 +390,7 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
                     }
                   />
                 </td>
-                <td className={`${cell} sticky z-10`} style={{ left: W.check }}>
+                <td className={`${cell} aw-dgrid__key sticky z-10`} style={{ left: W.check }}>
                   <div className="flex h-[51px] flex-col items-start gap-1 overflow-hidden">
                     <span className="w-full truncate font-medium text-ink">{r.topic.keyword}</span>
                     <span className="flex items-center gap-3">
