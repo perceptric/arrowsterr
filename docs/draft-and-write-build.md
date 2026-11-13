@@ -185,6 +185,8 @@ New order in `runDraft`, each step saved before the next:
 
 **Done when** on the 20 topics no fact changes through the passes, the lint finds no FAIL and each proof verdict matches a hand check.
 
+**Status, November 13, 2026** (shipped as Phase 2 of `docs/zippie-skills-plan.md`): steps 3, 4, 5, 6, 7 and 8 are in, with the voice check and the copyedit as one polish call. On the 20 topics: 0 facts changed, the proof gave 15 Ship and 5 Hold and all 5 Holds were real problems on a hand check, and the lint still finds 3.4 an article (mostly sentence length), so the lint goal is open. The claim ledger (step 2) is still today's cut-only check.
+
 ### Phase 6. Ready to publish and tracking (1 week)
 
 1. Meta, schema (FAQ, and HowTo when there's a flowchart), alt text on every image, and the card's internal links in place.

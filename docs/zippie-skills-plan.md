@@ -199,7 +199,24 @@ This step is required. The first draft waits for it.
 
 **Phase 1 shipped (writer persona).** Onboarding starts building the persona as soon as the site is read, and "Your writer" is the last step: the persona card, the measured voice stats and the sample paragraph, with Edit and Looks right. Saving writes the voice and the persona to `brand_voices` (087), the brand's own posts as the voice sample when it has none, and the Knowledge page "Persona: {Brand} writer". Every writer prompt now carries the persona: who writes, the point of view, approved proof and claims to never make. Brand > Tone of voice shows it with Edit and Build again. Code: `src/lib/writerPersona.ts` (pure), `writerPersonaRead.ts`, `writerPersonaServer.ts`, `/api/writer-persona`, `src/components/WriterPersona.tsx`.
 
-Tried on 5 real brands (perceptric.com, ahrefs.com, basecamp.com, allbirds.com, stripe.com) with `scripts/writer-persona-try.mjs`: 53 of 54 proof lines quoted their page word for word and were kept, the one that didn't was dropped, every sample paragraph passed the house rules on the first try, and a build took 12 to 25 seconds. Phase 2 is next.
+Tried on 5 real brands (perceptric.com, ahrefs.com, basecamp.com, allbirds.com, stripe.com) with `scripts/writer-persona-try.mjs`: 53 of 54 proof lines quoted their page word for word and were kept, the one that didn't was dropped, every sample paragraph passed the house rules on the first try, and a build took 12 to 25 seconds. 
+**Phase 2 shipped (every writing skill in the writer), with the lint target not yet met.** The writer now runs: the house lint with the Perceptric `lint.py` ported (`houseLint.ts`), the review and fixes, a second fix round for what the lint still finds, code-only fixes (`tidy.ts`: straight quotes, a repeated feeling adverb dropped, long paragraphs split), a polish call with proseshape, brand-review, plain-language, orwells-rules and redline-edit against the writer persona (`writerPolish.ts`), and a proof that returns Ship or Hold (`proofDraft`). Every rewrite and every edit passes the fact audit (`factAudit.ts`, the `post_edit_audit.py` port) or is thrown away.
+
+Run on the 20 recorded topics (`tests/fixtures/writer/phase2/summary.json`):
+
+| Measure | Baseline | Phase 2 |
+|---|---|---|
+| House lint findings left, under today's full lint | 7.8 per article | **3.4 per article** |
+| Of those: repeated feeling adverbs, long paragraphs | 31 | 0 |
+| Of those: banned words | 26 | 6 |
+| Of those: short sentences (6 words or fewer) | 59 | 31 |
+| Of those: sentences over 35 words | 39 | 32 |
+| Facts changed by the passes | not measured | **0 in 20 articles** (62 section rewrites and 39 edits refused by the audit, 345 edits kept) |
+| Proof | none | 15 Ship, 5 Hold, each Hold a real problem (a count that doesn't match its list, a lead-in sentence repeated across a listicle) |
+| Numbers with no match in the research | 3 of 248 | 3 of 275 |
+| Time and cost | about 4 minutes, $1.01 an article | about 4.7 minutes, $1.19 an article (check) |
+
+The target was under 1 finding an article. What's left is almost all sentence length. Phase 2b goes after it: a third fix round only for sentence length, and splitting a sentence over 35 words at a semicolon in code.
 
 About 8 weeks for one engineer. Phase 2 is the same work as Phase 5 of `docs/draft-and-write-build.md`, so they ship together.
 
@@ -212,11 +229,10 @@ Claude Sonnet 5.5 at $2 in and $10 out per million tokens (check). Beta is 50 te
 | Line | Each | Beta a month | Growth a month |
 |---|---|---|---|
 | Writer persona (pages read free, 1 call: measured about 19K in and 2.5K out on 5 brands) | ~$0.06 a brand | ~$9 in the first month, ~$2 after | ~$90 first month, ~$20 after |
-| Bigger cached skill text (about 60K tokens, read about 7 times a draft) | ~$0.08 an article | ~$40 | ~$400 |
-| Humanize-in-persona and ProseShape passes | ~$0.06 an article | ~$30 | ~$300 |
+| Polish pass, round 2 fixes and the bigger cached skill text (measured: $1.19 against the $1.01 baseline) | ~$0.18 an article | ~$90 | ~$900 |
 | Zippie skill runs (20 a team a month, ~$0.10 each) | ~$0.10 a run | ~$100 | ~$1,000 |
 | Crawls, link checks, robots | our VPS | $0 | $0 |
 | PageSpeed Insights | free quota (check) | $0 | $0 |
-| **Added a month** | | **~$172** (first month ~$179) | **~$1,720** (first month ~$1,790) |
+| **Added a month** | | **~$192** (first month ~$199) | **~$1,920** (first month ~$1,990) |
 
 The voice check, claim ledger, copyedit and proof passes are counted in `docs/draft-and-write-build.md` and are left out here.

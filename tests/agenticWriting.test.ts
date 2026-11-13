@@ -342,3 +342,16 @@ test("the proof holds a draft with a marker, a paragraph printed twice, a wrong 
   assert.match(r, /appears twice/);
   assert.match(r, /"the the"/);
 });
+
+test("the proof leaves names and far-off counts alone (false holds from the Phase 2 run)", async () => {
+  const { proofDraft } = await import("../src/lib/writerPolish.ts");
+  const list = (items: string[]) => ({ type: "ul" as const, text: "", items, rows: [] });
+  const para = (text: string) => ({ type: "p" as const, text, items: [], rows: [] });
+  const out = proofDraft([
+    { key: "a", h2: "What is Scrum?", blocks: [para('It traces back to the 1986 paper "New New Product Development Game" by Takeuchi and Nonaka.')] },
+    { key: "b", h2: "", blocks: [para("It gives you a ranked shortlist of seven tools, each judged by the same four checks, and you can use it in these ways:"), list(["Compare prices.", "Read pros and cons.", "Pick two or three."])] },
+  ]);
+  assert.equal(out.verdict, "Ship", out.reasons.join(" | "));
+  const real = proofDraft([{ key: "c", h2: "Trail", blocks: [para("If you mix trail with road, you have two options to look at:"), list(["The Nike ACG Pegasus Trail."])] }]);
+  assert.match(real.reasons.join(" "), /says two options and lists 1/);
+});

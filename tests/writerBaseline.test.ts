@@ -40,3 +40,12 @@ test("the summary matches the 20 articles", () => {
   for (const k of Object.keys(sum) as (keyof typeof sum)[]) assert.equal(s[k], sum[k], k);
   assert.equal(s.modulesPlanned, all.reduce((a, b) => a + b.brief.modules.length, 0));
 });
+
+test("the Phase 2 run on the 20 topics changed no facts and every article has a proof", () => {
+  const s = JSON.parse(readFileSync(new URL("../phase2/summary.json", DIR), "utf8"));
+  assert.equal(s.articles, 20);
+  assert.equal(s.factChanges, 0);
+  assert.equal(s.ship + s.hold, 20);
+  assert.equal(s.articlesDetail.length, 20);
+  for (const a of s.articlesDetail) assert.equal(a.proof === "Hold", a.holdReasons.length > 0, a.slug);
+});

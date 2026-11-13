@@ -159,11 +159,15 @@ export type Proof = { verdict: "Ship" | "Hold"; reasons: string[]; lint: number 
 
 const MARKER = /\[(?:detail needed|update needed|insert|todo|tbd|placeholder|source needed)[^\]]*\]|\{\{[^}]{1,60}\}\}|lorem ipsum/i;
 const NUMBER_WORDS: Record<string, number> = { two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12 };
-const COUNTED = new RegExp(`\\b(\\d{1,2}|${Object.keys(NUMBER_WORDS).join("|")})\\s+(?:\\w+\\s+)?(steps?|ways?|tips?|things|reasons?|questions?|mistakes?|signs?|types?|rules?|options?|tools?|checks?|parts?|stages?|habits?|ideas?|examples?)\\b[^.!?]*:\\s*$`, "i");
+// "Follow these 3 steps to plan the month:" counts the list after it. A sentence that names another list noun after
+// its count ("a shortlist of seven tools, ... use it in these ways:") is counting something else.
+const COUNTED = new RegExp(`\\b(\\d{1,2}|${Object.keys(NUMBER_WORDS).join("|")})\\s+(?:\\w+\\s+)?(steps?|ways?|tips?|things|reasons?|questions?|mistakes?|signs?|types?|rules?|options?|tools?|checks?|parts?|stages?|habits?|ideas?|examples?)\\b([^.!?:]{0,100}):\\s*$`, "i");
+const OTHER_LIST = /\b(?:these|the following)\s+([a-z]+s)\b/i;
 const WEEKDAYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 const MONTHS = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
 const DATED = new RegExp(`\\b(${WEEKDAYS.join("|")}),?\\s+(${MONTHS.join("|")})\\s+(\\d{1,2}),?\\s+(\\d{4})\\b`, "gi");
-const DOUBLED = /\b([a-z]+)\s+\1\b/gi;
+// A doubled word in lower case ("the the"). Capitalized pairs are often names ("New New Product Development Game").
+const DOUBLED = /\b([a-z]+)\s+\1\b/g;
 const plainText = (t: string) => t.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").replace(/\*\*?([^*]+)\*\*?/g, "$1");
 
 /** The proof: Ship, or Hold with every reason. lint is what the house lint still finds, for the record. */
@@ -190,7 +194,8 @@ export function proofDraft(sections: Section[], opts: { examples?: { name: strin
         const last = sentences(b.text).pop() ?? "";
         const m = plainText(last).match(COUNTED);
         const list = s.blocks[bi + 1];
-        if (m && list && (list.type === "ul" || list.type === "ol")) {
+        const other = m ? m[3].match(OTHER_LIST)?.[1]?.toLowerCase() : undefined;
+        if (m && list && (list.type === "ul" || list.type === "ol") && !(other && other.replace(/s$/, "") !== m[2].toLowerCase().replace(/s$/, ""))) {
           const n = /^\d+$/.test(m[1]) ? Number(m[1]) : NUMBER_WORDS[m[1].toLowerCase()];
           if (n && n !== list.items.length) reasons.push(`${where(s)} says ${m[1]} ${m[2]} and lists ${list.items.length}`);
         }
