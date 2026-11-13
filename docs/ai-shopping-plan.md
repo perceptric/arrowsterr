@@ -122,15 +122,16 @@ None of them means off. The job runs when a brand is set to Auto and once a week
 
 ### 4.1 Prompts
 
-Shopping questions, per brand: up to 40 to start. Claude Haiku suggests them from the catalog's categories crossed with buyer modifiers ("best", "under $X", "for <use>", "vs <rival>", "for <person>"). Duplicates are merged (same words after stemming and sorting), and a person picks which to track. Each prompt keeps its category, so results roll up by category.
+Shopping questions, per brand: up to 40 active. Claude Haiku suggests 40 from the catalog's product types and products crossed with buyer words ("best", "under $X", "for <use>", "vs <rival>", "for <person>"), never naming the brand. Duplicates are merged (same words after dropping endings and sorting, `promptKey`), and a person ticks which to track or types their own. Each prompt keeps its category. Prompts can be paused or deleted (with their runs and numbers).
 
 ### 4.2 Why several runs
 
 The same question gives different cards from run to run. One run is an anecdote; the numbers are rates over many runs.
 
 - **Default:** each prompt runs **2 times a day on each engine** (ChatGPT and AI Mode), through DataForSEO's standard queue. That's 28 runs per prompt and engine a week.
-- **Deep check:** 20 runs at once for one prompt, on demand, from its page.
-- Runs of the same prompt on the same day are spread across the day, so they don't all land on one cached answer.
+- **Deep check:** 20 runs at once for one prompt on one engine, on demand, from the Prompts tab. Deep runs show as "x of y" on the prompt and stay out of the numbers, so a burst never tips a share.
+- A brand's two daily samples start 12 hours apart, at a time of day set by the brand (`sampleMinutes`), so they don't land on one cached answer and brands spread over the day.
+- Built: `shop_runs_post` creates and posts the runs, `shop_runs_collect` (every 10 minutes) reads finished tasks, saves the raw answer gzipped for 30 days and the cards, then `shop_match` matches them and rebuilds `shop_daily`. A run waiting over 3 hours is marked failed.
 
 ### 4.3 How sure the numbers are
 
@@ -231,28 +232,32 @@ For prompt q, engine e and run r, let C(q, e, r) be its cards in order. Position
 | **Prompts you're in** | Prompts where at least one of the brand's cards showed in the range |
 | **Products seen** | Catalog products matched at least once in the range |
 
-- Totals over prompts weight every prompt the same. A switch weights them by monthly search volume (DataForSEO keyword data, already used in Keyword Research).
+- Built as: **every run counts the same** (shares are pooled over runs), so the 95% Wilson range is exact for the number shown. Every prompt runs the same number of times, so a prompt weighs by how often it shows cards. Weighting by search volume is not built.
+- A brand's own cards in a run are the ones matched, in doubt or carrying the brand without a product; a run counts once however many of them it has, at the place of the first.
 - Runs without cards are left out of shares on purpose: an engine that often shows no cards would otherwise pull every brand down the same. The card rate is shown beside it.
 
 ---
 
 ## 7. Stores and prices
 
-- **Store:** AI Mode `seller` and `marketplace`, ChatGPT `merchants`, normalized by domain and name to one store ("Amazon", "Amazon.com", "amazon.com" become Amazon). The brand's own store is its store domain or store name.
-- **Resellers:** stores not on the brand's list of authorized retailers (set in the Catalog panel) are shown as "Not on your retailer list". Arrowsterr doesn't call them wrong; it shows who they are.
+- **Store:** one name per store from the seller and link (`storeName`): known store domains first ("Amazon", "Walmart", "Best Buy" and others), then the seller name without marketplace sellers ("Walmart - DiscountsJungle + others" is Walmart), country or "Official store" endings and ".com", then the link's domain. The brand's own store is its name, another name, or its own domain.
+- **Resellers:** with a retailer list set in the Catalog panel, a store not on it is tagged "Reseller". Without a list, nobody is.
 - **Price checks**, per matched card, against the catalog price that day, same currency only:
   - **Your store, different price:** the card shows the brand's own store at a price more than 2% and $1 away from the catalog. That's stale data on the brand's side (feed or page), so it's flagged.
   - **Another store, different price:** shown as a price gap ("Walmart $129, your store $119"), never as an error. It's that store's price.
   - **Below your floor:** when the brand sets a minimum advertised price, a card under it is flagged with the store.
   - Price ranges and "& more prices" (`is_price_range`, `displayed_price`) compare `current`, the lowest offer shown.
 - **Out of stock:** a card for a product the catalog says is out of stock is flagged, since it sends buyers to an empty page.
+- Built in `priceFlags`: "same price" means within $1 and 2%; the floor is a percent of your price (Catalog panel slider); flags are saved on each card and counted in `shop_daily`.
+
+**Alerts** (`shopAlerts`), each sent once (`shop_alerts_sent`) to the brand's Slack channel (or the workspace's) and to webhooks as the new `shopping.alert` event, on plans with alerts: your store at another price, a price under your floor, an out-of-stock product, a reseller (once a month per store and product), and a real drop in product share (this week against last, by the two-proportion test).
 
 ---
 
 ## 8. Reasons and sources
 
-- **Why AI picks it:** the element's `text` (AI Mode) or the answer text around the product's name (ChatGPT) gives the reason. Claude Haiku shortens it to one line, and the line must be made of words from that text, checked in code. No quote, no reason shown.
-- **Sources:** the links cited in the product's own text first (`markdown` citations next to the product), then the answer's other sources (`chat_gpt_text.sources`, AI Mode `references`). Each page counts once per run per product. The Sources tab ranks pages by how many runs they backed the brand's cards.
+- **Why AI picks it:** the latest AI Mode card `text` for the product (ChatGPT cards carry no text of their own). Claude Haiku shortens it to one line of at most 12 words, up to 10 products a run, refreshed every 14 days, and every word that matters must appear in that text (`reasonOk`). No match, no reason shown.
+- **Sources:** the links cited in the brand's cards' own text (AI Mode `markdown`) plus the answer's sources (ChatGPT `sources`, AI Mode `references`), each page once per run in which the brand showed. The Sources tab ranks pages by those runs; each day keeps its top 40.
 
 ---
 
@@ -262,14 +267,16 @@ For prompt q, engine e and run r, let C(q, e, r) be its cards in order. Position
 |---|---|
 | `shop_catalog` | One row per product: the fields in section 3, `source`, `external_id`, `synced_at` |
 | `shop_catalog_prices` | Product, day, price, currency, in stock |
-| `shop_prompts` | Brand, prompt, category, engines, active |
-| `shop_runs` | Prompt, engine, run time, sample number, cards shown or not, the raw response (compressed, kept 30 days so a better parser can read it again) |
+| `shop_prompts` | Brand, prompt, category, active |
+| `shop_runs` | Prompt, engine, day, daily or deep, sample number, task ID, status, cards, the answer's sources, the raw response (gzipped, kept 30 days so a better parser can read it again) |
 | `shop_cards` | Brand, day, engine, prompt, block, position, title, seller, store, link, price fields, `gid`, store product ID, image, keys, verdict, matched product and model, score, how, why, rival (phase 3 saves the cards from the daily tracking answers of brands with AI Shopping on; phase 4 adds its own runs) |
 | `shop_ids` | A card key (`g:` Google ID, `s:` store and product ID, `u:` link, `t:` product words) to a product, or to "not ours", with who decided and when |
 | `shop_image_hashes` | Picture address to its difference hash |
-| `shop_daily` | Brand, prompt, engine, day: runs, runs with cards, and per brand and product the counts behind section 6 |
+| `shop_daily` | Brand, day, engine, prompt: runs, runs with cards, cards, and `stats` (the brand, each product, each rival, each store, flags and top sources: runs, cards, position and visibility sums) |
+| `shop_reasons` | Product, one-line reason |
+| `shop_alerts_sent` | Brand, alert key |
 
-`brands` gets `shop_mode` (`auto`, `on`, `off`), `shop_on` (what Auto decided), `shop_reason` (section 3.1) and `shop_aliases` (section 5.1). Every row carries `brand_id`. The screens read `shop_daily`, so they stay fast.
+`brands` gets `shop_mode` (`auto`, `on`, `off`), `shop_on` (what Auto decided), `shop_reason` (section 3.1), `shop_aliases` (section 5.1), `shop_retailers` and `shop_floor` (section 7). Every row carries `brand_id`. The screens read `shop_daily`, so they stay fast.
 
 ---
 
@@ -279,8 +286,8 @@ For prompt q, engine e and run r, let C(q, e, r) be its cards in order. Position
 |---|---|---|
 | `shop_detect` | When a brand is added, after each site crawl, weekly | Section 3.1: sets `shop_on` and `shop_reason` for brands on Auto |
 | `shop_catalog_sync` | Daily, and on connect | Reads Shopify or Merchant Center into `shop_catalog` and the day's prices |
-| `shop_runs_post` | 4 times a day | Posts the day's runs to DataForSEO's standard queue, tagged with run IDs (key prompt + engine + day + sample, so a retry never posts twice) |
-| `shop_runs_collect` | Every 15 minutes | Collects finished tasks, saves the raw response, parses the cards |
+| `shop_runs_post` | At each of the brand's two sample times, and after a deep check | Creates the day's runs (one per prompt, engine and sample, so a retry never makes two) and posts every run not yet posted |
+| `shop_runs_collect` | Every 10 minutes | Collects finished tasks, saves the raw response and the cards, queues matching |
 | `shop_match` | Every 10 minutes for brands with new cards; all of the last 30 days after a decision, a catalog sync or new other names | Matches cards (section 5); phase 4 adds `shop_daily` and alerts |
 | `shop_lookup` | After a match leaves AI Mode cards in doubt | Section 5.5 |
 
@@ -295,11 +302,16 @@ All run on the existing jobs queue and worker.
 | 1. Real data first (shipped) | 0.5 | 40 test prompts run on both engines; every raw response saved as a test fixture; parsers written against those fixtures | Every `chat_gpt_products` and `ai_overview_shopping` field in section 2 is confirmed from real responses, and the parser tests pass on all of them |
 | 2. Catalog (shipped) | 1 | Shopify `read_products`, Merchant Center sign-in, CSV, the Catalog side panel, `shop_detect` and the Settings switch | A Shopify store's 42 products load with variants folded in and daily prices; on 30 hand-labeled brands (15 that sell, 15 that don't), detection turns on every brand that sells and none that don't |
 | 3. Matching (shipped) | 1.5 | Section 5 with its tests, "Is this yours?" | On 200 hand-labeled cards: no wrong matches, and at least 85% matched without asking |
-| 4. Numbers and screens | 1.5 | Sections 6 to 8, Overview, Products, Prompts, Stores, Sources, alerts | The numbers on 3 test brands match a hand count of the same runs |
+| 4. Numbers and screens (shipped) | 1.5 | Sections 6 to 8, Overview, Products, Prompts, Stores, Sources, alerts | The numbers on 3 test brands match a hand count of the same runs |
 
 About 4.5 weeks for one engineer.
 
 ---
+
+## 11.1 Phase 4 as built
+
+- **Screens:** AI Shopping has Overview (product share with its range and a change colored only when it's real, average card position, products seen, prompts you're in, card rate; product share by week against the top 3 rivals; the Brands ranking; your top products), Products (share, position, prompts, store shown most, price shown against yours, reason, flags), Prompts (add, suggest, pause, delete, deep check), Stores and Sources. Both engines or one, over 7, 30 or 90 days. The Catalog panel has the retailer list and the price floor.
+- **Hand count:** `tests/shopNumbers.test.ts` runs the real answers of Allbirds, Away and Gymshark through parse, match, rollup and totals, and checks runs, runs with cards, cards, the brand's runs and cards, card rate, product share and its Wilson range, shelf share, average position, visibility, prompts you're in and products seen against numbers counted by hand from the card lists. They all match. Plus Wilson and change-test values against textbook ones, weeks, store names, price flags and reasons.
 
 ## 12. Running cost
 

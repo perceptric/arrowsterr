@@ -9,6 +9,7 @@ import { EmptyScreen } from "./Drawing";
 import { Dropdown } from "./Pickers";
 import { post } from "./research/shared";
 import { favicon, Seg, SidePanel, Thinking } from "./ui";
+import { ShoppingReport } from "./ShoppingReport";
 
 // AI Shopping (docs/ai-shopping-plan.md). Phase 2: the switch, the Catalog side panel and the product list.
 
@@ -18,6 +19,8 @@ type Product = { id: string; title: string; url: string | null; image: string | 
 type ReviewGroup = { keys: string[]; title: string; seller: string | null; price: number | null; image: string | null; engine: string; cards: number; score: number; suggestion: { productId: string; title: string; image: string | null; price: number | null } | null };
 export type ShopState = {
   aliases?: string[];
+  retailers?: string[];
+  floor?: number | null;
   mode: ShopMode;
   on: boolean;
   auto: { on: boolean; reason: ShopReason | null; checkedAt: string | null };
@@ -52,17 +55,6 @@ export function useShop(auth: RunAuth, brandId: string) {
   const act = useCallback((action: string, body: Record<string, unknown> = {}) => post<Record<string, unknown>>(auth, "/api/shop", { action, brandId, ...body }), [auth, brandId]);
   return { state, error, reload, act };
 }
-
-const money = (n: number | null, currency: string | null) => {
-  if (n === null || n === undefined) return "–";
-  try {
-    return new Intl.NumberFormat("en-US", { style: "currency", currency: currency || "USD", maximumFractionDigits: n % 1 ? 2 : 0 }).format(Number(n));
-  } catch {
-    return `$${n}`;
-  }
-};
-const priceText = (p: Pick<Product, "price_min" | "price_max" | "currency">) =>
-  p.price_min !== null && p.price_max !== null && Number(p.price_max) > Number(p.price_min) ? `${money(p.price_min, p.currency)} – ${money(p.price_max, p.currency)}` : money(p.price_min, p.currency);
 
 // ─────────────── Settings › Brand › AI Shopping ───────────────
 
@@ -138,6 +130,84 @@ function Aliases({ saved, canEdit, onSave }: { saved: string[]; canEdit: boolean
         ) : null}
       </div>
     </div>
+  );
+}
+
+/** Your retailers (stores not on the list show as resellers) and your price floor, as a percent of your price. */
+function StoreRules({ retailers, floor, canEdit, onSave }: { retailers: string[]; floor: number | null; canEdit: boolean; onSave: (retailers: string[], floor: number | null) => Promise<void> }) {
+  const [list, setList] = useState(retailers);
+  const [name, setName] = useState("");
+  const [pct, setPct] = useState(floor ?? 0);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const changed = list.join("|") !== retailers.join("|") || (pct || null) !== floor;
+  const addName = () => {
+    const n = name.trim();
+    if (n && !list.some((x) => x.toLowerCase() === n.toLowerCase())) setList([...list, n]);
+    setName("");
+  };
+  return (
+    <section className="flex flex-col gap-4 border-t border-rule pt-4">
+      {error ? <p className="aw-error">{error}</p> : null}
+      <div className="flex flex-col gap-2">
+        <span className="aw-label">Your retailers</span>
+        <div className="flex flex-wrap items-center gap-1.5">
+          {list.map((r) => (
+            <span key={r} className="inline-flex items-center gap-1.5 rounded-md border border-rule px-2 py-1 text-[12.5px] text-ink">
+              {r}
+              {canEdit ? (
+                <button type="button" aria-label={`Remove ${r}`} title="Remove" className="text-muted" onClick={() => setList(list.filter((x) => x !== r))}>
+                  <svg className="aw-icon size-3" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M18 6 6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              ) : null}
+            </span>
+          ))}
+          {canEdit ? (
+            <form
+              className="flex items-center gap-1.5"
+              onSubmit={(e) => {
+                e.preventDefault();
+                addName();
+              }}
+            >
+              <input className="aw-input h-8! w-36 py-1! text-[12.5px]!" value={name} onChange={(e) => setName(e.target.value)} placeholder="Add a store" aria-label="Add a retailer" />
+            </form>
+          ) : null}
+        </div>
+      </div>
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center justify-between gap-2">
+          <span className="aw-label">Price floor</span>
+          <span className={`aw-status ${pct ? "aw-status--ranked" : ""}`}>{pct ? `${pct}% of your price` : "Off"}</span>
+        </div>
+        <input type="range" min={0} max={100} step={5} value={pct} disabled={!canEdit} onChange={(e) => setPct(Number(e.target.value))} aria-label="Price floor, percent of your price" className="w-full accent-[var(--color-signal)]" />
+      </div>
+      {canEdit && changed ? (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            className="aw-btn aw-btn--primary aw-btn--sm"
+            disabled={busy}
+            onClick={async () => {
+              setBusy(true);
+              setError("");
+              try {
+                await onSave(name.trim() ? [...list, name.trim()] : list, pct || null);
+                setName("");
+              } catch (e) {
+                setError(e instanceof Error ? e.message : String(e));
+              } finally {
+                setBusy(false);
+              }
+            }}
+          >
+            Save
+          </button>
+        </div>
+      ) : null}
+    </section>
   );
 }
 
@@ -414,6 +484,7 @@ export function CatalogPanel({ auth, brand, canEdit, onClose, onPublishing, noti
             </>,
             "the CSV",
           )}
+          {state.products.length ? <StoreRules key={`${(state.retailers ?? []).join("|")}:${state.floor ?? ""}`} retailers={state.retailers ?? []} floor={state.floor ?? null} canEdit={canEdit} onSave={async (retailers, floor) => (await act("settings", { retailers, floor }), await reload())} /> : null}
         </div>
       )}
     </SidePanel>
@@ -438,11 +509,6 @@ export function ShoppingPage({ auth, brand, canEdit, onPublishing }: { auth: Run
     reload();
   }, [reload]);
   const panel = open ? <CatalogPanel auth={auth} brand={brand} canEdit={canEdit} onClose={close} onPublishing={onPublishing} notice={notice} /> : null;
-  const catalogButton = (
-    <button type="button" className="aw-btn aw-btn--primary" onClick={() => setOpen(true)}>
-      Catalog
-    </button>
-  );
 
   if (!state) return error ? <p className="aw-error">{error}</p> : <Thinking text="Loading..." />;
   if (!state.products.length) {
@@ -470,44 +536,7 @@ export function ShoppingPage({ auth, brand, canEdit, onPublishing }: { auth: Run
   return (
     <div className="flex flex-col gap-5">
       {panel}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <span className="aw-label">{state.products.length.toLocaleString()} products</span>
-        {catalogButton}
-      </div>
-      <section className="aw-frame overflow-x-auto">
-        <table className="aw-table">
-          <thead>
-            <tr>
-              <th>Product</th>
-              <th className="text-right">Price</th>
-              <th className="text-right">Variants</th>
-              <th>Stock</th>
-            </tr>
-          </thead>
-          <tbody>
-            {state.products.map((p) => (
-              <tr key={p.id} className="[&>td]:align-middle">
-                <td>
-                  <span className="flex min-w-0 items-center gap-3">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    {p.image ? <img src={p.image} alt="" className="size-9 shrink-0 rounded-md border border-rule object-cover" loading="lazy" /> : <span className="size-9 shrink-0 rounded-md bg-surface-2" />}
-                    {p.url ? (
-                      <a href={p.url} target="_blank" rel="noopener noreferrer" className="min-w-0 break-words text-ink">
-                        {p.title}
-                      </a>
-                    ) : (
-                      <span className="min-w-0 break-words text-ink">{p.title}</span>
-                    )}
-                  </span>
-                </td>
-                <td className="aw-num text-right whitespace-nowrap">{priceText(p)}</td>
-                <td className="aw-num text-right">{p.variants}</td>
-                <td>{p.in_stock === null ? <span className="text-muted">–</span> : <span className={`aw-status ${p.in_stock ? "aw-status--ranked" : "aw-status--missed"}`}>{p.in_stock ? "In stock" : "Out of stock"}</span>}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
+      <ShoppingReport auth={auth} brand={brand} canEdit={canEdit} onCatalog={() => setOpen(true)} />
     </div>
   );
 }

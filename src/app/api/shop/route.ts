@@ -5,19 +5,23 @@ import { fold, fromCsv } from "@/lib/shopCatalog";
 import { shopOn, type ShopMode } from "@/lib/shopDetect";
 import { merchantAccounts, saveCatalog, storeAdded, pickMerchantAccount, type ShopSource } from "@/lib/shopServer";
 import { decide, rematch, reviewList } from "@/lib/shopMatchServer";
+import { shopReport } from "@/lib/shopReportServer";
+import { deepCheck, MAX_PROMPTS, postNew, promptKey, suggestPrompts } from "@/lib/shopRunsServer";
 
 // AI Shopping's catalog and switch for one brand (docs/ai-shopping-plan.md, sections 3 and 3.1).
 //   action "state" (viewers): the switch, the sources and the products.
 //   Editors: "mode" (auto, on, off), "shopify" (use a store from Publishing sites), "merchant" (Google's sign-in link),
 //   "accounts" and "account" (pick the Merchant Center account), "csv" (upload a file's text), "sync", "remove",
 //   "decide" (Is this yours? yes with a product, or not ours) and "aliases" (other names the brand goes by).
-//   "review" (viewers): the cards in doubt.
+//   "review" (viewers): the cards in doubt. "report" (viewers): the numbers and tables for a range.
+//   Editors: "suggest", "prompts_add", "prompt_update", "prompt_remove", "deep" (20 runs of one prompt) and
+//   "settings" (retailer list and price floor).
 const MAX_CSV = 5_000_000;
 const SOURCE_COLS = "id, kind, name, account, email, status, error, products, variants, synced_at, cms_connection_id";
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
-  const auth = await requireRole(request, body.workspaceId, body.action === "state" || body.action === "review" ? "viewer" : "editor");
+  const auth = await requireRole(request, body.workspaceId, ["state", "review", "report"].includes(body.action) ? "viewer" : "editor");
   if ("denied" in auth) return auth.denied;
   const db = adminClient();
   if (!db) return Response.json({ error: "Add SUPABASE_SECRET_KEY to the server's settings." }, { status: 500 });
@@ -40,8 +44,11 @@ export async function POST(request: Request) {
           db.from("shop_catalog").select("id, title, url, image, price_min, price_max, currency, in_stock, variants, product_type").eq("brand_id", brand.id).order("title").limit(2000),
         ]);
         const { data: names } = await db.from("brands").select("shop_aliases").eq("id", brand.id).maybeSingle();
+        const { data: extra } = await db.from("brands").select("shop_retailers, shop_floor").eq("id", brand.id).maybeSingle();
         return Response.json({
           aliases: (names?.shop_aliases as string[] | undefined) ?? [],
+          retailers: (extra?.shop_retailers as string[] | undefined) ?? [],
+          floor: extra?.shop_floor === null || extra?.shop_floor === undefined ? null : Number(extra.shop_floor),
           mode: brand.shop_mode,
           on: shopOn(brand.shop_mode as ShopMode, brand.shop_on),
           auto: { on: brand.shop_on, reason: brand.shop_reason, checkedAt: brand.shop_checked_at },
@@ -125,6 +132,60 @@ export async function POST(request: Request) {
         if (brand.shop_mode === "auto") await enqueue("shop_detect", { brandId: brand.id }, { workspaceId: ws, key: `shop_detect:${brand.id}:${Date.now()}` });
         return Response.json({ ok: true });
       }
+      case "report": {
+        const days = [7, 30, 90].includes(Number(body.days)) ? Number(body.days) : 30;
+        const engine = body.engine === "gpt" || body.engine === "aim" ? body.engine : "all";
+        return Response.json(await shopReport(db, { id: brand.id, name: brand.name as string }, days, engine));
+      }
+      case "suggest":
+        return Response.json({ prompts: await suggestPrompts(db, brand.id) });
+      case "prompts_add": {
+        const list = (Array.isArray(body.prompts) ? body.prompts : [])
+          .map((q: { prompt?: unknown; category?: unknown }) => ({ prompt: String(q?.prompt ?? "").trim().slice(0, 200), category: q?.category ? String(q.category).trim().slice(0, 60) : null }))
+          .filter((q: { prompt: string }) => q.prompt.length >= 3);
+        const { data: have } = await db.from("shop_prompts").select("prompt, active").eq("brand_id", brand.id);
+        const keys = new Set((have ?? []).map((h) => promptKey(h.prompt as string)));
+        const room = MAX_PROMPTS - (have ?? []).filter((h) => h.active).length;
+        const fresh = list.filter((q: { prompt: string }) => {
+          const k = promptKey(q.prompt);
+          if (!k || keys.has(k)) return false;
+          keys.add(k);
+          return true;
+        });
+        if (fresh.length > room) return fail(`Up to ${MAX_PROMPTS} prompts. ${Math.max(0, room)} left.`);
+        if (fresh.length) {
+          const { error } = await db.from("shop_prompts").insert(fresh.map((q: { prompt: string; category: string | null }) => ({ ...q, workspace_id: ws, brand_id: brand.id })));
+          if (error) throw new Error(error.message);
+        }
+        return Response.json({ ok: true, added: fresh.length });
+      }
+      case "prompt_update": {
+        const { error } = await db.from("shop_prompts").update({ active: Boolean(body.active) }).eq("id", String(body.id ?? "")).eq("brand_id", brand.id);
+        if (error) throw new Error(error.message);
+        return Response.json({ ok: true });
+      }
+      case "prompt_remove": {
+        const { error } = await db.from("shop_prompts").delete().eq("id", String(body.id ?? "")).eq("brand_id", brand.id);
+        if (error) throw new Error(error.message);
+        return Response.json({ ok: true });
+      }
+      case "deep": {
+        const engine = body.engine === "aim" ? "aim" : "gpt";
+        const { data: q } = await db.from("shop_prompts").select("id").eq("id", String(body.promptId ?? "")).eq("brand_id", brand.id).maybeSingle();
+        if (!q) return fail("Prompt not found.", 404);
+        await deepCheck(db, brand.id, ws, q.id as string, engine);
+        await postNew(db, brand.id).catch(() => undefined);
+        return Response.json({ ok: true });
+      }
+      case "settings": {
+        const retailers = (Array.isArray(body.retailers) ? body.retailers : []).map((r: unknown) => String(r).trim()).filter((r: string) => r.length >= 2 && r.length <= 60).slice(0, 30);
+        const floor = body.floor === null || body.floor === undefined || body.floor === "" ? null : Math.round(Number(body.floor));
+        if (floor !== null && !(floor >= 1 && floor <= 100)) return fail("The price floor is a percent from 1 to 100.");
+        const { error } = await db.from("brands").update({ shop_retailers: [...new Set(retailers)], shop_floor: floor }).eq("id", brand.id);
+        if (error) throw new Error(error.message);
+        await rematch(brand.id, ws);
+        return Response.json({ ok: true });
+      }
       case "review":
         return Response.json({ groups: await reviewList(db, brand.id) });
       case "decide": {
@@ -153,6 +214,6 @@ export async function POST(request: Request) {
     }
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    return fail(/shop_cards|shop_ids|shop_aliases/.test(msg) ? "Run supabase/080_shop_matching.sql on the database." : /shop_sources|shop_catalog|shop_mode/.test(msg) ? "Run supabase/079_ai_shopping.sql on the database." : msg.slice(0, 300), 500);
+    return fail(/shop_prompts|shop_runs|shop_daily|shop_retailers|shop_floor|source_key/.test(msg) ? "Run supabase/081_shop_runs.sql on the database." : /shop_cards|shop_ids|shop_aliases/.test(msg) ? "Run supabase/080_shop_matching.sql on the database." : /shop_sources|shop_catalog|shop_mode/.test(msg) ? "Run supabase/079_ai_shopping.sql on the database." : msg.slice(0, 300), 500);
   }
 }

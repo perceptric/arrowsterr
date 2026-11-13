@@ -341,3 +341,13 @@ html, body { background: var(--paper-deep) !important; }
   :root :is(.aw, #calm) :is(.aw-empty, .aw-empty *, .aw-drawing .iso-p, .aw-drawing .iso-float) { animation: none !important; }
 }
 :root :is(.aw, #calm) .aw-onb__hero .aw-label { display: block; margin-bottom: 8px !important; }
+
+/* Wide tables that keep their columns on phones and scroll sideways (AI Shopping's tables), instead of stacking. */
+@media (max-width: 720px) {
+  :root :is(.aw, #calm) .aw-table.aw-table--keep { display: table; width: 100% !important; min-width: 640px; }
+  :root :is(.aw, #calm) .aw-table.aw-table--keep thead { display: table-header-group; }
+  :root :is(.aw, #calm) .aw-table.aw-table--keep tbody { display: table-row-group; width: auto !important; }
+  :root :is(.aw, #calm) .aw-table.aw-table--keep tr { display: table-row; width: auto !important; padding: 0 !important; }
+  :root :is(.aw, #calm) .aw-table.aw-table--keep :is(th, td) { display: table-cell; width: auto !important; padding: 12px 10px !important; border-bottom: 1px solid var(--color-rule) !important; }
+  :root :is(.aw, #calm) .aw-table.aw-table--keep td + td { margin-top: 0; }
+}
