@@ -6,7 +6,9 @@ Audit tells a brand what is holding its site back, in three parts that share one
 - **Internal Linking Audit:** do the pages that matter get the links they need, and which links should we add?
 - **Content Decay:** which pages are losing clicks, rank or AI citations, why, and what to do about each one?
 
-Every finding ends in a button that does the fix: a change set in the brand's CMS, a link added for you, or a refresh written by the Live Writer (`docs/live-writer-plan.md`).
+Every finding ends in a button that does the fix: a change set in the brand's CMS, a link added for you, or a refresh sent to the writer.
+
+Every feature, its release (v1, v2, Later) and its definition of done are in `docs/audit-features.md`. The Live Writer is built in its own track; Audit only sends it a refresh request (`docs/audit-features.md`, D9).
 
 Written November 2026. Prices marked "check" couldn't be confirmed on the vendor's own page. Learns from the Technical SEO toolset we built and removed this month (`docs/archive/technical-seo-plan.md`, `site-audit.md`, `site-structure.md`, `onpage-audit.md`, `content-map.md`) and from the Refresh idea in `docs/content-v3-backend.md` (section 7). That toolset had eight screens. Audit has one home with three tabs, and every finding leads to a fix.
 
@@ -348,7 +350,7 @@ All rules in `src/lib/audit/links.ts`, pure and tested, except step 4.
 
 **Add** prepares a change set with `addLink` on the source page, opened in the side panel to approve, apply and undo, exactly like the old links play. On a site we can't write to, Add shows the paragraph with the link in place and the HTML to copy.
 
-**New drafts get links too.** The Live Writer's `site_pages` tool reads the same term sets, so a new article links to the right pages from the start. When a draft is published, Audit suggests links **to** it from older pages (step 1 marks it new).
+**New drafts get links too.** Once both ship, the writer's `site_pages` tool can read the same term sets, so a new article links to the right pages from the start. When a draft is published, Audit suggests links **to** it from older pages (step 1 marks it new).
 
 ### 7.3 Link health score
 
@@ -447,22 +449,22 @@ One Claude call per page (Haiku 5.5) turns the reasons and their numbers into on
 | Action | When | The button |
 |---|---|---|
 | **Fix technical** | Technical reason first | Opens the issue's Fix (6.4) |
-| **Merge** | Cannibalized, and the other page is stronger | Prepares a merge: the Live Writer folds the weaker page's best parts into the stronger one, and a 301 from the weaker page (plugin on WordPress, steps elsewhere) |
-| **Refresh** | Outranked, out of date, lost AI citations, or SERP changed | **Refresh with the Live Writer** (8.5) |
+| **Merge** | Cannibalized, and the other page is stronger | Prepares a merge: a refresh of the stronger page folds in the weaker page's best parts, and a 301 from the weaker page (plugin on WordPress, steps elsewhere) |
+| **Refresh** | Outranked, out of date, lost AI citations, or SERP changed | **Refresh** (8.5) |
 | **Rework intent** | Intent shifted | Adds a planned piece to the Content Plan with the new format and links it to this page |
 | **Redirect** | Less demand, under 20 clicks now, and a close page exists | Prepares the 301 to that page |
 | **Leave** | Seasonal, or less demand with nothing better to do | Moves the page to Watching with a note |
 
 People can change the action on any row. The choice is saved, and the next run respects it.
 
-### 8.5 Refresh with the Live Writer
+### 8.5 Refresh
 
-The refresh is where Audit and the Live Writer meet.
+Audit plans the refresh and sends it to the writer with one request (`RefreshRequest`, `docs/audit-features.md` D9). The writer is built in its own track. Until the Live Writer ships, the request runs the existing `writer_brief` and `writer_draft` jobs with the live page as a source.
 
-1. **Refresh** opens the Live Writer sidebar in refresh mode.
-2. **Research:** the live page is read first and kept as a source. Then the usual research: the top 10 now, People Also Ask, the AI Overview, the AI engines' answers. The feed shows what changed since the page peaked: "3 new pages in the top 5", "The AI Overview now lists 7 tools; you show 5".
-3. **The plan:** the writer lists what it will change before it writes, each with its reason: "Update the 2025 prices", "Add a section on AI CRMs (4 of the top 5 cover it)", "Answer 'is HubSpot free' near the top (AI Overview asks it)". You can untick any line, or add your own in the steer box.
-4. **The rewrite:** sections that need no change are kept word for word and shown greyed. Changed sections stream in with the old text struck through beside them. The title, meta description and URL stay unless you change them. The URL never changes on its own.
+1. **Refresh** opens the refresh plan, then hands it to the writer in refresh mode.
+2. **The plan (Audit):** before anything is written, Audit lists what the refresh will change, each with its reason: "Update the 2025 prices", "Add a section on AI CRMs (4 of the top 5 cover it)", "Answer 'is HubSpot free' near the top (AI Overview asks it)". You can untick any line or add your own (`docs/audit-features.md` D8).
+3. **Research (writer):** the live page is read first and kept as a source. Then the usual research: the top 10 now, People Also Ask, the AI Overview, the AI engines' answers.
+4. **The rewrite (writer):** sections that need no change are kept word for word. Only the ticked changes are made. The title and meta description stay unless ticked. The URL never changes.
 5. **Internal links:** the writer adds links to the page's cluster, and Audit queues suggestions to the refreshed page from older pages.
 6. **Publish:** **Update** sends it to the same post.
    - A page Arrowsterr wrote: a new version of the same doc (`doc_versions`), pushed with the existing update path (`doc_publications`, `wpSync`).
@@ -566,7 +568,7 @@ Crawling uses no paid API, so crawls inside the limit take no tasks.
 | Internal link suggestions | Top 10 shown | All | All | All | All |
 | Add links for you | – | 50 a month | 500 a month | 2,000 a month | custom |
 | Content Decay | List only | List and reasons | All | All | All |
-| Refresh with the Live Writer | – | – | Counts as a draft | Counts as a draft | Counts as a draft |
+| Refresh a decaying page | – | – | Counts as a draft | Counts as a draft | Counts as a draft |
 | Extra pages | – | 1 task per 50 pages | same | same | contract |
 
 | Job | Tasks |
@@ -590,10 +592,10 @@ Estimates are for one engineer who knows the codebase. Each phase ships behind t
 | 2. Search Console | 1.5 | Connect, property match, backfill, nightly sync, URL Inspection, sitemaps, page value | A connected brand has 16 months of page and day rows, and re-syncing a day changes nothing |
 | 3. Fixes | 1.5 | Remove noindex, set canonical, update links to redirects and 404s, redirects, robots.txt and llms.txt through the plugin, recrawl after a fix, IndexNow | Each fix applies and undoes on a test WordPress site, and the issue row shows Fixed after the recrawl |
 | 4. Internal Linking | 2 | Link graph screens, link health, suggestions, Add and Add all, clusters, the map, links to new drafts | On a test site, every suggestion's anchor is already in its paragraph, and Add puts the link in the live post with Undo |
-| 5. Content Decay | 2.5 | Signals, guards, reasons, actions, the screen, Refresh with the Live Writer, Done with before and after | On recorded data from 3 real sites, every page on the list held for two weeks, and a refresh updates the live WordPress post with Undo |
+| 5. Content Decay | 2.5 | Signals, guards, reasons, actions, the screen, the refresh plan and hand-off, Done with before and after | On recorded data from 3 real sites, every page on the list held for two weeks, and a refresh updates the live WordPress post with Undo |
 | 6. Reach and polish | 1.5 | Fix writers for Webflow, Shopify and HubSpot; alerts and webhooks; Zippie and MCP tools; Audit in the PDF report | A fix applies and undoes on each of those three CMSs, and Zippie answers "what should I fix first?" from the audit |
 
-About 12.5 weeks in all. The Live Writer (`docs/live-writer-plan.md`) should ship first, since phase 5's Refresh runs on it.
+About 12.5 weeks in all. Phase 5's Refresh works with today's writer and moves to the Live Writer when that track ships, with no change on the Audit side. `docs/audit-features.md` section 6 has the v1 order by feature.
 
 **Zippie and MCP get:** `get_audit` (scores and top fixes), `get_audit_issue` (pages for one check), `get_link_suggestions`, `get_decaying_pages` (with reasons and actions), and for editors `start_audit` and `propose_fix` (a change set, approved in the app as today). A built-in skill, "Fix what matters", walks the Overview's top 10.
 
@@ -614,7 +616,7 @@ About 12.5 weeks in all. The Live Writer (`docs/live-writer-plan.md`) should shi
 | Estimated traffic without Search Console (DataForSEO Labs, ~$0.04, about 1 site in 4) | ~$1 | ~$10 |
 | Google APIs: Search Console, URL Inspection, CrUX, PageSpeed | $0 | $0 |
 | Alert emails (inside Resend's current plan, check) | $0 | ~$20 (next tier, check) |
-| Refreshes with the Live Writer | in the draft count | in the draft count |
+| Refreshes (run by the writer) | in the draft count | in the draft count |
 | **Monthly total added** | **~$36** | **~$325** |
 
 With some headroom for heavier sites (Agency teams with 50,000-page crawls), budget **about $55 at Beta and $480 at Growth**. The searches and anchors use plan tasks, so heavy use is paid for by the plan it runs on.
