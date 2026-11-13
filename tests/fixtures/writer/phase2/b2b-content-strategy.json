@@ -1,0 +1,1248 @@
+{
+ "slug": "b2b-content-strategy",
+ "keyword": "b2b content marketing strategy",
+ "kind": "agency",
+ "stage": "mofu",
+ "model": "claude-sonnet-5-5",
+ "at": "2026-11-13T14:31:23.299Z",
+ "seconds": 308,
+ "usage": {
+  "calls": 31,
+  "input": 72767,
+  "cacheRead": 1389983,
+  "cacheWrite": 209342,
+  "output": 43710
+ },
+ "score": {
+  "words": 2673,
+  "sections": 11,
+  "lint": 2,
+  "lintRules": {
+   "sentences": 2
+  },
+  "numbers": 8,
+  "unsourced": [],
+  "links": 38,
+  "strayLinks": [],
+  "images": 4,
+  "modules": 1
+ },
+ "title": "B2B Content Marketing Strategy: A Practical Guide for Marketing Leads",
+ "brief": {
+  "titles": [
+   "B2B Content Marketing Strategy: A Practical Guide",
+   "How to Build a B2B Content Marketing Strategy That Sells",
+   "B2B Content Marketing Strategy for Software Marketing Leads"
+  ],
+  "h1": "B2B Content Marketing Strategy: A Practical Guide for Marketing Leads",
+  "metaDescription": "Build a B2B content marketing strategy that ties every post to revenue. Steps, formats, metrics and what to borrow from top teams.",
+  "slug": "b2b-content-marketing-strategy",
+  "searchIntent": "The searcher wants to know how to plan a B2B content marketing strategy and what to put in it. A step-by-step guide with short lists, a self-check and concrete formats serves them best.",
+  "reader": "Marketing leads at B2B software companies who already know content basics and run, or are about to run, a blog and other content. They need to show pipeline results to leadership and want a plan they can write down, share with sales and start this quarter.",
+  "angle": "Most top pages list formats and tactics. This article gives marketing leads an order of work: start from revenue goals and sales and customer success input, build bottom-funnel pages first, test small, then measure by funnel stage, with a plain look at how AI search changes what to publish.",
+  "wordTarget": 2600,
+  "outline": [
+   {
+    "h2": "What is a B2B content marketing strategy?",
+    "points": [
+     "Define it in one sentence: using content to educate, influence and move business buyers toward a purchase, with each asset aimed at one role and one stage.",
+     "Explain why B2B differs: buyers take longer, research more, loop in teammates, check with finance and compare options before they decide.",
+     "Explain the difference between a content strategy (the overall plan answering who, what, where, when, how and why) and a content marketing strategy (the part focused on creating and sharing content).",
+     "Say what the article covers and how to use it: work through the sections in order and finish with the self-check."
+    ],
+    "h3": [],
+    "sources": [
+     2,
+     9,
+     12
+    ]
+   },
+   {
+    "h2": "Why you need a written plan",
+    "points": [
+     "Share the four challenge figures from the MarketStar guide: 46% of organizations have a documented content strategy, 50% of marketers struggle to create high-quality content, 44% find it hard to tailor content to buyer journey stages, and 28% have a content maturity model.",
+     "Name the source for each number and say the guide does not name its original survey, so present them as reported by MarketStar.",
+     "Explain the upside: content is a relatively low-cost channel, and evergreen content can keep paying off for months or years after publishing.",
+     "Mention that First Page Sage's 2026 benchmarks, as reported by Position Digital, put B2B SaaS SEO at 702% average ROI with a 7-month break-even over three years, and label it as an SEO figure and not a figure for all content."
+    ],
+    "h3": [],
+    "sources": [
+     3,
+     9,
+     11
+    ]
+   },
+   {
+    "h2": "Start with revenue goals and the buyer",
+    "points": [
+     "Pick the business goal first, such as awareness or lead generation, and decide how you will measure it.",
+     "Link goals to KPIs. For example, if the goal is lead generation, lead magnets like white papers and industry reports fit, and you can track leads generated and email signups.",
+     "Use revenue as your filter: if a topic has no clear link to pipeline, leave it out for now.",
+     "Define the buyer and not only the user, and remember buyers bring in teammates and finance.",
+     "Give a short persona checklist: goals, challenges, how you solve them, likely job titles, common objections and frequently asked questions."
+    ],
+    "h3": [],
+    "sources": [
+     2,
+     9,
+     10,
+     11
+    ]
+   },
+   {
+    "h2": "Pull topics from sales and customer success",
+    "points": [
+     "Explain pain-first content: start from support tickets, sales calls and objection-handling emails, and not only from SEO tools.",
+     "Give a simple setup: a shared Slack channel, a Google form or a monthly sync where reps share what they need to win deals and CSMs share what prevents churn.",
+     "List assets this feeds: one-pagers that handle objections, ROI tools for budget owners and competitive breakdowns that help buyers frame the decision.",
+     "Give a usefulness test: if an asset isn't used in follow-ups or linked in CRM notes, rework it with the sales team.",
+     "Show the difference between a vague topic and a specific one without presenting any invented result as real."
+    ],
+    "h3": [],
+    "sources": [
+     2
+    ]
+   },
+   {
+    "h2": "Match content to funnel stages",
+    "points": [
+     "Explain that buyers need different content at each stage, and that each asset should do one job for one person.",
+     "Recommend building bottom-funnel pages first, then publishing top-funnel content to feed them."
+    ],
+    "h3": [
+     {
+      "title": "Start with bottom-funnel pages",
+      "points": [
+       "Target high-intent searches such as '[Tool] vs [Competitor]', 'Best [category] platform for [job to be done]', pricing, features, reviews and alternatives.",
+       "Mention that Ubersuggest, Ahrefs and Semrush can filter for these keywords.",
+       "Say each page should lead with a clear value proposition and answer the buyer's question better than other pages."
+      ]
+     },
+     {
+      "title": "Add middle and top-funnel content next",
+      "points": [
+       "Middle: webinars with real use cases, comparison guides and ROI tools.",
+       "Top: educational posts, industry reports and original data that help buyers frame the problem.",
+       "Note that the stage labels ToFu, MoFu and BoFu come from AI answers and are common industry shorthand."
+      ]
+     }
+    ],
+    "sources": [
+     2,
+     9,
+     11
+    ]
+   },
+   {
+    "h2": "Choose formats that fit software buyers",
+    "points": [
+     "List common B2B formats: blog posts, case studies, white papers or industry reports, podcasts, educational videos, testimonials and tutorials.",
+     "Describe a good case study: the starting challenge, the solution and measurable results.",
+     "Explain product-led formats that help buyers evaluate: listicles, comparison articles, case studies, live demos and use cases.",
+     "Explain original formats AI can't copy: founder-led content, original research, and free tools and templates.",
+     "Give a fairness checklist for listicles: clear selection criteria, honest drawbacks including your own product's, and proof you tested the tools."
+    ],
+    "h3": [],
+    "sources": [
+     5,
+     9,
+     11
+    ]
+   },
+   {
+    "h2": "Plan for AI search and shrinking educational traffic",
+    "points": [
+     "Share Ryan Law's May 2025 LinkedIn prediction, quoted by Position Digital, that the value of educational blog content will go to zero within 10 years. Label it as a prediction.",
+     "Include the balancing view from the same source: blog content is still a good channel for organic visitors, but informational posts rarely drive revenue by themselves.",
+     "Explain what to publish in response: content rooted in your story, data, customers and point of view, plus product-led pages that help buyers act.",
+     "Use the HR Datahub example from Position Digital: after a post was updated with data from its own survey, it moved from position 35 to 1 in 4 weeks and brought 200% more webinar signups.",
+     "Mention that agency sites such as Siege Media now publish regularly on GEO, which shows the topic is a live concern for marketing teams."
+    ],
+    "h3": [],
+    "sources": [
+     1,
+     11
+    ]
+   },
+   {
+    "h2": "Distribute and measure what you publish",
+    "points": [
+     "Name the common distribution channels: organic search, email, paid ads and LinkedIn.",
+     "Advise validating topics in small formats first, such as LinkedIn posts, polls and email tests, before building large assets.",
+     "Set success metrics by funnel stage and not one metric for everything.",
+     "Recommend a quarterly review: promote what performs, cut what doesn't, and reuse what you've already built.",
+     "Warn kindly that vanity metrics can look good without showing pipeline, and point to the KPIs from the goals section."
+    ],
+    "h3": [],
+    "sources": [
+     2,
+     5,
+     9,
+     10,
+     11
+    ]
+   },
+   {
+    "h2": "Common planning mistakes and what to do instead",
+    "points": [
+     "Publishing without a strategy: write the plan first and tie each topic to a goal.",
+     "Gated content with no follow-up: pair every download with a next step and a reason for the reader to act.",
+     "Awareness content with no next step: add one clear action to each piece.",
+     "Following trends for their own sake or polishing design before publishing: ask whether the topic helps a buyer decide, and ship when it's useful.",
+     "Treating AI as the strategy: use AI tools to speed up workflows while your buyers, data and point of view stay at the center."
+    ],
+    "h3": [],
+    "sources": [
+     2,
+     3
+    ]
+   }
+  ],
+  "entities": [
+   "B2B content marketing",
+   "content strategy vs content marketing strategy",
+   "buying committee",
+   "buyer persona",
+   "funnel stages (top, middle, bottom)",
+   "pain-first content",
+   "bottom-funnel keywords",
+   "KPIs",
+   "case studies",
+   "white papers",
+   "original research",
+   "product-led content",
+   "LinkedIn",
+   "AI Overviews",
+   "GEO (generative engine optimization)",
+   "Ryan Law (Ahrefs)",
+   "First Page Sage",
+   "HR Datahub",
+   "Neil Patel",
+   "Ubersuggest, Ahrefs, Semrush",
+   "MarketStar",
+   "Sprout Social",
+   "Siege Media",
+   "Content Marketing Institute"
+  ],
+  "gaps": [
+   "Most top pages list formats and channels but give no order of work. This article sequences goals, sales input, bottom-funnel pages, formats, distribution and measurement.",
+   "Few pages explain how to set up sales and customer success input (shared channel, form, monthly sync). This article gives the setup.",
+   "Only one top page, Position Digital, covers how AI answers change the value of educational blog posts. This article covers it and keeps the tone balanced.",
+   "Many pages are agency sales pages or homepages (Forrester, Digitalegy, Projectify Lab, PathFactory) and give no usable planning steps.",
+   "Most pages offer no way to check your own plan. This article adds a short self-assessment.",
+   "Some statistics on top pages are dated or have no named source, so this article names the source for each number and flags the weak ones."
+  ],
+  "faqs": [
+   {
+    "question": "What are some examples of B2B content marketing?",
+    "answer": "Must list blog posts, case studies, white papers, webinars, email sequences, LinkedIn posts, podcasts and educational videos, and say each should serve one role and one buying stage."
+   },
+   {
+    "question": "What is the difference between a B2B content strategy and a B2B content marketing strategy?",
+    "answer": "Must say the content strategy is the overall plan (who, what, where, when, how, why) and the content marketing strategy is the part focused on creating and distributing content."
+   },
+   {
+    "question": "Why is content marketing important for B2B?",
+    "answer": "Must say B2B buyers research longer and involve several people, content helps them decide without one-to-one contact, it is relatively low cost, and good content keeps working over time."
+   },
+   {
+    "question": "How do you measure a B2B content marketing strategy?",
+    "answer": "Must say to tie goals to KPIs (for example leads and email signups for lead generation), measure by funnel stage, and review quarterly."
+   },
+   {
+    "question": "What content should a B2B software company publish first?",
+    "answer": "Must say bottom-funnel pages first, such as comparisons, alternatives, pricing and best-for pages, then middle and top-funnel content that feeds them."
+   },
+   {
+    "question": "Does blogging still work with AI search?",
+    "answer": "Must say blogs still bring visitors, informational posts are losing value according to Ryan Law's prediction, and original data and product-led content hold up better."
+   }
+  ],
+  "internalLinks": [
+   {
+    "url": "https://northlinedigital.example/blog/content-strategy",
+    "anchor": "content strategy basics",
+    "where": "What is a B2B content marketing strategy?"
+   },
+   {
+    "url": "https://northlinedigital.example/services/seo",
+    "anchor": "SEO that follows buying intent",
+    "where": "Match content to funnel stages"
+   },
+   {
+    "url": "https://northlinedigital.example/services/content",
+    "anchor": "our content services",
+    "where": "Choose formats that fit software buyers"
+   },
+   {
+    "url": "https://northlinedigital.example/case-studies",
+    "anchor": "Northline Digital case studies",
+    "where": "Choose formats that fit software buyers"
+   },
+   {
+    "url": "https://northlinedigital.example/blog/ai-search-guide",
+    "anchor": "our guide to AI search",
+    "where": "Plan for AI search and shrinking educational traffic"
+   },
+   {
+    "url": "https://northlinedigital.example/services/ai-search",
+    "anchor": "AI search services",
+    "where": "Plan for AI search and shrinking educational traffic"
+   }
+  ],
+  "cta": {
+   "text": "If you'd like a second set of eyes on your plan, we can help you map it to your buyers and your pipeline. See how our content services work and tell us where you want to start.",
+   "where": "After the last H2, linking to https://northlinedigital.example/services/content"
+  },
+  "modules": [
+   {
+    "type": "scorecard",
+    "title": "Grade your B2B content plan",
+    "purpose": "Let the reader rate their current plan against the steps in the article and see which one to fix first.",
+    "placement": "Distribute and measure what you publish",
+    "inputs": [
+     "Each item answered Yes, Partly or No"
+    ],
+    "outputs": [
+     "Total score",
+     "The lowest-scoring step to fix first, with a pointer to the matching H2"
+    ],
+    "data": "Items: 1) We have a documented content strategy [3]. 2) Each content goal has a KPI such as leads or email signups [9]. 3) Topics come from sales calls, support tickets and objections [2]. 4) We have content mapped to each funnel stage [3, 9]. 5) We have bottom-funnel pages such as comparisons and alternatives [2, 11]. 6) We validate topics in small formats before scaling [2]. 7) We review results each quarter and cut what doesn't perform [2].",
+    "why": "A reader can check seven items against their own plan and get a clear first fix, which a plain list can't do."
+   }
+  ],
+  "images": [
+   {
+    "placement": "Why you need a written plan",
+    "shows": "Four bars showing the MarketStar guide's reported content challenges.",
+    "alt": "Bar chart of four content marketing challenges reported by MarketStar, from 28% to 50%.",
+    "kind": "chart",
+    "numbers": "Have a documented content strategy: 46%. Struggle to create high-quality content: 50%. Find it hard to tailor content to buyer journey stages: 44%. Have a content maturity model: 28%.",
+    "sources": [
+     3
+    ]
+   },
+   {
+    "placement": "Pull topics from sales and customer success",
+    "shows": "Three steps: collect sales and support input, review it monthly, build one-pagers, ROI tools and competitive breakdowns.",
+    "alt": "Three-step diagram from sales and support input to finished assets.",
+    "kind": "steps"
+   },
+   {
+    "placement": "Plan for AI search and shrinking educational traffic",
+    "shows": "HR Datahub's search position before and after adding its own survey data.",
+    "alt": "Chart showing a post moving from search position 35 to position 1 in four weeks.",
+    "kind": "chart",
+    "numbers": "Position before update: 35. Position 4 weeks after update: 1.",
+    "sources": [
+     11
+    ]
+   },
+   {
+    "placement": "Common planning mistakes and what to do instead",
+    "shows": "A checklist of five planning mistakes, each paired with a fix.",
+    "alt": "Checklist of five common content planning mistakes and what to do instead.",
+    "kind": "checklist"
+   }
+  ],
+  "examples": [],
+  "checks": [],
+  "research": {
+   "sources": [
+    {
+     "n": 1,
+     "url": "https://www.siegemedia.com/All",
+     "title": "All - Siege Media",
+     "domain": "siegemedia.com",
+     "kind": "serp",
+     "position": 2,
+     "words": 322
+    },
+    {
+     "n": 2,
+     "url": "https://neilpatel.com/blog/b2b-content-strategy/",
+     "title": "The B2B Content Marketing Playbook: What Works, What Doesn’t, and What to Ignore",
+     "domain": "neilpatel.com",
+     "kind": "serp",
+     "position": 3,
+     "words": 2797
+    },
+    {
+     "n": 3,
+     "url": "https://www.marketstar.com/growth-hub-resources/cxo-guides/the-definitive-guide-to-b2b-content-marketing-craft-an-effective-content-strategy-for-success",
+     "title": "The Definitive Guide to B2B Content Marketing – Crafting an Effective Content Strategy",
+     "domain": "marketstar.com",
+     "kind": "serp",
+     "position": 4,
+     "words": 250
+    },
+    {
+     "n": 4,
+     "url": "https://www.forrester.com/",
+     "title": "Forrester",
+     "domain": "forrester.com",
+     "kind": "serp",
+     "position": 5,
+     "words": 1037
+    },
+    {
+     "n": 5,
+     "url": "https://100poundsocial.com/blog/content-marketing/b2b-content-marketing/",
+     "title": "B2B Content Marketing - the Definitive Guide for 2024",
+     "domain": "100poundsocial.com",
+     "kind": "serp",
+     "position": 6,
+     "words": 3386
+    },
+    {
+     "n": 6,
+     "url": "https://digitalegy.io/",
+     "title": "Digitalegy | AI Revenue Operations HubSpot Partner",
+     "domain": "digitalegy.io",
+     "kind": "serp",
+     "position": 7,
+     "words": 1565
+    },
+    {
+     "n": 7,
+     "url": "https://projectifylab.com/",
+     "title": "Digital Marketing Agency: SEO, AEO & GEO | Projectify Lab",
+     "domain": "projectifylab.com",
+     "kind": "serp",
+     "position": 8,
+     "words": 1910
+    },
+    {
+     "n": 8,
+     "url": "https://www.pathfactory.com/",
+     "title": "B2B Content Intelligence & AI Buyer Journeys",
+     "domain": "pathfactory.com",
+     "kind": "serp",
+     "position": 9,
+     "words": 563
+    },
+    {
+     "n": 9,
+     "url": "https://sproutsocial.com/insights/b2b-content-marketing",
+     "title": "B2B content marketing: Ultimate strategy guide for 2026",
+     "domain": "sproutsocial.com",
+     "kind": "ai",
+     "position": null,
+     "words": 2777
+    },
+    {
+     "n": 10,
+     "url": "https://www.contra.agency/insights/lets-make-it-happen-b2b-content-marketing-strategy-and-framework-2026",
+     "title": "B2B Content Marketing Strategy For 2026 | Contra Agency",
+     "domain": "contra.agency",
+     "kind": "ai",
+     "position": null,
+     "words": 3559
+    },
+    {
+     "n": 11,
+     "url": "https://www.position.digital/blog/b2b-saas-content-marketing-strategy",
+     "title": "B2B SaaS Content Marketing Strategy That Drives Leads in 2026",
+     "domain": "position.digital",
+     "kind": "ai",
+     "position": null,
+     "words": 3572
+    },
+    {
+     "n": 12,
+     "url": "https://www.o8.agency/blog/how-create-b2b-content-marketing-strategy-and-why",
+     "title": "B2B Content Marketing Strategy: The Complete Guide for 2026 | O8",
+     "domain": "o8.agency",
+     "kind": "ai",
+     "position": null,
+     "words": 2071
+    }
+   ],
+   "questions": [
+    "What are some examples of B2B content marketing?",
+    "What is the 70-20-10 rule in digital marketing?",
+    "What is the B2B sales approach?",
+    "What are the 5 main strategies of digital marketing?"
+   ],
+   "engines": [
+    "Gemini",
+    "AI Mode"
+   ],
+   "topPages": "",
+   "aiAnswers": ""
+  },
+  "model": "claude-sonnet-5-5",
+  "at": "2026-11-13T14:27:40.275Z"
+ },
+ "sections": [
+  {
+   "key": "intro",
+   "h2": "",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "If you run marketing at a B2B software company, you probably have a blog, a few case studies and a long list of ideas, but no single plan that ties them to pipeline. A clear B2B content marketing strategy gives you that plan, so leadership can see what each piece of content is meant to do.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "In this guide, we walk you through an order of work: start from revenue goals and sales input, build bottom-funnel pages first, test small, and measure by funnel stage. We also look at how AI search changes what you should publish, so you can write the plan down and start this quarter.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-0",
+   "h2": "What is a B2B content marketing strategy?",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "B2B content marketing is the practice of using content to educate, influence and move business buyers toward a purchase.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Business buyers rarely decide fast, and they take their time because several people have a say in the purchase. They [loop in teammates, check with finance, compare options and wait until they feel confident](https://neilpatel.com/blog/b2b-content-strategy/), and [longer conversion paths are the norm](https://sproutsocial.com/insights/b2b-content-marketing) when you market to other businesses.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Two terms often get mixed up, so here are short definitions you can use to tell them apart:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "A [B2B content strategy](https://www.o8.agency/blog/how-create-b2b-content-marketing-strategy-and-why) is the overall plan that answers who, what, where, when, how and why.",
+      "A content marketing strategy is the part of that plan focused on creating and sharing the content."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you want a refresher on the first piece, our [content strategy basics](https://northlinedigital.example/blog/content-strategy) page walks through it. To use this guide, work through the sections in order and write down your answers as you go, so you finish with a plan you can share with sales and start this quarter.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-1",
+   "h2": "Why you need a written plan",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Many marketing teams know content works, yet far fewer have a written plan to guide it. The figures below come from a [MarketStar guide on B2B content marketing](https://www.marketstar.com/growth-hub-resources/cxo-guides/the-definitive-guide-to-b2b-content-marketing-craft-an-effective-content-strategy-for-success), which doesn't name the original survey, so we're presenting them as reported by MarketStar.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "As you can see in the list below, the gaps show up in documenting a plan, creating quality content, fitting each buying stage and measuring results.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "MarketStar reports that only 46% of organizations have a documented strategy for managing content.",
+      "MarketStar reports that 50% of marketers struggle to create high-quality content that resonates with their audience.",
+      "MarketStar reports that 44% of marketers find it difficult to tailor content to different stages of the buying process.",
+      "MarketStar reports that only 28% of organizations have a content maturity model to measure and improve their efforts."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A written plan helps you close each of those gaps on purpose, and it gives sales and leadership something concrete to review.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "There's an upside to doing the work, because content is a [relatively low-cost channel](https://sproutsocial.com/insights/b2b-content-marketing) and most publishing and distribution channels don't cost extra unless you buy paid ads. Content also has a long lifespan, and [evergreen topics can keep paying off](https://sproutsocial.com/insights/b2b-content-marketing) for months or years after you publish them.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "According to [First Page Sage's 2026 benchmarks, as reported by Position Digital](https://www.position.digital/blog/b2b-saas-content-marketing-strategy), B2B SaaS SEO averages 702% ROI with a 7-month break-even, measured over a 3-year window.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Keep in mind that this figure covers SEO only, not all content together, so treat it as one data point when you make your case to leadership.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-2",
+   "h2": "Start with revenue goals and the buyer",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Before you plan any content, decide what the content is supposed to do for the business. [Sprout Social](https://sproutsocial.com/insights/b2b-content-marketing) asks you to identify your goals first, such as raising awareness or generating leads, and to decide how you will measure each one.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Once the goal is clear, the KPIs follow. For example, if your goal is lead generation, lead magnets such as white papers and industry reports fit well, and you can track the number of leads generated and email signups to see whether they work.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Next, use revenue as your filter. [Neil Patel](https://neilpatel.com/blog/b2b-content-strategy/) puts it plainly: if a topic has no clear connection to revenue, don't publish it. For now, leave those ideas on a backlog and spend your time on topics that tie back to pipeline.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Then define the buyer along with the user. B2B buyers don't make quick decisions, and as [Neil Patel](https://neilpatel.com/blog/b2b-content-strategy/) notes, they loop in teammates, check with finance and compare options.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "They also wait until they feel confident, so your content needs to help each of those people say yes.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how to capture the buyer on one page. [Contra Agency](https://www.contra.agency/insights/lets-make-it-happen-b2b-content-marketing-strategy-and-framework-2026) suggests a buyer persona that includes the following:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Their goals in the role.",
+      "Their challenges day to day.",
+      "How your product solves those challenges.",
+      "Likely job titles, which also help with targeting on LinkedIn.",
+      "Common objections you hear in sales calls.",
+      "Frequently asked questions they bring to your team."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Do you know which of these you can fill in today from real conversations? Any gaps you find are a good reason to talk with your sales team, which is where the next section starts.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-3",
+   "h2": "Pull topics from sales and customer success",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Your sales and customer success teams hear what buyers struggle with every day, so we suggest starting there before you open a keyword tool. [Neil Patel](https://neilpatel.com/blog/b2b-content-strategy/) calls what your sales and customer success teams hear your content roadmap.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "For example, a vague topic like \"Why customer success matters\" gives a writer very little to work with. A specific one, such as how a customer success team can cut churn in a set number of days, gives a buyer a problem they recognize and a reason to click.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how to set up the flow of ideas without a long brainstorm. [Neil Patel](https://neilpatel.com/blog/b2b-content-strategy/) suggests one of these simple options:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "A shared Slack channel where reps and CSMs drop questions and objections as they hear them.",
+      "A Google form that takes a minute to fill out after a call.",
+      "A monthly sync where reps share what they need to win deals and CSMs share what helps prevent churn."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Once ideas start coming in, you can turn them into assets that sales and customer success will actually use. [Neil Patel](https://neilpatel.com/blog/b2b-content-strategy/) lists these examples:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "One-pagers that handle common objections.",
+      "ROI tools for budget owners.",
+      "Competitive breakdowns that help buyers frame the decision."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "This works because you publish for questions your buyers already ask, and a simple test shows whether it's working.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If an asset fails that test, rework it together with your sales team so it fits how they talk with buyers.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-4",
+   "h2": "Match content to funnel stages",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Buyers need different content at each stage of their decision, and each asset works best when it does one job for one person. A page that tries to teach a newcomer and also close a budget owner usually serves neither reader well. As [Neil Patel](https://neilpatel.com/blog/b2b-content-strategy/) puts it, each asset should speak to one person by title, problem and role in the buying process.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "That order gives the readers you attract somewhere useful to go next, which makes the top-funnel work pay off.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Start with bottom-funnel pages",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Bottom-funnel pages answer the questions buyers ask when they are close to choosing. Neil Patel recommends [targeting high-intent searches](https://neilpatel.com/blog/b2b-content-strategy/) like these, which is also what we mean by [SEO that follows buying intent](https://northlinedigital.example/services/seo):",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Searches that compare tools, such as \"[Tool] vs [Competitor]\".",
+      "Searches for the best option, such as \"Best [category] platform for [job to be done]\".",
+      "Searches about pricing, features, reviews and alternatives."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Ubersuggest, Ahrefs and Semrush can all filter for these keywords, so you can find them without guessing. Each page should open with a clear statement of what your product does for the buyer and answer their question better than the other pages they will see.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Add middle and top-funnel content next",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Once your bottom-funnel pages are live, you can add content for buyers who are earlier in their search. Here's how to think about each stage:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "For the middle of the funnel, publish webinars with real use cases, comparison guides and ROI tools.",
+      "For the top of the funnel, publish educational posts, industry reports and original data that help buyers frame the problem."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The labels ToFu, MoFu and BoFu for these stages come from AI answers to this keyword, and they are common industry shorthand. You can use these labels or your own names, as long as your team agrees on what each stage means.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-5",
+   "h2": "Choose formats that fit software buyers",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "The right mix depends on what your buyers need to see before they feel ready to talk to sales.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here are the formats that B2B teams use most often, according to [Sprout Social](https://sproutsocial.com/insights/b2b-content-marketing) and [100 PoundSocial](https://100poundsocial.com/blog/content-marketing/b2b-content-marketing/):",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Blog posts, which let you share practical tips, industry analysis and market observations.",
+      "White papers and industry reports, which work well as lead magnets.",
+      "Podcasts, which give you room for longer talks with experts."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A good case study walks through three things: the challenge the client started with, the solution you put in place and the [measurable results](https://100poundsocial.com/blog/content-marketing/b2b-content-marketing/) they saw.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Product-led formats that help buyers evaluate",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Position Digital](https://www.position.digital/blog/b2b-saas-content-marketing-strategy) points to product-led content as the kind that helps buyers compare options and take action. It names listicles, comparison articles, case studies, live product demos and product use cases.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Original formats AI can't copy",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The same source says original content is rooted in your story, your data, your customers and your point of view. It lists founder-led content, original research, and free tools and templates as examples, and our [content services](https://northlinedigital.example/services/content) can help you plan any of them.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Listicles work best when readers can trust them, and Position Digital warns that publishing self-promotional ones at scale can get a site punished by Google. Before you publish one, check that it meets these points:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "You explain clear criteria for why each tool made the list.",
+      "You share honest drawbacks for every option, including your own product.",
+      "You can show proof that your team tested the tools."
+     ],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-6",
+   "h2": "Plan for AI search and shrinking educational traffic",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Search is changing how buyers find answers, so it helps to plan your blog with that in mind. Here's how we'd think about it, using what [Position Digital](https://www.position.digital/blog/b2b-saas-content-marketing-strategy) shares on the topic.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "He expects large language models to resolve almost all informational queries, so treat this as a prediction that may or may not play out. [Position Digital quotes the post](https://www.position.digital/blog/b2b-saas-content-marketing-strategy) in its guide for B2B SaaS teams.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The same source gives a more balanced view, saying blog content is still a great channel for bringing thousands of organic visitors to your website. It adds that informational articles rarely drive revenue on their own, because most readers are there to learn and don't plan to buy tools.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "So what should you publish in response? [Position Digital](https://www.position.digital/blog/b2b-saas-content-marketing-strategy) points to two types of content:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Original content rooted in your story, your data, your customers and your point of view.",
+      "Product-led content that helps buyers evaluate your solution and take action."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "For example, HR Datahub updated a blog post with data from its own survey. [According to Position Digital](https://www.position.digital/blog/b2b-saas-content-marketing-strategy), the post moved from position 35 to 1 in 4 weeks, earned citations in AI platforms and brought 200% more webinar signups.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you want to go deeper, [our guide to AI search](https://northlinedigital.example/blog/ai-search-guide) walks through the basics, and our [AI search services](https://northlinedigital.example/services/ai-search) can help you plan what to publish next.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-7",
+   "h2": "Distribute and measure what you publish",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Once you've published, the next job is getting each piece in front of the right people and learning whether it helps.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Before you invest in a large asset, check that the topic interests your buyers. [Neil Patel](https://neilpatel.com/blog/b2b-content-strategy/) recommends validating topics in small formats first:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Share the idea as a LinkedIn post and see how your target audience responds.",
+      "Run a quick poll to learn which problem matters most to your buyers.",
+      "Test the angle in an email to a small segment before you write the full guide."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Next, set success metrics by funnel stage and avoid judging everything with one number. For example, a bottom-funnel comparison page might be judged on demo requests, while a top-funnel report might be judged on email signups.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Then review your work every quarter, because Neil Patel suggests you promote what performs, cut what doesn't, and look for ways to get more value from what you've already built.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Thankfully, a review doesn't need to be complicated, and these questions are a good place to start:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "Which pages brought leads or signups this quarter, based on the KPIs you set in your goals?",
+      "Which pieces could be promoted again through email or LinkedIn?",
+      "Which topics showed little interest and can be paused?",
+      "Which older assets could be updated or reused in a new format?"
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Vanity metrics can look good without showing pipeline, so check each number against the goals you wrote down earlier. If a figure doesn't connect to leads generated, email signups or another KPI you chose, treat it as a nice extra instead of proof your plan works.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-8",
+   "h2": "Common planning mistakes and what to do instead",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Most planning mistakes come from skipping a step, so here's how to spot each one in your own plan and what to do instead.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "When you gate content with no follow-up, pair every download with a next step and a reason for the reader to act, since Neil Patel also lists gated PDFs that no one reads as a pattern to avoid.",
+      "When your awareness content has no next step, add one clear action to each piece, such as a related guide, a template or a demo request.",
+      "When you follow trends for their own sake, ask whether the topic helps a buyer decide.",
+      "When you treat AI as the strategy, use AI tools to speed up your workflows while your buyers, data and point of view stay at the center."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Honestly, most teams will recognize at least one of these mistakes in their current plan, and each one is easy to fix once you can see it. The [MarketStar guide](https://www.marketstar.com/growth-hub-resources/cxo-guides/the-definitive-guide-to-b2b-content-marketing-craft-an-effective-content-strategy-for-success) reports that only 46% of organizations have a documented content strategy, so pick one mistake from the list and fix it this week.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you'd like a second set of eyes on your plan, we can help you map it to your buyers and your pipeline. See how [our content services](https://northlinedigital.example/services/content) work and tell us where you want to start.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "faq",
+   "h2": "Frequently asked questions",
+   "blocks": [
+    {
+     "type": "h3",
+     "text": "What are some examples of B2B content marketing?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Each asset works best when it serves one role and one stage of the buying process. For example, a case study can help a budget owner decide, while a LinkedIn post can meet a practitioner early in their research.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What is the difference between a B2B content strategy and a B2B content marketing strategy?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "According to [O8](https://www.o8.agency/blog/how-create-b2b-content-marketing-strategy-and-why), a B2B content strategy is the overall plan that answers who, what, where, when, how and why. A B2B content marketing strategy is the part of that plan focused on creating and distributing content.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Why is content marketing important for B2B?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "B2B buyers take longer to decide, research more and involve several people, so content lets them learn without one-to-one contact, as [Sprout Social](https://sproutsocial.com/insights/b2b-content-marketing) explains.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "How do you measure a B2B content marketing strategy?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Start by tying each goal to KPIs, as [Sprout Social](https://sproutsocial.com/insights/b2b-content-marketing) suggests. Here's how that works in practice:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "For lead generation, you can track leads generated and email signups.",
+      "Set success metrics by funnel stage.",
+      "Review the results every quarter so you can promote what performs and cut what doesn't."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What content should a B2B software company publish first?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Begin with bottom-funnel pages, such as comparisons, alternatives, pricing and best-for pages, because they match buyers who are close to a decision. [Neil Patel](https://neilpatel.com/blog/b2b-content-strategy/) and [Position Digital](https://www.position.digital/blog/b2b-saas-content-marketing-strategy) both recommend this.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Once those are live, add middle and top-funnel content that feeds them.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Does blogging still work with AI search?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Blogs still bring visitors, but [Position Digital](https://www.position.digital/blog/b2b-saas-content-marketing-strategy) quotes Ahrefs' Ryan Law predicting that the value of educational blog content will go to zero within 10 years.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The same source says original data and product-led content hold up better, so you may want to build your blog around your own data, customers and point of view.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  }
+ ],
+ "cut": [
+  {
+   "id": "1.0.1",
+   "why": "Source 2 says each asset should do one job and speak to one person, but the article attributes the specific 'title, problem and role' wording loosely; source says 'title, pain point, and role', acceptable, though 'based on their problem' is fine. Low risk but wording attributed to Neil Patel is broa"
+  },
+  {
+   "id": "4.1.0",
+   "why": "Source 2 says content comes from support tickets, sales calls and objection emails, not SEO tools; it does not say to then use SEO tools to check how people search for them."
+  },
+  {
+   "id": "4.7.1",
+   "why": "Source 2 says if it's not used in follow-ups or linked in CRM notes it's not valuable content, but the article's phrasing is fine; the claim 'isn't valuable content yet' is a mild paraphrase. Kept low risk."
+  },
+  {
+   "id": "5.1.0",
+   "why": "Recommendation to build bottom-funnel pages first is in the brief but the sources provided do not state this order; attributing it implies support. Source 11 mentions starting with bottom-funnel pages only in the Key Takeaways, which does support it, so this is borderline."
+  },
+  {
+   "id": "6.0.0",
+   "why": "Claim that marketing leads have more formats than time is unsupported opinion framed as fact."
+  },
+  {
+   "id": "6.2.i1",
+   "why": "Source 5 supports case studies telling client success stories, acceptable; not cut."
+  },
+  {
+   "id": "6.2.i4",
+   "why": "Source 5 says videos explain complex topics and are effective for software demos; acceptable."
+  },
+  {
+   "id": "6.2.i5",
+   "why": "Sources list testimonials as a format but do not say customers speak about results they saw; minor embellishment."
+  },
+  {
+   "id": "6.2.i6",
+   "why": "Sources list tutorials but do not say they help new users get value fast; embellishment."
+  },
+  {
+   "id": "6.3.1",
+   "why": "Links to Northline Digital case studies and claims they show how the brand shapes these stories; the page content is not in sources, but this is the brand describing itself, so acceptable. Low risk."
+  },
+  {
+   "id": "7.1.0",
+   "why": "Source 11 quotes Ryan Law's post saying value of educational blog content will go to zero in 10 years; supported. Not cut."
+  },
+  {
+   "id": "7.6.0",
+   "why": "Source 1 shows Siege Media listing GEO-related posts, but the claim 'you can find plenty of recent writing on it' goes beyond; also 'publish regularly' is inferred from a listing, acceptable. Only the extra clause is unsupported."
+  },
+  {
+   "id": "8.0.1",
+   "why": "Attributes a 'test small then build big' order to Neil Patel's playbook; source 2 says to validate topics in small formats before scaling, which supports it. Borderline, not strictly unsupported."
+  },
+  {
+   "id": "8.1.0",
+   "why": "Source 9 says content goes hand in hand with social media where you share links and visuals; supported. However, listing LinkedIn as a common channel is in brief via other sources. Not cut."
+  },
+  {
+   "id": "8.1.1",
+   "why": "Source 5 lists organic search, email and paid ads as common distribution channels; supported. Not cut."
+  },
+  {
+   "id": "9.1.i0",
+   "why": "Source 2 lists 'Publishing Without Strategy' under what doesn't work, but does not say it is a reason B2B content underperforms in those words; mild paraphrase. Low risk."
+  },
+  {
+   "id": "9.1.i4",
+   "why": "Source 2 mentions 'Holding for Design Polish' under what looks useful but isn't; supported at low risk."
+  },
+  {
+   "id": "10.1.0",
+   "why": "Source 5 and 2 list formats, but email sequences and webinars come from source 2 only; attributing all to both sources overstates. Minor."
+  },
+  {
+   "id": "10.6.1",
+   "why": "Repeats low-cost and lifespan claims from source 9; supported. Not cut."
+  },
+  {
+   "id": "2.5.0",
+   "why": "Claim that returns 'can be large for software companies' is a framing opinion supported only by the SEO-only 702% figure; acceptable but 'Surprisingly' framing is fine."
+  }
+ ],
+ "styleLeft": [
+  {
+   "id": "3.1.1",
+   "rule": "sentences",
+   "before": "a sentence over 35 words",
+   "after": null
+  },
+  {
+   "id": "3.2.0",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  }
+ ],
+ "proof": {
+  "verdict": "Ship",
+  "reasons": [],
+  "lint": 2
+ },
+ "polish": {
+  "applied": 30,
+  "refused": [
+   {
+    "id": "2.5.0",
+    "why": "added number 2"
+   },
+   {
+    "id": "3.5.0",
+    "why": "added link https://www.contra.agency/insights/lets-make-it-happen-b2b-content-marketing-strategy-and-framework-2026"
+   },
+   {
+    "id": "6.5.0",
+    "why": "added number 2"
+   },
+   {
+    "id": "8.0.1",
+    "why": "added link https://neilpatel.com/blog/b2b-content-strategy"
+   }
+  ]
+ },
+ "blocked": [
+  {
+   "key": "h2-5",
+   "why": "added number 2"
+  },
+  {
+   "key": "h2-7",
+   "why": "added link https://neilpatel.com/blog/b2b-content-strategy"
+  }
+ ],
+ "tidied": [],
+ "factChanges": [],
+ "modules": [
+  {
+   "status": "ok",
+   "error": null
+  }
+ ]
+}

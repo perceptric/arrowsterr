@@ -4,6 +4,7 @@
 // server, the browser and tests.
 import type { BrandVoice } from "./brandVoice.ts";
 import { houseLint, LONG_SENTENCE } from "./houseLint.ts";
+import { splitSentences } from "./sentences.ts";
 
 export type HouseRule = { id: string; label: string; prompt: string };
 
@@ -120,8 +121,7 @@ export type LintBlock = { type: string; text: string; items: string[]; rows: str
 export type LintSection = { key: string; h2: string; blocks: LintBlock[] };
 export type Finding = { id: string; rule: string; why: string };
 
-const SENT = /(?<=[.!?…]["”)\]]?)\s+(?=["“(\[]?[A-Z0-9])/;
-const split = (t: string) => t.split(SENT).map((s) => s.trim()).filter(Boolean);
+const split = splitSentences;
 const plain = (t: string) => t.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").replace(/\*\*?([^*]+)\*\*?/g, "$1");
 const words = (t: string) => plain(t).split(/\s+/).filter(Boolean).length;
 const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -137,7 +137,8 @@ export function lintText(text: string, opts: { inList?: boolean; allow?: string[
   for (const w of BANNED) if (new RegExp(`(^|[^a-z])${esc(w)}([^a-z]|$)`, "i").test(low)) out.push({ rule: w === "quietly" ? "adverbs" : "words", why: `"${w}"` });
   if (JUDGED.test(t)) out.push({ rule: "kind", why: "a judgment" });
   if (REVEAL.test(t.trim())) out.push({ rule: "plain", why: "a setup or reveal" });
-  if (!opts.inList && !/:$/.test(t.trim()) && words(t) <= 6) out.push({ rule: "sentences", why: "a short sentence" });
+  // A short line with a link in it is a call to action ("See our [SEO services](...)."), never a staged short sentence.
+  if (!opts.inList && !/:$/.test(t.trim()) && words(t) <= 6 && !/\]\(/.test(text)) out.push({ rule: "sentences", why: "a short sentence" });
   if (/^\*\*[^*]+\*\*:?\s/.test(text.trim()) && opts.inList) out.push({ rule: "lists", why: "a bold lead-in" });
   if (!opts.inList && words(t) > LONG_SENTENCE) out.push({ rule: "sentences", why: `a sentence over ${LONG_SENTENCE} words` });
   // The Perceptric house lint (houseLint.ts): what it finds that the checks above didn't.

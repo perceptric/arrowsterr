@@ -1,0 +1,1319 @@
+{
+ "slug": "trail-running-shoes",
+ "keyword": "best trail running shoes",
+ "kind": "store",
+ "stage": "bofu",
+ "model": "claude-sonnet-5-5",
+ "at": "2026-11-13T14:20:55.490Z",
+ "seconds": 322,
+ "usage": {
+  "calls": 33,
+  "input": 84515,
+  "cacheRead": 1685744,
+  "cacheWrite": 189653,
+  "output": 46883
+ },
+ "score": {
+  "words": 2838,
+  "sections": 10,
+  "lint": 7,
+  "lintRules": {
+   "sentences": 6,
+   "dashes": 1
+  },
+  "numbers": 13,
+  "unsourced": [],
+  "links": 47,
+  "strayLinks": [],
+  "images": 0,
+  "modules": 0
+ },
+ "title": "7 Best Trail Running Shoes in 2026",
+ "brief": {
+  "titles": [
+   "7 Best Trail Running Shoes in 2026",
+   "7 Best Trail Running Shoes in 2026 for New Runners",
+   "The 7 Best Trail Running Shoes for Beginners in 2026"
+  ],
+  "h1": "7 Best Trail Running Shoes in 2026",
+  "metaDescription": "Our picks for the 7 best trail running shoes in 2026, with prices, pros, cons and who should skip each one, plus how to choose your pair.",
+  "slug": "best-trail-running-shoes",
+  "searchIntent": "The searcher is ready to buy and wants a ranked shortlist of trail running shoes with prices, honest pros and cons, and a quick way to pick one. A listicle with one section per shoe and a short buying guide serves this best.",
+  "reader": "A new or casual runner who is moving from roads or sidewalks to trails and is buying online. They know basic running shoe terms but not lug depth or heel drop, and they want to choose one pair, check the fit and buy it.",
+  "angle": "We rank seven shoes from published expert tests and add a plain 'who should skip it' note to each, so new runners can rule shoes out as quickly as they rule them in. A comparison filter lets you match a shoe to your ground, foot shape and budget.",
+  "wordTarget": 3600,
+  "outline": [
+   {
+    "h2": "How we picked these trail running shoes",
+    "points": [
+     "Say plainly that the list comes from published expert tests and not from our own testing: iRunFar says it tested 100+ models, and the market has over 300 models.",
+     "Explain that we kept shoes that suit new and casual runners and that appear across several trusted lists, with Hoka Speedgoat 7 named by iRunFar, Tom's Guide, RunRepeat and the AI answers.",
+     "State that prices are iRunFar's list prices updated November 8, 2026, and can change by retailer.",
+     "Mention that other lists pick other shoes, for example RunRepeat's best overall is the adidas Terrex Agravic 4, so readers know no single list is final.",
+     "Link to our trail shoe page for readers who want to browse straight away."
+    ],
+    "h3": [],
+    "sources": [
+     8,
+     9,
+     10,
+     1
+    ]
+   },
+   {
+    "h2": "1. HOKA Speedgoat 7: best overall for most runners",
+    "points": [
+     "Does well: iRunFar's best cushioned trail shoe, Tom's Guide's best overall, and RunRepeat's best versatility pick. Grips well on wet and dry trails, mud, rocky tracks and roots (Tom's Guide).",
+     "Price: $165 (iRunFar, Tom's Guide, Scheels). RunRepeat showed a lower price from HOKA at the time of writing, so tell readers to check the current price.",
+     "Specs: 5 mm drop. Weight is 9.3 oz per iRunFar and 9.8 oz men's and 8.2 oz women's per Tom's Guide.",
+     "Pros: stable and supportive ride, improved midsole foam, wide sizes available (Hiking Feet).",
+     "Cons and who should skip it: Tom's Guide says the fit is quite narrow and it is not as cushioned as some options, so narrow-foot runners and runners who want the softest ride should look elsewhere. It is not the pick for deep, muddy trails."
+    ],
+    "h3": [],
+    "sources": [
+     9,
+     10,
+     8,
+     1,
+     12
+    ]
+   },
+   {
+    "h2": "2. Nike ACG Pegasus Trail: best for road-to-trail runs",
+    "points": [
+     "Does well: iRunFar's best overall trail shoe, an all-around option for long days or a mix of roads and trails. It also handles paved roads.",
+     "Price and specs: $155, 10.4 oz (men's 9), 8 mm drop.",
+     "Pros: dialed-in upper, responsive ReactX midsole foam, great insole, and a slightly more accommodating toebox than the last version.",
+     "Cons: highly technical terrain is a stretch, and it is not the top choice for sloppy trails or short fast trail races.",
+     "Who should skip it: runners who mostly run the rockiest, roughest trails. iRunFar points them to the La Sportiva Akasha II."
+    ],
+    "h3": [],
+    "sources": [
+     9
+    ]
+   },
+   {
+    "h2": "3. Brooks Cascadia 20: best for beginners",
+    "points": [
+     "Does well: iRunFar names it the best trail running shoe for beginners. Hiking Feet also tested it and places it last on a lightest-to-most-supportive list, so it is among the most supportive of its picks.",
+     "Price: $160 (iRunFar).",
+     "Pros and cons: the sources we have give the headline and price only. The writer must use only what the editor confirms from the full iRunFar and Hiking Feet text, and the checks list covers this.",
+     "Who should skip it: support-focused shoes are heavier than the lightest options, so runners who want the lightest feel may prefer the Speedgoat. Confirm weight before writing this."
+    ],
+    "h3": [],
+    "sources": [
+     9,
+     1
+    ]
+   },
+   {
+    "h2": "4. Saucony Peregrine 16: best value",
+    "points": [
+     "Does well: iRunFar's best value trail running shoe.",
+     "Price: $150 (iRunFar). Point out that Tom's Guide calls the Merrell Morphlite its best value trail shoe at around $100, built for light trails, so budget readers have a lower-priced option.",
+     "Pros: AI answers describe it as having great traction and being lightweight and agile. Editor must confirm against a source before use.",
+     "Cons and who should skip it: no sourced cons yet. Tom's Guide reviewed the older Peregrine 14, so do not borrow its notes for the 16.",
+     "Who should skip it: readers who need a wide toe box should look at the Altra or Topo options below."
+    ],
+    "h3": [],
+    "sources": [
+     9,
+     10
+    ]
+   },
+   {
+    "h2": "5. Altra Lone Peak 9: best zero-drop shoe",
+    "points": [
+     "Does well: iRunFar's best zero-drop trail running shoe. Zero drop means the heel and toe sit at the same height.",
+     "Price: $145 (iRunFar), the lowest of our seven.",
+     "Pros: Footshape toe box with extra room, balanced cushion that encourages mid-foot landings, quick-drying mesh uppers, and gender-specific sizing (Hiking Feet).",
+     "Cons: Hiking Feet calls it a niche shoe. Say clearly that zero drop feels different if you are used to a raised heel.",
+     "Who should skip it: runners who prefer a traditional heel lift, or anyone who wants a familiar feel from the first run."
+    ],
+    "h3": [],
+    "sources": [
+     9,
+     1
+    ]
+   },
+   {
+    "h2": "6. Topo Athletic Ultraventure 5: best for wide feet",
+    "points": [
+     "Does well: iRunFar's best wide toebox trail running shoe. iRunFar also has a full Ultraventure 5 review.",
+     "Price: $155 (iRunFar).",
+     "Pros and cons: the sources we have give the headline, price and review title only. Confirm weight, drop and cushioning from the full iRunFar review before writing details.",
+     "Who should skip it: runners who prefer a snug, narrow fit. Confirm this against the review."
+    ],
+    "h3": [],
+    "sources": [
+     9,
+     2
+    ]
+   },
+   {
+    "h2": "7. Salomon Speedcross 6: best for mud and soft ground",
+    "points": [
+     "Does well: iRunFar's best trail running shoe for soft ground. AI answers describe aggressive lugs and strong mud grip.",
+     "Price: $150 (iRunFar).",
+     "Pros: made for wet, soft, slippery trails. Tie to Scheels' tip that lugs of 3 mm or more give reliable grip on loose dirt, mud or slick rock.",
+     "Cons and who should skip it: an aggressive lug is built for soft ground, so runners on hard, groomed trails or roads may prefer the Pegasus Trail or Speedgoat. Confirm with a source.",
+     "End the list by pointing to the comparison filter."
+    ],
+    "h3": [],
+    "sources": [
+     9,
+     12
+    ]
+   },
+   {
+    "h2": "How to choose trail running shoes",
+    "points": [
+     "Start with your ground, then fit, then price.",
+     "Explain traction in plain words: lug depth, tread shape and rubber grip. RunRepeat measures lug depth and tread patterns in its lab, and Scheels suggests lugs of 3 mm or more for loose dirt, mud or slick rock.",
+     "Explain cushion and heel drop: RunRepeat covers minimalist to max-cushion shoes and says heel-to-toe drop matters. Use Speedgoat 5 mm, Pegasus 8 mm and Lone Peak zero as examples.",
+     "Cover fit using Scheels: try shoes on at the end of the day with your running socks, and leave toe room.",
+     "Show when to step up or save: La Sportiva Prodigio Pro at $225 for technical terrain and La Sportiva Akasha II at $195 for mountain running, and the Merrell Morphlite at around $100 for light trails."
+    ],
+    "h3": [
+     {
+      "title": "Match the shoe to your trail",
+      "points": [
+       "Groomed paths, mixed road and trail, and soft or muddy ground each point to a different shoe from the list.",
+       "Tom's Guide says trail shoes give more grip and support than road shoes on uneven ground."
+      ]
+     },
+     {
+      "title": "Get the fit right",
+      "points": [
+       "Size for swelling, check toe room and choose a wider shoe if your toes feel squeezed.",
+       "Link to our shoe fit guide and our running shoes guide."
+      ]
+     },
+     {
+      "title": "Know when to step up or save",
+      "points": [
+       "Technical and mountain shoes cost more, so most new runners can start lower.",
+       "Link to our running shoe lifespan post so readers know when to replace their pair."
+      ]
+     }
+    ],
+    "sources": [
+     8,
+     9,
+     10,
+     12
+    ]
+   }
+  ],
+  "entities": [],
+  "gaps": [],
+  "faqs": [],
+  "internalLinks": [],
+  "cta": {
+   "text": "",
+   "where": ""
+  },
+  "modules": [],
+  "images": [],
+  "examples": [],
+  "checks": [],
+  "research": {
+   "sources": [
+    {
+     "n": 1,
+     "url": "https://hikingfeet.com/best-trail-running-shoes-for-hiking/",
+     "title": "Best Trail Running Shoes for Hiking: 2026 - www.hikingfeet.com",
+     "domain": "hikingfeet.com",
+     "kind": "serp",
+     "position": 1,
+     "words": 4102
+    },
+    {
+     "n": 2,
+     "url": "https://www.irunfar.com/",
+     "title": "iRunFar: Your Trail Running & Ultramarathon Resource",
+     "domain": "irunfar.com",
+     "kind": "serp",
+     "position": 2,
+     "words": 1193
+    },
+    {
+     "n": 3,
+     "url": "https://mountaineerjourney.com/",
+     "title": "Mountaineerjourney.com",
+     "domain": "mountaineerjourney.com",
+     "kind": "serp",
+     "position": 5,
+     "words": 386
+    },
+    {
+     "n": 4,
+     "url": "https://lauranorrisrunning.com/running",
+     "title": "Running Archives",
+     "domain": "lauranorrisrunning.com",
+     "kind": "serp",
+     "position": 6,
+     "words": 269
+    },
+    {
+     "n": 5,
+     "url": "https://www.runningshoesguru.com/Reviews",
+     "title": "1366 Running Shoes Reviews (November 2026)",
+     "domain": "runningshoesguru.com",
+     "kind": "serp",
+     "position": 7,
+     "words": 1076
+    },
+    {
+     "n": 6,
+     "url": "https://www.holabirdsports.com/",
+     "title": "Running Shoes, Tennis & Pickleball Gear - Holabird Sports",
+     "domain": "holabirdsports.com",
+     "kind": "serp",
+     "position": 8,
+     "words": 241
+    },
+    {
+     "n": 7,
+     "url": "https://www.footlocker.com/category/sport/best",
+     "title": "All Products | Foot Locker",
+     "domain": "footlocker.com",
+     "kind": "serp",
+     "position": 9,
+     "words": 186
+    },
+    {
+     "n": 8,
+     "url": "https://runrepeat.com/guides/best-trail-running-shoes",
+     "title": "7 Best Trail Running Shoes in 2026",
+     "domain": "runrepeat.com",
+     "kind": "ai",
+     "position": null,
+     "words": 8294
+    },
+    {
+     "n": 9,
+     "url": "https://www.irunfar.com/best-trail-running-shoes",
+     "title": "Best Trail Running Shoes of 2026",
+     "domain": "irunfar.com",
+     "kind": "ai",
+     "position": null,
+     "words": 6716
+    },
+    {
+     "n": 10,
+     "url": "https://www.tomsguide.com/best-picks/best-trail-running-shoes",
+     "title": "The best trail running shoes in 2026 for men and women",
+     "domain": "tomsguide.com",
+     "kind": "ai",
+     "position": null,
+     "words": 4123
+    },
+    {
+     "n": 11,
+     "url": "https://www.runnersworld.com/gear/a19663621/best-running-shoes",
+     "title": "We Ran in Hundreds of Shoes to Find the 15 Best Pairs for Training, Racing, Trails, and More",
+     "domain": "runnersworld.com",
+     "kind": "ai",
+     "position": null,
+     "words": 4882
+    },
+    {
+     "n": 12,
+     "url": "https://www.scheels.com/p/19860552071",
+     "title": "Men's HOKA Speedgoat 7 Trail Running Shoes",
+     "domain": "scheels.com",
+     "kind": "ai",
+     "position": null,
+     "words": 1040
+    }
+   ],
+   "questions": [],
+   "engines": [
+    "ChatGPT",
+    "Gemini",
+    "AI Mode"
+   ],
+   "topPages": "",
+   "aiAnswers": ""
+  },
+  "model": "claude-sonnet-5-5",
+  "at": "2026-11-13T14:16:57.992Z"
+ },
+ "sections": [
+  {
+   "key": "intro",
+   "h2": "",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Moving from sidewalks to dirt paths is exciting, but the shoe aisle can feel crowded. [iRunFar](https://www.irunfar.com/best-trail-running-shoes) says there are over 300 trail models on the market, so it's easy to buy a pair that doesn't suit the ground you run on.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "To help, this guide ranks the 7 best trail running shoes in 2026 using published expert tests. Each shoe has a price and plain pros and cons, so you can rule shoes out as quickly as you rule them in.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "We also add a short note on who should skip each shoe. By the end, you'll know which pair matches your ground, your foot shape and your budget.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Which kind of trail will you run on most often?",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-0",
+   "h2": "How we picked these trail running shoes",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "We didn't test these shoes ourselves, so every pick in this guide comes from published expert tests. That way you get the benefit of reviewers who have already logged the miles.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "For example, [iRunFar](https://www.irunfar.com/best-trail-running-shoes) says it has tested 100+ models to build its list, and the market has over 300 models. That is a lot of shoes for one new runner to sort through alone.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how we narrowed the field to seven:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "We kept shoes that suit new and casual runners moving from sidewalks to trails.",
+      "We added a plain note on who should skip each shoe, so you can rule it out quickly."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The HOKA Speedgoat 7 is the clearest example of a shoe that shows up on several lists. Here is where it appears:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "[iRunFar](https://www.irunfar.com/best-trail-running-shoes) names it the best cushioned trail shoe.",
+      "[Tom's Guide](https://www.tomsguide.com/best-picks/best-trail-running-shoes) picks it as its best overall.",
+      "[RunRepeat](https://runrepeat.com/guides/best-trail-running-shoes) calls it the best for versatility."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Prices in this guide are iRunFar's list prices, [updated November 8, 2026](https://www.irunfar.com/best-trail-running-shoes). Prices can change by retailer, so check the current price before you buy.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "No single list is final, and other reviewers pick other shoes. [RunRepeat](https://runrepeat.com/guides/best-trail-running-shoes), for instance, names the adidas Terrex Agravic 4 as its best overall trail shoe, which is a different winner from the one on iRunFar's list.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "We see that as a good reason to compare a few lists, as we've done here. Then you can match the shoe to your own ground, foot shape and budget.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you'd rather start browsing right away, you can visit our [trail running shoes](https://striderunning.example/trail-running-shoes) page.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-1",
+   "h2": "1. HOKA Speedgoat 7: best overall for most runners",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "HOKA is a running shoe company that makes cushioned shoes for roads and trails, and the Speedgoat 7 is its trail model that shows up on almost every list we checked. [iRunFar](https://www.irunfar.com/best-trail-running-shoes) names it the best cushioned trail running shoe, [Tom's Guide](https://www.tomsguide.com/best-picks/best-trail-running-shoes) picks it as its best overall, and [RunRepeat](https://runrepeat.com/guides/best-trail-running-shoes) calls it the best for versatility.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "For a runner moving from sidewalks to trails, that agreement helps, because three separate reviewers landed on the same shoe for different reasons.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What it does well",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Tom's Guide says the grip was flawless in both wet and dry conditions during testing, across well-groomed paths, mud, rocky tracks and rooty single-track.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "It also describes the ride as comfortable for long, easy runs and light enough to pick up the pace when you want to.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Price and specs",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "The price is $165 according to [iRunFar](https://www.irunfar.com/best-trail-running-shoes), [Tom's Guide](https://www.tomsguide.com/best-picks/best-trail-running-shoes) and [Scheels](https://www.scheels.com/p/19860552071).",
+      "RunRepeat showed a lower price from HOKA when we checked, so look at the current price before you buy.",
+      "The heel-to-toe drop is 5 mm, which means the heel sits a little higher than the toe.",
+      "iRunFar lists the weight at 9.3 ounces in a U.S. men's 9, while Tom's Guide lists 9.8 ounces for men's and 8.2 ounces for women's."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Pros",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Tom's Guide describes the ride as stable and supportive, even on uneven ground.",
+      "[Hiking Feet](https://hikingfeet.com/best-trail-running-shoes-for-hiking/) says wide sizes are available, which helps if a standard width feels tight."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Cons and who should skip it",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Tom's Guide says the fit is quite narrow and the shoe is not as cushioned as some options. If you have narrow feet, or you want the softest ride possible, you may be happier in a different pair from this list.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "It also isn't the pick for deep, muddy trails, because Tom's Guide would reach for a specialist studded shoe there. If that sounds like your local trail, the Salomon Speedcross 6 later in this guide is built for soft ground.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-2",
+   "h2": "2. Nike ACG Pegasus Trail: best for road-to-trail runs",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "The Nike ACG Pegasus Trail is [iRunFar's pick for best overall trail running shoe](https://www.irunfar.com/best-trail-running-shoes), and it suits you well if you run on both roads and trails. iRunFar calls it an all-around trail shoe that does it all well, and says it is a good option for long days on the trails or a mix of roads and trails.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Price and specs",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "According to iRunFar, the price is [$155 and the drop is 8 millimeters, with an actual weight of 10.4 ounces](https://www.irunfar.com/best-trail-running-shoes) in a U.S. men's 9.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The weight is a little higher than some other shoes on this list, but iRunFar says it is still plenty light for a daily trainer.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Pros",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "iRunFar lists a [dialed-in upper, responsive midsole foam and a great insole](https://www.irunfar.com/best-trail-running-shoes) as the shoe's main strengths.",
+      "The ReactX midsole foam is the standout, and one tester of a previous version with the same foam said it [felt alive](https://www.irunfar.com/best-trail-running-shoes).",
+      "iRunFar also calls the shoe [excellently constructed and plenty durable](https://www.irunfar.com/best-trail-running-shoes), which matters if you plan to wear one pair on many different runs."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Cons and who should skip it",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "iRunFar says [highly technical terrain is a stretch](https://www.irunfar.com/best-trail-running-shoes) for this shoe. It also won't be your top choice in sloppy trails or if you want a fast, light option for shorter trail races, although iRunFar notes it has improved in both areas.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If most of your runs are on the rockiest, roughest trails, you may want a different pair. iRunFar says the Pegasus Trail is [not designed to be the most protective of shoes](https://www.irunfar.com/best-trail-running-shoes) and points those runners to the La Sportiva Akasha II, which we cover in the buying guide below.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-3",
+   "h2": "3. Brooks Cascadia 20: best for beginners",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "The Brooks Cascadia 20 is a trail running shoe from Brooks that [iRunFar names the best trail running shoe for beginners](https://www.irunfar.com/best-trail-running-shoes).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "We should be clear about what the sources tell us here, because the full pros, cons and specs for this shoe sit in the iRunFar and Hiking Feet write-ups and we only share details we can point to.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What it does well",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Beyond the beginner label from iRunFar, [Hiking Feet also tested the Cascadia 20](https://hikingfeet.com/best-trail-running-shoes-for-hiking/).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "That puts it among the most supportive shoes in his group of picks, and extra support makes sense when you're stepping onto uneven ground for the first time.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Pros and cons",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's what we can say with confidence from the sources, and what we'd check before you buy:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "iRunFar picks it as the best trail shoe for beginners, which is a good sign if this is your first pair for the trails.",
+      "Hiking Feet places it at the most supportive end of its lightest-to-most-supportive ranking.",
+      "The price is $160 at iRunFar's list price, so check the current price at your retailer before you order.",
+      "We don't have confirmed weight, drop or cushioning numbers for this shoe, so look those up on the product page before you decide."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Who should skip it",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "We haven't confirmed the Cascadia 20's weight against the Speedgoat, so compare the two listed weights on the retailer pages. If the numbers are close, try both on late in the day when your feet are a little swollen and choose the one that feels better.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-4",
+   "h2": "4. Saucony Peregrine 16: best value",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "The Saucony Peregrine 16 is a trail running shoe from Saucony that [iRunFar picks as its best value trail running shoe](https://www.irunfar.com/best-trail-running-shoes). If you want a trail shoe from a well-known brand without paying top prices, this one is worth a look.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "iRunFar lists it at $150, though prices change by retailer, so check the current price before you order.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Pros and cons",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The sources we have name the Peregrine 16 as a value pick and give its price, but they don't give weight, drop or cushion numbers for this shoe. We haven't confirmed those points against a tested review, so treat them as things to check on the product page.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's what you can check before you buy:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Look at the listed weight and heel drop on the retailer page, since we can't confirm them from our sources.",
+      "Check the return policy so you can send the shoes back if the fit feels off on your first run."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Tom's Guide reviewed an older version, the Peregrine 14, so we won't borrow its notes for the 16. The two shoes may differ, and we want you to read about the pair you are actually buying.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "A lower-priced option",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If $150 is more than you want to spend, [Tom's Guide calls the Merrell Morphlite its best value trail running shoe](https://www.tomsguide.com/best-picks/best-trail-running-shoes) at around $100.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "For groomed paths and a first taste of off-road running, that could be all you need. Which kind of trail will you run most often?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Who should skip it",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "We have no sourced fit notes for the Peregrine 16, so check the width options on the retailer page and try the shoes on late in the day with your running socks.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-5",
+   "h2": "5. Altra Lone Peak 9: best zero-drop shoe",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Zero drop means the heel and the toe sit at the same height, so your foot lies flat instead of tilting forward.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Hiking Feet is a website that tests trail running shoes for hikers, and its review [lists several things this shoe does well](https://hikingfeet.com/best-trail-running-shoes-for-hiking/):",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "The Footshape toe box has extra room, so your toes can spread out as you walk or run.",
+      "The balanced cushion encourages mid-foot landings.",
+      "The quick-drying mesh uppers help the shoes dry out after wet trails.",
+      "Gender-specific sizing is available for men and women, so you can pick the fit made for you."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Hiking Feet also says the shoe [may strengthen the lower body's natural support mechanisms](https://hikingfeet.com/best-trail-running-shoes-for-hiking/). We'd treat that as a possible bonus, because your own feet and legs will decide how the shoe feels.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What to know before you buy",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you are used to a raised heel, zero drop will feel different from your first step.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Who should skip it",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You may want a different shoe if you like a traditional heel lift or want a familiar feel from the first run.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you want the roomy toe box but are unsure about zero drop, the Topo Athletic Ultraventure 5 below is worth a look. Would you rather keep the heel height you know, or try a flatter shoe and give your legs a few weeks to adjust?",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-6",
+   "h2": "6. Topo Athletic Ultraventure 5: best for wide feet",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Topo Athletic Ultraventure 5 is a trail running shoe from Topo Athletic that iRunFar names its [best wide toebox trail running shoe](https://www.irunfar.com/best-trail-running-shoes). If your toes feel squeezed in most running shoes, this is the first pair we'd look at.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The price is $155, according to [iRunFar's 2026 guide](https://www.irunfar.com/best-trail-running-shoes). Prices can change by retailer, so check the current number before you buy.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What the shoe does well",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you want details on how it feels on the trail, that review is the best place to read next.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What we can and can't tell you",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The sources we used give us the award, the price and the review title for this shoe. They don't give us a weight, a heel drop or a cushioning level, so we won't guess at them here.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how to fill in those gaps before you buy:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Open the full iRunFar review and check the weight and heel drop against the shoes above, such as the Speedgoat 7 at 5 mm and the Pegasus Trail at 8 mm.",
+      "Read how the reviewer describes the cushioning, since a softer or firmer ride changes how the shoe suits you.",
+      "Look at the retailer's return policy so you can swap sizes if the fit isn't right."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Who should skip it",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "We haven't confirmed this against the full review, so treat it as a general rule and not a test result.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Do your toes usually feel cramped, or do you like a close hug around the front of your foot? Your answer tells you whether this shoe is a good match or one to rule out.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-7",
+   "h2": "7. Salomon Speedcross 6: best for mud and soft ground",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "The Salomon Speedcross 6 is a trail running shoe from Salomon that is built for wet, soft and slippery ground. [iRunFar names it the best trail running shoe for soft ground](https://www.irunfar.com/best-trail-running-shoes), and it lists the price at $150.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "We couldn't confirm lug depth, weight or heel drop from the sources we have, so we won't give numbers for those here.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Why it works on soft ground",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Lugs are the raised bumps on the bottom of a shoe that bite into the ground. [Scheels suggests looking for deep lugs of 3 mm or more](https://www.scheels.com/p/19860552071) if you want reliable grip on loose dirt, mud or slick rock.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "That is the kind of ground this shoe is made for, which makes it an easy match if your local trails turn sloppy after rain.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's what you can expect from the Speedcross 6, based on what iRunFar and the AI answers say:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "It is named the best trail running shoe for soft ground by [iRunFar](https://www.irunfar.com/best-trail-running-shoes).",
+      "It costs $150 at the list price iRunFar shows, so it sits at the middle of our seven.",
+      "The AI answers describe an aggressive lug pattern and strong grip in mud.",
+      "It suits wet, soft and slippery trails, where a shallow tread can slide."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Who should skip it",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "We haven't found a source that tests the Speedcross 6 on firm surfaces, so treat this as a general rule and not a test result.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If most of your runs are on packed paths or mix trail with road, you have two options to look at:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "The [Nike ACG Pegasus Trail](https://www.irunfar.com/best-trail-running-shoes) is described by iRunFar as an all-around option that also handles paved roads."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Do your local trails stay muddy for much of the year, or are they mostly dry and packed? Your answer tells you whether this shoe is your first pick or one to rule out.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "That covers all seven shoes, so you can use the comparison filter above to match one of them to your ground, foot shape and budget.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-8",
+   "h2": "How to choose trail running shoes",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Picking a trail shoe gets easier when you take the choices in order, starting with the ground you run on, then the fit, and then the price. Here's how that plays out, using the shoes we covered above and what the published tests say.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Match the shoe to your trail",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Tom's Guide says trail shoes give you [more grip and support than road shoes](https://www.tomsguide.com/best-picks/best-trail-running-shoes) when the ground gets uneven.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "For groomed paths and runs that mix road and trail, the Nike ACG Pegasus Trail is [described by iRunFar](https://www.irunfar.com/best-trail-running-shoes) as an all-around shoe that also handles paved roads.",
+      "For a mix of wet and dry trails, the Hoka Speedgoat 7 [grips well in both conditions](https://www.tomsguide.com/best-picks/best-trail-running-shoes), according to Tom's Guide.",
+      "For soft or muddy ground, iRunFar picks the Salomon Speedcross 6 as its [best shoe for soft ground](https://www.irunfar.com/best-trail-running-shoes)."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Traction depends on three things: how deep the lugs are, how the tread is shaped and how well the rubber grips.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "RunRepeat [measures lug depth and looks at tread patterns](https://runrepeat.com/guides/best-trail-running-shoes) in its lab. Scheels suggests [lugs of 3 mm or more](https://www.scheels.com/p/19860552071) for loose dirt, mud or slick rock.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Cushion and heel drop affect how the shoe feels under you. RunRepeat's guide covers shoes from [minimalist to max-cushioned](https://runrepeat.com/guides/best-trail-running-shoes) and says heel-to-toe drop is worth checking before you buy.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "The Hoka Speedgoat 7 has a [5 mm drop](https://www.irunfar.com/best-trail-running-shoes).",
+      "The Nike ACG Pegasus Trail has an [8 mm drop](https://www.irunfar.com/best-trail-running-shoes).",
+      "The Altra Lone Peak 9 is [zero drop](https://www.irunfar.com/best-trail-running-shoes), so your heel and toe sit at the same height."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Get the fit right",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Fit matters as much as grip, and Scheels gives two simple tips for getting it right when you shop online. We've added a third for runners who need more room.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Try shoes on in the evening with your running socks, because your feet [swell a little during a run](https://www.scheels.com/p/19860552071).",
+      "Check that you have room at the front of the shoe so your toes aren't squeezed.",
+      "Choose a wider shoe if your toes feel tight, such as the Topo Athletic Ultraventure 5, which iRunFar calls its [best wide toebox shoe](https://www.irunfar.com/best-trail-running-shoes)."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you want more help with sizing, our shoe fit guide and our running shoes guide are good places to continue.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Know when to step up or save",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you stick to light trails, Tom's Guide names the Merrell Morphlite its [best value pick at around $100](https://www.tomsguide.com/best-picks/best-trail-running-shoes). It suits you if your runs stay on well-groomed paths.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Once you have a pair, our running shoe lifespan post will help you know when it's time to replace it. When you're ready, pick a shoe from the list above and start with a short run on your usual ground.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  }
+ ],
+ "cut": [
+  {
+   "id": "1.3.i1",
+   "why": "Describes a selection method (favoring shoes on several lists) that the brief states but is not a sourced fact; harmless, but kept only if framed as method. Also 'trusted lists' is unsupported framing."
+  },
+  {
+   "id": "2.4.1",
+   "why": "Reasoning about new runners is advice, but depends on unsupported claim of learning what they enjoy; low risk, flagged for the unsupported implication."
+  },
+  {
+   "id": "3.1.0",
+   "why": "Claim that you can run from your front door to the trailhead in the same pair goes beyond what iRunFar says; it only says the shoe handles paved roads."
+  },
+  {
+   "id": "3.6.2",
+   "why": "Not a real id; ignore."
+  },
+  {
+   "id": "3.6.i2",
+   "why": "iRunFar says outsole design and compound are improved and toebox slightly more accommodating, which is supported; but 'iRunFar says the outsole design and compound are improved' is fine. Kept out of cut."
+  },
+  {
+   "id": "4.0.1",
+   "why": "Claims $160 is higher than the other everyday shoes covered so far; Speedgoat is $165 and Pegasus $155, so this comparison is false."
+  },
+  {
+   "id": "4.3.1",
+   "why": "Hiking Feet's list is described as lightest to most supportive with Cascadia last, but the source text provided says the Cascadia is last in the intro list; 'its reviewer ordered his picks' is fine, yet this sentence cites 'Cascadia 20 comes last' which is supported. Kept out of cut."
+  },
+  {
+   "id": "4.9.0",
+   "why": "General claim that support shoes are usually heavier than the lightest options is not stated in the sources."
+  },
+  {
+   "id": "4.9.1",
+   "why": "Implies the Speedgoat is lighter than the Cascadia; the Cascadia's weight is not sourced, so the comparison is unsupported."
+  },
+  {
+   "id": "5.1.1",
+   "why": "Claims $150 is close to other picks and that value comes from what iRunFar says you get; iRunFar gives no such value explanation."
+  },
+  {
+   "id": "5.3.1",
+   "why": "Attributes descriptions of the Peregrine 16 to AI answers, but the provided AI answers do not mention the Peregrine 16 as lightweight and agile in the visible text except ChatGPT; the claim of 'a few AI answers' is not supported."
+  },
+  {
+   "id": "5.5.i1",
+   "why": "Advice itself is fine but 'deeper lugs help on loose dirt and mud' is supported by Scheels; kept out of cut."
+  },
+  {
+   "id": "5.8.1",
+   "why": "Tom's Guide says Morphlite 2-3mm lugs do not offer enough grip in mud or technical trails; supported. Kept out of cut."
+  },
+  {
+   "id": "5.11.0",
+   "why": "Says iRunFar picks Altra and Topo for zero drop and wide toe room; supported. Kept out of cut."
+  },
+  {
+   "id": "6.0.0",
+   "why": "Claims $145 is the lowest-priced shoe of the seven, but the Saucony Peregrine 16 is $150 and others are higher, so Altra at $145 is the lowest; supported. Kept out of cut."
+  },
+  {
+   "id": "6.5.0",
+   "why": "Adds that the niche quality is 'mainly because of the flat platform', which the source does not say."
+  },
+  {
+   "id": "6.6.1",
+   "why": "Claim that calves and lower legs may notice the change is not in the sources."
+  },
+  {
+   "id": "6.9.0",
+   "why": "Cites the Pegasus Trail 8 mm drop with no source link in the sentence and suggests either is an easier first step; the easier-first-step claim is unsupported."
+  },
+  {
+   "id": "7.3.0",
+   "why": "Says the wide toebox is the reason the shoe made the list; sources only say iRunFar names it best wide toebox, not why it was included."
+  },
+  {
+   "id": "7.3.1",
+   "why": "Claims many new trail runners find a roomy front end more comfortable on long outings and downhills; not in the sources."
+  },
+  {
+   "id": "7.4.0",
+   "why": "Links to iRunFar homepage and describes the review as in-depth; the homepage does say 'An in-depth review of the Topo Ultraventure 5', so supported. Kept out of cut."
+  },
+  {
+   "id": "7.10.1",
+   "why": "Claims a wide-toebox shoe may feel too roomy for narrow-fit lovers; flagged as unconfirmed by the draft itself and not in the sources."
+  },
+  {
+   "id": "7.12.0",
+   "why": "Says Hiking Feet testing covers the Altra toe box with extra room; supported. Kept out of cut."
+  },
+  {
+   "id": "8.1.0",
+   "why": "AI answers' description of Speedcross 6 aggressive lugs and mud grip is supported by the Google AI Overview and AI Mode text. Kept out of cut."
+  },
+  {
+   "id": "8.8.0",
+   "why": "Claims the aggressive lug may not suit hard groomed trails or roads; not in the sources, and the draft admits no source tests it on firm surfaces."
+  },
+  {
+   "id": "8.10.i1",
+   "why": "Tom's Guide says it would use a specialist studded shoe for deep muddy trails, not that the Speedgoat is 'not the shoe for deep, muddy trails' in those words, but this is a reasonable reading; kept out of cut."
+  },
+  {
+   "id": "9.2.1",
+   "why": "Advice only; fine. Kept out of cut."
+  },
+  {
+   "id": "9.13.0",
+   "why": "The claim that shoes built for rough ground cost more and most new runners don't need them on day one is not in the sources; prices are supported but the generalization is not."
+  },
+  {
+   "id": "2.8.i1",
+   "why": "Tom's Guide says supercritical EVA is overall lighter and livelier than past models; 'improved midsole foam' is in its reasons to buy, so supported. Kept out of cut."
+  }
+ ],
+ "styleLeft": [
+  {
+   "id": "0.0.0",
+   "rule": "sentences",
+   "before": "a sentence over 35 words",
+   "after": null
+  },
+  {
+   "id": "2.0.0",
+   "rule": "sentences",
+   "before": "a sentence over 35 words",
+   "after": null
+  },
+  {
+   "id": "3.0.0",
+   "rule": "sentences",
+   "before": "a sentence over 35 words",
+   "after": null
+  },
+  {
+   "id": "3.9.0",
+   "rule": "sentences",
+   "before": "a sentence over 35 words",
+   "after": null
+  },
+  {
+   "id": "4.1.0",
+   "rule": "sentences",
+   "before": "a sentence over 35 words",
+   "after": null
+  },
+  {
+   "id": "5.3.0",
+   "rule": "dashes",
+   "before": "a \"not X, it's Y\" contrast",
+   "after": null
+  },
+  {
+   "id": "6.9.0",
+   "rule": "sentences",
+   "before": "a sentence over 35 words",
+   "after": null
+  },
+  {
+   "id": "8.0.0",
+   "rule": "sentences",
+   "before": "a sentence over 35 words",
+   "after": null
+  },
+  {
+   "id": "9.13.0",
+   "rule": "sentences",
+   "before": "a sentence over 35 words",
+   "after": null
+  }
+ ],
+ "proof": {
+  "verdict": "Hold",
+  "reasons": [
+   "\"7. Salomon Speedcross 6: best for mud and soft ground\" says two options and lists 1"
+  ],
+  "lint": 7
+ },
+ "polish": {
+  "applied": 12,
+  "refused": [
+   {
+    "id": "7.3.1",
+    "why": "33% of the words are gone"
+   },
+   {
+    "id": "2.0.0",
+    "why": "lost link https://www.irunfar.com/best-trail-running-shoes, https://www.tomsguide.com/best-picks/best-trail-running-shoes, https://runrepeat.com/guides/best-trail-running-shoes; 51% of the words are gone"
+   },
+   {
+    "id": "9.11.0",
+    "why": "added link https://striderunning.example/shoe-fit-guide, https://striderunning.example/running-shoes-guide"
+   }
+  ]
+ },
+ "blocked": [
+  {
+   "key": "h2-1",
+   "why": "added link https://runrepeat.com/guides/best-trail-running-shoes"
+  },
+  {
+   "key": "h2-3",
+   "why": "lost number 20"
+  },
+  {
+   "key": "h2-4",
+   "why": "lost number 150"
+  },
+  {
+   "key": "h2-6",
+   "why": "lost number 9; lost link https://www.irunfar.com; added link https://www.irunfar.com/best-trail-running-shoes"
+  },
+  {
+   "key": "h2-7",
+   "why": "added number 16; number 145; number 9; number 155; hedges added (1 to 2)"
+  },
+  {
+   "key": "h2-2",
+   "why": "added link https://www.irunfar.com/best-trail-running-shoes, https://www.irunfar.com/best-trail-running-shoes"
+  }
+ ],
+ "tidied": [
+  "Dropped \"Honestly,\" used a second time."
+ ],
+ "factChanges": [],
+ "modules": []
+}

@@ -74,6 +74,25 @@ ${JSON.stringify(section.blocks)}
 Reply with the section's blocks in the same shape: p (a paragraph), h3, ul or ol (items), quote, table (rows; first row the header). Fill only the field the block uses. Links stay as [anchor](url) and bold as **word**. Never add a heading for the section itself.`;
 }
 
+/**
+ * The sentence-length round: fix only the listed sentences. A short one joins the sentence before or after it; a long
+ * one becomes two. Nothing else in the section changes.
+ */
+export function lengthPrompt(section: Section, findings: (Finding & { text: string })[]): string {
+  return `Fix only sentence length in this section, and change nothing else.
+- A short sentence (6 words or fewer) joins the sentence before or after it, so the two read as one full sentence of 12 to 25 words. A short question that works as a heading becomes an h3 block instead.
+- A long sentence (over 35 words) becomes two sentences, at a natural break.
+Use the same words wherever you can. Keep every fact, number, name, quote, link and hedge ("likely", "about", "may") exactly. Keep every other sentence, list, table and h3 as it is, in order.
+
+The sentences to fix:
+${findings.map((f) => `- ${f.why === "a short sentence" ? "Short" : "Long"}: ${f.text}`).join("\n")}
+
+The section${section.h2 ? ` "${section.h2}"` : " (the intro, no heading)"}, as blocks:
+${JSON.stringify(section.blocks)}
+
+Reply with the section's blocks in the same shape: p (a paragraph), h3, ul or ol (items), quote, table (rows; first row the header). Fill only the field the block uses. Links stay as [anchor](url) and bold as **word**. Never add a heading for the section itself.`;
+}
+
 // ─────────────── keeping the facts ───────────────
 const blockText = (b: Block) => [b.text, ...b.items, ...b.rows.flat()].filter(Boolean).join("\n");
 const sectionText = (s: Section) => s.blocks.map(blockText).join("\n");

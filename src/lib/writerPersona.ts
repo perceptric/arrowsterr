@@ -5,6 +5,7 @@
 import { cleanVoice, type BrandVoice } from "./brandVoice.ts";
 import { lintText, rulesText } from "./houseRules.ts";
 import { checkedNumbers } from "./writerScore.ts";
+import { splitSentences } from "./sentences.ts";
 
 export type SourceKind = "home" | "about" | "product" | "post" | "added";
 /** One page or pasted sample the persona was built from. */
@@ -91,8 +92,7 @@ export function pickPages(pages: { url: string; article: boolean }[], feed: stri
 
 // ─────────────── Voice stats ───────────────
 
-const SENT = /(?<=[.!?])["”)\]]?\s+(?=["“(\[]?[A-Z0-9])/;
-export const sentencesOf = (t: string) => t.split(SENT).map((s) => s.trim()).filter((s) => /[a-z]/i.test(s));
+export const sentencesOf = (t: string) => splitSentences(t).filter((s) => /[a-z]/i.test(s));
 const wordsOf = (t: string) => t.split(/\s+/).map((w) => w.replace(/^[^\w']+|[^\w']+$/g, "")).filter(Boolean);
 
 /** Syllables in a word, estimated from its vowel groups. Good enough for a reading grade. */

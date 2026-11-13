@@ -355,3 +355,22 @@ test("the proof leaves names and far-off counts alone (false holds from the Phas
   const real = proofDraft([{ key: "c", h2: "Trail", blocks: [para("If you mix trail with road, you have two options to look at:"), list(["The Nike ACG Pegasus Trail."])] }]);
   assert.match(real.reasons.join(" "), /says two options and lists 1/);
 });
+
+test("the length round rewrites only sections with short or long sentences, and keeps only audited rewrites", async () => {
+  const calls: Record<string, number> = {};
+  const { db, store } = memory();
+  const d = deps(calls, {
+    fix: (prompt) => {
+      if (/Fix only sentence length/.test(prompt)) {
+        calls.length = (calls.length ?? 0) + 1;
+        assert.match(prompt, /Short: Fuel matters too\./);
+        return { blocks: [p("HubSpot is a CRM software company that helps teams sell, and fuel for its growth comes from its blog [per A](https://a.com/x)."), p("HubSpot has a free plan for small teams that want to start without paying [per A](https://a.com/x).")] };
+      }
+      return { blocks: [p("HubSpot is a CRM software company that helps teams sell [per A](https://a.com/x). Fuel matters too."), p("HubSpot has a free plan for small teams that want to start without paying [per A](https://a.com/x).")] };
+    },
+  });
+  await runDraft(store, d, "d1", 1);
+  assert.equal(calls.length, 1, "one length rewrite, for the section with the short sentence");
+  assert.equal(db.row.styled?.lengthDone, true);
+  assert.doesNotMatch(JSON.stringify(db.row.styled?.sections), /Fuel matters too\./);
+});

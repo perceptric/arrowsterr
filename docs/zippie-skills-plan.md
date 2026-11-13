@@ -216,7 +216,18 @@ Run on the 20 recorded topics (`tests/fixtures/writer/phase2/summary.json`):
 | Numbers with no match in the research | 3 of 248 | 3 of 275 |
 | Time and cost | about 4 minutes, $1.01 an article | about 4.7 minutes, $1.19 an article (check) |
 
-The target was under 1 finding an article. What's left is almost all sentence length. Phase 2b goes after it: a third fix round only for sentence length, and splitting a sentence over 35 words at a semicolon in code.
+The target was under 1 finding an article. What's left is almost all sentence length.
+
+**Phase 2b shipped: 0.7 findings an article, under the target of 1.** Three changes, measured by replaying them on the 20 Phase 2 articles (`scripts/writer-2b.mjs`, results in `tests/fixtures/writer/phase2/summary-2b.json`):
+
+| Step | Findings an article | Sentence-length findings (all 20) |
+|---|---|---|
+| Phase 2 as shipped | 3.4 | 63 |
+| One sentence splitter that knows initials and abbreviations (`sentences.ts`), and a short line with a link counts as a call to action | 2.6 | 44 |
+| Code splits a sentence over 35 words at a semicolon or before ", and you/we/it/they" (`tidy.ts`) | 2.4 | 40 |
+| The length round: each section with a short or long sentence rewritten once, changing nothing else | **0.7** | 7 |
+
+Half of the old short-sentence findings were not sentences at all: "A.O. Smith" and "U.S." split into fragments. The five copies of the splitter are now one. The length round rewrote 33 sections and the fact audit passed all 33. It adds about $0.09 an article ($1.77 for the 20, check). What's left: a few banned words that are names in the article (Empower, Synergy Companies, credit utilization) and a few short questions used as headings.
 
 About 8 weeks for one engineer. Phase 2 is the same work as Phase 5 of `docs/draft-and-write-build.md`, so they ship together.
 
@@ -230,9 +241,10 @@ Claude Sonnet 5.5 at $2 in and $10 out per million tokens (check). Beta is 50 te
 |---|---|---|---|
 | Writer persona (pages read free, 1 call: measured about 19K in and 2.5K out on 5 brands) | ~$0.06 a brand | ~$9 in the first month, ~$2 after | ~$90 first month, ~$20 after |
 | Polish pass, round 2 fixes and the bigger cached skill text (measured: $1.19 against the $1.01 baseline) | ~$0.18 an article | ~$90 | ~$900 |
+| Length round (Phase 2b, measured $0.09 an article) | ~$0.09 an article | ~$45 | ~$450 |
 | Zippie skill runs (20 a team a month, ~$0.10 each) | ~$0.10 a run | ~$100 | ~$1,000 |
 | Crawls, link checks, robots | our VPS | $0 | $0 |
 | PageSpeed Insights | free quota (check) | $0 | $0 |
-| **Added a month** | | **~$192** (first month ~$199) | **~$1,920** (first month ~$1,990) |
+| **Added a month** | | **~$237** (first month ~$244) | **~$2,370** (first month ~$2,440) |
 
 The voice check, claim ledger, copyedit and proof passes are counted in `docs/draft-and-write-build.md` and are left out here.

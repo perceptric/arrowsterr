@@ -1,0 +1,1248 @@
+{
+ "slug": "resource-planning",
+ "keyword": "how to do resource planning",
+ "kind": "saas",
+ "stage": "tofu",
+ "model": "claude-sonnet-5-5",
+ "at": "2026-11-13T14:24:56.139Z",
+ "seconds": 312,
+ "usage": {
+  "calls": 29,
+  "input": 71144,
+  "cacheRead": 1200064,
+  "cacheWrite": 180604,
+  "output": 42409
+ },
+ "score": {
+  "words": 2536,
+  "sections": 10,
+  "lint": 0,
+  "lintRules": {},
+  "numbers": 1,
+  "unsourced": [],
+  "links": 36,
+  "strayLinks": [],
+  "images": 4,
+  "modules": 1
+ },
+ "title": "How to Do Resource Planning: A 6-Step Guide for Team Leads",
+ "brief": {
+  "titles": [
+   "How to Do Resource Planning: A 6-Step Guide for Team Leads",
+   "How to Do Resource Planning Across Several Projects",
+   "Resource Planning Step by Step: How to Do It Right"
+  ],
+  "h1": "How to Do Resource Planning: A 6-Step Guide for Team Leads",
+  "metaDescription": "Learn how to do resource planning in six steps: estimate work, check real capacity, fix conflicts and keep one plan current across projects.",
+  "slug": "how-to-do-resource-planning",
+  "searchIntent": "The searcher wants a clear, ordered method for planning who and what a project needs, and when. A step-by-step guide with a short definition, a worked capacity example and fixes for common problems serves it best.",
+  "reader": "A team lead at a company of 10 to 200 people who runs several projects at once. They know what a project plan is and probably juggle people in a spreadsheet or in their head. They want a repeatable way to assign people without overloading anyone, then a next step they can take this week.",
+  "angle": "Most top pages are written for one project or for large PMOs. We write for a team lead who shares the same people across several projects, so the article works through real capacity, conflicts between projects and a weekly review habit, with a calculator the reader can use on their own team.",
+  "wordTarget": 2400,
+  "outline": [
+   {
+    "h2": "What resource planning is and why it matters",
+    "points": [
+     "Define it in one plain sentence: matching the right people, tools and budget to project work at the right time, with the people, equipment, materials, money and time it covers.",
+     "Say why it matters more when you run several projects: demand is high, skills are scarce and priorities keep shifting.",
+     "Cite the Runn finding that over half of teams in its State of Resource Management report say they still plan reactively, and name the cost: stress, missed revenue and burnt-out teams."
+    ],
+    "h3": [],
+    "sources": [
+     2,
+     5,
+     8
+    ]
+   },
+   {
+    "h2": "Resource planning, capacity planning and forecasting: how they differ",
+    "points": [
+     "Give each term one plain definition. Resource forecasting predicts future needs from past usage and trends. Capacity planning checks whether supply can meet current and future demand. Resource planning decides who and what goes where.",
+     "Explain that sources define these terms a little differently, so the article states the meaning it uses and sticks to it.",
+     "Mention that resource planning is a more strategic act than assigning tasks, because it weighs demand against capacity to protect high-priority work."
+    ],
+    "h3": [],
+    "sources": [
+     2,
+     6,
+     7
+    ]
+   },
+   {
+    "h2": "What to have ready before you start",
+    "points": [
+     "List the inputs: project scope with deliverables, dependencies and target dates; work estimates in hours or days; each person's skills, schedule and availability; planning rules such as holidays, part-time schedules and overtime limits.",
+     "Say who decides priorities if capacity cannot cover every request, and who owns the review and approves changes.",
+     "Use Runn's finding that only half of professionals trust their resource management data, with 58% citing inconsistent inputs, to show why one agreed source of truth comes first.",
+     "Tell the reader their data does not need to be perfect, only consistent and owned by someone."
+    ],
+    "h3": [],
+    "sources": [
+     9,
+     5
+    ]
+   },
+   {
+    "h2": "How to do resource planning in 6 steps",
+    "points": [
+     "Open with one sentence saying the steps run in order and each one ends with a checkpoint.",
+     "Keep each H3 to a short explanation plus a checkpoint the reader can check off.",
+     "Place the capacity calculator at the end of this section."
+    ],
+    "h3": [
+     {
+      "title": "Step 1: Confirm the scope and planning period",
+      "points": [
+       "List deliverables, dates and agreed priorities so estimates match work the team will really do.",
+       "Checkpoint from ONES: a bounded list of deliverables with a clear planning window.",
+       "If the work uses a Work Breakdown Structure, build it here. Agile teams can use a backlog instead."
+      ]
+     },
+     {
+      "title": "Step 2: Break the work into tasks and estimate effort",
+      "points": [
+       "Split big packages into tasks with one clear outcome and one owner. Use the ONES example of splitting prepare launch into draft announcement, review copy and publish campaign.",
+       "Ask the person closest to the work for the estimate, use hours or days consistently and mark uncertain estimates so the team can revisit them."
+      ]
+     },
+     {
+      "title": "Step 3: Match skills and roles to each task",
+      "points": [
+       "Match on capabilities and not only job titles. A task that needs a data analyst should not go to someone just because they have free hours.",
+       "Note a backup person where several people could do the work.",
+       "Include non-human resources such as equipment, tools, rooms and vehicles (RMC lists technology, machinery, vehicles, equipment, facilities, supplies)."
+      ]
+     },
+     {
+      "title": "Step 4: Work out how much time each person really has",
+      "points": [
+       "Start with working time in the planning period, then subtract leave, existing commitments and other agreed work. Use project-available hours and not scheduled hours.",
+       "Keep estimates separate from availability. The ONES example is a 16-hour task for a specialist with only 8 project hours that week.",
+       "Quote Avadh Nagaralawala of Caterpillar, via Smartsheet: he counts vacation, other projects and time zones, and builds in buffer time because people get sick, priorities shift and tasks take longer than expected.",
+       "Note from IBM that using 100% of resources leaves no room for a spike in demand."
+      ]
+     },
+     {
+      "title": "Step 5: Compare demand with capacity and assign owners",
+      "points": [
+       "Add up estimated effort per person per week and compare it with project-available hours.",
+       "Assign an owner whose skills fit and whose capacity supports the effort. Add contributors only when the work needs them. Record the planned period and any dependency that sets the start date.",
+       "Check the plan against the client deadline and negotiate scope, cost or quality if a fixed date cannot be met (RMC)."
+      ]
+     },
+     {
+      "title": "Step 6: Decide how you will track progress and review",
+      "points": [
+       "Set how you will check actual work against the plan and who approves changes.",
+       "Point forward to the review habits in the later section on keeping the plan current."
+      ]
+     }
+    ],
+    "sources": [
+     9,
+     3,
+     5,
+     8,
+     6
+    ]
+   },
+   {
+    "h2": "Fix conflicts when demand is higher than capacity",
+    "points": [
+     "Explain what an overloaded week looks like: one specialist booked across two projects while another person has room.",
+     "List the options in order: re-sequence work, shift dates, bring in contract help, move tasks to a person with the right skills, or agree a smaller scope with the client.",
+     "Describe resource leveling as adjusting resource use and start and end dates based on supply versus need (RMC).",
+     "Show how Planview recommends scenario planning to compare alternatives before choosing, and how a priority list tells you what to drop first."
+    ],
+    "h3": [],
+    "sources": [
+     3,
+     7,
+     9
+    ]
+   },
+   {
+    "h2": "Keep the plan current week to week",
+    "points": [
+     "Treat the plan as a process that gets repeated, and not as a one-time document (Runn).",
+     "Hold a regular resource planning meeting and track a few metrics: utilization, bench time, delivery performance and employee feedback (Runn).",
+     "Use ONES guidance: review allocations when scope, dates, priorities or availability change, and keep open conflicts visible with named owners.",
+     "Add a lightweight learning loop: look at finished projects to see where estimates were off, then fix the next plan."
+    ],
+    "h3": [],
+    "sources": [
+     5,
+     9
+    ]
+   },
+   {
+    "h2": "Common problems and how to fix them",
+    "points": [
+     "Use the ONES troubleshooting list as a base: people look available but tasks are still late; one person is overloaded in one week; estimates keep changing after work begins; changes agreed out loud never reach the plan; spare capacity sits unused while a bottleneck persists.",
+     "Give a one or two sentence fix for each, drawn from the ONES guidance on checking dependencies, skills and visible assumptions.",
+     "Keep this as a bulleted list with plain sentences and no bold lead-in labels."
+    ],
+    "h3": [],
+    "sources": [
+     9,
+     5
+    ]
+   },
+   {
+    "h2": "When a spreadsheet stops being enough",
+    "points": [
+     "Say that spreadsheets work for a few projects, and that Runn notes they struggle as teams grow and juggle more projects.",
+     "List what to look for in a planning tool: one view of people and projects, a schedule you can adjust by dragging, conflict visibility, and a way to compare planned and actual time (Ganttic and Retain describe these).",
+     "Show how a Gantt view and a Kanban board help a team lead see work by date and by status.",
+     "Keep the section short and friendly, with the next step pointing to Planwise."
+    ],
+    "h3": [],
+    "sources": [
+     5,
+     1,
+     4,
+     8
+    ]
+   }
+  ],
+  "entities": [
+   "resource planning",
+   "resource forecasting",
+   "capacity planning",
+   "resource allocation",
+   "resource management",
+   "resource leveling",
+   "resource plan",
+   "resource calendar",
+   "utilization",
+   "bench time",
+   "Work Breakdown Structure (WBS)",
+   "scenario planning",
+   "overallocation",
+   "buffer time",
+   "dependencies",
+   "Gantt chart",
+   "Kanban",
+   "project-available hours",
+   "Avadh Nagaralawala (Caterpillar)",
+   "Runn State of Resource Management report",
+   "PMO",
+   "Ganttic",
+   "Retain",
+   "Runn",
+   "Smartsheet",
+   "IBM",
+   "Planview",
+   "ONES",
+   "RMC Learning Solutions",
+   "PPM Express"
+  ],
+  "gaps": [
+   "Most top pages are written for a single project or a large PMO, and few speak to a team lead who shares the same people across several projects.",
+   "Few pages show a worked capacity number. ONES gives the 16-hour task versus 8 available hours example, and this article extends it with a calculator the reader can use.",
+   "Many pages stop at 'allocate and monitor' and say little about what to do when demand is higher than capacity. This article gives an ordered list of options.",
+   "Definitions of resource planning, resource management, allocation and capacity planning overlap across pages. This article states one meaning for each and keeps it.",
+   "Several pages open with vendor promotion or long intros, with the actual steps far down the page. This article puts the steps first.",
+   "Skills matching is often reduced to job titles. This article tells the reader to match on capabilities and note a backup person.",
+   "Review habits are thin on most pages. This article gives a simple weekly rhythm and the metrics Runn names."
+  ],
+  "faqs": [
+   {
+    "question": "What are the three phases of resource planning?",
+    "answer": "Say sources vary. A simple grouping is plan the demand, assign people against capacity, then track and adjust, which fits Runn's five stages and the ONES steps. Link back to the six steps."
+   },
+   {
+    "question": "What are some effective techniques for resource planning?",
+    "answer": "Name resource leveling (RMC), scenario planning (Planview), buffer time (Caterpillar quote via Smartsheet), regular planning meetings and tracking utilization (Runn), and checking skills and capacity before assigning (ONES)."
+   },
+   {
+    "question": "What is the difference between resource planning and capacity planning?",
+    "answer": "Capacity planning checks whether available resources can meet current and future demand (IBM). Resource planning decides who and what goes to which work, using demand and capacity (Planview). Say they work together."
+   },
+   {
+    "question": "What are the different steps of planning?",
+    "answer": "Give the short six-step answer: confirm scope, estimate tasks, match skills, check real capacity, compare and assign, then review. Point to the steps section."
+   },
+   {
+    "question": "How often should I review resource allocations?",
+    "answer": "Review whenever scope, dates, priorities or availability change, and on a regular schedule such as a weekly planning check-in. Cite ONES and Runn, and note the exact rhythm depends on how fast the work changes."
+   }
+  ],
+  "internalLinks": [
+   {
+    "url": "https://planwise.example/blog/project-management-basics",
+    "anchor": "project management basics",
+    "where": "What resource planning is and why it matters"
+   },
+   {
+    "url": "https://planwise.example/templates/project-brief",
+    "anchor": "project brief template",
+    "where": "What to have ready before you start"
+   },
+   {
+    "url": "https://planwise.example/features/gantt",
+    "anchor": "Gantt view in Planwise",
+    "where": "How to do resource planning in 6 steps"
+   },
+   {
+    "url": "https://planwise.example/blog/agile-for-small-teams",
+    "anchor": "agile planning for small teams",
+    "where": "Keep the plan current week to week"
+   },
+   {
+    "url": "https://planwise.example/features/kanban",
+    "anchor": "Kanban board",
+    "where": "When a spreadsheet stops being enough"
+   },
+   {
+    "url": "https://planwise.example/blog/kanban-guide",
+    "anchor": "our Kanban guide",
+    "where": "When a spreadsheet stops being enough"
+   }
+  ],
+  "cta": {
+   "text": "Put your projects and people on one plan. Open Planwise, add your next project in the Gantt view and see where your week is already full.",
+   "where": "After the last H2 and the FAQs, as a closing block linking to https://planwise.example/features/gantt, with a smaller link to https://planwise.example/pricing"
+  },
+  "modules": [
+   {
+    "type": "calculator",
+    "title": "Weekly capacity check",
+    "purpose": "Lets the reader work out how many hours a person or team really has for project work, and whether planned demand fits.",
+    "placement": "How to do resource planning in 6 steps",
+    "inputs": [
+     "Working hours per week per person (example default 40)",
+     "Leave and holiday hours in the week",
+     "Meetings and admin hours (example 5)",
+     "Operational support or other non-project hours (example 5)",
+     "Hours already committed to other projects",
+     "Estimated hours of new work planned for the person that week"
+    ],
+    "outputs": [
+     "Project-available hours per person",
+     "Hours left for new work",
+     "Gap or spare capacity compared with planned hours",
+     "Utilization as a percentage of available hours"
+    ],
+    "data": "Formula: available capacity = working hours minus non-project hours (ChatGPT answer, based on the same approach as ONES: subtract leave, existing commitments and other agreed work from working time). Example defaults: 40 working hours, 5 for meetings and admin, 5 for operational support. IBM defines utilization as the percentage of available resources in use. ONES example for the result: a 16-hour task against 8 available project hours shows a gap.",
+    "why": "A team lead with several projects can enter their own numbers and see where a week breaks, which a paragraph of text cannot do."
+   }
+  ],
+  "images": [
+   {
+    "placement": "Resource planning, capacity planning and forecasting: how they differ",
+    "shows": "Resource forecasting, capacity planning and resource planning side by side, each with the question it answers.",
+    "alt": "Three-column comparison of resource forecasting, capacity planning and resource planning.",
+    "kind": "comparison",
+    "sources": [
+     2,
+     6,
+     7
+    ]
+   },
+   {
+    "placement": "What to have ready before you start",
+    "shows": "A checklist of the six inputs to gather: scope, estimates, resource details, planning rules, priorities and review owner.",
+    "alt": "Checklist of six things to gather before resource planning starts.",
+    "kind": "checklist",
+    "sources": [
+     9
+    ]
+   },
+   {
+    "placement": "How to do resource planning in 6 steps",
+    "shows": "The six steps in order, from confirming scope to reviewing the plan.",
+    "alt": "Six-step diagram of the resource planning process from scope to review.",
+    "kind": "steps",
+    "sources": [
+     9,
+     3,
+     5
+    ]
+   },
+   {
+    "placement": "Fix conflicts when demand is higher than capacity",
+    "shows": "One planned task with its labeled parts: owner, effort estimate, planned period, dependency and an open conflict note.",
+    "alt": "Labeled example of one task row in a resource plan, showing owner, effort, dates and a capacity conflict.",
+    "kind": "anatomy",
+    "sources": [
+     9,
+     8
+    ]
+   }
+  ],
+  "examples": [],
+  "checks": [
+   "The 30 to 35 productive hours per week figure appears only in the Gemini answer without a citation, so confirm a source or leave it out.",
+   "The 10% to 20% buffer and 75% billable utilization figures appear only in the AI Mode answer from Scoro, so confirm before use.",
+   "The Smartsheet step list and the PPM Express six-step section are cut off in the sources, so check the full pages before describing them.",
+   "The ONES troubleshooting entries are only visible as headings, so check the page before writing the exact fix for each problem.",
+   "Confirm which Planwise features (Gantt view, Kanban board) show workload by person before the CTA or tool section describes what they do.",
+   "Confirm the exact meaning of 'over half' in Runn's State of Resource Management report before using it as a number.",
+   "The answer to the 'three phases' question is a simplified grouping, so an editor should confirm the wording."
+  ],
+  "research": {
+   "sources": [
+    {
+     "n": 1,
+     "url": "https://www.ganttic.com/",
+     "title": "Resource Planning Software for Teams & Equipment | Ganttic",
+     "domain": "ganttic.com",
+     "kind": "serp",
+     "position": 2,
+     "words": 719
+    },
+    {
+     "n": 2,
+     "url": "https://www.ppm.express/blog/resource-planning",
+     "title": "What Is Resource Planning? The Complete Guide for 2026 | PPM Express",
+     "domain": "ppm.express",
+     "kind": "serp",
+     "position": 4,
+     "words": 4419
+    },
+    {
+     "n": 3,
+     "url": "https://rmcls.com/learn/blog/resource-planning-management/?srsltid=AYCX9vIA9yB0Z1_SSHPmGc4LwoOyZeilzI7JDQELqfkHFIT1xx3tYPsg",
+     "title": "Guide to Resource Planning & Management for Project Managers - RMC Learning Solutions",
+     "domain": "rmcls.com",
+     "kind": "serp",
+     "position": 5,
+     "words": 1037
+    },
+    {
+     "n": 4,
+     "url": "https://www.retaininternational.com/",
+     "title": "Retain - Resource Management & Scheduling Software",
+     "domain": "retaininternational.com",
+     "kind": "serp",
+     "position": 7,
+     "words": 1101
+    },
+    {
+     "n": 5,
+     "url": "https://www.runn.io/blog/stages-of-resource-planning",
+     "title": "The 5 Essential Stages of the Resource Planning Process | Runn",
+     "domain": "runn.io",
+     "kind": "serp",
+     "position": 8,
+     "words": 3056
+    },
+    {
+     "n": 6,
+     "url": "https://www.ibm.com/think/topics/capacity-planning",
+     "title": "What Is Capacity Planning? | IBM",
+     "domain": "ibm.com",
+     "kind": "ai",
+     "position": null,
+     "words": 3314
+    },
+    {
+     "n": 7,
+     "url": "https://www.planview.com/topics/resource-planning-essential-guide-savvy-pmo",
+     "title": "Resource Planning: Essential Guide for Today’s PMO | Planview",
+     "domain": "planview.com",
+     "kind": "ai",
+     "position": null,
+     "words": 2385
+    },
+    {
+     "n": 8,
+     "url": "https://www.smartsheet.com/resource-plans-planning",
+     "title": "Guide to Resource Planning in Project Management",
+     "domain": "smartsheet.com",
+     "kind": "ai",
+     "position": null,
+     "words": 4411
+    },
+    {
+     "n": 9,
+     "url": "https://ones.com/blog/project-resource-planning-process-a-step-by-step-guide",
+     "title": "Project Resource Planning Process: A Step-By-Step Guide",
+     "domain": "ones.com",
+     "kind": "ai",
+     "position": null,
+     "words": 2065
+    }
+   ],
+   "questions": [
+    "What are the three phases of resource planning?",
+    "What are the 7 steps of human resource planning?",
+    "What are the different steps of planning?",
+    "What are some effective techniques for resource planning?"
+   ],
+   "engines": [
+    "ChatGPT",
+    "Gemini",
+    "AI Mode"
+   ],
+   "topPages": "The top pages are long guides from software vendors and learning providers, from about 700 to 4,400 words. They open with a definition, then give a stage or step list (five or six steps is common), then cover templates, best practices and tools. They all cover what resource planning is, how it differs from capacity planning or allocation, the steps and why software helps. The short pages, such as the RMC guide, give a brief list of steps for a single project.",
+   "aiAnswers": "The ChatGPT answer gives a step-by-step guide with tables, a capacity formula (working hours minus non-project hours) and a reminder that 40 hours is not 40 project hours. It cites PMI, IBM, Planview, Smartsheet, ONES, Atlassian and others. Gemini gives five steps (scope, catalog resources, estimate demand, allocate, track) with no citations. AI Mode uses a four-letter framework (Review, Assess, Match, Plan) and cites only Scoro. The Google AI Overview defines the term and lists key steps, citing Float's guide."
+  },
+  "model": "claude-sonnet-5-5",
+  "at": "2026-11-13T14:20:53.182Z"
+ },
+ "sections": [
+  {
+   "key": "intro",
+   "h2": "",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "If you lead a team that shares the same people across several projects, you've probably seen one specialist get booked in two places at once. Planning who does what, and when, often lives in a spreadsheet or in your head, and both get harder to trust as work piles up.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "In this guide, we'll show you how to do resource planning in six clear steps, from scoping the work to checking real capacity. You can start with one project and grow from there, so the method stays easy to try.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "We'll also cover what to do when demand is higher than capacity, how to keep the plan current each week and when a spreadsheet stops being enough. Here's what you'll get from this guide, so you can see if it fits the way your team works:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Six steps you can follow in order, each with a checkpoint you can check off.",
+      "A weekly capacity check you can run on your own team in a few minutes.",
+      "A way to spot overloaded weeks before they cause delays."
+     ],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-0",
+   "h2": "What resource planning is and why it matters",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "According to [PPM Express](https://www.ppm.express/blog/resource-planning), the resources it covers include human resources, financial capital, equipment and technology, time and materials.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Runn](https://www.runn.io/blog/stages-of-resource-planning) adds that the aim is to use people's time thoughtfully, sustainably and profitably.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Why does resource planning matter more when you run several projects at once? Because the same people get pulled in many directions, and Runn points out that planning matters most when demand is high, skills are scarce and priorities keep shifting.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Every team does some version of this already, so what sets teams apart is whether your process is clear and repeatable or scattered across inboxes, spreadsheets and people's heads. Runn reports that over half of the teams in its State of Resource Management report say they still plan reactively.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Luckily, you don't need a large system to improve on this. If you want a refresher on the wider picture first, our [project management basics](https://planwise.example/blog/project-management-basics) guide covers how plans, tasks and timelines fit together.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-1",
+   "h2": "Resource planning, capacity planning and forecasting: how they differ",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "These three terms overlap a lot and sources define them a little differently, so here is the meaning we use in this guide and will keep from here on.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Capacity planning checks whether your supply can meet demand, and [IBM describes it](https://www.ibm.com/think/topics/capacity-planning) as aligning resources with current and future demand so you avoid both overcapacity and undercapacity.",
+      "Resource planning decides who and what goes where, and when, so the right people and tools are on the right work."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "As you can see, the three work as a chain, because forecasting tells you what's coming, capacity planning tells you what you can handle, and resource planning turns both into actual assignments.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Resource planning is also a more strategic act than handing out tasks. Planview explains that [resource management focuses on assigning tasks, roles and responsibilities](https://www.planview.com/topics/resource-planning-essential-guide-savvy-pmo), while resource planning weighs demand against capacity so high-priority work can get done.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Why does this matter for you when your projects share the same people? When your projects share the same people, a task list alone can't tell you whether next month is realistic, but comparing demand with capacity first lets you decide what to protect and what to move.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-2",
+   "h2": "What to have ready before you start",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Before you assign anyone to anything, it helps to gather a few inputs in one place, because planning on guesses is how you end up with three people overbooked in the same week.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[ONES](https://ones.com/blog/project-resource-planning-process-a-step-by-step-guide) suggests collecting these items before you allocate anyone:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Your project scope, with the deliverables, the dependencies between them and the target dates.",
+      "Work estimates for each task, written in hours or days and used the same way throughout.",
+      "Each person's skills, working schedule and availability for this project.",
+      "Your planning rules, such as holidays, part-time schedules, existing commitments and any limits on overtime."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you already write a one-page summary for each project, our [project brief template](https://planwise.example/templates/project-brief) is a good place to keep the scope and dates together.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You also need two decisions made ahead of time. [ONES](https://ones.com/blog/project-resource-planning-process-a-step-by-step-guide) recommends naming who decides which work is essential if capacity can't cover every request, and who reviews the plan and approves changes to assignments or dates.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Why does this come first, before you assign anyone?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Thankfully, your data doesn't need to be perfect. [Runn](https://www.runn.io/blog/stages-of-resource-planning) says it needs to be consistent and trustworthy, so pick one agreed source for availability and timelines, and give one person the job of keeping it current.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-3",
+   "h2": "How to do resource planning in 6 steps",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "The steps below run in order, and each one ends with a checkpoint you can check off before you move on to the next.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Step 1: Confirm the scope and planning period",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "List your deliverables, dates and agreed priorities so your estimates match work the team will really do. If the work uses a Work Breakdown Structure, build it here, and agile teams can use a backlog instead, as [RMC Learning Solutions](https://rmcls.com/learn/blog/resource-planning-management/?srsltid=AYCX9vIA9yB0Z1_SSHPmGc4LwoOyZeilzI7JDQELqfkHFIT1xx3tYPsg) explains.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "For this step's checkpoint, [ONES](https://ones.com/blog/project-resource-planning-process-a-step-by-step-guide) suggests a bounded list of deliverables with a clear planning window.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Step 2: Break the work into tasks and estimate effort",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Split big packages into tasks with one clear outcome and one owner, and ONES shows how by splitting \"prepare launch\" into [draft announcement, review copy and publish campaign](https://ones.com/blog/project-resource-planning-process-a-step-by-step-guide).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Ask the person closest to the work for the estimate, use hours or days the same way throughout, and mark uncertain estimates so the team can revisit them. The checkpoint for this step is that every task has an owner and an estimate you can point to.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Step 3: Match skills and roles to each task",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Match on capabilities and not only job titles, because a task that needs a data analyst shouldn't go to someone just because they have free hours. Note a backup person wherever several people could do the work.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Include non-human resources too, since [RMC Learning Solutions](https://rmcls.com/learn/blog/resource-planning-management/?srsltid=AYCX9vIA9yB0Z1_SSHPmGc4LwoOyZeilzI7JDQELqfkHFIT1xx3tYPsg) lists these examples:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Technology, such as software and other digital tools.",
+      "Machinery that your team uses to finish its tasks.",
+      "Vehicles that your team needs for project work.",
+      "Equipment.",
+      "Facilities where the work gets done.",
+      "Supplies the team uses up as the project moves along."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The checkpoint for this step is that each task shows the skills and tools it needs.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Step 4: Work out how much time each person really has",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Start with working time in the planning period, then subtract leave, existing commitments and other agreed work. This gives you project-available hours, which are lower than the hours people are scheduled to work.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Keep your estimates separate from each person's availability, because the two answer different questions. In the [ONES example](https://ones.com/blog/project-resource-planning-process-a-step-by-step-guide), a task needs 16 hours while the specialist has only 8 project hours that week.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Avadh Nagaralawala, a Control System Engineer at Caterpillar, counts [vacation plans, other projects and time zones](https://www.smartsheet.com/resource-plans-planning), and he builds in buffer time because people get sick, priorities shift and tasks take longer than expected.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[IBM](https://www.ibm.com/think/topics/capacity-planning) adds that if 100% of resources are in use, any spike in demand strains your ability to deliver.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Step 5: Compare demand with capacity and assign owners",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Add up the estimated effort for each person each week and compare it with their project-available hours. Then assign an owner whose skills fit and whose capacity supports the effort, adding contributors only when the work needs them.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If a fixed client date can't be met, [RMC Learning Solutions](https://rmcls.com/learn/blog/resource-planning-management/?srsltid=AYCX9vIA9yB0Z1_SSHPmGc4LwoOyZeilzI7JDQELqfkHFIT1xx3tYPsg) says you may need to negotiate scope, cost or quality.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Step 6: Decide how you will track progress and review",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Set how you will check actual work against the plan and who approves changes. We cover the weekly review habits in the section on keeping the plan current, and your checkpoint here is that you can say who reviews the plan and when.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-4",
+   "h2": "Fix conflicts when demand is higher than capacity",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "An overloaded week usually looks like this: one specialist is booked across two projects at once, while another person on your team still has room. The total hours on your team may look fine, but the work can still sit in the wrong place.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You have several ways to fix an overloaded week, and ONES suggests a habit that helps with all of them. Keep these conflicts visible with a named owner, so someone is responsible for choosing a fix, as [ONES](https://ones.com/blog/project-resource-planning-process-a-step-by-step-guide) suggests. Here's how to work through the options, from the lightest change to the heaviest:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "Re-sequence the work so the overbooked person handles one project's tasks before the other's.",
+      "Shift dates on tasks that have some room, so the peak week gets spread across more weeks.",
+      "Bring in contract help for work that doesn't need deep knowledge of your projects.",
+      "Move tasks to a person with the right skills and spare hours, and note a backup for next time.",
+      "Agree a smaller scope with the client when none of the earlier options protect the deadline."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[RMC Learning Solutions](https://rmcls.com/learn/blog/resource-planning-management/?srsltid=AYCX9vIA9yB0Z1_SSHPmGc4LwoOyZeilzI7JDQELqfkHFIT1xx3tYPsg) describes it as adjusting resource usage and start and end dates based on the supply of resources versus the need for them.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Before you commit to a fix, compare a few versions of the plan side by side. [Planview](https://www.planview.com/topics/resource-planning-essential-guide-savvy-pmo) recommends scenario planning, which means using alternatives to make more informed decisions about how to rebalance and plan ahead.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A priority list makes those comparisons much easier, because it tells you which work to drop or delay first. Which work would you cut or delay first if your busiest person lost a day this week?",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-5",
+   "h2": "Keep the plan current week to week",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "A resource plan only helps while it matches what your team is really doing. Plans often drift because priorities shift after the kickoff, so a regular check keeps them useful.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Runn describes resource planning as [a process, and not a one-time thing](https://www.runn.io/blog/stages-of-resource-planning), because priorities shift and new work appears. So we suggest giving your plan a regular review slot that you hold on the same day each week.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how to set up a simple weekly rhythm:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Hold a short resource planning meeting at the same time each week, so everyone knows when changes get decided.",
+      "Walk through the people who are overbooked or have spare hours, and fix the biggest gaps first.",
+      "Check the open conflicts from last week and confirm each one still has a named owner.",
+      "Write down any change you agreed out loud, so the plan matches what the team now expects."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Outside that meeting, ONES advises that you [review allocations when scope, dates, priorities or availability change](https://ones.com/blog/project-resource-planning-process-a-step-by-step-guide). It also suggests keeping unresolved conflicts visible, with owners for decisions and follow-up, so a known problem doesn't sit unassigned.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A few numbers make those meetings easier to run, and Runn points to [how much of your people's time is in use, bench time, delivery performance and employee feedback](https://www.runn.io/blog/stages-of-resource-planning) as metrics worth tracking over time.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You can add a light learning loop without much extra work. When a project finishes, look at where the estimates were off, then use what you find to correct the next plan.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you also run short sprints, our guide to [agile planning for small teams](https://planwise.example/blog/agile-for-small-teams) shows how to fit this review into a shorter cycle.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-6",
+   "h2": "Common problems and how to fix them",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Late tasks and tired people usually trace back to a small gap in the plan, and the five problems below are the ones we see most often.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Most of these fixes come down to keeping assumptions and conflicts visible, and [the ONES guide](https://ones.com/blog/project-resource-planning-process-a-step-by-step-guide) advises keeping unresolved capacity conflicts in view, with owners for decisions and follow-up.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A good place to begin this week is with the person who is most overloaded, because their schedule shows whether your plan matches their real hours.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-7",
+   "h2": "When a spreadsheet stops being enough",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "A spreadsheet is a good place to start when you plan resources for a few projects.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you share the same people across several projects, you may already feel this. Changing one booking can mean editing three tabs and hoping nothing else shifted, which is hard to keep up with as projects pile up. What do you need from a tool before it earns a place in your week?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What to look for in a planning tool",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Ganttic is resource planning software that helps managers plan the people, tools, rooms and machinery their projects need. Between them, they describe the features that matter most:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "You can adjust the schedule by dragging work to a new date or a new person, and fix conflicts as soon as they appear.",
+      "You can compare planned time with actual time, which [Retain supports](https://www.retaininternational.com/) through timesheets that fill in from work already booked."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "See work by date and by status",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Two views cover most of what a team lead needs.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you want a closer look at how that works, [our Kanban guide](https://planwise.example/blog/kanban-guide) walks you through it.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "We'd like to help you put your projects and people on one plan. Open Planwise, add your next project in the Gantt view and see where your week is already full.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "faq",
+   "h2": "Frequently asked questions",
+   "blocks": [
+    {
+     "type": "h3",
+     "text": "What are the three phases of resource planning?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Sources group the work in different ways, so there's no single official answer. A simple grouping is to plan the demand, assign people against real capacity, and then track and adjust.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What are some effective techniques for resource planning?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here are a few techniques you can start with this week:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Use resource leveling to adjust resource use and start and end dates based on supply versus need, as [RMC Learning Solutions](https://rmcls.com/learn/blog/resource-planning-management/?srsltid=AYCX9vIA9yB0Z1_SSHPmGc4LwoOyZeilzI7JDQELqfkHFIT1xx3tYPsg) describes.",
+      "Try scenario planning to compare alternatives before you decide, which [Planview](https://www.planview.com/topics/resource-planning-essential-guide-savvy-pmo) recommends.",
+      "Build in buffer time, since Avadh Nagaralawala of Caterpillar says [people get sick, priorities shift and tasks take longer than expected](https://www.smartsheet.com/resource-plans-planning).",
+      "Hold regular planning meetings and track how much of each person's available time goes to project work, as [Runn suggests](https://www.runn.io/blog/stages-of-resource-planning).",
+      "Check skills and capacity before you assign work, as [ONES advises](https://ones.com/blog/project-resource-planning-process-a-step-by-step-guide)."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What is the difference between resource planning and capacity planning?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[IBM describes capacity planning](https://www.ibm.com/think/topics/capacity-planning) as a process that examines the resources an organization needs to meet current and future demand.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[Planview](https://www.planview.com/topics/resource-planning-essential-guide-savvy-pmo) says resource planning takes demand and capacity into account to make sure high-priority work gets done. The two work together, because you need an honest picture of capacity before you can assign people well.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What are the different steps of planning?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "In our guide, the steps run in this order:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "Confirm the scope and the planning period.",
+      "Break the work into tasks and estimate effort.",
+      "Match skills to each task.",
+      "Work out how much time each person really has.",
+      "Compare demand with capacity and assign owners.",
+      "Set up your review."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Each step ends with a checkpoint, so you can see if you're ready to move on. You can find the full detail in the section on how to do resource planning in 6 steps.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "How often should I review resource allocations?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[ONES recommends](https://ones.com/blog/project-resource-planning-process-a-step-by-step-guide) reviewing the plan whenever scope, dates, priorities or availability change. [Runn also suggests](https://www.runn.io/blog/stages-of-resource-planning) regular resource planning meetings, so a weekly check-in is a sensible starting point.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The right rhythm depends on how fast your work changes, so start with a weekly review and adjust it as you learn what your team needs.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  }
+ ],
+ "cut": [
+  {
+   "id": "1.0.0",
+   "why": "The one-sentence definition (people, tools and budget at the right time) is a paraphrase not stated verbatim in the sources, but is reasonable; however the attribution below is the larger concern, so this is left as low risk."
+  },
+  {
+   "id": "1.1.0",
+   "why": "Smartsheet says it involves identifying what resources you will need and when and how to ensure they are available without overloading the team or going over budget; this is supported, but attributing it as a 'describes it' paraphrase is fine. Flagged only because the phrase is slightly broadened."
+  },
+  {
+   "id": "1.4.0",
+   "why": "Runn says reactive planning almost always costs more in stress, missed revenue and burnt-out teams; the draft's expanded list items add unsupported detail (e.g. 'when schedules stay overloaded', 'absorbing last-minute changes')."
+  },
+  {
+   "id": "1.5.i0",
+   "why": "Embellishes Runn's 'stress' with an unsupported explanation about people absorbing last-minute changes."
+  },
+  {
+   "id": "1.5.i1",
+   "why": "Embellishes Runn's 'missed revenue' with an unsupported explanation about the right person not being free."
+  },
+  {
+   "id": "1.5.i2",
+   "why": "Embellishes Runn's 'burnt-out teams' with an unsupported explanation about overloaded schedules."
+  },
+  {
+   "id": "2.1.i0",
+   "why": "PPM Express text visible says forecasting predicts needs from historical data, trends and projections and external factors; the phrasing is close, but 'resource usage' attribution is acceptable. Low risk."
+  },
+  {
+   "id": "3.5.1",
+   "why": "Runn text says only half of professionals trust their data with 58% citing inconsistent inputs, but the 'nobody believes' framing and the causal claim are the draft's addition; 'last-minute changes and overloaded schedules' is Runn's though. Partially unsupported."
+  },
+  {
+   "id": "4.20.1",
+   "why": "The checkpoint 'nobody's weekly effort is above their available hours' is advice, not a claim; fine. Flagged by mistake."
+  },
+  {
+   "id": "5.3.0",
+   "why": "Says the first two options are resource leveling; the sources do not say re-sequencing and shifting dates equal resource leveling in that exact mapping."
+  },
+  {
+   "id": "5.5.1",
+   "why": "Planview says the process helps ensure resources work on the highest value projects at all times; supported. Flagged by mistake."
+  },
+  {
+   "id": "7.1.i0",
+   "why": "The fix (check skills and dependencies) is not backed by visible ONES text; troubleshooting entries are only headings in the source."
+  },
+  {
+   "id": "7.1.i1",
+   "why": "The specific fix for an overloaded week is not visible in the ONES source, which only shows headings."
+  },
+  {
+   "id": "7.1.i2",
+   "why": "The specific fix for shifting estimates is not visible in the ONES source troubleshooting entries, only headings."
+  },
+  {
+   "id": "7.1.i3",
+   "why": "The specific fix for verbal changes not reaching the plan is not visible in the ONES source, only headings."
+  },
+  {
+   "id": "7.1.i4",
+   "why": "The specific fix for unused capacity beside a bottleneck is not visible in the ONES source, only headings."
+  },
+  {
+   "id": "7.0.1",
+   "why": "Attributes five specific fixes to the ONES guide, but the source shows only the problem headings, not the fixes."
+  },
+  {
+   "id": "7.3.1",
+   "why": "Runn says it is people who feel the impact first through last-minute changes and overloaded schedules in the context of data problems; reusing it for a general claim about planning gaps stretches the source."
+  },
+  {
+   "id": "8.0.1",
+   "why": "Runn is not shown in the provided text saying spreadsheets struggle as teams grow; the TL;DR says spreadsheets struggle to keep up, but the added 'usually the point where a tool saves you time' is unsupported."
+  },
+  {
+   "id": "8.3.1",
+   "why": "Retain describes itself for medium to large organisations and tracks availability and workloads, but 'scheduled time' tracking is only loosely supported; minor."
+  },
+  {
+   "id": "8.4.i0",
+   "why": "Ganttic describes drag and drop scheduling and an overview, but the claim that you can spot double bookings before they become late tasks is the draft's addition."
+  },
+  {
+   "id": "8.4.i2",
+   "why": "Retain says it helps identify clashes and resolve them on the spot; supported. Flagged by mistake."
+  },
+  {
+   "id": "8.6.1",
+   "why": "Describes what a Gantt view shows in general and in Planwise; the claim that it shows who is working on what and when is not confirmed for Planwise per the unconfirmed-features note."
+  },
+  {
+   "id": "8.7.0",
+   "why": "Says a Kanban board shows work by status in Planwise; Planwise feature behavior is not confirmed by the sources."
+  },
+  {
+   "id": "4.19.0",
+   "why": "Claims the Gantt view in Planwise makes dependencies easy to see; Planwise feature behavior is not confirmed by the sources."
+  },
+  {
+   "id": "9.1.2",
+   "why": "Claims the simple grouping fits the five stages Runn describes and the ONES process; Runn's five stages are strategizing, requirements, allocating, real-time management and review, a mapping the draft asserts without support."
+  },
+  {
+   "id": "9.6.1",
+   "why": "States resource planning is the step that decides who and what goes to which work, presented as established fact beyond the sources."
+  }
+ ],
+ "styleLeft": [],
+ "proof": {
+  "verdict": "Ship",
+  "reasons": [],
+  "lint": 0
+ },
+ "polish": {
+  "applied": 36,
+  "refused": [
+   {
+    "id": "4.10.i3",
+    "why": "the house lint finds more (0 to 1)"
+   }
+  ]
+ },
+ "blocked": [
+  {
+   "key": "h2-4",
+   "why": "a hedge is gone (\"likely\", \"may\", \"about\" before a number and the like: 1 to 0), so a claim got stronger"
+  },
+  {
+   "key": "h2-7",
+   "why": "added link https://planwise.example/features/gantt"
+  },
+  {
+   "key": "faq",
+   "why": "lost number 6"
+  }
+ ],
+ "tidied": [
+  "Dropped \"Thankfully,\" used a second time.",
+  "Dropped \"Thankfully,\" used a second time.",
+  "Split a 3-sentence paragraph in \"Frequently asked questions\"."
+ ],
+ "factChanges": [],
+ "modules": [
+  {
+   "status": "ok",
+   "error": null
+  }
+ ]
+}

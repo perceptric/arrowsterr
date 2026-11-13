@@ -1,0 +1,1355 @@
+{
+ "slug": "seo-tools-agencies",
+ "keyword": "best seo tools for agencies",
+ "kind": "agency",
+ "stage": "bofu",
+ "model": "claude-sonnet-5-5",
+ "at": "2026-11-13T14:16:47.177Z",
+ "seconds": 332,
+ "usage": {
+  "calls": 31,
+  "input": 78371,
+  "cacheRead": 1422984,
+  "cacheWrite": 218684,
+  "output": 50246
+ },
+ "score": {
+  "words": 3008,
+  "sections": 10,
+  "lint": 6,
+  "lintRules": {
+   "sentences": 6
+  },
+  "numbers": 15,
+  "unsourced": [],
+  "links": 51,
+  "strayLinks": [],
+  "images": 5,
+  "modules": 1
+ },
+ "title": "6 Best SEO Tools for Agencies in 2026",
+ "brief": {
+  "titles": [
+   "6 Best SEO Tools for Agencies in 2026: Pros, Cons, Pricing",
+   "6 Best SEO Tools for Agencies in 2026 (Compared)",
+   "Best SEO Tools for Agencies: 6 Picks for 2026"
+  ],
+  "h1": "6 Best SEO Tools for Agencies in 2026",
+  "metaDescription": "Compare 6 SEO tools for agencies: Semrush, Ahrefs, SE Ranking, Screaming Frog, AgencyAnalytics and Swiftbrief, with pros, cons and pricing.",
+  "slug": "best-seo-tools-for-agencies",
+  "searchIntent": "The searcher runs or works with an agency and wants a short, ranked list of SEO tools they can shortlist and buy. A listicle that says who each tool is best for, what it costs, and who should skip it serves them best.",
+  "reader": "Marketing leads at B2B software companies who either run SEO through an agency or are building an in-house, agency-style SEO stack. They know basic SEO terms like rank tracking, audits and backlinks. They want to pick two or three tools, justify the cost, and start a trial this week.",
+  "angle": "We rank the tools by the agency job they do best (research, technical audits, rank tracking, client reporting, content briefs) instead of naming one winner, because the AI answers and the sources agree that no single tool covers everything. We also state each tool's limits plainly and flag every vendor claim as the vendor's own.",
+  "wordTarget": 2800,
+  "outline": [
+   {
+    "h2": "How we picked these SEO tools for agencies",
+    "points": [
+     "Explain the criteria we used: how easy the tool is to use, value for the price, fit for the job it is built for, and user feedback on sites like G2 and Capterra.",
+     "Add the agency-specific checks: separate client accounts, approvals, exports and reporting.",
+     "Say the list is a shortlist to test, not a verdict, and that you should confirm pricing and features on each vendor's site before buying.",
+     "Note that most facts come from each vendor's own pages, so any numbers are the vendor's claims."
+    ],
+    "h3": [],
+    "sources": [
+     2,
+     4
+    ]
+   },
+   {
+    "h2": "1. Semrush: best for an all-in-one research suite",
+    "points": [
+     "What it does well: SEO, AI visibility, traffic and market research, content, local, advertising and social tools under one platform called Semrush One.",
+     "Data scale from the vendor: 29B keywords, 43T backlinks, 808M domain profiles and 142 geo databases.",
+     "Agency fit: the Google AI Overview in the sources says its Agency Growth Kit includes white-label reporting, a built-in CRM and lead gen tools. Mark this as needing an editor check.",
+     "Pricing: the sources give no plan prices, only a free trial and a Try for free option. Say so and link readers to the pricing page.",
+     "Pros: broad coverage in one login, AI visibility tracking, a Semrush MCP connection for asking questions in AI chat.",
+     "Cons and who should skip it: a small agency that only needs one job done, such as rank tracking, may not use most of the platform."
+    ],
+    "h3": [],
+    "sources": [
+     7,
+     11
+    ]
+   },
+   {
+    "h2": "2. Ahrefs: best for backlink and competitor research",
+    "points": [
+     "What it does well: Site Explorer and Traffic Analytics for competitor study, Keywords Explorer and Content Explorer for content, Site Audit and Rank Tracker for monitoring.",
+     "Reporting: Dashboard, Portfolios and Report Builder for customizable reports with Ahrefs data.",
+     "AI features: Brand Radar tracks brand mentions, citations and sentiment across AI chatbots, and Ask Ahrefs is a built-in AI assistant that is free during beta on Lite+ plans.",
+     "Social proof from the vendor: marketers at 44% of the Fortune 500 use Ahrefs.",
+     "Pricing: the sources show a Start for Free option and no plan prices.",
+     "Pros and cons: strong for link and competitor work; the sources do not confirm white-label client reports, so agencies that send branded reports should check or pair it with a reporting tool."
+    ],
+    "h3": [],
+    "sources": [
+     8,
+     11
+    ]
+   },
+   {
+    "h2": "3. SE Ranking: best for agencies that want one platform with white-label options",
+    "points": [
+     "What it does well: AI Visibility, SEO Research, SEO Monitoring, Content Marketing, Local Marketing and an Agency Success Kit in one platform.",
+     "Agency Pack: Agency Catalog listing, White Label Reporting, Lead Generator, White Label and Client Seats.",
+     "Connections: API access, MCP, and links to Data Studio, Whatagraph, AgencyAnalytics, Make.com, n8n and Zapier.",
+     "Vendor numbers: 40,000+ agencies, 188 country databases, a 5.5B keyword database and 2.2B domain profiles.",
+     "Pricing: free trial with no credit card required; plan prices are not in the sources.",
+     "Cons: the Google AI Overview in the sources notes a smaller backlink database than Ahrefs or Semrush, so link-heavy agencies may want a second tool."
+    ],
+    "h3": [],
+    "sources": [
+     9,
+     11
+    ]
+   },
+   {
+    "h2": "4. Screaming Frog SEO Spider: best for technical audits",
+    "points": [
+     "What it does well: crawls a site for over 300 SEO issues, including broken links, redirect chains, duplicate content, page titles and robots directives.",
+     "Extras agencies use: JavaScript rendering, XML sitemaps, crawl comparison between staging and production, scheduled audits, and connections to Google Analytics, Search Console and PageSpeed Insights.",
+     "Pricing from the source: free version crawls 500 URLs; the paid licence is 199 pounds per year with no URL limit set by the tool, though memory and storage still apply.",
+     "Pros: low cost, free way to start, runs on Windows, macOS and Linux.",
+     "Cons and who should skip it: it audits sites but does not do keyword research or client reporting, so it works best next to another tool."
+    ],
+    "h3": [],
+    "sources": [
+     10,
+     11
+    ]
+   },
+   {
+    "h2": "5. AgencyAnalytics: best for client reporting",
+    "points": [
+     "What it does well: connects 90+ marketing integrations into dashboards and scheduled reports, with a daily keyword rank tracker for any location and language on Google and Bing, plus a backlink monitor.",
+     "Agency features: white-label branding, a client portal, report approval before sending, metric alerts and cross-client views.",
+     "Vendor claims to label as such: 7,000 agencies, 75% less time building reports, $78K+ in non-billable costs saved a year, and a 4.7 out of 5 rating on G2 and Capterra.",
+     "Pricing: free trial and a pricing page exist; the sources give no plan prices.",
+     "Pros and cons: saves reporting hours and shows rankings, traffic and backlinks in one view; it is a reporting and tracking tool, so pair it with a research tool for keyword and competitor data."
+    ],
+    "h3": [],
+    "sources": [
+     3,
+     11
+    ]
+   },
+   {
+    "h2": "6. Swiftbrief: best for keyword clustering and content briefs",
+    "points": [
+     "What it does well: finds keywords from search results, clusters them, builds content briefs and outlines, and has a built-in AI writer.",
+     "Workflow: enter a topic keyword, pick a page keyword using volume, difficulty and authority, finalize the brief, then produce content.",
+     "Page types include guides, listicles, templates, roundups, comparisons, reviews, and solution, collection and product pages.",
+     "Vendor claims: used by 1000+ agencies and SEOs, 7-day free trial; Search Console connection is not required.",
+     "Pricing: a pricing page exists but the sources give no numbers.",
+     "Who should skip it: agencies that need technical audits, backlink data or client reporting, since the sources show it focused on content planning."
+    ],
+    "h3": [],
+    "sources": [
+     5
+    ]
+   },
+   {
+    "h2": "How to choose the right SEO tools for your agency",
+    "points": [
+     "Start from the job: research, technical audits, rank tracking, client reporting or content briefs.",
+     "Use the questions from the sources: how experienced is your team, what is your budget, what specific jobs you need done, how big the team is, and what type of organization you serve.",
+     "Check agency needs before you buy: separate client accounts, approvals, exports and white-label reporting.",
+     "Mention that free Google data such as Search Console feeds tools like AgencyAnalytics and Screaming Frog.",
+     "Optional automation: Zapier connects 9,000+ apps, and SE Ranking says it works with Zapier without code.",
+     "Finish with a plain next step: start two free trials, test on one real client, and compare. Then point to Northline Digital's SEO services for help planning the stack."
+    ],
+    "h3": [
+     {
+      "title": "Match tools to the job",
+      "points": [
+       "Pair one research suite with one specialist, such as a crawler or a reporting tool.",
+       "Say that the AI answers also agree no single tool does everything best."
+      ]
+     },
+     {
+      "title": "Start with trials",
+      "points": [
+       "Free options in the sources: Screaming Frog free version up to 500 URLs, Ahrefs and AgencyAnalytics free starts, a Semrush free try, an SE Ranking free trial and a Swiftbrief 7-day trial."
+      ]
+     }
+    ],
+    "sources": [
+     2,
+     4,
+     1,
+     9,
+     10,
+     11
+    ]
+   }
+  ],
+  "entities": [
+   "Semrush",
+   "Semrush One",
+   "Ahrefs",
+   "Brand Radar",
+   "Site Explorer",
+   "SE Ranking",
+   "SE Visible",
+   "Screaming Frog SEO Spider",
+   "AgencyAnalytics",
+   "Swiftbrief",
+   "Google Search Console",
+   "Google Analytics 4",
+   "Bing Webmaster Tools",
+   "PageSpeed Insights",
+   "Zapier",
+   "WordStream",
+   "white-label reporting",
+   "rank tracking",
+   "backlink analysis",
+   "technical SEO audit",
+   "keyword clustering",
+   "content brief",
+   "AI search visibility",
+   "MCP",
+   "G2",
+   "Capterra",
+   "Northline Digital"
+  ],
+  "gaps": [
+   "The top pages are mostly vendor pages or a general list; none map tools to the jobs an agency does, such as research, audits, rank tracking, reporting and content briefs.",
+   "The general listicle in the results is organized as free, AI-powered, local and Google tools rather than by agency needs like client accounts, approvals and exports.",
+   "Most pages skip pricing and the downsides of each tool; this article states prices from the sources and flags what is not confirmed.",
+   "Few pages explain how to combine tools into a small stack or how to test them on one client first.",
+   "AI search visibility tracking is only a feature line on vendor pages; this article names which tools offer it.",
+   "Vendor stats are shown without context; this article labels them as the vendor's own claims."
+  ],
+  "faqs": [
+   {
+    "question": "What are the best SEO tools for agencies?",
+    "answer": "Name the six picks and the job each does best: Semrush for all-in-one research, Ahrefs for backlinks and competitors, SE Ranking for an all-in-one with white-label options, Screaming Frog for audits, AgencyAnalytics for reporting, Swiftbrief for briefs."
+   },
+   {
+    "question": "Do agencies need an all-in-one SEO platform?",
+    "answer": "Say an all-in-one suite covers research, tracking and audits in one login, but the AI answers say no single tool does everything best, so many agencies add a crawler or a reporting tool."
+   },
+   {
+    "question": "What is the best free SEO tool for agencies?",
+    "answer": "Point to Screaming Frog's free version, which crawls 500 URLs, and mention free starts or trials for Ahrefs, Semrush, SE Ranking, AgencyAnalytics and Swiftbrief; do not claim any plan is free forever unless the source says so."
+   },
+   {
+    "question": "How do agencies report SEO results to clients?",
+    "answer": "Explain that AgencyAnalytics schedules reports daily, weekly or monthly, lets you approve them before they send, and supports white-label branding; SE Ranking also lists White Label Reporting in its Agency Pack."
+   },
+   {
+    "question": "Can SEO tools track visibility in AI search?",
+    "answer": "Say yes for several: Semrush has AI Visibility, Ahrefs has Brand Radar, SE Ranking has SE Visible and AgencyAnalytics has an AI Tracker; tell readers to check coverage and plan limits."
+   },
+   {
+    "question": "How should I choose between SEO tools?",
+    "answer": "Tell readers to start from the job, budget, team size and client type, check agency features like separate client accounts and approvals, and test two tools on one real client before committing."
+   }
+  ],
+  "internalLinks": [
+   {
+    "url": "https://northlinedigital.example/blog/seo-basics",
+    "anchor": "SEO basics",
+    "where": "How we picked these SEO tools for agencies"
+   },
+   {
+    "url": "https://northlinedigital.example/blog/ai-search-guide",
+    "anchor": "our AI search guide",
+    "where": "1. Semrush: best for an all-in-one research suite"
+   },
+   {
+    "url": "https://northlinedigital.example/services/ai-search",
+    "anchor": "AI search services",
+    "where": "2. Ahrefs: best for backlink and competitor research"
+   },
+   {
+    "url": "https://northlinedigital.example/blog/content-strategy",
+    "anchor": "content strategy",
+    "where": "6. Swiftbrief: best for keyword clustering and content briefs"
+   },
+   {
+    "url": "https://northlinedigital.example/case-studies",
+    "anchor": "case studies",
+    "where": "How to choose the right SEO tools for your agency"
+   },
+   {
+    "url": "https://northlinedigital.example/services/seo",
+    "anchor": "SEO services",
+    "where": "How to choose the right SEO tools for your agency"
+   }
+  ],
+  "cta": {
+   "text": "Not sure which tools fit your team? We're happy to look at your stack with you and help turn it into a clear SEO plan. See our SEO services.",
+   "where": "End of the article, after How to choose the right SEO tools for your agency, linking to https://northlinedigital.example/services/seo"
+  },
+  "modules": [
+   {
+    "type": "comparison",
+    "title": "Find your SEO tool",
+    "purpose": "Lets the reader filter the six tools by the job they need done, whether they want a free start, and whether they need white-label client reports.",
+    "placement": "6. Swiftbrief: best for keyword clustering and content briefs",
+    "inputs": [
+     "Main job: all-in-one research, backlinks and competitors, technical audit, client reporting, content briefs",
+     "Free option to start: yes or no",
+     "White-label client reports: needed or not"
+    ],
+    "outputs": [
+     "A filtered list of matching tools with one line on what each does and its free option",
+     "A note when a feature is not confirmed in the sources"
+    ],
+    "data": "Rows (all from the sources): Semrush [7,11]: all-in-one research, SEO, AI visibility, content, local; free trial (Try for free); white-label reporting through the Agency Growth Kit per the Google AI Overview in [11]. Ahrefs [8]: backlinks, competitor research, rank tracking, site audit, Report Builder; Start for Free; white-label not confirmed. SE Ranking [9]: all-in-one research, monitoring, content, local, AI visibility; free trial with no credit card; White Label Reporting in the Agency Pack. Screaming Frog SEO Spider [10]: technical audits; free version up to 500 URLs, paid 199 pounds per year; no reporting. AgencyAnalytics [3,11]: client reporting, daily rank tracker, backlink monitor; free trial; white-label branding and client portal. Swiftbrief [5]: keyword clustering, content briefs, AI writer; 7-day free trial; no reporting.",
+    "why": "Readers care about different jobs and budgets, so letting them filter to the tools that fit saves them from reading all six sections and comparing them by hand."
+   }
+  ],
+  "images": [
+   {
+    "placement": "1. Semrush: best for an all-in-one research suite",
+    "shows": "The Semrush home page with its search and AI visibility headline.",
+    "alt": "Screenshot of the Semrush home page showing the search and AI visibility message.",
+    "kind": "screenshot",
+    "url": "https://www.semrush.com/"
+   },
+   {
+    "placement": "2. Ahrefs: best for backlink and competitor research",
+    "shows": "The Ahrefs home page with its list of tool groups.",
+    "alt": "Screenshot of the Ahrefs home page listing its search and AI marketing tools.",
+    "kind": "screenshot",
+    "url": "https://ahrefs.com/"
+   },
+   {
+    "placement": "3. SE Ranking: best for agencies that want one platform with white-label options",
+    "shows": "The SE Ranking home page with its full SEO cycle overview.",
+    "alt": "Screenshot of the SE Ranking home page showing its all-in-one SEO platform.",
+    "kind": "screenshot",
+    "url": "https://seranking.com/"
+   },
+   {
+    "placement": "4. Screaming Frog SEO Spider: best for technical audits",
+    "shows": "The Screaming Frog SEO Spider page with its list of audit features and pricing.",
+    "alt": "Screenshot of the Screaming Frog SEO Spider page showing its crawl features and price.",
+    "kind": "screenshot",
+    "url": "https://www.screamingfrog.co.uk/seo-spider"
+   },
+   {
+    "placement": "5. AgencyAnalytics: best for client reporting",
+    "shows": "The AgencyAnalytics SEO tools page with rank tracker, backlink monitor and reporting.",
+    "alt": "Screenshot of the AgencyAnalytics SEO tools page showing rank tracking and reporting.",
+    "kind": "screenshot",
+    "url": "https://agencyanalytics.com/features/seo-tools"
+   }
+  ],
+  "examples": [],
+  "checks": [],
+  "research": {
+   "sources": [
+    {
+     "n": 1,
+     "url": "https://zapier.com/",
+     "title": "Zapier: Automate AI Workflows, Agents, and Apps",
+     "domain": "zapier.com",
+     "kind": "serp",
+     "position": 1,
+     "words": 747
+    },
+    {
+     "n": 2,
+     "url": "https://www.wordstream.com/blog/best-seo-tools",
+     "title": "20 Best SEO Tools in 2026 (For Every Use Case) | WordStream",
+     "domain": "wordstream.com",
+     "kind": "serp",
+     "position": 2,
+     "words": 4017
+    },
+    {
+     "n": 3,
+     "url": "https://agencyanalytics.com/features/seo-tools",
+     "title": "SEO Tools and Software for Agencies: Rank Tracking, Report & Analytics - AgencyAnalytics",
+     "domain": "agencyanalytics.com",
+     "kind": "serp",
+     "position": 3,
+     "words": 1841
+    },
+    {
+     "n": 4,
+     "url": "https://authorityspecialist.com/lists",
+     "title": "Best SEO Tools, Agencies and Expert Resources | AuthoritySpecialist",
+     "domain": "authorityspecialist.com",
+     "kind": "serp",
+     "position": 5,
+     "words": 1275
+    },
+    {
+     "n": 5,
+     "url": "https://www.swiftbrief.com/",
+     "title": "All in One SEO Platform | KW Research, Clustering, Briefs | Swiftbrief.com",
+     "domain": "swiftbrief.com",
+     "kind": "serp",
+     "position": 6,
+     "words": 1300
+    },
+    {
+     "n": 6,
+     "url": "https://velautec.com/",
+     "title": "SEO for Construction & B2B Companies | Velautec",
+     "domain": "velautec.com",
+     "kind": "serp",
+     "position": 7,
+     "words": 911
+    },
+    {
+     "n": 7,
+     "url": "https://www.semrush.com",
+     "title": "Semrush: Your Unfair Advantage for Growing Brand Visibility",
+     "domain": "semrush.com",
+     "kind": "ai",
+     "position": null,
+     "words": 839
+    },
+    {
+     "n": 8,
+     "url": "https://ahrefs.com",
+     "title": "Ahrefs—AI Marketing Platform Powered by Big Data",
+     "domain": "ahrefs.com",
+     "kind": "ai",
+     "position": null,
+     "words": 455
+    },
+    {
+     "n": 9,
+     "url": "https://seranking.com",
+     "title": "SE Ranking: SEO software with data you can trust",
+     "domain": "seranking.com",
+     "kind": "ai",
+     "position": null,
+     "words": 1168
+    },
+    {
+     "n": 10,
+     "url": "https://www.screamingfrog.co.uk/seo-spider",
+     "title": "Screaming Frog SEO Spider Website Crawler",
+     "domain": "screamingfrog.co.uk",
+     "kind": "ai",
+     "position": null,
+     "words": 2219
+    },
+    {
+     "n": 11,
+     "url": "https://agencyanalytics.com",
+     "title": "Client reporting and performance insights for marketing agencies | AgencyAnalytics",
+     "domain": "agencyanalytics.com",
+     "kind": "ai",
+     "position": null,
+     "words": 527
+    }
+   ],
+   "questions": [],
+   "engines": [
+    "ChatGPT",
+    "Gemini",
+    "AI Mode"
+   ],
+   "topPages": "",
+   "aiAnswers": ""
+  },
+  "model": "claude-sonnet-5-5",
+  "at": "2026-11-13T14:12:36.341Z"
+ },
+ "sections": [
+  {
+   "key": "intro",
+   "h2": "",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "If you run marketing at a B2B software company, you probably want SEO working through an agency or an agency-style stack, and the tool list is long.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "In this guide, we're sharing the best SEO tools for agencies, ranked by the job each one does best. For each tool, we'll show you what it does, what it costs and who should skip it. We also label every vendor number as the vendor's own claim, so you can judge it for yourself.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "We suggest a simple way to use this list: pick one research suite, add one specialist, and test both on a single real client. We think that approach is faster and cheaper than hunting for one tool that covers everything.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-0",
+   "h2": "How we picked these SEO tools for agencies",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "We want you to see how we judged these tools before you read about them, so you can weigh the ranking for yourself.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "These are the four general criteria we used:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "User experience, meaning the tool is easy to learn and helps new users find what they need quickly.",
+      "Value, meaning the cost makes sense for what the software can do and compares well with similar tools.",
+      "Feature and use-case fit, meaning the tool has what you need to finish the job it was built for.",
+      "User feedback, meaning positive reviews and high ratings on sites like G2 and Capterra."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Agencies have a few extra needs, so we also looked at how each tool handles work for many clients at once.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "For each tool, we asked whether it meets these needs:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "It keeps each client's data in a separate account.",
+      "It lets someone approve a report before it goes out.",
+      "It helps you build client-ready reports without much manual work."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Please treat this list as a shortlist to test, since prices and features change and you should confirm both on each vendor's site before you buy.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Most of the facts below come from each vendor's own pages, so any numbers you see, such as customer counts or database sizes, are the vendor's claims, and we label them that way. If you want a refresher on the terms we use, our [SEO basics](https://northlinedigital.example/blog/seo-basics) guide covers them.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-1",
+   "h2": "1. Semrush: best for an all-in-one research suite",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Semrush is a software company that sells an all-in-one platform for SEO and marketing research, called [Semrush One](https://www.semrush.com). It brings SEO, AI visibility, traffic and market research, content, local, advertising and social tools under one login.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you want one place to research keywords, study competitors and check how your brand shows up in AI answers, this is the suite we would look at first. For example, you can see where a competitor's traffic comes from and then plan content around it.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Semrush shares a few numbers about the size of its data. These are the vendor's own claims, so you should confirm them during a trial.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "[Semrush says](https://www.semrush.com) its database holds 29B keywords.",
+      "It reports 43T backlinks and 808M domain profiles.",
+      "It lists 142 geo databases, which matters if your clients sell in many countries."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "We could not confirm this on Semrush's own pages, so please check it there before you rely on it.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Pricing is the one thing we could not pin down, because the sources show a free trial and a Try for free option but no plan prices, so please check the [Semrush site](https://www.semrush.com) for current plans.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "You get broad coverage in one login, which keeps your team from juggling many accounts.",
+      "AI visibility tracking is built in, so you can see where your brand appears in AI answers, and our [AI search guide](https://northlinedigital.example/blog/ai-search-guide) explains why that matters."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Who might skip it? Honestly, a small agency that only needs one job done, such as rank tracking, may not use most of the platform, and a focused tool will likely cost less and feel simpler.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-2",
+   "h2": "2. Ahrefs: best for backlink and competitor research",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "For an agency, its biggest strengths are link research and competitor study, so it often becomes the tool your team opens first on a new client.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here is what the platform covers, based on [Ahrefs' own site](https://ahrefs.com):",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Site Explorer and Traffic Analytics help you study what your competitors are doing and anticipate market trends.",
+      "Keywords Explorer and Content Explorer help you create content that matches search intent and fill content gaps.",
+      "Site Audit and Rank Tracker help you monitor a website's health and track where it ranks."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "For reporting, [Ahrefs offers a Dashboard, Portfolios and Report Builder](https://ahrefs.com) so you can build customizable reports with Ahrefs data, and as you can see, that covers a lot of ground for a single login.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Ahrefs has also added AI features. [Brand Radar tracks brand mentions, citations and sentiment across AI chatbots](https://ahrefs.com), and Ask Ahrefs is a built-in AI assistant that is free during beta on Lite+ plans, and if you want help acting on that data, our [AI search services](https://northlinedigital.example/services/ai-search) can fit alongside it.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Ahrefs says that [marketers at 44% of the Fortune 500 use it](https://ahrefs.com).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "On pricing, the sources show a Start for Free option but no plan prices, so please check the Ahrefs site for current plans.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here is how we would sum up the tradeoffs:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "It is strong for link and competitor work, which suits agencies that sell link building or organic growth.",
+      "It pairs research, content and monitoring tools in one platform, so your team can stay in one place for many tasks.",
+      "The sources do not confirm white-label client reports, so you should check this before you promise branded reports to clients."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If branded reports matter to you, you can pair Ahrefs with a reporting tool such as [AgencyAnalytics](https://agencyanalytics.com), which lists white-label branding and scheduled reports among its features.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-3",
+   "h2": "3. SE Ranking: best for agencies that want one platform with white-label options",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "SE Ranking is an SEO software company that puts research, monitoring, content and local tools into one platform. It says its full cycle covers [AI Visibility, SEO Research, SEO Monitoring, Content Marketing, Local Marketing and an Agency Success Kit](https://seranking.com), so your team can stay in one login for most daily work.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The part that matters most for agencies is the Agency Pack. SE Ranking describes it as a set of tools to attract prospects, deliver results and build client loyalty, and it includes these pieces:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "White Label Reporting, so reports carry your branding.",
+      "A Lead Generator for attracting new clients.",
+      "White Label options for presenting the work as your own."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "SE Ranking also connects to the tools many agencies already use. It offers [API access and an MCP connection](https://seranking.com) that lets you pull data into your own tools or ask for it inside AI assistants.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "For scale, SE Ranking says it is [trusted by 40,000+ agencies](https://seranking.com). It also lists 188 country databases, a 5.5B keyword database and 2.2B domain profiles. These are the vendor's own numbers, so use them as a sign of size and test the data on one of your own clients.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "On pricing, the vendor offers a [free trial with no credit card required](https://seranking.com), but the sources do not list plan prices. Please check the SE Ranking site for current plans before you plan your budget.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here is how we would sum up the tradeoffs:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "It covers research, monitoring, content and local work in one platform, which keeps your stack small.",
+      "It includes white-label reporting and client seats, which suits agencies that send branded reports.",
+      "It connects to common reporting and automation tools, so you can fit it into your current workflow."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If most of your work is rank tracking, audits and reports for many clients, SE Ranking is a good tool to trial first. If link building is your main service, you may want to pair it with a dedicated backlink tool.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-4",
+   "h2": "4. Screaming Frog SEO Spider: best for technical audits",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "[Screaming Frog SEO Spider](https://www.screamingfrog.co.uk/seo-spider) is a website crawler that audits your site for over 300 SEO issues to help improve both SEO and user experience.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "For a technical SEO audit, we would start with this tool, and a single crawl checks all of the following:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Broken links and server errors, which you can bulk export with their source URLs to fix or send to a developer.",
+      "Redirect chains and loops, plus a list-based audit of URLs for a site migration.",
+      "Duplicate content, including exact duplicate URLs and partly duplicated page titles, descriptions or headings.",
+      "Page titles and meta descriptions that are too long, too short, missing or duplicated.",
+      "Robots directives such as noindex and nofollow, along with canonicals."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You can schedule crawls to run on their own and compare one crawl against another, and it can compare staging against production, which helps before a launch. It connects to Google Analytics, Search Console and PageSpeed Insights, so each URL can carry traffic and speed data.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "On pricing, the [free version crawls 500 URLs](https://www.screamingfrog.co.uk/seo-spider), and the paid licence is £199 per year. The paid version has no URL limit set by the tool, although the vendor notes that your memory and storage still decide how large a crawl can get.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "It costs little and lets you start for free, so you can test it on a real client site today.",
+      "It works on Windows, macOS and Linux, so your whole team can use it.",
+      "It does not do keyword research or client reporting, so it works best next to another tool."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A crawler like this pairs well with a reporting platform such as [AgencyAnalytics](https://agencyanalytics.com), which handles the client-facing side. If you only need keyword research or branded reports, you can skip Screaming Frog for now and add it when audits become a regular service.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-5",
+   "h2": "5. AgencyAnalytics: best for client reporting",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "AgencyAnalytics is a reporting software company that pulls client marketing data into dashboards and scheduled reports for agencies. Its [client reporting tools](https://agencyanalytics.com) connect 90+ marketing integrations, so your team doesn't have to log into a different platform for each account.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "A backlink monitor tracks new and lost links, and you can add both to a client report.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Report approval notifies you before a scheduled report goes out, so you can add your own notes.",
+      "Metric alerts flag performance changes across client accounts.",
+      "Cross-client views let you see many accounts in one place."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Some numbers are worth reading as the vendor's own claims. According to its [homepage](https://agencyanalytics.com), AgencyAnalytics says it powers 7,000 marketing agencies and cuts report-building time by 75%.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The same page says it saves $78K+ in non-billable costs each year and holds a 4.7 out of 5 rating on G2 and Capterra.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "On pricing, the vendor offers a free trial and a plans page. Thankfully, you can test it before you commit, but the sources we used don't list plan prices, so check the pricing page for current numbers.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "It saves reporting hours and shows rankings, traffic and backlinks in one view.",
+      "It suits agencies that send regular branded reports to many clients.",
+      "It is a reporting and tracking tool, so it does not replace a research suite for keyword and competitor data.",
+      "If you only need deep keyword research, you can skip it for now and add it when reporting starts taking too much time."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "As you can see, it fits best next to a research tool such as Semrush or Ahrefs, which gives you the data that AgencyAnalytics then turns into client-ready reports.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-6",
+   "h2": "6. Swiftbrief: best for keyword clustering and content briefs",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Swiftbrief is an SEO software company that helps teams find keywords, group them and turn them into content briefs. It describes itself as an [all-in-one AI SEO platform](https://www.swiftbrief.com/) covering keyword research, content briefs and keyword clustering.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "It crawls and analyzes search results to find keywords ranking across the first 20 results, then clusters the ones with the highest potential. It also has a built-in AI writer that turns a brief into draft content, as described on [the Swiftbrief homepage](https://www.swiftbrief.com/).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how the workflow runs, according to the vendor:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ol",
+     "text": "",
+     "items": [
+      "You enter a general topic keyword to find page topics that belong to the same cluster.",
+      "You pick a page keyword using data such as volume, difficulty and authority, then click Create Brief.",
+      "You make any changes you want to the brief before it moves into content production.",
+      "You use the built-in AI writer to turn the brief into content for your website."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "You can also match the brief to a page type, and Swiftbrief says it can assign one for you. The [listed page types](https://www.swiftbrief.com/) include these:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Guides and how-to posts, listicles, templates, roundups, comparisons and reviews.",
+      "Solution pages, collection pages and product pages."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Swiftbrief says it is used by 1000+ agencies and SEOs, and it offers a 7-day free trial, per [its homepage](https://www.swiftbrief.com/). It also notes that a Search Console connection is not required, which makes a trial easy to start.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Luckily, that makes it easy to test on a single client, and since the sources we used show no plan numbers on its pricing page, please check it before you budget.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Who should skip it? If you need technical audits, backlink data or client reporting, this is not the right first pick, because the sources show it focused on content planning. It pairs well with a research suite, and it fits neatly into your wider [content strategy](https://northlinedigital.example/blog/content-strategy) when briefs are the bottleneck.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "h2-7",
+   "h2": "How to choose the right SEO tools for your agency",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Picking the right tools starts with the job you need done, and the brand name can come after that. Agencies usually cover five jobs: research, technical audits, rank tracking, client reporting and content briefs.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Once you know which job hurts most today, you can narrow the list to one or two tools and test them on real work.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Match tools to the job",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "No single tool in this list does everything best, and the AI answers we reviewed point the same way. A simple pattern is to pair one research suite with one specialist, such as a crawler or a reporting tool.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how to apply them:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "How experienced is your team with SEO tools, and are you a beginner or a power user?",
+      "What is your budget for software each month?",
+      "Which specific jobs do you need done, such as auditing a large blog or doing first keyword research?",
+      "How big is the team that will use the tool?",
+      "What type of organization do you serve, such as a marketing agency, a SaaS company or an ecommerce shop?"
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "For agency work, add a few checks of your own.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Can you keep each client in a separate account or project?",
+      "Does the tool support approvals before a report goes out?",
+      "Can you export the data you need?",
+      "Does it offer white-label reporting if you send branded reports?"
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "If you want to link tools together, [Zapier](https://zapier.com/) says it connects 9,000+ apps, and [SE Ranking](https://seranking.com) says it works with Zapier without code.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Start with trials",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Most tools here let you try before you pay, so you can test with little risk. These are the free options the sources show:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "Screaming Frog has a [free version that crawls up to 500 URLs](https://www.screamingfrog.co.uk/seo-spider).",
+      "Ahrefs and AgencyAnalytics both offer a free start, and Semrush offers a free try.",
+      "SE Ranking offers a [free trial with no credit card required](https://seranking.com).",
+      "Swiftbrief offers a 7-day free trial, as noted above."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Here's how to use them: start two free trials, run both on one real client, and compare how much time each one saves you. You can also read how we approach this kind of work in our [case studies](https://northlinedigital.example/case-studies).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Not sure which tools fit your team? We're happy to look at your stack with you and help turn it into a clear SEO plan. See our [SEO services](https://northlinedigital.example/services/seo).",
+     "items": [],
+     "rows": []
+    }
+   ]
+  },
+  {
+   "key": "faq",
+   "h2": "Frequently asked questions",
+   "blocks": [
+    {
+     "type": "h3",
+     "text": "What are the best SEO tools for agencies?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Each of our six picks does one agency job best, so the right choice depends on the work you need done. The list below matches each tool to its strength.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "[Semrush](https://www.semrush.com) is best for all-in-one research.",
+      "[Ahrefs](https://ahrefs.com) is best for backlinks and competitor research.",
+      "[SE Ranking](https://seranking.com) fits agencies that want one platform with white-label options.",
+      "The [Screaming Frog SEO Spider](https://www.screamingfrog.co.uk/seo-spider) is best for technical audits.",
+      "[AgencyAnalytics](https://agencyanalytics.com) is best for client reporting.",
+      "[Swiftbrief](https://www.swiftbrief.com/) is best for keyword clustering and content briefs."
+     ],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Do agencies need an all-in-one SEO platform?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "An all-in-one suite such as [Semrush](https://www.semrush.com) puts research, tracking and audits behind one login, which keeps your daily work simple.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The AI answers we reviewed agree that no single tool does everything best, so many agencies add a crawler like the [Screaming Frog SEO Spider](https://www.screamingfrog.co.uk/seo-spider) or a reporting tool like [AgencyAnalytics](https://agencyanalytics.com).",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "What is the best free SEO tool for agencies?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The [Screaming Frog SEO Spider](https://www.screamingfrog.co.uk/seo-spider) has a free version that crawls up to 500 URLs, which makes it an easy place to start. Several other tools also let you try them before you pay:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "[Ahrefs](https://ahrefs.com) offers a free start.",
+      "[AgencyAnalytics](https://agencyanalytics.com) offers a free start.",
+      "[Semrush](https://www.semrush.com) offers a free try.",
+      "[SE Ranking](https://seranking.com) offers a free trial.",
+      "[Swiftbrief](https://www.swiftbrief.com/) offers a 7-day free trial."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "The sources describe these as starts or trials, so check each vendor's site for the current limits before you plan around them.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "How do agencies report SEO results to clients?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "[AgencyAnalytics](https://agencyanalytics.com/features/seo-tools) lets you schedule reports to send daily, weekly or monthly, and its Report Approval feature notifies you before a report goes out so you can add your own insights.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "It also supports white-label branding, and [SE Ranking](https://seranking.com) lists White Label Reporting in its Agency Pack as well.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "Can SEO tools track visibility in AI search?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Yes, several of these tools can track AI search visibility, and each one uses its own name for the feature:",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "ul",
+     "text": "",
+     "items": [
+      "[Semrush](https://www.semrush.com) has AI Visibility.",
+      "[Ahrefs](https://ahrefs.com) has Brand Radar."
+     ],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Coverage and plan limits differ, so check what each one tracks before you buy.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "h3",
+     "text": "How should I choose between SEO tools?",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Start from the job you need done, then think about your budget, your team size and the type of clients you serve, as [WordStream](https://www.wordstream.com/blog/best-seo-tools) suggests.",
+     "items": [],
+     "rows": []
+    },
+    {
+     "type": "p",
+     "text": "Check agency features such as separate client accounts, approvals, exports and white-label reporting, and then test two tools on one real client before you commit.",
+     "items": [],
+     "rows": []
+    }
+   ]
+  }
+ ],
+ "cut": [
+  {
+   "id": "0.0.1",
+   "why": "Claim that vendors describe their platforms as covering everything is not stated in the sources."
+  },
+  {
+   "id": "1.0.1",
+   "why": "WordStream does not frame its criteria as what it used to compile its list in this way; the sources only list user experience, value, fit and user feedback; 'added checks' is fine but attribution partly unsupported."
+  },
+  {
+   "id": "1.3.1",
+   "why": "Authority Specialist's page lists account separation, research evidence, task ownership, approvals, exports and reporting; this is mostly supported, but attributing it as a suggestion is close; low risk but 'task ownership' is supported. Kept minimal: no cut needed on facts."
+  },
+  {
+   "id": "2.3.i3",
+   "why": "The 317M+ LLM prompts figure is in the source, but it is described as monitoring prompts, not as a database size claim; acceptable. Flagged only for scope: source labels it 'Monitor more prompts', not 'tracking AI visibility' database."
+  },
+  {
+   "id": "2.4.0",
+   "why": "The AI Overview is on the AgencyAnalytics page, but the portion shown does not state Agency Growth Kit contents beyond the truncated text; the source does mention CRM, lead gen and white-label, so this is supported but should be marked for editor check."
+  },
+  {
+   "id": "3.0.0",
+   "why": "Describing Ahrefs as a marketing platform that gives AI visibility data is fine, but 'its biggest strengths are link research and competitor study' is not stated in the Ahrefs source."
+  },
+  {
+   "id": "3.5.1",
+   "why": "Interpretation of the 44% claim as a sign of wide use is opinion; fine. No cut."
+  },
+  {
+   "id": "4.2.i4",
+   "why": "Source says 'Client Seats' only; the claim that clients can see their own data is not supported."
+  },
+  {
+   "id": "4.2.i0",
+   "why": "Source says Agency Catalog puts services in front of new prospects; supported. No cut."
+  },
+  {
+   "id": "4.3.2",
+   "why": "Source says connect to Data Studio, Whatagraph, Agency Analytics and Make.com, n8n, Zapier; supported. No cut."
+  },
+  {
+   "id": "5.0.1",
+   "why": "'Thousands of SEOs and agencies' is supported by the source; 'runs on Windows, macOS and Linux' is supported. No cut."
+  },
+  {
+   "id": "5.3.0",
+   "why": "Supported by source. No cut."
+  },
+  {
+   "id": "6.1.0",
+   "why": "Cited to the AgencyAnalytics features page; supported. No cut."
+  },
+  {
+   "id": "6.2.i0",
+   "why": "Source says white-labeled portal gives 24/7 access to reports, tasks and results; supported. No cut."
+  },
+  {
+   "id": "6.2.i4",
+   "why": "Scheduling is supported but 'client reporting runs on its own' overstates; source says 'autopilot'. Minor; acceptable."
+  },
+  {
+   "id": "8.8.0",
+   "why": "Source for Screaming Frog says it integrates with Google Search Console; AgencyAnalytics lists Google Search Console integration. Supported. No cut."
+  },
+  {
+   "id": "9.15.i2",
+   "why": "SE Visible is named by SE Ranking as its AI visibility product; supported."
+  },
+  {
+   "id": "9.15.i3",
+   "why": "AgencyAnalytics mentions 'AI Tracker' on its page; supported."
+  },
+  {
+   "id": "8.4.0",
+   "why": "WordStream is described as a marketing software company; the source only shows it is a blog with LocaliQ tools; 'marketing software company' is not stated in the sources."
+  },
+  {
+   "id": "8.6.1",
+   "why": "Authority Specialist is described as an 'SEO directory'; the source calls it buyer guides and lists; 'directory' appears in the source text ('Use the directory'), so supported. No cut."
+  },
+  {
+   "id": "1.5.i2",
+   "why": "Exports are mentioned only for Authority Specialist criteria, not as a confirmed capability; as a criterion it is fine. No cut."
+  },
+  {
+   "id": "2.6.i2",
+   "why": "Semrush MCP lets you bring live data into chat; supported."
+  },
+  {
+   "id": "4.7.i3",
+   "why": "Smaller backlink database claim comes from the AI Overview on the AgencyAnalytics page, which is truncated in the sources before the SE Ranking entry fully appears but does appear; supported."
+  }
+ ],
+ "styleLeft": [
+  {
+   "id": "2.5.0",
+   "rule": "sentences",
+   "before": "a sentence over 35 words",
+   "after": null
+  },
+  {
+   "id": "2.7.0",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "3.4.0",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "3.4.1",
+   "rule": "sentences",
+   "before": "a sentence over 35 words",
+   "after": null
+  },
+  {
+   "id": "7.8.0",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  },
+  {
+   "id": "8.14.2",
+   "rule": "sentences",
+   "before": "a short sentence",
+   "after": null
+  }
+ ],
+ "proof": {
+  "verdict": "Hold",
+  "reasons": [
+   "A paragraph appears twice: in \"2. Ahrefs: best for backlink and competitor research\" and \"3. SE Ranking: best for agencies that want one platform with white-label options\""
+  ],
+  "lint": 6
+ },
+ "polish": {
+  "applied": 7,
+  "refused": [
+   {
+    "id": "3.3.0",
+    "why": "44% of the words are gone"
+   },
+   {
+    "id": "3.4.1",
+    "why": "lost link https://northlinedigital.example/services/ai-search; 38% of the words are gone"
+   }
+  ]
+ },
+ "blocked": [
+  {
+   "key": "h2-3",
+   "why": "lost link https://agencyanalytics.com"
+  }
+ ],
+ "tidied": [
+  "Dropped \"Honestly,\" used a second time."
+ ],
+ "factChanges": [],
+ "modules": [
+  {
+   "status": "ok",
+   "error": null
+  }
+ ]
+}

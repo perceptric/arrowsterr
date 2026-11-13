@@ -11,6 +11,7 @@ import { factAudit, type Audit } from "./factAudit.ts";
 import { lintDraft, lintText, rulesText, sampleText } from "./houseRules.ts";
 import { SKILL_TEXT } from "./skillText.ts";
 import type { Block, Section, StyleNote } from "./writerDraft.ts";
+import { splitSentences } from "./sentences.ts";
 
 const S = { type: "string" } as const;
 export const POLISH_SCHEMA = {
@@ -71,8 +72,7 @@ ${lines.map((l) => `${l.id}: ${l.text}`).join("\n")}`;
 
 // ─────────────── applying edits ───────────────
 
-const SENTENCE = /(?<=[.!?…]["”)\]]?)\s+(?=["“(\[]?[A-Z0-9])/;
-const sentences = (text: string) => text.split(SENTENCE).map((s) => s.trim()).filter(Boolean);
+const sentences = splitSentences;
 
 /** The draft's lines with ids, as the polish call sees them: sentences and list items (tables and headings stay out). */
 export function polishLines(sections: Section[]): IdLine[] {
