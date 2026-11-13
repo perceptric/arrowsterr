@@ -125,11 +125,9 @@ function Kpi({ label, value, sub, change }: { label: string; value: React.ReactN
   );
 }
 
-/** The "SEO" block: the content map and Google Maps. Older reports also carry site health, on-page and backlinks. */
+/** The "SEO" block: the content map and Google Maps. Older reports also carry backlinks. */
 function SeoBlock({ n, s }: { n: number; s: SeoSnapshot }) {
   const kpis: React.ReactNode[] = [];
-  if (s.site) kpis.push(<Kpi key="site" label="Site health" value={s.site.score} change={<Change now={s.site.score} before={s.site.before} />} sub={`${num(s.site.pages)} pages`} />);
-  if (s.onpage) kpis.push(<Kpi key="onpage" label="On-page score" value={s.onpage.avg} sub={s.onpage.topAvg !== null ? `top 10 average ${s.onpage.topAvg}` : `${s.onpage.pages} pages`} />);
   if (s.backlinks) kpis.push(<Kpi key="bl" label="Linking sites" value={num(s.backlinks.domains)} change={<Change now={s.backlinks.domains} before={s.backlinks.before} />} sub={`authority ${s.backlinks.rank}`} />);
   if (s.links) kpis.push(<Kpi key="links" label="Links won" value={s.links.wonInPeriod} sub={`${s.links.won} in total${s.links.gone ? `, ${s.links.gone} gone` : ""}`} />);
   if (s.map) kpis.push(<Kpi key="map" label="Topics to write" value={s.map.missing} sub={`${s.map.covered} covered${s.map.overlap ? `, ${s.map.overlap} competing` : ""}`} />);
@@ -138,29 +136,6 @@ function SeoBlock({ n, s }: { n: number; s: SeoSnapshot }) {
       <SectionHead n={n} title="SEO" />
       {kpis.length ? <div className="grid g4">{kpis.slice(0, 4)}</div> : null}
       {kpis.length > 4 ? <div className="grid g4">{kpis.slice(4)}</div> : null}
-      {s.onpage?.worst.length ? (
-        <div className="card">
-          <table>
-            <thead>
-              <tr>
-                <th>Page to improve</th>
-                <th className="r">Score</th>
-              </tr>
-            </thead>
-            <tbody>
-              {s.onpage.worst.map((w) => (
-                <tr key={`${w.url}|${w.keyword}`}>
-                  <td>
-                    <span style={{ display: "block", color: "var(--ink)" }}>{w.keyword}</span>
-                    <span style={{ fontSize: 12, color: "var(--muted)", overflowWrap: "anywhere" }}>{w.url}</span>
-                  </td>
-                  <td className="r">{w.score}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : null}
       {s.local?.length ? (
         <div className="card">
           <table>

@@ -798,7 +798,7 @@ The app keeps its class names; the look changes underneath.
 1. **One stylesheet.** Add `src/app/brand-v10.css` with the tokens above and the component classes (`aw-btn`, `aw-frame`, `aw-input`, `aw-status`, `aw-table`, `aw-chip`, `aw-tabs`). Load it last in `globals.css`, then delete the eight older layers one at a time, checking screens after each.
 2. **Fonts.** Swap Inter and Funnel Display for Geist in `layout.tsx` via `next/font/google`. Keep Geist Mono.
 3. **Shared parts.** Update `Card`, `Seg`, `StatStrip` (becomes a stat row), `Delta`, `Tag` and `Select` in `src/components/ui.tsx` to match the Components section.
-4. **Screens.** Check the 10 busiest screens at 1440px and 400px in light and dark: Prompts, Competitors, Keyword Research, Local Research, Backlinks, Site Audit, Content Map, Editorial Calendar, Reports, Settings.
+4. **Screens.** Check the 9 busiest screens at 1440px and 400px in light and dark: Prompts, Competitors, Keyword Research, Local Research, Backlinks, Content Map, Editorial Calendar, Reports, Settings.
 5. **Emails, PDF and website.** Update `src/lib/emailKit.ts`, `src/lib/pdf/design.ts` and `public/brand/arrowsterr-brand.css` to the same tokens.
 6. **Tests.** Extend `tests/ui-rules.test.ts` (or add one) to fail on raw hex values in components, on `<select>`, and on more than one `aw-btn--primary` per screen file where practical.
 

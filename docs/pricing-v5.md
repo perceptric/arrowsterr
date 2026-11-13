@@ -41,13 +41,10 @@ Mix: 50% Starter, 40% Pro, 10% Agency.
 
 ## SEO tools (November 2026)
 
-Six tools added on the Organic Research side, on every plan that has it: Site Audit, On-page Audit, Backlinks, Link Building, Content Map and Local Research. They spend the plan's tasks like the rest of Organic Research, at roughly $0.005 a task, so plan prices and margins don't change.
+Four tools added on the Organic Research side, on every plan that has it: Backlinks, Link Building, Content Map and Local Research. (Site Audit and On-page Audit were added too, then removed with the rest of Technical SEO.) They spend the plan's tasks like the rest of Organic Research, at roughly $0.005 a task, so plan prices and margins don't change.
 
 | Job | Tasks | Our cost |
 |---|---|---|
-| Site audit crawl (weekly, or Crawl now) | 0 | $0 (plain page loads) |
-| On-page audit | 25 | ~$0.012 |
-| Find my pages (On-page) | 10 | ~$0.04 |
 | Backlinks overview | 20 | ~$0.10 |
 | A page of 100 links | 6 | ~$0.028 |
 | Link gap, up to 3 rivals | 25 | ~$0.10 |
@@ -63,15 +60,13 @@ What they add to the monthly bill at typical use (each tool's doc has the detail
 
 | Tool | Beta (50 teams) | Growth (500 teams) |
 |---|---|---|
-| Site Audit (`docs/site-audit.md`) | $0 | ~$12 |
-| On-page Audit (`docs/onpage-audit.md`) | ~$28 | ~$280 |
 | Backlinks (`docs/backlinks.md`) | ~$37 | ~$365 |
 | Link Building (`docs/link-building.md`) | ~$15 | ~$144 |
 | Content Map (`docs/content-map.md`) | ~$11 | ~$110 |
 | Local Research (`docs/local-research.md`) | ~$5 | ~$51 |
-| **Total added** | **~$96** | **~$962** |
+| **Total added** | **~$68** | **~$670** |
 
-That moves the running cost above from about $3,035 to about $3,131 a month at Beta, and from about $30,050 to about $31,012 at Growth. Gross margin stays about 56%.
+That moves the running cost above from about $3,035 to about $3,103 a month at Beta, and from about $30,050 to about $30,720 at Growth. Gross margin stays about 56%.
 
 ## Moving to it
 - New Stripe keys `arrowsterr_v5_*`. Anyone on `v3` or `v4` keeps their price.
