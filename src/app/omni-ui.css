@@ -207,10 +207,10 @@ html, body { background: var(--bg-primary) !important; }
 :root .aw .aw-callout--warn { background: var(--orange-3) !important; border-color: color-mix(in oklab, var(--orange-11) 35%, var(--bg-primary)) !important; }
 :root .aw :is(.aw-callout--error, .aw-callout--danger) { background: var(--red-3) !important; border-color: color-mix(in oklab, var(--red-11) 35%, var(--bg-primary)) !important; }
 :root .aw .aw-error { color: var(--red-11) !important; }
-:root .aw table:not(.aw-sheet table) { font-size: 13px; }
-:root .aw table:not(.aw-sheet table) th { font-size: 12px !important; color: var(--text-tertiary) !important; border-bottom: 1px solid var(--border-medium) !important; }
-:root .aw table:not(.aw-sheet table) td { font-size: 13px !important; border-bottom: 1px solid var(--border-light) !important; }
-:root .aw table:not(.aw-sheet table) tbody tr:hover > td { background: var(--bg-tertiary) !important; }
+:root .aw table:not(.aw-sheet) { font-size: 13px; }
+:root .aw table:not(.aw-sheet) th { font-size: 12px !important; color: var(--text-tertiary) !important; border-bottom: 1px solid var(--border-medium) !important; }
+:root .aw table:not(.aw-sheet) td { font-size: 13px !important; border-bottom: 1px solid var(--border-light) !important; }
+:root .aw table:not(.aw-sheet) tbody tr:hover > td { background: var(--bg-tertiary) !important; }
 
 /* Meters and progress bars: square, black on light grey. */
 :root .aw :is(.aw-meter, .aw-bar, .aw-progress) { background: var(--bg-quaternary) !important; }

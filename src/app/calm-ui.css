@@ -220,9 +220,9 @@ html, body { background: var(--paper-deep) !important; }
 :root :is(.aw, #calm) .aw-callout { border-radius: 10px !important; border-color: transparent !important; background: var(--bg-tertiary) !important; box-shadow: 0 0 0 1px var(--border-medium) !important; }
 :root :is(.aw, #calm) .aw-callout--warn { background: var(--orange-3) !important; box-shadow: none !important; }
 :root :is(.aw, #calm) :is(.aw-callout--error, .aw-callout--danger) { background: var(--red-3) !important; box-shadow: none !important; }
-:root :is(.aw, #calm) table:not(.aw-sheet table) th { font-size: 13px !important; font-weight: 500 !important; color: var(--text-strong) !important; border-bottom: 1px solid var(--border-medium) !important; }
-:root :is(.aw, #calm) table:not(.aw-sheet table) td { border-bottom: 1px solid var(--border-medium) !important; color: var(--text-primary); }
-:root :is(.aw, #calm) table:not(.aw-sheet table) tbody tr:hover > td { background: var(--bg-secondary) !important; }
+:root :is(.aw, #calm) table:not(.aw-sheet) th { font-size: 13px !important; font-weight: 500 !important; color: var(--text-strong) !important; border-bottom: 1px solid var(--border-medium) !important; }
+:root :is(.aw, #calm) table:not(.aw-sheet) td { border-bottom: 1px solid var(--border-medium) !important; color: var(--text-primary); }
+:root :is(.aw, #calm) table:not(.aw-sheet) tbody tr:hover > td { background: var(--bg-secondary) !important; }
 :root :is(.aw, #calm) :is(.aw-meter, .aw-bar, .aw-progress) { border-radius: 9999px !important; background: var(--bg-quaternary) !important; overflow: hidden; }
 :root :is(.aw, #calm) :is(.aw-meter, .aw-bar, .aw-progress) > * { border-radius: 9999px !important; }
 
