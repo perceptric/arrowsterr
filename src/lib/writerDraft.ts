@@ -19,12 +19,16 @@ import { personaText } from "./writerPersona.ts";
 import { modulePrompt, moduleStyle, validateModule, wrapModule, type Validation } from "./writerModules.ts";
 import type { ImagesOut, MissingImage, PlacedImage } from "./writerImageTypes.ts";
 import { splitSentences } from "./sentences.ts";
+import { buildTemplate, isTemplate, specPrompt, specSchema, type TextBlock as TemplateBlock } from "./interactiveTemplates.ts";
+import { kindLabel } from "./moduleCatalog.ts";
 
 // ─────────────── shapes ───────────────
 export type BlockType = "p" | "h3" | "ul" | "ol" | "quote" | "table";
 export type Block = { type: BlockType; text: string; items: string[]; rows: string[][] };
 export type Section = { key: string; h2: string; blocks: Block[] };
-export type ModuleState = { status: "ok" | "retry" | "dropped"; attempts: number; html: string | null; error: string | null };
+/** A module as the draft built it. text is a template's plain version (interactiveTemplates.ts), which goes in the
+ * article right after the block. */
+export type ModuleState = { status: "ok" | "retry" | "dropped"; attempts: number; html: string | null; error: string | null; text?: TemplateBlock[] };
 export type Checked = { sections: Section[]; cut: { id: string; why: string }[]; unlinked: number };
 /** A line the style passes changed or flagged, by its claim id (claimLines). */
 export type StyleNote = { id: string; rule: string; before: string; after: string | null };
@@ -98,6 +102,8 @@ export type DraftDeps = {
   /** The polish pass (writerPolish.ts): voice check and copyedit, as line edits. Without it, the pass is skipped. */
   polish?: (prefix: string, prompt: string) => Promise<unknown>;
   buildModule(prefix: string, prompt: string): Promise<unknown>;
+  /** A template's spec (interactiveTemplates.ts). Without it, the picker and the calculator are built as free modules. */
+  spec?: (prefix: string, prompt: string, schema: Record<string, unknown>) => Promise<unknown>;
   /** The image step (writerImagesServer.ts). Without it, images stay notes. */
   images?: (a: { draft: DraftRow; brief: WriterBrief; sections: Section[]; ctx: WriterContext; prefix: string }) => Promise<ImagesOut>;
   validate?: (html: string) => Validation;
@@ -415,7 +421,17 @@ export const missingNote = (m: MissingImage): PMNode => ({ type: "note", content
  * each module after its H2. With images made, the brief's image notes give way to the images and to notes for the
  * ones that need a person. The featured image goes into the doc's meta, where Publish reads it.
  */
-export function buildDoc(b: WriterBrief, sections: Section[], modules: { module: PlannedModule; html: string }[], images: DraftImages | null = null, title: string | null = null): DocOut {
+export function buildDoc(
+  b: WriterBrief,
+  sections: Section[],
+  modules: { module: PlannedModule; html: string; text?: TemplateBlock[] }[],
+  images: DraftImages | null = null,
+  title: string | null = null,
+  dropped: { module: PlannedModule; error: string }[] = [],
+): DocOut {
+  // A built module, then its plain version when it's a template.
+  const moduleNodes = (m: { html: string; text?: TemplateBlock[] }): PMNode[] => [{ type: "embed", attrs: { html: m.html } }, ...(m.text ?? []).flatMap((t) => blockNodes({ ...t, rows: [] }))];
+  const droppedNote = (m: { module: PlannedModule; error: string }): PMNode => ({ type: "note", content: [{ type: "text", text: `Add ${kindLabel(m.module.type).toLowerCase()}: ${m.module.title}. ${m.error}`.trim() }] });
   const content: PMNode[] = [];
   const placed = new Set<number>();
   for (const s of sections) {
@@ -431,14 +447,15 @@ export function buildDoc(b: WriterBrief, sections: Section[], modules: { module:
     content.push(...blocks, ...notes);
     modules.forEach((m, i) => {
       if (!placed.has(i) && s.h2 && m.module.placement.toLowerCase() === s.h2.toLowerCase()) {
-        content.push({ type: "embed", attrs: { html: m.html } });
+        content.push(...moduleNodes(m));
         placed.add(i);
       }
     });
+    for (const m of dropped) if (s.h2 && m.module.placement.toLowerCase() === s.h2.toLowerCase()) content.push(droppedNote(m));
   }
   // A module whose section was cut goes before the FAQ, or at the end.
   const faq = content.findIndex((n) => n.type === "heading" && n.content?.[0]?.text === FAQ);
-  const rest = modules.filter((_, i) => !placed.has(i)).map((m) => ({ type: "embed", attrs: { html: m.html } }));
+  const rest = modules.filter((_, i) => !placed.has(i)).flatMap(moduleNodes);
   if (rest.length) content.splice(faq >= 0 ? faq : content.length, 0, ...rest);
   const words = countWords(sections.map(sectionPlain).join(" "));
   const h1 = title || b.h1;
@@ -641,11 +658,21 @@ export async function runDraft(store: DraftStore, deps: DraftDeps, id: string, v
     if (state && state.status !== "retry") continue;
     if (over()) return later;
     const section = final.find((s) => s.h2.toLowerCase() === m.placement.toLowerCase());
-    const raw = (await deps.buildModule(prefix, modulePrompt(m, { keyword: b.keyword, brand: ctx.brand.name, section: section ? sectionPlain(section) : "", style: moduleStyle(ctx.kit, ctx.guidelines) }, state?.error))) as { html?: unknown };
-    const html = str(raw?.html, 200_000);
-    const v = validate(html);
     const attempts = (state?.attempts ?? 0) + 1;
-    mods[j] = v.ok ? { status: "ok", attempts, html: wrapModule(html, m, ctx.kit), error: null } : { status: attempts >= MODULE_TRIES ? "dropped" : "retry", attempts, html: null, error: v.error };
+    const sectionText = section ? sectionPlain(section) : "";
+    if (deps.spec && brief.notes && isTemplate(m.type)) {
+      // A template (Phase 3): Claude fills a small spec, code checks it and builds the block.
+      const picks = examples.map((e) => e.name);
+      const raw = await deps.spec(prefix, specPrompt(m.type, m, { keyword: b.keyword, brand: ctx.brand.name, section: sectionText, notes: brief.notes, picks }, state?.error), specSchema(m.type));
+      const built = buildTemplate(m.type, raw, { notes: brief.notes, picks, sources: brief.research.sources });
+      const v = built.ok ? validate(built.html) : built;
+      mods[j] = built.ok && v.ok ? { status: "ok", attempts, html: wrapModule(built.html, m, ctx.kit), error: null, text: built.text } : { status: attempts >= MODULE_TRIES ? "dropped" : "retry", attempts, html: null, error: v.ok ? "" : v.error };
+    } else {
+      const raw = (await deps.buildModule(prefix, modulePrompt(m, { keyword: b.keyword, brand: ctx.brand.name, section: sectionText, style: moduleStyle(ctx.kit, ctx.guidelines) }, state?.error))) as { html?: unknown };
+      const html = str(raw?.html, 200_000);
+      const v = validate(html);
+      mods[j] = v.ok ? { status: "ok", attempts, html: wrapModule(html, m, ctx.kit), error: null } : { status: attempts >= MODULE_TRIES ? "dropped" : "retry", attempts, html: null, error: v.error };
+    }
     await save({ modules: mods, step: j === brief.modules.length - 1 && mods[j]!.status !== "retry" ? "save" : "modules" });
     if (mods[j]!.status === "retry") j--; // try it again now, with the reason
   }
@@ -654,8 +681,10 @@ export async function runDraft(store: DraftStore, deps: DraftDeps, id: string, v
   if (d.styled && !d.styled.proof) await save({ styled: { ...d.styled, proof: proofDraft(final, { examples, allow }) } });
 
   // Step 4: into the doc. Free, and safe to repeat.
-  const built = brief.modules.map((module, j) => ({ module, html: mods[j]?.status === "ok" ? mods[j]!.html! : "" })).filter((m) => m.html);
-  const doc = buildDoc(brief, final, built, d.images ?? null, d.styled?.title ?? null);
+  const built = brief.modules.map((module, j) => ({ module, html: mods[j]?.status === "ok" ? mods[j]!.html! : "", text: mods[j]?.text })).filter((m) => m.html);
+  // A template that couldn't be built stays as a note where it goes, so a person can add it.
+  const dropped = brief.notes ? brief.modules.flatMap((module, j) => (mods[j]?.status === "dropped" && isTemplate(module.type) ? [{ module, error: mods[j]!.error ?? "" }] : [])) : [];
+  const doc = buildDoc(brief, final, built, d.images ?? null, d.styled?.title ?? null, dropped);
   const at = new Date(now()).toISOString();
   const docId = await store.saveDoc(d, doc, at);
   await save({ doc_id: docId, status: "ready", step: "done", words: doc.words, ready_at: at, error: null });

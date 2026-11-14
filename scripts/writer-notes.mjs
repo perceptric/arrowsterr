@@ -1,12 +1,16 @@
 // Draft and Write, Phase 1 (docs/draft-and-write-build.md): write the brief with fact notes and section cards on the
 // 20 recorded topics, and check the done-when: every card has a job, points and only real fact ids, and every note's
 // quote is on its page. Runs the app's own runBrief with the notes call, on the recorded research.
+// Phase 3: each planned picker or calculator then gets its spec call (one retry with the reason), is built by code
+// and run through validateModule.
 // Needs ANTHROPIC_API_KEY. Prints one RESULT line per topic and a SUMMARY line. About $3 for all 20 (check).
 //   node scripts/writer-notes.mjs [slug ...]
 import Anthropic from "@anthropic-ai/sdk";
 import { jsonrepair } from "jsonrepair";
 import { BRIEF_SCHEMA, pickSources, runBrief } from "../src/lib/writerBrief.ts";
 import { cardProblems, NOTES_SCHEMA } from "../src/lib/articleNotes.ts";
+import { buildTemplate, isTemplate, specPrompt, specSchema } from "../src/lib/interactiveTemplates.ts";
+import { validateModule } from "../src/lib/writerModules.ts";
 import { loose } from "../src/lib/writerPersona.ts";
 import { isGrammarError, schemaPrompt } from "../src/lib/jsonReply.ts";
 import { replyText, requestBody, thinkingFix } from "../src/lib/claudeRequest.ts";
@@ -92,6 +96,25 @@ for (const t of topics()) {
     const problems = cards.length ? cardProblems(cards, { notes, keyword: f.keyword, h1: b.h1 }) : ["no cards"];
     const core = problems.filter((p) => /no job|no points|isn't a note|no cards/.test(p));
     const pass = core.length === 0 && missing.length === 0;
+    // Phase 3: the templates, from the brief's cards (the draft's sections aren't written here).
+    const templates = [];
+    for (const m of b.modules.filter((x) => isTemplate(x.type))) {
+      const card = cards.find((c) => c.h2.toLowerCase() === m.placement.toLowerCase());
+      const picks = (b.examples ?? []).map((e) => e.name);
+      let error = null;
+      let built = null;
+      for (let tries = 0; tries < 2 && !built; tries++) {
+        const raw = await askJson(specPrompt(m.type, m, { keyword: f.keyword, brand: ctx.brand.name, section: card ? `${card.h2}\n${card.points.join("\n")}` : "", notes, picks }, error), specSchema(m.type), { prefix: `${row.keyword}`, maxTokens: 3000 });
+        const t = buildTemplate(m.type, raw, { notes, picks, sources: b.research.sources });
+        const v = t.ok ? validateModule(t.html) : t;
+        if (t.ok && v.ok) built = { tries: tries + 1, bytes: t.html.length, height: Number(t.html.match(/data-aw-h="(\d+)"/)?.[1]), text: t.text.map((x) => x.text || x.items.join(" | ")).join(" ").slice(0, 300) };
+        else error = v.ok ? "" : v.error;
+      }
+      templates.push({ type: m.type, title: m.title, ...(built ?? { dropped: error }) });
+    }
+    totals.templates = (totals.templates ?? 0) + templates.length;
+    totals.templatesBuilt = (totals.templatesBuilt ?? 0) + templates.filter((t) => !t.dropped).length;
+    totals.templatesFirstTry = (totals.templatesFirstTry ?? 0) + templates.filter((t) => t.tries === 1).length;
     const spent = Object.fromEntries(Object.entries(usage).map(([k, v]) => [k, v - before[k]]));
     Object.assign(totals, {
       topics: totals.topics + 1,
@@ -104,7 +127,7 @@ for (const t of topics()) {
       problems: totals.problems + core.length,
       missingQuotes: totals.missingQuotes + missing.length,
     });
-    console.log(`RESULT ${JSON.stringify({ slug: t.slug, pass, notes: notes.length, dropped: b.notesDropped ?? 0, cards: cards.length, withFacts: cards.filter((c) => c.facts.length).length, gaps: cards.flatMap((c) => c.gaps).slice(0, 4), job: b.job, pov: b.pov, leadingWord: b.leadingWord, shape: b.shape?.picked, problems, missing, usage: spent })}`);
+    console.log(`RESULT ${JSON.stringify({ slug: t.slug, pass, notes: notes.length, dropped: b.notesDropped ?? 0, cards: cards.length, withFacts: cards.filter((c) => c.facts.length).length, gaps: cards.flatMap((c) => c.gaps).slice(0, 4), job: b.job, pov: b.pov, leadingWord: b.leadingWord, shape: b.shape?.picked, problems, missing, templates, modules: b.modules.map((m) => m.type), usage: spent })}`);
   } catch (e) {
     totals.failed++;
     console.log(`RESULT ${JSON.stringify({ slug: t.slug, error: String(e?.message ?? e).slice(0, 300) })}`);

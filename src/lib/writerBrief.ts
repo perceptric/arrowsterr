@@ -8,6 +8,7 @@ import { voiceText, type BrandVoice } from "./brandVoice.ts";
 import { personaText, type WriterPersona } from "./writerPersona.ts";
 import { isBofu, listicleRules, listicleSlug } from "./listicle.ts";
 import { kindLabel, kindsForPrompt, MODULE_IDS } from "./moduleCatalog.ts";
+import { TEMPLATE_KINDS } from "./interactiveTemplates.ts";
 import { rulesText, sampleText } from "./houseRules.ts";
 import { IMAGE_KINDS } from "./writerImageTypes.ts";
 import type { BriefImage, ImageKind } from "./writerImageTypes.ts";
@@ -299,7 +300,7 @@ ${isBofu(c.stage) ? `${listicleRules(b.keyword, new Date().getFullYear())}\n` : 
 - cta: what the reader should do at the end, in ${c.brand.name}'s words, and where it goes.
 - modules: interactive modules, only where one does something text, a list or a plain table can't: lets the reader work out their own number, pick the right option or explore layers or a process step by step. Most articles need none or one; never more than two, and never two of the same kind. For each: type (one of the kinds below), a short title, its purpose, placement (the exact H2 it goes after), inputs and outputs (or, for a table, flow, pyramid, stats or matrix, the rows, steps, layers or items in data), and why it helps this reader more than text would. Leave the list empty when nothing earns a module. All data must come from the sources.
   Kinds:
-${kindsForPrompt()
+${kindsForPrompt(factNotes ? TEMPLATE_KINDS : undefined)
   .split("\n")
   .map((l) => `  - ${l}`)
   .join("\n")}
@@ -368,7 +369,8 @@ export function cleanBrief(x: unknown, research: Omit<BriefResearch, "topPages" 
   const h2s = outline.map((p) => p.h2);
   const pages = new Map(sitemap.map((u) => [linkKey(u), u]));
   const modules: PlannedModule[] = arr(o.modules)
-    .filter((m) => MODULE_TYPES.includes(m.type as ModuleType))
+    // Briefs with fact notes plan only the template kinds (interactiveTemplates.ts); older briefs keep free modules.
+    .filter((m) => MODULE_TYPES.includes(m.type as ModuleType) && (!meta.notes || (TEMPLATE_KINDS as readonly string[]).includes(String(m.type))))
     .map((m) => {
       const want = str(m.placement, 160);
       const placement = h2s.find((h) => same(h, want)) ?? h2s.find((h) => want && h.toLowerCase().includes(want.toLowerCase())) ?? h2s[Math.min(1, h2s.length - 1)] ?? "";

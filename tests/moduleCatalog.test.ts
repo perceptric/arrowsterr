@@ -4,9 +4,9 @@ import { kindLabel, kindOf, kindsForPrompt, MODULE_IDS, MODULE_KINDS } from "../
 import { MODULE_LABEL, MODULE_TYPES } from "../src/lib/writerBrief.ts";
 import { modulePrompt } from "../src/lib/writerModules.ts";
 
-test("the catalog has 13 kinds with unique ids, and the brief accepts each one plus the old ones", () => {
-  assert.equal(MODULE_KINDS.length, 13);
-  assert.equal(new Set(MODULE_KINDS.map((k) => k.id)).size, 13);
+test("the catalog has 14 kinds with unique ids, and the brief accepts each one plus the old ones", () => {
+  assert.equal(MODULE_KINDS.length, 14);
+  assert.equal(new Set(MODULE_KINDS.map((k) => k.id)).size, 14);
   for (const id of [...MODULE_KINDS.map((k) => k.id), "roi", "diagram"]) assert.ok(MODULE_TYPES.includes(id), id);
   assert.equal(MODULE_LABEL.pyramid, "Layered pyramid");
   assert.equal(kindLabel("roi"), "ROI estimator");

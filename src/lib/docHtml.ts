@@ -72,7 +72,9 @@ function render(n: PmNode): string {
       return "";
     case "embed": {
       const html = String(a.html ?? "");
-      return html.trim() ? moduleBlock({ id: hashId(html), title: "Interactive element", html }) : "";
+      // A template (interactiveTemplates.ts) says how tall it gets, for CMSs that show it in a fixed frame.
+      const tall = Number(html.match(/\bdata-aw-h="(\d{2,4})"/)?.[1]);
+      return html.trim() ? moduleBlock({ id: hashId(html), title: "Interactive element", html, height: tall > 0 ? tall : undefined }) : "";
     }
     default: {
       // A module node (the writer's): attrs id + html (or src as base64) + title.
