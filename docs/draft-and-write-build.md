@@ -124,8 +124,8 @@ The scorer checks that a number appears somewhere in the research, which is loos
 
 **Status, November 14, 2026:** shipped. On the 20 recorded topics (`scripts/writer-notes.mjs`):
 - 20 of 20 pass: every card has a job, points and only real fact ids.
-- 0 of 735 notes have a quote missing from their page. Code dropped 34 notes the model sent whose quote or numbers didn't match.
-- 37 notes and 9 cards an article on average, every card citing at least one note, and about 8 Detail needed gaps an article.
+- 0 of 715 notes have a quote missing from their page. Code dropped 33 notes the model sent whose quote or numbers didn't match.
+- 36 notes and 9 cards an article on average, every card citing at least one note, and about 8 Detail needed gaps an article.
 - Two fixes came from the run. The intro card went first in the schema and the brief reply got 20,000 tokens, after 4 long replies were cut off before the intro. A card with no points takes its outline part's points (1 topic).
 - The H1 or an H2 misses a long keyword on 11 topics (the check wants every word of the keyword). That rule isn't part of done-when and is left for Phase 5.
 - The notes call and the brief call don't share the prompt cache yet (0 cache reads). Fixing that saves about $0.05 an article.
