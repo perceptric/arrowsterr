@@ -112,7 +112,7 @@ export function cleanCards(
     const h2 = str(o.h2, 160);
     const key = str(o.key, 40) || (h2 ? `h2-${i}` : "intro");
     const points: string[] = [];
-    const gaps: string[] = Array.isArray(o.gaps) ? o.gaps.map((g) => str(g, 300)).filter(Boolean) : [];
+    const gaps: string[] = Array.isArray(o.gaps) ? o.gaps.map((g) => str(g, 300).replace(/^detail needed:?\s*/i, "")).filter(Boolean) : [];
     for (const p of Array.isArray(o.points) ? o.points : []) {
       const t = str(p, 400);
       if (!t) continue;

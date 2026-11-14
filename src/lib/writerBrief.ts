@@ -262,14 +262,15 @@ export const BRIEF_SCHEMA = obj({
 export const CARD_SCHEMA = obj({ job: S, points: LIST, facts: LIST, words: { type: "integer" }, links: { type: "array", items: obj({ url: S, anchor: S }) }, gaps: LIST });
 export const BRIEF_NOTES_SCHEMA = {
   ...BRIEF_SCHEMA,
-  required: [...BRIEF_SCHEMA.required, "job", "pov", "leadingWord", "shape", "intro"],
+  // The new fields come first, so a long reply that runs out of room loses the tail of the old ones, never the intro card.
+  required: ["job", "pov", "leadingWord", "shape", "intro", ...BRIEF_SCHEMA.required],
   properties: {
-    ...BRIEF_SCHEMA.properties,
     job: S,
     pov: S,
     leadingWord: S,
     shape: obj({ usual: S, others: LIST, picked: S, why: S }),
     intro: CARD_SCHEMA,
+    ...BRIEF_SCHEMA.properties,
     outline: { type: "array", items: obj({ h2: S, points: LIST, h3: { type: "array", items: obj({ title: S, points: LIST }) }, sources: { type: "array", items: { type: "integer" } }, job: S, facts: LIST, words: { type: "integer" }, links: { type: "array", items: obj({ url: S, anchor: S }) }, gaps: LIST }) },
   },
 };

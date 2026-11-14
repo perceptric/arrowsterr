@@ -123,7 +123,7 @@ async function run(t) {
     runStatus: async () => ({ status: "done", error: null }),
     research: async () => pack,
     context: async () => ctx,
-    write: (prefix, prompt, schema = BRIEF_SCHEMA) => askJson(prompt, schema, { prefix, maxTokens: 14000 }),
+    write: (prefix, prompt, schema = BRIEF_SCHEMA) => askJson(prompt, schema, { prefix, maxTokens: 20000 }),
     ...(process.env.WRITER_NOTES ? { notes: (prefix, prompt) => askJson(prompt, NOTES_SCHEMA, { prefix, maxTokens: 8000 }) } : {}),
     model: MODEL,
   };

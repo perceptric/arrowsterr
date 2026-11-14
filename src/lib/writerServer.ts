@@ -155,7 +155,7 @@ const briefDeps = (db: SupabaseClient): BriefDeps => ({
     const [ctx, item] = await Promise.all([loadWriterContext(db, b.site_id, b.brand_id), db.from("calendar_items").select("stage").eq("id", b.item_id).maybeSingle()]);
     return { ...ctx, stage: ((item.data as { stage?: WriterContext["stage"] } | null)?.stage ?? null) };
   },
-  write: (prefix, prompt, schema) => askJson(prompt, schema, { prefix, model: writerModel(), maxTokens: 14000 }),
+  write: (prefix, prompt, schema) => askJson(prompt, schema, { prefix, model: writerModel(), maxTokens: 20000 }),
   // Draft and Write, Phase 1: the fact notes the writer reads, each quoting its page word for word.
   notes: (prefix, prompt) => askJson(prompt, NOTES_SCHEMA, { prefix, model: writerModel(), maxTokens: 8000 }),
   readPage: readExample,

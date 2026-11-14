@@ -77,7 +77,7 @@ for (const t of topics()) {
       runStatus: async () => ({ status: "done", error: null }),
       research: async () => pack,
       context: async () => ctx,
-      write: (prefix, prompt, schema = BRIEF_SCHEMA) => askJson(prompt, schema, { prefix, maxTokens: 14000 }),
+      write: (prefix, prompt, schema = BRIEF_SCHEMA) => askJson(prompt, schema, { prefix, maxTokens: 20000 }),
       notes: (prefix, prompt) => askJson(prompt, NOTES_SCHEMA, { prefix, maxTokens: 8000 }),
       model: MODEL,
     };

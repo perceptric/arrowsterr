@@ -203,3 +203,12 @@ test("outline edits rename a heading everywhere, drop a fact or a module, and ne
   assert.deepEqual(fewer.cards!.find((x) => x.key === "h2-0")!.facts, []);
   assert.equal(fewer.modules.length, 0);
 });
+
+test("the brief schema asks for the intro card before the outline, and a gap drops its Detail needed label", async () => {
+  const { BRIEF_NOTES_SCHEMA } = await import("../src/lib/writerBrief.ts");
+  const keys = Object.keys(BRIEF_NOTES_SCHEMA.properties);
+  assert.ok(keys.indexOf("intro") < keys.indexOf("outline"));
+  assert.ok(keys.indexOf("job") < keys.indexOf("titles"));
+  const [c] = cleanCards([{ key: "intro", h2: "", job: "j", points: ["p"], facts: [], words: 100, links: [], gaps: ["Detail needed: the 2026 price"] }], { notes, keyword: "x", wordTarget: 100, sitemap: [], sources: [] });
+  assert.deepEqual(c.gaps, ["the 2026 price"]);
+});
