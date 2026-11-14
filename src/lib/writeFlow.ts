@@ -1,6 +1,6 @@
 // Agentic Writing's one button (docs/agentic-writing.md, section 1, and docs/drafts-plan.md): what a piece's Write
 // cell shows, from its Editorial Calendar status, its outline (writer_briefs, written in the background and never
-// reviewed: the draft starts from it on its own) and its draft (writer_drafts). The Calendar, the Day panel,
+// reviewed by default: the draft starts from it once a person presses Write on the outline screen) and its draft (writer_drafts). The Calendar, the Day panel,
 // the Library grid and the Keyword Deep Dive all read it here, so they always show the same button. Pure.
 
 type Brief = { id: string; status: "generating" | "ready" | "approved" | "failed"; step: string; error: string | null };
@@ -10,6 +10,7 @@ export type WriteState =
   | { kind: "outline" }
   | { kind: "busy"; label: string }
   | { kind: "draft"; briefId: string }
+  | { kind: "review"; briefId: string }
   | { kind: "publish"; docId: string; draftId: string; briefId: string }
   | { kind: "view"; url: string; docId: string | null }
   | { kind: "retry"; target: "outline" | "draft"; error: string; briefId: string | null };
@@ -36,7 +37,9 @@ export function writeState({ item, brief, draft }: { item: { status: string; url
     if (brief.status === "generating") return { kind: "busy", label: stepLabel("brief", brief.step) };
     if (brief.status === "failed") return { kind: "retry", target: "outline", error: brief.error || "The draft stopped while researching.", briefId: brief.id };
     if (brief.error) return { kind: "retry", target: "draft", error: brief.error, briefId: brief.id };
-    return { kind: "draft", briefId: brief.id };
+    // A written outline waits for a person to review it on the outline screen (Draft and Write, Phase 1); one that
+    // was approved without a draft (the month was full) offers Write draft again.
+    return brief.status === "ready" ? { kind: "review", briefId: brief.id } : { kind: "draft", briefId: brief.id };
   }
   return { kind: "outline" };
 }
@@ -48,7 +51,7 @@ export const isBusy = (s: WriteState) => s.kind === "busy";
 export function libraryGroup(s: WriteState): "outlines" | "drafts" | "published" | "none" {
   if (s.kind === "view") return "published";
   if (s.kind === "publish" || (s.kind === "retry" && s.target === "draft")) return "drafts";
-  if (s.kind === "draft" || (s.kind === "retry" && s.target === "outline")) return "outlines";
+  if (s.kind === "draft" || s.kind === "review" || (s.kind === "retry" && s.target === "outline")) return "outlines";
   if (s.kind === "busy") return /^(Researching|Outlining)$/.test(s.label) ? "outlines" : "drafts";
   return "none";
 }

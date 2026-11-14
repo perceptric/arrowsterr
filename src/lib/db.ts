@@ -116,7 +116,7 @@ export async function renameWorkspace(sb: SupabaseClient, id: string, name: stri
 }
 
 /** What the AI should know about the business and how it should write. */
-export type AiSettings = { about?: string; audience?: string; voice?: string; avoid?: string };
+export type AiSettings = { about?: string; audience?: string; voice?: string; avoid?: string; /** Drafts start as soon as the outline is written, with no review. */ writeWithoutReview?: boolean };
 export type WorkspaceSettings = { timezone: string | null; ai_settings: AiSettings; allowed_domain: string | null; join_role: "viewer" | "editor" };
 
 /** The workspace's settings page values. Null until supabase/034_settings.sql has been run. */

@@ -78,7 +78,7 @@ export const toItem = (siteId: string, r: PlanRow & { due_date?: string | null }
   current_rank: r.rank ?? null,
 });
 
-const WRITE_LABEL: Record<WriteState["kind"], string> = { outline: "Write outline", busy: "Working", draft: "Write draft", publish: "Publish content", view: "View post", retry: "Try again" };
+const WRITE_LABEL: Record<WriteState["kind"], string> = { outline: "Write outline", busy: "Working", review: "Review outline", draft: "Write draft", publish: "Publish content", view: "View post", retry: "Try again" };
 
 const icon = (d: React.ReactNode) => (
   <svg viewBox="0 0 24 24" width={17} height={17} fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

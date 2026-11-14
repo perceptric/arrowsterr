@@ -12,6 +12,7 @@ import { rulesText, sampleText } from "./houseRules.ts";
 import { IMAGE_KINDS } from "./writerImageTypes.ts";
 import type { BriefImage, ImageKind } from "./writerImageTypes.ts";
 import { domainOf } from "./sources.ts";
+import { cleanCards, cleanNotes, notesPrompt, notesText, type FactNote, type SectionCard, type Shape } from "./articleNotes.ts";
 
 // ─────────────── shapes ───────────────
 export type Outcome = { state: "done" } | { state: "failed"; error: string } | { state: "wait"; seconds: number; why: string };
@@ -63,6 +64,15 @@ export type WriterBrief = {
   examples?: BriefExample[];
   /** Facts the research could not confirm, for a person to check. The draft never states them as fact. */
   checks?: string[];
+  /** Draft and Write, Phase 1 (articleNotes.ts): the frozen fact notes, the piece's job, point of view, leading word
+   * and shape, and one card per section. Older briefs have none; cardsFrom builds plain cards for them. */
+  notes?: FactNote[];
+  notesDropped?: number;
+  job?: string;
+  pov?: string;
+  leadingWord?: string;
+  shape?: Shape;
+  cards?: SectionCard[];
   research: BriefResearch;
   model: string;
   at: string;
@@ -146,7 +156,9 @@ export type BriefDeps = {
   runStatus(runId: string): Promise<{ status: string; error: string | null } | null>;
   research(runId: string): Promise<ResearchPack>;
   context(b: BriefRow): Promise<WriterContext>;
-  write(prefix: string, prompt: string): Promise<unknown>; // one Claude call with the brief schema
+  write(prefix: string, prompt: string, schema: Record<string, unknown>): Promise<unknown>; // one Claude call with the brief schema
+  /** The fact notes call (NOTES_SCHEMA). Without it, the brief has no notes and no cards. */
+  notes?: (prefix: string, prompt: string) => Promise<unknown>;
   /** Read a featured example's own page (title and text). Without it, examples keep only the research's facts. */
   readPage?: (url: string) => Promise<{ title: string; text: string; ok: boolean; error?: string }>;
   model: string;
@@ -211,6 +223,13 @@ export function researchText(pack: ResearchPack, sources: SourcePage[]): string 
 export const contextPrefix = (c: WriterContext, pack: ResearchPack, sources: SourcePage[]) =>
   `You are the senior content strategist and writer for ${c.brand.name}.\n\n${brandText(c)}\n\n${researchText(pack, sources)}`;
 
+/**
+ * The draft's stable start (Draft and Write, Phase 1): with fact notes on the brief, the writer reads the brand and
+ * the frozen notes only, never the raw pages, so every fact it uses is one a note quotes. Older briefs keep the research.
+ */
+export const draftPrefix = (c: WriterContext, pack: ResearchPack, sources: SourcePage[], b: Pick<WriterBrief, "notes" | "research">) =>
+  b.notes ? `You are the senior content writer for ${c.brand.name}.\n\n${brandText(c)}\n\nKeyword: ${pack.keyword}\n\n${notesText(b.notes, b.research.sources)}` : contextPrefix(c, pack, sources);
+
 // ─────────────── the brief call ───────────────
 const S = { type: "string" } as const;
 const LIST = { type: "array", items: S } as const;
@@ -239,10 +258,28 @@ export const BRIEF_SCHEMA = obj({
   aiAnswers: S,
 });
 
+/** With fact notes, the brief also returns the piece's job, point of view, leading word, shape and a card per section. */
+export const CARD_SCHEMA = obj({ job: S, points: LIST, facts: LIST, words: { type: "integer" }, links: { type: "array", items: obj({ url: S, anchor: S }) }, gaps: LIST });
+export const BRIEF_NOTES_SCHEMA = {
+  ...BRIEF_SCHEMA,
+  required: [...BRIEF_SCHEMA.required, "job", "pov", "leadingWord", "shape", "intro"],
+  properties: {
+    ...BRIEF_SCHEMA.properties,
+    job: S,
+    pov: S,
+    leadingWord: S,
+    shape: obj({ usual: S, others: LIST, picked: S, why: S }),
+    intro: CARD_SCHEMA,
+    outline: { type: "array", items: obj({ h2: S, points: LIST, h3: { type: "array", items: obj({ title: S, points: LIST }) }, sources: { type: "array", items: { type: "integer" } }, job: S, facts: LIST, words: { type: "integer" }, links: { type: "array", items: obj({ url: S, anchor: S }) }, gaps: LIST }) },
+  },
+};
+
 /** The instructions for the brief, after the cached brand and research. */
-export function briefPrompt(b: Pick<BriefRow, "keyword" | "notes" | "note">, c: WriterContext, sourceCount: number): string {
+export function briefPrompt(b: Pick<BriefRow, "keyword" | "notes" | "note">, c: WriterContext, sourceCount: number, factNotes?: string): string {
   const links = c.sitemap.slice(0, 150);
-  return `Write the content brief for an article on "${b.keyword}" for ${c.brand.name}. A writer and an AI will write the draft from it, so it must be complete and exact.
+  return `${factNotes ? `${factNotes}
+
+` : ""}Write the content brief for an article on "${b.keyword}" for ${c.brand.name}. A writer and an AI will write the draft from it, so it must be complete and exact.
 ${b.notes ? `\nThe editor's notes:\n${b.notes}\n` : ""}${b.note ? `\nThe editor asked for this change: ${b.note}\n` : ""}
 ${links.length ? `The brand's own pages (internal links must come from this list):\n${links.join("\n")}\n` : "The brand's sitemap is not known: leave internalLinks empty.\n"}
 Rules:
@@ -268,7 +305,13 @@ ${kindsForPrompt()
 - examples: when the article features tools, companies, blogs, sites or pages (a listicle, an examples post, a comparison), one entry for each in the order they appear, and give each its own H2 that contains its name exactly (for a list, "1. Name"). name: as people write it. url: its own page, the homepage or the exact page the article talks about, from the sources or the AI answers. kind: what it is in two or three words ("SEO software", "B2B blog"). opener: one sentence, "{name} is a/an {kind of} company (or software) that {what it does}.", from the sources. facts: 2 to 4 facts the section will use, each from a source, with the source numbers in sources. Leave the list empty when the article features none.
 - images: 3 to 8 places an image helps the reader, never two in a row. placement (the exact H2 it goes under, or "intro"), kind, shows (what it shows, in one line), alt (one plain sentence for screen readers). Kinds: screenshot (url: the page to capture; every featured example gets one under its H2), chart (numbers: each value with its label, all from the sources, with their source numbers in sources), steps (a process in order), comparison (two or three options side by side), checklist (things to check), anatomy (the parts of a page or a thing, labeled). Leave url, numbers and sources empty when the kind doesn't use them. No stock-photo filler and no featured image; that one is made from the H1.
 - checks: facts the article would like to use but the sources don't confirm, in one line each, for an editor to check. Empty when there are none.
-- topPages: 3 to 5 sentences on what Google's top pages do: format, length, what they all cover.
+${factNotes ? `- job: what the reader will do or decide after reading, in one sentence.
+- pov: the one claim this article argues, in one sentence ${c.brand.name} would agree with.
+- leadingWord: a short name for the idea the article hangs on (2 to 4 words), or empty when none fits.
+- shape: usual is the structure most writers would use for this topic; others are two different shapes; picked is the one you chose (it can be the usual one, by choice); why says why in one sentence. The outline follows picked.
+- intro and each outline part are cards: job (what this section does for the reader, one sentence), points, facts (the ids of the fact notes the section stands on, like "n3"; only ids from the list above), words (its share of wordTarget), links (from the brand's pages or the sources, with anchor text) and gaps. A point that needs a fact no note has is written "Detail needed: what to find and where" and goes in gaps, never in points.
+- Every number, price, date or claim about a named product in points must come from a fact note cited in facts.
+` : ""}- topPages: 3 to 5 sentences on what Google's top pages do: format, length, what they all cover.
 - aiAnswers: 2 to 4 sentences on what the AI answers say and which sites they cite.
 - Base every fact on the sources. Never invent numbers.`;
 }
@@ -306,7 +349,7 @@ export function withExampleShots(images: BriefImage[], examples: Pick<BriefExamp
 const linkKey = (u: string) => u.replace(/#.*$/, "").replace(/^https?:\/\/(www\.)?/i, "").replace(/\/+$/, "").toLowerCase();
 
 /** Claude's brief, cleaned: lists trimmed, sources and links checked against what the research and sitemap hold. */
-export function cleanBrief(x: unknown, research: Omit<BriefResearch, "topPages" | "aiAnswers">, sitemap: string[], meta: { model: string; at: string; keyword: string; stage?: string | null }): WriterBrief {
+export function cleanBrief(x: unknown, research: Omit<BriefResearch, "topPages" | "aiAnswers">, sitemap: string[], meta: { model: string; at: string; keyword: string; stage?: string | null; notes?: FactNote[]; notesDropped?: number }): WriterBrief {
   const o = (x && typeof x === "object" ? x : {}) as Record<string, unknown>;
   const valid = new Set(research.sources.map((s) => s.n));
   const outline: OutlinePart[] = arr(o.outline)
@@ -388,8 +431,34 @@ export function cleanBrief(x: unknown, research: Omit<BriefResearch, "topPages" 
     examples,
     checks: strs(o.checks, 300, 12),
     research: { ...research, topPages: str(o.topPages, 1500), aiAnswers: str(o.aiAnswers, 1500) },
+    ...notesPart(o, outline, meta, sitemap, research.sources.map((s) => s.url), Number.isFinite(target) ? Math.min(6000, Math.max(600, target)) : 1800),
     model: meta.model,
     at: meta.at,
+  };
+}
+
+/** With fact notes: the notes, the piece's job, point of view, leading word and shape, and its checked cards. */
+function notesPart(o: Record<string, unknown>, outline: OutlinePart[], meta: { keyword: string; notes?: FactNote[]; notesDropped?: number }, sitemap: string[], sources: string[], wordTarget: number): Partial<WriterBrief> {
+  if (!meta.notes) return {};
+  const raw = arr(o.outline);
+  // One card per kept outline part, matched by its H2, after the intro card.
+  const parts = outline.map((p) => ({ ...(raw.find((r) => same(str(r.h2, 160), p.h2)) ?? {}), h2: p.h2 }));
+  const cards = cleanCards([{ ...((o.intro && typeof o.intro === "object" ? o.intro : {}) as Record<string, unknown>), key: "intro", h2: "" }, ...parts.map((p, i) => ({ ...p, key: `h2-${i}` }))], {
+    notes: meta.notes,
+    keyword: meta.keyword,
+    wordTarget,
+    sitemap,
+    sources,
+  });
+  const sh = (o.shape && typeof o.shape === "object" ? o.shape : {}) as Record<string, unknown>;
+  return {
+    notes: meta.notes,
+    notesDropped: meta.notesDropped ?? 0,
+    job: str(o.job, 300),
+    pov: str(o.pov, 300),
+    leadingWord: str(o.leadingWord, 60),
+    shape: { usual: str(sh.usual, 300), others: strs(sh.others, 300, 2), picked: str(sh.picked, 300), why: str(sh.why, 300) },
+    cards,
   };
 }
 
@@ -431,12 +500,20 @@ export async function runBrief(store: BriefStore, deps: BriefDeps, id: string, v
   const [pack, ctx] = await Promise.all([deps.research(runId), deps.context(b)]);
   const sources = pickSources(pack.pages);
   if (!sources.length) return fail("The research read no pages.");
-  const raw = await deps.write(contextPrefix(ctx, pack, sources), briefPrompt(b, ctx, sources.length));
+  const prefix = contextPrefix(ctx, pack, sources);
+  // Draft and Write, Phase 1: the fact notes first. Each must quote its page word for word (articleNotes.ts).
+  let notes: { notes: FactNote[]; dropped: number } | null = null;
+  if (deps.notes) {
+    const rawNotes = await deps.notes(prefix, notesPrompt(b.keyword, sources.length));
+    notes = cleanNotes(rawNotes, sources.map((p, i) => ({ n: i + 1, url: p.url, body: p.body })));
+  }
+  const factNotes = notes ? notesText(notes.notes, numbered(sources)) : undefined;
+  const raw = await deps.write(prefix, briefPrompt(b, ctx, sources.length, factNotes), notes ? BRIEF_NOTES_SCHEMA : BRIEF_SCHEMA);
   const brief = cleanBrief(
     raw,
     { sources: numbered(sources), questions: pack.questions.map((q) => q.question).slice(0, 10), engines: pack.answers.map((a) => a.engine) },
     ctx.sitemap,
-    { model: deps.model, at: new Date(now()).toISOString(), keyword: b.keyword, stage: ctx.stage },
+    { model: deps.model, at: new Date(now()).toISOString(), keyword: b.keyword, stage: ctx.stage, ...(notes ? { notes: notes.notes, notesDropped: notes.dropped } : {}) },
   );
   if (!brief.outline.length) return fail("The brief came back without an outline. Regenerate it.");
   if (deps.readPage && brief.examples?.length) Object.assign(brief, await readExamples(brief, deps.readPage));
@@ -550,5 +627,42 @@ export function editBrief(old: WriterBrief, patch: unknown): WriterBrief {
         }
       : {}),
     ...(Array.isArray(p.checks) ? { checks: lines(p.checks, 20, old.checks ?? []) } : {}),
+    ...editCards(old, p),
   };
+}
+
+/**
+ * Card edits from the outline screen: a heading, points and gaps can change; a fact can be dropped but never added
+ * (only the card's own notes stay); a visual can be turned off or on; an interactive module can be removed. A new
+ * heading also renames the outline part, the images under it and its modules, so the draft follows the edit.
+ */
+function editCards(old: WriterBrief, p: Record<string, unknown>): Partial<WriterBrief> {
+  const edits = rows(p.cards);
+  if (!edits || !old.cards) return {};
+  const outline = old.outline.map((o) => ({ ...o }));
+  let images = old.images ? old.images.map((m) => ({ ...m })) : old.images;
+  let modules = old.modules.map((m) => ({ ...m }));
+  const cards = old.cards.map((c) => {
+    const e = edits.find((x) => x.key === c.key);
+    if (!e) return c;
+    const h2 = c.key === "intro" ? "" : txt(e.h2, 200, c.h2) || c.h2;
+    if (h2 !== c.h2) {
+      const i = Number(c.key.replace("h2-", ""));
+      if (outline[i]) outline[i].h2 = h2;
+      images = images?.map((m) => (m.placement === c.h2 ? { ...m, placement: h2 } : m));
+      modules = modules.map((m) => (m.placement === c.h2 ? { ...m, placement: h2 } : m));
+    }
+    const facts = Array.isArray(e.facts) ? c.facts.filter((f) => (e.facts as unknown[]).includes(f)) : c.facts;
+    const visual = c.visual && typeof e.visualOn === "boolean" ? { ...c.visual, on: e.visualOn } : c.visual;
+    return { ...c, h2, points: lines(e.points, 12, c.points), gaps: lines(e.gaps, 8, c.gaps), facts, visual };
+  });
+  if (Array.isArray(p.removeModules)) {
+    const drop = new Set((p.removeModules as unknown[]).map(String));
+    modules = modules.filter((m) => !drop.has(m.title));
+  }
+  if (Array.isArray(p.removeImages)) {
+    const drop = new Set((p.removeImages as unknown[]).map(String));
+    images = images?.filter((m) => !drop.has(`${m.placement}|${m.kind ?? ""}|${m.shows}`));
+  }
+  return { cards, outline, images, modules };
 }

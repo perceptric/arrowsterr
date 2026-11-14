@@ -9,7 +9,7 @@
 // Every step saves its output, so a killed job restarts where it stopped and never pays twice for a finished step.
 // Pure: the database and the paid calls come in as `store` and `deps` (writerServer.ts), so tests run it offline.
 import type { BriefRow, Outcome, PlannedModule, ResearchPack, SourcePage, WriterBrief, WriterContext } from "./writerBrief.ts";
-import { contextPrefix } from "./writerBrief.ts";
+import { draftPrefix } from "./writerBrief.ts";
 import { lintDraft, type Finding } from "./houseRules.ts";
 import { CLAIM_METHOD, findingsFor, fixPrompt, lengthPrompt, mergeFindings, proofreadTitle, reviewPrompt, styleResult } from "./writerStyle.ts";
 import { allowedTerms } from "./houseLint.ts";
@@ -111,15 +111,21 @@ export const MODULE_TRIES = 2; // the first build and one retry
 const FAQ = "Frequently asked questions";
 
 // ─────────────── the plan ───────────────
-export type SectionPlan = { key: string; kind: "intro" | "h2" | "faq"; h2: string; points: string[]; h3: { title: string; points: string[] }[]; sources: number[]; cta: boolean };
+export type SectionPlan = { key: string; kind: "intro" | "h2" | "faq"; h2: string; points: string[]; h3: { title: string; points: string[] }[]; sources: number[]; cta: boolean; job?: string; facts?: string[]; words?: number; gaps?: string[] };
 
 /** The sections to write, in order: the intro, each H2 of the outline, and the FAQ when the brief has questions. */
 export function planSections(b: WriterBrief): SectionPlan[] {
-  const h2 = b.outline.map((p, i) => ({ key: `h2-${i}`, kind: "h2" as const, h2: p.h2, points: p.points, h3: p.h3, sources: p.sources, cta: false }));
+  // With cards (Draft and Write, Phase 1), each section takes its card's job, points, notes, words and gaps.
+  const card = (key: string) => b.cards?.find((c) => c.key === key);
+  const fromCard = (key: string) => {
+    const c = card(key);
+    return c ? { job: c.job, facts: c.facts, words: c.words, gaps: c.gaps, ...(c.points.length ? { points: c.points } : {}) } : {};
+  };
+  const h2 = b.outline.map((p, i) => ({ key: `h2-${i}`, kind: "h2" as const, h2: p.h2, points: p.points, h3: p.h3, sources: p.sources, cta: false, ...fromCard(`h2-${i}`) }));
   const ctaAt = h2.findIndex((s) => b.cta.where && s.h2.toLowerCase() === b.cta.where.toLowerCase());
   if (h2.length && b.cta.text) h2[ctaAt >= 0 ? ctaAt : h2.length - 1].cta = true;
   return [
-    { key: "intro", kind: "intro", h2: "", points: [b.angle, b.searchIntent].filter(Boolean), h3: [], sources: b.outline[0]?.sources ?? [], cta: false },
+    { key: "intro", kind: "intro", h2: "", points: [b.angle, b.searchIntent].filter(Boolean), h3: [], sources: b.outline[0]?.sources ?? [], cta: false, ...fromCard("intro") },
     ...h2,
     ...(b.faqs.length ? [{ key: "faq", kind: "faq" as const, h2: FAQ, points: b.faqs.map((f) => `${f.question} ${f.answer}`), h3: b.faqs.map((f) => ({ title: f.question, points: [f.answer] })), sources: [], cta: false }] : []),
   ];
@@ -133,6 +139,10 @@ export function briefText(b: WriterBrief, notes: string): string {
     `Search intent: ${b.searchIntent}`,
     `Reader: ${b.reader}`,
     `Angle: ${b.angle}`,
+    b.job ? `The reader's job: after reading, they will ${b.job.replace(/^to\s+/i, "")}` : "",
+    b.pov ? `Point of view to argue: ${b.pov}` : "",
+    b.leadingWord ? `The idea the article hangs on: "${b.leadingWord}"` : "",
+    b.shape?.picked ? `Shape: ${b.shape.picked}` : "",
     `Length: about ${b.wordTarget} words in all.`,
     `Outline:\n${b.outline.map((p) => `## ${p.h2} [sources ${p.sources.join(", ") || "none"}]\n${p.points.map((x) => `- ${x}`).join("\n")}${p.h3.map((h) => `\n### ${h.title}\n${h.points.map((x) => `- ${x}`).join("\n")}`).join("")}`).join("\n")}`,
     b.entities.length ? `Name these: ${b.entities.join(", ")}` : "",
@@ -173,7 +183,15 @@ export const SECTION_SCHEMA = {
 export function sectionPrompt(plan: SectionPlan[], i: number, b: WriterBrief, sources: SourcePage[], prev: Section | null, note: string | null): string {
   const s = plan[i];
   const words = Math.round(b.wordTarget / Math.max(1, plan.filter((p) => p.kind === "h2").length + 0.6));
-  const cite = s.sources.length ? s.sources.map((n) => `[${n}] ${sources[n - 1]?.url ?? ""}`).join("\n") : "any source above that backs a claim";
+  // With fact notes, the section's facts are its card's notes, each with its source's URL; nothing else counts.
+  const notes = (b.notes ?? []).filter((n) => s.facts?.includes(n.id));
+  const cite = b.notes
+    ? notes.length
+      ? `${notes.map((n) => `${n.id}: ${n.fact} Quote: "${n.quote}" Source: ${sources[n.source - 1]?.url ?? ""}`).join("\n")}\nUse only these facts in this section. A number, price, date or claim about a named product that isn't in them stays out.`
+      : "No fact notes for this section: write it without numbers, prices, dates or claims about named products."
+    : s.sources.length
+      ? s.sources.map((n) => `[${n}] ${sources[n - 1]?.url ?? ""}`).join("\n")
+      : "any source above that backs a claim";
   const links = b.internalLinks.filter((l) => l.where && s.h2 && l.where.toLowerCase() === s.h2.toLowerCase());
   const example = s.kind === "h2" ? exampleFor(b, s.h2) : null;
   const what =
@@ -181,7 +199,7 @@ export function sectionPrompt(plan: SectionPlan[], i: number, b: WriterBrief, so
       ? `Write the intro: 2 or 3 short paragraphs, about ${Math.min(180, Math.round(words / 2))} words. Hook the reader with the problem, say what they'll get, and use the keyword naturally. No heading.`
       : s.kind === "faq"
         ? `Write the FAQ section "${s.h2}": each question as an h3 block, followed by a 2 to 4 sentence answer as a p block.\nQuestions:\n${s.h3.map((h) => `- ${h.title} (${h.points[0] ?? ""})`).join("\n")}`
-        : `Write the section "${s.h2}", about ${words} words. Don't repeat the H2 itself.\nKey points:\n${s.points.map((p) => `- ${p}`).join("\n")}${s.h3.length ? `\nH3s (as h3 blocks, in order): ${s.h3.map((h) => `${h.title} (${h.points.join("; ")})`).join(" | ")}` : ""}`;
+        : `Write the section "${s.h2}", about ${s.words ?? words} words. Don't repeat the H2 itself.${s.job ? `\nIts job: ${s.job}` : ""}\nKey points:\n${s.points.map((p) => `- ${p}`).join("\n")}${s.h3.length ? `\nH3s (as h3 blocks, in order): ${s.h3.map((h) => `${h.title} (${h.points.join("; ")})`).join(" | ")}` : ""}`;
   return `${what}
 
 The article's sections, for flow: ${plan.map((p) => (p.kind === "intro" ? "Intro" : p.h2)).join(" → ")}
@@ -485,7 +503,7 @@ export async function runDraft(store: DraftStore, deps: DraftDeps, id: string, v
   const { ctx, pack } = await deps.context(d, b);
   const sources = sourcesFor(brief, pack);
   // The stable start of every call for this draft, cached by Claude: the brand, the research and the brief.
-  const prefix = `${contextPrefix(ctx, pack, sources)}\n\n${briefText(brief, b.notes)}`;
+  const prefix = `${draftPrefix(ctx, pack, sources, brief)}\n\n${briefText(brief, b.notes)}`;
   const plan = planSections(brief);
   const save = async (patch: Partial<DraftRow>) => {
     await store.update(id, patch);

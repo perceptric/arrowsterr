@@ -115,7 +115,7 @@ export function TimezoneSetting({ sb, ws }: { sb: SupabaseClient; ws: Workspace 
 }
 
 const AI_FIELDS: {
-  id: keyof AiSettings;
+  id: "about" | "audience" | "voice" | "avoid";
   label: string;
   hint: string;
   rows: number;
@@ -208,6 +208,19 @@ export function AiSettingsPage({ sb, ws }: { sb: SupabaseClient; ws: Workspace }
           />
         </div>
       ))}
+      <section className="flex flex-col gap-1.5">
+        <span className="aw-label">Drafts</span>
+        <label className="flex items-center gap-2 text-[14px] text-ink">
+          <input
+            type="checkbox"
+            disabled={!isAdmin || s === undefined || busy}
+            checked={Boolean(s?.ai_settings.writeWithoutReview)}
+            onChange={(e) => s && save({ ...s.ai_settings, writeWithoutReview: e.target.checked }, s.ai_settings, e.target.checked ? "Drafts now start as soon as the outline is written." : "Outlines now wait for your review.")}
+          />
+          Write without review
+        </label>
+        <p className="aw-small">The draft starts as soon as its outline is written, with no review step.</p>
+      </section>
       {isAdmin ? (
         <div className="flex gap-3">
           <button type="submit" className="aw-btn aw-btn--primary" disabled={busy || !changed}>

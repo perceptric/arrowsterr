@@ -13,6 +13,7 @@ import { mkdir, writeFile, access } from "node:fs/promises";
 import Anthropic from "@anthropic-ai/sdk";
 import { jsonrepair } from "jsonrepair";
 import { BRIEF_SCHEMA, runBrief } from "../src/lib/writerBrief.ts";
+import { NOTES_SCHEMA } from "../src/lib/articleNotes.ts";
 import { CHECK_SCHEMA, runDraft, SECTION_SCHEMA } from "../src/lib/writerDraft.ts";
 import { REVIEW_SCHEMA, STYLE_SYSTEM } from "../src/lib/writerStyle.ts";
 import { MODULE_SCHEMA } from "../src/lib/writerModules.ts";
@@ -122,7 +123,8 @@ async function run(t) {
     runStatus: async () => ({ status: "done", error: null }),
     research: async () => pack,
     context: async () => ctx,
-    write: (prefix, prompt) => askJson(prompt, BRIEF_SCHEMA, { prefix, maxTokens: 12000 }),
+    write: (prefix, prompt, schema = BRIEF_SCHEMA) => askJson(prompt, schema, { prefix, maxTokens: 14000 }),
+    ...(process.env.WRITER_NOTES ? { notes: (prefix, prompt) => askJson(prompt, NOTES_SCHEMA, { prefix, maxTokens: 8000 }) } : {}),
     model: MODEL,
   };
   for (let i = 0; i < 10; i++) {

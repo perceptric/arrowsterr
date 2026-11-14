@@ -25,6 +25,7 @@ import { exportClean } from "../research/writerNodes";
 import { EmptyScreen } from "../Drawing";
 import { Seg, Thinking } from "../ui";
 import { ContentGrid } from "./ContentGrid";
+import { OutlineView } from "./OutlineView";
 import { DraftProgress, libraryKey, RegenerateDialog, StateTag, useBrandSite, usePoll, type LibraryOpen } from "./parts";
 
 // Drafts (docs/drafts-plan.md): every keyword from the Editorial Calendar, as a grid of articles (ContentGrid).
@@ -59,13 +60,15 @@ export function LibraryPage({ view, auth, canEdit, onCalendar }: { view: View; a
   }, [load]);
   usePoll(Boolean(!open && rows?.some(making)), 5000, load);
 
-  // A draft opened in a new tab comes as /library?doc=<id>&brand=<id>: open that article, then tidy the address.
+  // A draft opened in a new tab comes as /drafts?doc=<id>&brand=<id> (an outline as ?outline=<id>): open it, then tidy the address.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const doc = params.get("doc");
-    if (!doc) return;
-    setOpen({ kind: "doc", id: doc });
+    const outline = params.get("outline");
+    if (!doc && !outline) return;
+    setOpen(doc ? { kind: "doc", id: doc } : { kind: "outline", id: outline! });
     params.delete("doc");
+    params.delete("outline");
     params.delete("brand");
     window.history.replaceState(null, "", window.location.pathname + (params.size ? `?${params}` : ""));
   }, [setOpen]);
@@ -85,6 +88,7 @@ export function LibraryPage({ view, auth, canEdit, onCalendar }: { view: View; a
     load();
   };
   if (open?.kind === "draft") return <DraftView key={open.id} sb={sb} auth={auth} site={site} brandId={brand.id} id={open.id} canEdit={canEdit} onBack={back} />;
+  if (open?.kind === "outline") return <OutlineView key={open.id} sb={sb} auth={auth} id={open.id} canEdit={canEdit} onBack={back} onDraft={(id) => setOpen({ kind: "draft", id })} />;
   if (open?.kind === "doc") return <DocView key={open.id} sb={sb} auth={auth} site={site} brandId={brand.id} id={open.id} canEdit={canEdit} onBack={back} />;
 
   const list = rows ?? [];

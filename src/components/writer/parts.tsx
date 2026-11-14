@@ -56,7 +56,7 @@ export function usePoll(on: boolean, ms: number, fn: () => void) {
 }
 
 export const libraryKey = (brandId: string) => `library:${brandId}:open`;
-export type LibraryOpen = { kind: "draft" | "doc"; id: string } | null;
+export type LibraryOpen = { kind: "draft" | "doc" | "outline"; id: string } | null;
 
 /** Go to Drafts with one draft open. */
 export function openInLibrary(brandId: string, open: LibraryOpen) {
