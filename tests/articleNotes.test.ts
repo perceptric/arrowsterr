@@ -212,3 +212,23 @@ test("the brief schema asks for the intro card before the outline, and a gap dro
   const [c] = cleanCards([{ key: "intro", h2: "", job: "j", points: ["p"], facts: [], words: 100, links: [], gaps: ["Detail needed: the 2026 price"] }], { notes, keyword: "x", wordTarget: 100, sitemap: [], sources: [] });
   assert.deepEqual(c.gaps, ["the 2026 price"]);
 });
+
+test("a card with no points takes its outline part's points", async () => {
+  const db = { row: structuredClone(row) };
+  const store: BriefStore = { brief: async () => structuredClone(db.row), update: async (_id, patch) => void Object.assign(db.row, patch) };
+  const bare = { ...raw, outline: raw.outline.map((o, i) => (i === 0 ? { ...o, points: ["Per seat", "Yearly"], h3: [] } : { ...o, points: [], h3: [{ title: "Count seats", points: [] }] })) };
+  // The card fields come back with no points: the model put them only in the outline's own points or H3s.
+  const deps: BriefDeps = {
+    startResearch: async () => "run1",
+    runStatus: async () => ({ status: "done", error: null }),
+    research: async () => pack,
+    context: async () => ({ brand: { name: "Acme", domain: "acme.com" }, voice: null, kit: null, guidelines: null, sitemap: [] }),
+    notes: async () => ({ notes: [{ source: 1, quote: "Pipedrive starts at $14 a month per seat", fact: "Pipedrive costs $14 a month per seat." }] }),
+    write: async () => bare,
+    model: "m",
+  };
+  await runBrief(store, deps, "b1", 1);
+  const cards = db.row.brief!.cards!;
+  assert.deepEqual(cards.find((c) => c.key === "h2-0")!.points, ["Per seat", "Yearly"]);
+  assert.deepEqual(cards.find((c) => c.key === "h2-1")!.points, ["Count seats"]);
+});

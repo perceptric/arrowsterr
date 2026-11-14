@@ -451,6 +451,11 @@ function notesPart(o: Record<string, unknown>, outline: OutlinePart[], meta: { k
     sitemap,
     sources,
   });
+  // A card that came back with no points takes its outline part's points, or its H3 titles (seen once in 20 topics).
+  for (const c of cards) {
+    const part = c.key === "intro" ? null : outline[Number(c.key.slice(3))];
+    if (!c.points.length && part) c.points = (part.points.length ? part.points : part.h3.map((h) => h.title)).slice(0, 8);
+  }
   const sh = (o.shape && typeof o.shape === "object" ? o.shape : {}) as Record<string, unknown>;
   return {
     notes: meta.notes,
