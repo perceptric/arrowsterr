@@ -147,7 +147,7 @@ export type Choices = { picks: string[]; about?: Record<string, string>; heading
 /**
  * The picker spec, checked: every pick is one of the article's picks or named in one of its headings, and every
  * answer points to a pick. An answer that points to a featured pick the list left out adds it (with the article's
- * line about it); more than 5 picks keeps the ones an answer reaches.
+ * line about it); a pick no answer reaches drops out, and a question keeps its first 4 answers.
  */
 export function checkPicker(x: unknown, choices: Choices | string[]): { ok: true; spec: PickerSpec } | { ok: false; error: string } {
   const c: Choices = Array.isArray(choices) ? { picks: choices } : choices;
@@ -191,16 +191,15 @@ export function checkPicker(x: unknown, choices: Choices | string[]): { ok: true
       if (label) answers.push({ label, pick });
     }
     const text = txt(qq.text, 140);
-    if (!text || answers.length < 2 || answers.length > 4) return { ok: false, error: "Each question needs words and 2 to 4 answers." };
-    questions.push({ text, answers });
+    // More than 4 answers keeps the first 4; a pick only the rest reached drops out below.
+    if (!text || answers.length < 2) return { ok: false, error: "Each question needs words and 2 to 4 answers." };
+    questions.push({ text, answers: answers.slice(0, 4) });
   }
   if (questions.length < 1 || questions.length > 3) return { ok: false, error: "The picker needs 1 to 3 questions." };
   const reached = new Set(questions.flatMap((q) => q.answers.map((a) => a.pick)));
-  // More than 5: keep the ones an answer reaches. Fewer than 5 that no answer reaches: refuse, so none is a dead end.
-  const kept = picks.length > 5 ? picks.filter((p) => reached.has(p.name)) : picks;
-  if (kept.length < 2 || kept.length > 5) return { ok: false, error: `The picker needs 2 to 5 picks an answer reaches; it has ${kept.length}.` };
-  const lost = kept.find((p) => !reached.has(p.name));
-  if (lost) return { ok: false, error: `No answer points to ${lost.name}.` };
+  // Only picks an answer reaches stay, so none is a dead end in the table.
+  const kept = picks.filter((p) => reached.has(p.name));
+  if (kept.length < 2 || kept.length > 5) return { ok: false, error: `The picker needs 2 to 5 picks that answers point to; it has ${kept.length}.` };
   const title = txt(o.title, 80);
   if (!title || kept.some((p) => !p.why)) return { ok: false, error: "The title and each pick's why need words." };
   return { ok: true, spec: { title, questions, picks: kept } };

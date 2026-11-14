@@ -168,3 +168,14 @@ test("a picker can choose between options its headings name, adds a featured pic
   assert.ok(trimmed.ok);
   assert.equal(trimmed.ok && trimmed.spec.picks.length, 4);
 });
+
+test("a pick no answer reaches drops out, and a question keeps its first 4 answers", () => {
+  const five = ["A1", "B2", "C3", "D4", "E5"];
+  const c = checkPicker(
+    { title: "t", picks: [...five, "F6"].map((name) => ({ name, why: "w" })), questions: [{ text: "q", answers: five.map((p) => ({ label: p, pick: p })) }] },
+    { picks: [...five, "F6"] },
+  );
+  assert.ok(c.ok);
+  assert.deepEqual(c.ok && c.spec.picks.map((p) => p.name), ["A1", "B2", "C3", "D4"]);
+  assert.equal(c.ok && c.spec.questions[0].answers.length, 4);
+});
