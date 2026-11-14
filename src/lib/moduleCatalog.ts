@@ -41,6 +41,13 @@ export const MODULE_KINDS: ModuleKind[] = [
       "A calculator: 2 to 5 inputs (sliders with a number field beside each, or plain number fields) on one side, and the result on the other in a large number with a one-line breakdown under it. The formula and the default values come from the sources and are named in a small line. Changing any input updates the result at once.",
   },
   {
+    id: "picker",
+    label: "Picker",
+    when: "Helping the reader choose between the article's own picks by answering a question or two about their situation.",
+    build:
+      "A picker: 1 to 3 questions, each with 2 to 4 answer cards as radio buttons; every answer points to one of the article's picks. The best fit for the answers so far shows in a result card with one line on who it suits. Under it, an All picks table lists each pick, who it fits and the answers that lead to it.",
+  },
+  {
     id: "comparison",
     label: "Comparison with filters",
     when: "Tools, plans or options compared, where readers care about different things.",
@@ -113,4 +120,7 @@ export const kindOf = (id: string): ModuleKind | null => MODULE_KINDS.find((k) =
 export const kindLabel = (id: string) => kindOf(id)?.label ?? LEGACY[id] ?? id;
 
 /** The list for the brief's prompt: each kind's id, name and when it helps. */
-export const kindsForPrompt = () => MODULE_KINDS.map((k) => `${k.id} (${k.label}): ${k.when}`).join("\n");
+export const kindsForPrompt = (only?: readonly string[]) =>
+  MODULE_KINDS.filter((k) => !only || only.includes(k.id))
+    .map((k) => `${k.id} (${k.label}): ${k.when}`)
+    .join("\n");

@@ -150,6 +150,7 @@ async function run(t) {
     styleFix: (prefix, prompt) => askJson(prompt, SECTION_SCHEMA, { system: STYLE_SYSTEM, prefix, maxTokens: 5000 }),
     ...(process.env.WRITER_OUT ? { polish: (prefix, prompt) => askJson(prompt, POLISH_SCHEMA, { system: POLISH_SYSTEM, prefix, maxTokens: 8000 }) } : {}),
     buildModule: (prefix, prompt) => askJson(prompt, MODULE_SCHEMA, { prefix, maxTokens: 12000 }),
+    spec: (prefix, prompt, schema) => askJson(prompt, schema, { prefix, maxTokens: 3000 }),
     model: MODEL,
     budgetMs: 60 * 60_000,
   };

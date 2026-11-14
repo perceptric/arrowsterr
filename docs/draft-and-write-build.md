@@ -168,6 +168,14 @@ The scorer checks that a number appears somewhere in the research, which is loos
 
 **Done when** both templates work on all five test sites and pass the module checks.
 
+**Status, November 14, 2026:** built (`src/lib/interactiveTemplates.ts`), ahead of Phase 2. Until the visual planner ships, the spec comes from the brief's planned module: briefs with fact notes plan only a picker or a calculator, and the draft asks Claude for that one spec (one retry with the reason), not for HTML.
+- **Calculator:** multiply, divide or percent, and both numbers must be in one fact note's quote. 5 of 5 planned on the recorded topics were built (4 on the first try).
+- **Picker:** every option is a featured pick or named in one of the article's headings (so "Kanban vs Scrum" works), and every answer points to one. 9 of 12 were built after the heading fix (0 of 13 before it). The checks now also drop a pick no answer reaches and keep a question's first 4 answers, which would have saved 2 of the 3 refused. The third named an option the article never offers, and that refusal is correct.
+- **Plain version:** the formula with a worked example, or the list of picks with who each fits and the answers that lead to it. It sits inside the block and as article text right after it.
+- **Size and height:** each block is under 6 KB (under 9 KB budget, so it fits Webflow's embed limit, check). Each carries its height on a 320px phone (`data-aw-h`), which publishing turns into the frame height for Webflow, Shopify, HubSpot and Framer, so nothing is cut off. WordPress's plugin resizes the frame itself.
+- **Checked in a browser** through the same publish path at 320, 390 and 900px wide: typing, the slider, arrow keys, Space on answers and the All picks table all work, with no errors and no sideways scroll.
+- **Still open:** the test on live WordPress, Webflow, Framer, Shopify and HubSpot test sites. None are set up yet.
+
 ### Phase 4. Write, live (1 week)
 
 1. **Write** approves the outline and starts the draft in one click, with today's guard against double clicks and double charges.
@@ -256,15 +264,17 @@ Claude Sonnet 5.5 at $2 in and $10 out per million tokens (check). 10 articles a
 | Claim ledger (more than today's check) | +2K in, +1.5K out | ~$0.02 |
 | Voice check | 10K in, 2K out | ~$0.04 |
 | Copyedit | 10K in, 2K out | ~$0.04 |
+| Picker and calculator spec (replaces a free HTML module build, ~6K out, check) | 3K in, 1K out a module | about -$0.03 an article |
 | House lint, fact audit, proof, rules | code | $0 |
 | Live view polling, templates | the VPS we have | $0 |
-| **Added per article** | | **~$0.32** |
+| **Added per article** | | **~$0.29** |
 
 | | Beta (50 teams) | Growth (500 teams) |
 |---|---|---|
-| Added a month | **~$160** | **~$1,600** |
+| Added a month | **~$145** | **~$1,450** |
 | Of that, Phase 1 (shipped) | ~$85 | ~$850 |
-| Writer total with today's measured ~$1.01 an article (Phase 0 baseline) | ~$665 | ~$6,650 |
+| Of that, Phase 3 (shipped, check) | about -$15 | about -$150 |
+| Writer total with today's measured ~$1.01 an article (Phase 0 baseline) | ~$650 | ~$6,500 |
 
 This replaces the ~$95 and ~$950 in the plan, which left out the fact notes call.
 

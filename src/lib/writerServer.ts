@@ -185,6 +185,8 @@ const draftDeps = (db: SupabaseClient): DraftDeps => ({
   // The polish pass: five more writing skills as their own cached system prompt (writerPolish.ts).
   polish: (prefix, prompt) => askJson(prompt, POLISH_SCHEMA, { system: POLISH_SYSTEM, prefix, model: writerModel(), maxTokens: 8000 }),
   buildModule: (prefix, prompt) => askJson(prompt, MODULE_SCHEMA, { prefix, model: writerModel(), maxTokens: 12000 }),
+  // The picker and the calculator: a small spec, built into the block by code (interactiveTemplates.ts).
+  spec: (prefix, prompt, schema) => askJson(prompt, schema, { prefix, model: writerModel(), maxTokens: 3000 }),
   // Screenshots and branded images, made by the worker (writerImagesServer.ts, 057_writer_images.sql).
   images: draftImages(db, writerModel()),
   model: writerModel(),
