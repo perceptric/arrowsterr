@@ -101,11 +101,13 @@ for (const t of topics()) {
     for (const m of b.modules.filter((x) => isTemplate(x.type))) {
       const card = cards.find((c) => c.h2.toLowerCase() === m.placement.toLowerCase());
       const picks = (b.examples ?? []).map((e) => e.name);
+      const about = Object.fromEntries((b.examples ?? []).map((e) => [e.name, e.opener]));
+      const headings = [b.h1, ...b.outline.map((o) => o.h2)];
       let error = null;
       let built = null;
       for (let tries = 0; tries < 2 && !built; tries++) {
-        const raw = await askJson(specPrompt(m.type, m, { keyword: f.keyword, brand: ctx.brand.name, section: card ? `${card.h2}\n${card.points.join("\n")}` : "", notes, picks }, error), specSchema(m.type), { prefix: `${row.keyword}`, maxTokens: 3000 });
-        const t = buildTemplate(m.type, raw, { notes, picks, sources: b.research.sources });
+        const raw = await askJson(specPrompt(m.type, m, { keyword: f.keyword, brand: ctx.brand.name, section: card ? `${card.h2}\n${card.points.join("\n")}` : "", notes, picks, headings }, error), specSchema(m.type), { prefix: `${row.keyword}`, maxTokens: 3000 });
+        const t = buildTemplate(m.type, raw, { notes, picks, about, headings, sources: b.research.sources });
         const v = t.ok ? validateModule(t.html) : t;
         if (t.ok && v.ok) built = { tries: tries + 1, bytes: t.html.length, height: Number(t.html.match(/data-aw-h="(\d+)"/)?.[1]), text: t.text.map((x) => x.text || x.items.join(" | ")).join(" ").slice(0, 300) };
         else error = v.ok ? "" : v.error;

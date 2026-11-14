@@ -663,8 +663,10 @@ export async function runDraft(store: DraftStore, deps: DraftDeps, id: string, v
     if (deps.spec && brief.notes && isTemplate(m.type)) {
       // A template (Phase 3): Claude fills a small spec, code checks it and builds the block.
       const picks = examples.map((e) => e.name);
-      const raw = await deps.spec(prefix, specPrompt(m.type, m, { keyword: b.keyword, brand: ctx.brand.name, section: sectionText, notes: brief.notes, picks }, state?.error), specSchema(m.type));
-      const built = buildTemplate(m.type, raw, { notes: brief.notes, picks, sources: brief.research.sources });
+      const about = Object.fromEntries(examples.map((e) => [e.name, e.opener]));
+      const headings = [brief.h1, ...brief.outline.map((o) => o.h2)];
+      const raw = await deps.spec(prefix, specPrompt(m.type, m, { keyword: b.keyword, brand: ctx.brand.name, section: sectionText, notes: brief.notes, picks, headings }, state?.error), specSchema(m.type));
+      const built = buildTemplate(m.type, raw, { notes: brief.notes, picks, about, headings, sources: brief.research.sources });
       const v = built.ok ? validate(built.html) : built;
       mods[j] = built.ok && v.ok ? { status: "ok", attempts, html: wrapModule(built.html, m, ctx.kit), error: null, text: built.text } : { status: attempts >= MODULE_TRIES ? "dropped" : "retry", attempts, html: null, error: v.ok ? "" : v.error };
     } else {

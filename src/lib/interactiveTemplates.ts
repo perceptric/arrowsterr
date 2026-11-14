@@ -56,7 +56,7 @@ export const specSchema = (kind: TemplateKind) => (kind === "calculator" ? CALCU
 export function specPrompt(
   kind: TemplateKind,
   m: { title: string; purpose: string; placement: string; inputs: string[]; outputs: string[]; data: string; why: string },
-  ctx: { keyword: string; brand: string; section: string; notes: FactNote[]; picks: string[] },
+  ctx: { keyword: string; brand: string; section: string; notes: FactNote[]; picks: string[]; headings?: string[] },
   lastError?: string | null,
 ): string {
   const head = `Fill the spec for one ${kind} in ${ctx.brand}'s article on "${ctx.keyword}". It goes right after the section "${m.placement}". Code builds the ${kind} from the spec.
@@ -82,12 +82,12 @@ Rules:
 - title: a short name for the calculator. Labels are plain words, under 60 characters.`;
   }
   return `${head}
-The article's picks: ${ctx.picks.join("; ") || "none"}
+${ctx.picks.length >= 2 ? `The article's picks: ${ctx.picks.join("; ")}` : `The article's headings (the options it compares are named in them):\n${(ctx.headings ?? []).join("\n")}`}
 
 Rules:
-- picks: 2 to 5 of the article's picks, named exactly as above, each with why: one sentence on who it fits, from the article.
-- questions: 1 to 3 questions about the reader's situation, each with 2 to 4 short answers. Each answer's pick is the pick it points to, named exactly as in picks.
-- Every pick is reachable from at least one answer.
+- picks: 2 to 5 options, each ${ctx.picks.length >= 2 ? "one of the article's picks, named exactly as above" : "an option the article compares, named with words taken from a heading above (like \"Kanban\" or \"Tankless\")"}, each with why: one sentence on who it fits, from the article.
+- questions: 1 to 3 questions about the reader's situation, each with 2 to 4 short answers. Each answer's pick is the pick it points to, written exactly as in picks. Every answer points to a pick in picks.
+- Every pick is reachable from at least one answer. No more than 5 picks.
 - title: a short name for the picker. Plain words.`;
 }
 
@@ -140,28 +140,53 @@ export function checkCalculator(x: unknown, notes: FactNote[]): { ok: true; spec
   return { ok: true, spec, note };
 }
 
-/** The picker spec, checked: every pick is one of the article's picks, and every answer points to one of them. */
-export function checkPicker(x: unknown, articlePicks: string[]): { ok: true; spec: PickerSpec } | { ok: false; error: string } {
+/** What a picker may choose between: the article's featured picks (with a line about each) and its headings, which
+ * name the options a comparison weighs ("Kanban", "Scrum"). */
+export type Choices = { picks: string[]; about?: Record<string, string>; headings?: string[] };
+
+/**
+ * The picker spec, checked: every pick is one of the article's picks or named in one of its headings, and every
+ * answer points to a pick. An answer that points to a featured pick the list left out adds it (with the article's
+ * line about it); more than 5 picks keeps the ones an answer reaches.
+ */
+export function checkPicker(x: unknown, choices: Choices | string[]): { ok: true; spec: PickerSpec } | { ok: false; error: string } {
+  const c: Choices = Array.isArray(choices) ? { picks: choices } : choices;
   const o = (x && typeof x === "object" ? x : {}) as Record<string, unknown>;
-  const known = new Map(articlePicks.map((p) => [norm(p), p]));
-  if (known.size < 2) return { ok: false, error: "The article has fewer than 2 picks to choose between." };
+  const featured = new Map(c.picks.map((p) => [norm(p), p]));
+  const heads = (c.headings ?? []).map((h) => ` ${norm(h)} `);
+  // A name the article stands behind: a featured pick as the article writes it, or words one of its headings has.
+  const resolve = (raw: string): string | null => {
+    const n = norm(raw);
+    if (!n) return null;
+    if (featured.has(n)) return featured.get(n)!;
+    return n.length >= 3 && heads.some((h) => h.includes(` ${n} `)) ? raw.replace(/\s+/g, " ").trim() : null;
+  };
+  const choicesLine = [...c.picks, ...(c.headings ?? [])].slice(0, 12).join("; ");
   const picks: PickerSpec["picks"] = [];
+  const add = (name: string, why: string) => {
+    if (!picks.some((p) => norm(p.name) === norm(name))) picks.push({ name, why });
+  };
   for (const p of Array.isArray(o.picks) ? o.picks : []) {
     const q = (p && typeof p === "object" ? p : {}) as Record<string, unknown>;
-    const name = known.get(norm(txt(q.name, 120)));
-    if (!name) return { ok: false, error: `"${txt(q.name, 120)}" isn't one of the article's picks.` };
-    if (!picks.some((x) => x.name === name)) picks.push({ name, why: txt(q.why, 200) });
+    const name = resolve(txt(q.name, 120));
+    if (!name) return { ok: false, error: `"${txt(q.name, 120)}" isn't one of the article's picks or named in its headings. Use names from: ${choicesLine}.` };
+    add(name, txt(q.why, 200) || c.about?.[name] || "");
   }
-  if (picks.length < 2 || picks.length > 5) return { ok: false, error: "The picker needs 2 to 5 picks." };
-  const named = new Map(picks.map((p) => [norm(p.name), p.name]));
   const questions: PickerSpec["questions"] = [];
   for (const q of Array.isArray(o.questions) ? o.questions : []) {
     const qq = (q && typeof q === "object" ? q : {}) as Record<string, unknown>;
     const answers: PickerSpec["questions"][number]["answers"] = [];
     for (const a of Array.isArray(qq.answers) ? qq.answers : []) {
       const aa = (a && typeof a === "object" ? a : {}) as Record<string, unknown>;
-      const pick = named.get(norm(txt(aa.pick, 120)));
-      if (!pick) return { ok: false, error: `The answer "${txt(aa.label, 80)}" points to "${txt(aa.pick, 120)}", which isn't one of the picks.` };
+      const want = txt(aa.pick, 120);
+      let pick = picks.find((p) => norm(p.name) === norm(want))?.name;
+      // A featured pick the list left out joins it, with the article's line about it.
+      const found = !pick ? resolve(want) : null;
+      if (found && c.about?.[found]) {
+        add(found, c.about[found]);
+        pick = found;
+      }
+      if (!pick) return { ok: false, error: `The answer "${txt(aa.label, 80)}" points to "${want}", which isn't in picks. Point every answer to one of: ${picks.map((p) => p.name).join("; ")}.` };
       const label = txt(aa.label, 80);
       if (label) answers.push({ label, pick });
     }
@@ -171,11 +196,14 @@ export function checkPicker(x: unknown, articlePicks: string[]): { ok: true; spe
   }
   if (questions.length < 1 || questions.length > 3) return { ok: false, error: "The picker needs 1 to 3 questions." };
   const reached = new Set(questions.flatMap((q) => q.answers.map((a) => a.pick)));
-  const lost = picks.find((p) => !reached.has(p.name));
+  // More than 5: keep the ones an answer reaches. Fewer than 5 that no answer reaches: refuse, so none is a dead end.
+  const kept = picks.length > 5 ? picks.filter((p) => reached.has(p.name)) : picks;
+  if (kept.length < 2 || kept.length > 5) return { ok: false, error: `The picker needs 2 to 5 picks an answer reaches; it has ${kept.length}.` };
+  const lost = kept.find((p) => !reached.has(p.name));
   if (lost) return { ok: false, error: `No answer points to ${lost.name}.` };
   const title = txt(o.title, 80);
-  if (!title || picks.some((p) => !p.why)) return { ok: false, error: "The title and each pick's why need words." };
-  return { ok: true, spec: { title, questions, picks } };
+  if (!title || kept.some((p) => !p.why)) return { ok: false, error: "The title and each pick's why need words." };
+  return { ok: true, spec: { title, questions, picks: kept } };
 }
 
 // ─────────────── the math, shared by the markup and the script ───────────────
@@ -300,7 +328,7 @@ export function templateText(kind: TemplateKind, spec: CalculatorSpec | PickerSp
 }
 
 /** One template from its spec: checked, rendered and kept under the size budget, or the reason it can't be built. */
-export function buildTemplate(kind: TemplateKind, raw: unknown, ctx: { notes: FactNote[]; picks: string[]; sources: { n: number; domain: string }[] }): Built {
+export function buildTemplate(kind: TemplateKind, raw: unknown, ctx: { notes: FactNote[]; picks: string[]; about?: Record<string, string>; headings?: string[]; sources: { n: number; domain: string }[] }): Built {
   let html: string;
   let text: TextBlock[];
   if (kind === "calculator") {
@@ -310,7 +338,7 @@ export function buildTemplate(kind: TemplateKind, raw: unknown, ctx: { notes: Fa
     html = calculatorHtml(c.spec, source);
     text = templateText(kind, c.spec, source);
   } else {
-    const c = checkPicker(raw, ctx.picks);
+    const c = checkPicker(raw, { picks: ctx.picks, about: ctx.about, headings: ctx.headings });
     if (!c.ok) return c;
     html = pickerHtml(c.spec);
     text = templateText(kind, c.spec, "");

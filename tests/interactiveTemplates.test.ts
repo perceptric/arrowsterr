@@ -146,3 +146,25 @@ test("a template carries its phone height into the published block, for CMSs wit
   assert.match(html, new RegExp(`data-aw-height="${h}"`));
   assert.match(framedModules(html), new RegExp(`height:${h}px`));
 });
+
+test("a picker can choose between options its headings name, adds a featured pick its answers reach, and trims to 5", () => {
+  const vs = checkPicker(
+    { title: "Which fits", picks: [{ name: "Kanban", why: "Teams with a steady flow of work." }, { name: "Scrum", why: "Teams that plan in sprints." }], questions: [{ text: "How does work arrive?", answers: [{ label: "All the time", pick: "kanban" }, { label: "In batches", pick: "Scrum" }] }] },
+    { picks: [], headings: ["Kanban vs Scrum: Which Fits Your Team", "What Kanban is", "What Scrum is"] },
+  );
+  assert.ok(vs.ok, vs.ok ? "" : vs.error);
+  assert.equal(checkPicker({ title: "x", picks: [{ name: "Waterfall", why: "y" }, { name: "Scrum", why: "z" }], questions: [] }, { picks: [], headings: ["What Scrum is"] }).ok, false);
+  const added = checkPicker(
+    { title: "Which tool", picks: [{ name: "Asana", why: "Many steps." }], questions: [{ text: "How?", answers: [{ label: "Steps", pick: "Asana" }, { label: "Boards", pick: "Trello" }] }] },
+    { picks: ["Asana", "Trello"], about: { Trello: "Trello is a board tool for small teams." } },
+  );
+  assert.ok(added.ok);
+  assert.deepEqual(added.ok && added.spec.picks.map((p) => p.name), ["Asana", "Trello"]);
+  const many = ["A1", "B2", "C3", "D4", "E5", "F6", "G7"];
+  const trimmed = checkPicker(
+    { title: "t", picks: many.map((name) => ({ name, why: "w" })), questions: [{ text: "q", answers: many.slice(0, 4).map((p) => ({ label: p, pick: p })) }] },
+    { picks: many },
+  );
+  assert.ok(trimmed.ok);
+  assert.equal(trimmed.ok && trimmed.spec.picks.length, 4);
+});
