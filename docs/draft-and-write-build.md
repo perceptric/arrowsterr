@@ -122,6 +122,14 @@ The scorer checks that a number appears somewhere in the research, which is loos
 
 **Done when** every card on the 20 topics has a job, points and only real fact ids, and no note's quote is missing from its page.
 
+**Status, November 14, 2026:** shipped. On the 20 recorded topics (`scripts/writer-notes.mjs`):
+- 20 of 20 pass: every card has a job, points and only real fact ids.
+- 0 of 735 notes have a quote missing from their page. Code dropped 34 notes the model sent whose quote or numbers didn't match.
+- 37 notes and 9 cards an article on average, every card citing at least one note, and about 8 Detail needed gaps an article.
+- Two fixes came from the run. The intro card went first in the schema and the brief reply got 20,000 tokens, after 4 long replies were cut off before the intro. A card with no points takes its outline part's points (1 topic).
+- The H1 or an H2 misses a long keyword on 11 topics (the check wants every word of the keyword). That rule isn't part of done-when and is left for Phase 5.
+- The notes call and the brief call don't share the prompt cache yet (0 cache reads). Fixing that saves about $0.05 an article.
+
 ### Phase 2. Visual planner (1.5 weeks)
 
 1. **Rules** (`visualPlan.ts`, pure). Each card is read for one visual at most:
@@ -243,20 +251,20 @@ Claude Sonnet 5.5 at $2 in and $10 out per million tokens (check). 10 articles a
 
 | Line | Tokens per article | Each |
 |---|---|---|
-| Fact notes | 15K in, 3K out | ~$0.06 |
-| Brief, shape and cards (more than today's outline) | +4K in, +2K out | ~$0.03 |
+| Fact notes, brief, shape and cards (measured on 20 topics: both calls ~$0.30, less today's brief ~$0.13, check) | 8K in, 45K cache write, 17K out | ~$0.17 |
 | Visual pick and specs | 8K in, 3K out | ~$0.05 |
 | Claim ledger (more than today's check) | +2K in, +1.5K out | ~$0.02 |
 | Voice check | 10K in, 2K out | ~$0.04 |
 | Copyedit | 10K in, 2K out | ~$0.04 |
 | House lint, fact audit, proof, rules | code | $0 |
 | Live view polling, templates | the VPS we have | $0 |
-| **Added per article** | | **~$0.24** |
+| **Added per article** | | **~$0.32** |
 
 | | Beta (50 teams) | Growth (500 teams) |
 |---|---|---|
-| Added a month | **~$120** | **~$1,200** |
-| Writer total with today's measured ~$1.01 an article (Phase 0 baseline) | ~$625 | ~$6,250 |
+| Added a month | **~$160** | **~$1,600** |
+| Of that, Phase 1 (shipped) | ~$85 | ~$850 |
+| Writer total with today's measured ~$1.01 an article (Phase 0 baseline) | ~$665 | ~$6,650 |
 
 This replaces the ~$95 and ~$950 in the plan, which left out the fact notes call.
 
