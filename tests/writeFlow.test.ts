@@ -17,7 +17,7 @@ test("an outline being made shows its step", () => {
 });
 
 test("a ready or approved outline with no draft offers Write draft", () => {
-  assert.deepEqual(writeState({ item, brief: brief("ready"), draft: null }), { kind: "draft", briefId: "b1" });
+  assert.deepEqual(writeState({ item, brief: brief("ready"), draft: null }), { kind: "review", briefId: "b1" });
   assert.deepEqual(writeState({ item, brief: brief("approved"), draft: null }), { kind: "draft", briefId: "b1" });
 });
 
@@ -73,6 +73,7 @@ test("the Library filter groups each state", () => {
   assert.equal(libraryGroup({ kind: "busy", label: "Researching" }), "outlines");
   assert.equal(libraryGroup({ kind: "busy", label: "Reviewing" }), "drafts");
   assert.equal(libraryGroup({ kind: "draft", briefId: "b" }), "outlines");
+  assert.equal(libraryGroup({ kind: "review", briefId: "b" }), "outlines");
   assert.equal(libraryGroup({ kind: "publish", docId: "d", draftId: "x", briefId: "b" }), "drafts");
   assert.equal(libraryGroup({ kind: "retry", target: "draft", error: "e", briefId: "b" }), "drafts");
   assert.equal(libraryGroup({ kind: "retry", target: "outline", error: "e", briefId: "b" }), "outlines");

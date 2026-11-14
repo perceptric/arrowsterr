@@ -4,7 +4,8 @@ import { startArticleResearch } from "./articleResearchServer";
 import { loadBrandContext } from "./brandContext";
 import { askJson, claudeModel } from "./claude";
 import { enqueue, finish, retry, type Job } from "./jobs";
-import { BRIEF_SCHEMA, drive, runBrief, toPack, type ResearchRows, type BriefDeps, type BriefRow, type BriefStore, type Outcome, type ResearchPack, type WriterContext } from "./writerBrief";
+import { NOTES_SCHEMA } from "./articleNotes";
+import { drive, runBrief, toPack, type ResearchRows, type BriefDeps, type BriefRow, type BriefStore, type Outcome, type ResearchPack, type WriterContext } from "./writerBrief";
 import { chainDraft, CHECK_SCHEMA, requestDraft, runDraft, SECTION_SCHEMA, type DraftAsk, type DraftDeps, type DraftRow, type DraftStore, type QuotaStore, type ChainStore } from "./writerDraft";
 import { MODULE_SCHEMA } from "./writerModules";
 import { ensureBrandSetup } from "./brandSetupServer";
@@ -154,7 +155,9 @@ const briefDeps = (db: SupabaseClient): BriefDeps => ({
     const [ctx, item] = await Promise.all([loadWriterContext(db, b.site_id, b.brand_id), db.from("calendar_items").select("stage").eq("id", b.item_id).maybeSingle()]);
     return { ...ctx, stage: ((item.data as { stage?: WriterContext["stage"] } | null)?.stage ?? null) };
   },
-  write: (prefix, prompt) => askJson(prompt, BRIEF_SCHEMA, { prefix, model: writerModel(), maxTokens: 12000 }),
+  write: (prefix, prompt, schema) => askJson(prompt, schema, { prefix, model: writerModel(), maxTokens: 20000 }),
+  // Draft and Write, Phase 1: the fact notes the writer reads, each quoting its page word for word.
+  notes: (prefix, prompt) => askJson(prompt, NOTES_SCHEMA, { prefix, model: writerModel(), maxTokens: 8000 }),
   readPage: readExample,
   model: writerModel(),
 });
@@ -265,6 +268,14 @@ export async function draftFromOutline(db: SupabaseClient, briefId: string) {
   return chainDraft(chainStore(db), quotaStore(db), briefId, { limit: e.limits.draftsPerBrand ?? 0, period: periodOf("tasks", new Date(), e.anchor) });
 }
 
+/** True when the brief's workspace skips the outline review (ai_settings.writeWithoutReview). */
+async function writesWithoutReview(db: SupabaseClient, briefId: string): Promise<boolean> {
+  const row = must(await db.from("writer_briefs").select("workspace_id").eq("id", briefId).maybeSingle()) as { workspace_id: string } | null;
+  if (!row) return false;
+  const { data } = await db.from("workspaces").select("ai_settings").eq("id", row.workspace_id).maybeSingle();
+  return Boolean((data?.ai_settings as { writeWithoutReview?: boolean } | null)?.writeWithoutReview);
+}
+
 /**
  * writer_brief: wait for the article research without using up attempts, then write the outline. There's no brief to
  * review (docs/drafts-plan.md): once the outline is written, the draft starts in the same turn.
@@ -273,7 +284,9 @@ export async function writerBriefJob(db: SupabaseClient, job: Job) {
   const { id = "", version } = payloadOf(job);
   const step = async (): Promise<Outcome> => {
     const out = await runBrief(briefStore(db), briefDeps(db), id, version);
-    if (out.state === "done") await draftFromOutline(db, id);
+    // Draft and Write, Phase 1: the outline waits for a person's review (the outline screen's Write button), unless
+    // the workspace turned on Write without review (Settings > AI) for bulk runs.
+    if (out.state === "done" && (await writesWithoutReview(db, id))) await draftFromOutline(db, id);
     return out;
   };
   await drive(job, Q, step, async (error) => {

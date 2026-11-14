@@ -12,6 +12,7 @@ import { PublishPanel } from "../research/PublishPanel";
 import { post } from "../research/shared";
 import { brandTables } from "../research/Writer";
 import { exportClean } from "../research/writerNodes";
+import { openInLibrary } from "./parts";
 
 // The Write cell (docs/agentic-writing.md, section 1, and docs/drafts-plan.md): Write draft, Publish content and View
 // post, with the open button beside it. Write draft researches and outlines in the background, then writes the draft;
@@ -51,6 +52,8 @@ export function WriteButton({ state, busy, canEdit, onAct, onOpen }: { state: Wr
         <span className="text-muted">–</span>
       ) : s.kind === "outline" || s.kind === "draft" ? (
         main("Write draft")
+      ) : s.kind === "review" ? (
+        main("Review outline")
       ) : s.kind === "publish" ? (
         main("Publish content")
       ) : (
@@ -77,6 +80,7 @@ export function useWriteActions({
   onChanged,
   beforeOutline,
   onUpgrade,
+  onReview,
 }: {
   sb: SupabaseClient;
   auth: RunAuth;
@@ -87,6 +91,8 @@ export function useWriteActions({
   beforeOutline?: (itemId: string) => Promise<void> | void;
   /** Set when this workspace's plan has no writer: the buttons open the plans page. */
   onUpgrade?: () => void;
+  /** Open the outline screen for a written outline (Review outline). */
+  onReview?: (briefId: string) => void;
 }) {
   const [busy, setBusy] = useState<Set<string>>(new Set());
   const [error, setError] = useState("");
@@ -128,6 +134,11 @@ export function useWriteActions({
     if (s.kind === "view") return void window.open(s.url, "_blank", "noopener,noreferrer");
     if (!canEdit) return;
     if (onUpgrade) return onUpgrade();
+    if (s.kind === "review") {
+      if (onReview) return onReview(s.briefId);
+      if (brandId) return openInLibrary(brandId, { kind: "outline", id: s.briefId });
+      return void window.open(`/drafts?outline=${encodeURIComponent(s.briefId)}`, "_blank", "noopener");
+    }
     setError("");
     mark(p.id, true);
     try {
@@ -147,13 +158,14 @@ export function useWriteActions({
     if (!canEdit) return;
     if (onUpgrade) return onUpgrade();
     setError("");
-    const todo = list.filter(({ state: s }) => s.kind === "outline" || s.kind === "draft" || s.kind === "retry");
+    // Bulk Write skips the outline review: the person asked for these drafts.
+    const todo = list.filter(({ state: s }) => s.kind === "outline" || s.kind === "draft" || s.kind === "review" || s.kind === "retry");
     const errors: string[] = [];
     for (const { piece } of todo) mark(piece.id, true);
     for (const { piece, state: s } of todo) {
       try {
         if (s.kind === "outline" || (s.kind === "retry" && s.target === "outline")) await writeOutline(piece);
-        else if ((s.kind === "draft" || s.kind === "retry") && s.briefId) await post(auth, "/api/agentic-writer", { action: "draft", briefId: s.briefId });
+        else if ((s.kind === "draft" || s.kind === "review" || s.kind === "retry") && s.briefId) await post(auth, "/api/agentic-writer", { action: "draft", briefId: s.briefId });
       } catch (e) {
         errors.push(`${piece.keyword}: ${e instanceof Error ? e.message : String(e)}`);
       } finally {

@@ -91,7 +91,7 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
     load();
   }, [load]);
   usePoll(Boolean(rows?.some(making)), 5000, load);
-  const actions = useWriteActions({ sb, auth, brandId, siteId: site.id, canEdit, onChanged: () => void load() });
+  const actions = useWriteActions({ sb, auth, brandId, siteId: site.id, canEdit, onChanged: () => void load(), onReview: (id) => onOpen({ kind: "outline", id }) });
 
   const list = useMemo(() => (rows ?? []).filter((r) => filter === "all" || libraryGroup(stateOf(r)) === filter), [rows, filter]);
   const pairs = useMemo(() => new Map(list.map((r) => [r.topic.id, contentPairs(r.doc, r.plan)])), [list]);

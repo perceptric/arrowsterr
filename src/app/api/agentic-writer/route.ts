@@ -3,7 +3,7 @@ import { entitlement, requireActive, requireWriter } from "@/lib/entitlements";
 import { queueReady } from "@/lib/jobs";
 import { periodOf } from "@/lib/plans";
 import { adminClient, requireRole } from "@/lib/serverAuth";
-import type { BriefRow } from "@/lib/writerBrief";
+import { editBrief, type BriefRow } from "@/lib/writerBrief";
 import { startBrief, startDraft } from "@/lib/writerServer";
 
 // The Agentic Writer's actions (supabase/050_agentic_writer.sql). Lists and progress are read by the browser.
@@ -12,7 +12,9 @@ import { startBrief, startDraft } from "@/lib/writerServer";
 //   { action: "draft", briefId, note?, confirm? }    Write draft from an outline that has none yet, or Regenerate it
 //                                                    (confirm: replace hand edits). A ready outline is approved first.
 //   { action: "remove", itemId }                     take a topic out of the writer; its brief and draft stay
-const ACTIONS = ["brief", "draft", "remove"];
+//   { action: "edit", briefId, patch }               the outline screen's edits (editBrief): headings, points, facts
+//                                                    dropped, visuals and modules turned off, H1, slug and meta
+const ACTIONS = ["brief", "draft", "remove", "edit"];
 const fail = (error: string, status: number) => Response.json({ error }, { status });
 
 export async function POST(request: Request) {
@@ -48,6 +50,16 @@ export async function POST(request: Request) {
       const { error } = await db.from("calendar_items").update({ extra }).eq("id", it.id);
       if (error) return fail(error.message, 500);
       return Response.json({ ok: true });
+    }
+
+    if (action === "edit") {
+      const b = await brief();
+      if (!b?.brief) return fail("Outline not found.", 404);
+      if (b.status === "generating") return fail("This outline is still being written.", 409);
+      const next = editBrief(b.brief, body.patch);
+      const { error } = await db.from("writer_briefs").update({ brief: next, updated_at: new Date().toISOString() }).eq("id", b.id);
+      if (error) return fail(error.message, 500);
+      return Response.json({ ok: true, brief: next });
     }
 
     // Generating spends: the plan must have the writer, and the workspace must be active.
