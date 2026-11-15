@@ -18,7 +18,7 @@ export function newKey() {
 }
 
 /** The workspace an API request belongs to, from its key. Returns a Response when the key is missing, wrong or not allowed. */
-export async function apiAuth(request: Request): Promise<{ db: SupabaseClient; ws: string } | { denied: Response }> {
+export async function apiAuth(request: Request, opts: { mcp?: boolean } = {}): Promise<{ db: SupabaseClient; ws: string } | { denied: Response }> {
   const deny = (error: string, status: number) => ({ denied: Response.json({ error }, { status }) });
   const db = adminClient();
   if (!db) return deny("The API is not set up on the server.", 500);
@@ -28,7 +28,7 @@ export async function apiAuth(request: Request): Promise<{ db: SupabaseClient; w
   if (!data || data.revoked_at) return deny("This API key is not valid.", 401);
   const e = await entitlement(data.workspace_id);
   if (e.readOnly) return deny("This workspace is read-only.", 402);
-  if (!e.limits.alerts) return deny("The API is on Pro and up.", 403);
+  if (opts.mcp ? !e.limits.mcp : !e.limits.alerts) return deny(opts.mcp ? "The MCP server is on Starter and up." : "The API is on Pro and up.", 403);
   await db.from("api_keys").update({ last_used_at: new Date().toISOString() }).eq("id", data.id);
   return { db, ws: data.workspace_id };
 }

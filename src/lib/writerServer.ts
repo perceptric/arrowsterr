@@ -10,7 +10,7 @@ import { chainDraft, CHECK_SCHEMA, requestDraft, runDraft, SECTION_SCHEMA, type 
 import { MODULE_SCHEMA } from "./writerModules";
 import { ensureBrandSetup } from "./brandSetupServer";
 import { entitlement } from "./entitlements";
-import { periodOf } from "./plans";
+import { draftQuota, periodOf } from "./plans";
 import { DEFAULT_SAMPLE } from "./houseRules";
 import { pageText } from "./pageText";
 import { safeFetch } from "./safeFetch";
@@ -94,10 +94,12 @@ export function quotaStore(db: SupabaseClient): QuotaStore {
       const doc = must(await db.from("docs").select("updated_at").eq("id", d.doc_id).maybeSingle()) as { updated_at: string } | null;
       return Boolean(doc && Date.parse(doc.updated_at) > Date.parse(d.ready_at) + 1000);
     },
-    async take(row, limit) {
-      const rows = must(
-        await db.rpc("writer_take_draft", { p_workspace: row.workspace_id, p_brand: row.brand_id, p_site: row.site_id, p_item: row.item_id, p_brief: row.brief_id, p_period: row.period, p_limit: limit, p_user: row.created_by }),
-      ) as { draft_id: string | null; outcome: "created" | "exists" | "full" }[] | null;
+    async take(row, limit, scope = "brand") {
+      const args = { p_workspace: row.workspace_id, p_brand: row.brand_id, p_site: row.site_id, p_item: row.item_id, p_brief: row.brief_id, p_period: row.period, p_limit: limit, p_user: row.created_by };
+      let res = await db.rpc("writer_take_draft", { ...args, p_scope: scope });
+      // Before 088_writer_workspace_quota.sql: the old function counts per brand.
+      if (res.error && /writer_take_draft|p_scope/.test(res.error.message)) res = await db.rpc("writer_take_draft", args);
+      const rows = must(res) as { draft_id: string | null; outcome: "created" | "exists" | "full" }[] | null;
       const r = rows?.[0];
       return { outcome: r?.outcome ?? "full", id: r?.draft_id ?? null };
     },
@@ -267,7 +269,7 @@ export async function draftFromOutline(db: SupabaseClient, briefId: string) {
   const row = must(await db.from("writer_briefs").select("workspace_id").eq("id", briefId).maybeSingle()) as { workspace_id: string } | null;
   if (!row) return { state: "skipped" as const, why: "gone" };
   const e = await entitlement(row.workspace_id);
-  return chainDraft(chainStore(db), quotaStore(db), briefId, { limit: e.limits.draftsPerBrand ?? 0, period: periodOf("tasks", new Date(), e.anchor) });
+  return chainDraft(chainStore(db), quotaStore(db), briefId, draftQuota(e.limits, periodOf("tasks", new Date(), e.anchor)));
 }
 
 /** True when the brief's workspace skips the outline review (ai_settings.writeWithoutReview). */

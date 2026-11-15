@@ -1,6 +1,6 @@
 import "server-only";
 import { forgetEntitlement } from "./entitlements";
-import { dailyAnswers, limitsFor, planOfLookup, type Extras } from "./plans";
+import { dailyAnswers, limitsFor, planOfLookup, PRICE_VERSION, type Extras } from "./plans";
 import { adminClient } from "./serverAuth";
 import { stripe, type Subscription } from "./stripe";
 
@@ -44,11 +44,22 @@ export async function syncSubscription(sub: Subscription) {
   // A price with no Arrowsterr lookup key keeps the plan as it is, so nobody gets a plan they didn't pay for.
   if (!found && status !== "canceled") console.error(`Subscription ${sub.id} has a price with no Arrowsterr lookup key. Plan left as ${w?.plan ?? "trial"}.`);
   const plan = found?.plan ?? w?.plan ?? "trial";
-  const limits = limitsFor(plan, (w?.extras ?? {}) as Extras);
+  // A v5 or older price keeps its v5 limits and Starter's toolset pick. A v6 price gets v6 limits and both toolsets.
+  const extras = { ...((w?.extras ?? {}) as Extras) };
+  if (found) {
+    if (found.version < PRICE_VERSION) extras.limitsFrom = "v5";
+    else {
+      delete extras.limitsFrom;
+      delete extras.track;
+      delete extras.trackAt;
+    }
+  }
+  const limits = limitsFor(plan, extras);
   const { error } = await db
     .from("workspaces")
     .update({
       plan,
+      extras,
       plan_status: status,
       stripe_customer_id: sub.customer,
       stripe_subscription_id: sub.id,

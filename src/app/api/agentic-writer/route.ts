@@ -1,7 +1,7 @@
 import { dfsReady } from "@/lib/dataforseo";
 import { entitlement, requireActive, requireWriter } from "@/lib/entitlements";
 import { queueReady } from "@/lib/jobs";
-import { periodOf } from "@/lib/plans";
+import { draftQuota, periodOf } from "@/lib/plans";
 import { adminClient, requireRole } from "@/lib/serverAuth";
 import { editBrief, type BriefRow } from "@/lib/writerBrief";
 import { startBrief, startDraft } from "@/lib/writerServer";
@@ -89,8 +89,7 @@ export async function POST(request: Request) {
     const e = await entitlement(ws);
     const out = await startDraft(db, {
       brief: b,
-      limit: e.limits.draftsPerBrand ?? 0,
-      period: periodOf("tasks", new Date(), e.anchor),
+      ...draftQuota(e.limits, periodOf("tasks", new Date(), e.anchor)),
       note: typeof body.note === "string" ? body.note : null,
       confirm: body.confirm === true,
       userId,

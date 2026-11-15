@@ -21,7 +21,7 @@ export async function POST(request: Request) {
   if (!user.user) return Response.json({ error: "Please sign in again." }, { status: 401 });
 
   const back = new URL(redirect);
-  if (!body.deny && !(await entitlement(body.workspaceId)).limits.alerts) return Response.json({ error: "Connecting AI apps is on the Pro plan and up. Upgrade this workspace, or pick another one." }, { status: 403 });
+  if (!body.deny && !(await entitlement(body.workspaceId)).limits.mcp) return Response.json({ error: "Connecting AI apps is on Starter and up. Upgrade this workspace, or pick another one." }, { status: 403 });
   if (body.deny) {
     back.searchParams.set("error", "access_denied");
   } else {

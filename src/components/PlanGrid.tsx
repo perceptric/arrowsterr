@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { limitsFor, PLANS, SELF_SERVE, UNLIMITED, type Interval, type Plan, type PlanId, type Track } from "@/lib/plans";
+import { PLANS, SELF_SERVE, UNLIMITED, type Interval, type Plan, type PlanId } from "@/lib/plans";
 import { BrandLogo } from "./BrandLogo";
 import { ENGINE_LOGOS } from "./Engines";
 import { Seg } from "./ui";
@@ -23,7 +22,7 @@ export type Feature = { text: string; on: boolean; logos?: boolean; tag?: string
 export type Group = { title: string; items: Feature[] };
 
 const TIPS = {
-  tasks: "Tasks pay for Organic Research. A keyword lookup uses 10 and a domain report 10. Run out? Top up with a task pack.",
+  tasks: "Tasks pay for Organic Research, MCP and skills. An MCP call uses 1, a keyword lookup 10 and a domain report 10. Run out? Top up with a task pack.",
   bank: "An AI agent studies your business and builds your list of keywords with the most revenue potential, once per brand.",
 };
 const history = (d: number) => (d >= 365 ? `${Math.round(d / 365)} ${d >= 730 ? "years" : "year"} of history` : `${d} days of history`);
@@ -55,13 +54,13 @@ function organic(p: Plan): Group {
       { text: "Competitive Analysis", on: true },
       { text: "Revenue-driven Content Plan", ...on(plan, "On Starter"), tip: plan ? TIPS.bank : undefined },
       { text: "Content Plan & Editorial Calendar", ...on(plan, "On Starter") },
-      { text: "Agentic Writer & publishing", ...on(writer, "On Pro") },
+      { text: p.articlesOnce ? `Agentic Writer, ${n(p.articlesPerMonth)} article to try` : `Agentic Writer, ${n(p.articlesPerMonth || p.draftsPerBrand)} articles a month${p.articlesPerMonth ? "" : " per brand"}`, ...on(writer, "On Starter") },
     ],
   };
 }
 
-/** What a plan gives, grouped the way the cards and the table show it. Starter shows the toolset picked. */
-export function groups(p: Plan, track: Track = "visibility"): Group[] {
+/** What a plan gives, grouped the way the cards and the table show it. */
+export function groups(p: Plan): Group[] {
   const workspace: Group = {
     title: "Workspace & reports",
     items: [
@@ -69,13 +68,10 @@ export function groups(p: Plan, track: Track = "visibility"): Group[] {
       { text: count(p.seats, "seat"), on: true },
       { text: p.reports === "basic" ? "Live report links" : "Live report links & 8 templates", on: true },
       { text: "White-label reports", ...on(p.reports === "whitelabel", "On Agency") },
+      { text: "MCP & 60+ skills, on your tasks", ...on(p.mcp, "On Starter") },
       { text: "Slack, Zapier & API", ...on(p.alerts, "On Pro") },
     ],
   };
-  if (p.id === "foundation") {
-    const l = limitsFor("foundation", { track });
-    return [track === "visibility" ? visibility(l) : organic(l), workspace];
-  }
   return [visibility(p), organic(p), workspace];
 }
 
@@ -147,8 +143,7 @@ function Line({ f }: { f: Feature }) {
 }
 
 /** Free and the self-serve plans side by side, then Enterprise. `action` draws each plan's button. */
-export function PlanGrid({ interval, current, track: start, action }: { interval: Interval; current?: PlanId | null; track?: Track | null; action: (plan: PlanId, track?: Track) => React.ReactNode }) {
-  const [track, setTrack] = useState<Track>(start ?? "visibility");
+export function PlanGrid({ interval, current, action }: { interval: Interval; current?: PlanId | null; action: (plan: PlanId) => React.ReactNode }) {
   const ids: PlanId[] = ["free", ...SELF_SERVE];
   return (
     <div className="flex flex-col gap-5">
@@ -171,21 +166,9 @@ export function PlanGrid({ interval, current, track: start, action }: { interval
               <div className="mt-4">
                 <Price p={p} interval={interval} />
               </div>
-              {id === "foundation" ? (
-                <div className="mt-4 flex flex-col gap-1.5">
-                  <span className="aw-label mb-0!">Pick one</span>
-                  <div className="aw-pick" role="radiogroup" aria-label="Starter toolset">
-                    {(["visibility", "seo"] as Track[]).map((t) => (
-                      <button key={t} type="button" role="radio" aria-checked={track === t} className={track === t ? "is-on" : ""} onClick={() => setTrack(t)}>
-                        {t === "visibility" ? "AI Visibility" : "Organic Research"}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-              <div className="mt-5">{id === "foundation" ? action(id, track) : action(id)}</div>
+              <div className="mt-5">{action(id)}</div>
               <div className="mt-6 flex flex-1 flex-col gap-5 border-t border-rule-faint pt-5">
-                {groups(p, track).map((g) => (
+                {groups(p).map((g) => (
                   <div key={g.title} className="flex flex-col gap-2.5">
                     <span className="aw-label mb-0!">{g.title}</span>
                     <ul className="flex flex-col gap-2.5">
@@ -204,7 +187,7 @@ export function PlanGrid({ interval, current, track: start, action }: { interval
         <div className="flex flex-col gap-2">
           <span className="text-[13px] font-medium tracking-wide text-white/60 uppercase">Enterprise</span>
           <h3 className="text-[24px] font-medium text-white">{PLANS.enterprise.tagline}</h3>
-          <p className="text-[15px] text-white/70">Custom prompts and checks, unlimited seats, SSO, a security review and a named success manager. From ${n(PLANS.enterprise.price)}/mo.</p>
+          <p className="text-[15px] text-white/70">{n(PLANS.enterprise.prompts)}+ prompts, {n(PLANS.enterprise.tasksPerMonth)}+ tasks and {n(PLANS.enterprise.articlesPerMonth)}+ articles a month, unlimited seats and brands, SSO, a security review and a named success manager. From ${n(PLANS.enterprise.price)}/mo.</p>
         </div>
         <div className="shrink-0 lg:w-56">{action("enterprise")}</div>
       </div>

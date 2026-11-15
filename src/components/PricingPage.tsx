@@ -13,20 +13,18 @@ const yes = (on: boolean) => (on ? "✓" : "–");
 
 const COLS = ["free", ...SELF_SERVE] as const;
 
-const starter = (p: Plan) => p.id === "foundation";
-
 const ROWS: { group: string; rows: { label: React.ReactNode; value: (p: Plan) => string }[] }[] = [
   {
     group: "Toolsets",
     rows: [
-      { label: "AI Visibility", value: (p) => (starter(p) ? "Pick one" : "✓") },
-      { label: "Organic Research", value: (p) => (starter(p) ? "Pick one" : "✓") },
+      { label: "AI Visibility", value: () => "✓" },
+      { label: "Organic Research", value: () => "✓" },
     ],
   },
   {
     group: "AI visibility",
     rows: [
-      { label: "Prompts", value: (p) => (starter(p) ? `${n(p.prompts)} on AI Visibility` : n(p.prompts)) },
+      { label: "Prompts", value: (p) => n(p.prompts) },
       { label: "Checks", value: (p) => (p.checkEvery === 1 ? "Daily (Claude & Perplexity weekly)" : "Weekly") },
       {
         label: (
@@ -47,11 +45,12 @@ const ROWS: { group: string; rows: { label: React.ReactNode; value: (p: Plan) =>
   {
     group: "Organic Research",
     rows: [
-      { label: "Tasks a month", value: (p) => (starter(p) ? "3,000 on Organic Research" : n(p.tasksPerMonth)) },
+      { label: "Tasks a month", value: (p) => n(p.tasksPerMonth) },
       { label: "Task packs to top up", value: () => "✓" },
       { label: "Keyword, Domain & Competitive Analysis", value: () => "✓" },
       { label: "Revenue-driven Content Plan", value: (p) => yes(p.plansPerMonth > 0) },
-      { label: "Agentic Writer & publishing", value: (p) => yes(p.writer === "full") },
+      { label: "Agentic Writer articles", value: (p) => (p.articlesOnce ? `${n(p.articlesPerMonth)} to try` : `${n(p.articlesPerMonth)} a month`) },
+      { label: "Publishing to your CMS", value: (p) => yes(p.writer === "full" && !p.articlesOnce) },
     ],
   },
   {
@@ -63,20 +62,21 @@ const ROWS: { group: string; rows: { label: React.ReactNode; value: (p: Plan) =>
       { label: "Traffic & AI visits", value: (p) => (p.pageviewsPerMonth >= 1_000_000 ? `${p.pageviewsPerMonth / 1_000_000}M` : `${p.pageviewsPerMonth / 1000}k`) },
       { label: "Google Analytics 4", value: () => "✓" },
       { label: "CSV export", value: () => "✓" },
+      { label: "MCP & 60+ skills (use tasks)", value: (p) => yes(p.mcp) },
       { label: "Slack, Zapier & API", value: (p) => yes(p.alerts) },
     ],
   },
 ];
 
 const FAQ: { q: string; a: string }[] = [
-  { q: "Is Free really free forever?", a: "Yes. 10 prompts checked weekly on ChatGPT and Google AI Overviews, plus Sources, Competitors and 200 tasks a month for keyword research. No card, no time limit." },
+  { q: "Is Free really free forever?", a: "Yes. 15 prompts checked weekly on ChatGPT and Google AI Overviews, plus Sources, Competitors, 200 tasks a month for keyword research and 1 article to try. No card, no time limit." },
   { q: "What is a prompt?", a: "A question people ask AI, like “best CRM for startups”. We ask it to every AI and record whether your brand is named, in what spot, next to which competitors, and which sources the AI used." },
   { q: "Which AIs do you track?", a: "ChatGPT, Claude, Gemini, Perplexity, Google AI Overviews and Google AI Mode. Free tracks ChatGPT and AI Overviews. Paid plans track all six." },
   { q: "Do my brands share prompts?", a: "Yes. Your prompts are one pool for the whole workspace. Split them between your brands any way you like." },
   { q: "Weekly or daily checks?", a: "AI answers change all the time. Weekly checks show the trend. Daily checks catch a drop the day it happens, which matters when you are shipping content to win a prompt." },
-  { q: "What is a task?", a: "Every action you run costs a few tasks: a keyword lookup is 10, a domain report is 10 and a writer agent job is 15. Tracking your prompts never uses tasks." },
-  { q: "What if I run out of tasks?", a: "Buy a task pack from 1,000 tasks for $15. Pack tasks never expire and are used after your monthly tasks." },
-  { q: "What does Starter include?", a: "One toolset of your choice. AI Visibility: 50 prompts checked daily on all six AIs. Organic Research: 3,000 tasks a month and the Content Plan. You can switch once a month. Pro and up include both, plus the Agentic Writer." },
+  { q: "What is a task?", a: "Every action you run costs a few tasks: an MCP call is 1, a keyword lookup is 10, a domain report is 10 and a writer agent job is 15. Tracking your prompts never uses tasks." },
+  { q: "What if I run out of tasks?", a: "Buy a task pack from 1,000 tasks for $12. Pack tasks never expire and are used after your monthly tasks." },
+  { q: "What does Starter include?", a: "Both toolsets. 50 prompts checked daily on all six AIs, 2,000 tasks a month, the Content Plan, 3 articles a month from the Agentic Writer, and MCP with 60+ skills. Pro and up add more of each, plus Slack, Zapier and the API." },
   { q: "What happens after the free trial?", a: "The 7-day trial includes the Agentic Writer. When it ends, your workspace moves to Free. Nothing is deleted. No card is needed to start." },
   { q: "Can I change plans later?", a: "Any time. Upgrades start right away and you only pay the difference. Downgrades credit what is left of your month." },
 ];

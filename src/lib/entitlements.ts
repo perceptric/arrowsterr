@@ -88,11 +88,11 @@ export async function requireContentPlan(workspaceId: string): Promise<Response 
   return Response.json({ error: "The Content Plan starts on Starter.", limit: true, boost: "foundation" }, { status: 429 });
 }
 
-/** The Agentic Writer and publishing start on Pro. Starter's Organic Research goes up to the Content Plan. */
+/** The Agentic Writer and publishing: on every plan with articles (Free gets 1 to try), except a v5 Starter. */
 export async function requireWriter(workspaceId: string): Promise<Response | null> {
   const e = await entitlement(workspaceId);
   if (e.limits.writer === "full" && e.open.seo) return null;
-  return Response.json({ error: "The Agentic Writer is on Pro. Starter's Organic Research goes up to the Content Plan.", limit: true, boost: "scale" }, { status: 429 });
+  return Response.json({ error: "The Agentic Writer starts on Starter.", limit: true, boost: "foundation" }, { status: 429 });
 }
 
 function readOnly(e: Entitlement) {

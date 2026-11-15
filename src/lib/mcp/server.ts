@@ -1,13 +1,15 @@
 import "server-only";
 import { apiAuth } from "../integrations";
 import { metered } from "../meter";
+import { take } from "../entitlements";
+import { TASK_COST } from "../plans";
 import { BAD_PARAMS, fail, INVALID_REQUEST, NO_METHOD, ok, PARSE_ERROR, ToolError, VERSIONS, errorResult, type RpcReply, type RpcRequest } from "./protocol";
 import { PROMPTS, TOOLS, type Ctx } from "./tools";
 
 const INSTRUCTIONS = `Arrowsterr tracks how AI answers (ChatGPT, Perplexity, Gemini, Claude, Google AI Overview) talk about a brand, plus its SEO and content plan.
 Start with list_brands. Visibility is the share of AI answers that name the brand. Position is its average spot in the list of brands an answer names (1 is best). Sentiment is 0 to 100.
 Most tools take a brand (name or domain), days (default 30) and an optional topic or AI model.
-keyword_research uses the plan's tasks. add_to_content_plan and add_prompts change the workspace, so confirm with the person first.`;
+Every tool call uses 1 of the plan's tasks; keyword_research uses 10. add_to_content_plan and add_prompts change the workspace, so confirm with the person first.`;
 
 /** The public address of the app, for links in auth headers. */
 export function originOf(request: Request) {
@@ -48,7 +50,7 @@ export async function handleMcp(request: Request): Promise<Response> {
   const challenge = { "WWW-Authenticate": `Bearer resource_metadata="${originOf(request)}/.well-known/oauth-protected-resource"` };
   const hasKey = Boolean(request.headers.get("x-api-key") || /^Bearer\s+\S/i.test(request.headers.get("authorization") ?? ""));
   if (!hasKey) return json({ error: "Sign in to Arrowsterr, or send your API key as a Bearer token or in X-API-Key." }, 401, challenge);
-  const auth = await apiAuth(request);
+  const auth = await apiAuth(request, { mcp: true });
   if ("denied" in auth) {
     const status = auth.denied.status;
     return json(await auth.denied.json(), status, status === 401 ? challenge : {});
@@ -99,6 +101,11 @@ export async function handleOne(ctx: Ctx, m: RpcRequest): Promise<RpcReply | nul
       if (!tool) return fail(m.id, BAD_PARAMS, `Unknown tool: ${String(p.name)}`);
       if (!allowed(ctx.ws)) return ok(m.id, errorResult(`Rate limit: ${MAX_CALLS} tool calls a minute. Wait a moment and try again.`));
       const args = p.arguments && typeof p.arguments === "object" ? (p.arguments as Record<string, unknown>) : {};
+      // Every call uses a task; keyword_research takes its own, larger charge.
+      if (tool.name !== "keyword_research") {
+        const took = await take(ctx.ws, "tasks", TASK_COST.mcp, { refundIfFree: false });
+        if (!took.ok) return ok(m.id, errorResult(((await took.response.json()) as { error: string }).error));
+      }
       try {
         return ok(m.id, await metered(ctx.ws, `mcp ${tool.name}`, () => tool.run(ctx, args)));
       } catch (e) {

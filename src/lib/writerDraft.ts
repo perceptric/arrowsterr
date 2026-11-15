@@ -700,11 +700,18 @@ export type QuotaStore = {
   /** True when someone changed the draft's doc after the job last wrote it. */
   editedByHand(d: DraftRef): Promise<boolean>;
   /** Make the topic's first draft if the brand's month has room (writer_take_draft in 050). */
-  take(row: { workspace_id: string; brand_id: string | null; site_id: string; item_id: string; brief_id: string; period: string; created_by: string | null }, limit: number): Promise<{ outcome: "created" | "exists" | "full"; id: string | null }>;
+  take(row: { workspace_id: string; brand_id: string | null; site_id: string; item_id: string; brief_id: string; period: string; created_by: string | null }, limit: number, scope?: "brand" | "workspace"): Promise<{ outcome: "created" | "exists" | "full"; id: string | null }>;
   /** Start the draft over from the brief: a new version, nothing counted. */
   regenerate(id: string, patch: { brief_id: string; note: string | null }): Promise<number>;
 };
-export type DraftAsk = { brief: BriefRow; limit: number; period: string; note?: string | null; confirm?: boolean; userId?: string | null };
+/** Why a draft can't start: the plan's articles for the month, or Free's one article, are used. */
+export function fullMessage(ask: Pick<DraftAsk, "limit" | "period" | "scope">) {
+  if (ask.period === "once") return "Free includes 1 article to try. Get 3 a month on Starter.";
+  if (ask.scope === "workspace") return `This workspace used this month's ${ask.limit} ${ask.limit === 1 ? "article" : "articles"}. Move up a plan for more, or ask us for a 10-article pack.`;
+  return `This brand used this month's ${ask.limit} drafts.`;
+}
+
+export type DraftAsk = { brief: BriefRow; limit: number; period: string; scope?: "brand" | "workspace"; note?: string | null; confirm?: boolean; userId?: string | null };
 export type DraftAnswer = { ok: true; draftId: string; version: number; counted: boolean; started: boolean } | { ok: false; status: number; error: string; edited?: boolean };
 
 /**
@@ -723,9 +730,9 @@ export async function requestDraft(store: QuotaStore, ask: DraftAsk): Promise<Dr
       const version = await store.regenerate(have.id, { brief_id: b.id, note });
       return { ok: true, draftId: have.id, version, counted: false, started: true };
     }
-    if (ask.limit <= 0) return { ok: false, status: 429, error: "Your plan doesn't include drafts. They start on Pro." };
-    const r = await store.take({ workspace_id: b.workspace_id, brand_id: b.brand_id, site_id: b.site_id, item_id: b.item_id, brief_id: b.id, period: ask.period, created_by: ask.userId ?? null }, ask.limit);
-    if (r.outcome === "full") return { ok: false, status: 429, error: `This brand used this month's ${ask.limit} drafts.` };
+    if (ask.limit <= 0) return { ok: false, status: 429, error: "Your plan doesn't include drafts. They start on Starter." };
+    const r = await store.take({ workspace_id: b.workspace_id, brand_id: b.brand_id, site_id: b.site_id, item_id: b.item_id, brief_id: b.id, period: ask.period, created_by: ask.userId ?? null }, ask.limit, ask.scope ?? "brand");
+    if (r.outcome === "full") return { ok: false, status: 429, error: fullMessage(ask) };
     if (r.outcome === "created" && r.id) return { ok: true, draftId: r.id, version: 1, counted: true, started: true };
     // "exists": another click made it a moment ago. Look again.
   }
@@ -750,13 +757,13 @@ export type ChainOut = { state: "started"; draftId: string } | { state: "skipped
  * draft is left alone, so an outline written again never replaces someone's draft. A draft the plan has no room for
  * leaves the outline approved with the reason, and Write draft tries again.
  */
-export async function chainDraft(store: ChainStore, quota: QuotaStore, briefId: string, plan: { limit: number; period: string }): Promise<ChainOut> {
+export async function chainDraft(store: ChainStore, quota: QuotaStore, briefId: string, plan: { limit: number; period: string; scope?: "brand" | "workspace" }): Promise<ChainOut> {
   const b = await store.brief(briefId);
   if (!b) return { state: "skipped", why: "gone" };
   if (b.status !== "ready" || !b.brief) return { state: "skipped", why: b.status };
   if (await quota.draftFor(b.item_id)) return { state: "skipped", why: "has a draft" };
   if (!(await store.approve(b.id))) return { state: "skipped", why: "moved" };
-  const out = await requestDraft(quota, { brief: { ...b, status: "approved" }, limit: plan.limit, period: plan.period, userId: b.created_by ?? null });
+  const out = await requestDraft(quota, { brief: { ...b, status: "approved" }, limit: plan.limit, period: plan.period, scope: plan.scope, userId: b.created_by ?? null });
   if (!out.ok) {
     await store.note(b.id, out.error);
     return { state: "stopped", error: out.error };
