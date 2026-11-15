@@ -9,7 +9,7 @@ import { post } from "./research/shared";
 
 type Key = { id: string; name: string; prefix: string; created_at: string; last_used_at: string | null };
 type Hook = { id: string; url: string; event: string; source: string; created_at: string };
-type State = { allowed: boolean; setup?: string; slack?: boolean; points?: number; keys?: Key[]; hooks?: Hook[] };
+type State = { allowed: boolean; mcp?: boolean; setup?: string; slack?: boolean; points?: number; keys?: Key[]; hooks?: Hook[] };
 
 const date = (s: string | null) => (s ? new Date(s).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Never");
 const api = () => `${window.location.origin}/api/v1`;
@@ -70,7 +70,7 @@ function McpCard({ off }: { off: boolean }) {
       <p className="text-[13px] text-muted">
         Ask your AI app about your AI visibility, competitors and Content Plan, in plain words. &quot;How did our visibility change this week, and who passed us?&quot; Add this server address to any app that supports MCP.
       </p>
-      {off ? <p className="text-[13px] text-body">Connecting AI apps is on Pro and up.</p> : null}
+      {off ? <p className="text-[13px] text-body">Connecting AI apps is on Starter and up.</p> : null}
       <CopyRow value={url} label="MCP server address" />
       <div className="flex flex-col divide-y divide-rule-faint border-y border-rule-faint text-[13px]">
         <details className="py-2.5" open>
@@ -116,7 +116,7 @@ function McpCard({ off }: { off: boolean }) {
   );
 }
 
-/** Slack alerts, API keys and webhooks. Pro and up. */
+/** AI apps (Starter and up), and Slack alerts, API keys and webhooks (Pro and up). */
 export function IntegrationsSettings({ auth, isAdmin }: { auth: RunAuth; isAdmin: boolean }) {
   const [s, setS] = useState<State | null>(null);
   const [slackUrl, setSlackUrl] = useState("");
@@ -165,12 +165,12 @@ export function IntegrationsSettings({ auth, isAdmin }: { auth: RunAuth; isAdmin
         <h2 className="aw-h4">Integrations</h2>
         <p className="max-w-2xl text-[14px] text-body">Use Arrowsterr from Claude, ChatGPT and Cursor, get alerts in Slack, and connect Zapier or your own tools with the API.</p>
       </div>
-      {off ? <div className="aw-callout max-w-2xl">AI apps, Slack, Zapier and the API are on Pro and up.</div> : null}
+      {off ? <div className="aw-callout max-w-2xl">{s.mcp ? "Slack, Zapier and the API are on Pro and up." : "AI apps are on Starter and up. Slack, Zapier and the API are on Pro and up."}</div> : null}
       {s.setup ? <div className="aw-callout max-w-2xl">{s.setup}</div> : null}
       {error ? <p className="aw-error max-w-2xl">{error}</p> : null}
       {notice ? <div className="aw-callout max-w-2xl">{notice}</div> : null}
 
-      <McpCard off={off} />
+      <McpCard off={!s.mcp && off} />
 
       {/* Slack */}
       <div className="aw-frame flex max-w-2xl flex-col gap-3 p-5">

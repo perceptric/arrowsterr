@@ -73,14 +73,21 @@ export async function POST(request: Request) {
       db.from("api_keys").select("id, name, prefix, created_at, last_used_at").eq("workspace_id", ws).is("revoked_at", null).order("created_at"),
       db.from("webhooks").select("id, url, event, source, created_at").eq("workspace_id", ws).order("created_at"),
     ]);
-    if (cfg.error && /integrations/.test(cfg.error.message)) return Response.json({ allowed: e.limits.alerts, setup: SETUP });
+    if (cfg.error && /integrations/.test(cfg.error.message)) return Response.json({ allowed: e.limits.alerts, mcp: e.limits.mcp, setup: SETUP });
     return Response.json({
       allowed: e.limits.alerts,
+      mcp: e.limits.mcp,
       slack: Boolean(cfg.data?.slack_webhook),
       points: cfg.data?.alert_points ?? 5,
       keys: keys.data ?? [],
       hooks: (hooks.data ?? []).map((h) => ({ ...h, url: h.url.replace(/^(https?:\/\/[^/]+).*/, "$1/…") })),
     });
+  }
+  // Revoking a key or a connected AI app works on any plan that can connect AI apps (Starter and up) or use the API.
+  if (body.action === "revoke") {
+    if (!e.limits.alerts && !e.limits.mcp) return Response.json({ error: "AI apps are on Starter and up.", limit: true, boost: "foundation" }, { status: 429 });
+    await db.from("api_keys").update({ revoked_at: new Date().toISOString() }).eq("id", String(body.id)).eq("workspace_id", ws);
+    return Response.json({ ok: true });
   }
   if (!e.limits.alerts) return Response.json({ error: "Slack, Zapier and the API are on Pro and up.", limit: true, boost: "scale" }, { status: 429 });
 
@@ -113,10 +120,6 @@ export async function POST(request: Request) {
     const { data, error } = await db.from("api_keys").insert({ workspace_id: ws, name, prefix: k.prefix, hash: k.hash }).select("id, name, prefix, created_at, last_used_at").single();
     if (error) return err(/api_keys/.test(error.message) ? SETUP : error.message, 500);
     return Response.json({ key: k.key, row: data });
-  }
-  if (body.action === "revoke") {
-    await db.from("api_keys").update({ revoked_at: new Date().toISOString() }).eq("id", String(body.id)).eq("workspace_id", ws);
-    return Response.json({ ok: true });
   }
   if (body.action === "unhook") {
     await db.from("webhooks").delete().eq("id", String(body.id)).eq("workspace_id", ws);
