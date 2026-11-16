@@ -24,8 +24,10 @@ export async function apiAuth(request: Request, opts: { mcp?: boolean } = {}): P
   if (!db) return deny("The API is not set up on the server.", 500);
   const key = request.headers.get("x-api-key")?.trim() || request.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim();
   if (!key || !key.startsWith("aw_live_")) return deny("Add your API key in the X-API-Key header.", 401);
-  const { data } = await db.from("api_keys").select("id, workspace_id, revoked_at").eq("hash", hashKey(key)).maybeSingle();
+  // "*" so the check keeps working before the expires_at column exists.
+  const { data } = await db.from("api_keys").select("*").eq("hash", hashKey(key)).maybeSingle();
   if (!data || data.revoked_at) return deny("This API key is not valid.", 401);
+  if (data.expires_at && Date.parse(data.expires_at) < Date.now()) return deny("This token expired. Your app should refresh it.", 401);
   const e = await entitlement(data.workspace_id);
   if (e.readOnly) return deny("This workspace is read-only.", 402);
   if (opts.mcp ? !e.limits.mcp : !e.limits.alerts) return deny(opts.mcp ? "The MCP server is on Starter and up." : "The API is on Pro and up.", 403);

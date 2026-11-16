@@ -9,7 +9,7 @@ export const supabaseUrl = () => process.env.SUPABASE_URL?.trim().replace(/\/+$/
  * Check the caller is signed in and has at least `min` role in the workspace.
  * Returns a Supabase client that acts as the caller, or a Response to send back.
  */
-export async function requireRole(request: Request, workspaceId: unknown, min: Min): Promise<{ sb: SupabaseClient } | { denied: Response }> {
+export async function requireRole(request: Request, workspaceId: unknown, min: Min): Promise<{ sb: SupabaseClient; userId: string } | { denied: Response }> {
   const url = supabaseUrl();
   const key = process.env.SUPABASE_PUBLISHABLE_KEY?.trim();
   const deny = (error: string, status: number) => ({ denied: Response.json({ error }, { status }) });
@@ -27,7 +27,7 @@ export async function requireRole(request: Request, workspaceId: unknown, min: M
   const { data: ok, error } = await sb.rpc("has_role", { ws: workspaceId, min });
   if (error) return deny(error.message, 500);
   if (!ok) return deny(`You need ${min} access in this workspace to do that.`, 403);
-  return { sb };
+  return { sb, userId: user.user.id };
 }
 
 /** True when the signed-in person can make changes (and spend) in the workspace. */

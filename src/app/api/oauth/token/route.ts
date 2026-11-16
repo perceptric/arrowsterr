@@ -4,6 +4,12 @@ import { adminClient } from "@/lib/serverAuth";
 
 // Swap a one-time code (or a refresh token) for an access token. The access token is a workspace
 // API key, so it shows in Settings → Integrations, where it can be revoked like any other key.
+// Access tokens last an hour. The refresh token gets a new one, so a leaked token is only good for a short time.
+const TTL = 3600;
+const expiry = () => new Date(Date.now() + TTL * 1000).toISOString();
+// Until migration 089 runs, the expires_at column may be missing. Retry without it, so sign-in keeps working.
+const noColumn = (e: { message?: string } | null) => !!e?.message?.includes("expires_at");
+
 export async function POST(request: Request) {
   const db = adminClient();
   if (!db) return oauthError("server_error", "OAuth is not set up on the server.", 500);
@@ -11,7 +17,7 @@ export async function POST(request: Request) {
   const raw = type.includes("application/json") ? ((await request.json().catch(() => ({}))) as Record<string, unknown>) : Object.fromEntries(new URLSearchParams(await request.text()));
   const p = (k: string) => (typeof raw[k] === "string" ? (raw[k] as string) : "");
   const issue = (access: string, refresh: string) =>
-    Response.json({ access_token: access, token_type: "Bearer", refresh_token: refresh, scope: SCOPE }, { headers: { ...OAUTH_CORS, "Cache-Control": "no-store", Pragma: "no-cache" } });
+    Response.json({ access_token: access, token_type: "Bearer", expires_in: TTL, refresh_token: refresh, scope: SCOPE }, { headers: { ...OAUTH_CORS, "Cache-Control": "no-store", Pragma: "no-cache" } });
 
   if (p("grant_type") === "authorization_code") {
     const { data: code } = await db.from("oauth_codes").select("*").eq("hash", sha256(p("code"))).maybeSingle();
@@ -24,7 +30,7 @@ export async function POST(request: Request) {
     const { data: client } = await db.from("oauth_clients").select("name").eq("id", code.client_id).maybeSingle();
     const k = newKey();
     const refresh = `awr_${token(32)}`;
-    const { error } = await db.from("api_keys").insert({
+    const row = {
       workspace_id: code.workspace_id,
       name: `${client?.name ?? "AI app"} (connected app)`.slice(0, 120),
       prefix: k.prefix,
@@ -32,7 +38,9 @@ export async function POST(request: Request) {
       refresh_hash: sha256(refresh),
       client_id: code.client_id,
       created_by: code.user_id,
-    });
+    };
+    let { error } = await db.from("api_keys").insert({ ...row, expires_at: expiry() });
+    if (noColumn(error)) ({ error } = await db.from("api_keys").insert(row));
     if (error) return oauthError("server_error", error.message, 500);
     return issue(k.key, refresh);
   }
@@ -40,11 +48,13 @@ export async function POST(request: Request) {
   if (p("grant_type") === "refresh_token") {
     const { data: row } = await db.from("api_keys").select("id, client_id, revoked_at").eq("refresh_hash", sha256(p("refresh_token"))).maybeSingle();
     if (!row || row.revoked_at) return oauthError("invalid_grant", "This connection was removed. Connect again.");
-    if (p("client_id") && row.client_id && p("client_id") !== row.client_id) return oauthError("invalid_grant", "The refresh token belongs to a different app.");
+    if (row.client_id && p("client_id") !== row.client_id) return oauthError("invalid_grant", "The refresh token belongs to a different app.");
     // Rotate both: the old access token and refresh token stop working.
     const k = newKey();
     const refresh = `awr_${token(32)}`;
-    const { error } = await db.from("api_keys").update({ prefix: k.prefix, hash: k.hash, refresh_hash: sha256(refresh) }).eq("id", row.id);
+    const next = { prefix: k.prefix, hash: k.hash, refresh_hash: sha256(refresh) };
+    let { error } = await db.from("api_keys").update({ ...next, expires_at: expiry() }).eq("id", row.id);
+    if (noColumn(error)) ({ error } = await db.from("api_keys").update(next).eq("id", row.id));
     if (error) return oauthError("server_error", error.message, 500);
     return issue(k.key, refresh);
   }

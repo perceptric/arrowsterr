@@ -48,7 +48,8 @@ export function Authorize({ config }: { config: SupaConfig }) {
   const sb = useMemo(() => getSupabase(config), [config]);
   const [ask] = useState(readAsk);
   const [session, setSession] = useState<Session | null | undefined>(undefined);
-  const [app, setApp] = useState<{ name: string; host: string } | null>(null);
+  const [app, setApp] = useState<{ name: string; host: string; known: boolean } | null>(null);
+  const [trust, setTrust] = useState(false);
   const [spaces, setSpaces] = useState<Workspace[] | null>(null);
   const [ws, setWs] = useState("");
   const [busy, setBusy] = useState(false);
@@ -121,8 +122,24 @@ export function Authorize({ config }: { config: SupaConfig }) {
     <Frame>
       <div className="flex flex-col gap-1.5">
         <h1 className="aw-h3 mb-0!">Connect {app?.name ?? "this app"} to Arrowsterr</h1>
-        {app ? <p className="aw-small">It will send you back to {app.host}.</p> : null}
+        {app ? (
+          <p className="aw-small">
+            It will send you back to <strong className="text-ink">{app.host}</strong>.
+          </p>
+        ) : null}
       </div>
+      {app && !app.known ? (
+        <div className="aw-callout flex flex-col gap-2 text-[14px]">
+          <span className="font-medium text-ink">We don&apos;t know this app</span>
+          <span>
+            Any site can call itself &ldquo;{app.name}&rdquo;. Only allow it if you started this from your own AI app and you trust <strong className="text-ink">{app.host}</strong>.
+          </span>
+          <label className="flex items-center gap-2">
+            <input type="checkbox" checked={trust} onChange={(e) => setTrust(e.target.checked)} />
+            I started this and I trust {app.host}
+          </label>
+        </div>
+      ) : null}
       {error ? <p className="aw-error">{error}</p> : null}
       <div className="flex flex-col gap-2 text-[14px] text-body">
         <span className="font-medium text-ink">It will be able to:</span>
@@ -143,7 +160,7 @@ export function Authorize({ config }: { config: SupaConfig }) {
         </label>
       )}
       <div className="flex gap-2">
-        <button type="button" className="aw-btn aw-btn--primary flex-1" onClick={() => answer(false)} disabled={busy || !app || !spaces?.length}>
+        <button type="button" className="aw-btn aw-btn--primary flex-1" onClick={() => answer(false)} disabled={busy || !app || !spaces?.length || (!app.known && !trust)}>
           {busy ? "Connecting..." : "Allow"}
         </button>
         <button type="button" className="aw-btn aw-btn--secondary" onClick={() => answer(true)} disabled={busy || !app}>

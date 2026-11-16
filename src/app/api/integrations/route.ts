@@ -117,7 +117,7 @@ export async function POST(request: Request) {
   if (body.action === "key") {
     const name = String(body.name ?? "").trim().slice(0, 60) || "API key";
     const k = newKey();
-    const { data, error } = await db.from("api_keys").insert({ workspace_id: ws, name, prefix: k.prefix, hash: k.hash }).select("id, name, prefix, created_at, last_used_at").single();
+    const { data, error } = await db.from("api_keys").insert({ workspace_id: ws, name, prefix: k.prefix, hash: k.hash, created_by: auth.userId }).select("id, name, prefix, created_at, last_used_at").single();
     if (error) return err(/api_keys/.test(error.message) ? SETUP : error.message, 500);
     return Response.json({ key: k.key, row: data });
   }

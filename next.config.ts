@@ -5,6 +5,19 @@ const nextConfig: NextConfig = {
   deploymentId: process.env.RENDER_GIT_COMMIT || undefined,
   // PostHog goes through our own address (docs/analytics.md), so ad blockers don't drop it.
   skipTrailingSlashRedirect: true,
+  // No other site can show the app in a frame, so nobody can trick a click on Allow or Delete.
+  // Shared reports (/r) stay embeddable.
+  async headers() {
+    return [
+      {
+        source: "/((?!r/).*)",
+        headers: [
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "Content-Security-Policy", value: "frame-ancestors 'none'" },
+        ],
+      },
+    ];
+  },
   async rewrites() {
     return [
       { source: "/ingest/static/:path*", destination: "https://us-assets.i.posthog.com/static/:path*" },
