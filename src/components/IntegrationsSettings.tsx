@@ -8,9 +8,9 @@ import { Confirm } from "./reports/Dialog";
 import { post } from "./research/shared";
 import { useZippieMaybe } from "./zippie/ZippieContext";
 
-type Key = { id: string; name: string; prefix: string; created_at: string; last_used_at: string | null };
+type Key = { id: string; name: string; prefix: string; created_at: string; last_used_at: string | null; partner?: boolean };
 type Hook = { id: string; url: string; event: string; source: string; created_at: string };
-type State = { allowed: boolean; mcp?: boolean; setup?: string; slack?: boolean; teams?: boolean; discord?: boolean; points?: number; keys?: Key[]; hooks?: Hook[] };
+type State = { allowed: boolean; mcp?: boolean; setup?: string; slack?: boolean; teams?: boolean; discord?: boolean; points?: number; keys?: Key[]; hooks?: Hook[]; partner?: boolean };
 
 /** Alerts in Microsoft Teams or Discord through a channel webhook. Same alerts as Slack, workspace-wide. */
 function ChatHookCard({ kind, on, canEdit, busy, act, ask }: { kind: "teams" | "discord"; on: boolean; canEdit: boolean; busy: string; act: (name: string, body: Record<string, unknown>, done?: string) => Promise<void>; ask: (a: { title: string; text: string; action: string; run: () => void }) => void }) {
@@ -436,7 +436,10 @@ export function IntegrationsSettings({ auth, isAdmin }: { auth: RunAuth; isAdmin
             {s.keys.map((k) => (
               <li key={k.id} className="flex items-center justify-between gap-3 py-2.5 text-[13px]">
                 <span className="flex min-w-0 flex-col">
-                  <span className="text-ink">{k.name}</span>
+                  <span className="text-ink">
+                    {k.name}
+                    {k.partner ? <span className="aw-status aw-status--pending ml-2">Partner</span> : null}
+                  </span>
                   <span className="text-muted">
                     <code>{k.prefix}…</code> · last used {date(k.last_used_at)}
                   </span>
@@ -464,6 +467,14 @@ export function IntegrationsSettings({ auth, isAdmin }: { auth: RunAuth; isAdmin
               Create key
             </button>
           </form>
+        ) : null}
+        {isAdmin && !off && s.partner ? (
+          <div className="flex flex-col gap-2">
+            <span className="text-[13px] text-muted">A partner key makes a brand for each of your customers, and keys that see only that brand. Only the owner can make one.</span>
+            <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm self-start" disabled={Boolean(busy)} onClick={() => act("partnerKey", { action: "partnerKey", name: keyName || "Partner key" })}>
+              Create partner key
+            </button>
+          </div>
         ) : null}
         <details className="text-[13px]">
           <summary className="cursor-pointer font-medium text-ink">Endpoints and events</summary>

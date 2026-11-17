@@ -1,7 +1,8 @@
 import "server-only";
-import { createHash, randomBytes } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { entitlement } from "./entitlements";
+import { hashKey, keyKind, keyOf, makeKey, rowProblem, type KeyRow } from "./apiKeys";
+import { entitlement, type Entitlement } from "./entitlements";
+import type { KeyScope } from "./keyScope";
 import { alertTarget, type EventName } from "./integrationTypes";
 import { shares, type Metric } from "./visibility";
 import { adminClient } from "./serverAuth";
@@ -9,30 +10,45 @@ import { adminClient } from "./serverAuth";
 // Slack alerts, API keys and webhooks. Slack, Zapier and the API are on Pro and up (the plan's `alerts`).
 
 const app = () => process.env.APP_URL?.trim().replace(/\/+$/, "") || "https://app.arrowsterr.com";
-export const hashKey = (key: string) => createHash("sha256").update(key).digest("hex");
 
 /** A new API key. Only its hash is saved, so it is shown once. */
-export function newKey() {
-  const key = `aw_live_${randomBytes(24).toString("base64url")}`;
-  return { key, prefix: key.slice(0, 14), hash: hashKey(key) };
+export const newKey = () => makeKey("live");
+
+/** Who an API request is: its workspace, and for a brand key, the one brand it may see. */
+export type ApiAccess = KeyScope & { brandId: string | null };
+type AuthOpts = { mcp?: boolean; brandKey?: boolean };
+type Ent = (ws: string) => Promise<Pick<Entitlement, "readOnly" | "limits">>;
+
+/**
+ * The workspace an API request belongs to, from its key. Returns a Response when the key is missing, wrong or not allowed.
+ * Brand keys are refused unless the route says it handles them (brandKey), and such a route loads brands only
+ * through brandRows or brandById (src/lib/keyScope.ts), so it sees that one brand.
+ */
+export async function apiAuth(request: Request, opts: AuthOpts = {}): Promise<ApiAccess | { denied: Response }> {
+  const db = adminClient();
+  if (!db) return { denied: Response.json({ error: "The API is not set up on the server." }, { status: 500 }) };
+  return keyAuth(db, keyOf(request), opts);
 }
 
-/** The workspace an API request belongs to, from its key. Returns a Response when the key is missing, wrong or not allowed. */
-export async function apiAuth(request: Request, opts: { mcp?: boolean } = {}): Promise<{ db: SupabaseClient; ws: string } | { denied: Response }> {
+/** apiAuth once the key and database are known. */
+export async function keyAuth(db: SupabaseClient, key: string, opts: AuthOpts = {}, ent: Ent = entitlement): Promise<ApiAccess | { denied: Response }> {
   const deny = (error: string, status: number) => ({ denied: Response.json({ error }, { status }) });
-  const db = adminClient();
-  if (!db) return deny("The API is not set up on the server.", 500);
-  const key = request.headers.get("x-api-key")?.trim() || request.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim();
-  if (!key || !key.startsWith("aw_live_")) return deny("Add your API key in the X-API-Key header.", 401);
-  // "*" so the check keeps working before the expires_at column exists.
+  const kind = keyKind(key);
+  if (!kind) return deny("Add your API key in the X-API-Key header.", 401);
+  if (kind === "partner") return deny("A partner key only works on /api/partner. Use an API key or a brand key here.", 401);
+  if (kind === "brand" && !opts.brandKey) return deny("A brand key sees one brand. This endpoint covers the whole workspace, so it needs an API key.", 403);
+  // "*" so the check keeps working before the expires_at, partner and brand_id columns exist.
   const { data } = await db.from("api_keys").select("*").eq("hash", hashKey(key)).maybeSingle();
-  if (!data || data.revoked_at) return deny("This API key is not valid.", 401);
-  if (data.expires_at && Date.parse(data.expires_at) < Date.now()) return deny("This token expired. Your app should refresh it.", 401);
-  const e = await entitlement(data.workspace_id);
+  const problem = rowProblem(kind, data as KeyRow | null);
+  if (problem === "expired") return deny("This token expired. Your app should refresh it.", 401);
+  if (problem) return deny("This API key is not valid.", 401);
+  const row = data as KeyRow;
+  const e = await ent(row.workspace_id);
   if (e.readOnly) return deny("This workspace is read-only.", 402);
+  if (kind === "brand" && !e.limits.partner) return deny("This brand key's workspace no longer has the partner API.", 403);
   if (opts.mcp ? !e.limits.mcp : !e.limits.alerts) return deny(opts.mcp ? "The MCP server is on Starter and up." : "The API is on Pro and up.", 403);
-  await db.from("api_keys").update({ last_used_at: new Date().toISOString() }).eq("id", data.id);
-  return { db, ws: data.workspace_id };
+  await db.from("api_keys").update({ last_used_at: new Date().toISOString() }).eq("id", row.id);
+  return { db, ws: row.workspace_id, brandId: kind === "brand" ? (row.brand_id ?? null) : null };
 }
 
 /** An alert in Microsoft Teams, as an Adaptive Card through a Teams Workflows webhook. */

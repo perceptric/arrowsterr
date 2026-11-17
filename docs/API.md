@@ -26,6 +26,30 @@ Example:
 curl https://app.arrowsterr.com/api/v1/brands -H "X-API-Key: aw_live_…"
 ```
 
+## Brand keys
+
+A brand key (`aw_brand_…`) is made through the partner API below. It works on the MCP server and on `/brands`, `/visibility`, `/visibility/models`, `/competitors`, `/prompts`, `/topic-bank` and `/calendar`, and sees only its one brand: any other brand id, name or domain is "not found", and `brand_id` can be left out. `/me`, `/webhooks` and `/samples` cover the whole workspace, so they answer 403 to a brand key.
+
+## Partner API
+
+For partners that sell Arrowsterr inside their own product (Morning Telos first). A partner makes one brand per customer, then gives that customer's AI agents a brand key.
+
+- **Turn it on (us, by hand):** in Supabase → SQL Editor, `update public.workspaces set extras = extras || '{"partner": true}'::jsonb where id = '<workspace id>';` The workspace needs a plan with the API and MCP (Pro and up). A partner workspace has no brand cap; prompts still count against the plan (raise them with `extras.prompts`).
+- **Partner key:** the workspace owner clicks **Create partner key** in Settings → Workspace & members → Integrations → API keys. It starts with `aw_partner_` and is shown once.
+- **Auth:** `Authorization: Bearer aw_partner_…`. Base URL: `https://app.arrowsterr.com/api/partner`. Up to 120 calls a minute per key.
+- **Which brands:** any brand in the partner's workspace that a partner key made. Brands made in the app answer 403, brands in other workspaces 404.
+
+| Method | Path | Body / answer |
+|---|---|---|
+| POST | `/brands` | `{ name, domain, external_id }` → `201 { id, name, domain, external_id }`. The same `external_id` again → `200` with that brand. A domain another brand in the workspace tracks → `409`. |
+| GET | `/brands/{id}` | `{ id, name, domain, external_id, status, prompts, last_checked_at }`. `status` is `tracking` or `no_prompts`. |
+| DELETE | `/brands/{id}` | `204`. Revokes its brand keys, then deletes the brand and its data. |
+| POST | `/brands/{id}/keys` | `201 { key, prefix }`. The `aw_brand_…` key is shown once. Up to 20 at once per brand. |
+| DELETE | `/brands/{id}/keys` | `204`. Revokes every brand key of the brand. |
+| GET | `/brands/{id}/usage?month=YYYY-MM` | `{ brand_id, external_id, month, tasks, checks, answers, prompts }`. `tasks`: tasks its brand keys used on the MCP server. `checks`: AI visibility checks run. `answers`: AI answers read. Daily checks never cost tasks. |
+
+Errors are `{ "error": { "code", "message" } }`: 401 (no key or a bad key), 403 (not a partner, or not your brand), 404, 409, 422 (bad input), 429 (too many calls), 503 (try again).
+
 ## Events
 
 Each webhook gets a JSON `POST` with `event` and the fields below. Answer `410 Gone` to unsubscribe.

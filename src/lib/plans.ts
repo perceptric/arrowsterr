@@ -35,10 +35,13 @@ export type Plan = {
   alerts: boolean; // Slack, Zapier and the API
   sso: boolean;
   trackedKeywords: number; // Visibility › Traffic: keywords ranked every day, across every project in the workspace
+  partner: boolean; // the partner API and brand keys (Extras.partner, set by us by hand); no brand cap
 };
 
 export const UNLIMITED = 1000;
-const base = { sso: false, engines: null, briefsPerMonth: 0, planMaxKeywords: 120, researchPerMonth: 0, aiPerMonth: 0, draftsPerBrand: 0, articlesPerMonth: 0, articlesOnce: false, trackedKeywords: 100 } as const;
+/** A partner workspace's brand cap: one brand per customer, so in practice none. Fits the database's int. */
+export const PARTNER_BRANDS = 1_000_000;
+const base = { sso: false, engines: null, briefsPerMonth: 0, planMaxKeywords: 120, researchPerMonth: 0, aiPerMonth: 0, draftsPerBrand: 0, articlesPerMonth: 0, articlesOnce: false, trackedKeywords: 100, partner: false } as const;
 /** Drafts a brand may start each month on plans with the Agentic Writer (docs/content-v2.md: 10 articles a month). */
 export const DRAFTS_PER_BRAND = 10;
 
@@ -151,7 +154,8 @@ export function effectivePlan(plan: PlanId, status: string, trialEndsAt: string 
 export const LADDER: PlanId[] = ["free", "foundation", "scale", "agency", "enterprise"];
 
 /** Paid extras on top of a plan. Stored on the workspace as counts. */
-export type Extras = { prompts?: number; brands?: number; seats?: number; daily?: boolean; track?: Track; trackAt?: string; limitsFrom?: "v5" };
+// partner: the workspace may use the partner API (supabase/098_partner.sql). We set it by hand; billing keeps it.
+export type Extras = { prompts?: number; brands?: number; seats?: number; daily?: boolean; track?: Track; trackAt?: string; limitsFrom?: "v5"; partner?: boolean };
 
 /** What a workspace can use: its plan plus any extras. */
 export function limitsFor(plan: PlanId, extras: Extras = {}): Plan {
@@ -161,7 +165,8 @@ export function limitsFor(plan: PlanId, extras: Extras = {}): Plan {
   return {
     ...p,
     prompts: p.prompts + (extras.prompts ?? 0),
-    brands: p.brands + (extras.brands ?? 0),
+    brands: extras.partner === true ? PARTNER_BRANDS : p.brands + (extras.brands ?? 0),
+    partner: extras.partner === true,
     seats: p.seats + (extras.seats ?? 0),
     checkEvery: extras.daily ? 1 : p.checkEvery,
   };

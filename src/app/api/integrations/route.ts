@@ -1,4 +1,5 @@
 import { entitlement } from "@/lib/entitlements";
+import { makeKey } from "@/lib/apiKeys";
 import { discordSend, newKey, slackSend, teamsSend } from "@/lib/integrations";
 import { DEFAULT_ALERT_POINTS, DISCORD_HOOK, SLACK_HOOK, TEAMS_HOOK } from "@/lib/integrationTypes";
 import { adminClient, requireRole } from "@/lib/serverAuth";
@@ -14,6 +15,7 @@ const SETUP = "Run supabase/024_integrations.sql in Supabase first.";
 //   teams / discord: { url }                 admins: save and send a test message
 //   teamsOff / discordOff: {}                admins
 //   key: { name }                            admins: returns the key once
+//   partnerKey: { name }                     owners of a partner workspace: an aw_partner_ key, returned once
 //   revoke: { id }                           admins
 //   unhook: { id }                           admins
 // One brand's Slack channel and alert size, each falling back to the workspace's:
@@ -72,7 +74,8 @@ export async function POST(request: Request) {
   if (body.action === "get") {
     const [cfg, keys, hooks] = await Promise.all([
       db.from("integrations").select("*").eq("workspace_id", ws).maybeSingle(),
-      db.from("api_keys").select("id, name, prefix, created_at, last_used_at").eq("workspace_id", ws).is("revoked_at", null).order("created_at"),
+      // "*" so the list works before 098_partner.sql. Brand keys belong to the partner API, so they are left out here.
+      db.from("api_keys").select("*").eq("workspace_id", ws).is("revoked_at", null).order("created_at"),
       db.from("webhooks").select("id, url, event, source, created_at").eq("workspace_id", ws).order("created_at"),
     ]);
     if (cfg.error && /integrations/.test(cfg.error.message)) return Response.json({ allowed: e.limits.alerts, mcp: e.limits.mcp, setup: SETUP });
@@ -83,7 +86,10 @@ export async function POST(request: Request) {
       teams: Boolean(cfg.data?.teams_webhook),
       discord: Boolean(cfg.data?.discord_webhook),
       points: cfg.data?.alert_points ?? 5,
-      keys: keys.data ?? [],
+      keys: ((keys.data ?? []) as { id: string; name: string; prefix: string; created_at: string; last_used_at: string | null; partner?: boolean; brand_id?: string | null }[])
+        .filter((k) => !k.brand_id)
+        .map((k) => ({ id: k.id, name: k.name, prefix: k.prefix, created_at: k.created_at, last_used_at: k.last_used_at, partner: k.partner === true })),
+      partner: e.limits.partner,
       hooks: (hooks.data ?? []).map((h) => ({ ...h, url: h.url.replace(/^(https?:\/\/[^/]+).*/, "$1/…") })),
     });
   }
@@ -141,6 +147,16 @@ export async function POST(request: Request) {
     const { data, error } = await db.from("api_keys").insert({ workspace_id: ws, name, prefix: k.prefix, hash: k.hash, created_by: auth.userId }).select("id, name, prefix, created_at, last_used_at").single();
     if (error) return err(/api_keys/.test(error.message) ? SETUP : error.message, 500);
     return Response.json({ key: k.key, row: data });
+  }
+  if (body.action === "partnerKey") {
+    if (!e.limits.partner) return err("This workspace does not have the partner API.", 403);
+    const { data: owner } = await auth.sb.rpc("has_role", { ws, min: "owner" });
+    if (!owner) return err("Only the workspace owner can make a partner key.", 403);
+    const name = String(body.name ?? "").trim().slice(0, 60) || "Partner key";
+    const k = makeKey("partner");
+    const { data, error } = await db.from("api_keys").insert({ workspace_id: ws, name, prefix: k.prefix, hash: k.hash, created_by: auth.userId, partner: true }).select("id, name, prefix, created_at, last_used_at").single();
+    if (error) return err(/partner/.test(error.message) ? "Run supabase/098_partner.sql in Supabase first." : error.message, 500);
+    return Response.json({ key: k.key, row: { ...data, partner: true } });
   }
   if (body.action === "unhook") {
     await db.from("webhooks").delete().eq("id", String(body.id)).eq("workspace_id", ws);
