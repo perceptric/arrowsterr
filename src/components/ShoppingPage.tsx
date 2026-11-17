@@ -10,6 +10,7 @@ import { Dropdown } from "./Pickers";
 import { post } from "./research/shared";
 import { favicon, Seg, SidePanel, Thinking } from "./ui";
 import { ShoppingReport } from "./ShoppingReport";
+import { FeedHealth } from "./FeedHealth";
 
 // AI Shopping (docs/ai-shopping-plan.md). Phase 2: the switch, the Catalog side panel and the product list.
 
@@ -537,6 +538,7 @@ export function ShoppingPage({ auth, brand, canEdit, onPublishing }: { auth: Run
     <div className="flex flex-col gap-5">
       {panel}
       <ShoppingReport auth={auth} brand={brand} canEdit={canEdit} onCatalog={() => setOpen(true)} />
+      <FeedHealth key={state.sources.map((s) => `${s.id}:${s.status}:${s.synced_at ?? ""}`).join("|")} auth={auth} brandId={brand.id} canEdit={canEdit} onCatalog={() => setOpen(true)} />
     </div>
   );
 }

@@ -2,8 +2,8 @@
 /**
  * Plugin Name:       Arrowsterr Connector
  * Plugin URI:        https://arrowsterr.com/
- * Description:       Lets Arrowsterr publish articles with their interactive modules, set SEO titles, meta descriptions and structured data on your posts and pages, serve llms.txt and tell Bing and other search engines about changed pages with IndexNow. Works with Yoast SEO and Rank Math, or on its own.
- * Version:           1.2.0
+ * Description:       Lets Arrowsterr publish articles with their interactive modules, set SEO titles, meta descriptions and structured data on your posts and pages, serve llms.txt, tell Bing and other search engines about changed pages with IndexNow, and count which pages AI crawlers read. Works with Yoast SEO and Rank Math, or on its own.
+ * Version:           1.3.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Arrowsterr
@@ -14,7 +14,7 @@ if (!defined('ABSPATH')) {
 	exit;
 }
 
-define('ARROWSTERR_CONNECTOR_VERSION', '1.2.0');
+define('ARROWSTERR_CONNECTOR_VERSION', '1.3.0');
 // The largest llms.txt Arrowsterr stores, in bytes.
 define('ARROWSTERR_LLMS_MAX', 200000);
 // The largest module Arrowsterr stores, in bytes. Modules are single HTML files with inline CSS and JS.
@@ -178,7 +178,7 @@ add_action('rest_api_init', function () {
 			return current_user_can('edit_posts');
 		},
 		'callback'            => function () {
-			return array('version' => ARROWSTERR_CONNECTOR_VERSION, 'seo' => arrowsterr_seo_plugin(), 'modules' => true, 'indexnow' => arrowsterr_indexnow_on() || arrowsterr_indexnow_other() !== '', 'indexnow_by' => arrowsterr_indexnow_on() ? 'arrowsterr' : arrowsterr_indexnow_other(), 'llms' => get_option('arrowsterr_llms', '') !== '', 'admin' => current_user_can('manage_options'));
+			return array('version' => ARROWSTERR_CONNECTOR_VERSION, 'seo' => arrowsterr_seo_plugin(), 'modules' => true, 'crawlers' => arrowsterr_crawls_on(), 'indexnow' => arrowsterr_indexnow_on() || arrowsterr_indexnow_other() !== '', 'indexnow_by' => arrowsterr_indexnow_on() ? 'arrowsterr' : arrowsterr_indexnow_other(), 'llms' => get_option('arrowsterr_llms', '') !== '', 'admin' => current_user_can('manage_options'));
 		},
 	));
 
@@ -216,6 +216,18 @@ add_action('rest_api_init', function () {
 				update_option('arrowsterr_llms', $text, false);
 			}
 			return array('llms' => get_option('arrowsterr_llms', '') !== '', 'url' => home_url('/llms.txt'));
+		},
+	));
+
+	// AI crawler counts for the last 1 to 90 days, and the site's key pages, for Arrowsterr's crawler report.
+	register_rest_route('arrowsterr/v1', '/crawlers', array(
+		'methods'             => 'GET',
+		'permission_callback' => function () {
+			return current_user_can('edit_posts');
+		},
+		'args'                => array('days' => array('type' => 'integer', 'default' => 30)),
+		'callback'            => function (WP_REST_Request $request) {
+			return arrowsterr_crawls_report((int) $request->get_param('days'));
 		},
 	));
 
@@ -474,3 +486,201 @@ add_action('shutdown', function () {
 		)),
 	));
 });
+
+// ─────────────── AI crawlers ───────────────
+// Counts the pages AI crawlers read: one row per day, bot and path, in a small table. No IP addresses or other
+// details are kept. Rows older than 90 days are removed, and once the table holds 20,000 rows only pages already
+// in it keep counting, so it stays at a few megabytes. Pages served by a page cache never reach WordPress, so
+// they are not counted here. Turn it off with: add_filter('arrowsterr_log_crawlers', '__return_false');
+
+define('ARROWSTERR_CRAWLS_DB', '1');
+define('ARROWSTERR_CRAWLS_DAYS', 90);
+define('ARROWSTERR_CRAWLS_MAX_ROWS', 20000);
+
+/**
+ * The bots counted, by a word in their user agent, checked in this order without case.
+ * Keep in step with BOTS in Arrowsterr's src/lib/aiCrawlers.ts (a test there checks both lists match).
+ */
+function arrowsterr_crawler_bots() {
+	return array(
+		'oai-searchbot'      => 'OAI-SearchBot',
+		'chatgpt-user'       => 'ChatGPT-User',
+		'gptbot'             => 'GPTBot',
+		'claude-searchbot'   => 'Claude-SearchBot',
+		'claude-user'        => 'Claude-User',
+		'claudebot'          => 'ClaudeBot',
+		'perplexity-user'    => 'Perplexity-User',
+		'perplexitybot'      => 'PerplexityBot',
+		'googlebot'          => 'Googlebot',
+		'bingbot'            => 'bingbot',
+		'applebot'           => 'Applebot',
+		'meta-externalagent' => 'meta-externalagent',
+		'bytespider'         => 'Bytespider',
+		'ccbot'              => 'CCBot',
+		'amazonbot'          => 'Amazonbot',
+		'duckassistbot'      => 'DuckAssistBot',
+	);
+}
+
+/** The bot id for a user agent, or an empty string for people and other bots. */
+function arrowsterr_crawler_of($ua) {
+	$ua = (string) $ua;
+	if ($ua === '') {
+		return '';
+	}
+	foreach (arrowsterr_crawler_bots() as $id => $token) {
+		if (stripos($ua, $token) !== false) {
+			return $id;
+		}
+	}
+	return '';
+}
+
+function arrowsterr_crawls_table() {
+	global $wpdb;
+	return $wpdb->prefix . 'arrowsterr_crawls';
+}
+
+function arrowsterr_crawls_on() {
+	return (bool) apply_filters('arrowsterr_log_crawlers', true);
+}
+
+/** Make the table, once per table version. */
+function arrowsterr_crawls_install() {
+	global $wpdb;
+	require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+	$table = arrowsterr_crawls_table();
+	dbDelta("CREATE TABLE {$table} (
+  day date NOT NULL,
+  bot varchar(32) NOT NULL,
+  path varchar(191) NOT NULL,
+  hits int unsigned NOT NULL DEFAULT 0,
+  PRIMARY KEY  (day,bot,path),
+  KEY day (day)
+) " . $wpdb->get_charset_collate() . ';');
+	update_option('arrowsterr_crawls_db', ARROWSTERR_CRAWLS_DB, true);
+}
+
+register_activation_hook(__FILE__, 'arrowsterr_crawls_install');
+
+// An updated plugin (a new zip) doesn't run the activation hook, so check the table version too.
+add_action('admin_init', function () {
+	if (get_option('arrowsterr_crawls_db') !== ARROWSTERR_CRAWLS_DB) {
+		arrowsterr_crawls_install();
+	}
+});
+
+/** Remove old rows and check the size, at most once an hour. */
+function arrowsterr_crawls_tidy() {
+	global $wpdb;
+	if (get_transient('arrowsterr_crawls_tidy')) {
+		return;
+	}
+	set_transient('arrowsterr_crawls_tidy', '1', HOUR_IN_SECONDS);
+	$table = arrowsterr_crawls_table();
+	$since = gmdate('Y-m-d', time() - ARROWSTERR_CRAWLS_DAYS * DAY_IN_SECONDS);
+	$wpdb->query($wpdb->prepare("DELETE FROM {$table} WHERE day < %s", $since)); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- the table name is ours.
+	$rows = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table}"); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	update_option('arrowsterr_crawls_full', $rows >= ARROWSTERR_CRAWLS_MAX_ROWS ? '1' : '', true);
+}
+
+/** The path a crawler asked for, as stored: no query, no trailing slash, up to 191 characters. */
+function arrowsterr_crawl_path() {
+	$path = preg_replace('/[\x00-\x1F\x7F]/', '', arrowsterr_request_path());
+	$path = '/' . ltrim((string) $path, '/');
+	if (strlen($path) > 1) {
+		$path = rtrim($path, '/');
+	}
+	return function_exists('mb_substr') ? mb_substr($path, 0, 191) : substr($path, 0, 191);
+}
+
+/** Count this request when an AI crawler sent it. Runs before llms.txt is served, so that read counts too. */
+function arrowsterr_log_crawler() {
+	if (!arrowsterr_crawls_on() || is_admin() || wp_doing_ajax() || wp_doing_cron() || (defined('WP_CLI') && WP_CLI)) {
+		return;
+	}
+	$method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper((string) $_SERVER['REQUEST_METHOD']) : 'GET';
+	if ($method !== 'GET' && $method !== 'HEAD') {
+		return;
+	}
+	$bot = arrowsterr_crawler_of(isset($_SERVER['HTTP_USER_AGENT']) ? wp_unslash($_SERVER['HTTP_USER_AGENT']) : ''); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- only matched against fixed words.
+	if ($bot === '') {
+		return;
+	}
+	$path = arrowsterr_crawl_path();
+	if (preg_match('~^/(wp-json|wp-admin|wp-login\.php|xmlrpc\.php|wp-cron\.php)(/|$)~i', $path)) {
+		return;
+	}
+	global $wpdb;
+	if (get_option('arrowsterr_crawls_db') !== ARROWSTERR_CRAWLS_DB) {
+		arrowsterr_crawls_install();
+	}
+	$table = arrowsterr_crawls_table();
+	$day   = gmdate('Y-m-d');
+	$shown = $wpdb->hide_errors();
+	if (get_option('arrowsterr_crawls_full', '') === '1') {
+		// Full: only pages already counted keep counting.
+		$wpdb->query($wpdb->prepare("UPDATE {$table} SET hits = hits + 1 WHERE day = %s AND bot = %s AND path = %s", $day, $bot, $path)); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	} else {
+		$wpdb->query($wpdb->prepare("INSERT INTO {$table} (day, bot, path, hits) VALUES (%s, %s, %s, 1) ON DUPLICATE KEY UPDATE hits = hits + 1", $day, $bot, $path)); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	}
+	if ($shown) {
+		$wpdb->show_errors();
+	}
+	arrowsterr_crawls_tidy();
+}
+add_action('init', 'arrowsterr_log_crawler', -10);
+
+/** The counts for the last $days days, biggest first, and the site's key pages to check them against. */
+function arrowsterr_crawls_report($days) {
+	global $wpdb;
+	$days  = max(1, min(ARROWSTERR_CRAWLS_DAYS, (int) $days));
+	$table = arrowsterr_crawls_table();
+	$since = gmdate('Y-m-d', time() - ($days - 1) * DAY_IN_SECONDS);
+	$rows  = array();
+	$first = null;
+	if (get_option('arrowsterr_crawls_db') === ARROWSTERR_CRAWLS_DB) {
+		$shown = $wpdb->hide_errors();
+		$got   = $wpdb->get_results($wpdb->prepare("SELECT day, bot, path, hits FROM {$table} WHERE day >= %s ORDER BY hits DESC LIMIT 5000", $since), ARRAY_N); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$first = $wpdb->get_var("SELECT MIN(day) FROM {$table}"); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		if ($shown) {
+			$wpdb->show_errors();
+		}
+		foreach ((array) $got as $r) {
+			$rows[] = array((string) $r[0], (string) $r[1], (string) $r[2], (int) $r[3]);
+		}
+	}
+	// Key pages: the homepage, then published pages and the newest posts.
+	$home  = rtrim((string) wp_parse_url(home_url('/'), PHP_URL_PATH), '/');
+	$pages = array('/');
+	$ids   = get_posts(array('post_type' => array('page', 'post'), 'post_status' => 'publish', 'has_password' => false, 'orderby' => array('post_type' => 'ASC', 'date' => 'DESC'), 'fields' => 'ids', 'posts_per_page' => 200, 'suppress_filters' => true));
+	foreach ($ids as $id) {
+		$path = (string) wp_parse_url((string) get_permalink($id), PHP_URL_PATH);
+		if ($home !== '' && strpos($path, $home) === 0) {
+			$path = substr($path, strlen($home));
+		}
+		$path = '/' . trim($path, '/');
+		if (!in_array($path, $pages, true)) {
+			$pages[] = $path;
+		}
+	}
+	return array(
+		'version'    => ARROWSTERR_CONNECTOR_VERSION,
+		'logging'    => arrowsterr_crawls_on(),
+		'since'      => $first ? (string) $first : null,
+		'full'       => get_option('arrowsterr_crawls_full', '') === '1',
+		'page_cache' => defined('WP_CACHE') && WP_CACHE,
+		'rows'       => $rows,
+		'pages'      => $pages,
+	);
+}
+
+/** Leaves no table or settings behind when the plugin is deleted. */
+function arrowsterr_crawls_uninstall() {
+	global $wpdb;
+	$wpdb->query('DROP TABLE IF EXISTS ' . arrowsterr_crawls_table()); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	delete_option('arrowsterr_crawls_db');
+	delete_option('arrowsterr_crawls_full');
+	delete_transient('arrowsterr_crawls_tidy');
+}
+register_uninstall_hook(__FILE__, 'arrowsterr_crawls_uninstall');

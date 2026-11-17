@@ -4,6 +4,7 @@ import { freshConfig, shopifyGql } from "./cmsTokens";
 import { getRaw, postRaw } from "./dataforseo";
 import { accessToken, api, seal } from "./google";
 import { enqueue, enqueueMany, finish, rateOk, retry, type Job } from "./jobs";
+import { healthAdd, healthDone, healthStart, type HealthProduct } from "./merchantHealth";
 import { rematch } from "./shopMatchServer";
 import { safeFetch } from "./safeFetch";
 import { fold, pullMerchant, pullShopify, SHOPIFY_PRODUCTS, type CatalogRow, type MerchantPage, type ShopifyPage, type SourceProduct } from "./shopCatalog";
@@ -88,7 +89,16 @@ async function pull(db: SupabaseClient, src: ShopSource): Promise<SourceProduct[
     if (!src.refresh_token) throw Object.assign(new Error("Sign in to Google Merchant Center again."), { final: true });
     if (!src.account) return null; // waiting for a person to pick the account
     const token = await accessToken(src.refresh_token);
-    return pullMerchant((page) => api<MerchantPage>(`${MERCHANT}/products/v1/accounts/${src.account}/products?pageSize=1000${page ? `&pageToken=${encodeURIComponent(page)}` : ""}`, token, undefined, "Merchant Center"));
+    // Feed health (merchantHealth.ts) is counted from the same pages, so it costs no extra calls.
+    const health = healthStart();
+    const products = await pullMerchant(async (page) => {
+      const got = await api<MerchantPage>(`${MERCHANT}/products/v1/accounts/${src.account}/products?pageSize=1000${page ? `&pageToken=${encodeURIComponent(page)}` : ""}`, token, undefined, "Merchant Center");
+      healthAdd(health, (got.products ?? []) as unknown as HealthProduct[]);
+      return got;
+    });
+    // Before supabase/095_crawlers_merchant.sql the columns are missing; the sync still works.
+    await db.from("shop_sources").update({ health: healthDone(health), health_at: new Date().toISOString() }).eq("id", src.id);
+    return products;
   }
   return null; // CSV catalogs change only when a new file is uploaded
 }

@@ -14,6 +14,7 @@ import { deepCheck, MAX_PROMPTS, postNew, promptKey, suggestPrompts } from "@/li
 //   "accounts" and "account" (pick the Merchant Center account), "csv" (upload a file's text), "sync", "remove",
 //   "decide" (Is this yours? yes with a product, or not ours) and "aliases" (other names the brand goes by).
 //   "review" (viewers): the cards in doubt. "report" (viewers): the numbers and tables for a range.
+//   "health" (viewers): Merchant Center feed health from the last sync.
 //   Editors: "suggest", "prompts_add", "prompt_update", "prompt_remove", "deep" (20 runs of one prompt) and
 //   "settings" (retailer list and price floor).
 const MAX_CSV = 5_000_000;
@@ -21,7 +22,7 @@ const SOURCE_COLS = "id, kind, name, account, email, status, error, products, va
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
-  const auth = await requireRole(request, body.workspaceId, ["state", "review", "report"].includes(body.action) ? "viewer" : "editor");
+  const auth = await requireRole(request, body.workspaceId, ["state", "review", "report", "health"].includes(body.action) ? "viewer" : "editor");
   if ("denied" in auth) return auth.denied;
   const db = adminClient();
   if (!db) return Response.json({ error: "Add SUPABASE_SECRET_KEY to the server's settings." }, { status: 500 });
@@ -188,6 +189,14 @@ export async function POST(request: Request) {
       }
       case "review":
         return Response.json({ groups: await reviewList(db, brand.id) });
+      case "health": {
+        // Merchant Center feed health, saved by the last catalog sync (merchantHealth.ts).
+        const { data: src } = await db.from("shop_sources").select("id, account, name, status, error, synced_at").eq("brand_id", brand.id).eq("kind", "merchant").maybeSingle();
+        if (!src) return Response.json({ connected: false, ready: googleReady() });
+        const { data: h, error } = await db.from("shop_sources").select("health, health_at").eq("id", src.id).maybeSingle();
+        if (error) return Response.json({ connected: true, source: src, health: null, setup: "Run supabase/095_crawlers_merchant.sql on the database to see feed health." });
+        return Response.json({ connected: true, source: src, health: h?.health ?? null, healthAt: h?.health_at ?? null });
+      }
       case "decide": {
         const keys = Array.isArray(body.keys) ? body.keys.filter((k: unknown): k is string => typeof k === "string") : [];
         if (!keys.length) return fail("Nothing to decide.");
