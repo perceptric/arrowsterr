@@ -35,6 +35,47 @@ export async function apiAuth(request: Request, opts: { mcp?: boolean } = {}): P
   return { db, ws: data.workspace_id };
 }
 
+/** An alert in Microsoft Teams, as an Adaptive Card through a Teams Workflows webhook. */
+export async function teamsSend(url: string, text: string, lines: string[] = []) {
+  const card = {
+    $schema: "http://adaptivecards.io/schemas/adaptive-card.json",
+    type: "AdaptiveCard",
+    version: "1.4",
+    body: [{ type: "TextBlock", text, weight: "Bolder", size: "Medium", wrap: true }, ...lines.map((l) => ({ type: "TextBlock", text: `• ${l}`, wrap: true, spacing: "Small" }))],
+    actions: [{ type: "Action.OpenUrl", title: "Open Arrowsterr", url: app() }],
+  };
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ type: "message", attachments: [{ contentType: "application/vnd.microsoft.card.adaptive", contentUrl: null, content: card }] }),
+    signal: AbortSignal.timeout(10_000),
+  });
+  if (!res.ok) throw new Error(`Teams returned ${res.status}: ${(await res.text()).slice(0, 120)}`);
+}
+
+/** An alert in a Discord channel through a channel webhook. */
+export async function discordSend(url: string, text: string, lines: string[] = []) {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username: "Arrowsterr",
+      allowed_mentions: { parse: [] },
+      embeds: [{ title: text.slice(0, 256), description: lines.map((l) => `• ${l}`).join("\n").slice(0, 4000) || undefined, url: app(), color: 0x0943b0 }],
+    }),
+    signal: AbortSignal.timeout(10_000),
+  });
+  if (!res.ok) throw new Error(`Discord returned ${res.status}: ${(await res.text()).slice(0, 120)}`);
+}
+
+/** Send one alert to the workspace's Teams and Discord channels, when set. Errors are logged and never thrown. */
+export async function teamChatSend(cfg: { teams_webhook?: string | null; discord_webhook?: string | null } | null, text: string, lines: string[] = []) {
+  await Promise.all([
+    cfg?.teams_webhook ? teamsSend(cfg.teams_webhook, text, lines).catch((e) => console.error("Teams alert failed:", e instanceof Error ? e.message : e)) : null,
+    cfg?.discord_webhook ? discordSend(cfg.discord_webhook, text, lines).catch((e) => console.error("Discord alert failed:", e instanceof Error ? e.message : e)) : null,
+  ]);
+}
+
 export async function slackSend(url: string, text: string, lines: string[] = []) {
   const res = await fetch(url, {
     method: "POST",
@@ -108,7 +149,8 @@ export async function afterDaily(db: SupabaseClient, ws: string, brandId: string
 
   // The brand's own channel and alert size, falling back to the workspace's. Before 048_brand_integrations.sql there is no brand row.
   const [{ data: cfg }, { data: own }] = await Promise.all([
-    db.from("integrations").select("slack_webhook, alert_points").eq("workspace_id", ws).maybeSingle(),
+    // "*" so Teams and Discord columns (091) are read when they exist, without failing before the migration.
+    db.from("integrations").select("*").eq("workspace_id", ws).maybeSingle(),
     db.from("brand_settings").select("slack_channel, alert_points").eq("brand_id", brandId).maybeSingle(),
   ]);
   const { slack, points } = alertTarget(own, cfg);
@@ -127,9 +169,9 @@ export async function afterDaily(db: SupabaseClient, ws: string, brandId: string
   const overtaken = passer ? { name: passer.name, visibility: passer.visibility, before: was.find((x) => x.name.toLowerCase() === passer.name.toLowerCase())?.visibility ?? 0 } : null;
   const { emailAlert } = await import("./notify");
   await emailAlert(db, ws, brand, day, { you, before: youBefore, overtaken, engines, prevDay: prevDay! }).catch((err) => console.error("Alert email failed:", err instanceof Error ? err.message : err));
+  const title = `${brand.name}: AI visibility ${change! < 0 ? "dropped" : change! > 0 ? "changed" : "alert"}`;
   if (slack) {
-    await slackSend(slack,`${brand.name}: AI visibility ${change! < 0 ? "dropped" : change! > 0 ? "changed" : "alert"}`, reasons).catch((err) =>
-      console.error("Slack alert failed:", err instanceof Error ? err.message : err),
-    );
+    await slackSend(slack, title, reasons).catch((err) => console.error("Slack alert failed:", err instanceof Error ? err.message : err));
   }
+  await teamChatSend(cfg, title, reasons);
 }

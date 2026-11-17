@@ -1,6 +1,6 @@
 import { entitlement } from "@/lib/entitlements";
-import { newKey, slackSend } from "@/lib/integrations";
-import { DEFAULT_ALERT_POINTS, SLACK_HOOK } from "@/lib/integrationTypes";
+import { discordSend, newKey, slackSend, teamsSend } from "@/lib/integrations";
+import { DEFAULT_ALERT_POINTS, DISCORD_HOOK, SLACK_HOOK, TEAMS_HOOK } from "@/lib/integrationTypes";
 import { adminClient, requireRole } from "@/lib/serverAuth";
 
 const err = (error: string, status = 400) => Response.json({ error }, { status });
@@ -11,6 +11,8 @@ const SETUP = "Run supabase/024_integrations.sql in Supabase first.";
 //   slack: { url, points }                   admins: save and send a test message
 //   slackOff: {}                             admins
 //   points: { points }                       admins
+//   teams / discord: { url }                 admins: save and send a test message
+//   teamsOff / discordOff: {}                admins
 //   key: { name }                            admins: returns the key once
 //   revoke: { id }                           admins
 //   unhook: { id }                           admins
@@ -69,7 +71,7 @@ export async function POST(request: Request) {
 
   if (body.action === "get") {
     const [cfg, keys, hooks] = await Promise.all([
-      db.from("integrations").select("slack_webhook, alert_points").eq("workspace_id", ws).maybeSingle(),
+      db.from("integrations").select("*").eq("workspace_id", ws).maybeSingle(),
       db.from("api_keys").select("id, name, prefix, created_at, last_used_at").eq("workspace_id", ws).is("revoked_at", null).order("created_at"),
       db.from("webhooks").select("id, url, event, source, created_at").eq("workspace_id", ws).order("created_at"),
     ]);
@@ -78,6 +80,8 @@ export async function POST(request: Request) {
       allowed: e.limits.alerts,
       mcp: e.limits.mcp,
       slack: Boolean(cfg.data?.slack_webhook),
+      teams: Boolean(cfg.data?.teams_webhook),
+      discord: Boolean(cfg.data?.discord_webhook),
       points: cfg.data?.alert_points ?? 5,
       keys: keys.data ?? [],
       hooks: (hooks.data ?? []).map((h) => ({ ...h, url: h.url.replace(/^(https?:\/\/[^/]+).*/, "$1/…") })),
@@ -102,6 +106,23 @@ export async function POST(request: Request) {
     const points = Math.min(50, Math.max(1, Number(body.points) || 5));
     const { error } = await db.from("integrations").upsert({ workspace_id: ws, slack_webhook: url, alert_points: points, updated_at: new Date().toISOString() });
     if (error) return err(/integrations/.test(error.message) ? SETUP : error.message, 500);
+    return Response.json({ ok: true });
+  }
+  if (body.action === "teams" || body.action === "discord") {
+    const teams = body.action === "teams";
+    const url = String(body.url ?? "").trim();
+    if (!(teams ? TEAMS_HOOK : DISCORD_HOOK).test(url)) return err(teams ? "Paste a Teams Workflows webhook URL. In Teams, open the channel, then Workflows, then \"Send webhook alerts to a channel\"." : "Paste a Discord webhook URL. It starts with https://discord.com/api/webhooks/.");
+    try {
+      await (teams ? teamsSend : discordSend)(url, "Arrowsterr is connected", ["You'll get a message here when your AI visibility moves or a competitor overtakes you."]);
+    } catch (x) {
+      return err(`${teams ? "Teams" : "Discord"} said no: ${x instanceof Error ? x.message : String(x)}`);
+    }
+    const { error } = await db.from("integrations").upsert({ workspace_id: ws, [teams ? "teams_webhook" : "discord_webhook"]: url, updated_at: new Date().toISOString() });
+    if (error) return err(/teams_webhook|discord_webhook/.test(error.message) ? "Run supabase/091_team_chat_alerts.sql in Supabase first." : /integrations/.test(error.message) ? SETUP : error.message, 500);
+    return Response.json({ ok: true });
+  }
+  if (body.action === "teamsOff" || body.action === "discordOff") {
+    await db.from("integrations").update({ [body.action === "teamsOff" ? "teams_webhook" : "discord_webhook"]: null }).eq("workspace_id", ws);
     return Response.json({ ok: true });
   }
   if (body.action === "slackOff") {

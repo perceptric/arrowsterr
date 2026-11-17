@@ -4,7 +4,7 @@ import { gzipSync } from "node:zlib";
 import { askJson } from "./claude";
 import { getRaw, postRaw, type DfsEngine } from "./dataforseo";
 import { entitlement } from "./entitlements";
-import { dispatch, slackSend } from "./integrations";
+import { dispatch, slackSend, teamChatSend } from "./integrations";
 import { alertTarget } from "./integrationTypes";
 import { enqueue, enqueueMany, finish, rateOk, type Job } from "./jobs";
 import { answerSources, readCards, type ShopEngine } from "./shopParse";
@@ -298,11 +298,12 @@ async function shopAlerts(db: SupabaseClient, brand: Brand, day: string) {
   await db.from("shop_alerts_sent").upsert(fresh.map((r) => ({ brand_id: brand.id, key: r.key })), { onConflict: "brand_id,key", ignoreDuplicates: true });
   await dispatch(db, brand.workspace_id, "shopping.alert", { brand: { id: brand.id, name: brand.name, domain: brand.domain }, day, reasons: fresh.map((r) => r.text) });
   const [{ data: cfg }, { data: own }] = await Promise.all([
-    db.from("integrations").select("slack_webhook, alert_points").eq("workspace_id", brand.workspace_id).maybeSingle(),
+    db.from("integrations").select("*").eq("workspace_id", brand.workspace_id).maybeSingle(),
     db.from("brand_settings").select("slack_channel, alert_points").eq("brand_id", brand.id).maybeSingle(),
   ]);
   const { slack } = alertTarget(own, cfg);
   if (slack) await slackSend(slack, `${brand.name}: AI Shopping`, fresh.map((r) => r.text)).catch((err) => console.error("Slack alert failed:", say(err)));
+  await teamChatSend(cfg, `${brand.name}: AI Shopping`, fresh.map((r) => r.text));
 }
 
 // ─────────────── Prompts (section 4.1) ───────────────

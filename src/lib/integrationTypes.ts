@@ -20,6 +20,9 @@ export const SAMPLES: Record<EventName, Record<string, unknown>> = {
 export const DEFAULT_ALERT_POINTS = 5;
 export const ALERT_POINTS = [3, 5, 10, 15];
 export const SLACK_HOOK = /^https:\/\/hooks\.slack\.com\/services\/\S+$/;
+/** A Teams Workflows webhook (Power Automate), or an older Office 365 connector address. */
+export const TEAMS_HOOK = /^https:\/\/[\w.-]+\.(logic\.azure\.com|powerplatform\.com|webhook\.office\.com)(:443)?\/\S+$/;
+export const DISCORD_HOOK = /^https:\/\/(discord|discordapp)\.com\/api\/webhooks\/\d+\/[\w-]+$/;
 
 /**
  * Where a brand's alert goes and how big a move sends it: the brand's own Slack channel and alert size,

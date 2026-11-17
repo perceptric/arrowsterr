@@ -10,7 +10,43 @@ import { useZippieMaybe } from "./zippie/ZippieContext";
 
 type Key = { id: string; name: string; prefix: string; created_at: string; last_used_at: string | null };
 type Hook = { id: string; url: string; event: string; source: string; created_at: string };
-type State = { allowed: boolean; mcp?: boolean; setup?: string; slack?: boolean; points?: number; keys?: Key[]; hooks?: Hook[] };
+type State = { allowed: boolean; mcp?: boolean; setup?: string; slack?: boolean; teams?: boolean; discord?: boolean; points?: number; keys?: Key[]; hooks?: Hook[] };
+
+/** Alerts in Microsoft Teams or Discord through a channel webhook. Same alerts as Slack, workspace-wide. */
+function ChatHookCard({ kind, on, canEdit, busy, act, ask }: { kind: "teams" | "discord"; on: boolean; canEdit: boolean; busy: string; act: (name: string, body: Record<string, unknown>, done?: string) => Promise<void>; ask: (a: { title: string; text: string; action: string; run: () => void }) => void }) {
+  const [url, setUrl] = useState("");
+  const teams = kind === "teams";
+  const name = teams ? "Microsoft Teams" : "Discord";
+  return (
+    <div className="aw-frame flex max-w-2xl flex-col gap-3 p-5">
+      <div className="flex items-center justify-between gap-3">
+        <span className="flex items-center gap-2 text-[15px] font-medium text-ink">
+          <img src={`https://www.google.com/s2/favicons?domain=${teams ? "teams.microsoft.com" : "discord.com"}&sz=64`} alt="" width={18} height={18} />
+          {name}
+        </span>
+        {on ? <span className="aw-status aw-status--ranked">Connected</span> : null}
+      </div>
+      <p className="text-[13px] text-muted">The same visibility and AI Shopping alerts as Slack, sent to one {teams ? "Teams" : "Discord"} channel for the whole workspace.</p>
+      {canEdit ? (
+        on ? (
+          <button type="button" className="aw-text-link self-start text-[13px] text-neg!" onClick={() => ask({ title: `Disconnect ${name}`, text: `Stop sending alerts to ${name}?`, action: "Disconnect", run: () => act(`${kind}Off`, { action: `${kind}Off` }) })}>
+            Disconnect
+          </button>
+        ) : (
+          <div className="flex flex-col gap-2">
+            <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder={teams ? "https://….logic.azure.com/workflows/…" : "https://discord.com/api/webhooks/…"} aria-label={`${name} webhook URL`} className="aw-input py-2! text-[14px]!" />
+            <span className="text-[12px] text-muted">
+              {teams ? "In Teams, open the channel, click the three dots, then Workflows, and pick \"Send webhook alerts to a channel\". Copy the URL it gives you." : "In Discord, open the channel settings, then Integrations, then Webhooks. Create one and copy its URL."}
+            </span>
+            <button type="button" className="aw-btn aw-btn--primary aw-btn--sm self-start" disabled={!url.trim() || Boolean(busy)} onClick={() => act(kind, { action: kind, url }, `Connected. Check ${name} for a test message.`)}>
+              {busy === kind ? "Testing..." : "Connect and send a test"}
+            </button>
+          </div>
+        )
+      ) : null}
+    </div>
+  );
+}
 
 const date = (s: string | null) => (s ? new Date(s).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Never");
 const api = () => `${window.location.origin}/api/v1`;
@@ -320,7 +356,7 @@ export function IntegrationsSettings({ auth, isAdmin }: { auth: RunAuth; isAdmin
     <section className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
         <h2 className="aw-h4">Integrations</h2>
-        <p className="max-w-2xl text-[14px] text-body">Use Arrowsterr from Claude, ChatGPT and Cursor, connect your apps to Zippie, get alerts in Slack, and connect Zapier or your own tools with the API.</p>
+        <p className="max-w-2xl text-[14px] text-body">Use Arrowsterr from Claude, ChatGPT and Cursor, connect your apps to Zippie, get alerts in Slack, Teams or Discord, and connect Zapier or your own tools with the API.</p>
       </div>
       {off ? <div className="aw-callout max-w-2xl">{s.mcp ? "Slack, Zapier and the API are on Pro and up." : "AI apps are on Starter and up. Slack, Zapier and the API are on Pro and up."}</div> : null}
       {s.setup ? <div className="aw-callout max-w-2xl">{s.setup}</div> : null}
@@ -371,6 +407,9 @@ export function IntegrationsSettings({ auth, isAdmin }: { auth: RunAuth; isAdmin
           </>
         ) : null}
       </div>
+
+      <ChatHookCard kind="teams" on={Boolean(s.teams)} canEdit={isAdmin && !off} busy={busy} act={act} ask={setAsking} />
+      <ChatHookCard kind="discord" on={Boolean(s.discord)} canEdit={isAdmin && !off} busy={busy} act={act} ask={setAsking} />
 
       {/* API keys */}
       <div className="aw-frame flex max-w-2xl flex-col gap-3 p-5">
