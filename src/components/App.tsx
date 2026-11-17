@@ -168,6 +168,7 @@ const ONBOARDING = "/onboarding";
 const onOnboarding = () => window.location.pathname.replace(/\/+$/, "") === ONBOARDING;
 
 const INVITE_KEY = "arrowsterr.invite";
+const DEVICE_KEY = "arrowsterr.device";
 const NAV_HIDDEN = "arrowsterr.navHidden";
 const NAV_KEY = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform) ? "⌘B" : "Ctrl+B";
 const LEGACY_BRANDS = "arrowsterr.brands";
@@ -218,7 +219,7 @@ function brandChange(a: Brand, b: Brand) {
 }
 
 /** Sign-in gate. Everything after sign-in lives in Shell. */
-export function App({ config, googleClientId = null }: { config: SupaConfig; googleClientId?: string | null }) {
+export function App({ config, googleClientId = null, turnstileSiteKey = null }: { config: SupaConfig; googleClientId?: string | null; turnstileSiteKey?: string | null }) {
   const sb = getSupabase(config);
   const [session, setSession] = useState<Session | null | undefined>(undefined);
   const [recovery, setRecovery] = useState(false);
@@ -266,9 +267,27 @@ export function App({ config, googleClientId = null }: { config: SupaConfig; goo
       .catch(() => setGate({ user: uid, need: false }));
   }, [sb, uid]);
 
+  // Tell the server which device this is, once per person per visit. A new device gets a security email.
+  const token = session?.access_token;
+  const seen = useRef("");
+  useEffect(() => {
+    if (!uid || !token || seen.current === uid) return;
+    seen.current = uid;
+    let device = readLocal(DEVICE_KEY);
+    if (!device) {
+      device = [...crypto.getRandomValues(new Uint8Array(16))].map((b) => b.toString(16).padStart(2, "0")).join("");
+      try {
+        localStorage.setItem(DEVICE_KEY, device);
+      } catch {
+        // Storage blocked: this visit counts as a new device.
+      }
+    }
+    fetch("/api/auth/seen", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ device }) }).catch(() => {});
+  }, [uid, token]);
+
   if (session === undefined) return null;
   if (recovery && session) return <NewPassword sb={sb} onDone={() => setRecovery(false)} />;
-  if (!session) return <AuthScreen sb={sb} invited={Boolean(readLocal(INVITE_KEY))} googleClientId={googleClientId} />;
+  if (!session) return <AuthScreen sb={sb} invited={Boolean(readLocal(INVITE_KEY))} googleClientId={googleClientId} turnstileSiteKey={turnstileSiteKey} />;
   if (gate?.user !== session.user.id) return null;
   if (gate.need) return <CodeCheck sb={sb} onDone={() => setGate({ user: session.user.id, need: false })} />;
   return <Shell sb={sb} session={session} />;

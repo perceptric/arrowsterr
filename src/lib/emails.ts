@@ -300,6 +300,23 @@ export function freeAlarmEmail(f: { spent: number; limit: number; tools: { name:
   });
 }
 
+/** Sent when an account signs in from a device it hasn't used before. */
+export function newDeviceEmail(d: { device: string; ip: string; when: Date; resetUrl: string }): Email {
+  const when = d.when.toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }) + " UTC";
+  return renderEmail({
+    subject: "New sign-in to your Arrowsterr account",
+    preview: `${d.device}, ${when}`,
+    eyebrow: "Security",
+    title: "New sign-in to your account",
+    blocks: [
+      { t: "rows", items: [{ title: "Device", right: d.device }, { title: "Address", right: d.ip || "Unknown" }, { title: "Time", right: when }] },
+      { t: "small", text: "If this was you, you can ignore this email. If it wasn't, reset your password now and turn on two-step sign-in in Settings, then Password and security." },
+    ],
+    button: { label: "Reset my password", url: d.resetUrl },
+    footer: { text: "Sent to keep your account safe." },
+  });
+}
+
 // ─────────────── sign-in emails (Supabase Auth templates) ───────────────
 
 export type AuthKind = "confirm" | "magic" | "recovery";
