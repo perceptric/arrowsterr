@@ -275,6 +275,34 @@ export const TOOLS: Tool[] = [
     },
   },
   {
+    name: "get_ai_crawlers",
+    title: "AI crawlers on the site",
+    description:
+      "Which AI crawlers (GPTBot, OAI-SearchBot, ChatGPT-User, ClaudeBot, Claude-User, Claude-SearchBot, PerplexityBot, Perplexity-User, Googlebot, Bingbot, Applebot, Meta-ExternalAgent, Bytespider, CCBot, Amazonbot, DuckAssistBot) read the brand's own website, how often, the pages they read most, and key pages no AI bot opened. Data comes from Cloudflare (connected under Apps for Zippie) or the Arrowsterr Connector plugin on WordPress. Max 90 days.",
+    inputSchema: { type: "object", properties: { brand: brandArg, days: { type: "number", description: "How many days back to look. Default 30, max 90.", minimum: 1, maximum: 90 } } },
+    annotations: { readOnlyHint: true, openWorldHint: false },
+    async run(ctx, args) {
+      const brand = await pickBrand(ctx, args.brand);
+      const { crawlerData } = await import("../aiCrawlersServer");
+      const d = await crawlerData(ctx.db, ctx.ws, { id: brand.id, domain: brand.domain }, Math.min(90, daysOf(args.days)));
+      if (!d.source) {
+        const notes = [d.cloudflare.note, d.wordpress.note].filter(Boolean).join(" ");
+        throw new ToolError(`No crawler data for ${brand.name} yet. Connect Cloudflare in Settings → Integrations (Apps for Zippie), or install the Arrowsterr Connector plugin 1.3.0 or newer on a WordPress site in Publishing sites.${notes ? ` ${notes}` : ""}`);
+      }
+      return textResult({
+        brand: { name: brand.name, domain: brand.domain },
+        source: d.source,
+        from: d.from,
+        to: d.to,
+        totalReads: d.total,
+        bots: d.bots.map((b) => ({ bot: b.name, owner: b.owner, kind: b.kind, reads: b.hits, pages: b.pages, lastSeen: b.last })),
+        topPages: d.pages.slice(0, 25).map((p) => ({ path: p.path, reads: p.hits, bots: p.bots.slice(0, 5).map((x) => `${x.id} ${x.hits}`) })),
+        keyPagesSkipped: { count: d.skippedCount, of: d.checkedPages, pages: d.skipped },
+        note: "Bots are matched by user agent, which can be faked. Googlebot and Bingbot do not count as AI visits for skipped pages.",
+      });
+    },
+  },
+  {
     name: "get_content_plan",
     title: "Content Plan",
     description: "The brand's Content Plan: each planned piece with its keyword, funnel stage, search volume, difficulty, status, due date and live URL.",

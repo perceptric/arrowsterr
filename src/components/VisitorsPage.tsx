@@ -6,6 +6,7 @@ import type { RunAuth } from "@/lib/runner";
 import type { View } from "@/lib/view";
 import { Sheet, type Col } from "./Sheet";
 import { useStash } from "@/lib/stash";
+import { AiCrawlers } from "./AiCrawlers";
 import { EmptyScreen } from "./Drawing";
 import { Card, Thinking } from "./ui";
 
@@ -110,6 +111,7 @@ export function VisitorsPage({ view, auth }: { view: View; auth: RunAuth }) {
         >
           Connect your site in Traffic to follow each visitor&apos;s path to buying.
         </EmptyScreen>
+        <AiCrawlers auth={auth} brand={brand} days={days} />
       </div>
     );
   if (!data) return error ? <p className="aw-error">{error}</p> : <Thinking text="Meeting your visitors..." />;
@@ -210,6 +212,8 @@ export function VisitorsPage({ view, auth }: { view: View; auth: RunAuth }) {
       <Card title={`Last ${days} days`}>
         <Sheet label="Visitors" rows={vs} cols={cols} rowKey={(v) => v.id} sort={{ key: "score", desc: true }} onOpen={setOpen} />
       </Card>
+
+      <AiCrawlers auth={auth} brand={brand} days={days} />
 
       {open ? <Journey v={open} domain={brand.domain} load={(id) => call({ action: "journey", sessionId: id })} onClose={() => setOpen(null)} /> : null}
     </div>

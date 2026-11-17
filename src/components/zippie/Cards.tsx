@@ -31,6 +31,7 @@ const TOOL_LABEL: Record<string, string> = {
   get_prompt_answers: "Read AI answers",
   get_competitors: "Compared competitors",
   get_cited_sources: "Read cited sources",
+  get_ai_crawlers: "Checked AI crawlers",
   get_content_plan: "Read the Content Plan",
   get_topic_bank: "Read the topic bank",
   show_setup: "Opened a setup guide",
