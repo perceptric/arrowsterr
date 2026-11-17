@@ -219,7 +219,7 @@ function brandChange(a: Brand, b: Brand) {
 }
 
 /** Sign-in gate. Everything after sign-in lives in Shell. */
-export function App({ config, turnstileSiteKey = null }: { config: SupaConfig; turnstileSiteKey?: string | null }) {
+export function App({ config, turnstileSiteKey = null, passkeys = false }: { config: SupaConfig; turnstileSiteKey?: string | null; passkeys?: boolean }) {
   const sb = getSupabase(config);
   const [session, setSession] = useState<Session | null | undefined>(undefined);
   const [recovery, setRecovery] = useState(false);
@@ -287,7 +287,7 @@ export function App({ config, turnstileSiteKey = null }: { config: SupaConfig; t
 
   if (session === undefined) return null;
   if (recovery && session) return <NewPassword sb={sb} onDone={() => setRecovery(false)} />;
-  if (!session) return <AuthScreen sb={sb} invited={Boolean(readLocal(INVITE_KEY))} turnstileSiteKey={turnstileSiteKey} />;
+  if (!session) return <AuthScreen sb={sb} invited={Boolean(readLocal(INVITE_KEY))} turnstileSiteKey={turnstileSiteKey} passkeys={passkeys} />;
   if (gate?.user !== session.user.id) return null;
   if (gate.need) return <CodeCheck sb={sb} onDone={() => setGate({ user: session.user.id, need: false })} />;
   return <Shell sb={sb} session={session} />;

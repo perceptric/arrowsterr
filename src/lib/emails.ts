@@ -319,34 +319,112 @@ export function newDeviceEmail(d: { device: string; ip: string; when: Date; rese
 
 // ─────────────── sign-in emails (Supabase Auth templates) ───────────────
 
-export type AuthKind = "confirm" | "magic" | "recovery";
+export type AuthKind = "confirm" | "magic" | "recovery" | "invite" | "email_change_old" | "email_change_new" | "reauth";
 
-/** Supabase sends these. scripts/email-previews.ts writes them to supabase/templates/ with Supabase's placeholders. */
-export function authEmail(kind: AuthKind, a: { url: string; email: string; code?: string }): Email {
-  const footer: Footer = { text: `Sent by Arrowsterr to ${a.email}.` };
-  if (kind === "recovery") {
-    return renderEmail({
-      subject: "Reset your Arrowsterr password",
-      preview: `Choose a new password for ${a.email}.`,
-      title: "Reset your password",
-      blocks: [{ t: "p", text: `Someone asked to reset the password for ${a.email}.` }],
-      button: { label: "Choose a new password", url: a.url },
-      after: [{ t: "small", text: "If you didn't ask for this, your password stays the same." }],
-      footer,
-    });
+/**
+ * Sign-in emails. The Send Email hook (src/app/api/auth/email-hook) sends them through Resend, and
+ * scripts/email-previews.ts also writes them to supabase/templates/ with Supabase's placeholders.
+ */
+export function authEmail(kind: AuthKind, a: { url: string; email: string; code?: string; newEmail?: string; inviter?: string }): Email {
+  const footer: Footer = { text: `Sent by Arrowsterr to ${a.email}. This is an account email, so it can't be turned off.` };
+  const ignore = (what: string): Block => ({ t: "small", text: `If you didn't ${what}, you can ignore this email. Your account stays as it is.` });
+  const code = a.code ? [{ t: "code" as const, label: "Or enter this code", code: a.code }] : [];
+  switch (kind) {
+    case "recovery":
+      return renderEmail({
+        subject: "Reset your Arrowsterr password",
+        preview: `Choose a new password for ${a.email}. The link works for 1 hour.`,
+        eyebrow: "Account security",
+        title: "Reset your password",
+        blocks: [{ t: "p", text: `We got a request to reset the password for ${a.email}. The link works for 1 hour and only once.` }],
+        button: { label: "Choose a new password", url: a.url },
+        after: [...code, { t: "small", text: "If you didn't ask for this, your password stays the same. Someone may have typed your email by mistake." }],
+        footer,
+      });
+    case "invite":
+      return renderEmail({
+        subject: `${a.inviter ? `${a.inviter} invited you` : "You're invited"} to Arrowsterr`,
+        preview: "Join your team on Arrowsterr and see what AI says about your brand.",
+        title: "You're invited to Arrowsterr",
+        blocks: [
+          { t: "p", text: `${a.inviter ? `${a.inviter} invited` : "You were invited"} ${a.email} to a workspace on Arrowsterr. It tracks how ChatGPT, Gemini, Claude and Perplexity talk about your brand, and helps you fix it.` },
+        ],
+        button: { label: "Accept the invite", url: a.url },
+        after: [ignore("expect this invite")],
+        footer,
+      });
+    case "email_change_old":
+      return renderEmail({
+        subject: "Confirm your new Arrowsterr email",
+        preview: `Your email is changing to ${a.newEmail ?? "a new address"}.`,
+        eyebrow: "Account security",
+        title: "Confirm your email change",
+        blocks: [{ t: "p", text: `Someone asked to change this account's email from ${a.email} to ${a.newEmail ?? "a new address"}. Confirm it here to go ahead.` }],
+        button: { label: "Confirm the change", url: a.url },
+        after: [...code, { t: "small", text: "If you didn't ask for this, don't click the button, and change your password in Settings." }],
+        footer,
+      });
+    case "email_change_new":
+      return renderEmail({
+        subject: "Confirm your new Arrowsterr email",
+        preview: "One click to start using this address on Arrowsterr.",
+        eyebrow: "Account security",
+        title: "Confirm your new email",
+        blocks: [{ t: "p", text: `Confirm ${a.newEmail ?? a.email} as the new email for your Arrowsterr account.` }],
+        button: { label: "Confirm new email", url: a.url },
+        after: [...code, ignore("ask for this")],
+        footer,
+      });
+    case "reauth":
+      return renderEmail({
+        subject: `${a.code ?? "Your"} is your Arrowsterr security code`,
+        preview: "Enter it to finish the change you started.",
+        eyebrow: "Account security",
+        title: "Your security code",
+        blocks: [{ t: "p", text: "Enter this code in Arrowsterr to finish the change you started, like a new password." }],
+        after: [...(a.code ? [{ t: "code" as const, label: "Security code", code: a.code }] : []), ignore("start a change")],
+        footer,
+      });
+    default: {
+      const confirm = kind === "confirm";
+      return renderEmail({
+        subject: confirm ? "Confirm your email for Arrowsterr" : a.code ? `${a.code} is your Arrowsterr sign-in code` : "Sign in to Arrowsterr",
+        preview: a.code ? `Your code is ${a.code}. It works for 1 hour.` : confirm ? "One click to finish setting up." : "One click to sign in.",
+        title: confirm ? "Confirm your email" : "Sign in to Arrowsterr",
+        blocks: [{ t: "p", text: confirm ? `Welcome to Arrowsterr. Confirm ${a.email} to finish setting up your account.` : `Use the button or the code to sign in as ${a.email}. Both work for 1 hour and only once.` }],
+        button: { label: confirm ? "Confirm email" : "Sign in", url: a.url },
+        after: [...code, ignore(confirm ? "sign up" : "ask to sign in")],
+        footer,
+      });
+    }
   }
-  const confirm = kind === "confirm";
+}
+
+/** Security notices Supabase can send after a change: a new password, email, sign-in method or 2-step code. */
+export function securityNoticeEmail(kind: string, a: { email: string; detail?: string; settingsUrl: string; resetUrl: string }): Email | null {
+  const notes: Record<string, [string, string]> = {
+    password_changed_notification: ["Your password was changed", "The password for your Arrowsterr account was just changed."],
+    email_changed_notification: ["Your email was changed", `Your Arrowsterr account's email was changed${a.detail ? ` to ${a.detail}` : ""}.`],
+    identity_linked_notification: ["A sign-in method was added", `${a.detail ?? "A new sign-in method"} can now sign in to your Arrowsterr account.`],
+    identity_unlinked_notification: ["A sign-in method was removed", `${a.detail ?? "A sign-in method"} was removed from your Arrowsterr account.`],
+    mfa_factor_enrolled_notification: ["2-step sign-in was turned on", "A new 2-step sign-in method was added to your Arrowsterr account."],
+    mfa_factor_unenrolled_notification: ["2-step sign-in was removed", "A 2-step sign-in method was removed from your Arrowsterr account."],
+    phone_changed_notification: ["Your phone number was changed", "The phone number on your Arrowsterr account was changed."],
+  };
+  const n = notes[kind];
+  if (!n) return null;
   return renderEmail({
-    subject: confirm ? "Confirm your email for Arrowsterr" : "Sign in to Arrowsterr",
-    preview: a.code ? `Your code is ${a.code}.` : confirm ? "One click to finish setting up." : "One click to sign in.",
-    title: confirm ? "Confirm your email" : "Sign in to Arrowsterr",
-    blocks: [{ t: "p", text: confirm ? `Confirm ${a.email} to finish setting up Arrowsterr.` : `Use the button or the code to sign in as ${a.email}.` }],
-    button: { label: confirm ? "Confirm email" : "Sign in", url: a.url },
-    after: [
-      ...(a.code ? [{ t: "code" as const, label: "Or enter this code", code: a.code }] : []),
-      { t: "small", text: confirm ? "If you didn't sign up, you can ignore this email." : "If you didn't ask to sign in, you can ignore this email." },
+    subject: n[0],
+    preview: "If this was you, there's nothing to do.",
+    eyebrow: "Account security",
+    title: n[0],
+    blocks: [
+      { t: "p", text: n[1] },
+      { t: "small", text: "If this was you, there's nothing to do. If it wasn't, reset your password now and check Settings, then Password and security." },
     ],
-    footer,
+    button: { label: "Reset my password", url: a.resetUrl },
+    link: { label: "Open security settings", url: a.settingsUrl },
+    footer: { text: `Sent by Arrowsterr to ${a.email} to keep your account safe.` },
   });
 }
 

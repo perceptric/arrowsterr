@@ -43,5 +43,10 @@ export default async function Home() {
   }
   // Cloudflare Turnstile bot check on the sign-in page. Turn on bot protection in Supabase's Auth settings with the same keys.
   const turnstileSiteKey = process.env.TURNSTILE_SITE_KEY?.trim() || null;
-  return <ClientApp config={{ url, key }} turnstileSiteKey={turnstileSiteKey} />;
+  // Show passkey sign-in only once passkeys are on in Supabase's Auth settings. Checked every 5 minutes.
+  const passkeys = await fetch(`${url}/auth/v1/settings`, { headers: { apikey: key }, next: { revalidate: 300 }, signal: AbortSignal.timeout(3000) })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((s: { passkeys_enabled?: boolean } | null) => Boolean(s?.passkeys_enabled))
+    .catch(() => false);
+  return <ClientApp config={{ url, key }} turnstileSiteKey={turnstileSiteKey} passkeys={passkeys} />;
 }

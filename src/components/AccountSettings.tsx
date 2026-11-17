@@ -8,6 +8,7 @@ import { ROLES } from "./Onboarding";
 import { avatarFromFile } from "./WorkspaceAvatar";
 import { getProfile, saveProfile, type UserProfile } from "@/lib/db";
 import { recordUndo } from "@/lib/undo";
+import { passwordProblem } from "@/lib/passwordCheck";
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
@@ -192,6 +193,117 @@ export function ProfileSettings({ sb, user }: { sb: SupabaseClient; user: User }
   );
 }
 
+const when = (s?: string | null) => (s ? new Date(s).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Never");
+
+/** Passkeys: sign in with Face ID, Touch ID, Windows Hello or a security key. Hidden while passkeys are off in Supabase. */
+function PasskeySection({ sb }: { sb: SupabaseClient }) {
+  const [keys, setKeys] = useState<{ id: string; friendly_name?: string; created_at: string; last_used_at?: string }[] | null>(null);
+  const [off, setOff] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const load = useCallback(async () => {
+    const { data, error: err } = await sb.auth.passkey.list();
+    if (err) return setOff(true);
+    setKeys(data ?? []);
+  }, [sb]);
+  useEffect(() => {
+    // Loading from Supabase on first render is the point of this effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    load();
+  }, [load]);
+  if (off || typeof window === "undefined" || !("PublicKeyCredential" in window)) return null;
+
+  async function add() {
+    setBusy(true);
+    setError("");
+    const { error: err } = await sb.auth.registerPasskey();
+    setBusy(false);
+    if (err) setError(/abort|cancel|not allowed/i.test(err.message) ? "" : err.message);
+    await load();
+  }
+  async function remove(id: string) {
+    if (!(await askConfirm({ title: "Remove this passkey?", text: "You won't be able to sign in with it anymore.", action: "Remove" }))) return;
+    const { error: err } = await sb.auth.passkey.delete({ passkeyId: id });
+    if (err) setError(err.message);
+    await load();
+  }
+
+  return (
+    <section className="flex flex-col gap-4">
+      <div>
+        <h3 className="aw-h4">
+          Passkeys <span className={`aw-tag ml-2 ${keys?.length ? "" : "text-muted"}`}>{keys === null ? "…" : keys.length ? `${keys.length} saved` : "None"}</span>
+        </h3>
+        <p className="aw-small mt-1">Sign in with Face ID, Touch ID, Windows Hello or a security key. No password to type, and nothing a fake site can steal.</p>
+      </div>
+      {error ? <p className="aw-error">{error}</p> : null}
+      {keys?.length ? (
+        <ul className="flex flex-col divide-y divide-rule-faint rounded-[10px] border border-rule-faint">
+          {keys.map((k) => (
+            <li key={k.id} className="flex items-center justify-between gap-3 px-3 py-2.5 text-[13px]">
+              <span className="flex min-w-0 flex-col">
+                <span className="text-ink">{k.friendly_name || "Passkey"}</span>
+                <span className="text-muted">
+                  Added {when(k.created_at)} · last used {when(k.last_used_at)}
+                </span>
+              </span>
+              <button type="button" className="aw-text-link text-[13px] text-neg!" onClick={() => remove(k.id)}>
+                Remove
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      <div>
+        <button type="button" className="aw-btn aw-btn--secondary" disabled={busy} onClick={add}>
+          {busy ? "Waiting for your device..." : "Add a passkey"}
+        </button>
+      </div>
+    </section>
+  );
+}
+
+/** Devices that signed in to this account, newest first. A new one also gets a security email. */
+function DeviceList({ sb, userId }: { sb: SupabaseClient; userId: string }) {
+  const [rows, setRows] = useState<{ device: string; label: string; first_seen: string; last_seen: string }[] | null>(null);
+  useEffect(() => {
+    sb.from("login_devices")
+      .select("device, label, first_seen, last_seen")
+      .eq("user_id", userId)
+      .order("last_seen", { ascending: false })
+      .limit(10)
+      .then(({ data, error }) => setRows(error ? [] : data ?? []));
+  }, [sb, userId]);
+  if (!rows?.length) return null;
+  let mine = "";
+  try {
+    mine = localStorage.getItem("arrowsterr.device") ?? "";
+  } catch {
+    // Storage blocked.
+  }
+  return (
+    <section className="flex flex-col gap-4">
+      <div>
+        <h3 className="aw-h4">Recent sign-ins</h3>
+        <p className="aw-small mt-1">Devices that signed in to your account. Don&apos;t know one? Change your password, then sign out other devices below.</p>
+      </div>
+      <ul className="flex flex-col divide-y divide-rule-faint rounded-[10px] border border-rule-faint">
+        {rows.map((r) => (
+          <li key={r.device} className="flex items-center justify-between gap-3 px-3 py-2.5 text-[13px]">
+            <span className="flex min-w-0 flex-col">
+              <span className="text-ink">{r.label || "A browser"}</span>
+              <span className="text-muted">
+                First seen {when(r.first_seen)} · last seen {when(r.last_seen)}
+              </span>
+            </span>
+            {r.device === mine ? <span className="aw-chip shrink-0">This device</span> : null}
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 /** Password, 2-step sign-in, and signing out other devices. */
 export function SecuritySettings({ sb, user }: { sb: SupabaseClient; user: User }) {
   const [password, setPassword] = useState("");
@@ -264,6 +376,8 @@ export function SecuritySettings({ sb, user }: { sb: SupabaseClient; user: User 
           e.preventDefault();
           if (password !== again) return setError("The two passwords do not match.");
           run(async () => {
+            const problem = await passwordProblem(password);
+            if (problem) throw new Error(problem);
             const { error: err } = await sb.auth.updateUser({ password });
             if (err) throw err;
             setPassword("");
@@ -386,6 +500,9 @@ export function SecuritySettings({ sb, user }: { sb: SupabaseClient; user: User 
           </div>
         )}
       </section>
+
+      <PasskeySection sb={sb} />
+      <DeviceList sb={sb} userId={user.id} />
 
       <section className="flex flex-col gap-4">
         <div>

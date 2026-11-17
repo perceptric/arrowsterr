@@ -3,7 +3,7 @@
 // Open the previews in a browser; switch the system to dark mode to see the dark versions.
 
 import { mkdirSync, writeFileSync } from "node:fs";
-import { alertEmail, authEmail, briefEmail, freeAlarmEmail, planEmail, tasksEmail, trialEmail, weeklyEmail, type Footer } from "../src/lib/emails.ts";
+import { alertEmail, authEmail, briefEmail, freeAlarmEmail, newDeviceEmail, planEmail, securityNoticeEmail, tasksEmail, trialEmail, weeklyEmail, type Footer } from "../src/lib/emails.ts";
 import type { Email } from "../src/lib/emailKit.ts";
 import { reportEmail } from "../src/lib/reportEmail.ts";
 
@@ -110,7 +110,12 @@ const samples: Record<string, Email | { subject: string; html: string; text: str
   free: freeAlarmEmail({ spent: 52.4, limit: 50, tools: [{ name: "keyword", runs: 296, cost: 31.2 }, { name: "snapshot", runs: 128, cost: 21.2 }], url: app }),
   "auth-confirm": authEmail("confirm", { url: `${app}/confirm`, email: "you@example.com", code: "482913" }),
   "auth-magic": authEmail("magic", { url: `${app}/signin`, email: "you@example.com", code: "482913" }),
-  "auth-recovery": authEmail("recovery", { url: `${app}/reset`, email: "you@example.com" }),
+  "auth-recovery": authEmail("recovery", { url: `${app}/reset`, email: "you@example.com", code: "482913" }),
+  "auth-invite": authEmail("invite", { url: `${app}/invite`, email: "you@example.com", inviter: "Sam from Momos" }),
+  "auth-email-change": authEmail("email_change_old", { url: `${app}/change`, email: "you@example.com", newEmail: "new@example.com", code: "482913" }),
+  "auth-reauth": authEmail("reauth", { url: "", email: "you@example.com", code: "482913" }),
+  "security-password": securityNoticeEmail("password_changed_notification", { email: "you@example.com", settingsUrl: `${app}/settings/security`, resetUrl: app })!,
+  "security-device": newDeviceEmail({ device: "Chrome on macOS", ip: "203.0.113.7", when: new Date("2026-11-17T11:22:00Z"), resetUrl: app }),
 };
 
 mkdirSync("email-previews", { recursive: true });
@@ -127,7 +132,10 @@ const fill = (html: string) => html.replaceAll(URL_MARK, "{{ .ConfirmationURL }}
 const templates = [
   { file: "confirmation", mail: authEmail("confirm", { url: URL_MARK, email: EMAIL_MARK, code: CODE_MARK }) },
   { file: "magic_link", mail: authEmail("magic", { url: URL_MARK, email: EMAIL_MARK, code: CODE_MARK }) },
-  { file: "recovery", mail: authEmail("recovery", { url: URL_MARK, email: EMAIL_MARK }) },
+  { file: "recovery", mail: authEmail("recovery", { url: URL_MARK, email: EMAIL_MARK, code: CODE_MARK }) },
+  { file: "invite", mail: authEmail("invite", { url: URL_MARK, email: EMAIL_MARK }) },
+  { file: "email_change", mail: authEmail("email_change_new", { url: URL_MARK, email: EMAIL_MARK, code: CODE_MARK }) },
+  { file: "reauthentication", mail: authEmail("reauth", { url: URL_MARK, email: EMAIL_MARK, code: CODE_MARK }) },
 ];
 mkdirSync("supabase/templates", { recursive: true });
 for (const t of templates) writeFileSync(`supabase/templates/${t.file}.html`, fill(t.mail.html) + "\n");

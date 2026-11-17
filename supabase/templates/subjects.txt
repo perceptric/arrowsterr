@@ -1,3 +1,6 @@
 confirmation: Confirm your email for Arrowsterr
-magic_link: Sign in to Arrowsterr
+magic_link: {{ .Token }} is your Arrowsterr sign-in code
 recovery: Reset your Arrowsterr password
+invite: You're invited to Arrowsterr
+email_change: Confirm your new Arrowsterr email
+reauthentication: {{ .Token }} is your Arrowsterr security code

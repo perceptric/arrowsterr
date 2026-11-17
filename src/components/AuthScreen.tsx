@@ -183,7 +183,7 @@ const TITLES: Record<Mode, [string, string]> = {
 };
 
 /** Sign in, create an account, or reset a password. */
-export function AuthScreen({ sb, invited, turnstileSiteKey = null }: { sb: SupabaseClient; invited: boolean; turnstileSiteKey?: string | null }) {
+export function AuthScreen({ sb, invited, turnstileSiteKey = null, passkeys = false }: { sb: SupabaseClient; invited: boolean; turnstileSiteKey?: string | null; passkeys?: boolean }) {
   const [mode, setMode] = useState<Mode>(invited ? "signup" : "signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -195,6 +195,31 @@ export function AuthScreen({ sb, invited, turnstileSiteKey = null }: { sb: Supab
   const [round, setRound] = useState(0);
   const onToken = useCallback((t: string) => setCaptcha(t), []);
   const captchaToken = captcha || undefined;
+  const canPasskey = passkeys && typeof window !== "undefined" && "PublicKeyCredential" in window;
+
+  // Passkey autofill: on the sign-in form, the browser offers saved passkeys in the email box's suggestions.
+  const auto = useRef<AbortController | null>(null);
+  useEffect(() => {
+    if (!canPasskey || mode !== "signin") return;
+    const ctrl = new AbortController();
+    auto.current = ctrl;
+    (async () => {
+      const ok = await (window.PublicKeyCredential as unknown as { isConditionalMediationAvailable?: () => Promise<boolean> }).isConditionalMediationAvailable?.().catch(() => false);
+      if (!ok || ctrl.signal.aborted) return;
+      const { error } = await sb.auth.signInWithPasskey({ options: { mediation: "conditional", signal: ctrl.signal } });
+      if (error && !ctrl.signal.aborted && !/abort|cancel|not allowed/i.test(error.message)) setError(error.message);
+    })();
+    return () => ctrl.abort();
+  }, [sb, canPasskey, mode]);
+
+  async function passkey() {
+    auto.current?.abort();
+    setBusy(true);
+    setError("");
+    const { error } = await sb.auth.signInWithPasskey({ options: { captchaToken } });
+    setBusy(false);
+    if (error && !/abort|cancel|not allowed/i.test(error.message)) setError(/not found|no passkey|credential/i.test(error.message) ? "No passkey for this site on this device. Sign in another way, then add one in Settings." : error.message);
+  }
 
   /** The code in the sign-in or confirm email, for a link opened on another device. */
   async function verify(e: React.FormEvent) {
@@ -300,6 +325,17 @@ export function AuthScreen({ sb, invited, turnstileSiteKey = null }: { sb: Supab
                 </svg>
                 Continue with Google
               </button>
+              {canPasskey && mode === "signin" ? (
+                <button type="button" className="aw-btn aw-btn--secondary aw-btn--block gap-3" onClick={passkey} disabled={busy}>
+                  <svg aria-hidden width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="9" cy="8" r="4" />
+                    <path d="M3 20c0-3.3 2.7-6 6-6 1.2 0 2.3.3 3.2.9" />
+                    <circle cx="17.5" cy="14.5" r="2.5" />
+                    <path d="M17.5 17v4M17.5 19h2" />
+                  </svg>
+                  Sign in with a passkey
+                </button>
+              ) : null}
               <div className="flex items-center gap-3 text-[12px] text-muted">
                 <span className="h-px flex-1 bg-rule" />
                 or use your email
@@ -312,7 +348,7 @@ export function AuthScreen({ sb, invited, turnstileSiteKey = null }: { sb: Supab
               <label className="aw-label" htmlFor="email">
                 Email
               </label>
-              <input id="email" type="email" autoComplete="email" autoCapitalize="none" spellCheck={false} value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus className="aw-input" />
+              <input id="email" type="email" autoComplete={canPasskey && mode === "signin" ? "username webauthn" : "email"} autoCapitalize="none" spellCheck={false} value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus className="aw-input" />
             </div>
             {mode === "signin" || mode === "signup" ? (
               <div className="flex flex-col gap-1.5">

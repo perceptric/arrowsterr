@@ -52,7 +52,7 @@ const safeUrl = (u: string) => (/^(https?:|mailto:)/i.test(u) ? u : "#");
 // Light values; the dark ones live in DARK below. Same tokens as src/app/calm-ui.css.
 const C = {
   shell: "#F5F5F5", panel: "#FFFFFF", soft: "#FAFAFA", line: "#EBEBEB", ink: "#171717", ink2: "#737373",
-  btn: "#333333", signal: "#0943B0", signalSoft: "#E8EEFA", track: "#F0F0F0", muted: "#D4D4D4",
+  btn: "#0943B0", signal: "#0943B0", signalSoft: "#E8EEFA", track: "#F0F0F0", muted: "#D4D4D4",
   good: "#0B7A54", goodSoft: "#E6F4EE", bad: "#B42318", badSoft: "#FDECEA", spark: "#F5A70A", sparkText: "#8A4B00", sparkSoft: "#FFF4DC", neutralText: "#404040",
 };
 const FONT = "Inter,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
@@ -68,7 +68,7 @@ const DARK = `@media (prefers-color-scheme: dark) {
 .c-shell{background:#161614!important}.c-panel{background:#1F1F1D!important;border-color:#2C2C29!important}
 .c-soft{background:#1A1A18!important;border-color:#2C2C29!important}.c-ink{color:#E8E8E3!important}.c-ink2{color:#9A9A95!important}
 .c-line{border-color:#2C2C29!important}.c-track{background:#2C2C29!important}.c-muted{background:#55554F!important}
-.c-signal{background:#6E95E6!important}.c-btn{background:#F5F5F0!important;color:#171717!important}
+.c-signal{background:#6E95E6!important}.c-btn{background:#4F7FE0!important;color:#FFFFFF!important}
 .c-good{background:#13291F!important;color:#7FD1AE!important}.c-bad{background:#3A1D1A!important;color:#F4A39A!important}
 .c-spark{background:#33280F!important;color:#FFC53D!important}.c-neutral{background:#262624!important;color:#D9D9D4!important}
 .c-blue{background:#17223A!important;color:#9DB6F0!important}.logo-light{display:none!important}.logo-dark{display:block!important}
@@ -200,7 +200,7 @@ export function renderEmail(e: EmailParts): Email {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="c-shell" style="background:${C.shell}"><tr><td align="center" style="padding:32px 16px 40px">
 <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%">
 <tr><td style="padding:0 4px 20px">${brand}</td></tr>
-<tr><td class="c-panel" style="background:${C.panel};border:1px solid ${C.line};border-radius:12px;padding:32px">
+<tr><td class="c-panel" style="background:${C.panel};border:1px solid ${C.line};${e.maker ? "" : `border-top:3px solid ${C.signal};`}border-radius:12px;padding:32px">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-family:${FONT}">
 ${e.eyebrow ? `<tr><td class="c-ink2" style="font-size:13px;line-height:18px;color:${C.ink2};padding-bottom:8px">${esc(e.eyebrow)}</td></tr>` : ""}
 <tr><td class="c-ink" style="font-size:24px;line-height:31px;font-weight:600;letter-spacing:-0.02em;color:${C.ink};padding-bottom:${e.sub ? 8 : 14}px">${esc(e.title)}</td></tr>
@@ -208,6 +208,7 @@ ${sub}${e.blocks.map(blockHtml).join("\n")}
 ${btn}${(e.after ?? []).map(blockHtml).join("\n")}
 </table></td></tr>
 <tr><td class="c-ink2" style="font-size:12px;line-height:18px;color:${C.ink2};padding:20px 4px 0;font-family:${FONT}">${esc(e.footer.text)}${footLinks ? ` ${footLinks}` : ""}</td></tr>
+${e.maker ? "" : `<tr><td class="c-ink2" style="font-size:12px;line-height:18px;color:${C.ink2};padding:12px 4px 0;font-family:${FONT}">Arrowsterr, AI visibility and SEO in one place.&nbsp; <a href="https://docs.arrowsterr.com" class="c-ink2" style="color:${C.ink2};text-decoration:underline">Help</a>&nbsp;&nbsp; <a href="https://arrowsterr.com/privacy" class="c-ink2" style="color:${C.ink2};text-decoration:underline">Privacy</a></td></tr>`}
 </table></td></tr></table></body></html>`;
 
   const lines = [
