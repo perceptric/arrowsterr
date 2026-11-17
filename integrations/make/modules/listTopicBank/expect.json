@@ -1,0 +1,9 @@
+[
+  {
+    "name": "brand_id",
+    "type": "select",
+    "label": "Brand",
+    "options": "rpc://listBrands",
+    "required": true
+  }
+]

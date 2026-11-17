@@ -1,0 +1,42 @@
+[
+  {
+    "name": "url",
+    "type": "url",
+    "label": "URL",
+    "required": true,
+    "help": "It must start with https://."
+  },
+  {
+    "name": "event",
+    "type": "select",
+    "label": "Event",
+    "options": [
+      {
+        "label": "All events",
+        "value": "*"
+      },
+      {
+        "label": "Daily result",
+        "value": "daily.result"
+      },
+      {
+        "label": "Visibility alert",
+        "value": "visibility.alert"
+      },
+      {
+        "label": "Brief ready",
+        "value": "brief.ready"
+      },
+      {
+        "label": "Post published",
+        "value": "post.published"
+      },
+      {
+        "label": "Shopping alert",
+        "value": "shopping.alert"
+      }
+    ],
+    "default": "daily.result",
+    "required": true
+  }
+]

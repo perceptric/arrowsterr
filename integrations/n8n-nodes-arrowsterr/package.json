@@ -1,0 +1,45 @@
+{
+  "name": "n8n-nodes-arrowsterr",
+  "version": "0.1.0",
+  "description": "n8n nodes for Arrowsterr: AI visibility, competitors, prompts, Topic Bank, Editorial Calendar and webhook events.",
+  "keywords": [
+    "n8n-community-node-package",
+    "arrowsterr",
+    "ai visibility",
+    "seo"
+  ],
+  "license": "MIT",
+  "homepage": "https://app.arrowsterr.com",
+  "author": {
+    "name": "Arrowsterr"
+  },
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc && node scripts/copy-assets.mjs",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "files": [
+    "dist"
+  ],
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "strict": true,
+    "credentials": [
+      "dist/credentials/ArrowsterrApi.credentials.js"
+    ],
+    "nodes": [
+      "dist/nodes/Arrowsterr/Arrowsterr.node.js",
+      "dist/nodes/ArrowsterrTrigger/ArrowsterrTrigger.node.js"
+    ]
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "n8n-workflow": "^2.16.0",
+    "typescript": "^5.9.3"
+  },
+  "peerDependencies": {
+    "n8n-workflow": "*"
+  }
+}

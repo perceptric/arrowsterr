@@ -1,0 +1,21 @@
+{
+  "url": "/visibility/models",
+  "method": "GET",
+  "qs": {
+    "brand_id": "{{parameters.brand_id}}",
+    "days": "{{parameters.days}}"
+  },
+  "response": {
+    "iterate": "{{body.models}}",
+    "output": {
+      "brand_id": "{{body.brand.id}}",
+      "brand_name": "{{body.brand.name}}",
+      "model": "{{item.model}}",
+      "answers": "{{item.answers}}",
+      "mentions": "{{item.mentions}}",
+      "visibility": "{{item.visibility}}",
+      "position": "{{item.position}}",
+      "sentiment": "{{item.sentiment}}"
+    }
+  }
+}

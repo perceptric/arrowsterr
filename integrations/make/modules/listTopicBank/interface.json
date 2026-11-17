@@ -1,0 +1,57 @@
+[
+  {
+    "name": "site",
+    "type": "text",
+    "label": "Site"
+  },
+  {
+    "name": "keyword",
+    "type": "text",
+    "label": "Keyword"
+  },
+  {
+    "name": "volume",
+    "type": "number",
+    "label": "Monthly searches"
+  },
+  {
+    "name": "difficulty",
+    "type": "number",
+    "label": "Difficulty"
+  },
+  {
+    "name": "intent",
+    "type": "text",
+    "label": "Intent"
+  },
+  {
+    "name": "stage",
+    "type": "text",
+    "label": "Stage"
+  },
+  {
+    "name": "cpc",
+    "type": "number",
+    "label": "Cost per click"
+  },
+  {
+    "name": "theme",
+    "type": "text",
+    "label": "Theme"
+  },
+  {
+    "name": "job",
+    "type": "text",
+    "label": "Job"
+  },
+  {
+    "name": "page",
+    "type": "url",
+    "label": "Page"
+  },
+  {
+    "name": "added",
+    "type": "date",
+    "label": "Added"
+  }
+]

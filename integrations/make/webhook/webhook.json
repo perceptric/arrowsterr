@@ -1,0 +1,6 @@
+{
+  "name": "arrowsterrEvents",
+  "label": "Arrowsterr events",
+  "type": "dedicated-attached",
+  "connection": "arrowsterr"
+}

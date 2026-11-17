@@ -1,0 +1,8 @@
+{
+  "url": "/webhooks",
+  "method": "GET",
+  "response": {
+    "iterate": "{{body.webhooks}}",
+    "output": "{{item}}"
+  }
+}

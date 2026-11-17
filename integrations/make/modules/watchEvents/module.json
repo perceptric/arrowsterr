@@ -1,0 +1,8 @@
+{
+  "name": "watchEvents",
+  "connection": null,
+  "type": "instant_trigger",
+  "label": "Watch events",
+  "description": "Starts when Arrowsterr sends an event, like a daily result or a visibility alert.",
+  "webhook": "arrowsterrEvents"
+}

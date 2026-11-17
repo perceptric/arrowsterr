@@ -1,0 +1,57 @@
+[
+  {
+    "name": "id",
+    "type": "text",
+    "label": "ID"
+  },
+  {
+    "name": "keyword",
+    "type": "text",
+    "label": "Keyword"
+  },
+  {
+    "name": "stage",
+    "type": "text",
+    "label": "Stage"
+  },
+  {
+    "name": "volume",
+    "type": "number",
+    "label": "Monthly searches"
+  },
+  {
+    "name": "difficulty",
+    "type": "number",
+    "label": "Difficulty"
+  },
+  {
+    "name": "status",
+    "type": "text",
+    "label": "Status"
+  },
+  {
+    "name": "due_date",
+    "type": "date",
+    "label": "Due date"
+  },
+  {
+    "name": "owner",
+    "type": "text",
+    "label": "Owner"
+  },
+  {
+    "name": "url",
+    "type": "url",
+    "label": "Live URL"
+  },
+  {
+    "name": "action",
+    "type": "text",
+    "label": "Job"
+  },
+  {
+    "name": "brief_status",
+    "type": "text",
+    "label": "Brief status"
+  }
+]

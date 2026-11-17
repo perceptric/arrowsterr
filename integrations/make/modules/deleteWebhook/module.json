@@ -1,0 +1,7 @@
+{
+  "name": "deleteWebhook",
+  "connection": "arrowsterr",
+  "type": "action",
+  "label": "Delete a webhook",
+  "description": "Stops sending events to a webhook."
+}

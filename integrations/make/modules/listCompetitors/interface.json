@@ -1,0 +1,42 @@
+[
+  {
+    "name": "brand_id",
+    "type": "text",
+    "label": "Brand ID"
+  },
+  {
+    "name": "brand_name",
+    "type": "text",
+    "label": "Brand name"
+  },
+  {
+    "name": "name",
+    "type": "text",
+    "label": "Name"
+  },
+  {
+    "name": "you",
+    "type": "boolean",
+    "label": "Your brand"
+  },
+  {
+    "name": "mentions",
+    "type": "number",
+    "label": "Answers that name it"
+  },
+  {
+    "name": "visibility",
+    "type": "number",
+    "label": "Visibility (%)"
+  },
+  {
+    "name": "position",
+    "type": "number",
+    "label": "Average position"
+  },
+  {
+    "name": "sentiment",
+    "type": "number",
+    "label": "Sentiment (0 to 100)"
+  }
+]

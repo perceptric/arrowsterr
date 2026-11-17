@@ -1,0 +1,7 @@
+{
+  "name": "makeApiCall",
+  "connection": "arrowsterr",
+  "type": "action",
+  "label": "Make an API call",
+  "description": "Calls any Arrowsterr API endpoint with your connection."
+}

@@ -1,0 +1,26 @@
+{
+  "timeZone": "Etc/UTC",
+  "dependencies": {},
+  "exceptionLogging": "STACKDRIVER",
+  "runtimeVersion": "V8",
+  "oauthScopes": [
+    "https://www.googleapis.com/auth/script.external_request"
+  ],
+  "urlFetchWhitelist": [
+    "https://app.arrowsterr.com/"
+  ],
+  "dataStudio": {
+    "name": "Arrowsterr",
+    "logoUrl": "https://app.arrowsterr.com/brand/arrowsterr-logo-color.png",
+    "company": "Arrowsterr",
+    "companyUrl": "https://arrowsterr.com",
+    "addonUrl": "https://arrowsterr.com",
+    "supportUrl": "https://arrowsterr.com",
+    "privacyPolicyUrl": "https://arrowsterr.com/privacy",
+    "termsOfServiceUrl": "https://arrowsterr.com/terms",
+    "description": "See how often AI answers name your brand. Chart visibility over time and by AI model, compare competitors, and list your tracked prompts.",
+    "shortDescription": "AI visibility, competitors and prompts from Arrowsterr.",
+    "authType": ["KEY"],
+    "feeType": ["PAID"]
+  }
+}

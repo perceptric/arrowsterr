@@ -1,0 +1,7 @@
+{
+  "name": "listCalendar",
+  "connection": "arrowsterr",
+  "type": "search",
+  "label": "List Editorial Calendar items",
+  "description": "Lists Editorial Calendar items with status, due date and brief status."
+}
