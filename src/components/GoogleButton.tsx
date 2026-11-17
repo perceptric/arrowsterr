@@ -15,7 +15,8 @@ type Gis = {
   };
 };
 
-const SCRIPT = "https://accounts.google.com/gsi/client";
+// hl=en keeps the button in English. The FedCM button ignores the locale option and follows the browser.
+const SCRIPT = "https://accounts.google.com/gsi/client?hl=en";
 
 function loadGis(): Promise<Gis> {
   const w = window as unknown as { google?: Gis };
