@@ -2,6 +2,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Published } from "./cmsTypes";
 import { docToHtml } from "./docHtml";
+import { indexNow } from "./indexing";
 import { finish, retry, type Job } from "./jobs";
 import { safeFetch } from "./safeFetch";
 import { editedInWp, runScheduled, type Pub, type PubStore, type Wp, type WpRes } from "./wpSync";
@@ -187,6 +188,7 @@ export async function wpPublishJob(db: SupabaseClient, job: Job) {
     const fresh = await store.byId(pub.id);
     const { data: doc } = await db.from("docs").select("calendar_item_id").eq("id", pub.doc_id).maybeSingle();
     if (doc?.calendar_item_id && fresh?.remote_status === "publish") await db.from("calendar_items").update({ status: "published", ...(fresh.url ? { url: fresh.url } : {}) }).eq("id", doc.calendar_item_id);
+    if (fresh?.remote_status === "publish") indexNow(pub.workspace_id, fresh.url);
   }
   await finish(job.id);
 }

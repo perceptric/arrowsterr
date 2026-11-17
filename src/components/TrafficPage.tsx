@@ -14,6 +14,7 @@ import { aiSourceOf } from "@/lib/aiSources";
 import { useStash } from "@/lib/stash";
 import { EmptyScreen } from "./Drawing";
 import { Card, Delta, favicon, pct, Seg, sortRows, SortTh, Thinking, useSort } from "./ui";
+import { SearchEngines } from "./traffic/SearchEngines";
 
 type Ga4 = { email: string; property: string | null; name: string | null };
 export type SiteStatus = Status;
@@ -415,6 +416,7 @@ export function TrafficPage({ view, auth, canEdit }: { view: View; auth: RunAuth
         >
           Connect Google Analytics to count visits from AI answers and search.
         </EmptyScreen>
+        <SearchEngines call={call} brandId={brand.id} domain={brand.domain} days={days} quiet />
       </div>
     );
   }
@@ -750,6 +752,7 @@ export function TrafficPage({ view, auth, canEdit }: { view: View; auth: RunAuth
           </table>
         </div>
       </Card>
+      <SearchEngines call={call} brandId={brand.id} domain={brand.domain} days={days} />
     </div>
   );
 }
