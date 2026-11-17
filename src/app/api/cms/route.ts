@@ -3,6 +3,7 @@ import { CMS, mayPublish, showMoveNotice, type CmsKind, type Published, type Pub
 import { adminClient, requireRole } from "@/lib/serverAuth";
 import { requireWriter } from "@/lib/entitlements";
 import { dispatch } from "@/lib/integrations";
+import { indexNow } from "@/lib/indexing";
 import type { DocPublishMeta } from "@/lib/writerAgent";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { enqueue } from "@/lib/jobs";
@@ -362,6 +363,7 @@ export async function POST(request: Request) {
         );
       if (input.live && doc.calendar_item_id) await auth.sb.from("calendar_items").update({ status: "published", ...(rec.url ? { url: rec.url } : {}) }).eq("id", doc.calendar_item_id);
       if (input.live) await dispatch(db, ws, "post.published", { title: input.title, url: out.url, cms: conn.kind }).catch(() => {});
+      if (input.live) indexNow(ws, rec.url);
       return Response.json({ published: rec });
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
@@ -411,6 +413,7 @@ async function publishWordPress(
     const live = pub.remote_status === "publish";
     if (live && doc.calendar_item_id) await sb.from("calendar_items").update({ status: "published", ...(pub.url ? { url: pub.url } : {}) }).eq("id", doc.calendar_item_id);
     if (live) await dispatch(db, ws, "post.published", { title: input.title, url: pub.url, cms: "wordpress" }).catch(() => {});
+    if (live) indexNow(ws, pub.url);
     // On the date, make sure it went live with the article as it is then (WordPress's own schedule can miss).
     if (mode === "schedule" && scheduleAt && statusFor(mode, scheduleAt, new Date()).status === "future") {
       await enqueue("wp_publish", { pubId: pub.id, at: scheduleAt }, { workspaceId: ws, key: scheduleKey(pub.id, scheduleAt), runAt: new Date(Date.parse(scheduleAt) + 90_000), maxAttempts: 8 }).catch((e) =>

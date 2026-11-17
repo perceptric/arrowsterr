@@ -6,6 +6,7 @@ import { runCmsSchedule } from "./cmsSchedule";
 import type { CmsKind, Published, PublishInput } from "./cmsTypes";
 import { docToHtml } from "./docHtml";
 import { dispatch } from "./integrations";
+import { indexNow } from "./indexing";
 import { finish, type Job } from "./jobs";
 import type { DocPublishMeta } from "./writerAgent";
 import { framedModules } from "./wpModules";
@@ -58,6 +59,7 @@ export async function cmsPublishJob(db: SupabaseClient, job: Job) {
         const d = await doc();
         if (d?.calendar_item_id) await db.from("calendar_items").update({ status: "published", ...(rec.url ? { url: rec.url } : {}) }).eq("id", d.calendar_item_id);
         await dispatch(db, String(conn.workspace_id), "post.published", { title: d?.meta?.title || d?.title || "", url: rec.url, cms: conn.kind }).catch(() => {});
+        indexNow(String(conn.workspace_id), rec.url);
       },
     },
     p.at,
