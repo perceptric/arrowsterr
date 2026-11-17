@@ -16,6 +16,8 @@ Written November 2026. Prices marked "check" couldn't be confirmed on the vendor
 - The webhook sends the article as JSON to any https address, signed with `X-Arrowsterr-Signature` when it has a secret, through `safePost` (public internet only, no redirects). The site can answer with `{ id, url }`.
 - Needs `supabase/078_more_sites.sql`.
 
+**Headless CMSs (November 2026).** Contentful, Sanity and Strapi (4 and 5) connect with a pasted token and the type posts go in (`cms.ts`, shapes in `cmsHeadless.ts`, tested). A rich text body gets each one's own format (Contentful rich text, Portable Text, Strapi blocks), converted from the article's HTML, with images uploaded first; a text body gets the HTML with the FAQ schema. Modules only come through in a text body. Draft saves a draft and a live post stays up, except on Strapi 4, which keeps one copy of each post. A live post gets a link only from the post address people add, like `https://example.com/blog/{slug}`. Needs `supabase/092_more_cms.sql`.
+
 ---
 
 ## 1. Summary
