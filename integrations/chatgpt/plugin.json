@@ -1,0 +1,33 @@
+{
+  "name": "arrowsterr",
+  "version": "1.0.0",
+  "extensions": {
+    "com.openai": {
+      "displayName": "Arrowsterr",
+      "shortDescription": "AI visibility for your brand",
+      "longDescription": "Arrowsterr tracks how ChatGPT, Gemini, Claude, Perplexity and Google's AI answers talk about your brand. Connect your Arrowsterr workspace to ask about it in plain words: how often AI names your brand, where it ranks next to competitors, which prompts you win or lose, the full AI answers, and the sites AI cites. You can also read your Content Plan and Topic Bank, run keyword research, and, after you say yes, add prompts or plan new pieces.\n\nWho it's for: marketers, SEO teams and agencies who already use Arrowsterr.\n\nLimits: you need an Arrowsterr account on the Starter plan or higher, and a workspace admin approves the connection. The app sees one workspace. Keyword research uses your plan's tasks. Arrowsterr only shows answers it has already collected; it does not run new AI checks from ChatGPT.",
+      "developerName": "Arrowsterr",
+      "category": "Productivity",
+      "capabilities": [
+        "Read AI visibility, position and sentiment for a brand",
+        "Compare competitors named in AI answers",
+        "Read full AI answers and the sites they cite",
+        "Read and add to the Content Plan",
+        "Run Google keyword research"
+      ],
+      "websiteURL": "https://arrowsterr.com",
+      "supportURL": "https://docs.arrowsterr.com",
+      "privacyPolicyURL": "https://arrowsterr.com/privacy",
+      "termsOfServiceURL": "https://arrowsterr.com/terms",
+      "defaultPrompt": [
+        "How did my AI visibility change this week?",
+        "Which competitors beat my brand in AI answers?",
+        "Which sites does AI cite most for my prompts?"
+      ],
+      "brandColor": "#0943B0",
+      "brandColorDark": "#4F7FE0",
+      "logo": "./logo.png",
+      "composerIcon": "./composer-icon.png"
+    }
+  }
+}

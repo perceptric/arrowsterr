@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "arrowsterr": {
+      "url": "https://app.arrowsterr.com/api/mcp",
+      "auth": { "type": "oauth", "registration": "dcr" }
+    }
+  }
+}

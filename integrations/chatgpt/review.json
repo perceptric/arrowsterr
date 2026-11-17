@@ -1,0 +1,14 @@
+{
+  "positive": [
+    { "description": "Weekly visibility summary", "prompt": "How did my brand's AI visibility change in the last 7 days?", "tools_triggered": ["list_brands", "get_ai_visibility"], "expected_behavior": "Names the brand's visibility, the change from the week before, and its rank among brands." },
+    { "description": "Competitor comparison", "prompt": "Which competitors are named more than my brand in AI answers this month?", "tools_triggered": ["get_competitors"], "expected_behavior": "Lists competitors with higher visibility, with their quadrant and the brand's own numbers." },
+    { "description": "Why a competitor wins a prompt", "prompt": "Show me the full AI answers for my prompt about project tools for agencies.", "tools_triggered": ["get_prompt_answers"], "expected_behavior": "Shows each AI model's latest answer, the brands named in order and the sites cited." },
+    { "description": "Cited sources", "prompt": "Which websites does AI cite most for my brand's prompts?", "tools_triggered": ["get_cited_sources"], "expected_behavior": "Lists the top cited sites and pages with their type and share of answers." },
+    { "description": "Add to the Content Plan after confirmation", "prompt": "Add 'AI visibility for agencies' to my Content Plan.", "tools_triggered": ["add_to_content_plan"], "expected_behavior": "Asks the person to confirm first, then adds the keyword and reports what was added." }
+  ],
+  "negative": [
+    { "description": "General question with no Arrowsterr data", "prompt": "What is the capital of France?" },
+    { "description": "Request to run a new live AI check", "prompt": "Ask Perplexity right now what it thinks of my brand." },
+    { "description": "Unrelated account data", "prompt": "Show me my Google Ads spend for last month." }
+  ]
+}

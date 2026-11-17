@@ -96,7 +96,8 @@ export async function handleOne(ctx: Ctx, m: RpcRequest): Promise<RpcReply | nul
     case "ping":
       return isNote ? null : ok(m.id, {});
     case "tools/list":
-      return ok(m.id, { tools: TOOLS.map(({ name, title, description, inputSchema, annotations }) => ({ name, title, description, inputSchema, annotations: { title, ...annotations } })) });
+      // ChatGPT's app review wants readOnlyHint, destructiveHint and openWorldHint on every tool. Read tools leave destructiveHint out, so it defaults to false.
+      return ok(m.id, { tools: TOOLS.map(({ name, title, description, inputSchema, annotations }) => ({ name, title, description, inputSchema, annotations: { title, destructiveHint: false, ...annotations } })) });
     case "tools/call": {
       const tool = TOOLS.find((t) => t.name === p.name);
       if (!tool) return fail(m.id, BAD_PARAMS, `Unknown tool: ${String(p.name)}`);
