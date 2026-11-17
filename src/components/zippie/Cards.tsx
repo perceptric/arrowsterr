@@ -37,6 +37,9 @@ const TOOL_LABEL: Record<string, string> = {
   add_to_content_plan: "Added to the Content Plan",
   update_content_plan: "Updated the Content Plan",
   remove_from_content_plan: "Removed from the Content Plan",
+  COMPOSIO_SEARCH_TOOLS: "Looked in your apps",
+  COMPOSIO_GET_TOOL_SCHEMAS: "Looked in your apps",
+  COMPOSIO_MULTI_EXECUTE_TOOL: "Worked in your apps",
 };
 const toolLabel = (n: string) => TOOL_LABEL[n] ?? n.replace(/_/g, " ");
 

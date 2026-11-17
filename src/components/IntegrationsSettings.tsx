@@ -116,6 +116,107 @@ function McpCard({ off }: { off: boolean }) {
   );
 }
 
+type App = { slug: string; name: string; why: string; logo: string; connection: { id: string; status: string } | null; stale: string[] };
+type AppsState = { ready: boolean; allowed: boolean; apps: App[] };
+
+/** Apps for Zippie: Search Console, HubSpot, Notion and more, connected through Composio. Zippie reads them in chat. */
+function AppsCard({ auth, isAdmin }: { auth: RunAuth; isAdmin: boolean }) {
+  const [s, setS] = useState<AppsState | null>(null);
+  const [busy, setBusy] = useState("");
+  const [error, setError] = useState("");
+  const [asking, setAsking] = useState<App | null>(null);
+  const load = () =>
+    post<AppsState>(auth, "/api/ask/apps", { action: "list" })
+      .then(setS)
+      .catch((e) => setError(e instanceof Error ? e.message : String(e)));
+  useEffect(() => {
+    load();
+    // Loading once on open is the point of this effect.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth]);
+
+  async function connect(slug: string) {
+    setBusy(slug);
+    setError("");
+    try {
+      const r = await post<{ url: string }>(auth, "/api/ask/apps", { action: "connect", slug });
+      window.location.assign(r.url);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+      setBusy("");
+    }
+  }
+  async function disconnect(a: App) {
+    if (!a.connection) return;
+    setBusy(a.slug);
+    setError("");
+    try {
+      await post(auth, "/api/ask/apps", { action: "disconnect", id: a.connection.id });
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy("");
+    }
+  }
+
+  if (!s?.ready) return null;
+  const back = typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("app");
+  const returned = back ? s.apps.find((a) => a.slug === back) : null;
+  const connected = s.apps.filter((a) => a.connection).length;
+  return (
+    <div className="aw-frame flex max-w-2xl flex-col gap-3 p-5">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-[15px] font-medium text-ink">Apps for Zippie</span>
+        {connected ? <span className="aw-status aw-status--ranked">{connected} connected</span> : null}
+      </div>
+      <p className="text-[13px] text-muted">
+        Connect your tools and ask Zippie about them in chat. &quot;Which Search Console queries grew while our AI visibility dropped?&quot; Viewers can only read through Zippie. Editors can also have Zippie add or update things after they say yes. Zippie never deletes.
+      </p>
+      {!s.allowed ? <p className="text-[13px] text-body">Apps for Zippie are on Starter and up.</p> : null}
+      {returned ? <div className="aw-callout text-[13px]">{returned.connection ? `${returned.name} is connected. Ask Zippie about it.` : `${returned.name} didn't finish connecting. Try again.`}</div> : null}
+      {error ? <p className="aw-error">{error}</p> : null}
+      <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        {s.apps.map((a) => (
+          <li key={a.slug} className="flex items-center gap-3 rounded-[10px] border border-rule-faint p-2.5">
+            <img src={a.logo} alt="" width={24} height={24} className="shrink-0 rounded-[4px]" />
+            <span className="flex min-w-0 flex-1 flex-col">
+              <span className="truncate text-[13px] font-medium text-ink">{a.name}</span>
+              <span className="truncate text-[12px] text-muted">{a.why}</span>
+            </span>
+            {a.connection ? (
+              isAdmin ? (
+                <button type="button" className="aw-text-link shrink-0 text-[12px] text-neg!" disabled={Boolean(busy)} onClick={() => setAsking(a)}>
+                  {busy === a.slug ? "..." : "Disconnect"}
+                </button>
+              ) : (
+                <span className="aw-chip shrink-0">Connected</span>
+              )
+            ) : isAdmin && s.allowed ? (
+              <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm shrink-0" disabled={Boolean(busy)} onClick={() => connect(a.slug)}>
+                {busy === a.slug ? "Opening..." : "Connect"}
+              </button>
+            ) : null}
+          </li>
+        ))}
+      </ul>
+      <p className="text-[12px] text-muted">Sign-ins are handled by Composio. Each workspace connects its own accounts.</p>
+      {asking ? (
+        <Confirm
+          title={`Disconnect ${asking.name}`}
+          text={`Zippie stops reading ${asking.name} for everyone in this workspace.`}
+          action="Disconnect"
+          onConfirm={() => {
+            disconnect(asking);
+            setAsking(null);
+          }}
+          onClose={() => setAsking(null)}
+        />
+      ) : null}
+    </div>
+  );
+}
+
 /** AI apps (Starter and up), and Slack alerts, API keys and webhooks (Pro and up). */
 export function IntegrationsSettings({ auth, isAdmin }: { auth: RunAuth; isAdmin: boolean }) {
   const [s, setS] = useState<State | null>(null);
@@ -163,7 +264,7 @@ export function IntegrationsSettings({ auth, isAdmin }: { auth: RunAuth; isAdmin
     <section className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
         <h2 className="aw-h4">Integrations</h2>
-        <p className="max-w-2xl text-[14px] text-body">Use Arrowsterr from Claude, ChatGPT and Cursor, get alerts in Slack, and connect Zapier or your own tools with the API.</p>
+        <p className="max-w-2xl text-[14px] text-body">Use Arrowsterr from Claude, ChatGPT and Cursor, connect your apps to Zippie, get alerts in Slack, and connect Zapier or your own tools with the API.</p>
       </div>
       {off ? <div className="aw-callout max-w-2xl">{s.mcp ? "Slack, Zapier and the API are on Pro and up." : "AI apps are on Starter and up. Slack, Zapier and the API are on Pro and up."}</div> : null}
       {s.setup ? <div className="aw-callout max-w-2xl">{s.setup}</div> : null}
@@ -171,6 +272,7 @@ export function IntegrationsSettings({ auth, isAdmin }: { auth: RunAuth; isAdmin
       {notice ? <div className="aw-callout max-w-2xl">{notice}</div> : null}
 
       <McpCard off={!s.mcp && off} />
+      <AppsCard auth={auth} isAdmin={isAdmin} />
 
       {/* Slack */}
       <div className="aw-frame flex max-w-2xl flex-col gap-3 p-5">
