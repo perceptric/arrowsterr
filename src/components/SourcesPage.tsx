@@ -27,6 +27,7 @@ import type { Scope } from "./research/DomainResearch";
 import { BrandLogo } from "./BrandLogo";
 import { ENGINE_LOGOS, EngineName } from "./Engines";
 import { Markdown } from "./Markdown";
+import { PresencePanel } from "./PresencePanel";
 import { cleanAnswer } from "@/lib/answerText";
 import { homeOf, hostOf, isGenericTitle, nameFromTitle, siteName } from "@/lib/linkTitles";
 import { favicon, pct, Seg, SidePanel, sortRows, SortTh, Tip, TIPS, useSort } from "./ui";
@@ -441,6 +442,9 @@ export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseCli
         </section>
       ) : null}
 
+
+      {/* 5. Where AI gets its facts: the brand and its top 3 competitors, as on the Competitors page */}
+      <PresencePanel brand={{ id: brand.id, name: brand.name, domain: brand.domain }} rivals={stats.filter((s) => !s.isYou).slice(0, 3).map((s) => ({ name: s.name, domain: s.domain }))} reader={reader} canCheck={Boolean(auth)} />
 
       {full ? (
         <SidePanel title={focus ? `Links on ${focus}` : list === "sites" ? "Every site" : "Most cited links"} kicker={`${total} ${list === "sites" ? "sites" : "links"} · last ${days} days`} onClose={() => setFull(false)}>

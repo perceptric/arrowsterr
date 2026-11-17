@@ -10,6 +10,8 @@ import { broaderSeed } from "../kwReport";
 import { answered, brandStats, competitorDomains, domainRows, promptDetail, promptRows, rankOf, splitPeriods, topicGrid, topicRows, trend, typeShares, urlRows, type BrandStat, type Filter } from "../metrics";
 import { MAX_TOPICS } from "../onboarding";
 import { TASK_COST } from "../plans";
+import { missingTips, presenceList } from "../presence";
+import { brandPresence, marketFor } from "../presenceServer";
 import { marketOf, type Keyword } from "../research";
 import { ToolError, textResult, type Schema, type ToolResult } from "./protocol";
 
@@ -272,6 +274,32 @@ export const TOOLS: Tool[] = [
         sites: domains.slice(0, 25).map((d) => ({ domain: d.domain, type: d.type, citedIn: `${round(d.used)}% of answers` })),
         pages: pages.slice(0, 25).map((u) => ({ url: u.url, title: u.title, type: u.type, citedIn: `${round(u.used)}% of answers`, prompts: u.prompts.length })),
       }, OUTSIDE);
+    },
+  },
+  {
+    name: "get_brand_presence",
+    title: "Where AI gets its facts",
+    description:
+      "The brand and its top 3 competitors on the sources AI tools lean on for company facts: Wikipedia (article, languages, last edit, views in the last 30 days), Wikidata (website, founded, head office, industry), Trustpilot (star rating and newest reviews) and Google Business Profile (rating, reviews, category, address, claimed). Each source says found, missing, checking or unchecked, with a tip when missing. Review sites show what an editor last checked on the Sources page; this tool never spends extra tasks.",
+    inputSchema: { type: "object", properties: { brand: brandArg, days: daysArg } },
+    // Free public lookups and saved results only, so Zippie gets it too.
+    annotations: { readOnlyHint: true, openWorldHint: false },
+    async run(ctx, args) {
+      const brand = await pickBrand(ctx, args.brand);
+      const p = await period(ctx, brand, { days: args.days });
+      const chats = answered(p.current, p.filter);
+      const rivals = chats.length ? brandStats(chats, p.you).filter((s) => !s.isYou).sort((a, b) => b.visibility - a.visibility) : [];
+      const market = await marketFor(ctx.db, ctx.ws, brand);
+      const list = await brandPresence(presenceList({ name: brand.name, domain: brand.domain }, rivals), market);
+      return textResult(
+        {
+          brand: { name: brand.name, domain: brand.domain },
+          days: p.days,
+          brands: list.map((b) => ({ ...b, tips: missingTips(b) })),
+          note: list.some((b) => b.trustpilot.status === "unchecked" || b.gbp.status === "unchecked") ? "Some review sites are not checked yet. An editor can press Check review sites on the Sources page." : undefined,
+        },
+        OUTSIDE,
+      );
     },
   },
   {
