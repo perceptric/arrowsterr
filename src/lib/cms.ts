@@ -1,9 +1,50 @@
 import "server-only";
-import { createHmac } from "node:crypto";
-import { framerItem, mapFields, pickCollection } from "./cmsMap";
+import { createHmac, randomUUID } from "node:crypto";
+import { cmsSlug, framerItem, mapFields, pickCollection } from "./cmsMap";
+import {
+  articlePairs,
+  badFields,
+  cfAllow,
+  cfAssetBody,
+  cfAssetId,
+  cfHead,
+  cfLink,
+  cfMerge,
+  cfPath,
+  contentfulDoc,
+  contentfulFields,
+  contentfulMap,
+  headlessNames,
+  htmlBlocks,
+  imageName,
+  imageSources,
+  imageType,
+  portableText,
+  postUrl,
+  sanityDataset,
+  sanityHtmlBody,
+  sanityImage,
+  sanityMutations,
+  sanitySampleQuery,
+  sanitySlug,
+  sanityUrl,
+  strapiBase,
+  strapiBlocks,
+  strapiBodyKind,
+  strapiData,
+  strapiEntry,
+  strapiHead,
+  strapiListUrl,
+  strapiNames,
+  strapiOneUrl,
+  strapiPlural,
+  strapiSaveUrl,
+  strapiVersionOf,
+  type CfField,
+} from "./cmsHeadless";
 import { shopifyGid, webhookBody, webhookResult, webhookSignature } from "./cmsOauth";
 import { shopifyGql } from "./cmsTokens";
-import { safePost } from "./safeFetch";
+import { safeFetch, safePost } from "./safeFetch";
 import type { CmsKind, PublishInput } from "./cmsTypes";
 import { wpClient } from "./wpSyncServer";
 
@@ -28,8 +69,13 @@ async function call(url: string, init: RequestInit & { json?: unknown } = {}) {
     data = { raw: text.slice(0, 300) };
   }
   if (!res.ok) {
-    const msg = (data.message as string) || ((data.errors as { message?: string }[] | undefined)?.[0]?.message ?? "") || (typeof data.errors === "string" ? data.errors : "") || (data.raw as string) || res.statusText;
-    throw new Error(`${res.status}: ${String(msg).slice(0, 300)}`);
+    // Strapi and Sanity answer with { error }; Contentful puts the field that failed in details.
+    const e = (typeof data.error === "object" && data.error ? data.error : {}) as { message?: string; description?: string };
+    const cf = (data.details as { errors?: { path?: unknown[]; details?: string; name?: string }[] } | undefined)?.errors?.[0];
+    const msg =
+      (data.message as string) || ((data.errors as { message?: string }[] | undefined)?.[0]?.message ?? "") || (typeof data.errors === "string" ? data.errors : "") || e.message || e.description || (typeof data.error === "string" ? data.error : "") || (data.raw as string) || res.statusText;
+    const more = cf ? ` (${[Array.isArray(cf.path) ? cf.path.join(".") : "", cf.details || cf.name].filter(Boolean).join(": ")})` : "";
+    throw Object.assign(new Error(`${res.status}: ${String(msg + more).slice(0, 300)}`), { status: res.status });
   }
   return data;
 }
@@ -278,6 +324,243 @@ const wix = {
   },
 };
 
+// ─────────────── Headless CMSs ───────────────
+// Contentful, Sanity and Strapi keep content apart from the site, so each post goes into a content type the person
+// names, field by field. The shapes are in cmsHeadless.ts. None of them knows the post's address, so a live post
+// gets a link only from the post address people can add.
+
+const missing404 = (e: unknown) => ((e as { status?: number }).status === 404 ? null : Promise.reject(e));
+const NAME_KEYS = ["titleField", "bodyField", "slugField", "descriptionField", "imageField"];
+function checkNames(c: Config) {
+  const bad = badFields(c, NAME_KEYS);
+  if (bad.length) throw new Error(`${bad[0]} isn't a field name. Use letters, numbers and underscores, with a dot for a nested field.`);
+}
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** An image's bytes for an upload, from a public address only. Null when it can't be read. */
+async function imageBytes(url: string) {
+  const r = await safeFetch(url, { raw: true, accept: "image/*", maxBytes: 20_000_000, timeout: 20_000 });
+  const type = r.headers.get("content-type")?.split(";")[0]?.trim() || imageType(url);
+  if (!r.ok || !r.bytes?.length || !type.startsWith("image/")) return null;
+  return { bytes: new Uint8Array(r.bytes), type };
+}
+
+/** Upload each image once, side by side. An image that fails is left out of the post. */
+async function uploadAll<T>(urls: string[], up: (url: string) => Promise<T | null>) {
+  const out: Record<string, T> = {};
+  await Promise.all(
+    urls.map(async (u) => {
+      const v = await up(u).catch(() => null);
+      if (v) out[u] = v;
+    }),
+  );
+  return out;
+}
+
+// ─────────────── Contentful ───────────────
+// The Content Management API with a personal access token. The content type is read on each publish, so empty field
+// boxes pick fields by name. A Rich text body gets Contentful's rich text; a Long text body gets the HTML.
+
+type Sys = { sys: { id: string; version: number; publishedVersion?: number }; fields?: Record<string, Record<string, unknown>> };
+async function cfSetup(c: Config) {
+  checkNames(c);
+  const [ct, loc] = await Promise.all([
+    call(cfPath(c, `/content_types/${encodeURIComponent(c.contentType.trim())}`), { headers: cfHead(c) }),
+    call(cfPath(c, "/locales"), { headers: cfHead(c) }),
+  ]);
+  const map = contentfulMap((ct.fields as CfField[] | undefined) ?? [], c, ct.displayField as string | undefined);
+  if (typeof map === "string") throw new Error(map);
+  const locale = (loc.items as { code: string; default?: boolean }[] | undefined)?.find((l) => l.default)?.code ?? "en-US";
+  return { name: String(ct.name ?? c.contentType), map, locale };
+}
+/** The image as a published asset. Contentful fetches the file itself; that takes a moment, so it's checked a few times. */
+async function cfAsset(c: Config, locale: string, url: string, title: string): Promise<string | null> {
+  const id = cfAssetId(url);
+  const path = cfPath(c, `/assets/${id}`);
+  let a = ((await call(path, { headers: cfHead(c) }).catch(missing404)) as Sys | null) ?? ((await call(path, { method: "PUT", headers: cfHead(c), json: cfAssetBody(url, title, locale) })) as Sys);
+  const ready = () => Boolean((a.fields?.file?.[locale] as { url?: string } | undefined)?.url);
+  if (!ready()) {
+    await call(cfPath(c, `/assets/${id}/files/${encodeURIComponent(locale)}/process`), { method: "PUT", headers: cfHead(c, a.sys.version) });
+    for (let i = 0; i < 10 && !ready(); i++) {
+      await sleep(800);
+      a = (await call(path, { headers: cfHead(c) })) as Sys;
+    }
+    if (!ready()) return null;
+  }
+  if (!a.sys.publishedVersion || a.sys.version > a.sys.publishedVersion + 1) await call(`${path}/published`, { method: "PUT", headers: cfHead(c, a.sys.version) });
+  return id;
+}
+const contentful = {
+  test: async (c: Config) => {
+    const s = await cfSetup(c);
+    return `Content type: ${s.name}. Articles go in ${s.map.body.id} as ${s.map.body.type === "RichText" ? "rich text" : "HTML"}.`;
+  },
+  publish: async (c: Config, p: PublishInput, id?: string): Promise<Result> => {
+    const s = await cfSetup(c);
+    let body: unknown = withSchema(p);
+    if (s.map.body.type === "RichText") {
+      const allow = cfAllow(s.map.body);
+      const blocks = htmlBlocks(p.html);
+      const assets = !allow.nodes || allow.nodes.includes("embedded-asset-block") ? await uploadAll(imageSources(blocks), (u) => cfAsset(c, s.locale, u, p.title)) : {};
+      body = contentfulDoc(blocks, assets, allow);
+    }
+    let image: unknown = null;
+    if (s.map.image && p.image) {
+      if (s.map.image.type !== "Link") image = p.image;
+      else {
+        const asset = await cfAsset(c, s.locale, p.image, p.title).catch(() => null);
+        image = asset ? cfLink(asset) : null;
+      }
+    }
+    const fields = contentfulFields(s.map, p, s.locale, body, image);
+    // An entry deleted in Contentful is made again, so an update never fails on a missing id.
+    const cur = id ? ((await call(cfPath(c, `/entries/${encodeURIComponent(id)}`), { headers: cfHead(c) }).catch(missing404)) as Sys | null) : null;
+    let entry = (
+      cur
+        ? await call(cfPath(c, `/entries/${encodeURIComponent(cur.sys.id)}`), { method: "PUT", headers: cfHead(c, cur.sys.version), json: { fields: cfMerge(cur.fields, fields) } })
+        : await call(cfPath(c, "/entries"), { method: "POST", headers: cfHead(c, undefined, c.contentType.trim()), json: { fields } })
+    ) as Sys;
+    if (p.live) entry = (await call(cfPath(c, `/entries/${encodeURIComponent(entry.sys.id)}/published`), { method: "PUT", headers: cfHead(c, entry.sys.version) })) as Sys;
+    return { id: entry.sys.id, url: p.live ? postUrl(c.postUrl, cmsSlug(p)) : null };
+  },
+};
+
+// ─────────────── Sanity ───────────────
+// The HTTP API with a token that can write. Sanity keeps no schema on its servers, so one post of the type shows how
+// the body is kept: a string gets HTML, anything else (or no post yet) gets Portable Text. Images upload as Sanity
+// assets, which Sanity names by their content, so the same image is stored once.
+
+const sanHead = (c: Config) => ({ Authorization: `Bearer ${c.token.trim()}` });
+async function sanSample(c: Config) {
+  checkNames(c);
+  if (!/^[a-z0-9-]+$/i.test(c.projectId.trim())) throw new Error("The project ID is letters and numbers, like a1b2c3d4.");
+  const n = headlessNames(c, "body");
+  const out = await call(sanitySampleQuery(c, n), { headers: sanHead(c) });
+  const r = (out.result ?? {}) as { count?: number; sample?: { body?: unknown; image?: unknown } | null };
+  return { n, count: r.count ?? 0, sample: r.sample ?? null };
+}
+async function sanAsset(c: Config, url: string): Promise<string | null> {
+  const img = await imageBytes(url);
+  if (!img) return null;
+  const out = await call(sanityUrl(c, `/assets/images/${sanityDataset(c)}?${new URLSearchParams({ filename: imageName(url) })}`), { method: "POST", headers: { ...sanHead(c), "Content-Type": img.type }, body: img.bytes });
+  return (out.document as { _id?: string } | undefined)?._id ?? null;
+}
+const sanity = {
+  test: async (c: Config) => {
+    const s = await sanSample(c);
+    const how = s.sample && sanityHtmlBody(s.sample.body) ? "HTML" : "Portable Text";
+    return `${s.count} published ${c.docType.trim()} ${s.count === 1 ? "post" : "posts"}. Articles go in ${s.n.body} as ${how}.`;
+  },
+  publish: async (c: Config, p: PublishInput, id?: string): Promise<Result> => {
+    const { n, sample } = await sanSample(c);
+    let body: unknown = withSchema(p);
+    if (!sanityHtmlBody(sample?.body)) {
+      const blocks = htmlBlocks(p.html);
+      body = portableText(blocks, await uploadAll(imageSources(blocks), (u) => sanAsset(c, u)));
+    }
+    let image: unknown = null;
+    if (n.image && p.image) {
+      if (typeof sample?.image === "string") image = p.image;
+      else {
+        const asset = await sanAsset(c, p.image).catch(() => null);
+        image = asset ? sanityImage(asset) : null;
+      }
+    }
+    const docId = id || randomUUID();
+    const ds = sanityDataset(c);
+    let cur = { published: null as Record<string, unknown> | null, draft: null as Record<string, unknown> | null };
+    if (id) {
+      const got = await call(sanityUrl(c, `/data/doc/${ds}/${encodeURIComponent(docId)},${encodeURIComponent(`drafts.${docId}`)}`), { headers: sanHead(c) });
+      const docs = (got.documents ?? []) as Record<string, unknown>[];
+      cur = { published: docs.find((d) => d._id === docId) ?? null, draft: docs.find((d) => d._id === `drafts.${docId}`) ?? null };
+    }
+    const pairs = articlePairs(n, p, { body, slug: sanitySlug(p), image });
+    await call(sanityUrl(c, `/data/mutate/${ds}?returnIds=true&visibility=sync`), { method: "POST", headers: sanHead(c), json: { mutations: sanityMutations(docId, c.docType.trim(), p.live, cur, pairs) } });
+    return { id: docId, url: p.live ? postUrl(c.postUrl, cmsSlug(p)) : null };
+  },
+};
+
+// ─────────────── Strapi ───────────────
+// The REST API of Strapi 4 or 5 with an API token. One entry of the collection shows the version and how the body is
+// kept: a list is Rich text (Blocks), a string is Markdown or text and gets HTML. With no entry yet, HTML goes first,
+// then blocks when Strapi says the field needs them. Images go to the media library, once each by file name.
+
+type StrapiFile = Record<string, unknown> & { id?: number };
+async function stSample(c: Config) {
+  checkNames(c);
+  const out = await call(strapiListUrl(c), { headers: strapiHead(c) });
+  const list = (out.data ?? []) as unknown[];
+  const total = (out.meta as { pagination?: { total?: number } } | undefined)?.pagination?.total ?? list.length;
+  return { entry: strapiEntry(list[0]), total };
+}
+async function stFile(c: Config, url: string, alt: string): Promise<StrapiFile | null> {
+  const b = strapiBase(c.baseUrl);
+  const name = imageName(url);
+  const found = await call(`${b}/api/upload/files?${new URLSearchParams({ "filters[name][$eq]": name })}`, { headers: strapiHead(c) }).catch(() => null);
+  if (Array.isArray(found) && found[0]) return found[0] as StrapiFile;
+  const img = await imageBytes(url);
+  if (!img) return null;
+  const form = new FormData();
+  form.append("files", new Blob([img.bytes], { type: img.type }), name);
+  form.append("fileInfo", JSON.stringify({ name, alternativeText: alt }));
+  const out = await call(`${b}/api/upload`, { method: "POST", headers: strapiHead(c), body: form });
+  return Array.isArray(out) ? ((out[0] as StrapiFile | undefined) ?? null) : null;
+}
+/** Strapi turned down the body field's type, so the other kind of body is worth a try. */
+const bodyRefused = (e: unknown, field: string) => (e as { status?: number }).status === 400 && new RegExp(`\\b${field.split(".")[0]}\\b`).test(String((e as Error).message));
+const strapi = {
+  test: async (c: Config) => {
+    const s = await stSample(c);
+    const n = strapiNames(c, s.entry?.fields ?? null);
+    if (typeof n === "string") throw new Error(n);
+    if (!s.entry) return `Collection: ${strapiPlural(c)}, with no entries yet.`;
+    const kind = strapiBodyKind(s.entry.fields, n.body);
+    return `Collection: ${strapiPlural(c)} (Strapi ${s.entry.version}). Articles go in ${n.body}${kind ? ` as ${kind === "blocks" ? "blocks" : "HTML"}` : ""}.`;
+  },
+  publish: async (c: Config, p: PublishInput, id?: string): Promise<Result> => {
+    const s = await stSample(c);
+    const n = strapiNames(c, s.entry?.fields ?? null);
+    if (typeof n === "string") throw new Error(n);
+    let version: 4 | 5 | null = id ? strapiVersionOf(id) : (s.entry?.version ?? null);
+    const known = strapiBodyKind(s.entry?.fields ?? null, n.body);
+    const body = async (kind: "blocks" | "html") => {
+      if (kind === "html") return withSchema(p);
+      const blocks = htmlBlocks(p.html);
+      return strapiBlocks(blocks, await uploadAll(imageSources(blocks), (u) => stFile(c, u, p.title)));
+    };
+    let image: unknown = null;
+    if (n.image && p.image) {
+      const now = s.entry?.fields[n.image];
+      image = typeof now === "string" ? p.image : ((await stFile(c, p.image, p.title).catch(() => null))?.id ?? null);
+    }
+    // An entry deleted in Strapi is made again, so an update never fails on a missing id.
+    const cur = id && version ? strapiEntry(((await call(strapiOneUrl(c, version, id), { headers: strapiHead(c) }).catch(missing404)) as { data?: unknown } | null)?.data) : null;
+    const send = async (kind: "blocks" | "html", v: 4 | 5) => {
+      const data = strapiData(v, articlePairs(n, p, { body: await body(kind), slug: cmsSlug(p), image }), p.live, cur?.publishedAt ?? null, new Date());
+      return call(strapiSaveUrl(c, v, p.live, cur?.id), { method: cur ? "PUT" : "POST", headers: strapiHead(c), json: { data } });
+    };
+    const kind = known ?? "html";
+    let out: Record<string, unknown>;
+    try {
+      out = await send(kind, version ?? 5);
+    } catch (e) {
+      if (!version && (e as { status?: number }).status === 400 && /\bstatus\b/i.test(String((e as Error).message))) {
+        // A Strapi 4 that turns down ?status.
+        version = 4;
+        out = await send(kind, 4);
+      } else if (!known && bodyRefused(e, n.body)) out = await send("blocks", version ?? 5);
+      else throw e;
+    }
+    const saved = strapiEntry(out.data);
+    if (!saved) throw new Error("Strapi didn't save the entry.");
+    // Strapi 4 skips ?status and publishes a new entry, so a draft is set back to draft.
+    if (saved.version === 4 && !version && !p.live && saved.publishedAt) {
+      await call(strapiSaveUrl(c, 4, false, saved.id), { method: "PUT", headers: strapiHead(c), json: { data: { publishedAt: null } } });
+    }
+    return { id: saved.id, url: p.live ? postUrl(c.postUrl, cmsSlug(p)) : null };
+  },
+};
+
 // ─────────────── Webhook ───────────────
 // Any other site: the article goes to the site's address as JSON, signed with its secret when it has one. The site
 // may answer with { id, url }; the id comes back on every update so it can change the same post.
@@ -297,4 +580,4 @@ const webhook = {
   },
 };
 
-export const CMS_API: Record<CmsKind, { test: (c: Config) => Promise<string>; publish: (c: Config, p: PublishInput, id?: string) => Promise<Result> }> = { wordpress, webflow, framer, shopify, hubspot, ghost, wix, webhook };
+export const CMS_API: Record<CmsKind, { test: (c: Config) => Promise<string>; publish: (c: Config, p: PublishInput, id?: string) => Promise<Result> }> = { wordpress, webflow, framer, shopify, hubspot, ghost, wix, contentful, sanity, strapi, webhook };

@@ -1,6 +1,6 @@
 // CMS publishing, shared by the server and the browser. Secrets never come back to the browser.
 
-export type CmsKind = "wordpress" | "webflow" | "framer" | "shopify" | "hubspot" | "ghost" | "wix" | "webhook";
+export type CmsKind = "wordpress" | "webflow" | "framer" | "shopify" | "hubspot" | "ghost" | "wix" | "contentful" | "sanity" | "strapi" | "webhook";
 /** brand_id is the brand that publishes to it. backfilled: given to the first brand by 048_brand_integrations.sql, not moved yet. */
 export type CmsConnection = { id: string; kind: CmsKind; name: string; created_at: string; brand_id?: string | null; backfilled?: boolean };
 
@@ -25,6 +25,9 @@ export const CMS_LOGO: Record<CmsKind, string | null> = {
   hubspot: icon("hubspot.com"),
   ghost: icon("ghost.org"),
   wix: icon("wix.com"),
+  contentful: icon("contentful.com"),
+  sanity: icon("sanity.io"),
+  strapi: icon("strapi.io"),
   webhook: null,
 };
 
@@ -97,6 +100,56 @@ export const CMS: { id: CmsKind; label: string; help: string; fields: CmsField[]
     fields: [
       { id: "apiKey", label: "API key", placeholder: "IST.eyJ...", secret: true },
       { id: "siteId", label: "Site ID", placeholder: "1a2b3c4d-..." },
+    ],
+  },
+  {
+    id: "contentful",
+    label: "Contentful",
+    help: "In Contentful, make a personal access token under Settings → CMA tokens. Paste it with your space ID and the ID of your blog post content type.",
+    fields: [
+      { id: "spaceId", label: "Space ID", placeholder: "a1b2c3d4e5f6" },
+      { id: "token", label: "Personal access token", placeholder: "CFPAT-...", secret: true },
+      { id: "contentType", label: "Content type ID", placeholder: "blogPost" },
+      { id: "environment", label: "Environment", placeholder: "master", optional: true },
+      { id: "titleField", label: "Title field ID", placeholder: "title", optional: true },
+      { id: "bodyField", label: "Body field ID", placeholder: "body", optional: true },
+      { id: "slugField", label: "Slug field ID", placeholder: "slug", optional: true },
+      { id: "descriptionField", label: "Description field IDs", placeholder: "excerpt, seoDescription", optional: true },
+      { id: "imageField", label: "Image field ID", placeholder: "featuredImage", optional: true },
+      { id: "postUrl", label: "Post address", placeholder: "https://example.com/blog/{slug}", optional: true },
+    ],
+  },
+  {
+    id: "sanity",
+    label: "Sanity",
+    help: "In Sanity, add a token with Editor rights in your project's API settings. Paste it with the project ID and dataset.",
+    fields: [
+      { id: "projectId", label: "Project ID", placeholder: "a1b2c3d4" },
+      { id: "dataset", label: "Dataset", placeholder: "production" },
+      { id: "token", label: "API token", placeholder: "sk...", secret: true },
+      { id: "docType", label: "Document type", placeholder: "post" },
+      { id: "titleField", label: "Title field", placeholder: "title", optional: true },
+      { id: "bodyField", label: "Body field", placeholder: "body", optional: true },
+      { id: "slugField", label: "Slug field", placeholder: "slug", optional: true },
+      { id: "descriptionField", label: "Description fields", placeholder: "excerpt, seo.description", optional: true },
+      { id: "imageField", label: "Image field", placeholder: "mainImage", optional: true },
+      { id: "postUrl", label: "Post address", placeholder: "https://example.com/blog/{slug}", optional: true },
+    ],
+  },
+  {
+    id: "strapi",
+    label: "Strapi",
+    help: "In Strapi, make a Full access token under Settings → API Tokens. Paste it with your Strapi address and the collection's plural API ID.",
+    fields: [
+      { id: "baseUrl", label: "Strapi address", placeholder: "https://cms.example.com" },
+      { id: "token", label: "API token", placeholder: "", secret: true },
+      { id: "collection", label: "Collection plural API ID", placeholder: "articles" },
+      { id: "titleField", label: "Title field", placeholder: "title", optional: true },
+      { id: "bodyField", label: "Body field", placeholder: "content", optional: true },
+      { id: "slugField", label: "Slug field", placeholder: "slug", optional: true },
+      { id: "descriptionField", label: "Description fields", placeholder: "description, seo.metaDescription", optional: true },
+      { id: "imageField", label: "Image field", placeholder: "cover", optional: true },
+      { id: "postUrl", label: "Post address", placeholder: "https://example.com/blog/{slug}", optional: true },
     ],
   },
   {

@@ -82,6 +82,45 @@ export const CMS_GUIDE: Record<CmsKind, CmsGuide> = {
     ],
     open: () => ({ label: "Open Wix", href: "https://manage.wix.com/account/api-keys" }),
   },
+  contentful: {
+    blurb:
+      "Arrowsterr needs a personal access token and the content type your blog posts use. A Rich text body gets Contentful's rich text, with images added as assets. A Long text body gets the article as HTML, so your site should show that field as HTML.",
+    steps: [
+      "Click Open Contentful and pick your space. The space ID is in Settings, under General settings.",
+      "Open Settings, then CMA tokens. Create a personal access token named Arrowsterr and paste it below.",
+      "In Content model, open your blog post type and copy its ID. Leave the environment empty to use master.",
+      "Leave the field IDs empty and Arrowsterr picks fields by their names. Type an ID to choose a field yourself. Put commas between description fields to fill more than one.",
+      "Add your post address with {slug} in it to get a link to each live post.",
+    ],
+    open: () => ({ label: "Open Contentful", href: "https://app.contentful.com" }),
+  },
+  sanity: {
+    blurb:
+      "Arrowsterr needs a Sanity token that can write and the document type your posts use. A Portable Text body gets the article as blocks, with images uploaded to Sanity. A body kept as a string gets the article as HTML.",
+    steps: [
+      "Click Open Sanity and pick your project. Copy the project ID and the name of your dataset, like production.",
+      "Open API, then Tokens, and add a token named Arrowsterr with Editor rights. Paste it below.",
+      "Type the document type your posts use, like post. Type your field names if they differ from the examples. Use a dot for a nested field, like seo.description.",
+      "Arrowsterr reads one of your posts to see how the body is kept. With no posts yet, it sends Portable Text.",
+      "Add your post address with {slug} in it to get a link to each live post.",
+    ],
+    open: () => ({ label: "Open Sanity", href: "https://www.sanity.io/manage" }),
+  },
+  strapi: {
+    blurb:
+      "Arrowsterr needs a Strapi API token and the collection your articles go in. It works with Strapi 4 and 5. A Rich text (Blocks) field gets the article as blocks. A Markdown or text field gets it as HTML, so your site should show that field as HTML.",
+    steps: [
+      "Type your Strapi address below, then click Open Strapi.",
+      "Click Create new API Token and name it Arrowsterr. Pick Full access as the type, then save. Paste the token below.",
+      "In Content-Type Builder, open your articles collection and copy its plural API ID, like articles.",
+      "Type your field names if they differ from the examples. Use a dot for a field inside a component, like seo.metaDescription.",
+      "Images go to your media library. Add your post address with {slug} in it to get a link to each live post.",
+    ],
+    open: (f) => {
+      const s = site(f.baseUrl).replace(/\/(api|admin)(\/.*)?$/i, "");
+      return s ? { label: "Open Strapi", href: `${s}/admin/settings/api-tokens` } : null;
+    },
+  },
   webhook: {
     blurb: "Arrowsterr sends each article to your site's address as JSON: title, slug, description, image, HTML and schema.",
     steps: [
