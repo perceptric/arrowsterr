@@ -64,6 +64,8 @@ export function GoogleButton({ sb, clientId, onError }: { sb: SupabaseClient; cl
           text: "continue_with",
           shape: "rectangular",
           logo_alignment: "center",
+          // Match the page's language instead of the browser's.
+          locale: "en",
           width: Math.min(400, box.current.offsetWidth),
         });
       })

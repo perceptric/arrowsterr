@@ -1,7 +1,7 @@
 "use client";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { passwordProblem, strength } from "@/lib/passwordCheck";
 import { GoogleButton } from "./GoogleButton";
 import { Logo } from "./Logo";
@@ -76,31 +76,90 @@ function Showcase() {
   );
 }
 
-/** A password box that shows what you type while you're in it, and hides it again when you leave. */
+/** A password box with a show/hide button and a Caps Lock warning. It hides again when the form is sent. */
 function PasswordField({ id, label, value, onChange, autoComplete, autoFocus, meter }: { id: string; label: string; value: string; onChange: (v: string) => void; autoComplete: string; autoFocus?: boolean; meter?: boolean }) {
-  const [typing, setTyping] = useState(false);
+  const [shown, setShown] = useState(false);
+  const [caps, setCaps] = useState(false);
+  const box = useRef<HTMLInputElement>(null);
   const s = strength(value);
   const tone = ["", "bg-neg", "bg-warn", "bg-brand", "bg-pos"][s.score];
+
+  // Hide it again on submit, so the browser never saves or shows it as plain text afterward.
+  useEffect(() => {
+    const form = box.current?.form;
+    if (!form) return;
+    const hide = () => setShown(false);
+    form.addEventListener("submit", hide);
+    return () => form.removeEventListener("submit", hide);
+  }, []);
+
+  function toggle() {
+    const el = box.current;
+    const start = el?.selectionStart ?? null;
+    const end = el?.selectionEnd ?? null;
+    setShown((v) => !v);
+    // Keep focus and the cursor where they were.
+    requestAnimationFrame(() => {
+      if (!el) return;
+      el.focus();
+      if (start !== null && end !== null) el.setSelectionRange(start, end);
+    });
+  }
+  const checkCaps = (e: React.KeyboardEvent<HTMLInputElement>) => setCaps(e.getModifierState?.("CapsLock") ?? false);
+
   return (
     <div>
       <label className="aw-label" htmlFor={id}>
         {label}
       </label>
-      <input
-        id={id}
-        type={typing ? "text" : "password"}
-        autoComplete={autoComplete}
-        autoCapitalize="none"
-        autoCorrect="off"
-        spellCheck={false}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onFocus={() => setTyping(true)}
-        onBlur={() => setTyping(false)}
-        required
-        autoFocus={autoFocus}
-        className="aw-input"
-      />
+      <div className="relative">
+        <input
+          ref={box}
+          id={id}
+          type={shown ? "text" : "password"}
+          autoComplete={autoComplete}
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onKeyDown={checkCaps}
+          onKeyUp={checkCaps}
+          onBlur={() => setCaps(false)}
+          required
+          autoFocus={autoFocus}
+          aria-describedby={caps ? `${id}-caps` : undefined}
+          className="aw-input pr-11!"
+        />
+        <button
+          type="button"
+          onClick={toggle}
+          onMouseDown={(e) => e.preventDefault()}
+          aria-label={shown ? "Hide password" : "Show password"}
+          aria-pressed={shown}
+          aria-controls={id}
+          title={shown ? "Hide password" : "Show password"}
+          className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-[inherit] text-muted transition-colors hover:text-ink focus-visible:text-ink"
+        >
+          {shown ? (
+            <svg aria-hidden width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 3l18 18" />
+              <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" />
+              <path d="M9.9 5.2A9.8 9.8 0 0 1 12 5c5 0 8.5 4.4 9.5 7a13 13 0 0 1-2.7 3.9M6.6 6.6A13.5 13.5 0 0 0 2.5 12c1 2.6 4.5 7 9.5 7a9.6 9.6 0 0 0 5.4-1.6" />
+            </svg>
+          ) : (
+            <svg aria-hidden width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M2.5 12C3.5 9.4 7 5 12 5s8.5 4.4 9.5 7c-1 2.6-4.5 7-9.5 7s-8.5-4.4-9.5-7z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          )}
+        </button>
+      </div>
+      {caps ? (
+        <p id={`${id}-caps`} className="mt-1.5 text-[12px] text-warn" role="status">
+          Caps Lock is on.
+        </p>
+      ) : null}
       {meter ? (
         <div className="mt-2 flex items-center gap-3">
           <div className="flex flex-1 gap-1" aria-hidden>

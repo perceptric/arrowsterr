@@ -4,14 +4,28 @@ export type Strength = { score: 0 | 1 | 2 | 3 | 4; label: string };
 
 const COMMON = /^(password|passw0rd|qwerty|letmein|welcome|admin|iloveyou|monkey|dragon|abc123|123456|12345678|111111|arrowsterr)/i;
 
+const SEQUENCES = ["abcdefghijklmnopqrstuvwxyz", "0123456789", "qwertyuiop", "asdfghjkl", "zxcvbnm", "1qaz2wsx"];
+/** True when 4 or more characters in a row follow one of the sequences, forward or backward. */
+function hasRun(pw: string, seq: string) {
+  const back = [...seq].reverse().join("");
+  for (let i = 0; i + 4 <= pw.length; i++) {
+    const part = pw.slice(i, i + 4);
+    if (seq.includes(part) || back.includes(part)) return true;
+  }
+  return false;
+}
+
 /** A rough score from length and mix. Leaked passwords are caught by leakedCount. */
 export function strength(pw: string): Strength {
   if (!pw) return { score: 0, label: "" };
   if (pw.length < 8 || COMMON.test(pw) || /^(.)\1+$/.test(pw)) return { score: 1, label: "Too weak" };
   const kinds = [/[a-z]/, /[A-Z]/, /\d/, /[^A-Za-z0-9]/].filter((r) => r.test(pw)).length;
-  const points = (pw.length >= 12 ? 2 : pw.length >= 10 ? 1 : 0) + (kinds >= 3 ? 2 : kinds === 2 ? 1 : 0);
+  // Patterns people guess first: phone numbers and dates (long digit runs), sequences, keyboard rows, repeats.
+  const lower = pw.toLowerCase();
+  const runs = [/\d{6,}/.test(pw), SEQUENCES.some((q) => hasRun(lower, q)), /(.)\1{2,}/.test(pw), /(..+)\1/.test(lower)].filter(Boolean).length;
+  const points = (pw.length >= 16 ? 3 : pw.length >= 12 ? 2 : pw.length >= 10 ? 1 : 0) + (kinds >= 3 ? 2 : kinds === 2 ? 1 : 0) - runs * 2;
   if (points >= 4) return { score: 4, label: "Strong" };
-  if (points >= 2) return { score: 3, label: "Good" };
+  if (points >= 3) return { score: 3, label: "Good" };
   return { score: 2, label: "Okay" };
 }
 
