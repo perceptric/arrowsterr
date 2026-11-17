@@ -11,6 +11,8 @@ export const APP_GROUPS = ["Search and traffic", "Docs and files", "Sales", "Tas
 export const APPS = [
   { slug: "google_search_console", name: "Google Search Console", group: "Search and traffic", why: "Clicks, impressions and the queries people search", ask: "What are my top Search Console queries and pages in the last 28 days?" },
   { slug: "google_analytics", name: "Google Analytics", group: "Search and traffic", why: "Visits, sources and conversions", ask: "Which pages got the most visits last month, and where did they come from?" },
+  { slug: "bing_webmaster_tools", name: "Bing Webmaster Tools", group: "Search and traffic", why: "Bing clicks, and fast indexing for new posts", ask: "How did my site do in Bing search in the last 28 days?" },
+  { slug: "cloudflare", name: "Cloudflare", group: "Search and traffic", why: "Which AI crawlers visit your site", ask: "Which AI crawlers visited my site this week?" },
   { slug: "youtube", name: "YouTube", group: "Search and traffic", why: "Your channel and the videos AI cites", ask: "How are my latest YouTube videos doing?" },
   { slug: "googlesheets", name: "Google Sheets", group: "Docs and files", why: "Read and update your sheets", ask: "List my recent Google Sheets." },
   { slug: "googledocs", name: "Google Docs", group: "Docs and files", why: "Read briefs and send drafts to Docs", ask: "List my recent Google Docs." },
@@ -99,6 +101,24 @@ async function blocked(slug: string, canEdit: boolean): Promise<string | null> {
   if (tags.includes("destructiveHint")) return `${slug} deletes data. Zippie never deletes in connected apps.`;
   if (!canEdit && !tags.includes("readOnlyHint")) return `${slug} changes data. Only editors and admins can do that through Zippie.`;
   return null;
+}
+
+/** True when the workspace has this app connected and working. */
+export async function hasApp(ws: string, slug: AppSlug): Promise<boolean> {
+  if (!composioReady()) return false;
+  return (await connections(ws)).some((c) => c.slug === slug && c.status === "ACTIVE");
+}
+
+/**
+ * Run one app tool for an Arrowsterr feature (not Zippie), like Search Console numbers on the Traffic page.
+ * Throws when the app isn't connected or the tool fails. Composio bills each call.
+ */
+export async function runAppTool<T = unknown>(ws: string, slug: AppSlug, tool: string, args: Record<string, unknown>): Promise<T> {
+  if (!(await hasApp(ws, slug))) throw new Error(`${appName(slug)} is not connected. Connect it in Settings → Integrations, under Apps for Zippie.`);
+  const session = await composio().create(userOf(ws), { toolkits: [slug], manageConnections: false, sandbox: { enable: false } });
+  const r = await session.execute(tool, args);
+  if (r.error) throw new Error(`${appName(slug)}: ${typeof r.error === "string" ? r.error : JSON.stringify(r.error)}`.slice(0, 400));
+  return r.data as T;
 }
 
 // Text from outside apps can read like an order. Zippie gets it as data.
