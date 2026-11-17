@@ -1,0 +1,16 @@
+{
+  "url": "/prompts",
+  "method": "GET",
+  "qs": {
+    "brand_id": "{{parameters.brand_id}}"
+  },
+  "response": {
+    "iterate": "{{body.rows}}",
+    "output": {
+      "brand_id": "{{body.brand.id}}",
+      "brand_name": "{{body.brand.name}}",
+      "topic": "{{item.topic}}",
+      "prompt": "{{item.prompt}}"
+    }
+  }
+}

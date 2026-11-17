@@ -1,0 +1,20 @@
+{
+  "url": "/visibility",
+  "method": "GET",
+  "qs": {
+    "brand_id": "{{parameters.brand_id}}",
+    "days": "{{parameters.days}}"
+  },
+  "response": {
+    "iterate": "{{body.days}}",
+    "output": {
+      "brand_id": "{{body.brand.id}}",
+      "brand_name": "{{body.brand.name}}",
+      "day": "{{item.day}}",
+      "answers": "{{item.answers}}",
+      "visibility": "{{item.visibility}}",
+      "engines": "{{item.engines}}",
+      "competitors": "{{item.competitors}}"
+    }
+  }
+}

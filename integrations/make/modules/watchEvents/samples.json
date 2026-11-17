@@ -1,0 +1,18 @@
+{
+  "event": "daily.result",
+  "brand": {
+    "id": "b_123",
+    "name": "Acme",
+    "domain": "acme.com"
+  },
+  "day": "2026-10-10",
+  "visibility": 46,
+  "previous": 41,
+  "change": 5,
+  "competitors": [
+    {
+      "name": "Competitor A",
+      "visibility": 38
+    }
+  ]
+}

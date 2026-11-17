@@ -1,0 +1,11 @@
+{
+  "url": "/calendar",
+  "method": "GET",
+  "qs": {
+    "brand_id": "{{parameters.brand_id}}"
+  },
+  "response": {
+    "iterate": "{{body.items}}",
+    "output": "{{item}}"
+  }
+}

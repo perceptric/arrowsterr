@@ -1,0 +1,22 @@
+[
+  {
+    "name": "brand_id",
+    "type": "text",
+    "label": "Brand ID"
+  },
+  {
+    "name": "brand_name",
+    "type": "text",
+    "label": "Brand name"
+  },
+  {
+    "name": "topic",
+    "type": "text",
+    "label": "Topic"
+  },
+  {
+    "name": "prompt",
+    "type": "text",
+    "label": "Prompt"
+  }
+]

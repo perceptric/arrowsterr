@@ -1,0 +1,7 @@
+{
+  "name": "getVisibility",
+  "connection": "arrowsterr",
+  "type": "search",
+  "label": "Get visibility over time",
+  "description": "Gets AI visibility by day for a brand, with its top competitors."
+}

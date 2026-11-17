@@ -1,0 +1,7 @@
+{
+  "name": "listCompetitors",
+  "connection": "arrowsterr",
+  "type": "search",
+  "label": "List competitors",
+  "description": "Lists the brands AI names next to yours, with visibility, position and sentiment."
+}

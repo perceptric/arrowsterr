@@ -1,0 +1,9 @@
+[
+  {
+    "name": "apiKey",
+    "type": "password",
+    "label": "API key",
+    "required": true,
+    "help": "Make one in Arrowsterr under Settings, Workspace & members, Integrations, API keys. It starts with aw_live_."
+  }
+]

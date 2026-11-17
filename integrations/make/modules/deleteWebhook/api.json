@@ -1,0 +1,7 @@
+{
+  "url": "/webhooks/{{encodeURL(parameters.id)}}",
+  "method": "DELETE",
+  "response": {
+    "output": "{{body}}"
+  }
+}

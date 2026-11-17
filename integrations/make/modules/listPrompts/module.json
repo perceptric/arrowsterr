@@ -1,0 +1,7 @@
+{
+  "name": "listPrompts",
+  "connection": "arrowsterr",
+  "type": "search",
+  "label": "List prompts",
+  "description": "Lists a brand's tracked prompts, each with its topic."
+}

@@ -1,0 +1,99 @@
+[
+  {
+    "name": "event",
+    "type": "text",
+    "label": "Event"
+  },
+  {
+    "name": "brand",
+    "type": "collection",
+    "label": "Brand",
+    "spec": [
+      {
+        "name": "id",
+        "type": "text",
+        "label": "ID"
+      },
+      {
+        "name": "name",
+        "type": "text",
+        "label": "Name"
+      },
+      {
+        "name": "domain",
+        "type": "text",
+        "label": "Domain"
+      }
+    ]
+  },
+  {
+    "name": "day",
+    "type": "date",
+    "label": "Day"
+  },
+  {
+    "name": "visibility",
+    "type": "number",
+    "label": "Visibility (%)"
+  },
+  {
+    "name": "previous",
+    "type": "number",
+    "label": "Previous visibility (%)"
+  },
+  {
+    "name": "change",
+    "type": "number",
+    "label": "Change (points)"
+  },
+  {
+    "name": "competitors",
+    "type": "array",
+    "label": "Competitors",
+    "spec": [
+      {
+        "name": "name",
+        "type": "text",
+        "label": "Name"
+      },
+      {
+        "name": "visibility",
+        "type": "number",
+        "label": "Visibility (%)"
+      }
+    ]
+  },
+  {
+    "name": "reasons",
+    "type": "array",
+    "label": "Reasons",
+    "spec": {
+      "type": "text"
+    }
+  },
+  {
+    "name": "keyword",
+    "type": "text",
+    "label": "Keyword"
+  },
+  {
+    "name": "item_id",
+    "type": "text",
+    "label": "Calendar item ID"
+  },
+  {
+    "name": "title",
+    "type": "text",
+    "label": "Title"
+  },
+  {
+    "name": "url",
+    "type": "url",
+    "label": "URL"
+  },
+  {
+    "name": "cms",
+    "type": "text",
+    "label": "CMS"
+  }
+]

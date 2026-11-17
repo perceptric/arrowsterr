@@ -1,0 +1,52 @@
+[
+  {
+    "name": "brand_id",
+    "type": "text",
+    "label": "Brand ID"
+  },
+  {
+    "name": "brand_name",
+    "type": "text",
+    "label": "Brand name"
+  },
+  {
+    "name": "day",
+    "type": "date",
+    "label": "Day"
+  },
+  {
+    "name": "answers",
+    "type": "number",
+    "label": "AI answers checked"
+  },
+  {
+    "name": "visibility",
+    "type": "number",
+    "label": "Visibility (%)"
+  },
+  {
+    "name": "engines",
+    "type": "array",
+    "label": "AI models checked",
+    "spec": {
+      "type": "text"
+    }
+  },
+  {
+    "name": "competitors",
+    "type": "array",
+    "label": "Competitors",
+    "spec": [
+      {
+        "name": "name",
+        "type": "text",
+        "label": "Name"
+      },
+      {
+        "name": "visibility",
+        "type": "number",
+        "label": "Visibility (%)"
+      }
+    ]
+  }
+]

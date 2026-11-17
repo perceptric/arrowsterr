@@ -1,0 +1,7 @@
+{
+  "name": "getVisibilityByModel",
+  "connection": "arrowsterr",
+  "type": "search",
+  "label": "Get visibility by AI model",
+  "description": "Gets AI visibility for a brand on each AI model over a period."
+}

@@ -1,0 +1,16 @@
+{
+  "baseUrl": "https://app.arrowsterr.com/api/v1",
+  "headers": {
+    "X-API-Key": "{{connection.apiKey}}"
+  },
+  "response": {
+    "error": {
+      "message": "[{{statusCode}}] {{ifempty(body.error; 'Arrowsterr returned an error')}}"
+    }
+  },
+  "log": {
+    "sanitize": [
+      "request.headers.x-api-key"
+    ]
+  }
+}

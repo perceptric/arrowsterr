@@ -1,0 +1,11 @@
+{
+  "url": "/topic-bank",
+  "method": "GET",
+  "qs": {
+    "brand_id": "{{parameters.brand_id}}"
+  },
+  "response": {
+    "iterate": "{{body.keywords}}",
+    "output": "{{merge(item; object('site'; body.site))}}"
+  }
+}

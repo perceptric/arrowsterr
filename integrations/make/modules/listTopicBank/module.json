@@ -1,0 +1,7 @@
+{
+  "name": "listTopicBank",
+  "connection": "arrowsterr",
+  "type": "search",
+  "label": "List Topic Bank keywords",
+  "description": "Lists Topic Bank keywords with volume, difficulty, intent and stage."
+}

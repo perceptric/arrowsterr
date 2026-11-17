@@ -1,0 +1,7 @@
+{
+  "name": "listWebhooks",
+  "connection": "arrowsterr",
+  "type": "search",
+  "label": "List webhooks",
+  "description": "Lists the webhooks in the workspace."
+}

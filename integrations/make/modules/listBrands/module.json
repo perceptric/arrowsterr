@@ -1,0 +1,7 @@
+{
+  "name": "listBrands",
+  "connection": "arrowsterr",
+  "type": "search",
+  "label": "List brands",
+  "description": "Lists every brand in the workspace."
+}

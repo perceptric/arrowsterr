@@ -1,0 +1,7 @@
+{
+  "name": "getWorkspace",
+  "connection": "arrowsterr",
+  "type": "action",
+  "label": "Get workspace",
+  "description": "Gets the workspace your API key belongs to."
+}

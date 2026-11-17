@@ -1,0 +1,8 @@
+[
+  {
+    "name": "limit",
+    "type": "uinteger",
+    "label": "Limit",
+    "default": 100
+  }
+]

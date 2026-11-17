@@ -1,0 +1,31 @@
+[
+  {
+    "name": "brand_id",
+    "type": "select",
+    "label": "Brand",
+    "options": "rpc://listBrands",
+    "required": true
+  },
+  {
+    "name": "days",
+    "type": "uinteger",
+    "label": "Days",
+    "default": 30,
+    "help": "How many days back to look, from 1 to 365.",
+    "validate": {
+      "min": 1,
+      "max": 365
+    }
+  },
+  {
+    "name": "limit",
+    "type": "uinteger",
+    "label": "Limit",
+    "default": 15,
+    "help": "How many brands, up to 50. Your own brand is always in the list.",
+    "validate": {
+      "min": 1,
+      "max": 50
+    }
+  }
+]

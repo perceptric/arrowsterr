@@ -1,0 +1,7 @@
+{
+  "name": "createWebhook",
+  "connection": "arrowsterr",
+  "type": "action",
+  "label": "Create a webhook",
+  "description": "Sends an Arrowsterr event to a URL you choose."
+}
