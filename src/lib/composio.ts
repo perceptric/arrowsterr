@@ -7,26 +7,27 @@ import { Composio } from "@composio/core";
 // is one Composio user, so a workspace only ever sees its own connections.
 
 /** The apps a workspace can connect. All use Composio's own sign-in apps, so they need no setup on our side. */
+export const APP_GROUPS = ["Search and traffic", "Docs and files", "Sales", "Tasks and chat", "Customer voice"] as const;
 export const APPS = [
-  { slug: "google_search_console", name: "Google Search Console", why: "Clicks, impressions and the queries people search" },
-  { slug: "google_analytics", name: "Google Analytics", why: "Visits, sources and conversions" },
-  { slug: "googlesheets", name: "Google Sheets", why: "Read and update your sheets" },
-  { slug: "googledocs", name: "Google Docs", why: "Read briefs and send drafts to Docs" },
-  { slug: "googledrive", name: "Google Drive", why: "Find files in your Drive" },
-  { slug: "notion", name: "Notion", why: "Read and add pages and databases" },
-  { slug: "hubspot", name: "HubSpot", why: "Contacts, deals and lead sources" },
-  { slug: "salesforce", name: "Salesforce", why: "Leads, accounts and opportunities" },
-  { slug: "slack", name: "Slack", why: "Read channels and post messages" },
-  { slug: "asana", name: "Asana", why: "Turn plan pieces into tasks" },
-  { slug: "linear", name: "Linear", why: "Turn fixes into issues" },
-  { slug: "jira", name: "Jira", why: "Turn fixes into issues" },
-  { slug: "clickup", name: "ClickUp", why: "Turn plan pieces into tasks" },
-  { slug: "airtable", name: "Airtable", why: "Read and update your bases" },
-  { slug: "reddit", name: "Reddit", why: "Find threads AI cites for your topics" },
-  { slug: "youtube", name: "YouTube", why: "Your channel and the videos AI cites" },
-  { slug: "gong", name: "Gong", why: "Questions customers ask on calls" },
-  { slug: "zendesk", name: "Zendesk", why: "Questions customers ask in tickets" },
-  { slug: "intercom", name: "Intercom", why: "Questions customers ask in chats" },
+  { slug: "google_search_console", name: "Google Search Console", group: "Search and traffic", why: "Clicks, impressions and the queries people search", ask: "What are my top Search Console queries and pages in the last 28 days?" },
+  { slug: "google_analytics", name: "Google Analytics", group: "Search and traffic", why: "Visits, sources and conversions", ask: "Which pages got the most visits last month, and where did they come from?" },
+  { slug: "youtube", name: "YouTube", group: "Search and traffic", why: "Your channel and the videos AI cites", ask: "How are my latest YouTube videos doing?" },
+  { slug: "googlesheets", name: "Google Sheets", group: "Docs and files", why: "Read and update your sheets", ask: "List my recent Google Sheets." },
+  { slug: "googledocs", name: "Google Docs", group: "Docs and files", why: "Read briefs and send drafts to Docs", ask: "List my recent Google Docs." },
+  { slug: "googledrive", name: "Google Drive", group: "Docs and files", why: "Find files in your Drive", ask: "What are the newest files in my Google Drive?" },
+  { slug: "notion", name: "Notion", group: "Docs and files", why: "Read and add pages and databases", ask: "What pages and databases are in my Notion?" },
+  { slug: "airtable", name: "Airtable", group: "Docs and files", why: "Read and update your bases", ask: "What bases do I have in Airtable?" },
+  { slug: "hubspot", name: "HubSpot", group: "Sales", why: "Contacts, deals and lead sources", ask: "Which lead sources brought the most new HubSpot contacts this month?" },
+  { slug: "salesforce", name: "Salesforce", group: "Sales", why: "Leads, accounts and opportunities", ask: "Show my newest Salesforce leads and where they came from." },
+  { slug: "slack", name: "Slack", group: "Tasks and chat", why: "Read channels and post messages", ask: "Which Slack channels can Zippie see?" },
+  { slug: "asana", name: "Asana", group: "Tasks and chat", why: "Turn plan pieces into tasks", ask: "What projects do I have in Asana?" },
+  { slug: "linear", name: "Linear", group: "Tasks and chat", why: "Turn fixes into issues", ask: "What issues are open in Linear?" },
+  { slug: "jira", name: "Jira", group: "Tasks and chat", why: "Turn fixes into issues", ask: "What issues are open in Jira?" },
+  { slug: "clickup", name: "ClickUp", group: "Tasks and chat", why: "Turn plan pieces into tasks", ask: "What tasks are due this week in ClickUp?" },
+  { slug: "reddit", name: "Reddit", group: "Customer voice", why: "Find threads AI cites for your topics", ask: "Find recent Reddit threads about my brand's topics." },
+  { slug: "gong", name: "Gong", group: "Customer voice", why: "Questions customers ask on calls", ask: "What questions did customers ask most on recent Gong calls?" },
+  { slug: "zendesk", name: "Zendesk", group: "Customer voice", why: "Questions customers ask in tickets", ask: "What do customers ask about most in recent Zendesk tickets?" },
+  { slug: "intercom", name: "Intercom", group: "Customer voice", why: "Questions customers ask in chats", ask: "What do customers ask about most in recent Intercom chats?" },
 ] as const;
 export type AppSlug = (typeof APPS)[number]["slug"];
 const SLUGS = new Set<string>(APPS.map((a) => a.slug));

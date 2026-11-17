@@ -6,6 +6,7 @@ import { ALERT_POINTS, EVENTS } from "@/lib/integrationTypes";
 import type { RunAuth } from "@/lib/runner";
 import { Confirm } from "./reports/Dialog";
 import { post } from "./research/shared";
+import { useZippieMaybe } from "./zippie/ZippieContext";
 
 type Key = { id: string; name: string; prefix: string; created_at: string; last_used_at: string | null };
 type Hook = { id: string; url: string; event: string; source: string; created_at: string };
@@ -116,12 +117,22 @@ function McpCard({ off }: { off: boolean }) {
   );
 }
 
-type App = { slug: string; name: string; why: string; logo: string; connection: { id: string; status: string } | null; stale: string[] };
-type AppsState = { ready: boolean; allowed: boolean; apps: App[] };
+type App = { slug: string; name: string; group: string; why: string; ask: string; logo: string; connection: { id: string; status: string } | null; stale: string[] };
+type AppsState = { ready: boolean; allowed: boolean; groups?: string[]; apps: App[] };
+
+function AppLogo({ src, size = 36 }: { src: string; size?: number }) {
+  return (
+    <span className="flex shrink-0 items-center justify-center rounded-[10px] border border-rule-faint bg-surface-2" style={{ width: size, height: size }}>
+      <img src={src} alt="" width={Math.round(size * 0.56)} height={Math.round(size * 0.56)} />
+    </span>
+  );
+}
 
 /** Apps for Zippie: Search Console, HubSpot, Notion and more, connected through Composio. Zippie reads them in chat. */
 function AppsCard({ auth, isAdmin }: { auth: RunAuth; isAdmin: boolean }) {
+  const zippie = useZippieMaybe();
   const [s, setS] = useState<AppsState | null>(null);
+  const [group, setGroup] = useState("All");
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const [asking, setAsking] = useState<App | null>(null);
@@ -163,44 +174,89 @@ function AppsCard({ auth, isAdmin }: { auth: RunAuth; isAdmin: boolean }) {
   if (!s?.ready) return null;
   const back = typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("app");
   const returned = back ? s.apps.find((a) => a.slug === back) : null;
-  const connected = s.apps.filter((a) => a.connection).length;
+  const connected = s.apps.filter((a) => a.connection);
+  const rest = s.apps.filter((a) => !a.connection && (group === "All" || a.group === group));
+  const groups = ["All", ...(s.groups ?? [...new Set(s.apps.map((a) => a.group))])].filter((g) => g === "All" || s.apps.some((a) => !a.connection && a.group === g));
+  const canConnect = isAdmin && s.allowed;
   return (
-    <div className="aw-frame flex max-w-2xl flex-col gap-3 p-5">
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-[15px] font-medium text-ink">Apps for Zippie</span>
-        {connected ? <span className="aw-status aw-status--ranked">{connected} connected</span> : null}
+    <div className="aw-frame flex max-w-2xl flex-col gap-5 p-5">
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-[15px] font-medium text-ink">Apps for Zippie</span>
+          {connected.length ? <span className="aw-status aw-status--ranked">{connected.length} connected</span> : null}
+        </div>
+        <p className="text-[13px] text-muted">Connect your tools, then ask Zippie about them in chat. Zippie reads them for everyone in the workspace. It only adds or changes things when an editor says yes, and it never deletes.</p>
       </div>
-      <p className="text-[13px] text-muted">
-        Connect your tools and ask Zippie about them in chat. &quot;Which Search Console queries grew while our AI visibility dropped?&quot; Viewers can only read through Zippie. Editors can also have Zippie add or update things after they say yes. Zippie never deletes.
-      </p>
-      {!s.allowed ? <p className="text-[13px] text-body">Apps for Zippie are on Starter and up.</p> : null}
-      {returned ? <div className="aw-callout text-[13px]">{returned.connection ? `${returned.name} is connected. Ask Zippie about it.` : `${returned.name} didn't finish connecting. Try again.`}</div> : null}
+      {!s.allowed ? <div className="aw-callout text-[13px]">Apps for Zippie are on Starter and up.</div> : null}
+      {returned ? <div className="aw-callout text-[13px]">{returned.connection ? `${returned.name} is connected. Ask Zippie about it below.` : `${returned.name} didn't finish connecting. Try again.`}</div> : null}
       {error ? <p className="aw-error">{error}</p> : null}
-      <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-        {s.apps.map((a) => (
-          <li key={a.slug} className="flex items-center gap-3 rounded-[10px] border border-rule-faint p-2.5">
-            <img src={a.logo} alt="" width={24} height={24} className="shrink-0 rounded-[4px]" />
-            <span className="flex min-w-0 flex-1 flex-col">
-              <span className="truncate text-[13px] font-medium text-ink">{a.name}</span>
-              <span className="truncate text-[12px] text-muted">{a.why}</span>
-            </span>
-            {a.connection ? (
-              isAdmin ? (
-                <button type="button" className="aw-text-link shrink-0 text-[12px] text-neg!" disabled={Boolean(busy)} onClick={() => setAsking(a)}>
-                  {busy === a.slug ? "..." : "Disconnect"}
+
+      {connected.length ? (
+        <section className="flex flex-col gap-2">
+          <h3 className="aw-int-head">Connected</h3>
+          <ul className="flex flex-col divide-y divide-rule-faint rounded-[12px] border border-rule-faint">
+            {connected.map((a) => (
+              <li key={a.slug} className="flex flex-wrap items-center gap-3 px-3 py-3">
+                <AppLogo src={a.logo} />
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span className="text-[14px] font-medium text-ink">{a.name}</span>
+                  <span className="text-[12px] text-muted">{a.why}</span>
+                </span>
+                <span className="flex items-center gap-1.5">
+                  {zippie ? (
+                    <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => zippie.send(a.ask)}>
+                      Ask Zippie
+                    </button>
+                  ) : null}
+                  {isAdmin ? (
+                    <button type="button" className="aw-btn aw-btn--ghost aw-btn--sm text-muted!" disabled={Boolean(busy)} onClick={() => setAsking(a)}>
+                      {busy === a.slug ? "Removing..." : "Disconnect"}
+                    </button>
+                  ) : null}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {groups.length > 1 ? (
+        <section className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2">
+            <h3 className="aw-int-head">{connected.length ? "Add more apps" : "Connect an app"}</h3>
+            <div className="flex flex-wrap gap-1.5">
+              {groups.map((g) => (
+                <button key={g} type="button" className={`aw-chip aw-chip--btn${g === group ? " is-on" : ""}`} onClick={() => setGroup(g)}>
+                  {g}
                 </button>
-              ) : (
-                <span className="aw-chip shrink-0">Connected</span>
-              )
-            ) : isAdmin && s.allowed ? (
-              <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm shrink-0" disabled={Boolean(busy)} onClick={() => connect(a.slug)}>
-                {busy === a.slug ? "Opening..." : "Connect"}
-              </button>
-            ) : null}
-          </li>
-        ))}
-      </ul>
-      <p className="text-[12px] text-muted">Sign-ins are handled by Composio. Each workspace connects its own accounts.</p>
+              ))}
+            </div>
+          </div>
+          <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
+            {rest.map((a) => (
+              <li key={a.slug} className="flex">
+                <button
+                  type="button"
+                  className="group flex w-full flex-col items-start gap-2.5 rounded-[12px] border border-rule-faint p-3 text-left transition-colors hover:border-rule hover:bg-surface-2 disabled:cursor-default disabled:hover:border-rule-faint disabled:hover:bg-transparent"
+                  disabled={!canConnect || Boolean(busy)}
+                  title={canConnect ? `Connect ${a.name}` : s.allowed ? "Workspace admins connect apps" : undefined}
+                  onClick={() => connect(a.slug)}
+                >
+                  <span className="flex w-full items-center justify-between gap-2">
+                    <AppLogo src={a.logo} size={32} />
+                    {canConnect ? <span className="text-[12px] font-medium text-brand opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">{busy === a.slug ? "Opening..." : "Connect →"}</span> : null}
+                  </span>
+                  <span className="flex flex-col gap-0.5">
+                    <span className="text-[13px] font-medium text-ink">{a.name}</span>
+                    <span className="text-[12px] leading-snug text-muted">{a.why}</span>
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+      <p className="text-[12px] text-faint">Sign-ins go through Composio. Each workspace connects its own accounts.</p>
       {asking ? (
         <Confirm
           title={`Disconnect ${asking.name}`}

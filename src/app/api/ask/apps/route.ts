@@ -1,4 +1,4 @@
-import { APPS, appLogo, composioReady, connectLink, connections, disconnect, isApp } from "@/lib/composio";
+import { APP_GROUPS, APPS, appLogo, composioReady, connectLink, connections, disconnect, isApp } from "@/lib/composio";
 import { entitlement } from "@/lib/entitlements";
 import { requireRole } from "@/lib/serverAuth";
 import { appUrl } from "@/lib/emailKit";
@@ -28,6 +28,7 @@ export async function POST(request: Request) {
     return Response.json({
       ready: true,
       allowed,
+      groups: APP_GROUPS,
       apps: APPS.map((a) => {
         const mine = rows.filter((r) => r.slug === a.slug);
         const live = mine.find((r) => r.status === "ACTIVE");

@@ -221,6 +221,11 @@ export function ZippieProvider({ auth, canEdit, where, onZippiePage, children }:
   return <ZippieCtx.Provider value={value}>{children}</ZippieCtx.Provider>;
 }
 
+/** Zippie when the page sits inside the app, or null on pages without it. */
+export function useZippieMaybe(): Ctx | null {
+  return useContext(ZippieCtx);
+}
+
 export function useZippie(): Ctx {
   const c = useContext(ZippieCtx);
   if (!c) throw new Error("useZippie needs ZippieProvider.");
