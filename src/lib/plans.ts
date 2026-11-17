@@ -112,6 +112,7 @@ export const TASK_COST = {
   ai: 3, // a small AI job: ideas, a summary, prompt suggestions
   mcp: 1, // one MCP tool call or skill step that reads or changes the workspace; keyword_research uses keyword
   guideline: 10, // reading a site for its brand guideline
+  presence: 2, // one brand's Trustpilot and Google Business Profile check, kept a week
 } as const;
 
 /** The two toolsets. Every plan opens both. Starter subscribers on v5 prices keep the one they picked. */
