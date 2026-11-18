@@ -3,12 +3,35 @@
 // Open the previews in a browser; switch the system to dark mode to see the dark versions.
 
 import { mkdirSync, writeFileSync } from "node:fs";
-import { alertEmail, authEmail, briefEmail, freeAlarmEmail, newDeviceEmail, planEmail, securityNoticeEmail, tasksEmail, trialEmail, weeklyEmail, type Footer } from "../src/lib/emails.ts";
+import {
+  alertEmail,
+  authEmail,
+  briefEmail,
+  contentPlanEmail,
+  firstLookEmail,
+  freeAlarmEmail,
+  helpEmail,
+  newDeviceEmail,
+  noBrandEmail,
+  planEmail,
+  promptsEmail,
+  securityNoticeEmail,
+  tasksEmail,
+  trialEmail,
+  trialOverEmail,
+  upgradeEmail,
+  weeklyEmail,
+  welcomeEmail,
+  winBackEmail,
+  type Footer,
+} from "../src/lib/emails.ts";
 import type { Email } from "../src/lib/emailKit.ts";
 import { reportEmail } from "../src/lib/reportEmail.ts";
 
 const app = "https://app.arrowsterr.com";
 const footer: Footer = { text: "You get the weekly summary for this workspace.", links: [{ label: "Unsubscribe", url: `${app}/api/notifications/unsubscribe` }, { label: "Choose your emails", url: `${app}/settings/notifications` }] };
+const tips: Footer = { text: "You get getting-started tips because you made this workspace.", links: [{ label: "Unsubscribe", url: `${app}/api/notifications/unsubscribe` }, { label: "Choose your emails", url: `${app}/settings/notifications` }] };
+const sign = { name: "Sam Reed", role: "Founder, Arrowsterr" };
 const admin: Footer = { text: "You get this because you're an admin of this workspace.", links: [{ label: "Billing", url: `${app}/settings/billing` }] };
 
 const samples: Record<string, Email | { subject: string; html: string; text: string }> = {
@@ -116,6 +139,115 @@ const samples: Record<string, Email | { subject: string; html: string; text: str
   "auth-reauth": authEmail("reauth", { url: "", email: "you@example.com", code: "482913" }),
   "security-password": securityNoticeEmail("password_changed_notification", { email: "you@example.com", settingsUrl: `${app}/settings/security`, resetUrl: app })!,
   "security-device": newDeviceEmail({ device: "Chrome on macOS", ip: "203.0.113.7", when: new Date("2026-11-17T11:22:00Z"), resetUrl: app }),
+
+  // Getting started (src/lib/nurture.ts), in the order they go out.
+  "nurture-1-welcome": welcomeEmail(
+    {
+      brand: "Northwind",
+      steps: [
+        { title: "Make your workspace", done: true },
+        { title: "Add your brand", meta: "Paste your website and Arrowsterr does the rest", done: true },
+        { title: "See your first answers", meta: "From every AI, within a day", done: false },
+        { title: "Track 10 prompts or more", meta: "The questions your buyers ask AI", done: false },
+        { title: "Make a Content Plan", meta: "The pages to write so AI quotes you", done: false },
+      ],
+      trialEnds: new Date("2026-11-26T12:00:00Z"),
+      url: `${app}/prompts`,
+      sign,
+    },
+    tips,
+  ),
+  "nurture-1-welcome-no-brand": welcomeEmail(
+    {
+      brand: null,
+      steps: [
+        { title: "Make your workspace", done: true },
+        { title: "Add your brand", meta: "Paste your website and Arrowsterr does the rest", done: false },
+        { title: "See your first answers", meta: "From every AI, within a day", done: false },
+        { title: "Track 10 prompts or more", meta: "The questions your buyers ask AI", done: false },
+        { title: "Make a Content Plan", meta: "The pages to write so AI quotes you", done: false },
+      ],
+      trialEnds: new Date("2026-11-26T12:00:00Z"),
+      url: `${app}/onboarding`,
+      sign,
+    },
+    tips,
+  ),
+  "nurture-2-no-brand": noBrandEmail({ url: `${app}/onboarding`, sign }, tips),
+  "nurture-3-first-look": firstLookEmail(
+    {
+      brand: "Northwind",
+      visibility: 18,
+      answers: 96,
+      top: [
+        { name: "Fabrikam", visibility: 54 },
+        { name: "Contoso", visibility: 41 },
+        { name: "Tailspin", visibility: 23 },
+      ],
+      example: { engine: "ChatGPT", prompt: "best review management software for restaurants", names: ["Fabrikam", "Contoso", "Tailspin"], youNamed: false },
+      url: `${app}/prompts`,
+    },
+    tips,
+  ),
+  "nurture-4-prompts": promptsEmail(
+    {
+      brand: "Northwind",
+      count: 4,
+      limit: 25,
+      ideas: [
+        { prompt: "best review management software for restaurant groups", stage: "bofu" },
+        { prompt: "Fabrikam alternatives", stage: "bofu" },
+        { prompt: "Northwind vs Fabrikam", stage: "mofu" },
+        { prompt: "how to choose a review management software", stage: "tofu" },
+      ],
+      url: `${app}/prompts`,
+    },
+    tips,
+  ),
+  "nurture-5-content-plan": contentPlanEmail({ brand: "Northwind", site: "northwind.com", trialEnds: new Date("2026-11-26T12:00:00Z"), url: `${app}/opportunities` }, tips),
+  "nurture-6-trial-over": trialOverEmail(
+    {
+      workspace: "Northwind",
+      cols: ["Trial", "Free", "Starter"],
+      rows: [
+        { label: "AIs checked", values: ["All 6", "2", "All 6"] },
+        { label: "How often", values: ["Daily", "Weekly", "Daily"] },
+        { label: "Prompts", values: ["25", "15", "50"] },
+        { label: "Competitors", values: ["10", "3", "10"] },
+        { label: "Days of history", values: ["180", "30", "180"] },
+        { label: "Content Plans a month", values: ["1", "None", "1"] },
+      ],
+      pick: 2,
+      price: 49,
+      annual: 42,
+      url: `${app}/settings/billing`,
+      stayUrl: `${app}/prompts`,
+    },
+    tips,
+  ),
+  "nurture-7-upgrade": upgradeEmail(
+    { brand: "Northwind", visibility: 22.5, prompts: 12, promptLimit: 15, engines: ["ChatGPT", "AI Overview"], missing: ["Claude", "Gemini", "Perplexity", "AI Mode"], plan: { name: "Starter", price: 49, prompts: 50, competitors: 10 }, url: `${app}/settings/billing` },
+    tips,
+  ),
+  "nurture-7-help": helpEmail({ brand: "Northwind", url: `${app}/prompts`, sign }, tips),
+  "nurture-8-win-back": winBackEmail(
+    {
+      brand: "Northwind",
+      since: new Date("2026-10-19T12:00:00Z"),
+      before: 22.5,
+      now: 15.8,
+      byEngine: [
+        { engine: "ChatGPT", visibility: 19 },
+        { engine: "AI Overview", visibility: 12.5 },
+      ],
+      top: [
+        { name: "Fabrikam", visibility: 57 },
+        { name: "Contoso", visibility: 38 },
+      ],
+      url: `${app}/prompts`,
+    },
+    tips,
+  ),
 };
 
 mkdirSync("email-previews", { recursive: true });
