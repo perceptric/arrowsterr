@@ -1,5 +1,4 @@
 import "server-only";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { DAY, readCache, writeCache } from "../cache";
 import type { Chat, Run } from "../chats";
 import { addCalendarItems, flatPrompts, latestAnswers, listRuns, topicsOf, type Brand, type Topic } from "../db";
@@ -13,10 +12,11 @@ import { TASK_COST } from "../plans";
 import { missingTips, presenceList } from "../presence";
 import { brandPresence, marketFor } from "../presenceServer";
 import { marketOf, type Keyword } from "../research";
+import { brandRows, promptsInUse, type KeyScope } from "../keyScope";
 import { ToolError, textResult, type Schema, type ToolResult } from "./protocol";
 
-/** Who is calling: the workspace the API key belongs to. */
-export type Ctx = { db: SupabaseClient; ws: string };
+/** Who is calling: the workspace the API key belongs to, and for a brand key (aw_brand_…) its one brand. */
+export type Ctx = KeyScope;
 type Annotations = { readOnlyHint?: boolean; destructiveHint?: boolean; idempotentHint?: boolean; openWorldHint?: boolean };
 export type Tool = { name: string; title: string; description: string; inputSchema: Schema; annotations: Annotations; run: (ctx: Ctx, args: Record<string, unknown>) => Promise<ToolResult> };
 
@@ -32,10 +32,11 @@ const daysArg = { type: "number", description: "How many days back to look. Defa
 const topicArg = { type: "string", description: "Only this topic (a group of prompts). Leave out for all topics." };
 const engineArg = { type: "string", description: "Only this AI model, like ChatGPT, Perplexity, Gemini, Claude or AI Overview. Leave out for all." };
 
+/** The brands the key may see: every brand in the workspace, or a brand key's one brand. Tools find brands only here. */
 async function brands(ctx: Ctx): Promise<Brand[]> {
-  const { data, error } = await ctx.db.from("brands").select(BRAND_COLS).eq("workspace_id", ctx.ws).order("created_at");
+  const { data, error } = await brandRows(ctx, BRAND_COLS).order("created_at");
   if (error) throw new Error(error.message);
-  return (data ?? []) as Brand[];
+  return (data ?? []) as unknown as Brand[];
 }
 
 /** The brand the caller means, by id, name or domain. */
@@ -610,8 +611,8 @@ export const TOOLS: Tool[] = [
       if (!fresh.length) throw new ToolError("Nothing new to add. Those prompts are already tracked.");
       const e = await entitlement(ctx.ws);
       if (e.readOnly) throw new ToolError("This workspace is read-only.");
-      const all = await brands(ctx);
-      const used = all.reduce((n, b) => n + (b.prompts?.length ?? 0), 0);
+      // The limit is shared by every brand in the workspace, so count them all, even for a brand key.
+      const used = await promptsInUse(ctx);
       const room = Math.max(0, e.limits.prompts - used);
       if (!room) throw new ToolError(`The plan tracks ${e.limits.prompts} prompts and all are in use. Remove some or upgrade.`);
       const adding = fresh.slice(0, room);

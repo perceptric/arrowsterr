@@ -1,6 +1,6 @@
 import "server-only";
 import { apiAuth } from "../integrations";
-import { metered } from "../meter";
+import { metered, meterTotal } from "../meter";
 import { take } from "../entitlements";
 import { TASK_COST } from "../plans";
 import { BAD_PARAMS, fail, INVALID_REQUEST, NO_METHOD, ok, PARSE_ERROR, ToolError, VERSIONS, errorResult, type RpcReply, type RpcRequest } from "./protocol";
@@ -27,7 +27,7 @@ export const CORS = {
   "Access-Control-Expose-Headers": "WWW-Authenticate, Mcp-Session-Id",
 };
 
-// A fair-use limit per workspace, so a runaway agent loop cannot burn the plan in a minute.
+// A fair-use limit per workspace (per brand for a brand key), so a runaway agent loop cannot burn the plan in a minute.
 const WINDOW = 60_000;
 const MAX_CALLS = 60;
 const calls = new Map<string, number[]>();
@@ -44,6 +44,15 @@ function allowed(ws: string) {
   return true;
 }
 
+/** Count a brand key's tasks on its brand, for the partner's usage report (supabase/098_partner.sql). Never blocks or fails a call. */
+function brandTasks(ctx: Ctx, n: number) {
+  if (!ctx.brandId) return;
+  const period = new Date().toISOString().slice(0, 7);
+  void Promise.resolve(ctx.db.rpc("add_brand_tasks", { p_brand: ctx.brandId, p_ws: ctx.ws, p_period: period, p_n: n })).then(({ error }) => {
+    if (error && !/add_brand_tasks|brand_usage/.test(error.message)) console.error("Brand tasks:", error.message);
+  }, (e) => console.error("Brand tasks:", e instanceof Error ? e.message : e));
+}
+
 const json = (body: unknown, status = 200, headers: Record<string, string> = {}) => Response.json(body, { status, headers: { ...CORS, ...headers } });
 
 /** Handle one HTTP request to the MCP endpoint. */
@@ -51,12 +60,13 @@ export async function handleMcp(request: Request): Promise<Response> {
   const challenge = { "WWW-Authenticate": `Bearer resource_metadata="${originOf(request)}/.well-known/oauth-protected-resource"` };
   const hasKey = Boolean(request.headers.get("x-api-key") || /^Bearer\s+\S/i.test(request.headers.get("authorization") ?? ""));
   if (!hasKey) return json({ error: "Sign in to Arrowsterr, or send your API key as a Bearer token or in X-API-Key." }, 401, challenge);
-  const auth = await apiAuth(request, { mcp: true });
+  // Brand keys work here: every tool finds brands through brands(ctx), which a brand key limits to its one brand.
+  const auth = await apiAuth(request, { mcp: true, brandKey: true });
   if ("denied" in auth) {
     const status = auth.denied.status;
     return json(await auth.denied.json(), status, status === 401 ? challenge : {});
   }
-  const ctx: Ctx = { db: auth.db, ws: auth.ws };
+  const ctx: Ctx = { db: auth.db, ws: auth.ws, brandId: auth.brandId };
 
   let body: unknown;
   try {
@@ -101,15 +111,24 @@ export async function handleOne(ctx: Ctx, m: RpcRequest): Promise<RpcReply | nul
     case "tools/call": {
       const tool = TOOLS.find((t) => t.name === p.name);
       if (!tool) return fail(m.id, BAD_PARAMS, `Unknown tool: ${String(p.name)}`);
-      if (!allowed(ctx.ws)) return ok(m.id, errorResult(`Rate limit: ${MAX_CALLS} tool calls a minute. Wait a moment and try again.`));
+      if (!allowed(ctx.brandId ?? ctx.ws)) return ok(m.id, errorResult(`Rate limit: ${MAX_CALLS} tool calls a minute. Wait a moment and try again.`));
       const args = p.arguments && typeof p.arguments === "object" ? (p.arguments as Record<string, unknown>) : {};
       // Every call uses a task; keyword_research takes its own, larger charge.
       if (tool.name !== "keyword_research") {
         const took = await take(ctx.ws, "tasks", TASK_COST.mcp, { refundIfFree: false });
         if (!took.ok) return ok(m.id, errorResult(((await took.response.json()) as { error: string }).error));
+        brandTasks(ctx, TASK_COST.mcp);
       }
       try {
-        return ok(m.id, await metered(ctx.ws, `mcp ${tool.name}`, () => tool.run(ctx, args)));
+        return ok(
+          m.id,
+          await metered(ctx.ws, `mcp ${tool.name}`, async () => {
+            const result = await tool.run(ctx, args);
+            // keyword_research takes its tasks only when it paid for fresh data.
+            if (tool.name === "keyword_research" && meterTotal() > 0) brandTasks(ctx, TASK_COST.keyword);
+            return result;
+          }),
+        );
       } catch (e) {
         if (e instanceof ToolError) return ok(m.id, errorResult(e.message));
         const message = e instanceof Error ? e.message : String(e);

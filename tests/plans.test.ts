@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { dailyAnswers, LADDER, limitsFor, METRICS, nextPlan, PLANS, periodOf } from "../src/lib/plans.ts";
+import { dailyAnswers, LADDER, limitsFor, METRICS, nextPlan, PARTNER_BRANDS, PLANS, periodOf } from "../src/lib/plans.ts";
 
 test("every sold plan costs more and gives more prompts, more often checks or more SEO than the one before", () => {
   for (let i = 1; i < LADDER.length; i++) {
@@ -164,4 +164,14 @@ test("report limits grow up the ladder, and only Agency and up get white label",
   assert.equal(reportLimits("scale").secure, true);
   // Schedules: Free 0, Starter 2, Pro 10, Agency unlimited (docs/reports.md, section 32.4).
   assert.deepEqual(["free", "foundation", "scale", "agency"].map((id) => reportLimits(id as "free").schedules), [0, 2, 10, 1000]);
+});
+
+test("a partner workspace (extras.partner, set by hand) has the partner API and no brand cap", () => {
+  for (const id of Object.keys(PLANS) as (keyof typeof PLANS)[]) assert.equal(limitsFor(id).partner, false, id);
+  const p = limitsFor("agency", { partner: true, prompts: 1000 });
+  assert.equal(p.partner, true);
+  assert.equal(p.brands, PARTNER_BRANDS);
+  assert.ok(PARTNER_BRANDS < 2 ** 31, "fits the database's int");
+  assert.equal(p.prompts, PLANS.agency.prompts + 1000);
+  assert.equal(limitsFor("agency", { brands: 5 }).brands, PLANS.agency.brands + 5);
 });

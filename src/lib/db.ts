@@ -160,7 +160,11 @@ export async function listBrands(sb: SupabaseClient, workspaceId: string): Promi
   ) as Brand[];
 }
 
-export async function addBrand(sb: SupabaseClient, b: Omit<Brand, "id" | "daily" | "profile" | "topics"> & Partial<Pick<Brand, "profile" | "topics">>): Promise<Brand> {
+/** A new brand. external_id and created_by_key are for the partner API, and only the server can set them (098_partner.sql). */
+export async function addBrand(
+  sb: SupabaseClient,
+  b: Omit<Brand, "id" | "daily" | "profile" | "topics"> & Partial<Pick<Brand, "profile" | "topics">> & { external_id?: string; created_by_key?: string },
+): Promise<Brand> {
   return check(await sb.from("brands").insert(b).select(BRAND_COLS).single()) as Brand;
 }
 

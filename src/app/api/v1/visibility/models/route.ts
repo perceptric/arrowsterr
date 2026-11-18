@@ -1,4 +1,5 @@
 import { apiAuth } from "@/lib/integrations";
+import { brandById } from "@/lib/keyScope";
 
 type Row = { day: string; engine: string; named: string; is_you: boolean; answers: number; mentions: number; position_sum: number; sentiment_sum: number };
 type Sum = { answers: number; mentions: number; position: number; sentiment: number };
@@ -16,12 +17,12 @@ const stats = (s: Sum) => ({
 
 // AI visibility for a brand split by AI model, in total and by day.  ?brand_id=…&days=30
 export async function GET(request: Request) {
-  const a = await apiAuth(request);
+  const a = await apiAuth(request, { brandKey: true });
   if ("denied" in a) return a.denied;
   const url = new URL(request.url);
-  const brandId = url.searchParams.get("brand_id") ?? "";
+  const brandId = url.searchParams.get("brand_id") || a.brandId || "";
   const days = Math.min(365, Math.max(1, Number(url.searchParams.get("days")) || 30));
-  const { data: brand } = await a.db.from("brands").select("id, name, domain").eq("id", brandId).eq("workspace_id", a.ws).maybeSingle();
+  const brand = await brandById<{ id: string; name: string; domain: string }>(a, brandId, "id, name, domain");
   if (!brand) return Response.json({ error: "Brand not found. Get its id from /api/v1/brands." }, { status: 404 });
   const since = new Date(Date.now() - days * 864e5).toISOString().slice(0, 10);
   // Read in pages of 1000, since a long period has many rows.
@@ -30,7 +31,7 @@ export async function GET(request: Request) {
     const { data, error } = await a.db
       .from("daily_metrics")
       .select("day, engine, named, is_you, answers, mentions, position_sum, sentiment_sum")
-      .eq("brand_id", brandId)
+      .eq("brand_id", brand.id)
       .gte("day", since)
       .order("day")
       .order("engine")
