@@ -1,4 +1,4 @@
-// The look every Arrowsterr email shares (docs/brand.md, v8 calm look): the logo, a light gray shell, one white panel
+// The look every Arrowsterr email shares (docs/brand.md, v8 calm look; getting-started emails add a Signal Blue hero): the logo, a light gray shell, one white panel
 // with a hairline ring, a dark pill button and Signal Blue only for your own brand. Emails are built from blocks, so
 // each one gets an HTML body and a plain-text copy from the same data. Pure, so tests can check every email.
 //
@@ -27,7 +27,21 @@ export type Block =
   /** A side-by-side table, like plans. `pick` is the column to highlight. */
   | { t: "compare"; cols: string[]; rows: { label: string; values: string[] }[]; pick?: number }
   /** A sign-off from a person, for notes that should read like one. */
-  | { t: "sign"; name: string; role?: string };
+  | { t: "sign"; name: string; role?: string }
+  /** AI engines as colored chips; the ones that are off show dimmed. */
+  | { t: "engines"; items: { name: string; on: boolean }[] };
+
+/** The big picture in a hero header: one number, a face-off, a progress bar, dots, a before and after, or a person. */
+export type HeroVisual =
+  | { k: "big"; value: string; label: string; tag?: Tag }
+  | { k: "duel"; you: { name: string; value: string }; them: { name: string; value: string } }
+  | { k: "progress"; done: number; total: number; label: string }
+  | { k: "dots"; on: number; total: number; label: string }
+  | { k: "change"; from: { label: string; value: string }; to: { label: string; value: string }; tag: Tag }
+  | { k: "avatar"; initials: string; name: string; role?: string };
+
+/** A Signal Blue header with the title in white and one big visual, for emails that should stand out. */
+export type Hero = { kicker?: string; visual?: HeroVisual };
 
 export type EmailParts = {
   subject: string;
@@ -46,6 +60,8 @@ export type EmailParts = {
   footer: { text: string; links?: Link[] };
   /** A Brand Kit's name and color in place of the Arrowsterr logo (white-label reports). */
   maker?: { name: string; color: string };
+  /** A Signal Blue header carrying the title, the sub line and one big visual. */
+  hero?: Hero;
 };
 
 export type Email = { subject: string; preview: string; html: string; text: string };
@@ -92,6 +108,59 @@ const barCell = (pct: number, color: string, cls: string) =>
   `<td class="${cls}" width="${pct}%" style="background:${color};height:8px;border-radius:4px;font-size:0;line-height:0">&nbsp;</td><td class="c-track" style="background:${C.track};height:8px;border-radius:4px;font-size:0;line-height:0">&nbsp;</td>`;
 const pctOf = (v: number, max: number) => Math.min(100, Math.max(2, Math.round((v / (max || 1)) * 100)));
 const fmtPct = (n: number) => `${Math.round(n * 10) / 10}%`;
+
+/** Each AI's own color, for its dot and chip. */
+const ENGINE_COLOR: Record<string, string> = {
+  ChatGPT: "#10A37F", Claude: "#D97757", Gemini: "#4285F4", Perplexity: "#1FB8CD", "AI Overview": "#EA4335", "AI Mode": "#7B61FF",
+};
+const engineColor = (n: string) => ENGINE_COLOR[n] ?? C.signal;
+const dot = (color: string, size = 8) => `<span style="display:inline-block;width:${size}px;height:${size}px;border-radius:${size}px;background:${color};vertical-align:middle"></span>`;
+
+// The hero: Signal Blue, deeper at the top left, with white type. Clients without gradients get the flat blue.
+const HERO_BG = `background:#0943B0;background-image:linear-gradient(135deg,#062F80 0%,#0943B0 55%,#2E66D9 100%)`;
+const W = "#FFFFFF";
+const W2 = "rgba(255,255,255,0.72)";
+const W3 = "rgba(255,255,255,0.16)";
+
+function heroVisual(v: HeroVisual): string {
+  switch (v.k) {
+    case "big":
+      return `<div style="font-size:64px;line-height:68px;font-weight:700;letter-spacing:-0.04em;color:${W};font-variant-numeric:tabular-nums">${esc(v.value)}</div>
+<div style="font-size:14px;line-height:20px;color:${W2};padding-top:6px">${esc(v.label)}${v.tag ? `&nbsp; <span style="display:inline-block;background:${W};color:${TONES[v.tag.tone][1]};font-size:12px;line-height:18px;font-weight:600;border-radius:6px;padding:1px 8px">${esc(v.tag.text)}</span>` : ""}</div>`;
+    case "duel": {
+      const side = (x: { name: string; value: string }, you: boolean) =>
+        `<td width="44%" valign="top" style="background:${you ? W : W3};border-radius:12px;padding:16px 18px">
+<div style="font-size:13px;line-height:18px;font-weight:600;color:${you ? C.signal : W2};white-space:nowrap;overflow:hidden">${esc(x.name)}</div>
+<div style="font-size:40px;line-height:46px;font-weight:700;letter-spacing:-0.03em;color:${you ? C.signal : W};font-variant-numeric:tabular-nums">${esc(x.value)}</div></td>`;
+      return table(`<tr>${side(v.you, true)}<td width="12%" align="center" style="font-size:13px;font-weight:600;color:${W2}">vs</td>${side(v.them, false)}</tr>`);
+    }
+    case "progress": {
+      const pct = Math.min(100, Math.max(4, Math.round((v.done / (v.total || 1)) * 100)));
+      return `<div style="font-size:14px;line-height:20px;color:${W};font-weight:600;padding-bottom:10px">${esc(v.label)}</div>${table(
+        `<tr><td width="${pct}%" style="background:${W};height:10px;border-radius:5px;font-size:0;line-height:0">&nbsp;</td>${pct < 100 ? `<td style="background:${W3};height:10px;border-radius:5px;font-size:0;line-height:0">&nbsp;</td>` : ""}</tr>`,
+      )}`;
+    }
+    case "dots": {
+      const cells = Array.from({ length: v.total }, (_, i) => `<td style="padding-right:8px">${dot(i < v.on ? W : W3, 18)}</td>`).join("");
+      return `<table role="presentation" cellpadding="0" cellspacing="0"><tr>${cells}</tr></table><div style="font-size:14px;line-height:20px;color:${W2};padding-top:10px">${esc(v.label)}</div>`;
+    }
+    case "change":
+      return `<div style="font-size:14px;line-height:20px;color:${W2}">${esc(v.from.label)}: <span style="font-weight:600;color:${W}">${esc(v.from.value)}</span> &rarr; ${esc(v.to.label)}</div>
+<div style="padding-top:4px"><span style="font-size:60px;line-height:64px;font-weight:700;letter-spacing:-0.04em;color:${W};font-variant-numeric:tabular-nums;vertical-align:middle">${esc(v.to.value)}</span>&nbsp;&nbsp;<span style="display:inline-block;background:${W};color:${TONES[v.tag.tone][1]};font-size:13px;line-height:20px;font-weight:600;border-radius:6px;padding:2px 9px;white-space:nowrap;vertical-align:middle">${esc(v.tag.text)}</span></div>`;
+    case "avatar":
+      return `<table role="presentation" cellpadding="0" cellspacing="0"><tr><td><div style="width:52px;height:52px;line-height:52px;border-radius:26px;background:${W};color:${C.signal};font-size:18px;font-weight:700;text-align:center">${esc(v.initials)}</div></td>
+<td style="padding-left:14px"><div style="font-size:15px;line-height:22px;font-weight:600;color:${W}">${esc(v.name)}</div>${v.role ? `<div style="font-size:13px;line-height:18px;color:${W2}">${esc(v.role)}</div>` : ""}</td></tr></table>`;
+  }
+}
+
+function heroHtml(h: Hero, title: string, sub?: { text: string; tag?: Tag }): string {
+  return `<tr><td bgcolor="#0943B0" style="${HERO_BG};border-radius:11px 11px 0 0;padding:32px 32px 30px">
+${h.kicker ? `<div style="padding-bottom:14px"><span style="display:inline-block;background:${W3};color:${W};font-size:12px;line-height:18px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;border-radius:999px;padding:3px 11px">${esc(h.kicker)}</span></div>` : ""}
+<div style="font-size:28px;line-height:34px;font-weight:700;letter-spacing:-0.025em;color:${W}">${esc(title)}</div>
+${sub ? `<div style="font-size:15px;line-height:22px;color:${W2};padding-top:8px">${esc(sub.text)}</div>` : ""}
+${h.visual ? `<div style="padding-top:24px">${heroVisual(h.visual)}</div>` : ""}
+</td></tr>`;
+}
 
 function blockHtml(b: Block): string {
   switch (b.t) {
@@ -175,25 +244,33 @@ function blockHtml(b: Block): string {
       return `<tr><td style="padding-top:4px">${table(rows)}</td></tr>`;
     }
     case "answer": {
-      const head = `<tr><td class="c-line" style="padding:12px 16px;border-bottom:1px solid ${C.line}">${table(
-        `<tr><td class="c-ink" style="font-size:13px;line-height:18px;font-weight:600;color:${C.ink}">${esc(b.engine)}</td><td class="c-ink2" align="right" style="font-size:13px;line-height:18px;color:${C.ink2}">&ldquo;${esc(b.prompt)}&rdquo;</td></tr>`,
-      )}</td></tr>`;
+      const color = engineColor(b.engine);
+      const head = `<tr><td style="padding:14px 16px 4px"><table role="presentation" cellpadding="0" cellspacing="0"><tr><td>${dot(color, 10)}</td><td class="c-ink" style="padding-left:8px;font-size:13px;line-height:18px;font-weight:600;color:${C.ink}">${esc(b.engine)}</td></tr></table></td></tr>`;
+      const ask = `<tr><td align="right" style="padding:8px 16px 4px"><table role="presentation" cellpadding="0" cellspacing="0"><tr><td class="c-btn" style="background:${C.signal};color:#FFFFFF;border-radius:16px 16px 4px 16px;padding:9px 14px;font-size:14px;line-height:20px">${esc(b.prompt)}</td></tr></table></td></tr>`;
       const rows = b.items
         .map((x, i) => {
           const you = Boolean(x.you);
-          return `<tr><td style="padding:3px 8px">${table(
-            `<tr><td width="28" class="c-ink2" style="font-size:13px;line-height:20px;color:${you ? C.signal : C.ink2};padding:8px 0 8px 10px;font-variant-numeric:tabular-nums">${i + 1}</td><td class="c-ink" style="font-size:14px;line-height:20px;color:${you ? C.signal : C.ink};font-weight:${you ? 600 : 500};padding:8px 0">${esc(x.name)}</td>${you ? `<td align="right" style="padding:8px 10px">${tagHtml({ text: "You", tone: "blue" })}</td>` : ""}</tr>`,
-            you ? `background:${C.signalSoft};border-radius:8px` : "",
-          ).replace("<table ", you ? '<table class="c-blue" ' : "<table ")}</td></tr>`;
+          return `<tr><td width="26" class="c-ink2" style="font-size:13px;line-height:20px;color:${you ? C.signal : C.ink2};padding:7px 0;font-variant-numeric:tabular-nums">${i + 1}.</td><td class="c-ink" style="font-size:14px;line-height:20px;color:${you ? C.signal : C.ink};font-weight:${you ? 700 : 500};padding:7px 0">${esc(x.name)}</td><td align="right" style="padding:7px 0">${you ? tagHtml({ text: "You", tone: "blue" }) : ""}</td></tr>`;
         })
         .join("");
       const miss = b.missing
-        ? `<tr><td style="padding:3px 8px 6px">${table(
-            `<tr><td width="28" class="c-ink2" style="font-size:13px;line-height:20px;color:${C.ink2};padding:8px 0 8px 10px">&ndash;</td><td class="c-ink2" style="font-size:14px;line-height:20px;color:${C.ink2};padding:8px 0">${esc(b.missing)}</td><td align="right" style="padding:8px 10px">${tagHtml({ text: "Not named", tone: "bad" })}</td></tr>`,
-            `border:1px dashed ${C.line};border-radius:8px`,
-          ).replace("<table ", '<table class="c-line" ')}</td></tr>`
+        ? `<tr><td colspan="3" style="padding-top:8px">${table(
+            `<tr><td class="c-ink2" style="font-size:14px;line-height:20px;color:${C.ink2};padding:9px 12px">${esc(b.missing)}</td><td align="right" style="padding:9px 12px">${tagHtml({ text: "Not named", tone: "bad" })}</td></tr>`,
+            `border:1px dashed #E5A39C;border-radius:10px`,
+          )}</td></tr>`
         : "";
-      return `<tr><td style="padding:8px 0 4px">${table(`${head}<tr><td style="padding:6px 0">${table(rows + miss)}</td></tr>`, `background:${C.soft};border:1px solid ${C.line};border-radius:10px`).replace("<table ", '<table class="c-soft" ')}</td></tr>`;
+      const reply = `<tr><td style="padding:6px 16px 16px"><table role="presentation" width="88%" cellpadding="0" cellspacing="0"><tr><td class="c-panel c-line" style="background:${C.panel};border:1px solid ${C.line};border-radius:16px 16px 16px 4px;padding:8px 14px">${table(rows + miss)}</td></tr></table></td></tr>`;
+      return `<tr><td style="padding:8px 0 4px">${table(head + ask + reply, `background:${C.soft};border:1px solid ${C.line};border-radius:14px`).replace("<table ", '<table class="c-soft" ')}</td></tr>`;
+    }
+    case "engines": {
+      // Inline chips wrap on their own on a narrow screen.
+      const chips = b.items
+        .map(
+          (x) =>
+            `<span class="${x.on ? "c-panel c-line" : "c-soft c-line"}" style="display:inline-block;margin:0 6px 8px 0;background:${x.on ? C.panel : C.soft};border:1px ${x.on ? "solid" : "dashed"} ${C.line};border-radius:999px;padding:6px 12px;white-space:nowrap">${dot(x.on ? engineColor(x.name) : C.muted)}<span class="${x.on ? "c-ink" : "c-ink2"}" style="padding-left:6px;font-size:13px;line-height:18px;font-weight:500;color:${x.on ? C.ink : C.ink2};vertical-align:middle">${esc(x.name)}</span></span>`,
+        )
+        .join("");
+      return `<tr><td style="padding-top:8px;font-size:0;line-height:0">${chips}</td></tr>`;
     }
     case "compare": {
       const pick = b.pick ?? -1;
@@ -250,6 +327,24 @@ function blockText(b: Block): string[] {
       return [b.cols.join(" | "), ...b.rows.map((r) => `${r.label}: ${r.values.map((v, i) => `${b.cols[i]} ${v}`).join(", ")}`), ""];
     case "sign":
       return [b.name, ...(b.role ? [b.role] : []), ""];
+    case "engines":
+      return [b.items.map((x) => `${x.name}${x.on ? "" : " (off)"}`).join(", "), ""];
+  }
+}
+
+function heroText(v: HeroVisual): string {
+  switch (v.k) {
+    case "big":
+      return `${v.value} ${v.label}${v.tag ? ` (${v.tag.text})` : ""}`;
+    case "duel":
+      return `${v.you.name} ${v.you.value} vs ${v.them.name} ${v.them.value}`;
+    case "progress":
+    case "dots":
+      return v.label;
+    case "change":
+      return `${v.from.label} ${v.from.value} to ${v.to.label} ${v.to.value} (${v.tag.text})`;
+    case "avatar":
+      return `${v.name}${v.role ? `, ${v.role}` : ""}`;
   }
 }
 
@@ -277,13 +372,22 @@ export function renderEmail(e: EmailParts): Email {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="c-shell" style="background:${C.shell}"><tr><td align="center" style="padding:32px 16px 40px">
 <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%">
 <tr><td style="padding:0 4px 20px">${brand}</td></tr>
-<tr><td class="c-panel" style="background:${C.panel};border:1px solid ${C.line};${e.maker ? "" : `border-top:3px solid ${C.signal};`}border-radius:12px;padding:32px">
+${
+  e.hero
+    ? `<tr><td class="c-panel" style="background:${C.panel};border:1px solid ${C.line};border-radius:12px;padding:0">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-family:${FONT}">${heroHtml(e.hero, e.title, e.sub)}
+<tr><td style="padding:${e.blocks.length ? 28 : 4}px 32px 32px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-family:${FONT}">
+${e.blocks.map(blockHtml).join("\n")}
+${btn}${(e.after ?? []).map(blockHtml).join("\n")}
+</table></td></tr></table></td></tr>`
+    : `<tr><td class="c-panel" style="background:${C.panel};border:1px solid ${C.line};${e.maker ? "" : `border-top:3px solid ${C.signal};`}border-radius:12px;padding:32px">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-family:${FONT}">
 ${e.eyebrow ? `<tr><td class="c-ink2" style="font-size:13px;line-height:18px;color:${C.ink2};padding-bottom:8px">${esc(e.eyebrow)}</td></tr>` : ""}
 <tr><td class="c-ink" style="font-size:24px;line-height:31px;font-weight:600;letter-spacing:-0.02em;color:${C.ink};padding-bottom:${e.sub ? 8 : 14}px">${esc(e.title)}</td></tr>
 ${sub}${e.blocks.map(blockHtml).join("\n")}
 ${btn}${(e.after ?? []).map(blockHtml).join("\n")}
-</table></td></tr>
+</table></td></tr>`
+}
 <tr><td class="c-ink2" style="font-size:12px;line-height:18px;color:${C.ink2};padding:20px 4px 0;font-family:${FONT}">${esc(e.footer.text)}${footLinks ? ` ${footLinks}` : ""}</td></tr>
 ${e.maker ? "" : `<tr><td class="c-ink2" style="font-size:12px;line-height:18px;color:${C.ink2};padding:12px 4px 0;font-family:${FONT}">Arrowsterr, AI visibility and SEO in one place.&nbsp; <a href="https://docs.arrowsterr.com" class="c-ink2" style="color:${C.ink2};text-decoration:underline">Help</a>&nbsp;&nbsp; <a href="https://arrowsterr.com/privacy" class="c-ink2" style="color:${C.ink2};text-decoration:underline">Privacy</a></td></tr>`}
 </table></td></tr></table></body></html>`;
@@ -291,9 +395,10 @@ ${e.maker ? "" : `<tr><td class="c-ink2" style="font-size:12px;line-height:18px;
   const lines = [
     e.maker?.name ?? "Arrowsterr",
     "",
-    ...(e.eyebrow ? [e.eyebrow] : []),
+    ...(e.hero?.kicker ? [e.hero.kicker] : e.eyebrow ? [e.eyebrow] : []),
     e.title,
     ...(e.sub ? [`${e.sub.tag ? `${e.sub.tag.text} ` : ""}${e.sub.text}`] : []),
+    ...(e.hero?.visual ? [heroText(e.hero.visual)] : []),
     "",
     ...e.blocks.flatMap(blockText),
     ...(e.button ? [`${e.button.label}: ${e.button.url}`, ""] : []),

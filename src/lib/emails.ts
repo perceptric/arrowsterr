@@ -283,10 +283,17 @@ export function tasksEmail(t: TasksData, footer: Footer): Email {
 
 // ─────────────── getting started (src/lib/nurture.ts) ───────────────
 // The first weeks of a new workspace: one email at a time, each with one thing to do, skipped once it's done.
-// Kept short: a title, one line, one picture of the data and a button.
+// Each one opens with a Signal Blue hero (a title and one big visual), then one short list and a button.
 
 export type Sign = { name: string; role?: string };
 const signOff = (s?: Sign | null): Block[] => (s ? [{ t: "sign", name: s.name, ...(s.role ? { role: s.role } : {}) }] : []);
+const initials = (n: string) =>
+  n
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]!.toUpperCase())
+    .join("");
 
 export type WelcomeData = {
   brand?: string | null;
@@ -297,13 +304,15 @@ export type WelcomeData = {
 };
 
 export function welcomeEmail(w: WelcomeData, footer: Footer): Email {
-  const trial: Block[] = w.trialEnds ? [{ t: "small", text: `Free trial until ${day(w.trialEnds)}. No card needed.` }] : [];
+  const done = w.steps.filter((x) => x.done).length;
   return renderEmail({
     subject: w.brand ? `Your first AI answers for ${w.brand} are on the way` : "See what ChatGPT says about your brand",
     preview: w.brand ? "First numbers from every AI within a day." : "Add your website to see how often AI names you.",
-    title: w.brand ? `Welcome. ${w.brand}'s first AI answers land within a day.` : "Welcome. Let's see what AI says about you.",
-    blocks: [{ t: "steps", items: w.steps.map((x) => ({ title: x.title, done: x.done })) }, ...trial],
-    button: { label: w.brand ? "Open Arrowsterr" : "Add your brand", url: w.url },
+    title: w.brand ? `${w.brand}'s first AI answers land within a day` : "Let's see what AI says about you",
+    sub: { text: w.trialEnds ? `Free trial until ${day(w.trialEnds)}. No card needed.` : "Here's your first week." },
+    hero: { kicker: "Welcome to Arrowsterr", visual: { k: "progress", done, total: w.steps.length, label: `${done} of ${w.steps.length} done` } },
+    blocks: [{ t: "steps", items: w.steps.map((x) => ({ title: x.title, done: x.done })) }],
+    button: { label: w.brand ? "Open Arrowsterr →" : "Add your brand →", url: w.url },
     after: signOff(w.sign),
     footer,
   });
@@ -314,6 +323,8 @@ export function noBrandEmail(n: { url: string; sign?: Sign | null }, footer: Foo
     subject: "Your first AI visibility score takes 2 minutes",
     preview: "Paste your website. Arrowsterr picks the prompts and competitors.",
     title: "2 minutes to your first AI visibility score",
+    sub: { text: "Your workspace is ready. It just needs a brand." },
+    hero: { kicker: "Quick setup", visual: { k: "big", value: "2 min", label: "from your website to your first score" } },
     blocks: [
       {
         t: "steps",
@@ -324,7 +335,7 @@ export function noBrandEmail(n: { url: string; sign?: Sign | null }, footer: Foo
         ],
       },
     ],
-    button: { label: "Add your brand", url: n.url },
+    button: { label: "Add your brand →", url: n.url },
     after: signOff(n.sign),
     footer,
   });
@@ -343,9 +354,12 @@ export function firstLookEmail(f: FirstLookData, footer: Footer): Email {
   const leader = f.top[0];
   const behind = Boolean(leader && leader.visibility > f.visibility);
   const blocks: Block[] = [];
-  if (f.top.length) blocks.push({ t: "bars", items: [...f.top.slice(0, 3).map((t) => ({ name: t.name, value: t.visibility, muted: true })), { name: f.brand, value: f.visibility, you: true }].sort((a, b) => b.value - a.value) });
+  if (f.top.length) {
+    blocks.push({ t: "label", text: "Who AI names most" });
+    blocks.push({ t: "bars", items: [...f.top.slice(0, 3).map((t) => ({ name: t.name, value: t.visibility, muted: true })), { name: f.brand, value: f.visibility, you: true }].sort((a, b) => b.value - a.value) });
+  }
   if (f.example) {
-    blocks.push({ t: "label", text: f.example.youNamed ? "One real answer" : "One real answer that skipped you" });
+    blocks.push({ t: "label", text: f.example.youNamed ? "A real answer" : "A real answer that skipped you" });
     blocks.push({
       t: "answer",
       engine: f.example.engine,
@@ -357,10 +371,14 @@ export function firstLookEmail(f: FirstLookData, footer: Footer): Email {
   return renderEmail({
     subject: behind && leader ? `${leader.name} shows up in AI answers more than ${f.brand}` : `${f.brand} is in ${pct(f.visibility)} of AI answers so far`,
     preview: behind && leader ? `${leader.name} is in ${pct(leader.visibility)} of answers. ${f.brand} is in ${pct(f.visibility)}.` : `From your first ${num(f.answers)} answers.`,
-    eyebrow: `From your first ${num(f.answers)} answers`,
     title: behind ? "Here's who AI recommends instead of you" : `AI names ${f.brand} more than anyone so far`,
+    sub: { text: `From your first ${num(f.answers)} AI answers.` },
+    hero: {
+      kicker: "Your first look",
+      visual: leader ? { k: "duel", you: { name: f.brand, value: pct(f.visibility) }, them: { name: leader.name, value: pct(leader.visibility) } } : { k: "big", value: pct(f.visibility), label: "of AI answers name you" },
+    },
     blocks,
-    button: { label: "See every answer", url: f.url },
+    button: { label: "See every answer →", url: f.url },
     footer,
   });
 }
@@ -372,9 +390,10 @@ export function promptsEmail(p: PromptsData, footer: Footer): Email {
     subject: "The questions your buyers ask AI",
     preview: `${p.brand} tracks ${plural(p.count, "prompt")}. A few more give you a truer score.`,
     title: "Add the questions your buyers ask AI",
-    sub: { text: `${num(p.count)} of ${num(p.limit)} prompts used. More prompts, truer score.` },
+    sub: { text: "More prompts, truer score." },
+    hero: { kicker: "Prompts", visual: { k: "big", value: `${num(p.count)}/${num(p.limit)}`, label: "prompts tracked" } },
     blocks: p.ideas.length ? [{ t: "label", text: "Try these" }, { t: "rows", items: p.ideas.map((x) => ({ title: x.prompt, tag: STAGE_TAG[x.stage] ?? { text: x.stage, tone: "neutral" as const } })) }] : [],
-    button: { label: "Add prompts", url: p.url },
+    button: { label: "Add prompts →", url: p.url },
     footer,
   });
 }
@@ -384,7 +403,8 @@ export function contentPlanEmail(c: { brand: string; site: string; trialEnds?: D
     subject: "Turn your AI gaps into a content plan",
     preview: `The pages to write for ${c.site}, closest to a sale first.`,
     title: "Get the pages to write so AI quotes you",
-    sub: { text: `One click, and Arrowsterr plans them for ${c.site}.` },
+    sub: { text: c.trialEnds ? `In your trial until ${day(c.trialEnds)}. Not on Free.` : `Planned for ${c.site} in one click.` },
+    hero: { kicker: "Content Plan", visual: { k: "big", value: "1", label: `free Content Plan for ${c.site}` } },
     blocks: [
       {
         t: "rows",
@@ -394,9 +414,8 @@ export function contentPlanEmail(c: { brand: string; site: string; trialEnds?: D
           { title: "A brief for each one", tag: { text: "Ready", tone: "good" } },
         ],
       },
-      ...(c.trialEnds ? [{ t: "small" as const, text: `Included in your trial, which ends ${day(c.trialEnds)}. Not on Free.` }] : []),
     ],
-    button: { label: "Make my Content Plan", url: c.url },
+    button: { label: "Make my Content Plan →", url: c.url },
     footer,
   });
 }
@@ -408,9 +427,10 @@ export function trialOverEmail(t: TrialOverData, footer: Footer): Email {
     subject: "Your trial ended. Your data is safe.",
     preview: `${t.workspace} is on Free now. Nothing was deleted.`,
     title: "Your trial ended. Your data is safe.",
-    sub: { text: `${t.workspace} is on Free now.`, tag: { text: "Free", tone: "neutral" } },
+    sub: { text: `${t.workspace} is on Free now. Nothing was deleted.` },
+    hero: { kicker: "Trial over", visual: { k: "big", value: "100%", label: "of your brands, prompts and history kept" } },
     blocks: [{ t: "compare", cols: t.cols, rows: t.rows, pick: t.pick }],
-    button: { label: `Get ${t.cols[t.pick]}, $${num(t.price)} a month`, url: t.url },
+    button: { label: `Get ${t.cols[t.pick]}, $${num(t.price)} a month →`, url: t.url },
     link: { label: "Stay on Free", url: t.stayUrl },
     footer,
   });
@@ -426,17 +446,18 @@ export function upgradeEmail(u: UpgradeData, footer: Footer): Email {
     preview: `${list(u.missing)} also answer your buyers.`,
     title: `You're seeing ${seen} of ${all} AIs`,
     sub: { text: `Free checks ${list(u.engines)}, once a week.` },
+    hero: { kicker: "Your plan", visual: { k: "dots", on: seen, total: all, label: `${u.plan.name} checks all ${all}, every day` } },
     blocks: [
+      { t: "engines", items: [...u.engines.map((n) => ({ name: n, on: true })), ...u.missing.map((n) => ({ name: n, on: false }))] },
       {
         t: "rows",
         items: [
-          { title: list(u.missing), tag: { text: "Added", tone: "good" } },
           { title: "Checks every day", tag: { text: "Daily", tone: "good" } },
           { title: `${num(u.plan.prompts)} prompts, ${num(u.plan.competitors)} competitors`, tag: { text: `Free: ${num(u.promptLimit)}`, tone: "neutral" } },
         ],
       },
     ],
-    button: { label: `Get ${u.plan.name}, $${num(u.plan.price)} a month`, url: u.url },
+    button: { label: `Get ${u.plan.name}, $${num(u.plan.price)} a month →`, url: u.url },
     footer,
   });
 }
@@ -446,9 +467,10 @@ export function helpEmail(h: { brand?: string | null; url: string; sign?: Sign |
     subject: "Want a hand setting up Arrowsterr?",
     preview: "Reply with your website. We'll set it up for you.",
     title: "Want us to set it up for you?",
-    blocks: [{ t: "p", text: `Reply with ${h.brand ? `what ${h.brand} sells` : "your website"} and who buys it. We'll pick your prompts and competitors and send back what we find.` }],
-    button: { label: "Open Arrowsterr", url: h.url },
-    after: signOff(h.sign),
+    sub: { text: "Just reply to this email." },
+    hero: { kicker: "We can help", ...(h.sign ? { visual: { k: "avatar" as const, initials: initials(h.sign.name), name: h.sign.name, ...(h.sign.role ? { role: h.sign.role } : {}) } } : {}) },
+    blocks: [{ t: "p", text: `Tell us ${h.brand ? `what ${h.brand} sells` : "your website"} and who buys it. We'll pick your prompts and competitors and send back what we find.` }],
+    button: { label: "Open Arrowsterr →", url: h.url },
     footer,
   });
 }
@@ -458,14 +480,15 @@ export type WinBackData = { brand: string; since: Date; before: number; now: num
 export function winBackEmail(w: WinBackData, footer: Footer): Email {
   const change = Math.round((w.now - w.before) * 10) / 10;
   const moved = Math.abs(change) >= 0.5;
-  const blocks: Block[] = [{ t: "stats", items: [{ label: `Week of ${day(w.since)}`, value: pct(w.before) }, { label: "This week", value: pct(w.now), tag: ptsTag(change) }] }];
-  if (w.top.length) blocks.push({ t: "bars", items: [...w.top.slice(0, 3).map((t) => ({ name: t.name, value: t.visibility, muted: true })), { name: w.brand, value: w.now, you: true }].sort((a, b) => b.value - a.value) });
+  const blocks: Block[] = [];
+  if (w.top.length) blocks.push({ t: "label", text: "Who AI names most this week" }, { t: "bars", items: [...w.top.slice(0, 3).map((t) => ({ name: t.name, value: t.visibility, muted: true })), { name: w.brand, value: w.now, you: true }].sort((a, b) => b.value - a.value) });
   return renderEmail({
     subject: moved ? `${w.brand}'s AI visibility ${change > 0 ? "rose" : "fell"} ${Math.abs(change)} points while you were away` : `${w.brand} is in ${pct(w.now)} of AI answers this week`,
     preview: `From ${pct(w.before)} the week of ${day(w.since)} to ${pct(w.now)} now.`,
     title: moved ? `Your AI visibility ${change > 0 ? "rose" : "fell"} while you were away` : "Here's where you stand in AI answers",
+    hero: { kicker: "While you were away", visual: { k: "change", from: { label: `Week of ${day(w.since)}`, value: pct(w.before) }, to: { label: "This week", value: pct(w.now) }, tag: ptsTag(change) } },
     blocks,
-    button: { label: "See what changed", url: w.url },
+    button: { label: "See what changed →", url: w.url },
     footer,
   });
 }

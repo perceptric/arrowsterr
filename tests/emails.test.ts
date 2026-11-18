@@ -121,11 +121,14 @@ test("getting-started emails use the brand's real numbers and show the answer th
   assert.match(all.welcome.text, /Free trial until Nov 26/);
   assert.match(all.welcome.text, /Sam\nFounder/);
   assert.equal(all.welcomeNoBrand.subject, "See what ChatGPT says about your brand");
-  assert.match(all.prompts.text, /4 of 25 prompts used/);
-  assert.match(all.contentPlan.text, /Included in your trial, which ends Nov 26\. Not on Free\./);
+  assert.match(all.prompts.text, /4\/25 prompts tracked/);
+  assert.match(all.contentPlan.text, /In your trial until Nov 26\. Not on Free\./);
   assert.match(all.trialOver.text, /Trial \| Free \| Starter\nPrompts: Trial 25, Free 15, Starter 50/);
   assert.equal(all.upgrade.subject, "You're seeing 2 of 4 AIs for Acme");
   assert.match(all.trialOver.text, /Get Starter, \$49 a month/);
+  assert.match(all.firstLook.text, /Acme 18% vs Rival 54%/);
+  assert.match(all.upgrade.text, /ChatGPT, AI Overview, Claude \(off\), Gemini \(off\)/);
+  assert.match(all.firstLook.html, /background-image:linear-gradient/);
   assert.equal(all.winBack.subject, "Acme's AI visibility fell 6.7 points while you were away");
 });
 

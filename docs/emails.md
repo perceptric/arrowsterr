@@ -54,7 +54,7 @@ Turn on:
 1. Run `supabase/099_nurture.sql` (adds the Getting-started tips switch to Settings, then Notifications).
 2. Optional settings: `NURTURE_SIGN_NAME` and `NURTURE_SIGN_ROLE` sign the welcome, no-brand and help emails and send them from that person's name. `NURTURE_REPLY_TO` sets where replies go (default support@arrowsterr.com). `NURTURE_START` sets the first workspace date that gets them (default 2026-11-19), so older workspaces never do. `NURTURE_OFF=1` stops them.
 
-The kit has four blocks for these: `steps` (a checklist), `answer` (one AI answer as a card), `compare` (plans side by side) and `sign` (a sign-off).
+Each one opens with a Signal Blue hero (`hero` in `renderEmail`): a kicker, the title in white and one big visual (a number, a you-vs-them face-off, a progress bar, dots, a before and after, or the sender's initials). Below it: one short list and a button. The kit's blocks for them: `steps` (a checklist), `answer` (one AI answer as a chat), `compare` (plans side by side), `engines` (each AI as a chip in its own color) and `sign` (a sign-off). The other emails keep the calm look.
 
 ## Previews
 
