@@ -2,6 +2,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { FROM_SIGNUP, passkeyError, wantsSignup } from "@/lib/authLink";
 import { passwordProblem, strength } from "@/lib/passwordCheck";
 import { Logo } from "./Logo";
 import { Turnstile } from "./Turnstile";
@@ -182,9 +183,14 @@ const TITLES: Record<Mode, [string, string]> = {
   link: ["Sign in with a link", "We'll email you a link. No password needed."],
 };
 
-/** Sign in, create an account, or reset a password. */
-export function AuthScreen({ sb, invited, turnstileSiteKey = null, passkeys = false }: { sb: SupabaseClient; invited: boolean; turnstileSiteKey?: string | null; passkeys?: boolean }) {
-  const [mode, setMode] = useState<Mode>(invited ? "signup" : "signin");
+/** Where each mode lives, for the ones with their own address: "Start free trial" on the website opens /signup. */
+const MODE_PATH: Partial<Record<Mode, string>> = { signin: "/", signup: "/signup" };
+
+/** Sign in, create an account, or reset a password. `notice` is the line for an email link that came back here and couldn't sign in. */
+export function AuthScreen({ sb, invited, turnstileSiteKey = null, passkeys = false, notice = "" }: { sb: SupabaseClient; invited: boolean; turnstileSiteKey?: string | null; passkeys?: boolean; notice?: string }) {
+  // A confirm link opened in another browser lands on sign-in, whatever address it came back to.
+  const [mode, setMode] = useState<Mode>(() => (!notice && (invited || wantsSignup(window.location.pathname, window.location.search)) ? "signup" : "signin"));
+  const [note, setNote] = useState(notice);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -206,9 +212,9 @@ export function AuthScreen({ sb, invited, turnstileSiteKey = null, passkeys = fa
     (async () => {
       const ok = await (window.PublicKeyCredential as unknown as { isConditionalMediationAvailable?: () => Promise<boolean> }).isConditionalMediationAvailable?.().catch(() => false);
       if (!ok || ctrl.signal.aborted) return;
-      const { error } = await sb.auth.signInWithPasskey({ options: { mediation: "conditional", signal: ctrl.signal } });
-      if (error && !ctrl.signal.aborted && !/abort|cancel|not allowed/i.test(error.message)) setError(error.message);
-    })();
+      // A passkey picked from the suggestions signs in; anything else that happens here stays quiet (passkeyError).
+      await sb.auth.signInWithPasskey({ options: { mediation: "conditional", signal: ctrl.signal } }).catch(() => undefined);
+    })().catch(() => undefined);
     return () => ctrl.abort();
   }, [sb, canPasskey, mode]);
 
@@ -216,9 +222,15 @@ export function AuthScreen({ sb, invited, turnstileSiteKey = null, passkeys = fa
     auto.current?.abort();
     setBusy(true);
     setError("");
-    const { error } = await sb.auth.signInWithPasskey({ options: { captchaToken } });
-    setBusy(false);
-    if (error && !/abort|cancel|not allowed/i.test(error.message)) setError(/not found|no passkey|credential/i.test(error.message) ? "No passkey for this site on this device. Sign in another way, then add one in Settings." : error.message);
+    setNote("");
+    try {
+      const { error } = await sb.auth.signInWithPasskey({ options: { captchaToken } });
+      if (error) setError(passkeyError(error.message, false));
+    } catch (err) {
+      setError(passkeyError(message(err), false));
+    } finally {
+      setBusy(false);
+    }
   }
 
   /** The code in the sign-in or confirm email, for a link opened on another device. */
@@ -245,6 +257,7 @@ export function AuthScreen({ sb, invited, turnstileSiteKey = null, passkeys = fa
     setBusy(true);
     setError("");
     setSent("");
+    setNote("");
     try {
       const redirect = window.location.origin;
       if (mode === "signin") {
@@ -257,7 +270,8 @@ export function AuthScreen({ sb, invited, turnstileSiteKey = null, passkeys = fa
       } else if (mode === "signup") {
         const problem = await passwordProblem(password);
         if (problem) throw new Error(problem);
-        const { data, error } = await sb.auth.signUp({ email, password, options: { emailRedirectTo: redirect, captchaToken } });
+        // ?from=signup lets a confirm link opened in another browser say the email is confirmed (src/lib/authLink.ts).
+        const { data, error } = await sb.auth.signUp({ email, password, options: { emailRedirectTo: `${redirect}/?from=${FROM_SIGNUP}`, captchaToken } });
         if (error) throw error;
         if (!data.session) setSent(`We sent a link to ${email}. Click it to finish creating your account.`);
       } else if (mode === "link") {
@@ -297,6 +311,16 @@ export function AuthScreen({ sb, invited, turnstileSiteKey = null, passkeys = fa
     setError("");
     setSent("");
     setCode("");
+    setNote("");
+    // Sign in and Create account keep their own address, so a reload or a shared link opens the same form.
+    const { pathname, search } = window.location;
+    const to = MODE_PATH[m];
+    const at = pathname.replace(/\/+$/, "") || "/";
+    const q = new URLSearchParams(search);
+    if (to && (at === "/" || at === "/signup") && (at !== to || q.has("signup"))) {
+      q.delete("signup");
+      window.history.replaceState(null, "", to + (q.size ? `?${q}` : ""));
+    }
   }
 
   const [title, sub] = TITLES[mode];
@@ -313,6 +337,11 @@ export function AuthScreen({ sb, invited, turnstileSiteKey = null, passkeys = fa
             <p className="text-[15px] text-muted">{sub}</p>
           </div>
           {invited ? <p className="aw-callout text-[14px]">You were invited to a workspace. Use the email address the invite was sent to.</p> : null}
+          {note ? (
+            <p className="aw-callout text-[14px]" role="status">
+              {note}
+            </p>
+          ) : null}
           {mode === "signin" || mode === "signup" ? (
             <>
               {/* Google's full-page sign-in: the person picks an account on Google, then comes back here. */}

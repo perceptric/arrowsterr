@@ -45,6 +45,7 @@ import { runAll, type RunAuth } from "@/lib/runner";
 import { getSupabase, type SupaConfig } from "@/lib/supa";
 import { clearStash, primeStash } from "@/lib/stash";
 import { AuthScreen, CodeCheck, NewPassword } from "./AuthScreen";
+import { hasLinkParams, linkNotice, withoutLinkParams } from "@/lib/authLink";
 import { WorkspaceAvatar } from "./WorkspaceAvatar";
 import { BrandLogo } from "./BrandLogo";
 import { CompetitorsPage } from "./CompetitorsPage";
@@ -223,6 +224,8 @@ export function App({ config, turnstileSiteKey = null, passkeys = false }: { con
   const sb = getSupabase(config);
   const [session, setSession] = useState<Session | null | undefined>(undefined);
   const [recovery, setRecovery] = useState(false);
+  // An email link that came back here and couldn't sign in (opened in another browser, expired): read before the address is cleaned.
+  const [linkNote] = useState(() => linkNotice(window.location.search, window.location.hash));
 
   useEffect(() => {
     // An invite link looks like /?invite=TOKEN. Keep the token until the person is signed in.
@@ -233,7 +236,12 @@ export function App({ config, turnstileSiteKey = null, passkeys = false }: { con
       params.delete("invite");
       window.history.replaceState(null, "", window.location.pathname + (params.size ? `?${params}` : ""));
     }
-    sb.auth.getSession().then(({ data }) => setSession(data.session));
+    sb.auth.getSession().then(({ data }) => {
+      // Supabase has read the link by now. What it left (?code= it couldn't use, ?from=, an error) comes off the address.
+      const { pathname, search, hash } = window.location;
+      if (hasLinkParams(search, hash)) window.history.replaceState(null, "", pathname + withoutLinkParams(search));
+      setSession(data.session);
+    });
     const { data } = sb.auth.onAuthStateChange((event, s) => {
       if (event === "PASSWORD_RECOVERY") setRecovery(true);
       setSession(s);
@@ -287,7 +295,7 @@ export function App({ config, turnstileSiteKey = null, passkeys = false }: { con
 
   if (session === undefined) return null;
   if (recovery && session) return <NewPassword sb={sb} onDone={() => setRecovery(false)} />;
-  if (!session) return <AuthScreen sb={sb} invited={Boolean(readLocal(INVITE_KEY))} turnstileSiteKey={turnstileSiteKey} passkeys={passkeys} />;
+  if (!session) return <AuthScreen sb={sb} invited={Boolean(readLocal(INVITE_KEY))} turnstileSiteKey={turnstileSiteKey} passkeys={passkeys} notice={linkNote} />;
   if (gate?.user !== session.user.id) return null;
   if (gate.need) return <CodeCheck sb={sb} onDone={() => setGate({ user: session.user.id, need: false })} />;
   return <Shell sb={sb} session={session} />;
