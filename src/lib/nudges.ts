@@ -5,11 +5,13 @@ import { emailReady, sendBuilt } from "./email";
 import type { Email } from "./emailKit";
 import { tasksEmail, trialEmail, type Footer } from "./emails";
 import { entitlement } from "./entitlements";
+import { sendNurture } from "./nurture";
 import { cycleEnd, periodOf, PLANS, SELF_SERVE, TASK_PACKS } from "./plans";
 import { weekOf, type Metric } from "./visibility";
 
 // Emails that help people before they hit a wall: tasks at 80% for the month, and a trial with 3 days left.
 // Each one goes out once per workspace and period (email_log). Runs from the worker or the cron, about hourly.
+// The getting-started emails for new workspaces run from here too (src/lib/nurture.ts).
 // What each email says: src/lib/emails.ts.
 
 const billing = () => (process.env.APP_URL?.trim().replace(/\/+$/, "") || "https://app.arrowsterr.com") + "/settings/billing";
@@ -101,5 +103,9 @@ export async function sendNudges(db: SupabaseClient) {
       }
     }
   }
-  return { sent };
+  const nurture = await sendNurture(db).catch((e) => {
+    console.error("Nurture failed:", e instanceof Error ? e.message : e);
+    return { sent: 0 };
+  });
+  return { sent: sent + nurture.sent };
 }

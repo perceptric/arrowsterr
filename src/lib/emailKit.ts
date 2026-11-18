@@ -17,9 +17,17 @@ export type Block =
   | { t: "bars"; items: { name: string; value: number; you?: boolean; muted?: boolean }[] }
   | { t: "rows"; items: { title: string; meta?: string; right?: string; tag?: Tag; url?: string }[] }
   | { t: "callout"; text: string }
-  | { t: "meter"; used: number; limit: number; left: string; right: string }
+  | { t: "meter"; used: number; limit: number; left: string; right: string; tone?: "spark" | "blue" }
   | { t: "files"; items: { name: string; size?: string }[] }
-  | { t: "code"; label: string; code: string };
+  | { t: "code"; label: string; code: string }
+  /** A short checklist: done steps get a green check, the rest a number. */
+  | { t: "steps"; items: { title: string; meta?: string; done: boolean }[] }
+  /** One AI answer as a card: the engine, the question and the brands it named, in order. `missing` is a brand it left out. */
+  | { t: "answer"; engine: string; prompt: string; items: { name: string; you?: boolean }[]; missing?: string }
+  /** A side-by-side table, like plans. `pick` is the column to highlight. */
+  | { t: "compare"; cols: string[]; rows: { label: string; values: string[] }[]; pick?: number }
+  /** A sign-off from a person, for notes that should read like one. */
+  | { t: "sign"; name: string; role?: string };
 
 export type EmailParts = {
   subject: string;
@@ -95,11 +103,13 @@ function blockHtml(b: Block): string {
       return `<tr><td class="c-ink2" style="font-size:12px;line-height:16px;font-weight:500;color:${C.ink2};padding:24px 0 8px">${esc(b.text)}</td></tr>`;
     case "stats": {
       const w = Math.floor(100 / Math.max(1, b.items.length));
+      // Three or more side by side get a little tighter, so they still fit a phone.
+      const tight = b.items.length >= 3;
       const cells = b.items
         .map(
-          (s, i) => `<td valign="top" class="c-line" width="${w}%" style="padding:14px 16px;${i ? `border-left:1px solid ${C.line};` : ""}">
+          (s, i) => `<td valign="top" class="c-line" width="${w}%" style="padding:${tight ? "12px 10px" : "14px 16px"};${i ? `border-left:1px solid ${C.line};` : ""}">
 <div class="c-ink2" style="font-size:12px;line-height:16px;color:${C.ink2};padding-bottom:4px">${esc(s.label)}</div>
-<div class="c-ink" style="font-size:24px;line-height:30px;font-weight:600;letter-spacing:-0.02em;color:${C.ink};font-variant-numeric:tabular-nums">${esc(s.value)}</div>${s.tag ? `<div style="padding-top:6px">${tagHtml(s.tag)}</div>` : ""}</td>`,
+<div class="c-ink" style="font-size:${tight ? 20 : 24}px;line-height:${tight ? 26 : 30}px;font-weight:600;letter-spacing:-0.02em;color:${C.ink};font-variant-numeric:tabular-nums">${esc(s.value)}</div>${s.tag ? `<div style="padding-top:6px">${tagHtml(s.tag)}</div>` : ""}</td>`,
         )
         .join("");
       return `<tr><td style="padding-top:8px">${table(`<tr>${cells}</tr>`, `background:${C.soft};border:1px solid ${C.line};border-radius:8px`).replace("<table ", '<table class="c-soft" ')}</td></tr>`;
@@ -132,7 +142,8 @@ function blockHtml(b: Block): string {
       return `<tr><td style="padding:4px 0 8px">${table(`<tr><td class="c-soft c-ink" style="background:${C.soft};border:1px solid ${C.line};border-radius:8px;padding:12px 14px;font-size:14px;line-height:21px;color:${C.ink}">${esc(b.text)}</td></tr>`)}</td></tr>`;
     case "meter": {
       const pct = Math.min(100, Math.max(2, Math.round((b.used / (b.limit || 1)) * 100)));
-      const bar = `<tr><td width="${pct}%" style="background:${C.spark};height:10px;border-radius:5px;font-size:0;line-height:0">&nbsp;</td>${pct < 100 ? `<td class="c-track" style="background:${C.track};height:10px;border-radius:5px;font-size:0;line-height:0">&nbsp;</td>` : ""}</tr>`;
+      const fill = b.tone === "blue" ? C.signal : C.spark;
+      const bar = `<tr><td class="${b.tone === "blue" ? "c-signal" : ""}" width="${pct}%" style="background:${fill};height:10px;border-radius:5px;font-size:0;line-height:0">&nbsp;</td>${pct < 100 ? `<td class="c-track" style="background:${C.track};height:10px;border-radius:5px;font-size:0;line-height:0">&nbsp;</td>` : ""}</tr>`;
       const under = `<tr><td class="c-ink2" style="font-size:13px;color:${C.ink2};padding-top:8px;font-variant-numeric:tabular-nums">${esc(b.left)}</td><td class="c-ink2" align="right" style="font-size:13px;color:${C.ink2};padding-top:8px">${esc(b.right)}</td></tr>`;
       return `<tr><td style="padding-top:8px">${table(bar)}${table(under)}</td></tr>`;
     }
@@ -150,6 +161,64 @@ function blockHtml(b: Block): string {
       return `<tr><td style="padding:20px 0 4px">${table(`<tr><td class="c-soft" align="center" style="background:${C.soft};border:1px solid ${C.line};border-radius:8px;padding:16px">
 <div class="c-ink2" style="font-size:12px;color:${C.ink2};padding-bottom:6px">${esc(b.label)}</div>
 <div class="c-ink" style="font-size:28px;line-height:34px;font-weight:600;letter-spacing:0.3em;padding-left:0.3em;color:${C.ink};font-family:ui-monospace,Menlo,Consolas,monospace">${esc(b.code)}</div></td></tr>`)}</td></tr>`;
+    case "steps": {
+      const rows = b.items
+        .map((s, i) => {
+          const dot = s.done
+            ? `<span class="c-good" style="display:inline-block;width:24px;height:24px;line-height:24px;border-radius:12px;background:${C.goodSoft};color:${C.good};font-size:13px;font-weight:600;text-align:center">&#10003;</span>`
+            : `<span class="c-line c-ink2" style="display:inline-block;width:22px;height:22px;line-height:22px;border-radius:12px;border:1px solid ${C.line};color:${C.ink2};font-size:12px;font-weight:600;text-align:center">${i + 1}</span>`;
+          const last = i === b.items.length - 1;
+          return `<tr><td width="36" valign="top" style="padding:10px 0;${last ? "" : `border-bottom:1px solid ${C.line};`}" class="c-line">${dot}</td>
+<td class="c-line" style="padding:10px 0;${last ? "" : `border-bottom:1px solid ${C.line};`}"><div class="${s.done ? "c-ink2" : "c-ink"}" style="font-size:14px;line-height:20px;font-weight:500;color:${s.done ? C.ink2 : C.ink}">${esc(s.title)}</div>${s.meta ? `<div class="c-ink2" style="font-size:13px;line-height:18px;color:${C.ink2}">${esc(s.meta)}</div>` : ""}</td></tr>`;
+        })
+        .join("");
+      return `<tr><td style="padding-top:4px">${table(rows)}</td></tr>`;
+    }
+    case "answer": {
+      const head = `<tr><td class="c-line" style="padding:12px 16px;border-bottom:1px solid ${C.line}">${table(
+        `<tr><td class="c-ink" style="font-size:13px;line-height:18px;font-weight:600;color:${C.ink}">${esc(b.engine)}</td><td class="c-ink2" align="right" style="font-size:13px;line-height:18px;color:${C.ink2}">&ldquo;${esc(b.prompt)}&rdquo;</td></tr>`,
+      )}</td></tr>`;
+      const rows = b.items
+        .map((x, i) => {
+          const you = Boolean(x.you);
+          return `<tr><td style="padding:3px 8px">${table(
+            `<tr><td width="28" class="c-ink2" style="font-size:13px;line-height:20px;color:${you ? C.signal : C.ink2};padding:8px 0 8px 10px;font-variant-numeric:tabular-nums">${i + 1}</td><td class="c-ink" style="font-size:14px;line-height:20px;color:${you ? C.signal : C.ink};font-weight:${you ? 600 : 500};padding:8px 0">${esc(x.name)}</td>${you ? `<td align="right" style="padding:8px 10px">${tagHtml({ text: "You", tone: "blue" })}</td>` : ""}</tr>`,
+            you ? `background:${C.signalSoft};border-radius:8px` : "",
+          ).replace("<table ", you ? '<table class="c-blue" ' : "<table ")}</td></tr>`;
+        })
+        .join("");
+      const miss = b.missing
+        ? `<tr><td style="padding:3px 8px 6px">${table(
+            `<tr><td width="28" class="c-ink2" style="font-size:13px;line-height:20px;color:${C.ink2};padding:8px 0 8px 10px">&ndash;</td><td class="c-ink2" style="font-size:14px;line-height:20px;color:${C.ink2};padding:8px 0">${esc(b.missing)}</td><td align="right" style="padding:8px 10px">${tagHtml({ text: "Not named", tone: "bad" })}</td></tr>`,
+            `border:1px dashed ${C.line};border-radius:8px`,
+          ).replace("<table ", '<table class="c-line" ')}</td></tr>`
+        : "";
+      return `<tr><td style="padding:8px 0 4px">${table(`${head}<tr><td style="padding:6px 0">${table(rows + miss)}</td></tr>`, `background:${C.soft};border:1px solid ${C.line};border-radius:10px`).replace("<table ", '<table class="c-soft" ')}</td></tr>`;
+    }
+    case "compare": {
+      const pick = b.pick ?? -1;
+      const w = Math.floor(62 / Math.max(1, b.cols.length));
+      const head = `<tr><td class="c-line" style="padding:0 0 10px;border-bottom:1px solid ${C.line}"></td>${b.cols
+        .map(
+          (c, i) =>
+            `<td class="c-line ${i === pick ? "" : "c-ink2"}" width="${w}%" align="center" style="padding:0 6px 10px;border-bottom:1px solid ${C.line};font-size:13px;line-height:18px;font-weight:600;color:${i === pick ? C.signal : C.ink2}">${i === pick ? `<span class="c-blue" style="display:inline-block;background:${C.signalSoft};color:${C.signal};border-radius:6px;padding:2px 8px">${esc(c)}</span>` : esc(c)}</td>`,
+        )
+        .join("")}</tr>`;
+      const rows = b.rows
+        .map(
+          (r) =>
+            `<tr><td class="c-line c-ink2" style="padding:10px 0;border-bottom:1px solid ${C.line};font-size:13px;line-height:18px;color:${C.ink2}">${esc(r.label)}</td>${r.values
+              .map(
+                (v, i) =>
+                  `<td class="c-line c-ink" align="center" style="padding:10px 6px;border-bottom:1px solid ${C.line};font-size:14px;line-height:20px;color:${C.ink};font-weight:${i === pick ? 600 : 400};font-variant-numeric:tabular-nums">${esc(v)}</td>`,
+              )
+              .join("")}</tr>`,
+        )
+        .join("");
+      return `<tr><td style="padding-top:8px">${table(head + rows)}</td></tr>`;
+    }
+    case "sign":
+      return `<tr><td style="padding-top:18px"><div class="c-ink" style="font-size:15px;line-height:22px;color:${C.ink};font-weight:500">${esc(b.name)}</div>${b.role ? `<div class="c-ink2" style="font-size:13px;line-height:18px;color:${C.ink2}">${esc(b.role)}</div>` : ""}</td></tr>`;
   }
 }
 
@@ -173,6 +242,14 @@ function blockText(b: Block): string[] {
       return [...b.items.map((f) => `- ${f.name} (PDF${f.size ? `, ${f.size}` : ""})`), ""];
     case "code":
       return [`${b.label}: ${b.code}`, ""];
+    case "steps":
+      return [...b.items.map((s, i) => `${s.done ? "[x]" : `${i + 1}.`} ${s.title}${s.meta ? `, ${s.meta}` : ""}`), ""];
+    case "answer":
+      return [`${b.engine}, "${b.prompt}":`, ...b.items.map((x, i) => `${i + 1}. ${x.name}${x.you ? " (you)" : ""}`), ...(b.missing ? [`Not named: ${b.missing}`] : []), ""];
+    case "compare":
+      return [b.cols.join(" | "), ...b.rows.map((r) => `${r.label}: ${r.values.map((v, i) => `${b.cols[i]} ${v}`).join(", ")}`), ""];
+    case "sign":
+      return [b.name, ...(b.role ? [b.role] : []), ""];
   }
 }
 

@@ -531,11 +531,12 @@ export function SecuritySettings({ sb, user }: { sb: SupabaseClient; user: User 
   );
 }
 
-type Prefs = { weekly: boolean; alerts: boolean; jobs: boolean };
+type Prefs = { weekly: boolean; alerts: boolean; jobs: boolean; tips?: boolean };
 const NOTIFY: { id: keyof Prefs; label: string; hint: string }[] = [
   { id: "weekly", label: "Weekly summary", hint: "Monday morning: each brand's AI visibility for the week, against the week before, and the brands AI named most." },
   { id: "alerts", label: "Visibility alerts", hint: "When a brand's AI visibility moves by your alert size, or a competitor overtakes it. Checked after each daily run." },
   { id: "jobs", label: "Content Plan and drafts", hint: "When a Content Plan or a draft you started is ready, or didn't finish." },
+  { id: "tips", label: "Getting-started tips", hint: "A few emails in your first weeks, if you made this workspace: your first answers, prompts to add and what your plan includes." },
 ];
 
 /** Which emails you get from this workspace. */
@@ -544,12 +545,13 @@ export function NotificationSettings({ sb, wsId, wsName, userId, alertsOnPlan }:
   const [error, setError] = useState("");
 
   useEffect(() => {
-    sb.from("notification_prefs")
-      .select("weekly, alerts, jobs")
-      .eq("workspace_id", wsId)
-      .eq("user_id", userId)
-      .maybeSingle()
-      .then(({ data, error: err }) => setPrefs(err ? null : ((data as Prefs | null) ?? { weekly: true, alerts: true, jobs: true })));
+    const read = (cols: string) => sb.from("notification_prefs").select(cols).eq("workspace_id", wsId).eq("user_id", userId).maybeSingle();
+    // Before 099_nurture.sql there's no tips column, so read without it.
+    read("weekly, alerts, jobs, tips").then(async ({ data, error: err }) => {
+      if (!err) return setPrefs((data as Prefs | null) ?? { weekly: true, alerts: true, jobs: true, tips: true });
+      const old = await read("weekly, alerts, jobs");
+      setPrefs(old.error ? null : ((old.data as Prefs | null) ?? { weekly: true, alerts: true, jobs: true }));
+    });
   }, [sb, wsId, userId]);
 
   async function set(next: Prefs, was: Prefs) {
@@ -572,7 +574,7 @@ export function NotificationSettings({ sb, wsId, wsName, userId, alertsOnPlan }:
       <div className="aw-table-wrap">
         <table className="aw-table">
           <tbody>
-            {NOTIFY.map((n) => (
+            {NOTIFY.filter((n) => n.id !== "tips" || !prefs || "tips" in prefs).map((n) => (
               <tr key={n.id}>
                 <td>
                   <div className="font-medium text-ink">

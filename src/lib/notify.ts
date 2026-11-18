@@ -3,7 +3,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Run } from "./chats";
 import { listRuns } from "./db";
-import { emailReady, sendBuilt } from "./email";
+import { emailReady, sendBuilt, type EmailExtra } from "./email";
 import type { Email } from "./emailKit";
 import { alertEmail, weeklyEmail, type AlertData, type Footer, type WeeklyBrand } from "./emails";
 import { entitlement } from "./entitlements";
@@ -13,14 +13,16 @@ import { weekOf, type Metric } from "./visibility";
 // Notification emails people choose in Settings → Notifications (supabase/035_notifications.sql):
 //   weekly: a Monday summary of each brand's AI visibility,
 //   alerts: visibility moved by the alert size, or a competitor overtook a brand (Pro and up),
-//   jobs:   a Content Plan or a brief finished or failed, sent to the person who started it.
+//   jobs:   a Content Plan or a brief finished or failed, sent to the person who started it,
+//   tips:   getting-started emails in a new workspace's first weeks, to the person who made it (src/lib/nurture.ts).
 // Every email carries a one-click unsubscribe link for its kind. What each email says: src/lib/emails.ts.
 
-export type Kind = "weekly" | "alerts" | "jobs";
+export type Kind = "weekly" | "alerts" | "jobs" | "tips";
 export const KINDS: Record<Kind, string> = {
   weekly: "the weekly summary",
   alerts: "visibility alerts",
   jobs: "Content Plan and brief updates",
+  tips: "getting-started tips",
 };
 
 const app = () => process.env.APP_URL?.trim().replace(/\/+$/, "") || "https://app.arrowsterr.com";
@@ -55,7 +57,7 @@ async function recipients(db: SupabaseClient, ws: string, kind: Kind, only?: str
 }
 
 /** Send one email per person, each with their own unsubscribe link. Returns how many went out. */
-async function sendEach(people: Person[], ws: string, kind: Kind, build: (footer: Footer) => Email) {
+async function sendEach(people: Person[], ws: string, kind: Kind, build: (footer: Footer) => Email, extra: EmailExtra = {}) {
   let sent = 0;
   for (const p of people) {
     const url = unsubscribeUrl(p.user_id, ws, kind);
@@ -67,7 +69,7 @@ async function sendEach(people: Person[], ws: string, kind: Kind, build: (footer
       ],
     };
     try {
-      if (await sendBuilt([p.email], build(footer), { "List-Unsubscribe": `<${url}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" })) sent++;
+      if (await sendBuilt([p.email], build(footer), { "List-Unsubscribe": `<${url}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" }, extra)) sent++;
     } catch (e) {
       console.error(`Email ${kind} to ${p.email} failed:`, e instanceof Error ? e.message : e);
     }
@@ -106,6 +108,13 @@ export async function emailJob(db: SupabaseClient, ws: string, userId: string | 
   if (!userId || !emailReady()) return 0;
   const people = await recipients(db, ws, "jobs", [userId]);
   return sendEach(people, ws, "jobs", build);
+}
+
+/** A getting-started email to one person, unless they turned tips off. Returns how many went out (0 or 1). */
+export async function emailTips(db: SupabaseClient, ws: string, userId: string, build: (footer: Footer) => Email, extra: EmailExtra = {}) {
+  if (!emailReady()) return 0;
+  const people = await recipients(db, ws, "tips", [userId]);
+  return sendEach(people, ws, "tips", build, extra);
 }
 
 // ─────────────── weekly summary ───────────────

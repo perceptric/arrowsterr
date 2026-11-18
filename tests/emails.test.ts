@@ -2,7 +2,26 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { Run } from "../src/lib/chats.ts";
 import { plainError, ptsTag, renderEmail, type Email } from "../src/lib/emailKit.ts";
-import { alertEmail, authEmail, briefEmail, freeAlarmEmail, planEmail, tasksEmail, trialEmail, weeklyEmail, type Footer } from "../src/lib/emails.ts";
+import {
+  alertEmail,
+  authEmail,
+  briefEmail,
+  contentPlanEmail,
+  firstLookEmail,
+  freeAlarmEmail,
+  helpEmail,
+  noBrandEmail,
+  planEmail,
+  promptsEmail,
+  tasksEmail,
+  trialEmail,
+  trialOverEmail,
+  upgradeEmail,
+  weeklyEmail,
+  welcomeEmail,
+  winBackEmail,
+  type Footer,
+} from "../src/lib/emails.ts";
 import { promptMoves } from "../src/lib/metrics.ts";
 
 const footer: Footer = { text: "You get the weekly summary for this workspace.", links: [{ label: "Unsubscribe", url: "https://app.arrowsterr.com/api/notifications/unsubscribe?u=1" }] };
@@ -31,6 +50,17 @@ const all: Record<string, Email> = {
   confirm: authEmail("confirm", { url, email: "a@b.co", code: "123456" }),
   magic: authEmail("magic", { url, email: "a@b.co", code: "123456" }),
   recovery: authEmail("recovery", { url, email: "a@b.co" }),
+  welcome: welcomeEmail({ brand: "Acme", steps: [{ title: "Make your workspace", done: true }, { title: "Add your brand", done: true }, { title: "See your first answers", done: false }], trialEnds: new Date("2026-11-26T12:00:00Z"), url, sign: { name: "Sam", role: "Founder" } }, footer),
+  welcomeNoBrand: welcomeEmail({ brand: null, steps: [{ title: "Add your brand", done: false }], url }, footer),
+  noBrand: noBrandEmail({ url }, footer),
+  firstLook: firstLookEmail({ brand: "Acme", visibility: 18, answers: 96, top: [{ name: "Rival", visibility: 54 }, { name: "Other", visibility: 20 }], example: { engine: "ChatGPT", prompt: "best crm", names: ["Rival", "Other"], youNamed: false }, url }, footer),
+  firstLookLead: firstLookEmail({ brand: "Acme", visibility: 60, answers: 40, top: [{ name: "Rival", visibility: 30 }], example: null, url }, footer),
+  prompts: promptsEmail({ brand: "Acme", count: 4, limit: 25, ideas: [{ prompt: "Rival alternatives", stage: "bofu" }], url }, footer),
+  contentPlan: contentPlanEmail({ brand: "Acme", site: "acme.com", trialEnds: new Date("2026-11-26T12:00:00Z"), url }, footer),
+  trialOver: trialOverEmail({ workspace: "Acme", cols: ["Trial", "Free", "Starter"], rows: [{ label: "Prompts", values: ["25", "15", "50"] }], pick: 2, price: 49, annual: 42, url, stayUrl: url }, footer),
+  upgrade: upgradeEmail({ brand: "Acme", visibility: 22.5, prompts: 12, promptLimit: 15, engines: ["ChatGPT", "AI Overview"], missing: ["Claude", "Gemini"], plan: { name: "Starter", price: 49, prompts: 50, competitors: 10 }, url }, footer),
+  help: helpEmail({ brand: "Acme", url }, footer),
+  winBack: winBackEmail({ brand: "Acme", since: new Date("2026-10-19T12:00:00Z"), before: 22.5, now: 15.8, byEngine: [{ engine: "ChatGPT", visibility: 19 }], top: [{ name: "Rival", visibility: 57 }], url }, footer),
 };
 
 test("every email has a subject, a preview line, a plain-text copy, a footer, the logo and no '·'", () => {
@@ -76,6 +106,25 @@ test("the plan puts ready-to-buy pages first, and the trial shows the prices it 
   assert.ok(all.planReady.text.indexOf("buy crm") < all.planReady.text.indexOf("learn crm"));
   assert.match(all.trial.text, /Starter, One toolset: \$39 a month/);
   assert.match(all.tasks.subject, /^1,280 tasks left this month$/);
+});
+
+test("the trial email says the workspace moves to Free, never read-only", () => {
+  assert.match(all.trial.text, /moves to the Free plan/);
+  assert.doesNotMatch(all.trial.text + all.trial.preview, /read-only/);
+});
+
+test("getting-started emails use the brand's real numbers and show the answer that skipped it", () => {
+  assert.equal(all.firstLook.subject, "Rival shows up in AI answers more than Acme");
+  assert.match(all.firstLook.text, /ChatGPT, "best crm":\n1\. Rival\n2\. Other\nNot named: Acme/);
+  assert.equal(all.firstLookLead.subject, "Acme is in 60% of AI answers so far");
+  assert.match(all.welcome.text, /\[x\] Add your brand\n3\. See your first answers/);
+  assert.match(all.welcome.text, /Sam\nFounder/);
+  assert.equal(all.welcomeNoBrand.subject, "See what ChatGPT says about your brand");
+  assert.match(all.prompts.text, /4 of 25 prompts used/);
+  assert.match(all.contentPlan.text, /The Free plan doesn't, and your trial ends on Nov 26/);
+  assert.match(all.trialOver.text, /Trial \| Free \| Starter\nPrompts: Trial 25, Free 15, Starter 50/);
+  assert.equal(all.upgrade.subject, "You're seeing 2 of 4 AIs for Acme");
+  assert.equal(all.winBack.subject, "Acme's AI visibility fell 6.7 points while you were away");
 });
 
 test("sign-in emails carry the code, and the code block is left out without one", () => {

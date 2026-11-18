@@ -23,11 +23,38 @@ What each email says lives in `src/lib/emails.ts` (pure builders) and `src/lib/r
 | Brief ready or failed | `worker/handlers.ts` `brief` | The person who started it |
 | Content Plan ready or failed | `worker/handlers.ts` `plan` | The person who started it |
 | Trial ending, tasks at 80% | `nudges.ts` | Admins |
+| Getting started (9 emails, below) | `nurture.ts`, run from `nudges.ts` | The person who made the workspace, if they kept tips on |
 | Scheduled report | `scheduleServer.ts` | The schedule's list |
 | Free tools paused | `freeTools.ts` | `FREE_ALERT_EMAIL` |
 | Confirm, sign-in link, reset password | The sign-in service | The person signing in |
 
 Failed jobs never show a vendor or database error. `plainError` turns it into one plain line; the raw error stays in the logs.
+
+## Getting started
+
+New workspaces get a short run of emails in their first weeks. Each one asks for one thing and is skipped once that thing is done. Which one goes out when is in `src/lib/nurturePlan.ts` (pure, tested in `tests/nurture.test.ts`); `src/lib/nurture.ts` loads the data and sends.
+
+| Day | Email | Sends when |
+|---|---|---|
+| 0 | Welcome, with a first-week checklist | 15 minutes after the workspace is made |
+| 1 | Two minutes to your first score | Still no brand |
+| 2 | Here's who AI recommends instead of you | The first answers are in. Shows the real competitors and one answer that skipped the brand |
+| 3 | The questions your buyers ask AI | Fewer than 10 prompts. Suggests prompts from the brand's topics, buyers and rivals |
+| 4 | 3 days left on your trial | The existing trial email (`nudges.ts`), unchanged except it now says the workspace moves to Free |
+| 5 | Turn your AI gaps into a content plan | On the trial with no Content Plan yet (Free has none) |
+| 7+ | You're on the Free plan now | The trial ended in the last 3 days. Compares Trial, Free and Starter |
+| 14 | See every AI, every day | On Free and seen in the last 7 days |
+| 14 | Want a hand setting it up? | On Free and not seen in the last 7 days. Replies go to support |
+| 21+ | Your AI visibility changed while you were away | Not seen for 21 days. At most once every 90 days |
+
+Rules: one a day at most, never on a day the trial email went out, only 9:00 to 18:00 in the workspace's time zone (the welcome goes out right away), and paying workspaces only get the setup emails (days 0 to 3). Someone making a second workspace isn't new, so only their first gets these. Each send is logged in `email_log` as `nurture:<step>`.
+
+Turn on:
+
+1. Run `supabase/099_nurture.sql` (adds the Getting-started tips switch to Settings, then Notifications).
+2. Optional settings: `NURTURE_SIGN_NAME` and `NURTURE_SIGN_ROLE` sign the welcome, no-brand and help emails and send them from that person's name. `NURTURE_REPLY_TO` sets where replies go (default support@arrowsterr.com). `NURTURE_START` sets the first workspace date that gets them (default 2026-11-19), so older workspaces never do. `NURTURE_OFF=1` stops them.
+
+The kit has four blocks for these: `steps` (a checklist), `answer` (one AI answer as a card), `compare` (plans side by side) and `sign` (a sign-off).
 
 ## Previews
 
