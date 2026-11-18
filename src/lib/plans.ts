@@ -104,7 +104,7 @@ export function reportLimits(plan: PlanId): ReportLimits {
 export const TASK_COST = {
   keyword: 10, // one keyword overview, or one list of ideas
   bulk: (n: number) => Math.max(5, Math.ceil(n / 10)), // enriching many keywords at once
-  domain: 10, // a website's keywords, pages and competitors
+  domain: 10, // a website's keywords, pages and competitors; also the domain_overview MCP tool (size, 12 months, top 100 keywords)
   gap: 25, // a competitive analysis
   pages: 40, // every page of your site on Google
   brief: 100, // a full content brief
@@ -113,7 +113,7 @@ export const TASK_COST = {
   stats: 30, // a writer agent job that searches the web for stats
   widget: 25, // an interactive element
   ai: 3, // a small AI job: ideas, a summary, prompt suggestions
-  mcp: 1, // one MCP tool call or skill step that reads or changes the workspace; keyword_research uses keyword
+  mcp: 1, // one MCP tool call or skill step that reads or changes the workspace; keyword_research uses keyword, domain_overview uses domain
   guideline: 10, // reading a site for its brand guideline
   presence: 2, // one brand's Trustpilot and Google Business Profile check, kept a week
 } as const;
