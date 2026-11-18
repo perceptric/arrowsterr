@@ -98,10 +98,10 @@ async function build(db: SupabaseClient, step: NurtureStep, w: Ws, ctx: { plan: 
     case "welcome": {
       const steps = [
         { title: "Make your workspace", done: true },
-        { title: "Add your brand", meta: "Paste your website and Arrowsterr does the rest", done: ctx.brands.length > 0 },
-        { title: "See your first answers", meta: "From every AI, within a day", done: ctx.hasAnswers },
-        { title: "Track 10 prompts or more", meta: "The questions your buyers ask AI", done: ctx.prompts >= 10 },
-        { title: "Make a Content Plan", meta: "The pages to write so AI quotes you", done: ctx.contentPlans > 0 },
+        { title: "Add your brand", done: ctx.brands.length > 0 },
+        { title: "See your first answers", done: ctx.hasAnswers },
+        { title: "Track 10 or more prompts", done: ctx.prompts >= 10 },
+        { title: "Make a Content Plan", done: ctx.contentPlans > 0 },
       ];
       return (f) => welcomeEmail({ brand: brand?.name ?? null, steps, trialEnds: onTrial, url: brand ? `${app}/prompts?brand=${brand.id}` : `${app}/onboarding`, sign }, f);
     }
