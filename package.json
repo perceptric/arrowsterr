@@ -17,7 +17,7 @@
     "@composio/core": "^0.29.0",
     "@google/genai": "^2.27.0",
     "@mozilla/readability": "^0.6.0",
-    "@sentry/nextjs": "10.75.3",
+    "@sentry/nextjs": "10.78.0",
     "@supabase/supabase-js": "^2.117.3",
     "@tiptap/extension-image": "^2.27.3",
     "@tiptap/extension-link": "^2.27.3",
@@ -33,7 +33,7 @@
     "framer-api": "5.1.0",
     "jsonrepair": "^3.15.0",
     "linkedom": "^0.18.13",
-    "next": "16.4.3",
+    "next": "16.4.6",
     "openai": "^7.30.0",
     "posthog-js": "^1.438.13",
     "react": "19.3.0",
@@ -48,9 +48,12 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.4.3",
+    "eslint-config-next": "16.4.6",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "overrides": {
+    "glob": "^14.0.2"
   },
   "engines": {
     "node": ">=22"
