@@ -19,7 +19,15 @@ Built November 2026. Replaces the prices in `docs/pricing-v5.md`. Unit costs are
 
 Articles count per workspace now (`draftQuota` in `src/lib/plans.ts`, `writer_take_draft` in `supabase/088_writer_workspace_quota.sql`). Free's article uses the period `once`, so it never resets.
 
-Every MCP tool call uses 1 task (`TASK_COST.mcp`); `keyword_research` uses 10.
+Every MCP tool call uses 1 task (`TASK_COST.mcp`); `keyword_research` uses 10 (`TASK_COST.keyword`) and `domain_overview` uses 10 (`TASK_COST.domain`), and both cost nothing when the same search ran in the last 30 days.
+
+`domain_overview` (any site's traffic, positions, last 12 months and top 100 keywords by visits) makes three DataForSEO Labs calls on a fresh site: `domain_rank_overview` (~$0.0101), `ranked_keywords` with 100 keywords (~$0.02) and `historical_rank_overview` (~$0.0101), so ~$0.04 a lookup (check). That's about what a `keyword_research` list costs (~$0.04 for 300 ideas), and 10 tasks is ~$0.05 at ~$0.005 a task. The size and the 12 months share Domain Research's 30-day cache, so a site looked up in either place is free in the other.
+
+| `domain_overview` running cost a month | Beta (50 teams) | Growth (500 teams) |
+|---|---|---|
+| Fresh lookups (20 a team, about 30% already saved) | ~$28 | ~$280 |
+| Servers | $0 | $0 |
+| **Total** | **~$28** | **~$280** |
 
 ## Margins
 

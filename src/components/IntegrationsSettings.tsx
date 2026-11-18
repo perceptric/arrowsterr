@@ -60,6 +60,7 @@ const MCP_TOOLS = [
   ["get_visibility_trend", "Visibility by day against competitors"],
   ["get_content_plan / get_topic_bank", "Planned pieces and saved keyword ideas"],
   ["keyword_research", "Google volume and difficulty (uses tasks)"],
+  ["domain_overview", "Any site's Google traffic and best keywords (uses tasks)"],
   ["add_prompts / add_to_content_plan", "Track new prompts and plan new pieces"],
 ];
 

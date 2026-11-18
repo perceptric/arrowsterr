@@ -187,10 +187,11 @@ const sizeOf = (o: Organic | undefined) => {
   };
 };
 
-/** Keywords a target ranks for, plus its size on Google from the same call. */
-export async function rankedFor(t: Target, m: Market, spend: Spend, limit: number) {
+/** Keywords a target ranks for, plus its size on Google from the same call. by "traffic" puts the keywords that bring the most visits first. */
+export async function rankedFor(t: Target, m: Market, spend: Spend, limit: number, by: "volume" | "traffic" = "volume") {
+  const order = by === "traffic" ? "ranked_serp_element.serp_item.etv,desc" : "keyword_data.keyword_info.search_volume,desc";
   const tasks = await call("dataforseo_labs/google/ranked_keywords/live", [
-    { ...rankedTarget(t), location_code: m.location, language_code: m.language, limit, order_by: ["keyword_data.keyword_info.search_volume,desc"] },
+    { ...rankedTarget(t), location_code: m.location, language_code: m.language, limit, order_by: [order] },
   ]);
   spend.add(tasks);
   const task = tasks[0];

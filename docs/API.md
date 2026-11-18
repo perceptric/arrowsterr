@@ -30,6 +30,8 @@ curl https://app.arrowsterr.com/api/v1/brands -H "X-API-Key: aw_live_…"
 
 A brand key (`aw_brand_…`) is made through the partner API below. It works on the MCP server and on `/brands`, `/visibility`, `/visibility/models`, `/competitors`, `/prompts`, `/topic-bank` and `/calendar`, and sees only its one brand: any other brand id, name or domain is "not found", and `brand_id` can be left out. `/me`, `/webhooks` and `/samples` cover the whole workspace, so they answer 403 to a brand key.
 
+On the MCP server a brand key can also call `domain_overview` for any website (like `katalon.com`): its Google traffic, ranked keywords, positions, last 12 months and best keywords. It reads public Google data only, uses the brand's country, and takes 10 tasks from the partner's workspace (counted in the brand's `usage`), or none when the site was looked up in the last 30 days.
+
 ## Partner API
 
 For partners that sell Arrowsterr inside their own product (Morning Telos first). A partner makes one brand per customer, then gives that customer's AI agents a brand key.
