@@ -1,31 +1,22 @@
-// Password checks that run in the browser before an account is made or a password is changed.
+// Password checks that run in the browser before an account is made or a password is changed. Pure but for
+// leakedCount, so tests/passwordCheck.test.ts runs it.
 
 export type Strength = { score: 0 | 1 | 2 | 3 | 4; label: string };
 
-const COMMON = /^(password|passw0rd|qwerty|letmein|welcome|admin|iloveyou|monkey|dragon|abc123|123456|12345678|111111|arrowsterr)/i;
+// The whole password is a well-known one, maybe with digits after it ("password1", "arrowsterr2026"). A long password
+// that only starts with one of these ("passwordsarelongnow") is fine.
+const COMMON = /^(password|passw0rd|qwerty|letmein|welcome|admin|iloveyou|monkey|dragon|abc123|123456|111111|arrowsterr)\d*$/i;
 
-const SEQUENCES = ["abcdefghijklmnopqrstuvwxyz", "0123456789", "qwertyuiop", "asdfghjkl", "zxcvbnm", "1qaz2wsx"];
-/** True when 4 or more characters in a row follow one of the sequences, forward or backward. */
-function hasRun(pw: string, seq: string) {
-  const back = [...seq].reverse().join("");
-  for (let i = 0; i + 4 <= pw.length; i++) {
-    const part = pw.slice(i, i + 4);
-    if (seq.includes(part) || back.includes(part)) return true;
-  }
-  return false;
-}
-
-/** A rough score from length and mix. Leaked passwords are caught by leakedCount. */
+/**
+ * Strength by length, the one thing that makes a password hard to guess. Too weak: under 8 characters, a well-known
+ * password, or one character over and over. Then Okay (8 to 11), Good (12 to 15) and Strong (16 or more). Leaked
+ * passwords are caught by leakedCount, whatever their length.
+ */
 export function strength(pw: string): Strength {
   if (!pw) return { score: 0, label: "" };
   if (pw.length < 8 || COMMON.test(pw) || /^(.)\1+$/.test(pw)) return { score: 1, label: "Too weak" };
-  const kinds = [/[a-z]/, /[A-Z]/, /\d/, /[^A-Za-z0-9]/].filter((r) => r.test(pw)).length;
-  // Patterns people guess first: phone numbers and dates (long digit runs), sequences, keyboard rows, repeats.
-  const lower = pw.toLowerCase();
-  const runs = [/\d{6,}/.test(pw), SEQUENCES.some((q) => hasRun(lower, q)), /(.)\1{2,}/.test(pw), /(..+)\1/.test(lower)].filter(Boolean).length;
-  const points = (pw.length >= 16 ? 3 : pw.length >= 12 ? 2 : pw.length >= 10 ? 1 : 0) + (kinds >= 3 ? 2 : kinds === 2 ? 1 : 0) - runs * 2;
-  if (points >= 4) return { score: 4, label: "Strong" };
-  if (points >= 3) return { score: 3, label: "Good" };
+  if (pw.length >= 16) return { score: 4, label: "Strong" };
+  if (pw.length >= 12) return { score: 3, label: "Good" };
   return { score: 2, label: "Okay" };
 }
 
