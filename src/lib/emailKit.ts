@@ -125,7 +125,7 @@ function blockHtml(b: Block): string {
 <td class="c-ink" style="font-size:14px;line-height:20px;color:${C.ink};padding:6px 0 6px 12px;width:52px;text-align:right;font-variant-numeric:tabular-nums;${bold}">${esc(fmtPct(x.value))}</td></tr>`;
         })
         .join("");
-      return tr(table(rows));
+      return `<tr><td style="padding-top:8px">${table(rows)}</td></tr>`;
     }
     case "rows": {
       const rows = b.items

@@ -283,6 +283,7 @@ export function tasksEmail(t: TasksData, footer: Footer): Email {
 
 // ─────────────── getting started (src/lib/nurture.ts) ───────────────
 // The first weeks of a new workspace: one email at a time, each with one thing to do, skipped once it's done.
+// Kept short: a title, one line, one picture of the data and a button.
 
 export type Sign = { name: string; role?: string };
 const signOff = (s?: Sign | null): Block[] => (s ? [{ t: "sign", name: s.name, ...(s.role ? { role: s.role } : {}) }] : []);
@@ -296,36 +297,13 @@ export type WelcomeData = {
 };
 
 export function welcomeEmail(w: WelcomeData, footer: Footer): Email {
-  const trial = w.trialEnds ? [{ t: "small" as const, text: `Your trial runs until ${day(w.trialEnds)}. Every feature is on and no card is needed.` }] : [];
-  if (w.brand) {
-    return renderEmail({
-      subject: `Your first AI answers for ${w.brand} are on the way`,
-      preview: `Arrowsterr is asking every AI the questions your buyers ask. First numbers within a day.`,
-      eyebrow: "Welcome to Arrowsterr",
-      title: `Your first AI answers for ${w.brand} are on the way`,
-      blocks: [
-        { t: "p", text: `Arrowsterr is asking ChatGPT, Gemini, Claude, Perplexity and Google's AI the questions your buyers ask, and noting each time ${w.brand} comes up. Your first numbers land within a day.` },
-        { t: "label", text: "Your first week" },
-        { t: "steps", items: w.steps },
-        ...trial,
-      ],
-      button: { label: "Open Arrowsterr", url: w.url },
-      after: signOff(w.sign),
-      footer,
-    });
-  }
+  const trial: Block[] = w.trialEnds ? [{ t: "small", text: `Free trial until ${day(w.trialEnds)}. No card needed.` }] : [];
   return renderEmail({
-    subject: "See what ChatGPT says about your brand",
-    preview: "Add your website and see how often AI answers name you, and who they name instead.",
-    eyebrow: "Welcome to Arrowsterr",
-    title: "See what ChatGPT says about your brand",
-    blocks: [
-      { t: "p", text: "Add your website and Arrowsterr asks ChatGPT, Gemini, Claude, Perplexity and Google's AI the questions your buyers ask. You'll see how often you come up, where you rank and who gets named instead." },
-      { t: "label", text: "Your first week" },
-      { t: "steps", items: w.steps },
-      ...trial,
-    ],
-    button: { label: "Add your brand", url: w.url },
+    subject: w.brand ? `Your first AI answers for ${w.brand} are on the way` : "See what ChatGPT says about your brand",
+    preview: w.brand ? "First numbers from every AI within a day." : "Add your website to see how often AI names you.",
+    title: w.brand ? `Welcome. ${w.brand}'s first AI answers land within a day.` : "Welcome. Let's see what AI says about you.",
+    blocks: [{ t: "steps", items: w.steps.map((x) => ({ title: x.title, done: x.done })) }, ...trial],
+    button: { label: w.brand ? "Open Arrowsterr" : "Add your brand", url: w.url },
     after: signOff(w.sign),
     footer,
   });
@@ -334,17 +312,15 @@ export function welcomeEmail(w: WelcomeData, footer: Footer): Email {
 export function noBrandEmail(n: { url: string; sign?: Sign | null }, footer: Footer): Email {
   return renderEmail({
     subject: "Your first AI visibility score takes 2 minutes",
-    preview: "Paste your website. Arrowsterr picks the prompts and competitors for you.",
-    eyebrow: "Getting started",
-    title: "Two minutes to your first AI visibility score",
+    preview: "Paste your website. Arrowsterr picks the prompts and competitors.",
+    title: "2 minutes to your first AI visibility score",
     blocks: [
-      { t: "p", text: "Your workspace is ready, but it has no brand yet, so there's nothing for Arrowsterr to check. Adding one is the only setup there is." },
       {
         t: "steps",
         items: [
-          { title: "Paste your website", meta: "Arrowsterr reads it to learn what you sell", done: false },
-          { title: "Keep or change the suggestions", meta: "Prompts your buyers ask, and the competitors to watch", done: false },
-          { title: "Get your first numbers", meta: "Answers from every AI within a day", done: false },
+          { title: "Paste your website", done: false },
+          { title: "Keep the prompts and competitors we suggest", done: false },
+          { title: "Get answers from every AI within a day", done: false },
         ],
       },
     ],
@@ -366,36 +342,23 @@ export type FirstLookData = {
 export function firstLookEmail(f: FirstLookData, footer: Footer): Email {
   const leader = f.top[0];
   const behind = Boolean(leader && leader.visibility > f.visibility);
-  const title = behind ? "Here's who AI recommends instead of you" : `AI names ${f.brand} more than anyone else so far`;
-  const blocks: Block[] = [
-    {
-      t: "stats",
-      items: [
-        { label: "Your visibility", value: pct(f.visibility) },
-        ...(leader ? [{ label: behind ? "Named most" : "Next closest", value: leader.name.length > 14 ? `${leader.name.slice(0, 13)}…` : leader.name, tag: { text: pct(leader.visibility), tone: "neutral" as const } }] : []),
-      ],
-    },
-  ];
-  if (f.top.length) {
-    blocks.push({ t: "label", text: "Named most in your answers" });
-    blocks.push({ t: "bars", items: [...f.top.slice(0, 4).map((t) => ({ name: t.name, value: t.visibility, muted: true })), { name: f.brand, value: f.visibility, you: true }].sort((a, b) => b.value - a.value) });
-  }
+  const blocks: Block[] = [];
+  if (f.top.length) blocks.push({ t: "bars", items: [...f.top.slice(0, 3).map((t) => ({ name: t.name, value: t.visibility, muted: true })), { name: f.brand, value: f.visibility, you: true }].sort((a, b) => b.value - a.value) });
   if (f.example) {
     blocks.push({ t: "label", text: f.example.youNamed ? "One real answer" : "One real answer that skipped you" });
     blocks.push({
       t: "answer",
       engine: f.example.engine,
       prompt: f.example.prompt,
-      items: f.example.names.slice(0, 4).map((n) => ({ name: n, you: n.toLowerCase() === f.brand.toLowerCase() })),
+      items: f.example.names.slice(0, 3).map((n) => ({ name: n, you: n.toLowerCase() === f.brand.toLowerCase() })),
       ...(f.example.youNamed ? {} : { missing: f.brand }),
     });
   }
-  blocks.push({ t: "small", text: `Based on your first ${num(f.answers)} answers, so the numbers will move. They settle after about a week of checks.` });
   return renderEmail({
     subject: behind && leader ? `${leader.name} shows up in AI answers more than ${f.brand}` : `${f.brand} is in ${pct(f.visibility)} of AI answers so far`,
-    preview: behind && leader ? `${leader.name} is in ${pct(leader.visibility)} of answers. ${f.brand} is in ${pct(f.visibility)}.` : `Out of ${num(f.answers)} answers so far. Here's who comes next.`,
-    eyebrow: `${f.brand}, first look`,
-    title,
+    preview: behind && leader ? `${leader.name} is in ${pct(leader.visibility)} of answers. ${f.brand} is in ${pct(f.visibility)}.` : `From your first ${num(f.answers)} answers.`,
+    eyebrow: `From your first ${num(f.answers)} answers`,
+    title: behind ? "Here's who AI recommends instead of you" : `AI names ${f.brand} more than anyone so far`,
     blocks,
     button: { label: "See every answer", url: f.url },
     footer,
@@ -407,17 +370,10 @@ export type PromptsData = { brand: string; count: number; limit: number; ideas: 
 export function promptsEmail(p: PromptsData, footer: Footer): Email {
   return renderEmail({
     subject: "The questions your buyers ask AI",
-    preview: `${p.brand} has ${plural(p.count, "prompt")}. A few more give you a truer score.`,
-    eyebrow: "Getting started",
-    title: "Track the questions your buyers ask AI",
-    blocks: [
-      { t: "p", text: `Each prompt is a question Arrowsterr asks every AI for ${p.brand}. With ${plural(p.count, "prompt")}, one answer can swing your score. More prompts give you a truer number, and show which questions you win and which you lose.` },
-      { t: "meter", used: p.count, limit: p.limit, left: `${num(p.count)} of ${num(p.limit)} prompts used`, right: `${num(Math.max(0, p.limit - p.count))} left`, tone: "blue" },
-      ...(p.ideas.length
-        ? [{ t: "label" as const, text: "Ideas to add" }, { t: "rows" as const, items: p.ideas.map((x) => ({ title: x.prompt, tag: STAGE_TAG[x.stage] ?? { text: x.stage, tone: "neutral" as const } })) }]
-        : []),
-      { t: "small", text: "Write prompts the way a buyer would type them. Comparisons and \"best for\" questions count most, because that's where AI picks a winner." },
-    ],
+    preview: `${p.brand} tracks ${plural(p.count, "prompt")}. A few more give you a truer score.`,
+    title: "Add the questions your buyers ask AI",
+    sub: { text: `${num(p.count)} of ${num(p.limit)} prompts used. More prompts, truer score.` },
+    blocks: p.ideas.length ? [{ t: "label", text: "Try these" }, { t: "rows", items: p.ideas.map((x) => ({ title: x.prompt, tag: STAGE_TAG[x.stage] ?? { text: x.stage, tone: "neutral" as const } })) }] : [],
     button: { label: "Add prompts", url: p.url },
     footer,
   });
@@ -426,21 +382,19 @@ export function promptsEmail(p: PromptsData, footer: Footer): Email {
 export function contentPlanEmail(c: { brand: string; site: string; trialEnds?: Date | null; url: string }, footer: Footer): Email {
   return renderEmail({
     subject: "Turn your AI gaps into a content plan",
-    preview: `A list of pages to write for ${c.site}, the ones closest to a sale first.`,
-    eyebrow: "Getting started",
-    title: "Turn your AI gaps into a content plan",
+    preview: `The pages to write for ${c.site}, closest to a sale first.`,
+    title: "Get the pages to write so AI quotes you",
+    sub: { text: `One click, and Arrowsterr plans them for ${c.site}.` },
     blocks: [
-      { t: "p", text: `AI answers quote the pages they find. A Content Plan looks at ${c.site}, your competitors and the questions where AI skips ${c.brand}, then lists the pages to write and update.` },
-      { t: "label", text: "What you get" },
       {
         t: "rows",
         items: [
-          { title: "Pages to write", meta: "With monthly searches and how close each reader is to buying", tag: STAGE_TAG.bofu },
-          { title: "Pages to update", meta: "Pages you have that could rank and get quoted", tag: { text: "Update", tone: "spark" } },
-          { title: "A brief for each page", meta: "What to cover, the questions people ask and the terms to use" },
+          { title: "Pages to write", tag: STAGE_TAG.bofu },
+          { title: "Pages to update", tag: { text: "Update", tone: "spark" } },
+          { title: "A brief for each one", tag: { text: "Ready", tone: "good" } },
         ],
       },
-      ...(c.trialEnds ? [{ t: "callout" as const, text: `Your trial includes 1 Content Plan. The Free plan doesn't, and your trial ends on ${day(c.trialEnds)}.` }] : []),
+      ...(c.trialEnds ? [{ t: "small" as const, text: `Included in your trial, which ends ${day(c.trialEnds)}. Not on Free.` }] : []),
     ],
     button: { label: "Make my Content Plan", url: c.url },
     footer,
@@ -453,14 +407,10 @@ export function trialOverEmail(t: TrialOverData, footer: Footer): Email {
   return renderEmail({
     subject: "Your trial ended. Your data is safe.",
     preview: `${t.workspace} is on Free now. Nothing was deleted.`,
-    eyebrow: "Trial",
-    title: `${t.workspace} is on the Free plan now`,
-    blocks: [
-      { t: "p", text: "Your trial ended and nothing was deleted. Your brand, prompts and history are all still there. Free keeps checking, with fewer AIs and once a week." },
-      { t: "compare", cols: t.cols, rows: t.rows, pick: t.pick },
-      { t: "small", text: `${t.cols[t.pick]} is $${num(t.price)} a month, or $${num(t.annual)} a month billed yearly. Cancel any time.` },
-    ],
-    button: { label: "Pick a plan", url: t.url },
+    title: "Your trial ended. Your data is safe.",
+    sub: { text: `${t.workspace} is on Free now.`, tag: { text: "Free", tone: "neutral" } },
+    blocks: [{ t: "compare", cols: t.cols, rows: t.rows, pick: t.pick }],
+    button: { label: `Get ${t.cols[t.pick]}, $${num(t.price)} a month`, url: t.url },
     link: { label: "Stay on Free", url: t.stayUrl },
     footer,
   });
@@ -473,31 +423,20 @@ export function upgradeEmail(u: UpgradeData, footer: Footer): Email {
   const all = seen + u.missing.length;
   return renderEmail({
     subject: `You're seeing ${seen} of ${all} AIs for ${u.brand}`,
-    preview: `${list(u.missing)} also answer your buyers. Free doesn't check them.`,
-    eyebrow: "Your plan",
-    title: `See every AI, every day`,
+    preview: `${list(u.missing)} also answer your buyers.`,
+    title: `You're seeing ${seen} of ${all} AIs`,
+    sub: { text: `Free checks ${list(u.engines)}, once a week.` },
     blocks: [
-      { t: "p", text: `On Free, Arrowsterr checks ${list(u.engines)} once a week. Your buyers also ask ${list(u.missing)}, and those answers often name different brands.` },
-      {
-        t: "stats",
-        items: [
-          ...(u.visibility !== null && u.visibility !== undefined ? [{ label: "Visibility on Free", value: pct(u.visibility) }] : []),
-          { label: "Prompts", value: `${num(u.prompts)} of ${num(u.promptLimit)}` },
-          { label: "AIs checked", value: `${seen} of ${all}` },
-        ],
-      },
-      { t: "label", text: `What ${u.plan.name} adds` },
       {
         t: "rows",
         items: [
-          { title: list(u.missing), meta: "Every AI your buyers use", tag: { text: "Added", tone: "good" } },
-          { title: "Daily checks", meta: "Free checks once a week", tag: { text: "Daily", tone: "good" } },
-          { title: `${num(u.plan.prompts)} prompts and ${num(u.plan.competitors)} competitors`, meta: `Free has ${num(u.promptLimit)} prompts` },
-          { title: "A Content Plan every month", meta: "The pages to write so AI quotes you" },
+          { title: list(u.missing), tag: { text: "Added", tone: "good" } },
+          { title: "Checks every day", tag: { text: "Daily", tone: "good" } },
+          { title: `${num(u.plan.prompts)} prompts, ${num(u.plan.competitors)} competitors`, tag: { text: `Free: ${num(u.promptLimit)}`, tone: "neutral" } },
         ],
       },
     ],
-    button: { label: `Upgrade to ${u.plan.name}, $${num(u.plan.price)} a month`, url: u.url },
+    button: { label: `Get ${u.plan.name}, $${num(u.plan.price)} a month`, url: u.url },
     footer,
   });
 }
@@ -505,20 +444,9 @@ export function upgradeEmail(u: UpgradeData, footer: Footer): Email {
 export function helpEmail(h: { brand?: string | null; url: string; sign?: Sign | null }, footer: Footer): Email {
   return renderEmail({
     subject: "Want a hand setting up Arrowsterr?",
-    preview: "Reply with your website and we'll set up your prompts and competitors for you.",
-    title: "Want a hand setting it up?",
-    blocks: [
-      { t: "p", text: `You signed up two weeks ago and haven't been back much. Most people who stall get stuck on the same few things:` },
-      {
-        t: "rows",
-        items: [
-          { title: "Which prompts to track", meta: "The questions that lead to a sale" },
-          { title: "Which competitors to add", meta: "The brands AI names in your place" },
-          { title: "What to do about a low score", meta: "The pages and mentions that change it" },
-        ],
-      },
-      { t: "p", text: `Reply to this email with ${h.brand ? `what ${h.brand} sells` : "your website and what you sell"} and who buys it. We'll set up your prompts and competitors for you and reply with what we found.` },
-    ],
+    preview: "Reply with your website. We'll set it up for you.",
+    title: "Want us to set it up for you?",
+    blocks: [{ t: "p", text: `Reply with ${h.brand ? `what ${h.brand} sells` : "your website"} and who buys it. We'll pick your prompts and competitors and send back what we find.` }],
     button: { label: "Open Arrowsterr", url: h.url },
     after: signOff(h.sign),
     footer,
@@ -530,19 +458,11 @@ export type WinBackData = { brand: string; since: Date; before: number; now: num
 export function winBackEmail(w: WinBackData, footer: Footer): Email {
   const change = Math.round((w.now - w.before) * 10) / 10;
   const moved = Math.abs(change) >= 0.5;
-  const blocks: Block[] = [
-    { t: "p", text: `Arrowsterr kept checking while you were away. Here's where ${w.brand} stands now against your last visit.` },
-    { t: "stats", items: [{ label: `Week of ${day(w.since)}`, value: pct(w.before) }, { label: "This week", value: pct(w.now), tag: ptsTag(change) }] },
-  ];
-  if (w.top.length) {
-    blocks.push({ t: "label", text: "Named most this week" });
-    blocks.push({ t: "bars", items: [...w.top.map((t) => ({ name: t.name, value: t.visibility, muted: true })), { name: w.brand, value: w.now, you: true }].sort((a, b) => b.value - a.value) });
-  }
-  if (w.byEngine.length) blocks.push({ t: "label", text: "By AI model" }, { t: "bars", items: [...w.byEngine].sort((a, b) => b.visibility - a.visibility).map((e) => ({ name: e.engine, value: e.visibility })) });
+  const blocks: Block[] = [{ t: "stats", items: [{ label: `Week of ${day(w.since)}`, value: pct(w.before) }, { label: "This week", value: pct(w.now), tag: ptsTag(change) }] }];
+  if (w.top.length) blocks.push({ t: "bars", items: [...w.top.slice(0, 3).map((t) => ({ name: t.name, value: t.visibility, muted: true })), { name: w.brand, value: w.now, you: true }].sort((a, b) => b.value - a.value) });
   return renderEmail({
     subject: moved ? `${w.brand}'s AI visibility ${change > 0 ? "rose" : "fell"} ${Math.abs(change)} points while you were away` : `${w.brand} is in ${pct(w.now)} of AI answers this week`,
     preview: `From ${pct(w.before)} the week of ${day(w.since)} to ${pct(w.now)} now.`,
-    eyebrow: "While you were away",
     title: moved ? `Your AI visibility ${change > 0 ? "rose" : "fell"} while you were away` : "Here's where you stand in AI answers",
     blocks,
     button: { label: "See what changed", url: w.url },
