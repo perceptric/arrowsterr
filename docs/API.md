@@ -49,8 +49,24 @@ For partners that sell Arrowsterr inside their own product (Morning Telos first)
 | POST | `/brands/{id}/keys` | `201 { key, prefix }`. The `aw_brand_…` key is shown once. Up to 20 at once per brand. |
 | DELETE | `/brands/{id}/keys` | `204`. Revokes every brand key of the brand. |
 | GET | `/brands/{id}/usage?month=YYYY-MM` | `{ brand_id, external_id, month, tasks, checks, answers, prompts }`. `tasks`: tasks its brand keys used on the MCP server. `checks`: AI visibility checks run. `answers`: AI answers read. Daily checks never cost tasks. |
+| GET | `/integrations` | `{ integrations: [{ id, name }] }`: the apps a brand's customer can connect. Today only `cloudflare` (AI crawler data for `get_ai_crawlers`), and none when the server has no Composio key. |
+| POST | `/brands/{id}/connect/start` | `{ integration, return_url }` → `{ url }`, the sign-in link to send the customer to. It works once, for 30 minutes. `422 unknown_integration`, `422 bad_return_url`. |
 
 Errors are `{ "error": { "code", "message" } }`: 401 (no key or a bad key), 403 (not a partner, or not your brand), 404, 409, 422 (bad input), 429 (too many calls), 503 (try again).
+
+### Connect an app
+
+Some data needs the customer's own account: AI crawler data (`get_ai_crawlers`) reads the site's Cloudflare. The customer connects it from the partner's app, never on an Arrowsterr page:
+
+1. Call `POST /brands/{id}/connect/start` with `{ "integration": "cloudflare", "return_url": "https://chat.morningtelos.com/apps/done" }`. `return_url` must be `https` on a host we allow for the partner (`PARTNER_RETURN_HOSTS` on our server).
+2. Send the customer to the `url` you get back. They sign in with the provider. The connection belongs to that one brand, never to the workspace or another brand.
+3. They come back to `return_url` with `?aw_status=connected&integration=cloudflare`, or `?aw_status=error&integration=cloudflare&reason=<code>`. Reasons: `expired` (over 30 minutes), `used` (the link was used before), `denied` (they said no), `not_connected` (no working connection came back), `brand_gone` (the brand was deleted), `provider_error`. Ask for a new link to try again.
+
+Deleting a brand removes its connected apps too.
+
+### What a brand key's customer sees
+
+Brand keys belong to a partner's customers, so nothing they see names Arrowsterr. On the MCP server, a brand key gets a neutral server name and instructions, tool descriptions without Arrowsterr's app or plugin, and errors in plain words: plan limits read "This account has used its allowance for this", never a plan name, an upgrade or a link. A 401 for a brand key has no sign-in challenge. Brands made through the partner API never get Arrowsterr emails: no alerts, weekly summaries, getting-started tips or scheduled reports. Webhooks, Slack, Teams and Discord alerts still go to the partner's own workspace settings.
 
 ## Events
 

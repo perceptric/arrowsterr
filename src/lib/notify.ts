@@ -8,6 +8,7 @@ import type { Email } from "./emailKit";
 import { alertEmail, weeklyEmail, type AlertData, type Footer, type WeeklyBrand } from "./emails";
 import { entitlement } from "./entitlements";
 import { brandStats, promptMoves } from "./metrics";
+import { isPartnerBrand } from "./partnerBrand";
 import { weekOf, type Metric } from "./visibility";
 
 // Notification emails people choose in Settings → Notifications (supabase/035_notifications.sql):
@@ -16,6 +17,7 @@ import { weekOf, type Metric } from "./visibility";
 //   jobs:   a Content Plan or a brief finished or failed, sent to the person who started it,
 //   tips:   getting-started emails in a new workspace's first weeks, to the person who made it (src/lib/nurture.ts).
 // Every email carries a one-click unsubscribe link for its kind. What each email says: src/lib/emails.ts.
+// A brand a partner made (src/lib/partnerBrand.ts) is in none of them: its customer never sees Arrowsterr.
 
 export type Kind = "weekly" | "alerts" | "jobs" | "tips";
 export const KINDS: Record<Kind, string> = {
@@ -90,7 +92,10 @@ const between = (runs: Run[], from: string, to: string) => runs.filter((r) => r.
 
 /** Email the day's visibility alert for a brand. Called after the Slack alert, once per brand and day. */
 export async function emailAlert(db: SupabaseClient, ws: string, brand: { id: string; name: string }, day: string, data: Omit<AlertData, "brand" | "day" | "url" | "lost"> & { prevDay: string }) {
-  if (!emailReady() || !(await claim(db, ws, `alert:${brand.id}`, day))) return 0;
+  if (!emailReady()) return 0;
+  const { data: own } = await db.from("brands").select("created_by_key").eq("id", brand.id).maybeSingle();
+  if (isPartnerBrand(own as { created_by_key?: string | null } | null)) return 0;
+  if (!(await claim(db, ws, `alert:${brand.id}`, day))) return 0;
   const people = await recipients(db, ws, "alerts");
   if (!people.length) return 0;
   // The prompts the brand dropped out of since the check before. Optional: the alert still goes out without them.
@@ -167,13 +172,14 @@ export async function sendWeekly(db: SupabaseClient) {
     if (local.weekday !== 1 || local.hour < 8) continue;
     const e = await entitlement(w.id);
     if (e.readOnly) continue;
-    const { data: brands } = await db.from("brands").select("id, name, domain").eq("workspace_id", w.id).order("created_at");
-    if (!brands?.length) continue;
+    const { data: all } = await db.from("brands").select("id, name, domain, created_by_key").eq("workspace_id", w.id).order("created_at");
+    const brands = ((all ?? []) as { id: string; name: string; domain: string | null; created_by_key?: string | null }[]).filter((b) => !isPartnerBrand(b));
+    if (!brands.length) continue;
     if (!(await claim(db, w.id, "weekly", local.date))) continue;
 
     const since = new Date(Date.parse(`${local.date}T00:00:00Z`) - 14 * DAY).toISOString().slice(0, 10);
     const weeks: (WeeklyBrand & { id: string })[] = [];
-    for (const b of brands as { id: string; name: string; domain: string | null }[]) {
+    for (const b of brands) {
       const { data: rows } = await db.from("daily_metrics").select("day, engine, named, is_you, answers, mentions").eq("brand_id", b.id).gte("day", since).lt("day", local.date);
       const week = weekOf((rows ?? []) as Metric[], local.date);
       if (!week) continue;

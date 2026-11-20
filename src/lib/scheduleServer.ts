@@ -5,6 +5,7 @@ import { entitlement } from "./entitlements";
 import { enqueue, finish, retry, type Job } from "./jobs";
 import { fileName, type PdfDesign } from "./pdf/design";
 import type { AiPage, PdfParams, PdfSnapshot } from "./pdf/pages";
+import { isPartnerBrand } from "./partnerBrand";
 import { makeSnapshot } from "./pdf/server";
 import { reportLimits } from "./plans";
 import { reportEmail } from "./reportEmail";
@@ -147,6 +148,9 @@ export async function reportSend(db: SupabaseClient, job: Job) {
     const { data: sRow } = await db.from("report_schedules").select(SCHEDULE_COLS).eq("id", send.schedule_id).maybeSingle();
     const s = sRow as Schedule | null;
     if (!s) return fail("The schedule was deleted.");
+    // Report emails come from Arrowsterr's address, so a partner's customers' brands never send them.
+    const { data: own } = await db.from("brands").select("created_by_key").eq("id", s.brand_id).maybeSingle();
+    if (isPartnerBrand(own as { created_by_key?: string | null } | null)) return fail("Partner brands do not send report emails.");
     const ent = await entitlement(send.workspace_id);
     const files = await filesOf(db, send.file_ids);
     const step = sendStep(send, files, { active: s.active, allowed: !ent.readOnly && reportLimits(ent.plan).schedules > 0, email: emailReady() });
