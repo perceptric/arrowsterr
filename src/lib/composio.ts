@@ -44,7 +44,12 @@ function composio() {
   client ??= new Composio({ apiKey: process.env.COMPOSIO_API_KEY!.trim() });
   return client;
 }
-const userOf = (ws: string) => `arrowsterr:ws:${ws}`;
+/**
+ * Whose connections: a workspace (its id), or one brand a partner made ({ brand }). A partner's customers each
+ * connect their own apps, so a partner brand is its own Composio user and never sees the workspace's apps.
+ */
+export type AppOwner = string | { brand: string };
+export const userOf = (o: AppOwner) => (typeof o === "string" ? `arrowsterr:ws:${o}` : `arrowsterr:brand:${o.brand}`);
 
 export type AppConnection = { id: string; slug: AppSlug; status: string };
 
@@ -53,34 +58,40 @@ const cache = new Map<string, { at: number; rows: AppConnection[] }>();
 const TTL = 60_000;
 
 /** The workspace's connections to our apps, newest first. Only ACTIVE ones work in Zippie. */
-export async function connections(ws: string, fresh = false): Promise<AppConnection[]> {
-  const hit = cache.get(ws);
+export async function connections(ws: AppOwner, fresh = false): Promise<AppConnection[]> {
+  const hit = cache.get(userOf(ws));
   if (!fresh && hit && Date.now() - hit.at < TTL) return hit.rows;
   const out = await composio().connectedAccounts.list({ userIds: [userOf(ws)] });
   const rows: AppConnection[] = out.items.flatMap((a) => {
     const slug = a.toolkit?.slug ?? "";
     return isApp(slug) ? [{ id: a.id, slug, status: String(a.status) }] : [];
   });
-  cache.set(ws, { at: Date.now(), rows });
+  cache.set(userOf(ws), { at: Date.now(), rows });
   return rows;
 }
 
 /** A sign-in link for one app. The person comes back to callbackUrl when done. */
-export async function connectLink(ws: string, slug: AppSlug, callbackUrl: string): Promise<string> {
+export async function connectLink(ws: AppOwner, slug: AppSlug, callbackUrl: string): Promise<string> {
   const session = await composio().create(userOf(ws), { toolkits: [slug], manageConnections: false, sandbox: { enable: false } });
   const req = await session.authorize(slug, { callbackUrl });
-  cache.delete(ws);
+  cache.delete(userOf(ws));
   if (!req.redirectUrl) throw new Error("Composio did not return a sign-in link. Try again.");
   return req.redirectUrl;
 }
 
 /** Remove one connection, only when it belongs to this workspace. */
-export async function disconnect(ws: string, id: string): Promise<boolean> {
+export async function disconnect(ws: AppOwner, id: string): Promise<boolean> {
   const mine = await connections(ws, true);
   if (!mine.some((c) => c.id === id)) return false;
   await composio().connectedAccounts.delete(id);
-  cache.delete(ws);
+  cache.delete(userOf(ws));
   return true;
+}
+
+/** Remove every connection an owner has, like a partner brand's when the brand is deleted. */
+export async function disconnectAll(o: AppOwner): Promise<void> {
+  for (const c of await connections(o, true)) await composio().connectedAccounts.delete(c.id);
+  cache.delete(userOf(o));
 }
 
 // Each app tool's tags say what it does: readOnlyHint, createHint, updateHint or destructiveHint.
@@ -104,7 +115,7 @@ async function blocked(slug: string, canEdit: boolean): Promise<string | null> {
 }
 
 /** True when the workspace has this app connected and working. */
-export async function hasApp(ws: string, slug: AppSlug): Promise<boolean> {
+export async function hasApp(ws: AppOwner, slug: AppSlug): Promise<boolean> {
   if (!composioReady()) return false;
   return (await connections(ws)).some((c) => c.slug === slug && c.status === "ACTIVE");
 }
@@ -113,7 +124,7 @@ export async function hasApp(ws: string, slug: AppSlug): Promise<boolean> {
  * Run one app tool for an Arrowsterr feature (not Zippie), like Search Console numbers on the Traffic page.
  * Throws when the app isn't connected or the tool fails. Composio bills each call.
  */
-export async function runAppTool<T = unknown>(ws: string, slug: AppSlug, tool: string, args: Record<string, unknown>): Promise<T> {
+export async function runAppTool<T = unknown>(ws: AppOwner, slug: AppSlug, tool: string, args: Record<string, unknown>): Promise<T> {
   if (!(await hasApp(ws, slug))) throw new Error(`${appName(slug)} is not connected. Connect it in Settings → Integrations, under Apps for Zippie.`);
   const session = await composio().create(userOf(ws), { toolkits: [slug], manageConnections: false, sandbox: { enable: false } });
   const r = await session.execute(tool, args);

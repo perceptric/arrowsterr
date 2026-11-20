@@ -9,6 +9,7 @@ import { ENGINES } from "./engines";
 import { entitlement } from "./entitlements";
 import { brandStats } from "./metrics";
 import { emailTips } from "./notify";
+import { isPartnerBrand } from "./partnerBrand";
 import { listOf, pickStep, promptIdeas, type NurtureStep } from "./nurturePlan";
 import { PLANS, type Plan, type PlanId } from "./plans";
 import { weekOf, type Metric } from "./visibility";
@@ -175,8 +176,9 @@ async function nurtureOne(db: SupabaseClient, w: Ws): Promise<boolean> {
   );
   const sentRecently = rows.some((r) => (r.kind.startsWith("nurture:") || r.kind === "trial3") && now - Date.parse(r.sent_at) < 20 * HOUR);
 
-  const { data: brandData } = await db.from("brands").select("id, name, domain, prompts, topics, profile").eq("workspace_id", w.id).order("created_at");
-  const brands = (brandData ?? []) as BrandRow[];
+  const { data: brandData } = await db.from("brands").select("id, name, domain, prompts, topics, profile, created_by_key").eq("workspace_id", w.id).order("created_at");
+  // A partner's customers' brands are never in these emails (src/lib/partnerBrand.ts).
+  const brands = ((brandData ?? []) as (BrandRow & { created_by_key?: string | null })[]).filter((b) => !isPartnerBrand(b));
   const prompts = brands.reduce((n, b) => n + promptsOf(b).length, 0);
   const { data: anyMetric } = brands.length ? await db.from("daily_metrics").select("day").in("brand_id", brands.map((b) => b.id)).limit(1) : { data: [] };
   const { count: contentPlans } = await db.from("keyword_runs").select("id", { count: "exact", head: true }).eq("workspace_id", w.id).neq("status", "failed");

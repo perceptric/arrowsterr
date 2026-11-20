@@ -1,10 +1,12 @@
 import "server-only";
+import { keyKind, keyOf } from "../apiKeys";
 import { apiAuth } from "../integrations";
 import { metered, meterTotal } from "../meter";
 import { take } from "../entitlements";
 import { TASK_COST } from "../plans";
-import { BAD_PARAMS, fail, INVALID_REQUEST, NO_METHOD, ok, PARSE_ERROR, ToolError, VERSIONS, errorResult, type RpcReply, type RpcRequest } from "./protocol";
+import { BAD_PARAMS, fail, INVALID_REQUEST, NO_METHOD, ok, PARSE_ERROR, planError, ToolError, VERSIONS, errorResult, type RpcReply, type RpcRequest } from "./protocol";
 import { PROMPTS, TOOLS, type Ctx } from "./tools";
+import { BRAND_KEY_INSTRUCTIONS, BRAND_KEY_SERVER, brandKeyError } from "./whiteLabel";
 
 const INSTRUCTIONS = `Arrowsterr tracks how AI answers (ChatGPT, Perplexity, Gemini, Claude, Google AI Overview) talk about a brand, plus its SEO and content plan.
 Start with list_brands. Visibility is the share of AI answers that name the brand. Position is its average spot in the list of brands an answer names (1 is best). Sentiment is 0 to 100.
@@ -64,7 +66,9 @@ export async function handleMcp(request: Request): Promise<Response> {
   const auth = await apiAuth(request, { mcp: true, brandKey: true });
   if ("denied" in auth) {
     const status = auth.denied.status;
-    return json(await auth.denied.json(), status, status === 401 ? challenge : {});
+    // A brand key's agent never gets pointed at Arrowsterr's sign-in: its partner makes a new key instead.
+    const ask = status === 401 && keyKind(keyOf(request)) !== "brand";
+    return json(await auth.denied.json(), status, ask ? challenge : {});
   }
   const ctx: Ctx = { db: auth.db, ws: auth.ws, brandId: auth.brandId };
 
@@ -89,6 +93,8 @@ export async function handleMcp(request: Request): Promise<Response> {
 
 export async function handleOne(ctx: Ctx, m: RpcRequest): Promise<RpcReply | null> {
   if (!m || typeof m !== "object" || m.jsonrpc !== "2.0") return fail(null, INVALID_REQUEST, "Send JSON-RPC 2.0.");
+  // A brand key belongs to a partner's customer, who never sees Arrowsterr's name, links or plans (whiteLabel.ts).
+  const white = Boolean(ctx.brandId);
   // A response from the client, or a notification: no reply.
   if (typeof m.method !== "string") return null;
   const isNote = m.id === undefined || m.id === null;
@@ -99,15 +105,17 @@ export async function handleOne(ctx: Ctx, m: RpcRequest): Promise<RpcReply | nul
       return ok(m.id, {
         protocolVersion: VERSIONS.includes(asked) ? asked : VERSIONS[0],
         capabilities: { tools: { listChanged: false }, prompts: { listChanged: false } },
-        serverInfo: { name: "arrowsterr", title: "Arrowsterr", version: "1.0.0", websiteUrl: "https://arrowsterr.com" },
-        instructions: INSTRUCTIONS,
+        serverInfo: white ? BRAND_KEY_SERVER : { name: "arrowsterr", title: "Arrowsterr", version: "1.0.0", websiteUrl: "https://arrowsterr.com" },
+        instructions: white ? BRAND_KEY_INSTRUCTIONS : INSTRUCTIONS,
       });
     }
     case "ping":
       return isNote ? null : ok(m.id, {});
     case "tools/list":
       // ChatGPT's app review wants readOnlyHint, destructiveHint and openWorldHint on every tool. Read tools leave destructiveHint out, so it defaults to false.
-      return ok(m.id, { tools: TOOLS.map(({ name, title, description, inputSchema, annotations }) => ({ name, title, description, inputSchema, annotations: { title, destructiveHint: false, ...annotations } })) });
+      return ok(m.id, {
+        tools: TOOLS.map(({ name, title, description, brandKeyDescription, inputSchema, annotations }) => ({ name, title, description: (white && brandKeyDescription) || description, inputSchema, annotations: { title, destructiveHint: false, ...annotations } })),
+      });
     case "tools/call": {
       const tool = TOOLS.find((t) => t.name === p.name);
       if (!tool) return fail(m.id, BAD_PARAMS, `Unknown tool: ${String(p.name)}`);
@@ -116,7 +124,10 @@ export async function handleOne(ctx: Ctx, m: RpcRequest): Promise<RpcReply | nul
       // Every call uses a task; keyword_research and domain_overview take their own, larger charge (tool.tasks).
       if (!tool.tasks) {
         const took = await take(ctx.ws, "tasks", TASK_COST.mcp, { refundIfFree: false });
-        if (!took.ok) return ok(m.id, errorResult(((await took.response.json()) as { error: string }).error));
+        if (!took.ok) {
+          const e = await planError(took.response);
+          return ok(m.id, errorResult(white ? brandKeyError(e) : e.message));
+        }
         brandTasks(ctx, TASK_COST.mcp);
       }
       try {
@@ -130,10 +141,10 @@ export async function handleOne(ctx: Ctx, m: RpcRequest): Promise<RpcReply | nul
           }),
         );
       } catch (e) {
-        if (e instanceof ToolError) return ok(m.id, errorResult(e.message));
+        if (e instanceof ToolError) return ok(m.id, errorResult(white ? brandKeyError(e) : e.message));
         const message = e instanceof Error ? e.message : String(e);
         console.error(`MCP ${tool.name} failed:`, message);
-        return ok(m.id, errorResult(`Something went wrong: ${message}`));
+        return ok(m.id, errorResult(white ? brandKeyError(e) : `Something went wrong: ${message}`));
       }
     }
     case "prompts/list":

@@ -15,7 +15,7 @@ import { logoFor, normalizeSite } from "./site";
 type Ent = (ws: string) => Promise<Pick<Entitlement, "readOnly" | "limits">>;
 export type PartnerDeps = { db: SupabaseClient; entitlement?: Ent };
 export type Partner = { db: SupabaseClient; ws: string; keyId: string };
-type OwnBrand = { id: string; workspace_id: string; name: string; domain: string; external_id: string | null; created_by_key: string | null; prompts: string[] | null };
+export type OwnBrand = { id: string; workspace_id: string; name: string; domain: string; external_id: string | null; created_by_key: string | null; prompts: string[] | null };
 
 /** An error in the partner API's shape. */
 export const perr = (status: number, code: string, message: string, headers: Record<string, string> = {}) => Response.json({ error: { code, message } }, { status, headers });
@@ -71,7 +71,7 @@ export async function partnerRoute(request: Request, run: (p: Partner) => Promis
 }
 
 /** The brand a partner means, when it may touch it. 404 when it is not in the partner's workspace, 403 when the app made it. */
-async function own(p: Partner, id: string): Promise<OwnBrand | Response> {
+export async function own(p: Partner, id: string): Promise<OwnBrand | Response> {
   const notFound = perr(404, "not_found", "No brand with this id.");
   if (!UUID.test(id)) return notFound;
   const { data, error } = await p.db.from("brands").select(OWN_COLS).eq("id", id).maybeSingle();
@@ -143,11 +143,19 @@ async function revokeKeys(p: Partner, brandId: string) {
   if (error) throw new Error(error.message);
 }
 
-/** DELETE /api/partner/brands/:id. Its brand keys are revoked first, then the brand and its data go. */
+/** Remove the apps the brand's customer connected (POST /brands/:id/connect/start). A failure never stops the delete. */
+async function forgetApps(brandId: string) {
+  const { composioReady, disconnectAll } = await import("./composio");
+  if (!composioReady()) return;
+  await disconnectAll({ brand: brandId }).catch((e) => console.error("Partner brand apps:", e instanceof Error ? e.message : e));
+}
+
+/** DELETE /api/partner/brands/:id. Its brand keys are revoked and its connected apps removed, then the brand and its data go. */
 export async function removeBrand(p: Partner, id: string): Promise<Response> {
   const b = await own(p, id);
   if (b instanceof Response) return b;
   await revokeKeys(p, b.id);
+  await forgetApps(b.id);
   await deleteBrand(p.db, b.id);
   return new Response(null, { status: 204 });
 }

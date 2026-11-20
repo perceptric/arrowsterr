@@ -44,9 +44,10 @@ export async function keyAuth(db: SupabaseClient, key: string, opts: AuthOpts = 
   if (problem) return deny("This API key is not valid.", 401);
   const row = data as KeyRow;
   const e = await ent(row.workspace_id);
-  if (e.readOnly) return deny("This workspace is read-only.", 402);
+  // A brand key's answers reach a partner's customer, so they never name Arrowsterr's plans (src/lib/mcp/whiteLabel.ts).
+  if (e.readOnly) return deny(kind === "brand" ? "This account is read-only right now." : "This workspace is read-only.", 402);
   if (kind === "brand" && !e.limits.partner) return deny("This brand key's workspace no longer has the partner API.", 403);
-  if (opts.mcp ? !e.limits.mcp : !e.limits.alerts) return deny(opts.mcp ? "The MCP server is on Starter and up." : "The API is on Pro and up.", 403);
+  if (opts.mcp ? !e.limits.mcp : !e.limits.alerts) return deny(kind === "brand" ? "This key can't use this right now." : opts.mcp ? "The MCP server is on Starter and up." : "The API is on Pro and up.", 403);
   await db.from("api_keys").update({ last_used_at: new Date().toISOString() }).eq("id", row.id);
   return { db, ws: row.workspace_id, brandId: kind === "brand" ? (row.brand_id ?? null) : null };
 }

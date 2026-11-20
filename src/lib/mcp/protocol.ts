@@ -34,3 +34,23 @@ export function errorResult(message: string): ToolResult {
 
 /** A mistake in what the caller sent. It goes back to the model as a tool error it can fix. */
 export class ToolError extends Error {}
+
+/**
+ * A plan check said no: tasks used up, a toolset not on the plan, or a read-only workspace. The message names
+ * Arrowsterr's plans, so a brand key gets `neutral`, or the plain line for its kind, instead (whiteLabel.ts).
+ */
+export class PlanError extends ToolError {
+  kind: "limit" | "locked" | "read_only";
+  neutral?: string;
+  constructor(message: string, kind: PlanError["kind"], neutral?: string) {
+    super(message);
+    this.kind = kind;
+    this.neutral = neutral;
+  }
+}
+
+/** A plan check's 429 or 402 answer (src/lib/entitlements.ts) as a PlanError. */
+export async function planError(r: Response, kind: "limit" | "locked" = "limit"): Promise<PlanError> {
+  const b = (await r.json().catch(() => ({}))) as { error?: string; readOnly?: boolean };
+  return new PlanError(b.error ?? "Your plan does not cover this.", b.readOnly ? "read_only" : kind);
+}

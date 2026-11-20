@@ -1,12 +1,13 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { buildReport, chunks, CLOUDFLARE_SETTINGS, cloudflareQuery, cloudflareWindow, dayList, fromCloudflare, fromConnector, type CrawlerReport, type CrawlRow } from "./aiCrawlers";
-import { composioReady, hasApp, runAppTool } from "./composio";
+import { composioReady, hasApp, runAppTool, userOf, type AppOwner } from "./composio";
 import { findPages } from "./sitemap";
 import { wpClient } from "./wpSyncServer";
 
 // The AI crawler report for one brand's site (aiCrawlers.ts has the rules). Two sources:
 //   Cloudflare, through the workspace's Apps for Zippie connection (Composio): GraphQL Analytics, every plan.
+//     A brand a partner made uses its own connection instead (POST /api/partner/brands/:id/connect/start).
 //   WordPress, through the Arrowsterr Connector plugin (1.3.0 and up): GET /arrowsterr/v1/crawlers.
 // Cloudflare sees every request, cached pages too, so it wins when both work.
 
@@ -36,8 +37,8 @@ type Zone = { id: string; name: string; plan?: { name?: string } };
 const zones = new Map<string, { at: number; zone: Zone | null; win: ReturnType<typeof cloudflareWindow> }>();
 
 /** The brand's Cloudflare zone and how far back it can query, kept for a day. */
-async function cloudflareZone(ws: string, domain: string) {
-  const key = `${ws}:${domain}`;
+async function cloudflareZone(ws: AppOwner, domain: string) {
+  const key = `${userOf(ws)}:${domain}`;
   const hit = zones.get(key);
   if (hit && Date.now() - hit.at < 86_400_000) return hit;
   // The zone may be the bare domain or a parent of a subdomain.
@@ -58,7 +59,7 @@ async function cloudflareZone(ws: string, domain: string) {
   return row;
 }
 
-async function fromCloudflareApp(ws: string, domain: string, days: number): Promise<{ rows: CrawlRow[]; state: CrawlerData["cloudflare"] }> {
+async function fromCloudflareApp(ws: AppOwner, domain: string, days: number): Promise<{ rows: CrawlRow[]; state: CrawlerData["cloudflare"] }> {
   if (!composioReady() || !(await hasApp(ws, "cloudflare"))) return { rows: [], state: { state: "off" } };
   const { zone, win } = await cloudflareZone(ws, domain);
   if (!zone) return { rows: [], state: { state: "missing", note: `No active Cloudflare zone for ${domain} on the connected account.` } };
@@ -98,8 +99,11 @@ async function fromWordPress(db: SupabaseClient, ws: string, brandId: string, da
 const cache = new Map<string, { at: number; data: CrawlerData }>();
 const TTL = 15 * 60_000;
 
-/** The crawler report for one brand over the last `days` days. Cached for 15 minutes; fresh reads again after a minute. */
-export async function crawlerData(db: SupabaseClient, ws: string, brand: { id: string; domain: string }, days: number, fresh = false): Promise<CrawlerData> {
+/**
+ * The crawler report for one brand over the last `days` days. Cached for 15 minutes; fresh reads again after a minute.
+ * partner: the brand was made through the partner API, so Cloudflare is the brand's own connection, not the workspace's.
+ */
+export async function crawlerData(db: SupabaseClient, ws: string, brand: { id: string; domain: string; partner?: boolean }, days: number, fresh = false): Promise<CrawlerData> {
   const span = Math.max(1, Math.min(90, Math.round(days)));
   const key = `${brand.id}:${span}`;
   const hit = cache.get(key);
@@ -108,7 +112,7 @@ export async function crawlerData(db: SupabaseClient, ws: string, brand: { id: s
   const domain = host(brand.domain);
 
   const [cf, wp] = await Promise.all([
-    fromCloudflareApp(ws, domain, span).catch((e): Awaited<ReturnType<typeof fromCloudflareApp>> => ({ rows: [], state: { state: "error", note: say(e) } })),
+    fromCloudflareApp(brand.partner ? { brand: brand.id } : ws, domain, span).catch((e): Awaited<ReturnType<typeof fromCloudflareApp>> => ({ rows: [], state: { state: "error", note: say(e) } })),
     fromWordPress(db, ws, brand.id, span).catch((e): Awaited<ReturnType<typeof fromWordPress>> => ({ rows: [], pages: [], state: { state: "error", note: say(e) } })),
   ]);
   const source = cf.state.state === "ok" ? "cloudflare" : wp.state.state === "ok" ? "wordpress" : null;

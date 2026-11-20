@@ -5,7 +5,7 @@ import { requireTrack, take } from "../entitlements";
 import { domainHistory, domainOverview, parseTarget, rankedFor, Spend, type Market } from "../keywords";
 import { TASK_COST } from "../plans";
 import { marketOf, type DomainMonth, type DomainReport, type Keyword } from "../research";
-import { ToolError } from "./protocol";
+import { PlanError, ToolError } from "./protocol";
 
 // The domain_overview MCP tool: any website's size on Google and the keywords that bring it the most visits.
 // It reads public web data, so a brand key may look up any site; it charges the key's workspace.
@@ -22,7 +22,7 @@ export type DomainDeps = {
   /** The plan's error when Organic Research is locked, or null. */
   locked: (ws: string) => Promise<string | null>;
   ready: () => boolean;
-  take: (ws: string, n: number) => Promise<{ ok: true; giveBack: () => Promise<void> } | { ok: false; error: string }>;
+  take: (ws: string, n: number) => Promise<{ ok: true; giveBack: () => Promise<void> } | { ok: false; error: string; readOnly?: boolean }>;
   read: <T>(key: string) => Promise<T | undefined>;
   write: (key: string, data: unknown) => Promise<void>;
   overview: (host: string, m: Market, spend: Spend) => Promise<Size | null>;
@@ -30,17 +30,19 @@ export type DomainDeps = {
   history: (host: string, m: Market, spend: Spend) => Promise<DomainMonth[]>;
 };
 
-const errorOf = async (r: Response) => ((await r.json()) as { error: string }).error;
+const bodyOf = async (r: Response) => (await r.json()) as { error: string; readOnly?: boolean };
 
 export const liveDeps: DomainDeps = {
   locked: async (ws) => {
     const r = await requireTrack(ws, "seo");
-    return r ? errorOf(r) : null;
+    return r ? (await bodyOf(r)).error : null;
   },
   ready: dfsReady,
   take: async (ws, n) => {
     const t = await take(ws, "tasks", n);
-    return t.ok ? { ok: true, giveBack: t.giveBack } : { ok: false, error: await errorOf(t.response) };
+    if (t.ok) return { ok: true, giveBack: t.giveBack };
+    const b = await bodyOf(t.response);
+    return { ok: false, error: b.error, readOnly: Boolean(b.readOnly) };
   },
   read: (key) => readCache(key, 30 * DAY),
   write: writeCache,
@@ -85,7 +87,7 @@ export const positionBands = (s: Size) => ({ "1-3": s.top3, "4-10": s.top10 - s.
  */
 export async function lookupDomain(ws: string, host: string, country: string, limit: number, deps: DomainDeps = liveDeps) {
   const locked = await deps.locked(ws);
-  if (locked) throw new ToolError(locked);
+  if (locked) throw new PlanError(locked, "locked");
   const m = marketOf(country);
   const keys = domainKeys(m, host);
   let [overview, ranked, history] = await Promise.all([deps.read<Size | null>(keys.overview), deps.read<Ranked>(keys.ranked), deps.read<DomainMonth[]>(keys.history)]);
@@ -93,7 +95,7 @@ export async function lookupDomain(ws: string, host: string, country: string, li
   if (fresh) {
     if (!deps.ready()) throw new Error("Keyword data is not set up on the server.");
     const took = await deps.take(ws, TASK_COST.domain);
-    if (!took.ok) throw new ToolError(took.error);
+    if (!took.ok) throw new PlanError(took.error, took.readOnly ? "read_only" : "limit");
     try {
       const spend = new Spend();
       const load = async <T>(have: T | undefined, key: string, get: () => Promise<T>): Promise<T> => {
