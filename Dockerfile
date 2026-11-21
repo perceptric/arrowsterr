@@ -25,6 +25,11 @@ RUN npm ci --omit=dev --ignore-scripts && rm -rf /root/.npm
 COPY --from=build --chown=web /app/.next ./.next
 COPY --from=build /app/public ./public
 COPY --from=build /app/next.config.ts ./
+# The server's deploy script, so deploy/deploy.sh on the server can update itself from the newest image.
+COPY deploy/deploy.sh ./deploy/deploy.sh
+# Which commit this image is, for /api/version (src/app/api/version/route.ts). Last, so it never busts the cache above.
+ARG GIT_COMMIT=""
+ENV GIT_COMMIT=$GIT_COMMIT
 USER web
 EXPOSE 3000
 CMD ["npx", "next", "start", "-p", "3000"]
