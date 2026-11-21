@@ -1,5 +1,5 @@
-# Lint, typecheck and tests on every push. The app and worker run on the Hostinger VPS; build-images.yml builds
-# their images and the VPS picks them up on its own.
+# Lint, typecheck and tests on every push. The app and worker run on the OVH server; build-images.yml builds
+# their images, deploys them and checks the new commit is live.
 name: Checks
 
 on:
