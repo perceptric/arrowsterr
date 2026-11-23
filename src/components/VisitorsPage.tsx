@@ -267,7 +267,7 @@ function Journey({ v, domain, load, onClose }: { v: Visitor; domain: string; loa
               { lab: "Pages", v: String(v.views) },
               { lab: "Time on site", v: duration(v.seconds) },
             ].map((x) => (
-              <div key={x.lab} className="border border-rule p-3">
+              <div key={x.lab} className="rounded-aw border border-rule p-3">
                 <div className="aw-label mb-1">{x.lab}</div>
                 <div className="text-[15px] text-ink">{x.v}</div>
               </div>
@@ -286,7 +286,7 @@ function Journey({ v, domain, load, onClose }: { v: Visitor; domain: string; loa
 
           <ol className="flex flex-col gap-5">
             {visits.map((visit, i) => (
-              <li key={visit.id} className="border border-rule">
+              <li key={visit.id} className="overflow-hidden rounded-aw-lg border border-rule">
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-rule bg-surface-2 px-4 py-2.5">
                   <span className="text-[14px] font-medium text-ink">
                     Visit {visits.length - i} · {when(visit.start)}

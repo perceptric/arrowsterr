@@ -96,7 +96,7 @@ export function DocComments({
     <div className="flex flex-col gap-3 px-4 py-4">
       {draft !== null ? (
         <form
-          className="flex flex-col gap-2 border border-rule p-3"
+          className="flex flex-col gap-2 rounded-aw border border-rule p-3"
           onSubmit={(e) => {
             e.preventDefault();
             void post(draft);
@@ -150,7 +150,7 @@ export function DocComments({
           {shown.map((t) => {
             const gone = !t.resolved_at && t.quote && !found(t.quote);
             return (
-              <li key={t.id} className={`flex flex-col gap-2.5 border p-3 ${active === t.id ? "border-[#D9A400]" : "border-rule-faint"}`}>
+              <li key={t.id} className={`flex flex-col gap-2.5 rounded-aw border p-3 ${active === t.id ? "border-[#D9A400]" : "border-rule-faint"}`}>
                 {t.quote ? (
                   <button type="button" className="line-clamp-2 border-l-2 border-[#D9A400] pl-2.5 text-left text-[12px] text-muted hover:text-ink" onClick={() => onPick(t.id)} title="Show in the text">
                     {t.quote}

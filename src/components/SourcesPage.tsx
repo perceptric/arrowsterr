@@ -448,7 +448,7 @@ export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseCli
 
       {full ? (
         <SidePanel title={focus ? `Links on ${focus}` : list === "sites" ? "Every site" : "Most cited links"} kicker={`${total} ${list === "sites" ? "sites" : "links"} · last ${days} days`} onClose={() => setFull(false)}>
-          <div className="border border-rule">{table(Infinity)}</div>
+          <div className="overflow-hidden rounded-aw-lg border border-rule">{table(Infinity)}</div>
         </SidePanel>
       ) : null}
 

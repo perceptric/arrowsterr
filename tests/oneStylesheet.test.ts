@@ -43,3 +43,18 @@ test("each selector has one rule", () => {
   const twice = [...seen].filter(([, n]) => n > 1).map(([s]) => s);
   assert.deepEqual(twice, []);
 });
+
+test("screens use the corner and shadow tokens", () => {
+  const root = new URL("../src/", import.meta.url);
+  const files = readdirSync(root, { recursive: true }).map(String).filter((f) => f.endsWith(".tsx"));
+  const raw = /(?<=[\s"'`])(rounded(-[trbl]{1,2})?-(sm|md|lg|xl|2xl|3xl|\[\d+px\])|rounded|shadow-\[[^\]]*\]|shadow(-(sm|md|lg|xl|2xl))?)(?=[\s"'`])/g;
+  const found: string[] = [];
+  for (const f of files) {
+    const text = readFileSync(new URL(f, root), "utf8");
+    for (const line of text.split("\n")) {
+      if (!line.includes("className")) continue;
+      for (const m of line.match(raw) ?? []) if (m !== "rounded-[2px]") found.push(`${f}: ${m}`);
+    }
+  }
+  assert.deepEqual(found, []);
+});

@@ -600,7 +600,7 @@ function Detail({
       </div>
 
       {/* Rank on each model. Pick one to see its answer. */}
-      <div className="grid grid-cols-2 gap-px border border-rule bg-rule sm:grid-cols-3 xl:grid-cols-[repeat(var(--n),minmax(0,1fr))]" style={{ ["--n" as string]: d.engines.length }} role="tablist" aria-label="Model">
+      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-aw-lg border border-rule bg-rule sm:grid-cols-3 xl:grid-cols-[repeat(var(--n),minmax(0,1fr))]" style={{ ["--n" as string]: d.engines.length }} role="tablist" aria-label="Model">
         {d.engines.map((e) => (
           <button
             key={e.engine}
@@ -653,7 +653,7 @@ function Detail({
                   <span
                     key={r.at}
                     title={`${day(r.at)}: ${r.named ? `named at #${r.rank}` : "not named"}`}
-                    className={`inline-block h-4 w-4 border ${r.named ? "border-brand bg-brand" : "border-rule bg-white"}`}
+                    className={`inline-block h-4 w-4 rounded-aw-xs border ${r.named ? "border-brand bg-brand" : "border-rule bg-white"}`}
                   />
                 ))}
               </span>
@@ -664,10 +664,10 @@ function Detail({
               ) : null}
               <span className="flex items-center gap-3 text-[12px] text-body">
                 <span className="flex items-center gap-1.5">
-                  <i className="inline-block h-3 w-3 border border-brand bg-brand" /> Named
+                  <i className="inline-block h-3 w-3 rounded-aw-xs border border-brand bg-brand" /> Named
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <i className="inline-block h-3 w-3 border border-rule bg-white" /> Not named
+                  <i className="inline-block h-3 w-3 rounded-aw-xs border border-rule bg-white" /> Not named
                 </span>
               </span>
             </div>

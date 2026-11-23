@@ -77,7 +77,7 @@ export function CommandMenu({ commands, shortcuts }: { commands: () => Command[]
     <>
       {open ? (
         <div className="fixed inset-0 z-[90] flex items-start justify-center bg-black/30 px-4 pt-[12vh]" onMouseDown={(e) => e.target === e.currentTarget && close()}>
-          <div role="dialog" aria-modal="true" aria-label="Search and commands" className="flex max-h-[70vh] w-full max-w-xl flex-col border border-rule bg-white shadow-[0_12px_32px_rgba(6,27,68,.16)]">
+          <div role="dialog" aria-modal="true" aria-label="Search and commands" className="flex max-h-[70vh] w-full max-w-xl flex-col overflow-hidden rounded-aw-lg border border-rule bg-white shadow-aw-lg">
             <input
               ref={input}
               value={q}
@@ -150,7 +150,7 @@ export function CommandMenu({ commands, shortcuts }: { commands: () => Command[]
                     <span className="text-body">{label}</span>
                     <span className="flex shrink-0 gap-1">
                       {k.map((x) => (
-                        <kbd key={x} className="border border-rule px-1.5 font-mono text-[11px] text-ink">
+                        <kbd key={x} className="rounded-aw-xs border border-rule px-1.5 font-mono text-[11px] text-ink">
                           {x}
                         </kbd>
                       ))}

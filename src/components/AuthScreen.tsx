@@ -45,15 +45,15 @@ function Showcase() {
           <h2 className="text-[34px] leading-[1.15] font-semibold tracking-[-0.02em] text-white">Know what AI says about your brand.</h2>
           <p className="text-[16px] leading-relaxed text-white/80">Track how ChatGPT, Gemini, Claude, Perplexity and Google&apos;s AI answers talk about you, then fix what they get wrong.</p>
         </div>
-        <div className="rounded-[16px] border border-white/15 bg-white/10 p-5 backdrop-blur-sm">
+        <div className="rounded-aw-lg border border-white/15 bg-white/10 p-5 backdrop-blur-sm">
           <div className="flex items-center justify-between text-[12px] text-white/70">
             <span>ChatGPT</span>
             <span>&ldquo;best project tool for agencies&rdquo;</span>
           </div>
           <ol className="mt-3 flex flex-col gap-1.5">
             {ANSWER.map((b, i) => (
-              <li key={b.name} className={`flex items-center gap-3 rounded-[10px] px-3 py-2 text-[14px] ${b.you ? "bg-white font-medium text-[#0943B0]" : "text-white/85"}`}>
-                <span className={`w-4 text-[12px] ${b.you ? "text-[#0943B0]/70" : "text-white/50"}`}>{i + 1}</span>
+              <li key={b.name} className={`flex items-center gap-3 rounded-aw px-3 py-2 text-[14px] ${b.you ? "bg-white font-medium text-brand" : "text-white/85"}`}>
+                <span className={`w-4 text-[12px] ${b.you ? "text-brand/70" : "text-white/50"}`}>{i + 1}</span>
                 {b.name}
                 {b.you ? <span className="ml-auto text-[12px] font-medium">Up 3 spots</span> : null}
               </li>

@@ -34,7 +34,7 @@ export function IntelDoc({ r }: { r: IntelSnapshot }) {
 
       {r.sample ? <p className="aw-callout text-[14px]">This is a sample with example numbers. Open Content Intelligence once to load {r.brand.domain}, and this report fills with real pages.</p> : null}
 
-      <div className="grid gap-px border border-rule bg-rule sm:grid-cols-4">
+      <div className="grid gap-px overflow-hidden rounded-aw-lg border border-rule bg-rule sm:grid-cols-4">
         {[
           {
             lab: "Pages",
@@ -74,7 +74,7 @@ export function IntelDoc({ r }: { r: IntelSnapshot }) {
                 <span className="text-ink">{t.tag}</span>
                 <span className="flex items-center gap-2">
                   <span
-                    className="h-3 rounded-r-[4px]"
+                    className="h-3 rounded-r-aw-xs"
                     style={{
                       width: t.pages ? `${Math.max(1.5, (t.pages / max) * 100)}%` : 0,
                       background: TAG_COLOR[t.tag as Tag],
@@ -90,7 +90,7 @@ export function IntelDoc({ r }: { r: IntelSnapshot }) {
           <span className="aw-label">Where your keywords rank on Google</span>
           {k.all ? (
             <>
-              <div className="mt-4 flex h-4 w-full gap-[2px] overflow-hidden rounded-[4px]">
+              <div className="mt-4 flex h-4 w-full gap-[2px] overflow-hidden rounded-aw-xs">
                 {[
                   [k.top3, "#0943B0"],
                   [k.top10 - k.top3, "#7E9BDD"],

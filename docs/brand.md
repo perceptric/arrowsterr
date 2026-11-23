@@ -37,10 +37,10 @@ The visual reference with live components is the **Arrowsterr Brand v10** artifa
 | Type | Inter 13px UI, Funnel Display headlines, Geist Mono numbers | Geist for everything, Geist Mono only for code and ids |
 | Neutrals | Warm greys, several near-duplicates | One cool grey ramp with a slight blue bias |
 | Accent | Signal Blue plus gold Spark plus Sky | Signal Blue, with a soft tint and a ring; gold only for one win per view |
-| Buttons | Square keys with a dark ring and top highlight | 10px corners, flat Signal Blue fill, no ring, no highlight |
+| Buttons | Square keys with a dark ring and top highlight | 8px corners, flat Signal Blue fill, no ring, no highlight |
 | Switches | Grey tray with white key | Pill tray with a white raised pill |
 | Tags | Square 6px tags | Pills with a leading dot |
-| Cards | 16px, hairline frame | 16px, 1px border plus a soft shadow, lift on hover |
+| Cards | 16px, hairline frame | 12px, 1px border plus a soft shadow, lift on hover |
 | Numbers | Stat strip with a tinted lead cell | Stat row: big tabular number over a muted label, no boxes |
 | Atmosphere | Flight grid lines | Dot grid and one soft blue glow, marketing and first screens only |
 | Stylesheets | `brand.css`, `brand-v2.css`, `brand-v5.css`, `brew-ui.css`, `strong-ui.css`, `omni-ui.css`, `calm-ui.css`, `keyed-ui.css` | One file: `src/app/globals.css` |
@@ -56,7 +56,7 @@ These eight rules decide every case this guide does not cover.
 3. **One accent.** Signal Blue marks the one primary action, the selected thing, your own brand in charts and focus. If two things on a screen are blue and only one is the point, make the other grey.
 4. **Quiet neutrals do the work.** About 80% of any screen is white and grey, 15% is ink text and 5% is blue.
 5. **Soft depth, never heavy.** Cards float a little: 1px border, a soft shadow, a 2px lift on hover. Nothing has a dark frame or a hard drop shadow.
-6. **Round, never bubbly.** 10px buttons, 16px cards, 24px feature panels, full pills for switches and tags. Never mix corner sizes inside one component.
+6. **Round, never bubbly.** 8px buttons and inputs, 12px cards, a 16px page panel, full pills for switches and tags. Never mix corner sizes inside one component.
 7. **Show the product.** Illustrations are small, real-looking pieces of the UI (skeleton bars, a tiny chart, a ranked list), never stock art or abstract blobs.
 8. **Explain once.** A tool explains itself on its first screen. Working screens hold labels, buttons and real errors only.
 
@@ -379,15 +379,16 @@ Every screen must work at 400px wide with no sideways page scroll. Tables scroll
 
 | Token | px | Use |
 |---|---|---|
-| `radius-xs` | 4 | Skeleton bars, chart bar ends |
-| `radius-sm` | 6 | Checkboxes, small inline chips, map rank badges |
-| `radius-md` | 10 | **Buttons**, inputs, selects, menu rows |
-| `radius-lg` | 12 | Panels inside a card (allowance list, notes), popovers, tooltips |
-| `radius-xl` | 16 | **Cards**, dialogs, the app page panel |
-| `radius-2xl` | 24 | Feature panels on the website (the upgrade-path strip) |
-| `radius-full` | 9999 | Segmented switches, badges and tags, avatars, logo chips, toggle switches |
+| `--aw-r-xs` | 4 | Skeleton bars, chart bar ends, legend swatches, key caps |
+| `--aw-r-sm` | 6 | Checkboxes, small inline chips, rows inside a menu |
+| `--aw-r-md` | 8 | **Buttons**, inputs, selects, menu rows, tooltips, a panel inside a card |
+| `--aw-r-lg` | 12 | **Cards**, tables, popovers and menus |
+| `--aw-r-xl` | 16 | The app page panel, dialogs, side panels, the chat box |
+| `--aw-r-pill` | 9999 | Segmented switches, badges and tags, avatars, toggle switches |
 
-A card inside a card takes the next size down (16 outside, 12 inside).
+These six tokens are the whole scale. In markup they are `rounded-aw-xs`, `rounded-aw-sm`, `rounded-aw`, `rounded-aw-lg`, `rounded-aw-xl` and `rounded-full`. A raw size such as `rounded-[10px]` or `rounded-md` is never used.
+
+A card inside a card takes the next size down (12 outside, 8 inside).
 
 ### Borders
 
@@ -483,11 +484,11 @@ Each component lists its anatomy, sizes, states and rules. Class names are the v
 
 | Size | Height | Padding | Text |
 |---|---|---|---|
-| `sm` | 32px | 0 12px | 13px |
-| `md` (default) | 40px | 0 16px | 14px |
-| `lg` | 44px | 0 20px | 14px, 600 |
+| `sm` | 28px | 0 12px | 13px |
+| `md` (default) | 32px | 0 12px | 14px |
+| `lg` | 36px | 0 20px | 14px, 600 |
 
-- Radius 10px on every size. No shadow, no ring, no gradient.
+- Radius 8px (`--aw-r-md`) on every size. No shadow, no ring, no gradient.
 - Focus: `outline: 2px solid var(--signal); outline-offset: 2px`.
 - Disabled: 50% opacity, no hover.
 - Loading: the label stays, a 14px spinner replaces the icon.
@@ -499,9 +500,9 @@ Each component lists its anatomy, sizes, states and rules. Class names are the v
 
 A pill tray for switching a view (Monthly / Annual, Ranks / Change / Head to head).
 
-- Tray: `--soft`, 1px `--border`, `radius-full`, 4px padding, 2px gap.
+- Tray: `--soft`, 1px `--border`, `--aw-r-pill`, 4px padding, 2px gap.
 - Item: 36px tall, 16px side padding, 14px 500, `--muted`.
-- Selected item: `--card` fill, `--ink` text, `shadow-sm`, `radius-full`.
+- Selected item: `--card` fill, `--ink` text, `shadow-sm`, `--aw-r-pill`.
 - A small status pill may sit inside an item ("Save about 15%" in success soft).
 - Never used for page tabs. Page sections use Tabs.
 
@@ -513,7 +514,7 @@ A pill tray for switching a view (Monthly / Annual, Ranks / Change / Head to hea
 
 ### Input, select and textarea
 
-- 40px tall (inputs, selects), 10px radius, 1px `--border-strong`, `--card` fill, 14px text, 12px side padding.
+- 36px tall (inputs, selects), 8px radius, 1px `--border-strong`, `--card` fill, 14px text, 12px side padding.
 - Placeholder `--faint`. Label above in 13px 500 `--ink`, 6px gap. Help text below in 12px `--muted`.
 - Focus: border `--signal`, plus `ring-signal`.
 - Error: border `--danger`, message below in 12px `--danger`.
@@ -522,14 +523,14 @@ A pill tray for switching a view (Monthly / Annual, Ranks / Change / Head to hea
 
 ### Checkbox, radio and toggle
 
-- Checkbox 16px, `radius-sm`, checked fill `--signal` with a white check.
-- Toggle 36 × 20px, `radius-full`, off `--border-strong`, on `--signal`, white 16px knob.
+- Checkbox 16px, `--aw-r-sm`, checked fill `--signal` with a white check.
+- Toggle 36 × 20px, `--aw-r-pill`, off `--border-strong`, on `--signal`, white 16px knob.
 
 ### Badge (dot badge)
 
 Small pill that names a state or a highlight.
 
-- 24px tall (20px small), `radius-full`, 10px side padding, 12px 600.
+- 24px tall (20px small), `--aw-r-pill`, 10px side padding, 12px 600.
 - Leading 6px dot in `currentColor`.
 - Tones: signal (`--signal` on 10% signal), success, warning, danger, neutral (`--ink-2` on `--soft`).
 - "Recommended" on a plan card is a signal badge.
@@ -537,21 +538,21 @@ Small pill that names a state or a highlight.
 
 ### Tag (label chip)
 
-For filters and categories. 28px, `radius-full`, 1px `--border`, `--card`, 13px 500. Selected: `--signal-soft` fill, `--signal-strong` text, border `--signal` at 30%.
+For filters and categories. 28px, `--aw-r-pill`, 1px `--border`, `--card`, 13px 500. Selected: `--signal-soft` fill, `--signal-strong` text, border `--signal` at 30%.
 
 ### Card
 
 The base surface.
 
-- `--card`, 1px `--border`, `radius-xl` (16px), `shadow-xs`, padding 24px (20px on phones).
+- `--card`, 1px `--border`, `--aw-r-lg` (12px), `shadow-xs`, padding 24px (20px on phones).
 - Card header: title (h4 in the app, h3 on the site) left, actions right, 16px below to content.
 - Interactive card: hover lifts 2px, `shadow-lg`, border to 20% ink, 200ms.
 - **Highlighted card** (the recommended plan, your brand's tile): border `--signal` at 60%, `shadow-md`, `ring-signal`, and a top wash `linear-gradient(to bottom, var(--signal-tint), transparent)` 144px tall.
-- Never nest more than one level. A panel inside a card uses `--soft` fill and `radius-lg` with no shadow.
+- Never nest more than one level. A panel inside a card uses `--soft` fill and `--aw-r-md` with no shadow.
 
 ### Plan card
 
-Anatomy top to bottom: muted kicker (13px 500), plan name (24px 600 −0.03em) with optional badge on the right, one-line description (14px muted), price block (44px number, "/ month" muted, old price struck through in muted 80%), a note line (13px muted), the full-width button, a divider, a "What you can do" list with check circles, and an allowance panel (`--soft`, `radius-lg`) of label / value rows.
+Anatomy top to bottom: muted kicker (13px 500), plan name (24px 600 −0.03em) with optional badge on the right, one-line description (14px muted), price block (44px number, "/ month" muted, old price struck through in muted 80%), a note line (13px muted), the full-width button, a divider, a "What you can do" list with check circles, and an allowance panel (`--soft`, `--aw-r-md`) of label / value rows.
 
 ### Stat row
 
@@ -568,7 +569,7 @@ For dashboards: a card with a 12px muted label at the top and one visual with it
 
 ### Allowance list
 
-A `--soft` panel, `radius-lg`, 16px padding, title 13px 600, then `<dl>` rows: 36px min height, label in 70% ink, value right-aligned 500 tabular. Rows split by 60% `--border` lines. A footer link in `--signal` 12px 500 ("Compare all features ↓").
+A `--soft` panel, `--aw-r-md`, 16px padding, title 13px 600, then `<dl>` rows: 36px min height, label in 70% ink, value right-aligned 500 tabular. Rows split by 60% `--border` lines. A footer link in `--signal` 12px 500 ("Compare all features ↓").
 
 ### Table
 
@@ -583,7 +584,7 @@ A `--soft` panel, `radius-lg`, 16px padding, title 13px 600, then `<dl>` rows: 3
 
 ### Tooltip and popover
 
-- `--card`, 1px `--border`, `radius-lg`, `shadow-lg`, 12px 14px padding, 13px text.
+- `--card`, 1px `--border`, `--aw-r-md`, `shadow-lg`, 12px 14px padding, 13px text.
 - Optional heading: `micro` style (11px 600 uppercase, +0.08em, `--muted`).
 - Opens on hover and on focus, 180ms fade and rise, from a floating layer so nothing clips it.
 
@@ -596,30 +597,30 @@ A `--soft` panel, `radius-lg`, 16px padding, title 13px 600, then `<dl>` rows: 3
 
 ### Callout
 
-- `--soft` fill, `radius-lg`, 16px padding, 14px `--ink-2`.
+- `--soft` fill, `--aw-r-md`, 16px padding, 14px `--ink-2`.
 - Tones swap the fill for the status soft colour and add a 16px status icon on the left.
 - Never used for help text in a working screen.
 
 ### Dialog
 
-- `--card`, `radius-xl`, `shadow-xl`, max 480px (small) or 640px, 24px padding.
+- `--card`, `--aw-r-xl` (16px), `shadow-xl`, max 480px (small) or 640px, 24px padding.
 - Title h3, body 14px `--ink-2`, buttons right-aligned: secondary then primary (danger for deletes).
 - Backdrop `rgb(14 16 21 / 0.4)`.
 
 ### Toast
 
-- Bottom right, 360px max, `--card`, `radius-lg`, `shadow-lg`, 14px text, optional action link in `--signal`. 5s, pausable on hover.
+- Bottom right, 360px max, `--card`, `--aw-r-md`, `shadow-lg`, 14px text, optional action link in `--signal`. 5s, pausable on hover.
 
 ### Skeleton and loading
 
-- Skeleton bars: `--ink` at 7% to 14%, 6px tall, `radius-full`, widths 40px to 80px.
+- Skeleton bars: `--ink` at 7% to 14%, 6px tall, `--aw-r-pill`, widths 40px to 80px.
 - Loading a section: skeleton rows in the shape of the content. Never a lone spinner for a whole page, never the word "Loading…".
 
 ### Navigation
 
-**Website nav:** 64px, white, logo left, menu triggers (14px 500 with a 12px chevron) center-left, "Pricing" as a plain link, actions right: "Log in" plain link, "Book a demo" plain link, primary button "Start free". Dropdowns are 640px flyout cards (`radius-xl`, `shadow-lg`) with rows of name, one-line description and a right arrow that slides 2px on hover.
+**Website nav:** 64px, white, logo left, menu triggers (14px 500 with a 12px chevron) center-left, "Pricing" as a plain link, actions right: "Log in" plain link, "Book a demo" plain link, primary button "Start free". Dropdowns are 640px flyout cards (`--aw-r-lg`, `shadow-lg`) with rows of name, one-line description and a right arrow that slides 2px on hover.
 
-**App sidebar:** `--canvas`, 248px. Workspace switcher at the top. Group labels 12px 500 `--muted`, 24px above each group. Items 36px, 14px, 16px icons, `radius-md`; hover `--soft`; selected `--signal-soft` fill with `--signal-strong` text and icon. Usage meter and Settings at the bottom.
+**App sidebar:** `--canvas`, 248px. Workspace switcher at the top. Group labels 12px 500 `--muted`, 24px above each group. Items 36px, 14px, 16px icons, `--aw-r-md`; hover `--soft`; selected `--signal-soft` fill with `--signal-strong` text and icon. Usage meter and Settings at the bottom.
 
 **App page header:** 56px, breadcrumb (`--muted` / `--ink` 500 for the current page), brand switcher as a secondary button, page actions on the right.
 
@@ -634,8 +635,8 @@ A `--soft` panel, `radius-lg`, 16px padding, title 13px 600, then `<dl>` rows: 3
 
 Small, honest pieces of the product used on the website and first screens.
 
-- A white card (`radius-lg`, 1px `--border`, `shadow-lg`) 240 to 260px wide.
-- Contents drawn with skeleton bars, a brand chip (24 to 28px Signal Blue square, `radius-md`, with a white 10px square inside), real-looking numbers (10px 500 tabular) and one accent element in `--signal`.
+- A white card (`--aw-r-lg`, 1px `--border`, `shadow-lg`) 240 to 260px wide.
+- Contents drawn with skeleton bars, a brand chip (24 to 28px Signal Blue square, `--aw-r-md`, with a white 10px square inside), real-looking numbers (10px 500 tabular) and one accent element in `--signal`.
 - One or two floating chips (a notification, "MCP", "API" in Geist Mono 10px) overlap the card edge and move on hover.
 - Sit on the dot grid with a 224px soft blue glow behind (`blur-3xl`, 15% signal).
 
@@ -653,7 +654,7 @@ Eyebrow (14px 600 `--signal-strong`), `display-xl` headline, `body-lg` lead in `
 
 ### Upgrade path strip
 
-One card, `radius-2xl`, 3 columns split by 1px dividers. Each column: a 240px illustration area on `--soft` at 55% with the dot grid and glow, then the caps eyebrow, an h3, a 14px muted paragraph and a "Best for" line above a divider.
+One card, `--aw-r-xl`, 3 columns split by 1px dividers. Each column: a 240px illustration area on `--soft` at 55% with the dot grid and glow, then the caps eyebrow, an h3, a 14px muted paragraph and a "Best for" line above a divider.
 
 ### Dashboard screen (app)
 
@@ -667,7 +668,7 @@ Page title, then a row of equal tiles, then the main card (often list plus chart
 - **Lines:** 2px, round joins, one area fill under the main line (`--signal` 18% to 0% top to bottom), an emphasized endpoint (3.5px white dot with a 2px signal stroke and an 8px 18% halo).
 - **Grid:** dashed 2 4 lines in `--border`, 3 or 4 of them. No vertical grid lines.
 - **Axis labels:** 11 to 12px `--muted`, tabular.
-- **Bars:** `radius-xs` ends, 2px gaps in stacked bars, track `--soft`.
+- **Bars:** `--aw-r-xs` ends, 2px gaps in stacked bars, track `--soft`.
 - **Donuts:** 9px ring on a 76px box, your share first from 12 o'clock, center label 13px 600 tabular.
 - **Rank maps:** 30px dots with white 11.5px 600 numbers in the rank colors, a 2px white border and `shadow-sm`; a 3px ink ring on the selected dot; dashed white dot with "?" for no answer.
 - **Deltas:** a badge with an up or down arrow: success soft for good, danger soft for bad. Lower-is-better metrics (rank) flip the colors.
@@ -736,13 +737,12 @@ The full set, as CSS custom properties in `src/app/globals.css`.
   --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
   /* Radius */
-  --radius-xs: 4px;
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-2xl: 24px;
-  --radius-full: 9999px;
+  --aw-r-xs: 4px;
+  --aw-r-sm: 6px;
+  --aw-r-md: 8px;
+  --aw-r-lg: 12px;
+  --aw-r-xl: 16px;
+  --aw-r-pill: 9999px;
 
   /* Elevation */
   --shadow-xs: 0 1px 2px rgb(16 24 40 / 0.04);
@@ -793,7 +793,7 @@ Never write a hex value in a component. Use a token.
 
 The app keeps its class names; the look changes underneath.
 
-**Status, 23 November 2026:** steps 1 and 2 are done. `src/app/globals.css` is the only stylesheet. The twelve older files (`brand.css` to `brand-v10.css` and `zippie.css`) were merged into it and deleted: every rule that an older look set and a newer one overrode is gone, each selector has one rule, and the specificity tricks and nearly every `!important` went with them. The app loads Geist and Geist Mono for the screens and Funnel Display for PDF headings; Inter, DM Mono and IBM Plex Mono are no longer loaded. To change the look, edit `globals.css` in place. Never add a stylesheet that loads later to win.
+**Status, 23 November 2026:** steps 1 and 2 are done, and corners are on one scale (8px controls, 12px cards, 16px page panel) in the stylesheet and in every screen's markup. `src/app/globals.css` is the only stylesheet. The twelve older files (`brand.css` to `brand-v10.css` and `zippie.css`) were merged into it and deleted: every rule that an older look set and a newer one overrode is gone, each selector has one rule, and the specificity tricks and nearly every `!important` went with them. The app loads Geist and Geist Mono for the screens and Funnel Display for PDF headings; Inter, DM Mono and IBM Plex Mono are no longer loaded. To change the look, edit `globals.css` in place. Never add a stylesheet that loads later to win.
 
 1. **One stylesheet.** Done: `src/app/globals.css` holds the tokens above and every component class.
 2. **Fonts.** Done: Geist for every word, Geist Mono for code.

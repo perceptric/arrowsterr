@@ -120,7 +120,7 @@ export function TrendChart({ points, lines, metric, mode, wide = false }: { poin
             .map((l) => (
               <div key={l.name} className="flex items-center justify-between gap-4">
                 <span className="flex items-center gap-2" style={{ color: "#A9B1C1" }}>
-                  <i className="inline-block h-2 w-2" style={{ background: l.color }} />
+                  <i className="inline-block h-2 w-2 rounded-full" style={{ background: l.color }} />
                   {l.name}
                 </span>
                 <span style={{ color: "#FFFFFF" }}>{fmt(metric, p.values[l.name])}</span>

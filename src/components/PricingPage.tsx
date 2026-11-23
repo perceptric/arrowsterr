@@ -141,7 +141,7 @@ export function PricingPage() {
 
       <section className="mx-auto max-w-7xl px-4 pb-20 sm:px-8">
         <h2 className="aw-h2 mb-6! text-center">Compare plans</h2>
-        <div className="overflow-x-auto rounded-[20px] border border-rule bg-white">
+        <div className="overflow-x-auto rounded-aw-lg border border-rule bg-white">
           <table className="w-full min-w-[880px] text-[14px]">
             <thead>
               <tr className="border-b border-rule">
@@ -197,7 +197,7 @@ export function PricingPage() {
       </section>
 
       <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-8">
-        <div className="flex flex-col items-center gap-5 rounded-[24px] bg-[linear-gradient(135deg,var(--aw-brand),var(--aw-brand-deep))] px-6 py-14 text-center text-white">
+        <div className="flex flex-col items-center gap-5 rounded-aw-xl bg-[linear-gradient(135deg,var(--aw-brand),var(--aw-brand-deep))] px-6 py-14 text-center text-white">
           <LogoStack size={30} />
           <h2 className="text-[32px] leading-tight font-medium text-white sm:text-[40px]">Find out what AI says about you</h2>
           <p className="max-w-xl text-[16px] text-white/80">Your first results in minutes. Free forever.</p>

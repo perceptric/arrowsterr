@@ -605,7 +605,7 @@ export function KeywordOverview({ sb, auth, site, canEdit }: { sb: SupabaseClien
                             AI Overview ({s.aio.cites.length} {s.aio.cites.length === 1 ? "link" : "links"})
                           </span>
                           {s.aio.cites.slice(0, 8).map((c) => (
-                            <a key={c.url} href={c.url} target="_blank" rel="noopener noreferrer nofollow" title={c.url} className="flex items-center gap-1 border border-rule px-1.5 py-0.5 text-[12px]">
+                            <a key={c.url} href={c.url} target="_blank" rel="noopener noreferrer nofollow" title={c.url} className="flex items-center gap-1 rounded-aw-sm border border-rule px-1.5 py-0.5 text-[12px]">
                               <BrandLogo src={favicon(c.domain)} name={c.domain} size={12} />
                               {c.domain}
                             </a>

@@ -89,7 +89,7 @@ function Preview({ html }: { html: string }) {
     return () => window.removeEventListener("message", fit);
   }, []);
   const doc = `<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><body style="margin:0;font-family:system-ui,sans-serif">${html}<script>new ResizeObserver(()=>parent.postMessage({awh:document.documentElement.scrollHeight},"*")).observe(document.body)</script></body>`;
-  return <iframe ref={ref} title="Block preview" sandbox="allow-scripts" srcDoc={doc} className="w-full border border-rule-faint bg-white" style={{ height: h }} />;
+  return <iframe ref={ref} title="Block preview" sandbox="allow-scripts" srcDoc={doc} className="w-full rounded-aw border border-rule-faint bg-white" style={{ height: h }} />;
 }
 
 const inputCls = "aw-input";
@@ -135,7 +135,7 @@ function Rows<T>({ label, rows, max, make, onChange, render }: { label: string; 
     <div className="flex flex-col gap-2">
       <span className="text-[13px] text-body">{label}</span>
       {rows.map((r, i) => (
-        <div key={i} className="flex items-start gap-2 border border-rule-faint p-2">
+        <div key={i} className="flex items-start gap-2 rounded-aw border border-rule-faint p-2">
           <div className="flex min-w-0 flex-1 flex-col gap-2">{render(r, (n) => onChange(rows.map((x, j) => (j === i ? n : x))), i)}</div>
           <button type="button" className="aw-icon-btn flex h-8 w-8 shrink-0 items-center justify-center" aria-label={`Remove ${i + 1}`} title="Remove" disabled={rows.length <= 1} onClick={() => onChange(rows.filter((_, j) => j !== i))}>
             <X />

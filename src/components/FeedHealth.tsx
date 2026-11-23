@@ -190,7 +190,7 @@ export function FeedHealth({ auth, brandId, canEdit, onCatalog }: { auth: RunAut
               <span className="aw-label">Details AI shopping answers use</span>
               <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {missing.map((m) => (
-                  <li key={m.k} className="flex flex-col gap-1 rounded-md border border-rule-faint bg-surface-2 p-3">
+                  <li key={m.k} className="flex flex-col gap-1 rounded-aw border border-rule-faint bg-surface-2 p-3">
                     <span className="flex items-center justify-between gap-2">
                       <span className="text-[14px] font-medium text-ink">{m.label}</span>
                       <span className={`aw-status ${m.items ? "aw-status--warn" : "aw-status--ranked"}`}>{m.items ? `${m.items.toLocaleString("en-US")} missing` : "All set"}</span>

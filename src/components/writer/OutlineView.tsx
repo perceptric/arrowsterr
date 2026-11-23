@@ -144,7 +144,7 @@ export function OutlineView({
       <span className="flex items-center gap-3">
         {b && canEdit ? (
           <span className="flex items-center gap-1.5 text-[12px] whitespace-nowrap text-muted" aria-live="polite">
-            <i className={`inline-block h-1.5 w-1.5 ${saving ? "bg-warn" : "bg-pos"}`} aria-hidden="true" />
+            <i className={`inline-block h-1.5 w-1.5 rounded-full ${saving ? "bg-warn" : "bg-pos"}`} aria-hidden="true" />
             {saving ? "Saving" : "Saved"}
           </span>
         ) : null}
@@ -291,7 +291,7 @@ export function OutlineView({
         </div>
 
         {wide && card ? (
-          <aside className="sticky top-4 flex max-h-[calc(100vh-2rem)] min-w-0 flex-col border border-rule bg-white" aria-label={`Section: ${sectionName(card)}`}>
+          <aside className="sticky top-4 flex max-h-[calc(100vh-2rem)] min-w-0 flex-col rounded-aw-lg border border-rule bg-white" aria-label={`Section: ${sectionName(card)}`}>
             <div className="flex items-center gap-2 border-b border-rule-faint px-2 py-2">
               {nav}
               <span className="flex-1" />
@@ -395,7 +395,7 @@ function SearchListing({ brief, keyword, domain, disabled, onSave }: { brief: Wr
         </Field>
         <Field label="URL" id="ol-slug">
           <span className="flex min-w-0 items-stretch">
-            {host ? <span className="flex shrink-0 items-center border border-r-0 border-rule bg-[var(--bg-secondary)] px-2.5 text-[13px] text-muted">{host}/</span> : null}
+            {host ? <span className="flex shrink-0 items-center rounded-l-aw border border-r-0 border-rule bg-[var(--bg-secondary)] px-2.5 text-[13px] text-muted">{host}/</span> : null}
             <input
               id="ol-slug"
               value={v.slug}
@@ -404,7 +404,7 @@ function SearchListing({ brief, keyword, domain, disabled, onSave }: { brief: Wr
               onChange={(e) => setV({ ...v, slug: e.target.value.toLowerCase().replace(/[^a-z0-9/-]+/g, "-").replace(/-{2,}/g, "-") })}
               onBlur={() => done("slug", "slug", brief.slug)}
               onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-              className="aw-input min-w-0 flex-1"
+              className={`aw-input min-w-0 flex-1 ${host ? "rounded-l-none!" : ""}`}
             />
           </span>
         </Field>
@@ -421,7 +421,7 @@ function SearchListing({ brief, keyword, domain, disabled, onSave }: { brief: Wr
             ))}
           </span>
         ) : null}
-        <div className="flex flex-col gap-1 border border-rule-faint bg-[var(--bg-secondary)] px-4 py-3" aria-label="Google preview">
+        <div className="flex flex-col gap-1 rounded-aw border border-rule-faint bg-[var(--bg-secondary)] px-4 py-3" aria-label="Google preview">
           <span className="aw-micro">Google preview</span>
           <span className="truncate text-[12px] text-muted">{[host || "your-site.com", ...v.slug.split("/").filter(Boolean)].join(" › ")}</span>
           <span className="truncate text-[18px] leading-6 text-brand">{v.h1.length > 60 ? `${v.h1.slice(0, 58).trim()} …` : v.h1 || "Add a title"}</span>
@@ -534,7 +534,7 @@ function SectionDetail({
           facts.map((n) => {
             const src = sources.find((s) => s.n === n.source);
             return (
-              <div key={n.id} className="flex flex-col gap-2 border border-rule-faint px-3 py-2.5">
+              <div key={n.id} className="flex flex-col gap-2 rounded-aw border border-rule-faint px-3 py-2.5">
                 <p className="text-[13px] text-ink [overflow-wrap:break-word]">{n.fact}</p>
                 {quote === n.id ? <p className="border-l-2 border-rule pl-2.5 text-[12px] text-muted [overflow-wrap:break-word]">&ldquo;{n.quote}&rdquo;</p> : null}
                 {dropping === n.id ? (
@@ -592,7 +592,7 @@ function SectionDetail({
       ) : null}
 
       {card.gaps.length ? (
-        <div className="flex flex-col gap-1.5 border border-rule-faint bg-warn-bg px-3 py-2.5">
+        <div className="flex flex-col gap-1.5 rounded-aw border border-rule-faint bg-warn-bg px-3 py-2.5">
           <span className="aw-micro text-warn">Detail needed</span>
           {card.gaps.map((g) => (
             <p key={g} className="text-[13px] text-ink [overflow-wrap:break-word]">
@@ -644,10 +644,10 @@ function Points({ points, disabled, onSave }: { points: string[]; disabled: bool
           </button>
         )}
       </span>
-      <ul className="flex flex-col border border-rule-faint">
+      <ul className="flex flex-col overflow-hidden rounded-aw border border-rule-faint">
         {list.map((p, i) => (
           <li key={i} className={`flex items-start gap-2 px-2 ${i ? "border-t border-rule-faint" : ""}`}>
-            <span className="mt-[13px] h-1.5 w-1.5 shrink-0 bg-muted" aria-hidden="true" />
+            <span className="mt-[13px] h-1.5 w-1.5 shrink-0 rounded-full bg-muted" aria-hidden="true" />
             <textarea
               id={`pt-${i}`}
               value={p}
@@ -724,7 +724,7 @@ function WriteDialog({
   onClose: () => void;
 }) {
   const stat = (n: string, l: string) => (
-    <div className="flex flex-col border border-rule-faint px-3 py-2">
+    <div className="flex flex-col rounded-aw border border-rule-faint px-3 py-2">
       <span className="aw-num text-[18px] font-medium text-ink">{n}</span>
       <span className="text-[12px] text-muted">{l}</span>
     </div>
@@ -739,7 +739,7 @@ function WriteDialog({
           {stat(String(facts), "fact notes")}
         </div>
         {needs.length ? (
-          <div className="flex flex-col gap-1.5 border border-rule-faint bg-warn-bg px-3 py-2.5 text-[13px] text-ink">
+          <div className="flex flex-col gap-1.5 rounded-aw border border-rule-faint bg-warn-bg px-3 py-2.5 text-[13px] text-ink">
             <span>
               {needs.length === 1 ? (
                 <>

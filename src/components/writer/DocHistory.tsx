@@ -149,7 +149,7 @@ export function DocHistory({
       {view ? (
         <Modal title={(view.v.label || (view.v.reason === "regenerate" ? versionName(view.v) : "")) || `Version from ${new Date(view.v.created_at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}`} onClose={() => setView(null)} width="max-w-3xl">
           <div className="flex flex-col gap-4">
-            <div className="aw-editor aw-editor--draft max-h-[60vh] overflow-y-auto border border-rule-faint px-6 py-5 [&_img]:h-auto [&_img]:max-w-full">
+            <div className="aw-editor aw-editor--draft max-h-[60vh] overflow-y-auto rounded-aw border border-rule-faint px-6 py-5 [&_img]:h-auto [&_img]:max-w-full">
               <h1 className="mb-4 text-[24px] font-semibold text-ink">{view.v.title}</h1>
               {/* A saved version of this workspace's own article, rendered by docToHtml (which escapes text and drops unsafe links). */}
               <div dangerouslySetInnerHTML={{ __html: view.html.replace(/<div data-aw-module="[^"]*"[^>]*><\/div>/g, '<p class="text-muted">[Interactive element]</p>') }} />

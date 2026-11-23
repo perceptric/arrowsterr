@@ -145,7 +145,7 @@ export function GenerateDialog({
               const st = state[r.pair];
               const kind = r.module ? kindOf(r.module) : null;
               return (
-                <div key={r.pair} className={`flex flex-col gap-2 border border-rule px-3 py-2.5 ${r.on ? "bg-white" : "bg-[var(--bg-secondary)]"}`}>
+                <div key={r.pair} className={`flex flex-col gap-2 rounded-aw border border-rule px-3 py-2.5 ${r.on ? "bg-white" : "bg-[var(--bg-secondary)]"}`}>
                   <label className="flex items-center gap-2 text-[13px]">
                     <input type="checkbox" checked={r.on} disabled={running || finished} onChange={() => set(r.pair, { on: !r.on })} />
                     <span className="text-muted">Section {r.pair + 1}</span>
