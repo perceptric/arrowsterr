@@ -10,7 +10,7 @@ import type { RunAuth } from "@/lib/runner";
 import { Copy } from "./InstallGuide";
 import { Dropdown } from "./Pickers";
 import { EmptyScreen } from "./Drawing";
-import { Thinking } from "./ui";
+import { Glyph, Thinking, type GlyphName } from "./ui";
 
 // Brand Kits (docs/reports.md, section 31): the learning animation shown in onboarding and Settings,
 // and the Settings → Brand Kit page.
@@ -38,56 +38,101 @@ const typeLine = (t: BrandKit["type"]["h1"]) => `${t.size}px ${weightName(t.weig
 const corners = (r: number) => (r >= 999 ? "Pill" : r === 0 ? "Square" : `${r}px corners`);
 const fontLine = (site: string, near: Font) => (site && site !== near ? `${site} (reports use ${near})` : near);
 
-/** One line of the learned kit: a label and what was found. */
-function KitRowLine({ label, children }: { label: string; children: React.ReactNode }) {
+/** One tile of the learned kit: an icon and a name, the thing drawn in the brand's own style, and a short note. */
+function Fact({ icon, title, note, wide, i, dark, children }: { icon: GlyphName; title: string; note: string; wide?: "two" | "all"; i: number; dark?: boolean; children: React.ReactNode }) {
   return (
-    <div className="grid gap-1 border-t border-rule-faint py-3 first:border-t-0 first:pt-0 last:pb-0 sm:grid-cols-[120px_minmax(0,1fr)] sm:gap-6">
-      <span className="text-[13px] text-muted">{label}</span>
-      <div className="min-w-0 text-[14px] text-ink">{children}</div>
+    <div className={`aw-frame aw-kit__fact aw-rise ${wide === "two" ? "aw-kit__fact--two" : wide === "all" ? "aw-kit__fact--all" : ""}`} style={{ ["--i" as string]: i }}>
+      <span className="aw-kit__fact-head">
+        <Glyph name={icon} />
+        {title}
+      </span>
+      <div className={`aw-kit__fact-stage ${dark ? "is-dark" : ""}`}>{children}</div>
+      <span className="aw-kit__fact-note">{note}</span>
     </div>
   );
 }
 
-/** Everything learned from the site, in words: fonts, type sizes, buttons, cards and voice. */
+/** Everything learned from the site, drawn: logo, fonts, type sizes, buttons, cards, links, tone and footer. */
 function KitFacts({ kit, domain }: { kit: BrandKit; domain: string }) {
+  const { head, body } = kitFonts(kit);
+  const c = kit.colors;
+  const sizes: [string, BrandKit["type"]["h1"], string][] = [
+    ["Title", kit.type.h1, head],
+    ["Heading", kit.type.h2, head],
+    ["Subheading", kit.type.h3, head],
+    ["Text", kit.type.body, body],
+  ];
   return (
-    <section className="aw-frame">
-      <header className="aw-frame__head">
-        <h2>What we found</h2>
-        <span className="text-[13px] font-normal text-muted">From {domain}</span>
-      </header>
-      <div className="aw-frame__body flex flex-col pt-1!">
-        <KitRowLine label="Name">{kit.name || domain}</KitRowLine>
-        <KitRowLine label="Logo">{kit.logo ? (kit.logoOnDark ? "Found, a light logo for dark grounds" : "Found") : "None found. Reports show your name."}</KitRowLine>
-        <KitRowLine label="Heading font">{fontLine(kit.siteFonts.heading, kit.fonts.heading)}</KitRowLine>
-        <KitRowLine label="Text font">{fontLine(kit.siteFonts.body, kit.fonts.body)}</KitRowLine>
-        <KitRowLine label="Type sizes">
-          <ul className="flex flex-col gap-0.5">
-            <li>Title: {typeLine(kit.type.h1)}</li>
-            <li>Heading: {typeLine(kit.type.h2)}</li>
-            <li>Subheading: {typeLine(kit.type.h3)}</li>
-            <li>Text: {typeLine(kit.type.body)}</li>
+    <section className="flex flex-col gap-3" aria-label="What we found">
+      <div className="flex items-baseline justify-between gap-3 px-1">
+        <h2 className="text-[15px] font-semibold text-ink">What we found</h2>
+        <span className="text-[13px] text-muted">From {domain}</span>
+      </div>
+      <div className="aw-kit__facts">
+        <Fact icon="image" title="Logo" note={kit.logo ? (kit.logoOnDark ? "A light logo, shown on dark" : "Found on your site") : "None found, so reports show your name"} i={0} dark={kit.logoOnDark}>
+          {kit.logo ? <img src={kit.logo} alt={`${kit.name || domain} logo`} className="max-h-12 max-w-[80%] object-contain" /> : <b style={{ fontFamily: head, fontSize: 24, color: c.ink }}>{kit.name || domain}</b>}
+        </Fact>
+        <Fact icon="type" title="Heading font" note={fontLine(kit.siteFonts.heading, kit.fonts.heading)} i={1}>
+          <span className="flex flex-col items-center leading-none">
+            <b style={{ fontFamily: head, fontSize: 52, fontWeight: kit.type.h1.weight, color: c.ink }}>Aa</b>
+            <small className="mt-2 text-[13px]" style={{ fontFamily: head, color: c.text }}>{kit.siteFonts.heading || kit.fonts.heading}</small>
+          </span>
+        </Fact>
+        <Fact icon="type" title="Text font" note={fontLine(kit.siteFonts.body, kit.fonts.body)} i={2}>
+          <span className="flex flex-col items-center leading-none">
+            <b style={{ fontFamily: body, fontSize: 52, fontWeight: kit.type.body.weight, color: c.ink }}>Aa</b>
+            <small className="mt-2 text-[13px]" style={{ fontFamily: body, color: c.text }}>{kit.siteFonts.body || kit.fonts.body}</small>
+          </span>
+        </Fact>
+        <Fact icon="size" title="Type sizes" note="Headings shown at half size" wide="two" i={3}>
+          <ul className="flex w-full flex-col gap-2">
+            {sizes.map(([name, t, font]) => (
+              <li key={name} className="flex items-baseline justify-between gap-4">
+                <span className="min-w-0 truncate" style={{ ...typeStyle(t, name === "Text" ? 1 : 0.45), lineHeight: 1.15, fontFamily: font, color: c.ink }}>
+                  {name}
+                </span>
+                <span className="aw-tag shrink-0">{typeLine(t)}</span>
+              </li>
+            ))}
           </ul>
-        </KitRowLine>
-        <KitRowLine label="Buttons">
-          {corners(kit.buttons.primary.radius)}, {weightName(kit.buttons.primary.weight).toLowerCase()} text{kit.buttons.primary.upper ? " in caps" : ""}
-        </KitRowLine>
-        <KitRowLine label="Cards">
-          {corners(kit.radius)}, {kit.shadow === "none" ? "no shadow" : "soft shadow"}
-        </KitRowLine>
-        <KitRowLine label="Links">{kit.link.underline ? "Underlined" : "No underline"}</KitRowLine>
-        {kit.voice.tone.length ? (
-          <KitRowLine label="Tone">
-            <span className="flex flex-wrap gap-1.5">
+        </Fact>
+        <Fact icon="button" title="Buttons" note={`${corners(kit.buttons.primary.radius)}, ${weightName(kit.buttons.primary.weight).toLowerCase()} text`} i={4}>
+          <span className="flex flex-wrap items-center justify-center gap-2">
+            <span style={{ ...buttonStyle(kit.buttons.primary, body), fontSize: 13 }}>Book a demo</span>
+            <span style={{ ...buttonStyle(kit.buttons.secondary, body), fontSize: 13 }}>Learn more</span>
+          </span>
+        </Fact>
+        <Fact icon="card" title="Cards" note={`${corners(kit.radius)}, ${kit.shadow === "none" ? "no shadow" : "soft shadow"}`} i={5}>
+          <span className="flex w-[78%] flex-col gap-1.5 p-4" style={{ background: c.surface, border: `1px solid ${c.line}`, borderRadius: kit.radius, boxShadow: kit.shadow === "none" ? undefined : kit.shadow }}>
+            <b style={{ fontFamily: head, fontSize: 14, color: c.ink }}>A card</b>
+            <i className="block h-1.5 w-full rounded-full opacity-15" style={{ background: c.ink }} />
+            <i className="block h-1.5 w-2/3 rounded-full opacity-15" style={{ background: c.ink }} />
+          </span>
+        </Fact>
+        <Fact icon="link" title="Links" note={kit.link.underline ? "Underlined" : "No underline"} i={6}>
+          <span style={{ fontFamily: body, fontSize: 15, color: c.text }}>
+            Read <span style={{ color: kit.link.color, textDecoration: kit.link.underline ? "underline" : "none", fontWeight: 500 }}>our guide</span> today
+          </span>
+        </Fact>
+        <Fact icon="mic" title="Tone" note="How your site sounds" i={7}>
+          {kit.voice.tone.length ? (
+            <span className="flex flex-wrap justify-center gap-1.5">
               {kit.voice.tone.map((t) => (
-                <span key={t} className="aw-tag">
+                <span key={t} className="aw-tag bg-surface!">
                   {t}
                 </span>
               ))}
             </span>
-          </KitRowLine>
-        ) : null}
-        {kit.footer ? <KitRowLine label="Report footer">{kit.footer}</KitRowLine> : null}
+          ) : (
+            <span className="text-[13px] text-muted">Not enough text to tell</span>
+          )}
+        </Fact>
+        <Fact icon="footer" title="Report footer" note="The last line of every report" wide="all" i={8}>
+          <span className="flex w-full items-center justify-between gap-3 border-t pt-3 text-[12px]" style={{ borderColor: c.line, color: c.muted, fontFamily: body }}>
+            <span className="truncate">{kit.footer || domain}</span>
+            <span className="shrink-0">Page 1</span>
+          </span>
+        </Fact>
       </div>
     </section>
   );
@@ -502,18 +547,28 @@ function siteFontsUrl(kit: BrandKit) {
 }
 
 /** A small page in the kit's look: headings, text, a link, both buttons and a card. Shows every style at once. */
-export function KitSpecimen({ kit }: { kit: BrandKit }) {
-  const t = kitToTheme(kit);
-  preinit(fontsUrl(t), { as: "style", precedence: "default" });
+/** Load a kit's fonts once into <head>, and give the CSS font stacks for its headings and text. */
+function kitFonts(kit: BrandKit) {
+  preinit(fontsUrl(kitToTheme(kit)), { as: "style", precedence: "default" });
   const site = siteFontsUrl(kit);
   if (site) preinit(site, { as: "style", precedence: "default" });
-  const stack = (site: string, near: Font) => (site && site !== near ? `'${site.replace(/'/g, "")}', ${fontStack(near)}` : fontStack(near));
-  const head = stack(kit.siteFonts.heading, kit.fonts.heading);
-  const body = stack(kit.siteFonts.body, kit.fonts.body);
-  const type = (x: BrandKit["type"]["h1"], scale: number) =>
-    ({ fontSize: Math.max(11, Math.round(x.size * scale)), fontWeight: x.weight, lineHeight: x.lineHeight, letterSpacing: `${x.tracking}em`, textTransform: x.upper ? "uppercase" : undefined }) as React.CSSProperties;
-  const btn = (b: BrandKit["buttons"]["primary"]) =>
-    ({ background: b.bg, color: b.text, border: `1px solid ${b.border}`, borderRadius: b.radius, fontWeight: b.weight, padding: `${Math.round(b.padY * 0.7)}px ${Math.round(b.padX * 0.7)}px`, textTransform: b.upper ? "uppercase" : undefined, fontFamily: body }) as React.CSSProperties;
+  const stack = (name: string, near: Font) => (name && name !== near ? `'${name.replace(/'/g, "")}', ${fontStack(near)}` : fontStack(near));
+  return { head: stack(kit.siteFonts.heading, kit.fonts.heading), body: stack(kit.siteFonts.body, kit.fonts.body) };
+}
+
+/** One of the kit's text styles as inline CSS, shrunk by scale. */
+const typeStyle = (x: BrandKit["type"]["h1"], scale: number) =>
+  ({ fontSize: Math.max(11, Math.round(x.size * scale)), fontWeight: x.weight, lineHeight: x.lineHeight, letterSpacing: `${x.tracking}em`, textTransform: x.upper ? "uppercase" : undefined }) as React.CSSProperties;
+
+/** One of the kit's buttons as inline CSS. */
+const buttonStyle = (b: BrandKit["buttons"]["primary"], font: string) =>
+  ({ background: b.bg, color: b.text, border: `1px solid ${b.border}`, borderRadius: b.radius, fontWeight: b.weight, padding: `${Math.round(b.padY * 0.7)}px ${Math.round(b.padX * 0.7)}px`, textTransform: b.upper ? "uppercase" : undefined, fontFamily: font }) as React.CSSProperties;
+
+export function KitSpecimen({ kit }: { kit: BrandKit }) {
+  const t = kitToTheme(kit);
+  const { head, body } = kitFonts(kit);
+  const type = typeStyle;
+  const btn = (b: BrandKit["buttons"]["primary"]) => buttonStyle(b, body);
   const c = kit.colors;
   return (
     <div className="aw-kit__spec" style={{ background: c.paper, color: c.text, fontFamily: body }} aria-hidden="true">

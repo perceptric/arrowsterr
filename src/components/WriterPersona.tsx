@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import type { RunAuth } from "@/lib/runner";
 import { type VoiceStats, type WriterPersona } from "@/lib/writerPersona";
 import { post } from "./research/shared";
-import { Thinking } from "./ui";
+import { Glyph, ScaleBar, Thinking, type GlyphName } from "./ui";
 
 // The writer persona card (docs/zippie-skills-plan.md, section 4): the persona, the reader, the point of view, the
 // tone and sentences, then the numbers measured from the brand's posts. Read it, or edit it.
@@ -14,11 +14,14 @@ export type Built = { persona: WriterPersona; stats: VoiceStats; noBlog: boolean
 
 const terms = (s: string) => s.split(/[,\n]/).map((x) => x.trim()).filter(Boolean);
 
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
+function Row({ icon, label, children }: { icon: GlyphName; label: string; children: React.ReactNode }) {
   return (
-    <div className="grid gap-1 border-t border-rule-faint py-3.5 first:border-t-0 first:pt-0 last:pb-0 sm:grid-cols-[140px_minmax(0,1fr)] sm:gap-6">
-      <span className="pt-0.5 text-[13px] text-muted">{label}</span>
-      <div className="min-w-0 text-[14px] leading-relaxed text-ink wrap-break-word">{children}</div>
+    <div className="grid gap-2 border-t border-rule-faint py-3.5 first:border-t-0 first:pt-0 last:pb-0 sm:grid-cols-[168px_minmax(0,1fr)] sm:gap-6">
+      <span className="flex items-center gap-2.5 self-start text-[13px] font-medium text-ink">
+        <Glyph name={icon} />
+        {label}
+      </span>
+      <div className="min-w-0 pt-0.5 text-[14px] leading-relaxed text-ink wrap-break-word">{children}</div>
     </div>
   );
 }
@@ -26,7 +29,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 /** One group of the persona: a titled card. */
 function Section({ title, note, children }: { title: string; note?: string; children: React.ReactNode }) {
   return (
-    <section className="aw-frame">
+    <section className="aw-frame aw-rise">
       <header className="aw-frame__head">
         <h2>{title}</h2>
         {note ? <span className="text-[13px] font-normal text-muted">{note}</span> : null}
@@ -56,24 +59,28 @@ const PERSON = [
   { key: "i", word: "I" },
 ] as const;
 
-/** The numbers measured from the brand's posts, as tiles. */
+/** The numbers measured from the brand's posts, as tiles, each with an icon and a bar on a sensible scale. */
 function Measured({ stats }: { stats: VoiceStats }) {
   const person = [...PERSON].sort((a, b) => stats[b.key] - stats[a.key])[0];
-  const tiles = [
-    { label: "Words a sentence", num: stats.sentenceAvg, note: `Most between ${stats.sentenceLow} and ${stats.sentenceHigh}` },
-    { label: "Sentences a paragraph", num: stats.paragraphAvg, note: "On average" },
-    { label: `Says \u201c${person.word}\u201d`, num: stats[person.key], note: "Times per 1,000 words" },
-    { label: "Contractions", num: stats.contractions, note: "Per 1,000 words" },
-    { label: "Reading grade", num: stats.grade, note: "Flesch-Kincaid" },
-    { label: "Headings a post", num: stats.headingsPerPost, note: `${stats.listsPerPost} lists a post` },
+  const tiles: { icon: GlyphName; label: string; num: number; note: string; max: number; band?: [number, number] }[] = [
+    { icon: "ruler", label: "Words a sentence", num: stats.sentenceAvg, note: `Most between ${stats.sentenceLow} and ${stats.sentenceHigh}`, max: 40, band: [stats.sentenceLow, stats.sentenceHigh] },
+    { icon: "pilcrow", label: "Sentences a paragraph", num: stats.paragraphAvg, note: "On average", max: 6 },
+    { icon: "chat", label: `Says \u201c${person.word}\u201d`, num: stats[person.key], note: "Times per 1,000 words", max: 50 },
+    { icon: "quote", label: "Contractions", num: stats.contractions, note: "Per 1,000 words", max: 30 },
+    { icon: "grade", label: "Reading grade", num: stats.grade, note: stats.grade <= 8 ? "Easy to read" : stats.grade <= 12 ? "Plain business English" : "Dense", max: 18 },
+    { icon: "heading", label: "Headings a post", num: stats.headingsPerPost, note: `${stats.listsPerPost} lists a post`, max: 30 },
   ];
   return (
-    <div className="aw-stats aw-stats--tight" style={{ ["--cols" as string]: 3 }}>
+    <div className="aw-stats aw-stats--tight aw-rise" style={{ ["--cols" as string]: 3, ["--i" as string]: 1 }}>
       {tiles.map((t) => (
         <div key={t.label} className="aw-stat">
-          <div className="aw-stat__lab">{t.label}</div>
+          <div className="aw-stat__lab flex items-center justify-between gap-2">
+            {t.label}
+            <Glyph name={t.icon} />
+          </div>
           <span className="aw-stat__num">{t.num}</span>
           <span className="block text-[12px] text-muted">{t.note}</span>
+          <ScaleBar value={t.num} max={t.max} band={t.band} />
         </div>
       ))}
     </div>
@@ -88,16 +95,16 @@ export function PersonaCard({ persona, stats, edit, onChange }: { persona: Write
   return (
     <div className="flex flex-col gap-4">
       <Section title="Voice">
-        <Row label="Persona">{edit ? text(persona.writer, (v) => set({ writer: v })) : persona.writer || <span className="text-muted">Not on the site yet</span>}</Row>
-        <Row label="Who reads">{edit ? text(persona.reader, (v) => set({ reader: v })) : persona.reader}</Row>
-        <Row label="Point of view">{edit ? text(persona.pov, (v) => set({ pov: v })) : persona.pov || none}</Row>
-        <Row label="Tone">{edit ? <input value={persona.tone.join(", ")} onChange={(e) => set({ tone: terms(e.target.value) })} className="aw-input py-2! text-[13.5px]!" /> : <Tags list={persona.tone} />}</Row>
-        <Row label="Sentences">{edit ? text(persona.sentences, (v) => set({ sentences: v }), 1) : persona.sentences}</Row>
+        <Row icon="persona" label="Persona">{edit ? text(persona.writer, (v) => set({ writer: v })) : persona.writer || <span className="text-muted">Not on the site yet</span>}</Row>
+        <Row icon="reader" label="Who reads">{edit ? text(persona.reader, (v) => set({ reader: v })) : persona.reader}</Row>
+        <Row icon="compass" label="Point of view">{edit ? text(persona.pov, (v) => set({ pov: v })) : persona.pov || none}</Row>
+        <Row icon="wave" label="Tone">{edit ? <input value={persona.tone.join(", ")} onChange={(e) => set({ tone: terms(e.target.value) })} className="aw-input py-2! text-[13.5px]!" /> : <Tags list={persona.tone} />}</Row>
+        <Row icon="lines" label="Sentences">{edit ? text(persona.sentences, (v) => set({ sentences: v }), 1) : persona.sentences}</Row>
       </Section>
 
       {stats?.posts ? (
         <div className="flex flex-col gap-2">
-          <span className="px-1 text-[13px] text-muted">Measured from {stats.posts} posts</span>
+          <span className="px-1 text-[13px] font-medium text-ink">Measured from {stats.posts} posts</span>
           <Measured stats={stats} />
         </div>
       ) : null}

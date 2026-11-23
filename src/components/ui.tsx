@@ -267,6 +267,52 @@ export function Meter({ label, used, limit }: { label: string; used: number; lim
   );
 }
 
+// ─────────────── glyphs ───────────────
+
+const GLYPHS = {
+  persona: <><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" /></>,
+  reader: <><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></>,
+  compass: <><circle cx="12" cy="12" r="9" /><path d="m15.5 8.5-2 5-5 2 2-5z" /></>,
+  wave: <path d="M4 10v4M8 6v12M12 9v6M16 4v16M20 10v4" />,
+  lines: <path d="M4 6h16M4 12h16M4 18h10" />,
+  ruler: <><rect x="3" y="8" width="18" height="8" rx="1.5" /><path d="M7 8v3M11 8v4M15 8v3" /></>,
+  pilcrow: <path d="M13 4v16M17 4v16M19 4H9.5a4.5 4.5 0 0 0 0 9H13" />,
+  chat: <path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z" />,
+  quote: <path d="M6 17h3l2-4V7H5v6h3M14 17h3l2-4V7h-6v6h3" />,
+  grade: <><path d="M2 9l10-5 10 5-10 5z" /><path d="M6 11v5c3 2 9 2 12 0v-5" /></>,
+  heading: <path d="M6 4v16M18 4v16M6 12h12" />,
+  image: <><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="9" cy="10" r="2" /><path d="m21 16-5-5-9 9" /></>,
+  type: <path d="M5 6V4h14v2M12 4v16M9 20h6" />,
+  size: <path d="M3 7V5h10v2M8 5v14M6 19h4M14 13v-1h7v1M17.5 12v7M16 19h3" />,
+  button: <><rect x="3" y="7" width="18" height="10" rx="5" /><path d="M8 12h8" /></>,
+  card: <><rect x="3" y="5" width="18" height="14" rx="3" /><path d="M3 10h18" /></>,
+  link: <><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1" /><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1" /></>,
+  mic: <><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5 11a7 7 0 0 0 14 0M12 18v3" /></>,
+  footer: <><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 16h18" /></>,
+};
+export type GlyphName = keyof typeof GLYPHS;
+
+/** A small line icon in a soft blue square. Pass bare to get the icon alone. */
+export function Glyph({ name, bare }: { name: GlyphName; bare?: boolean }) {
+  const svg = (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {GLYPHS[name]}
+    </svg>
+  );
+  return bare ? svg : <span className="aw-ico">{svg}</span>;
+}
+
+/** A thin bar for one number on a scale. band shades a range; the bars grow in when they first show. */
+export function ScaleBar({ value, max, band }: { value: number; max: number; band?: [number, number] }) {
+  const pct = (n: number) => Math.max(0, Math.min(100, (n / max) * 100));
+  return (
+    <span className="aw-meter relative mt-3 block h-1.5" aria-hidden="true">
+      {band ? <i className="absolute inset-y-0 bg-brand-bg" style={{ left: `${pct(band[0])}%`, width: `${pct(band[1]) - pct(band[0])}%` }} /> : null}
+      <i className="absolute inset-y-0 left-0 bg-brand" style={{ width: `${pct(value)}%` }} />
+    </span>
+  );
+}
+
 // ─────────────── button icons ───────────────
 
 const ICON = { width: 14, height: 14, viewBox: "0 0 16 16", "aria-hidden": true, className: "aw-icon shrink-0" } as const;
