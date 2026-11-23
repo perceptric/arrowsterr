@@ -1,6 +1,6 @@
 # Arrowsterr brand (v10)
 
-> **v10, 10 November 2026: the clear look.** A full reset. Earlier versions (v5 to v9) stacked one look on top of another, and the app ended up with six stylesheets fighting each other. v10 replaces all of them with one system: Geist type, cool neutral greys, white cards with soft shadows and 16px corners, rounded buttons, pill switches and dot tags, and Signal Blue `#0943B0` as the one accent. It is modeled on a reference page shared on 10 November 2026 (a clean SaaS pricing page), with its orange accent swapped for Signal Blue. The old guide is kept at `docs/archive/brand-v9.md` for history only. Where anything else in the repo disagrees with this file, this file wins.
+> **v10, 10 November 2026: the clear look.** A full reset. Earlier versions (v5 to v9) stacked one look on top of another, and the app ended up with six stylesheets fighting each other. v10 replaces all of them with one system: Inter type (Geist until 23 November 2026), cool neutral greys, white cards with soft shadows and 16px corners, rounded buttons, pill switches and dot tags, and Signal Blue `#0943B0` as the one accent. It is modeled on a reference page shared on 10 November 2026 (a clean SaaS pricing page), with its orange accent swapped for Signal Blue. The old guide is kept at `docs/archive/brand-v9.md` for history only. Where anything else in the repo disagrees with this file, this file wins.
 
 The visual reference with live components is the **Arrowsterr Brand v10** artifact. This file is the source of truth; the artifact shows it.
 
@@ -34,7 +34,7 @@ The visual reference with live components is the **Arrowsterr Brand v10** artifa
 
 | Area | v9 (keys and strips) | v10 (the clear look) |
 |---|---|---|
-| Type | Inter 13px UI, Funnel Display headlines, Geist Mono numbers | Geist for everything, Geist Mono only for code and ids |
+| Type | Inter 13px UI, Funnel Display headlines, Geist Mono numbers | Inter for everything, Geist Mono only for code and ids |
 | Neutrals | Warm greys, several near-duplicates | One cool grey ramp with a slight blue bias |
 | Accent | Signal Blue plus gold Spark plus Sky | Signal Blue, with a soft tint and a ring; gold only for one win per view |
 | Buttons | Square keys with a dark ring and top highlight | 8px corners, flat Signal Blue fill, no ring, no highlight |
@@ -281,7 +281,7 @@ Dark is a palette swap only: same layout, same radii, shadows drop to near zero 
 
 | Role | Family | Fallback |
 |---|---|---|
-| Everything (UI, body, headlines, numbers) | **Geist** 400, 500, 600 | `ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif` |
+| Everything (UI, body, headlines, numbers) | **Inter** 400, 500, 600 | `ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif` |
 | Code, API keys, ids, URLs in tables | **Geist Mono** 400, 500 | `ui-monospace, SFMono-Regular, Menlo, monospace` |
 
 Both are free on Google Fonts (SIL Open Font License). Load them with `next/font/google`. One family keeps the look calm; headlines get their character from weight 600 and tight letter-spacing.
@@ -733,7 +733,7 @@ The full set, as CSS custom properties in `src/app/globals.css`.
   --rank-out: #B91C1C;
 
   /* Type */
-  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
   /* Radius */

@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { Funnel_Display, Geist, Geist_Mono } from "next/font/google";
+import { Funnel_Display, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { DialogHost } from "@/components/Dialogs";
 
 // Every word in the app.
-const geist = Geist({
-  variable: "--font-geist",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
 });
@@ -34,7 +34,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${geist.variable} ${display.variable} ${mono.variable} h-full`}
+      className={`${inter.variable} ${display.variable} ${mono.variable} h-full`}
     >
       <body className="min-h-full">
         <div className="aw flex min-h-screen flex-col">

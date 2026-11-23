@@ -14,7 +14,7 @@
 
 `docs/brand.md` is the source of truth. The short version:
 
-- Geist for every word. Signal Blue is the one accent. One primary button per screen.
+- Inter for every word. Signal Blue is the one accent. One primary button per screen.
 - Corners come from six tokens: `rounded-aw-xs` 4, `rounded-aw-sm` 6, `rounded-aw` 8 (buttons, inputs), `rounded-aw-lg` 12 (cards), `rounded-aw-xl` 16 (page panel, dialogs), `rounded-full`. Never a raw size such as `rounded-md` or `rounded-[10px]`.
 - Shadows are `shadow-aw-sm`, `shadow-aw` and `shadow-aw-lg`. Colors are the token utilities (`text-muted`, `bg-surface-2`, `border-rule`). Never a raw hex in a class.
 - A box with a full border gets a corner class.

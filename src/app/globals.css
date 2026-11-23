@@ -34,7 +34,7 @@
   --bg-primary: var(--v10-card); --bg-quaternary: var(--v10-soft); --bg-secondary: var(--v10-canvas); --bg-tertiary: var(--v10-soft);
   --border-light: var(--v10-border); --border-medium: var(--v10-border); --border-strong: var(--v10-border-strong);
   --font-code: var(--font-geist-mono), "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-  --font-sans: var(--font-geist), "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; --frame: var(--v10-border);
+  --font-sans: var(--font-inter), "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; --frame: var(--v10-border);
   --green-11: var(--v10-success); --orange-11: var(--v10-warning); --paper-deep: var(--v10-canvas); --red-11: var(--v10-danger);
   --shadow-chip: var(--v10-shadow-sm); --shadow-focus: 0 0 0 1px var(--v10-signal), 0 0 0 4px var(--v10-signal-ring);
   --shadow-hover: 0 0 0 1px rgb(23 23 23 / 0.2), var(--v10-shadow-lg); --shadow-input: 0 0 0 1px var(--v10-border-strong);
@@ -66,7 +66,7 @@
   --aw-lh-body: 1.65; --aw-r-xs: 4px; --aw-r-sm: 6px; --aw-r-md: 8px; --aw-r-lg: 12px; --aw-r-xl: 16px; --aw-r-pill: 9999px; --aw-w-medium: 500; --aw-w-normal: 400;
   --aw-body: var(--v10-ink-2); --aw-brand: var(--v10-signal);
   --aw-brand-deep: var(--v10-signal-strong); --aw-brand-pale: var(--v10-signal-soft); --aw-faint: var(--v10-faint);
-  --aw-font: var(--font-geist), "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; --aw-ink: var(--v10-ink); --aw-line: var(--aw-rule); --aw-muted: var(--v10-muted); --aw-neg: var(--v10-danger);
+  --aw-font: var(--font-inter), "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; --aw-ink: var(--v10-ink); --aw-line: var(--aw-rule); --aw-muted: var(--v10-muted); --aw-neg: var(--v10-danger);
   --aw-paper: var(--v10-card); --aw-pos: var(--v10-success); --aw-radius: var(--aw-r-md);
   --aw-rule: var(--v10-border); --aw-skel: var(--v10-border); --aw-surface: var(--v10-card);
   --aw-surface-3: var(--v10-border); --aw-warn: var(--v10-warning); -moz-osx-font-smoothing: grayscale; -webkit-font-smoothing: antialiased; background: var(--v10-canvas);
@@ -2021,7 +2021,6 @@ body { background: var(--v10-canvas); }
   backdrop-filter: blur(12px) saturate(200%); border: 0; background: var(--v10-card); color: var(--v10-ink-2); border-radius: var(--aw-r-md);
   box-shadow: var(--shadow-menu); font-size: 13px;
 }
-.aw .aw-tip span { color: #FFFFFF; }
 
 /* ── aw-tool ── */
 .aw .aw-tool {

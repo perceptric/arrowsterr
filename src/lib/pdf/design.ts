@@ -44,7 +44,7 @@ export const ARROWSTERR: DesignTokens = {
   coverBg: "#0B1B3F",
   coverText: "#FFFFFF",
   heading: "var(--font-funnel), 'Funnel Display', system-ui, sans-serif",
-  body: "var(--font-geist), 'Geist', system-ui, sans-serif",
+  body: "var(--font-inter), 'Inter', system-ui, sans-serif",
   numbers: "var(--font-geist-mono), 'Geist Mono', ui-monospace, monospace",
   radius: 8,
   footer: "Made with Arrowsterr · arrowsterr.com",

@@ -119,11 +119,11 @@ export function TrendChart({ points, lines, metric, mode, wide = false }: { poin
             .sort((a, b) => (low ? (p.values[a.name] ?? 99) - (p.values[b.name] ?? 99) : (p.values[b.name] ?? -1) - (p.values[a.name] ?? -1)))
             .map((l) => (
               <div key={l.name} className="flex items-center justify-between gap-4">
-                <span className="flex items-center gap-2" style={{ color: "#A9B1C1" }}>
+                <span className="flex items-center gap-2 text-muted">
                   <i className="inline-block h-2 w-2 rounded-full" style={{ background: l.color }} />
                   {l.name}
                 </span>
-                <span style={{ color: "#FFFFFF" }}>{fmt(metric, p.values[l.name])}</span>
+                <span className="font-medium tabular-nums text-ink">{fmt(metric, p.values[l.name])}</span>
               </div>
             ))}
         </div>
