@@ -1203,7 +1203,6 @@ body { background: var(--v10-canvas); }
 /* ── aw-meter ── */
 .aw .aw-meter > * { border-radius: var(--aw-r-pill); }
 .aw .aw-meter { border-radius: var(--aw-r-pill); background: var(--v10-soft); overflow: hidden; }
-.aw .aw-meter > i { transform-origin: left; animation: aw-grow .9s var(--aw-ease) both .15s; }
 
 /* ── aw-meters ── */
 .aw .aw-meters { display: flex; flex-direction: column; border-radius: var(--aw-r-lg); background: var(--bg-primary); }
@@ -2159,7 +2158,6 @@ body { background: var(--v10-canvas); }
 @keyframes aw-scroll { from { transform: translateX(0) } to { transform: translateX(-50%) } }
 @keyframes aw-spin { to { transform: rotate(360deg); } }
 @keyframes aw-pop { from { opacity: 0; transform: translate(-50%, -50%) scale(.6); } to { opacity: 1; transform: translate(-50%, -50%); } }
-@keyframes aw-grow { from { transform: scaleX(0); } }
 @keyframes aw-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @keyframes aw-undo-in { from { opacity: 0; transform: translate(-50%, 8px); } to { opacity: 1; transform: translate(-50%, 0); } }
 @keyframes aw-shine { from { background-position: -50% 0; } to { background-position: 150% 0; } }

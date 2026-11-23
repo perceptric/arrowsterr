@@ -494,7 +494,7 @@ function WriterStep({ auth, name, logo, brandId, build, onNext }: { auth: RunAut
       {busy === "build" ? <Thinking text={`Reading ${name || "your site"}'s pages and posts...`} /> : null}
       {built && busy !== "build" ? (
         <>
-          <PersonaCard persona={built.persona} stats={built.stats} edit={edit} onChange={(persona) => setBuilt({ ...built, persona })} />
+          <PersonaCard persona={built.persona} edit={edit} onChange={(persona) => setBuilt({ ...built, persona })} />
           {built.noBlog ? <SharperBox busy={Boolean(busy)} onBuild={(urls, text) => load({ urls, text }, true)} /> : null}
           <div className="aw-onb__foot">
             <button type="button" className="aw-btn aw-btn--secondary" disabled={Boolean(busy)} onClick={() => setEdit(!edit)}>

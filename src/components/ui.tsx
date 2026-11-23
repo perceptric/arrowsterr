@@ -275,12 +275,6 @@ const GLYPHS = {
   compass: <><circle cx="12" cy="12" r="9" /><path d="m15.5 8.5-2 5-5 2 2-5z" /></>,
   wave: <path d="M4 10v4M8 6v12M12 9v6M16 4v16M20 10v4" />,
   lines: <path d="M4 6h16M4 12h16M4 18h10" />,
-  ruler: <><rect x="3" y="8" width="18" height="8" rx="1.5" /><path d="M7 8v3M11 8v4M15 8v3" /></>,
-  pilcrow: <path d="M13 4v16M17 4v16M19 4H9.5a4.5 4.5 0 0 0 0 9H13" />,
-  chat: <path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z" />,
-  quote: <path d="M6 17h3l2-4V7H5v6h3M14 17h3l2-4V7h-6v6h3" />,
-  grade: <><path d="M2 9l10-5 10 5-10 5z" /><path d="M6 11v5c3 2 9 2 12 0v-5" /></>,
-  heading: <path d="M6 4v16M18 4v16M6 12h12" />,
   image: <><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="9" cy="10" r="2" /><path d="m21 16-5-5-9 9" /></>,
   type: <path d="M5 6V4h14v2M12 4v16M9 20h6" />,
   size: <path d="M3 7V5h10v2M8 5v14M6 19h4M14 13v-1h7v1M17.5 12v7M16 19h3" />,
@@ -300,17 +294,6 @@ export function Glyph({ name, bare }: { name: GlyphName; bare?: boolean }) {
     </svg>
   );
   return bare ? svg : <span className="aw-ico">{svg}</span>;
-}
-
-/** A thin bar for one number on a scale. band shades a range; the bars grow in when they first show. */
-export function ScaleBar({ value, max, band }: { value: number; max: number; band?: [number, number] }) {
-  const pct = (n: number) => Math.max(0, Math.min(100, (n / max) * 100));
-  return (
-    <span className="aw-meter relative mt-3 block h-1.5" aria-hidden="true">
-      {band ? <i className="absolute inset-y-0 bg-brand-bg" style={{ left: `${pct(band[0])}%`, width: `${pct(band[1]) - pct(band[0])}%` }} /> : null}
-      <i className="absolute inset-y-0 left-0 bg-brand" style={{ width: `${pct(value)}%` }} />
-    </span>
-  );
 }
 
 // ─────────────── button icons ───────────────
