@@ -2,17 +2,16 @@
 
 import { useEffect, useState } from "react";
 import type { RunAuth } from "@/lib/runner";
-import { type Proof, type VoiceStats, type WriterPersona } from "@/lib/writerPersona";
+import { type VoiceStats, type WriterPersona } from "@/lib/writerPersona";
 import { post } from "./research/shared";
 import { Thinking } from "./ui";
 
-// The writer persona card (docs/zippie-skills-plan.md, section 4): who writes, the reader, the voice, approved proof
-// with its quotes, claims to never make, the CTA, open questions and a sample paragraph. Read it, or edit it.
+// The writer persona card (docs/zippie-skills-plan.md, section 4): the persona, the reader, the point of view, the
+// tone and sentences, then the numbers measured from the brand's posts. Read it, or edit it.
 // Onboarding's "Your writer" step and Brand > Tone of voice both show it.
 
 export type Built = { persona: WriterPersona; stats: VoiceStats; noBlog: boolean; postText: string };
 
-const lines = (s: string) => s.split("\n").map((x) => x.trim()).filter(Boolean);
 const terms = (s: string) => s.split(/[,\n]/).map((x) => x.trim()).filter(Boolean);
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
@@ -81,16 +80,15 @@ function Measured({ stats }: { stats: VoiceStats }) {
   );
 }
 
-/** The persona, read or edited field by field, in groups: voice, measured style, words, facts and a sample. */
+/** The persona, read or edited field by field, then the numbers measured from the brand's posts. */
 export function PersonaCard({ persona, stats, edit, onChange }: { persona: WriterPersona; stats: VoiceStats | null; edit: boolean; onChange: (p: WriterPersona) => void }) {
   const set = (patch: Partial<WriterPersona>) => onChange({ ...persona, ...patch });
   const text = (v: string, f: (s: string) => void, rows = 2) => <textarea value={v} rows={rows} onChange={(e) => f(e.target.value)} className="aw-textarea text-[13.5px]!" />;
-  const removeProof = (p: Proof) => set({ proof: persona.proof.filter((x) => x !== p) });
   const none = <span className="text-muted">None</span>;
   return (
     <div className="flex flex-col gap-4">
       <Section title="Voice">
-        <Row label="Who writes">{edit ? text(persona.writer, (v) => set({ writer: v })) : persona.writer || <span className="text-muted">Not on the site yet</span>}</Row>
+        <Row label="Persona">{edit ? text(persona.writer, (v) => set({ writer: v })) : persona.writer || <span className="text-muted">Not on the site yet</span>}</Row>
         <Row label="Who reads">{edit ? text(persona.reader, (v) => set({ reader: v })) : persona.reader}</Row>
         <Row label="Point of view">{edit ? text(persona.pov, (v) => set({ pov: v })) : persona.pov || none}</Row>
         <Row label="Tone">{edit ? <input value={persona.tone.join(", ")} onChange={(e) => set({ tone: terms(e.target.value) })} className="aw-input py-2! text-[13.5px]!" /> : <Tags list={persona.tone} />}</Row>
@@ -103,52 +101,6 @@ export function PersonaCard({ persona, stats, edit, onChange }: { persona: Write
           <Measured stats={stats} />
         </div>
       ) : null}
-
-      <Section title="Words">
-        <Row label="Use">{edit ? text(persona.use.join(", "), (v) => set({ use: terms(v) })) : <Tags list={persona.use} />}</Row>
-        <Row label="Avoid">{edit ? text(persona.avoid.join(", "), (v) => set({ avoid: terms(v) })) : <Tags list={persona.avoid} />}</Row>
-        <Row label="Naming">{edit ? text(persona.naming, (v) => set({ naming: v }), 1) : persona.naming || none}</Row>
-      </Section>
-
-      <Section title="Facts">
-        <Row label="Approved proof">
-          {persona.proof.length ? (
-            <ul className="flex flex-col gap-3">
-              {persona.proof.map((p) => (
-                <li key={p.quote || p.claim} className="flex items-start gap-2">
-                  <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    <span className="font-medium">{p.claim}</span>
-                    {p.quote ? <span className="text-[13px] text-body">&ldquo;{p.quote}&rdquo;</span> : null}
-                    {p.url && /^https?:/.test(p.url) ? (
-                      <a href={p.url} target="_blank" rel="noreferrer" className="aw-text-link text-[12px] wrap-anywhere">
-                        {p.url.replace(/^https?:\/\/(www\.)?/, "")}
-                      </a>
-                    ) : null}
-                  </span>
-                  {edit ? (
-                    <button type="button" className="aw-iconbtn" aria-label={`Remove ${p.claim}`} title="Remove" onClick={() => removeProof(p)}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-                        <path d="M18 6 6 18M6 6l12 12" />
-                      </svg>
-                    </button>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <span className="text-muted">None on the site. The writer uses no customer names, results or numbers about the brand.</span>
-          )}
-        </Row>
-        <Row label="Never claim">{edit ? text(persona.never.join("\n"), (v) => set({ never: lines(v) }), 3) : persona.never.length ? <ul className="flex list-disc flex-col gap-1 pl-4">{persona.never.map((n) => <li key={n}>{n}</li>)}</ul> : none}</Row>
-        <Row label="Call to action">{edit ? text(persona.cta, (v) => set({ cta: v }), 1) : persona.cta || none}</Row>
-        {persona.questions.length || edit ? (
-          <Row label="Open questions">{edit ? text(persona.questions.join("\n"), (v) => set({ questions: lines(v) }), 3) : <ul className="flex list-disc flex-col gap-1 pl-4">{persona.questions.map((q) => <li key={q}>{q}</li>)}</ul>}</Row>
-        ) : null}
-      </Section>
-
-      <Section title="Sample paragraph" note="How an article will sound">
-        {edit ? text(persona.sample, (v) => set({ sample: v }), 6) : <p className="border-l-2 border-brand pl-4 text-[15px] leading-[1.7] text-ink">{persona.sample}</p>}
-      </Section>
     </div>
   );
 }

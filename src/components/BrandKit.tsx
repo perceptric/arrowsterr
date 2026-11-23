@@ -10,7 +10,7 @@ import type { RunAuth } from "@/lib/runner";
 import { Copy } from "./InstallGuide";
 import { Dropdown } from "./Pickers";
 import { EmptyScreen } from "./Drawing";
-import { Zippie } from "./Zippie";
+import { Thinking } from "./ui";
 
 // Brand Kits (docs/reports.md, section 31): the learning animation shown in onboarding and Settings,
 // and the Settings → Brand Kit page.
@@ -32,121 +32,93 @@ export async function streamKit(auth: RunAuth, website: string, brandId: string 
   return readKitStream(res.body.pipeThrough(new TextDecoderStream()), onPart);
 }
 
-const reducedMotion = () => typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+const WEIGHT: Record<number, string> = { 100: "Thin", 200: "Extra light", 300: "Light", 400: "Regular", 500: "Medium", 600: "Semibold", 700: "Bold", 800: "Extra bold", 900: "Black" };
+const weightName = (w: number) => WEIGHT[Math.round(w / 100) * 100] ?? String(w);
+const typeLine = (t: BrandKit["type"]["h1"]) => `${t.size}px ${weightName(t.weight).toLowerCase()}${t.upper ? ", all caps" : ""}`;
+const corners = (r: number) => (r >= 999 ? "Pill" : r === 0 ? "Square" : `${r}px corners`);
+const fontLine = (site: string, near: Font) => (site && site !== near ? `${site} (reports use ${near})` : near);
 
-// The show runs in this order. Each stage waits for its real data, and stays on screen long enough to read.
-const STAGES = ["scan", "colors", "fonts", "logo", "cover", "saved"] as const;
-type Got = { title?: string; colors?: string[]; fonts?: string[]; logo?: { logo: string; onDark: boolean }; done?: Extract<KitPart, { part: "done" }> };
+/** One line of the learned kit: a label and what was found. */
+function KitRowLine({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="grid gap-1 border-t border-rule-faint py-3 first:border-t-0 first:pt-0 last:pb-0 sm:grid-cols-[120px_minmax(0,1fr)] sm:gap-6">
+      <span className="text-[13px] text-muted">{label}</span>
+      <div className="min-w-0 text-[14px] text-ink">{children}</div>
+    </div>
+  );
+}
 
-function useStage(got: Got) {
-  const [stage, setStage] = useState(0);
-  useEffect(() => {
-    const next = stage + 1;
-    if (next >= STAGES.length) return;
-    const finished = Boolean(got.done);
-    // Colors and fonts may never come (a site with no CSS to read). The logo means they are not coming.
-    const ready = [true, Boolean(got.colors || got.logo || finished), Boolean(got.fonts || got.logo || finished), Boolean(got.logo || finished), finished, finished][next];
-    if (!ready) return;
-    // With reduced motion the finished kit shows at once. Skipped stages pass at once too.
-    const jump = reducedMotion() && finished;
-    const skip = (next === 1 && !got.colors) || (next === 2 && !got.fonts);
-    const t = setTimeout(() => setStage(jump ? STAGES.length - 1 : next), jump || skip ? 0 : next === STAGES.length - 1 ? 1300 : 850);
-    return () => clearTimeout(t);
-  }, [stage, got]);
-  return STAGES[stage];
+/** Everything learned from the site, in words: fonts, type sizes, buttons, cards and voice. */
+function KitFacts({ kit, domain }: { kit: BrandKit; domain: string }) {
+  return (
+    <section className="aw-frame">
+      <header className="aw-frame__head">
+        <h2>What we found</h2>
+        <span className="text-[13px] font-normal text-muted">From {domain}</span>
+      </header>
+      <div className="aw-frame__body flex flex-col pt-1!">
+        <KitRowLine label="Name">{kit.name || domain}</KitRowLine>
+        <KitRowLine label="Logo">{kit.logo ? (kit.logoOnDark ? "Found, a light logo for dark grounds" : "Found") : "None found. Reports show your name."}</KitRowLine>
+        <KitRowLine label="Heading font">{fontLine(kit.siteFonts.heading, kit.fonts.heading)}</KitRowLine>
+        <KitRowLine label="Text font">{fontLine(kit.siteFonts.body, kit.fonts.body)}</KitRowLine>
+        <KitRowLine label="Type sizes">
+          <ul className="flex flex-col gap-0.5">
+            <li>Title: {typeLine(kit.type.h1)}</li>
+            <li>Heading: {typeLine(kit.type.h2)}</li>
+            <li>Subheading: {typeLine(kit.type.h3)}</li>
+            <li>Text: {typeLine(kit.type.body)}</li>
+          </ul>
+        </KitRowLine>
+        <KitRowLine label="Buttons">
+          {corners(kit.buttons.primary.radius)}, {weightName(kit.buttons.primary.weight).toLowerCase()} text{kit.buttons.primary.upper ? " in caps" : ""}
+        </KitRowLine>
+        <KitRowLine label="Cards">
+          {corners(kit.radius)}, {kit.shadow === "none" ? "no shadow" : "soft shadow"}
+        </KitRowLine>
+        <KitRowLine label="Links">{kit.link.underline ? "Underlined" : "No underline"}</KitRowLine>
+        {kit.voice.tone.length ? (
+          <KitRowLine label="Tone">
+            <span className="flex flex-wrap gap-1.5">
+              {kit.voice.tone.map((t) => (
+                <span key={t} className="aw-tag">
+                  {t}
+                </span>
+              ))}
+            </span>
+          </KitRowLine>
+        ) : null}
+        {kit.footer ? <KitRowLine label="Report footer">{kit.footer}</KitRowLine> : null}
+      </div>
+    </section>
+  );
 }
 
 /**
- * Zippie reads a website and builds its Brand Kit on screen: the site, its colors, its fonts, its logo, then a
- * report cover that turns from Arrowsterr's look into theirs. onDone gets the saved kit.
+ * Zippie reads a website and builds its Brand Kit. A loader shows while it reads; then the finished kit shows at
+ * once: the site's look, a report in that look, and everything found, in words. onDone gets the saved kit.
  */
 export function KitLearn({ auth, website, brandId = null, onDone, onAnother, onSkip }: { auth: RunAuth; website: string; brandId?: string | null; onDone: (kit: BrandKit, saved: boolean) => void; onAnother?: () => void; onSkip?: () => void }) {
-  const [got, setGot] = useState<Got>({});
+  const [done, setDone] = useState<Extract<KitPart, { part: "done" }> | null>(null);
   const [error, setError] = useState("");
   const [tries, setTries] = useState(0);
   const started = useRef("");
-  const stage = useStage(got);
-  const at = STAGES.indexOf(stage);
   const domain = website.replace(/^https?:\/\//i, "").replace(/\/.*$/, "").toLowerCase();
 
   useEffect(() => {
     const key = `${website}|${brandId}|${tries}`;
     if (started.current === key) return; // once per try, also under React's double effects in development
     started.current = key;
-    setGot({});
+    setDone(null);
     setError("");
-    streamKit(auth, website, brandId, (p) =>
-      setGot((g) => {
-        if (p.part === "site") return { ...g, title: p.title };
-        if (p.part === "colors") return { ...g, colors: p.colors };
-        if (p.part === "fonts") return { ...g, fonts: p.fonts };
-        if (p.part === "logo") return { ...g, logo: { logo: p.logo, onDark: p.onDark } };
-        if (p.part === "done") return { ...g, done: p };
-        return g;
-      }),
-    ).catch((e) => setError(message(e)));
+    streamKit(auth, website, brandId, () => {})
+      .then(setDone)
+      .catch((e) => setError(message(e)));
   }, [auth, website, brandId, tries]);
 
-  const kit = got.done?.kit;
-  const say = error
-    ? "We could not read that site."
-    : {
-        scan: `Scanning ${domain}…`,
-        colors: "Nice color palette.",
-        fonts: "Reading your fonts.",
-        logo: got.logo?.logo ? "Found your logo." : "No logo found. We set your name instead.",
-        cover: "Putting your brand on a report.",
-        saved: got.done?.saved === false ? NOT_RUN : "Brand Kit saved.",
-      }[stage];
-  const swatches = kit && at >= 4 ? [kit.colors.primary, kit.colors.secondary, kit.colors.ink, kit.colors.paper] : (got.colors ?? []);
-
-  return (
-    <section className="aw-kit" aria-label="Brand Kit">
-      <p className="aw-kit__say" aria-live="polite">
-        {say}
-      </p>
-      <div className={`aw-kit__card ${error ? "is-failed" : ""}`}>
-        <div className="aw-kit__mark">
-          {at >= 3 && got.logo?.logo ? (
-            <img key="logo" className={`aw-kit__logo ${got.logo.onDark ? "is-on-dark" : ""}`} src={got.logo.logo} alt={`${kit?.name || got.title || domain} logo`} />
-          ) : at >= 3 ? (
-            <span key="name" className="aw-kit__name" style={{ fontFamily: kit ? fontStack(kit.fonts.heading) : undefined }}>
-              {kit?.name || got.title || domain}
-            </span>
-          ) : (
-            <Zippie key="zippie" size={56} mood={error ? "idle" : "thinking"} />
-          )}
-        </div>
-
-        <ul className="aw-kit__swatches" aria-label="Colors">
-          {at >= 1
-            ? swatches.map((c, i) => (
-                <li key={`${at >= 4 ? "kit" : "site"}-${c}-${i}`} style={{ background: c, animationDelay: `${i * 80}ms` }}>
-                  <span className="aw-num">{c}</span>
-                </li>
-              ))
-            : null}
-        </ul>
-
-        <div className="aw-kit__fonts" aria-label="Fonts">
-          {kit && at >= 4 ? (
-            <>
-              <FontSample font={kit.fonts.heading} role="Headings" />
-              <FontSample font={kit.fonts.body} role="Text" />
-            </>
-          ) : at >= 2 ? (
-            (got.fonts ?? []).map((f, i) => (
-              <span key={f} className="aw-kit__font" style={{ animationDelay: `${i * 80}ms` }}>
-                {f}
-              </span>
-            ))
-          ) : null}
-        </div>
-
-        <KitCover kit={at >= 4 && kit ? kit : null} />
-      </div>
-
-      {error ? (
+  if (error)
+    return (
+      <section className="aw-kit" aria-label="Brand Kit">
+        <p className="aw-h4">We could not read that site.</p>
         <div className="aw-kit__actions">
           <p className="aw-error">{error}</p>
           <button type="button" className="aw-btn aw-btn--accent" onClick={() => setTries((n) => n + 1)}>
@@ -163,31 +135,43 @@ export function KitLearn({ auth, website, brandId = null, onDone, onAnother, onS
             </button>
           ) : null}
         </div>
-      ) : stage === "saved" && got.done ? (
-        <div className="aw-kit__actions">
-          <button type="button" className="aw-btn aw-btn--accent aw-btn--lg" onClick={() => onDone(got.done!.kit, got.done!.saved)}>
-            Looks right →
-          </button>
-          {onAnother ? (
-            <button type="button" className="aw-text-link" onClick={onAnother}>
-              Use another website
-            </button>
-          ) : null}
-        </div>
-      ) : null}
-    </section>
-  );
-}
+      </section>
+    );
 
-function FontSample({ font, role }: { font: Font; role: string }) {
+  if (!done)
+    return (
+      <section className="aw-kit" aria-label="Brand Kit">
+        <div className="w-full">
+          <Thinking text={`Learning your brand from ${domain}...`}>
+            <p className="aw-small">This takes about a minute.</p>
+          </Thinking>
+        </div>
+      </section>
+    );
+
+  const kit = done.kit;
   return (
-    <span className="aw-kit__sample">
-      <b style={{ fontFamily: fontStack(font) }}>Aa</b>
-      <span>
-        {font}
-        <small>{role}</small>
-      </span>
-    </span>
+    <section className="aw-kit" aria-label="Brand Kit">
+      <div className="flex flex-col items-center gap-1 text-center">
+        <h1 className="aw-onb__title">Your Brand Kit</h1>
+        <p className="text-[15px] text-body">{done.saved === false ? NOT_RUN : "Every report and article uses this look."}</p>
+      </div>
+      <div className="aw-kit__show">
+        <KitSpecimen kit={kit} />
+        <KitCover kit={kit} />
+      </div>
+      <KitFacts kit={kit} domain={domain} />
+      <div className="aw-kit__actions">
+        <button type="button" className="aw-btn aw-btn--accent aw-btn--lg" onClick={() => onDone(done.kit, done.saved)}>
+          Looks right →
+        </button>
+        {onAnother ? (
+          <button type="button" className="aw-text-link" onClick={onAnother}>
+            Use another website
+          </button>
+        ) : null}
+      </div>
+    </section>
   );
 }
 
