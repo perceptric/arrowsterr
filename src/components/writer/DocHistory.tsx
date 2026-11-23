@@ -4,7 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Editor } from "@tiptap/react";
 import { useCallback, useEffect, useState } from "react";
 import { docToHtml } from "@/lib/docHtml";
-import { ago, getVersion, listVersions, saveVersion, type DocVersion, type Me } from "@/lib/docCollab";
+import { ago, getVersion, listVersions, saveVersion, versionName, type DocVersion, type Me } from "@/lib/docCollab";
 import { Confirm, Modal } from "../reports/Dialog";
 
 // An article's saved versions in Drafts: made on their own while someone edits (the article screen saves one before
@@ -125,7 +125,7 @@ export function DocHistory({
             const d = older ? v.words - older.words : 0;
             return (
               <li key={v.id} className={`flex flex-col gap-1 py-2.5 ${i ? "border-t border-rule-faint" : ""}`}>
-                <span className="text-[13px] font-medium text-ink">{v.label || "Saved while editing"}</span>
+                <span className="text-[13px] font-medium text-ink">{versionName(v)}</span>
                 <span className="aw-num text-[12px] text-muted">
                   {v.author_name || "Someone"} · {ago(v.created_at)} · {v.words.toLocaleString("en-US")} words
                   {d ? ` (${d > 0 ? "+" : "−"}${Math.abs(d)})` : ""}
@@ -147,7 +147,7 @@ export function DocHistory({
       ) : null}
 
       {view ? (
-        <Modal title={view.v.label || `Version from ${new Date(view.v.created_at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}`} onClose={() => setView(null)} width="max-w-3xl">
+        <Modal title={(view.v.label || (view.v.reason === "regenerate" ? versionName(view.v) : "")) || `Version from ${new Date(view.v.created_at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}`} onClose={() => setView(null)} width="max-w-3xl">
           <div className="flex flex-col gap-4">
             <div className="aw-editor aw-editor--draft max-h-[60vh] overflow-y-auto border border-rule-faint px-6 py-5 [&_img]:h-auto [&_img]:max-w-full">
               <h1 className="mb-4 text-[24px] font-semibold text-ink">{view.v.title}</h1>

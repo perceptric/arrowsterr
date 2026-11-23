@@ -52,15 +52,19 @@ export function threadsOf(rows: DocComment[]) {
 }
 
 // ─────────────── versions ───────────────
-export type DocVersion = { id: string; title: string; words: number; label: string; author_name: string; created_at: string };
+/** reason is "regenerate" for the copy the server saves before a draft is written again (053_library_review.sql). */
+export type DocVersion = { id: string; title: string; words: number; label: string; reason: string; author_name: string; created_at: string };
+const VERSION_COLS = "id, title, words, label, reason, author_name, created_at";
+/** What a version is called in the list. */
+export const versionName = (v: Pick<DocVersion, "label" | "reason">) => v.label || (v.reason === "regenerate" ? "Before the draft was written again" : "Saved while editing");
 export const KEEP_VERSIONS = 50;
 /** How long edits run before the next automatic version. */
 export const AUTO_EVERY_MS = 10 * 60_000;
 
 export const listVersions = async (sb: SupabaseClient, docId: string, limit = KEEP_VERSIONS) =>
-  check(await sb.from("doc_versions").select("id, title, words, label, author_name, created_at").eq("doc_id", docId).order("created_at", { ascending: false }).limit(limit)) as DocVersion[];
+  check(await sb.from("doc_versions").select(VERSION_COLS).eq("doc_id", docId).order("created_at", { ascending: false }).limit(limit)) as DocVersion[];
 
-export const getVersion = async (sb: SupabaseClient, id: string) => check(await sb.from("doc_versions").select("id, title, content, words, label, created_at").eq("id", id).single()) as DocVersion & { content: Record<string, unknown> };
+export const getVersion = async (sb: SupabaseClient, id: string) => check(await sb.from("doc_versions").select(`${VERSION_COLS}, content`).eq("id", id).single()) as DocVersion & { content: Record<string, unknown> };
 
 export async function saveVersion(sb: SupabaseClient, v: { workspaceId: string; docId: string; title: string; content: Record<string, unknown>; words: number; label?: string; me: Me | null }) {
   check(
@@ -71,7 +75,8 @@ export async function saveVersion(sb: SupabaseClient, v: { workspaceId: string; 
       content: v.content,
       words: v.words,
       label: (v.label ?? "").slice(0, 120),
-      author_id: v.me?.id ?? null,
+      reason: v.label ? "manual" : "auto",
+      created_by: v.me?.id ?? null,
       author_name: (v.me?.name ?? "").slice(0, 200),
     }),
   );

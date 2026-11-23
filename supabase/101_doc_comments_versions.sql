@@ -33,20 +33,9 @@ create policy "doc comments edit" on public.doc_comments for update
 drop policy if exists "doc comments delete" on public.doc_comments;
 create policy "doc comments delete" on public.doc_comments for delete using (author_id = auth.uid() or public.has_role(workspace_id, 'admin'));
 
--- doc_versions: a copy of an article's text, saved by hand or on its own while someone edits. The app keeps the
--- newest 50 per article.
-create table if not exists public.doc_versions (
-  id uuid primary key default gen_random_uuid(),
-  workspace_id uuid not null references public.workspaces (id) on delete cascade,
-  doc_id uuid not null references public.docs (id) on delete cascade,
-  title text not null default '',
-  content jsonb not null default '{}',
-  words int not null default 0,
-  label text not null default '' check (char_length(label) <= 120),
-  author_id uuid references auth.users (id) on delete set null default auth.uid(),
-  author_name text not null default '' check (char_length(author_name) <= 200),
-  created_at timestamptz not null default now()
-);
+-- doc_versions already exists (053_library_review.sql): a copy of an article's text. Version history saves copies
+-- by hand and while editing, so an insert must also be for an article in the same workspace. The app keeps the
+-- newest 50 per article. 102_doc_versions_label.sql adds the label and author_name columns.
 create index if not exists doc_versions_doc_idx on public.doc_versions (doc_id, created_at desc);
 alter table public.doc_versions enable row level security;
 
