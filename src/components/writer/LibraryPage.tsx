@@ -23,10 +23,11 @@ import { post } from "../research/shared";
 import { brandTables } from "../research/Writer";
 import { exportClean } from "../research/writerNodes";
 import { EmptyScreen } from "../Drawing";
-import { Seg, Thinking } from "../ui";
+import { Seg, SidePanel, Thinking } from "../ui";
+import { ArticleReview, type ReviewInput } from "./ArticleReview";
 import { ContentGrid } from "./ContentGrid";
 import { OutlineView } from "./OutlineView";
-import { DraftProgress, libraryKey, RegenerateDialog, StateTag, useBrandSite, usePoll, type LibraryOpen } from "./parts";
+import { DraftProgress, libraryKey, RegenerateDialog, StateTag, useBrandSite, usePoll, useWide, type LibraryOpen } from "./parts";
 
 // Drafts (docs/drafts-plan.md): every keyword from the Editorial Calendar, as a grid of articles (ContentGrid).
 // Write drafts starts there: the research and outline run in the background, then the draft. An article opens in the
@@ -88,7 +89,7 @@ export function LibraryPage({ view, auth, canEdit, onCalendar }: { view: View; a
     load();
   };
   if (open?.kind === "draft") return <DraftView key={open.id} sb={sb} auth={auth} site={site} brandId={brand.id} id={open.id} canEdit={canEdit} onBack={back} />;
-  if (open?.kind === "outline") return <OutlineView key={open.id} sb={sb} auth={auth} id={open.id} canEdit={canEdit} onBack={back} onDraft={(id) => setOpen({ kind: "draft", id })} />;
+  if (open?.kind === "outline") return <OutlineView key={open.id} sb={sb} auth={auth} id={open.id} canEdit={canEdit} domain={site.domain} onBack={back} onDraft={(id) => setOpen({ kind: "draft", id })} />;
   if (open?.kind === "doc") return <DocView key={open.id} sb={sb} auth={auth} site={site} brandId={brand.id} id={open.id} canEdit={canEdit} onBack={back} />;
 
   const list = rows ?? [];
@@ -213,6 +214,7 @@ function DraftView({ sb, auth, site, brandId, id, canEdit, onBack }: { sb: Supab
         doc={doc}
         canEdit={canEdit}
         onBack={onBack}
+        review={{ keyword: brief?.keyword, wordTarget: brief?.brief?.wordTarget, meta: brief?.brief?.metaDescription }}
         extra={
           canEdit && brief ? (
             <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setRegen(true)}>
@@ -250,8 +252,33 @@ function DocView({ sb, auth, site, brandId, id, canEdit, onBack }: { sb: Supabas
   return <ArticleView sb={sb} auth={auth} site={site} brandId={brandId} doc={doc} canEdit={canEdit} onBack={onBack} />;
 }
 
-/** The whole article: the plain editor with its modules, HTML, Markdown and Text views, Export and Publish. */
-function ArticleView({ sb, auth, site, brandId, doc, canEdit, onBack, extra }: { sb: SupabaseClient; auth: RunAuth; site: Site; brandId: string; doc: Doc; canEdit: boolean; onBack: () => void; extra?: React.ReactNode }) {
+/** The whole article: the plain editor with its modules, HTML, Markdown and Text views, Export and Publish, and the
+ * review panel beside it (checks and outline, from the live text). */
+function ArticleView({
+  sb,
+  auth,
+  site,
+  brandId,
+  doc,
+  canEdit,
+  onBack,
+  extra,
+  review,
+}: {
+  sb: SupabaseClient;
+  auth: RunAuth;
+  site: Site;
+  brandId: string;
+  doc: Doc;
+  canEdit: boolean;
+  onBack: () => void;
+  extra?: React.ReactNode;
+  /** What the brief knows, for the checks: the keyword, the word target and the meta description. */
+  review?: Omit<ReviewInput, "domain">;
+}) {
+  const wide = useWide();
+  const [reviewOpen, setReviewOpen] = useState<boolean | null>(null);
+  const showReview = reviewOpen ?? wide;
   const [guideline, setGuideline] = useState<BrandGuideline | null>(null);
   const [editor, setEditor] = useState<Editor | null>(null);
   const [state, setState] = useState<{ s: SaveState; note?: string }>({ s: "saved" });
@@ -315,12 +342,17 @@ function ArticleView({ sb, auth, site, brandId, doc, canEdit, onBack, extra }: {
   return (
     <div className="flex flex-col gap-4">
       <Back onBack={onBack} title={title || "Article"}>
-        <span className="aw-num px-1 text-[12px] whitespace-nowrap text-muted">{words.toLocaleString("en-US")} words</span>
+        <span className="aw-num px-1 text-[12px] whitespace-nowrap text-muted">
+          {words.toLocaleString("en-US")} words · {Math.max(1, Math.round(words / 230))} min read
+        </span>
         <span className="flex items-center gap-1.5 px-1 text-[12px] whitespace-nowrap text-muted">
           <i className={`inline-block h-1.5 w-1.5 ${state.s === "error" ? "bg-neg" : state.s === "saving" ? "bg-warn" : "bg-pos"}`} aria-hidden="true" />
           {state.note || (state.s === "error" ? "Not saved" : state.s === "saving" ? "Saving" : "Saved")}
         </span>
         {extra}
+        <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" aria-pressed={showReview} onClick={() => setReviewOpen(!showReview)}>
+          Review
+        </button>
         <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" aria-haspopup="menu" disabled={!editor} onClick={(e) => setExportAt(e.currentTarget.getBoundingClientRect())}>
           Export
         </button>
@@ -357,15 +389,39 @@ function ArticleView({ sb, auth, site, brandId, doc, canEdit, onBack, extra }: {
           { id: "text", label: "Text" },
         ]}
       />
-      <div className={view === "edit" ? "" : "hidden"}>
-        <PlainEditor sb={sb} workspaceId={auth.workspaceId} doc={doc} canEdit={canEdit} onSaved={saved} onEditor={setEditor} onState={onState} />
+      <div className={wide && showReview ? "grid grid-cols-[minmax(0,1fr)_320px] items-start gap-6" : ""}>
+        <div className="min-w-0">
+          <div className={view === "edit" ? "" : "hidden"}>
+            <PlainEditor sb={sb} workspaceId={auth.workspaceId} doc={doc} canEdit={canEdit} onSaved={saved} onEditor={setEditor} onState={onState} />
+          </div>
+          {view !== "edit" && editor ? (
+            <Source
+              text={view === "html" ? html() : view === "md" ? docToMarkdown(editor.getJSON()) : docToText(editor.getJSON())}
+              copied={copied}
+              onCopy={(t) => navigator.clipboard.writeText(t).then(() => setCopied(true), () => setError("Copy failed. Select the text and copy it."))}
+            />
+          ) : null}
+        </div>
+        {wide && showReview ? (
+          <aside className="sticky top-4 flex max-h-[calc(100vh-2rem)] min-w-0 flex-col border border-rule bg-white" aria-label="Review">
+            <div className="flex items-center justify-between gap-2 border-b border-rule-faint py-1.5 pr-2 pl-4">
+              <span className="text-[14px] font-medium text-ink">Review</span>
+              <button type="button" className="aw-icon-btn flex h-8 w-8 items-center justify-center" aria-label="Close review" title="Close" onClick={() => setReviewOpen(false)}>
+                <svg viewBox="0 0 24 24" width={16} height={16} fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" aria-hidden="true">
+                  <path d="M6 6l12 12M18 6L6 18" />
+                </svg>
+              </button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <ArticleReview editor={editor} title={title} input={{ ...review, domain: site.domain }} />
+            </div>
+          </aside>
+        ) : null}
       </div>
-      {view !== "edit" && editor ? (
-        <Source
-          text={view === "html" ? html() : view === "md" ? docToMarkdown(editor.getJSON()) : docToText(editor.getJSON())}
-          copied={copied}
-          onCopy={(t) => navigator.clipboard.writeText(t).then(() => setCopied(true), () => setError("Copy failed. Select the text and copy it."))}
-        />
+      {!wide && showReview ? (
+        <SidePanel title="Review" onClose={() => setReviewOpen(false)}>
+          <ArticleReview editor={editor} title={title} input={{ ...review, domain: site.domain }} />
+        </SidePanel>
       ) : null}
 
       {exportAt ? (

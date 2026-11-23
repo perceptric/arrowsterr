@@ -1,7 +1,7 @@
 "use client";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { Brand, Site } from "@/lib/db";
 import { siteForBrand } from "@/lib/db";
 import type { RunAuth } from "@/lib/runner";
@@ -40,6 +40,20 @@ export function useBrandSite(sb: SupabaseClient, brand: Brand, canEdit: boolean)
     };
   }, [sb, brand, canEdit, setSite]);
   return { site, error };
+}
+
+const WIDE = "(min-width: 1100px)";
+/** True on screens wide enough to show a panel beside the page (the Drafts outline and article screens). */
+export function useWide() {
+  return useSyncExternalStore(
+    (cb) => {
+      const m = window.matchMedia(WIDE);
+      m.addEventListener("change", cb);
+      return () => m.removeEventListener("change", cb);
+    },
+    () => window.matchMedia(WIDE).matches,
+    () => true,
+  );
 }
 
 /** Run fn every ms while on is true. */
