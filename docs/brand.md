@@ -43,7 +43,7 @@ The visual reference with live components is the **Arrowsterr Brand v10** artifa
 | Cards | 16px, hairline frame | 16px, 1px border plus a soft shadow, lift on hover |
 | Numbers | Stat strip with a tinted lead cell | Stat row: big tabular number over a muted label, no boxes |
 | Atmosphere | Flight grid lines | Dot grid and one soft blue glow, marketing and first screens only |
-| Stylesheets | `brand.css`, `brand-v2.css`, `brand-v5.css`, `brew-ui.css`, `strong-ui.css`, `omni-ui.css`, `calm-ui.css`, `keyed-ui.css` | One file: `src/app/brand-v10.css` |
+| Stylesheets | `brand.css`, `brand-v2.css`, `brand-v5.css`, `brew-ui.css`, `strong-ui.css`, `omni-ui.css`, `calm-ui.css`, `keyed-ui.css` | One file: `src/app/globals.css` |
 
 ---
 
@@ -469,7 +469,7 @@ Easing: `cubic-bezier(0.2, 0.8, 0.2, 1)` for entering and moving, `ease-in` for 
 
 ## Components
 
-Each component lists its anatomy, sizes, states and rules. Class names are the v10 names in `src/app/brand-v10.css`; React components live in `src/components/ui.tsx`.
+Each component lists its anatomy, sizes, states and rules. Class names are the v10 names in `src/app/globals.css`; React components live in `src/components/ui.tsx`.
 
 ### Button
 
@@ -690,7 +690,7 @@ Page title, then a row of equal tiles, then the main card (often list plus chart
 
 ## Token reference
 
-The full set, as CSS custom properties in `src/app/brand-v10.css`.
+The full set, as CSS custom properties in `src/app/globals.css`.
 
 ```css
 :root {
@@ -793,10 +793,10 @@ Never write a hex value in a component. Use a token.
 
 The app keeps its class names; the look changes underneath.
 
-**Status, 10 November 2026:** step 1 is in, as a last layer. `src/app/brand-v10.css` loads after every older stylesheet, resets the tokens they all read (the calm layer's `--bg-*`, `--text-*`, `--border-*`, `--shadow-*` and the `--aw-*` tokens behind the Tailwind colors) to v10, and restyles the shared parts with the same selectors so it wins: Geist type, 10px buttons, 1px-line inputs, dot tags, white 16px cards with a border and soft shadow, underline page tabs, pill view switches (`Seg`), the stat row, the sidebar and the page panel. The older layers stay for now and only hold rules for rare parts; delete them one at a time after checking the screens. The Backlinks overview was rebuilt to the guide: one "Most linked pages" row per page with all its addresses, paid-link anchors flagged, and one switchable "Where the backlinks come from" card with full counts and shares.
+**Status, 23 November 2026:** steps 1 and 2 are done. `src/app/globals.css` is the only stylesheet. The twelve older files (`brand.css` to `brand-v10.css` and `zippie.css`) were merged into it and deleted: every rule that an older look set and a newer one overrode is gone, each selector has one rule, and the specificity tricks and nearly every `!important` went with them. The app loads Geist and Geist Mono for the screens and Funnel Display for PDF headings; Inter, DM Mono and IBM Plex Mono are no longer loaded. To change the look, edit `globals.css` in place. Never add a stylesheet that loads later to win.
 
-1. **One stylesheet.** Add `src/app/brand-v10.css` with the tokens above and the component classes (`aw-btn`, `aw-frame`, `aw-input`, `aw-status`, `aw-table`, `aw-chip`, `aw-tabs`). Load it last in `globals.css`, then delete the eight older layers one at a time, checking screens after each.
-2. **Fonts.** Swap Inter and Funnel Display for Geist in `layout.tsx` via `next/font/google`. Keep Geist Mono.
+1. **One stylesheet.** Done: `src/app/globals.css` holds the tokens above and every component class.
+2. **Fonts.** Done: Geist for every word, Geist Mono for code.
 3. **Shared parts.** Update `Card`, `Seg`, `StatStrip` (becomes a stat row), `Delta`, `Tag` and `Select` in `src/components/ui.tsx` to match the Components section.
 4. **Screens.** Check the 7 busiest screens at 1440px and 400px in light and dark: Prompts, Competitors, Keyword Research, Backlinks, Editorial Calendar, Reports, Settings.
 5. **Emails, PDF and website.** Update `src/lib/emailKit.ts`, `src/lib/pdf/design.ts` and `public/brand/arrowsterr-brand.css` to the same tokens.
