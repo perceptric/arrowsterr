@@ -4,9 +4,19 @@
 // JSON replies turn thinking off. Sonnet 5.5 can think on its own, and on a long brief it can spend the whole
 // max_tokens thinking and return no text at all (seen on the Phase 0 baseline run, November 2026). A JSON reply needs
 // its tokens for the answer. Models name "off" differently: Sonnet 5.5 wants "between_tools" and refuses "disabled",
-// with an error that names the right one. thinkingFix reads that error, and claude.ts remembers the answer per model.
+// with an error that names the right one. Haiku 5.5 takes "disabled" and refuses "between_tools". Opus 5.5 and Fable
+// refuse both, so they get no thinking field. thinkingOffFor picks the start, thinkingFix reads a refusal, and claude.ts
+// remembers the answer per model.
 
-export type ThinkingOff = "between_tools" | "disabled";
+/** "omit" sends no thinking field at all. */
+export type ThinkingOff = "between_tools" | "disabled" | "omit";
+
+/** How a model takes "thinking off", as far as we know before asking. */
+export function thinkingOffFor(model: string): ThinkingOff {
+  if (/sonnet-5-5/.test(model)) return "between_tools";
+  if (/opus-5-5|fable|mythos/.test(model)) return "omit";
+  return "disabled";
+}
 
 export type AskOpts = {
   searches?: number;
@@ -23,7 +33,7 @@ export const SEARCH_TOOL = "web_search_20260209" as const;
 type Text = { type: "text"; text: string; cache_control?: { type: "ephemeral" } };
 
 /** The request body for messages.create, before any pause_turn messages are added. */
-export function requestBody(prompt: string, opts: AskOpts, model: string, off: ThinkingOff = "between_tools") {
+export function requestBody(prompt: string, opts: AskOpts, model: string, off: ThinkingOff = thinkingOffFor(model)) {
   const content: string | Text[] = opts.prefix ? [{ type: "text", text: opts.prefix, cache_control: { type: "ephemeral" } }, { type: "text", text: prompt }] : prompt;
   return {
     model,
@@ -34,7 +44,7 @@ export function requestBody(prompt: string, opts: AskOpts, model: string, off: T
     ...(opts.effort || opts.schema
       ? { output_config: { ...(opts.effort ? { effort: opts.effort } : {}), ...(opts.schema ? { format: { type: "json_schema" as const, schema: opts.schema } } : {}) } }
       : {}),
-    ...(opts.schema ? { thinking: { type: off } } : {}),
+    ...(opts.schema && off !== "omit" ? { thinking: { type: off } } : {}),
     ...(opts.searches ? { tools: [{ type: SEARCH_TOOL, name: "web_search" as const, max_uses: opts.searches }] } : {}),
   };
 }
@@ -53,10 +63,15 @@ export function replyText(msg: { content: Block[]; stop_reason: string | null; u
   return text;
 }
 
-/** When the API refuses how thinking was turned off and names the type it wants, that type. Otherwise null. */
+/**
+ * When the API refuses how thinking was turned off, the type to try next: the one the error names, or else the next
+ * one down ("between_tools", then "disabled", then no thinking field). Otherwise null.
+ */
 export function thinkingFix(message: string, tried: ThinkingOff): ThinkingOff | null {
-  if (!/thinking/i.test(message)) return null;
+  if (!/thinking/i.test(message) || tried === "omit") return null;
   const named = /send\s+\\?"thinking\\?"\s*:\s*\{\s*\\?"type\\?"\s*:\s*\\?"(between_tools|disabled)\\?"/i.exec(message)?.[1] as ThinkingOff | undefined;
-  if (named && named !== tried) return named;
+  if (named) return named !== tried ? named : null;
+  // e.g. "thinking.type.between_tools" is not supported for this model.
+  if (new RegExp(`thinking\\.type\\.${tried}\\\\?"? is not supported`, "i").test(message)) return tried === "between_tools" ? "disabled" : "omit";
   return null;
 }

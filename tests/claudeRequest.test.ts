@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { replyText, requestBody, thinkingFix } from "../src/lib/claudeRequest.ts";
+import { replyText, requestBody, thinkingFix, thinkingOffFor } from "../src/lib/claudeRequest.ts";
 
 test("a JSON request turns thinking off and keeps the schema, the cache marks and the token limit", () => {
   const b = requestBody("Write the brief.", { schema: { type: "object" }, prefix: "brand and research", system: "editor", maxTokens: 12000 }, "claude-sonnet-5-5");
@@ -37,4 +37,18 @@ test("the API's own error says how this model turns thinking off, and only a rea
   assert.equal(thinkingFix(sonnet, "between_tools"), null); // already sent: no loop
   assert.equal(thinkingFix('To turn thinking off on this model, send "thinking": {"type": "disabled"} instead.', "between_tools"), "disabled");
   assert.equal(thinkingFix("max_tokens: must be at most 64000", "between_tools"), null);
+});
+
+test("each model starts with the thinking-off it takes, and Haiku's refusal of between_tools falls back to disabled", () => {
+  assert.equal(thinkingOffFor("claude-sonnet-5-5"), "between_tools");
+  assert.equal(thinkingOffFor("claude-haiku-5-5"), "disabled");
+  assert.equal(thinkingOffFor("claude-opus-5-5"), "omit");
+  assert.deepEqual(requestBody("x", { schema: {} }, "claude-haiku-5-5").thinking, { type: "disabled" });
+  assert.equal("thinking" in requestBody("x", { schema: {} }, "claude-opus-5-5"), false);
+  // The error onboarding got from Haiku 5.5, November 2026.
+  const haiku = '400 {"type":"error","error":{"type":"invalid_request_error","message":"\\"thinking.type.between_tools\\" is not supported for this model."},"request_id":"req_011ChKJoBkoAX7f2g3hxCvXV"}';
+  assert.equal(thinkingFix(haiku, "between_tools"), "disabled");
+  assert.equal(thinkingFix(haiku, "disabled"), null);
+  assert.equal(thinkingFix('"thinking.type.disabled" is not supported for this model.', "disabled"), "omit");
+  assert.equal(thinkingFix('"thinking.type.disabled" is not supported for this model.', "omit"), null);
 });

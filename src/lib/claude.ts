@@ -4,7 +4,7 @@ import { jsonrepair } from "jsonrepair";
 import { charge, claudeCost } from "./meter";
 import { isGrammarError, schemaPrompt } from "./jsonReply";
 import type { Source } from "./sources";
-import { replyText, requestBody, thinkingFix, type AskOpts, type ThinkingOff } from "./claudeRequest";
+import { replyText, requestBody, thinkingFix, thinkingOffFor, type AskOpts, type ThinkingOff } from "./claudeRequest";
 
 /** How each model takes "thinking off", learned from the API's own error the first time (claudeRequest.ts). */
 const thinkingOff = new Map<string, ThinkingOff>();
@@ -22,7 +22,7 @@ export function claudeModel() {
 export async function askClaude(prompt: string, opts: AskOpts = {}): Promise<{ text: string; sources: Source[] }> {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const model = opts.model ?? claudeModel();
-  let off = thinkingOff.get(model) ?? "between_tools";
+  let off = thinkingOff.get(model) ?? thinkingOffFor(model);
   let body = requestBody(prompt, opts, model, off);
   const messages = body.messages as Anthropic.MessageParam[];
   let text = "";
