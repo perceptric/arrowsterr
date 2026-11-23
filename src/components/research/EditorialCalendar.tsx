@@ -18,7 +18,7 @@ import { SidePanel, Thinking } from "../ui";
 import { CalendarGrid, TopicSidebar } from "./CalendarGrid";
 import { KeywordDeepDive } from "./KeywordDeepDive";
 import { DayPanel } from "./DayPanel";
-import { byStage, CalendarViewIcon, Difficulty, downloadCsv, FIELD, ListViewIcon, post, slugify, slugOf, STAGE_LABEL, StageTag, STATUS_PICK, STATUSES, statusLabel, ViewSwitch, type WriterAccess } from "./shared";
+import { byStage, CalendarViewIcon, Difficulty, downloadCsv, FIELD, ListViewIcon, pageError, post, slugify, slugOf, STAGE_LABEL, StageTag, STATUS_PICK, STATUSES, statusLabel, ViewSwitch, type WriterAccess } from "./shared";
 import { PlanProgress, planRows } from "./AgenticResearch";
 import { EmptyScreen } from "../Drawing";
 import { EngineName } from "../Engines";
@@ -185,7 +185,7 @@ export function EditorialCalendar({
       const list = first ? schedulePlan(rows, nextMonday()) : rows;
       addCalendarItems(sb, auth.workspaceId, list.map((r) => toItem(site.id, r)))
         .then(load)
-        .catch((e) => setError(e instanceof Error ? e.message : String(e)));
+        .catch((e) => setError(pageError(e)));
     },
     [sb, auth.workspaceId, site.id, load, setError],
   );
@@ -228,7 +228,7 @@ export function EditorialCalendar({
       await post(auth, "/api/research/agentic", { siteId: site.id });
       setTick((n) => n + 1);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(pageError(e));
     } finally {
       setBuilding(false);
     }
@@ -245,7 +245,7 @@ export function EditorialCalendar({
       await addCalendarItems(sb, auth.workspaceId, rows.map((r) => toItem(site.id, r)));
       load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(pageError(e));
     }
   }
 
@@ -277,7 +277,7 @@ export function EditorialCalendar({
       );
       load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(pageError(e));
     }
   }
 
@@ -467,7 +467,7 @@ export function EditorialCalendar({
       await saveSite(sb, s2);
       onSite(s2);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(pageError(e));
     }
   }
 

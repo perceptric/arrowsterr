@@ -122,6 +122,13 @@ export function Sparkline({ values }: { values: number[] }) {
 export const fmtNum = (n: number | null | undefined) => (n === null || n === undefined ? "–" : n.toLocaleString("en-US"));
 export const fmtCpc = (n: number | null | undefined) => (n === null || n === undefined ? "–" : `$${n.toFixed(2)}`);
 
+/** An API error, marked when it is a plan limit. The Boost bar at the top of the app already shows those. */
+const apiError = (data: { error?: string; limit?: boolean; readOnly?: boolean }, status: number) =>
+  Object.assign(new Error(data.error || `Error ${status}`), { limit: Boolean(data.limit || data.readOnly) });
+
+/** The error text for a page to show. Plan limits give "", since the Boost bar shows them once at the top. */
+export const pageError = (e: unknown) => ((e as { limit?: boolean } | null)?.limit ? "" : e instanceof Error ? e.message : String(e));
+
 /** POST to one of our API routes as the signed-in user. */
 export async function post<T>(auth: RunAuth, path: string, body: Record<string, unknown>, signal?: AbortSignal): Promise<T> {
   const res = await fetch(path, {
@@ -131,7 +138,7 @@ export async function post<T>(auth: RunAuth, path: string, body: Record<string, 
     body: JSON.stringify({ ...body, workspaceId: auth.workspaceId }),
   });
   const data = await res.json().catch(() => ({ error: `The server returned ${res.status}.` }));
-  if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
+  if (!res.ok) throw apiError(data, res.status);
   return data as T;
 }
 
@@ -145,7 +152,7 @@ export async function postLines(auth: RunAuth, path: string, body: Record<string
   });
   if (!res.ok || !res.body) {
     const data = await res.json().catch(() => ({ error: `The server returned ${res.status}.` }));
-    throw new Error(data.error || `Error ${res.status}`);
+    throw apiError(data, res.status);
   }
   const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
   let buf = "";
