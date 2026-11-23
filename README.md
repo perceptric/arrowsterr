@@ -52,6 +52,6 @@ Do all three in test mode, then again in live mode with the live keys.
 
 ## Brand
 
-- `src/app/brand.css` holds the brand CSS. Every page is wrapped in `.aw` in `layout.tsx`.
+- `src/app/globals.css` is the only stylesheet. Every page is wrapped in `.aw` in `layout.tsx`.
 - `src/app/globals.css` maps brand tokens to Tailwind (`bg-brand`, `text-ink-2`, `border-line`, `shadow-aw`).
 - Use `<Logo />` from `src/components/Logo.tsx` for the logo.

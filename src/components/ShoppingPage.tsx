@@ -154,7 +154,7 @@ function StoreRules({ retailers, floor, canEdit, onSave }: { retailers: string[]
         <span className="aw-label">Your retailers</span>
         <div className="flex flex-wrap items-center gap-1.5">
           {list.map((r) => (
-            <span key={r} className="inline-flex items-center gap-1.5 rounded-md border border-rule px-2 py-1 text-[12.5px] text-ink">
+            <span key={r} className="inline-flex items-center gap-1.5 rounded-aw border border-rule px-2 py-1 text-[12.5px] text-ink">
               {r}
               {canEdit ? (
                 <button type="button" aria-label={`Remove ${r}`} title="Remove" className="text-muted" onClick={() => setList(list.filter((x) => x !== r))}>
@@ -231,9 +231,9 @@ function Ring({ value }: { value: number }) {
 const Picture = ({ src }: { src: string | null }) =>
   src ? (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={src} alt="" className="size-12 shrink-0 rounded-md border border-rule object-cover" loading="lazy" />
+    <img src={src} alt="" className="size-12 shrink-0 rounded-aw border border-rule object-cover" loading="lazy" />
   ) : (
-    <span className="size-12 shrink-0 rounded-md bg-surface-2" />
+    <span className="size-12 shrink-0 rounded-aw bg-surface-2" />
   );
 
 /** "Is this yours?": cards that might be the brand's products, each with one click to say yes or not ours. */
@@ -470,7 +470,7 @@ export function CatalogPanel({ auth, brand, canEdit, onClose, onPublishing, noti
           )}
 
           {tile(
-            <span className="grid size-[22px] place-items-center rounded-md bg-surface-2 text-muted" aria-hidden="true">
+            <span className="grid size-[22px] place-items-center rounded-aw bg-surface-2 text-muted" aria-hidden="true">
               <svg className="aw-icon size-3.5" viewBox="0 0 24 24">
                 <path d="M12 16V5M7 10l5-5 5 5M5 19h14" />
               </svg>

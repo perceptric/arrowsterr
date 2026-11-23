@@ -104,7 +104,7 @@ export function InstallGuide({ snippet, platform }: { snippet: string; platform:
       </div>
       <div className="flex flex-col gap-2">
         <span className="aw-label">1 · Copy this code</span>
-        <div className="flex flex-col gap-3 border border-rule bg-surface-2 p-4 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-3 rounded-aw-lg border border-rule bg-surface-2 p-4 sm:flex-row sm:items-center">
           <code className="min-w-0 flex-1 break-all font-mono text-[12px] leading-relaxed text-ink">{snippet}</code>
           <Copy text={snippet} />
         </div>
@@ -114,7 +114,7 @@ export function InstallGuide({ snippet, platform }: { snippet: string; platform:
         <ol className="flex flex-col gap-2.5">
           {p.steps.map((s, i) => (
             <li key={s} className="flex gap-3 text-[14px] text-body">
-              <span className="aw-num flex h-6 w-6 shrink-0 items-center justify-center border border-rule text-[12px] text-ink">{i + 1}</span>
+              <span className="aw-num flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-rule text-[12px] text-ink">{i + 1}</span>
               <span className="pt-0.5">{s}</span>
             </li>
           ))}

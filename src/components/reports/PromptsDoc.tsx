@@ -33,7 +33,7 @@ export function PromptsDoc({ r }: { r: PromptsSnapshot }) {
       </header>
 
       {s ? (
-        <div className="grid gap-px border border-rule bg-rule sm:grid-cols-3">
+        <div className="grid gap-px overflow-hidden rounded-aw-lg border border-rule bg-rule sm:grid-cols-3">
           {[
             { lab: "Visibility", v: `${Math.round(s.visibility)}`, help: "Share of AI answers that name you" },
             { lab: "Sentiment", v: s.sentiment === null ? "–" : `${Math.round(s.sentiment)}`, help: "How well AI talks about you" },
@@ -126,7 +126,7 @@ function PromptDive({ brand, prompt, topic, detail, onClose }: { brand: string; 
           </button>
         </div>
 
-        <div className="grid grid-cols-2 gap-px border border-rule bg-rule sm:grid-cols-3 xl:grid-cols-[repeat(var(--n),minmax(0,1fr))]" style={{ ["--n" as string]: detail.length }} role="tablist" aria-label="Model">
+        <div className="grid grid-cols-2 gap-px overflow-hidden rounded-aw-lg border border-rule bg-rule sm:grid-cols-3 xl:grid-cols-[repeat(var(--n),minmax(0,1fr))]" style={{ ["--n" as string]: detail.length }} role="tablist" aria-label="Model">
           {detail.map((e) => (
             <button
               key={e.engine}

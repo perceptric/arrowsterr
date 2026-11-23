@@ -73,7 +73,7 @@ const oneLine = (s: string) => s.replace(/[\r\n]+/g, " ").replace(/\s+/g, " ").t
 const safeColor = (c: string) => (/^#[0-9a-f]{6}$/i.test(c) ? c : "#0943B0");
 const safeUrl = (u: string) => (/^(https?:|mailto:)/i.test(u) ? u : "#");
 
-// Light values; the dark ones live in DARK below. Same tokens as src/app/calm-ui.css.
+// Light values; the dark ones live in DARK below. Same tokens as src/app/globals.css.
 const C = {
   shell: "#F5F5F5", panel: "#FFFFFF", soft: "#FAFAFA", line: "#EBEBEB", ink: "#171717", ink2: "#737373",
   btn: "#0943B0", signal: "#0943B0", signalSoft: "#E8EEFA", track: "#F0F0F0", muted: "#D4D4D4",

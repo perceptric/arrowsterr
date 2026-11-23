@@ -99,10 +99,10 @@ export function DraftProgress({ draft, brief }: { draft: Pick<FullDraft, "step" 
 
 function Steps({ steps }: { steps: { label: string; note: string; done: boolean; on: boolean }[] }) {
   return (
-    <ol className="flex flex-col gap-2.5 border border-rule bg-white p-4" aria-live="polite">
+    <ol className="flex flex-col gap-2.5 rounded-aw-lg border border-rule bg-white p-4" aria-live="polite">
       {steps.map((s) => (
         <li key={s.label} className={`flex items-center gap-3 text-[14px] ${s.on ? "text-ink" : s.done ? "text-body" : "text-muted"}`}>
-          <i className={`inline-block h-2 w-2 shrink-0 ${s.done ? "bg-pos" : s.on ? "animate-pulse bg-warn" : "bg-rule"}`} aria-hidden="true" />
+          <i className={`inline-block h-2 w-2 shrink-0 rounded-full ${s.done ? "bg-pos" : s.on ? "animate-pulse bg-warn" : "bg-rule"}`} aria-hidden="true" />
           <span className="flex-1">{s.label}</span>
           {s.note ? <span className="aw-num text-[12px] text-muted">{s.note}</span> : null}
         </li>

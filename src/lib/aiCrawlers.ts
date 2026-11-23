@@ -29,7 +29,6 @@ export const BOTS: Bot[] = [
   { id: "duckassistbot", token: "DuckAssistBot", name: "DuckAssistBot", owner: "DuckDuckGo", kind: "user" },
 ];
 const BY_ID = new Map(BOTS.map((b) => [b.id, b]));
-export const botOf = (id: string) => BY_ID.get(id) ?? null;
 
 /** The bot a user agent belongs to, or null for people and other bots. */
 export function matchBot(ua: string | null | undefined): Bot | null {

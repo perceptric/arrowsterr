@@ -112,7 +112,7 @@ export function KeywordDeepDive({
   const state = writeState({ item: { status: item.status, url: item.url ?? null }, brief, draft: ws?.draft ?? null });
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       <nav className="flex items-center gap-1.5 text-[13px] text-muted" aria-label="Breadcrumb">
         <button type="button" className="aw-text-link" onClick={onBack}>
           Editorial Calendar
@@ -121,13 +121,17 @@ export function KeywordDeepDive({
         <span className="truncate text-ink">{item.keyword}</span>
       </nav>
 
-      <header className="flex flex-wrap items-center gap-3">
-        <h1 className="aw-h2 mr-1 min-w-0 truncate">{item.keyword}</h1>
-        <StageTag stage={item.stage} />
-        <span className={`aw-status ${tone}`}>{label}</span>
-        <span className="ml-auto flex flex-wrap items-center gap-2">
+      <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+        <div className="flex min-w-0 flex-col gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className={`aw-status ${tone}`}>{label}</span>
+            <StageTag stage={item.stage} />
+          </div>
+          <h1 className="aw-h2 min-w-0 truncate">{item.keyword}</h1>
+        </div>
+        <span className="flex flex-wrap items-center gap-2">
           {inWriterAt(item) ? (
-            <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={!brandId} onClick={() => brandId && openInLibrary(brandId, null)}>
+            <button type="button" className="aw-btn aw-btn--ghost aw-btn--sm" disabled={!brandId} onClick={() => brandId && openInLibrary(brandId, null)}>
               <Tick /> In Drafts
             </button>
           ) : null}
@@ -139,33 +143,28 @@ export function KeywordDeepDive({
       {brief?.status === "failed" && brief.error ? <p className="aw-error">{brief.error}</p> : null}
       {actions.overlays}
 
-      <ol className="aw-frame grid grid-cols-5 gap-0 bg-white px-4 py-3" aria-label="Workflow">
+      <ol className="aw-steps" aria-label="Workflow">
         {WORKFLOW.map((w, n) => {
           const done = n < stepAt;
           const now = n === stepAt;
           return (
-            <li key={w.id} className="flex min-w-0 flex-col gap-1.5" aria-current={now ? "step" : undefined}>
-              <span className="flex items-center">
-                <span
-                  className={`aw-num flex h-6 w-6 shrink-0 items-center justify-center border text-[12px] ${done ? "border-brand bg-brand text-white" : now ? "border-brand text-brand" : "border-rule text-muted"}`}
-                >
-                  {done ? "✓" : n + 1}
-                </span>
-                {n < WORKFLOW.length - 1 ? <span className={`h-px flex-1 ${done ? "bg-brand" : "bg-rule"}`} /> : null}
+            <li key={w.id} className={`aw-steps__item ${now ? "is-on" : done ? "is-done" : ""}`} aria-current={now ? "step" : undefined}>
+              <span className="aw-steps__step">
+                <span className="aw-steps__dot">{done ? "✓" : n + 1}</span>
+                <span className="aw-steps__label">{w.label}</span>
               </span>
-              <span className={`truncate text-[13px] ${now ? "font-semibold text-brand" : done ? "text-ink" : "text-muted"}`}>{w.label}</span>
             </li>
           );
         })}
       </ol>
 
-      <div className="grid grid-cols-2 gap-px overflow-hidden border border-rule bg-rule sm:grid-cols-3 lg:grid-cols-6">
-        <Stat label="Search volume" value={<span className="aw-num">{fmtNum(item.volume)} / mo</span>} />
+      <div className="aw-stats aw-stats--tight" style={{ ["--cols" as string]: 6 }}>
+        <Stat label="Search volume" value={<>{fmtNum(item.volume)} <span className="text-[13px] font-normal tracking-normal text-muted">/ mo</span></>} />
         <Stat label="Keyword difficulty" value={<Difficulty kd={item.difficulty} />} />
-        <Stat label="CPC" value={<span className="aw-num">{fmtCpc(item.cpc)}</span>} />
+        <Stat label="CPC" value={fmtCpc(item.cpc)} />
         <Stat label="Search intent" value={<span className="capitalize">{item.intent ?? "–"}</span>} />
-        <Stat label="Current ranking" value={item.current_rank ? <span className="aw-num">#{item.current_rank}</span> : <span className="text-muted">Not ranking</span>} />
-        <Stat label="SERP features" value={<span className="aw-num">{features ?? "–"}</span>} />
+        <Stat label="Current ranking" value={item.current_rank ? `#${item.current_rank}` : <span className="text-muted">Not ranking</span>} />
+        <Stat label="SERP features" value={features ?? <span className="text-muted">–</span>} />
       </div>
 
       <Details item={item} site={site} members={members} canEdit={canEdit} onPatch={onPatch} />
@@ -184,9 +183,9 @@ export function KeywordDeepDive({
 
 function Stat({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-1 bg-white px-4 py-2.5">
-      <span className="aw-label">{label}</span>
-      <span className="text-[15px] text-ink">{value}</span>
+    <div className="aw-stat">
+      <div className="aw-stat__lab">{label}</div>
+      <span className="aw-stat__num">{value}</span>
     </div>
   );
 }
@@ -200,109 +199,122 @@ function Details({ item, site, members, canEdit, onPatch }: { item: CalendarItem
   const [notes, setNotes] = useState(item.notes ?? "");
   const [url, setUrl] = useState(item.url ?? "");
   const [extra, setExtra] = useState<Record<string, string>>(() => Object.fromEntries((site.profile.columns ?? []).map((c) => [c.id, String(item.extra?.[c.id] ?? "")])));
-  const field = (label: string, input: React.ReactNode, wide = false) => (
-    <label className={`flex min-w-0 flex-col gap-1 ${wide ? "sm:col-span-2 lg:col-span-3" : ""}`}>
+  // A row in the Details rail: the name on the left, the control on the right.
+  const row = (label: string, input: React.ReactNode) => (
+    <label className="aw-props__row">
+      <span className="aw-props__label">{label}</span>
+      <span className="min-w-0 flex-1">{input}</span>
+    </label>
+  );
+  // A full-width field in the main column.
+  const field = (label: string, input: React.ReactNode) => (
+    <label className="flex min-w-0 flex-col gap-1.5">
       <span className="aw-label">{label}</span>
       {input}
     </label>
   );
-  const box = `${FIELD} h-9 w-full rounded-md text-[13px]!`;
+  const box = `${FIELD} h-9 w-full rounded-aw text-[13px]!`;
   const status = statusChoice(item);
   const owners = [...new Set([...(item.owner ? [item.owner] : []), ...members])];
 
   return (
-    <section className="aw-frame grid gap-x-4 gap-y-3 bg-white p-4 sm:grid-cols-2 lg:grid-cols-3">
-      {field("Keyword", <input value={keyword} disabled={!canEdit} onChange={(e) => setKeyword(e.target.value)} onBlur={() => keyword.trim() && keyword !== item.keyword && onPatch({ keyword: keyword.trim() })} className={box} />)}
-      {field(
-        "Suggested slug",
-        <input
-          value={slug}
-          disabled={!canEdit}
-          onChange={(e) => setSlug(e.target.value)}
-          onBlur={() => {
-            const next = slug.trim() ? `/${slugify(slug)}` : null;
-            if (next !== slugOf(item)) onPatch({ extra: { ...(item.extra ?? {}), slug: next } });
-            setSlug(next ?? slugOf({ ...item, extra: { ...(item.extra ?? {}), slug: null } }));
-          }}
-          className={`${box} font-mono text-[12px]!`}
-        />,
-      )}
-      {field(
-        "Impact",
-        <Dropdown label="Impact" value={item.stage ?? ""} disabled={!canEdit} onChange={(v) => onPatch({ stage: (v || null) as CalendarItem["stage"] })} className={box} options={[...STAGES.map((x) => ({ id: x.id as string, label: STAGE_LABEL[x.id] })), { id: "", label: "None" }]} />,
-      )}
-      {field(
-        "Content status",
-        <Dropdown
-          label="Content status"
-          value={status}
-          disabled={!canEdit}
-          onChange={(v) => {
-            onPatch(statusPatch(v, item.due_date, isoDay(nextMonday())));
-          }}
-          className={box}
-          options={STATUS_PICK.map((x) => ({ id: x.id as string, label: x.label }))}
-        />,
-      )}
-      {field("Publish date", <DateField label="Publish date" value={item.due_date ?? ""} disabled={!canEdit} onChange={(v) => onPatch({ due_date: v })} className={box} placeholder="Not scheduled" />)}
-      {field("Owner", <Dropdown label="Owner" value={item.owner ?? ""} disabled={!canEdit} onChange={(v) => onPatch({ owner: v || null })} className={box} options={[{ id: "", label: "Unassigned" }, ...owners.map((m) => ({ id: m, label: m }))]} />)}
-      {field(
-        "Job",
-        <Dropdown label="Job" value={item.action} disabled={!canEdit} onChange={(v) => onPatch({ action: v })} className={box} options={[{ id: "new" as const, label: "New page" }, { id: "update" as const, label: "Update page" }]} />,
-      )}
-      {field("Theme", <input value={theme} disabled={!canEdit} onChange={(e) => setTheme(e.target.value)} onBlur={() => theme !== (item.theme ?? "") && onPatch({ theme: theme.trim() || null })} className={box} />)}
-      {field(
-        "Live URL",
-        <input
-          value={url}
-          disabled={!canEdit}
-          onChange={(e) => setUrl(e.target.value)}
-          onBlur={() => url !== (item.url ?? "") && onPatch(url && item.action === "new" ? { url, status: "published" } : { url: url || null })}
-          placeholder="https://"
-          className={box}
-        />,
-      )}
-      {item.action === "update" && item.current_url
-        ? field(
-            "Page to update",
-            <a href={item.current_url} target="_blank" rel="noopener noreferrer" className="flex h-9 items-center truncate text-[13px]">
-              {item.current_url.replace(/^https?:\/\/(www\.)?/, "")} ↗
-            </a>,
-          )
-        : null}
-      {field(
-        "Related keywords",
-        <input
-          value={also}
-          disabled={!canEdit}
-          onChange={(e) => setAlso(e.target.value)}
-          onBlur={() => {
-            const list = also.split(",").map((x) => x.trim()).filter(Boolean);
-            if (list.join("|") !== item.secondary.join("|")) onPatch({ secondary: list });
-          }}
-          placeholder="Other keywords this page covers, with commas"
-          className={box}
-        />,
-        true,
-      )}
-      {(site.profile.columns ?? []).map((c) =>
-        field(
-          c.name,
+    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
+      <section className="aw-frame flex flex-col gap-4 bg-white p-4" aria-label="Keywords and notes">
+        {field("Theme", <input value={theme} disabled={!canEdit} onChange={(e) => setTheme(e.target.value)} onBlur={() => theme !== (item.theme ?? "") && onPatch({ theme: theme.trim() || null })} className={box} />)}
+        {field(
+          "Related keywords",
           <input
-            type={c.type === "date" ? "date" : c.type === "number" ? "number" : "text"}
-            value={extra[c.id] ?? ""}
+            value={also}
             disabled={!canEdit}
-            onChange={(e) => setExtra((x) => ({ ...x, [c.id]: e.target.value }))}
+            onChange={(e) => setAlso(e.target.value)}
             onBlur={() => {
-              const v = extra[c.id] ?? "";
-              if (v === String(item.extra?.[c.id] ?? "")) return;
-              onPatch({ extra: { ...(item.extra ?? {}), [c.id]: v === "" ? null : c.type === "number" ? Number(v) : v } });
+              const list = also.split(",").map((x) => x.trim()).filter(Boolean);
+              if (list.join("|") !== item.secondary.join("|")) onPatch({ secondary: list });
             }}
+            placeholder="Other keywords this page covers, with commas"
             className={box}
           />,
-        ),
-      )}
-      {field("Notes", <textarea value={notes} disabled={!canEdit} onChange={(e) => setNotes(e.target.value)} onBlur={() => notes !== (item.notes ?? "") && onPatch({ notes: notes || null })} rows={2} className="aw-textarea text-[13px]!" />, true)}
-    </section>
+        )}
+        {(site.profile.columns ?? []).map((c) =>
+          field(
+            c.name,
+            <input
+              type={c.type === "date" ? "date" : c.type === "number" ? "number" : "text"}
+              value={extra[c.id] ?? ""}
+              disabled={!canEdit}
+              onChange={(e) => setExtra((x) => ({ ...x, [c.id]: e.target.value }))}
+              onBlur={() => {
+                const v = extra[c.id] ?? "";
+                if (v === String(item.extra?.[c.id] ?? "")) return;
+                onPatch({ extra: { ...(item.extra ?? {}), [c.id]: v === "" ? null : c.type === "number" ? Number(v) : v } });
+              }}
+              className={box}
+            />,
+          ),
+        )}
+        {field("Notes", <textarea value={notes} disabled={!canEdit} onChange={(e) => setNotes(e.target.value)} onBlur={() => notes !== (item.notes ?? "") && onPatch({ notes: notes || null })} rows={4} className="aw-textarea text-[13px]!" />)}
+  
+      </section>
+      <section className="aw-frame aw-props bg-white" aria-label="Details">
+        <h2 className="aw-props__title">Details</h2>
+        {row(
+          "Status",
+          <Dropdown
+            label="Content status"
+            value={status}
+            disabled={!canEdit}
+            onChange={(v) => {
+              onPatch(statusPatch(v, item.due_date, isoDay(nextMonday())));
+            }}
+            className={box}
+            options={STATUS_PICK.map((x) => ({ id: x.id as string, label: x.label }))}
+          />,
+        )}
+        {row("Publish date", <DateField label="Publish date" value={item.due_date ?? ""} disabled={!canEdit} onChange={(v) => onPatch({ due_date: v })} className={box} placeholder="Not scheduled" />)}
+        {row("Owner", <Dropdown label="Owner" value={item.owner ?? ""} disabled={!canEdit} onChange={(v) => onPatch({ owner: v || null })} className={box} options={[{ id: "", label: "Unassigned" }, ...owners.map((m) => ({ id: m, label: m }))]} />)}
+        {row(
+          "Impact",
+          <Dropdown label="Impact" value={item.stage ?? ""} disabled={!canEdit} onChange={(v) => onPatch({ stage: (v || null) as CalendarItem["stage"] })} className={box} options={[...STAGES.map((x) => ({ id: x.id as string, label: STAGE_LABEL[x.id] })), { id: "", label: "None" }]} />,
+        )}
+        {row(
+          "Job",
+          <Dropdown label="Job" value={item.action} disabled={!canEdit} onChange={(v) => onPatch({ action: v })} className={box} options={[{ id: "new" as const, label: "New page" }, { id: "update" as const, label: "Update page" }]} />,
+        )}
+        {row(
+          "Slug",
+          <input
+            value={slug}
+            disabled={!canEdit}
+            onChange={(e) => setSlug(e.target.value)}
+            onBlur={() => {
+              const next = slug.trim() ? `/${slugify(slug)}` : null;
+              if (next !== slugOf(item)) onPatch({ extra: { ...(item.extra ?? {}), slug: next } });
+              setSlug(next ?? slugOf({ ...item, extra: { ...(item.extra ?? {}), slug: null } }));
+            }}
+            className={`${box} font-mono text-[12px]!`}
+          />,
+        )}
+        {row(
+          "Live URL",
+          <input
+            value={url}
+            disabled={!canEdit}
+            onChange={(e) => setUrl(e.target.value)}
+            onBlur={() => url !== (item.url ?? "") && onPatch(url && item.action === "new" ? { url, status: "published" } : { url: url || null })}
+            placeholder="https://"
+            className={box}
+          />,
+        )}
+        {item.action === "update" && item.current_url
+          ? row(
+              "Page to update",
+              <a href={item.current_url} target="_blank" rel="noopener noreferrer" className="flex h-9 items-center truncate text-[13px]">
+                {item.current_url.replace(/^https?:\/\/(www\.)?/, "")} ↗
+              </a>,
+            )
+          : null}
+        {row("Keyword", <input value={keyword} disabled={!canEdit} onChange={(e) => setKeyword(e.target.value)} onBlur={() => keyword.trim() && keyword !== item.keyword && onPatch({ keyword: keyword.trim() })} className={box} />)}
+      </section>
+    </div>
   );
 }

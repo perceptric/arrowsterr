@@ -80,7 +80,7 @@ export function LogoStack({ size = 20 }: { size?: number }) {
   return (
     <span className="inline-flex items-center" aria-label={AIS.map((a) => a.name).join(", ")}>
       {AIS.filter((a, i) => AIS.findIndex((b) => b.logo === a.logo) === i).map((a, i) => (
-        <span key={a.name} className="rounded-[8px] bg-white ring-2 ring-white" style={{ marginLeft: i ? -size * 0.3 : 0 }}>
+        <span key={a.name} className="rounded-aw bg-white ring-2 ring-white" style={{ marginLeft: i ? -size * 0.3 : 0 }}>
           <BrandLogo src={a.logo} name={a.name} size={size} />
         </span>
       ))}

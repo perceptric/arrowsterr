@@ -158,7 +158,7 @@ function Overview({ report: r, brand }: { report: ShopReport; brand: BrandRef })
           </div>
           <ol className="flex flex-col gap-1 p-3">
             {top.map((x, i) => (
-              <li key={x.name} className={`flex items-center gap-3 rounded-md px-2 py-2 ${x.you ? "bg-surface-2" : ""}`}>
+              <li key={x.name} className={`flex items-center gap-3 rounded-aw px-2 py-2 ${x.you ? "bg-surface-2" : ""}`}>
                 <span className="aw-num w-4 text-right text-[12px] text-muted">{i + 1}</span>
                 <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                   <div className="flex flex-wrap items-baseline justify-between gap-2 text-[13px]">
@@ -214,7 +214,7 @@ function Products({ report: r, limit }: { report: ShopReport; limit?: number }) 
                 <td>
                   <span className="flex min-w-0 items-center gap-3">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    {p.image ? <img src={p.image} alt="" className="size-9 shrink-0 rounded-md border border-rule object-cover" loading="lazy" /> : <span className="size-9 shrink-0 rounded-md bg-surface-2" />}
+                    {p.image ? <img src={p.image} alt="" className="size-9 shrink-0 rounded-aw border border-rule object-cover" loading="lazy" /> : <span className="size-9 shrink-0 rounded-aw bg-surface-2" />}
                     <span className="flex min-w-0 flex-col gap-0.5">
                       <span className="break-words text-ink">{p.title}</span>
                       {p.reason ? <span className="break-words text-[12px] text-muted">{p.reason}</span> : null}

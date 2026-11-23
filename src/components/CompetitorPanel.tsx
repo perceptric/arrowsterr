@@ -190,7 +190,7 @@ export function CompetitorPanel({
       kicker={`Competitor · last ${days} days`}
       title={
         <span className="flex items-center gap-3">
-          <span className="rounded-[10px] border-2 border-ink bg-white p-1 shadow-[3px_3px_0_0_#111111]">
+          <span className="rounded-aw border border-rule bg-white p-1 shadow-aw-sm">
             <BrandLogo src={favicon(s.domain || guessDomain(s.name))} name={s.name} size={32} />
           </span>
           <span className="truncate">{s.name}</span>
@@ -309,12 +309,12 @@ export function CompetitorPanel({
           />
           <span className="flex items-center gap-3 text-[12px] text-muted">
             <span className="flex items-center gap-1.5">
-              <i className="inline-block h-2 w-2" style={{ background: B_COLOR }} aria-hidden="true" />
+              <i className="inline-block h-2 w-2 rounded-full" style={{ background: B_COLOR }} aria-hidden="true" />
               <BrandLogo src={themLogo} name={s.name} size={14} />
               {s.name}
             </span>
             <span className="flex items-center gap-1.5">
-              <i className="inline-block h-2 w-2" style={{ background: YOU_COLOR }} aria-hidden="true" />
+              <i className="inline-block h-2 w-2 rounded-full" style={{ background: YOU_COLOR }} aria-hidden="true" />
               <BrandLogo src={youLogo} name={brand.name} size={14} />
               {brand.name}
             </span>
@@ -426,7 +426,7 @@ export function CompetitorPanel({
                 <p className="aw-small">No Google data for {report.domain} in {report.country}.</p>
               )}
               <div className="grid gap-6 xl:grid-cols-2">
-                <div className="min-w-0 border border-rule">
+                <div className="min-w-0 overflow-hidden rounded-aw-lg border border-rule">
                   <div className="border-b border-rule-faint px-4 py-3">
                     <span className="aw-label">Top keywords</span>
                   </div>
@@ -460,7 +460,7 @@ export function CompetitorPanel({
                     </tbody>
                   </table>
                 </div>
-                <div className="min-w-0 border border-rule">
+                <div className="min-w-0 overflow-hidden rounded-aw-lg border border-rule">
                   <div className="border-b border-rule-faint px-4 py-3">
                     <span className="aw-label">Top pages</span>
                   </div>

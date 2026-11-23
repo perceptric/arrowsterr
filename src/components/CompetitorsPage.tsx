@@ -87,7 +87,7 @@ export function Quadrant({
             </span>
           ))}
         </div>
-        <div className="relative min-w-0 flex-1 border border-rule bg-white">
+        <div className="relative min-w-0 flex-1 overflow-hidden rounded-aw-lg border border-rule bg-white">
           <span className="absolute top-0 bg-brand-pale" style={{ left: `${x(mid)}%`, width: `${100 - x(mid)}%`, height: `${y(50)}%` }} aria-hidden="true" />
           {[0, 25, 75, 100].map((t) => (
             <span key={t} className="absolute right-0 left-0 border-t border-rule-faint" style={{ top: `${y(t)}%` }} />
@@ -107,7 +107,7 @@ export function Quadrant({
                 onFocus={() => onHover(d.name)}
                 onBlur={() => onHover(null)}
                 aria-label={`${d.name}: visibility ${Math.round(d.visibility)}%, average position #${d.position.toFixed(1)}${d.sentiment != null ? `, sentiment ${Math.round(d.sentiment)}` : ""}`}
-                className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-[10px] border-2 bg-white p-1 transition-transform ${d.isYou ? "border-brand shadow-[3px_3px_0_0_var(--aw-brand)]" : picked === d.name ? "border-ink shadow-[3px_3px_0_0_#111111]" : "border-ink shadow-[3px_3px_0_0_var(--aw-ink)]"} ${on ? "z-30 -translate-y-[calc(50%+2px)] scale-115" : "z-10 hover:z-30"}`}
+                className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-aw border-2 bg-white p-1 transition-transform ${d.isYou ? "border-brand shadow-aw" : picked === d.name ? "border-ink shadow-aw" : "border-ink shadow-aw"} ${on ? "z-30 -translate-y-[calc(50%+2px)] scale-115" : "z-10 hover:z-30"}`}
                 style={{ left: `${x(d.position)}%`, top: `${y(d.visibility)}%` }}
               >
                 {crown === d.name ? (
@@ -336,7 +336,7 @@ function AiCompetitors({ view, auth = null, initial, limit, onTopic }: Props) {
 
   /** A battle card side: the brand's own logo, framed in its side's color (blue for A, coral for B). */
   const side = (s: BrandStat, color: string, size: number) => (
-    <span key={s.name} className="inline-flex shrink-0 rounded-[8px] border-2 bg-white p-0.5" style={{ borderColor: color }} title={s.name}>
+    <span key={s.name} className="inline-flex shrink-0 rounded-aw border-2 bg-white p-0.5" style={{ borderColor: color }} title={s.name}>
       <BrandLogo src={logoOf(s)} name={s.name} size={size} />
     </span>
   );
@@ -404,7 +404,7 @@ function AiCompetitors({ view, auth = null, initial, limit, onTopic }: Props) {
       {full ? (
         <SidePanel title="All competitors" kicker={`${listed.length} brands · last ${days} days`} onClose={() => setFull(false)}>
           <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search brands" aria-label="Search all brands" className="aw-input max-w-md py-1.5! text-[14px]!" />
-          <div className="border border-rule">{brandTable(listed, true)}</div>
+          <div className="overflow-hidden rounded-aw-lg border border-rule">{brandTable(listed, true)}</div>
           {hidden ? <p className="aw-small mt-3">{hidden} more on a bigger plan</p> : null}
         </SidePanel>
       ) : null}

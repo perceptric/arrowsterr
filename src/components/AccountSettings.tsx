@@ -238,7 +238,7 @@ function PasskeySection({ sb }: { sb: SupabaseClient }) {
       </div>
       {error ? <p className="aw-error">{error}</p> : null}
       {keys?.length ? (
-        <ul className="flex flex-col divide-y divide-rule-faint rounded-[10px] border border-rule-faint">
+        <ul className="flex flex-col divide-y divide-rule-faint rounded-aw border border-rule-faint">
           {keys.map((k) => (
             <li key={k.id} className="flex items-center justify-between gap-3 px-3 py-2.5 text-[13px]">
               <span className="flex min-w-0 flex-col">
@@ -287,7 +287,7 @@ function DeviceList({ sb, userId }: { sb: SupabaseClient; userId: string }) {
         <h3 className="aw-h4">Recent sign-ins</h3>
         <p className="aw-small mt-1">Devices that signed in to your account. Don&apos;t know one? Change your password, then sign out other devices below.</p>
       </div>
-      <ul className="flex flex-col divide-y divide-rule-faint rounded-[10px] border border-rule-faint">
+      <ul className="flex flex-col divide-y divide-rule-faint rounded-aw border border-rule-faint">
         {rows.map((r) => (
           <li key={r.device} className="flex items-center justify-between gap-3 px-3 py-2.5 text-[13px]">
             <span className="flex min-w-0 flex-col">

@@ -8,7 +8,7 @@ export function WorkspaceAvatar({ ws, brandLogo, size = 24 }: { ws: Workspace; b
   const src = ws.avatar || brandLogo;
   if (src) return <BrandLogo src={src} name={ws.name} size={size} />;
   return (
-    <span className="flex shrink-0 items-center justify-center rounded-[6px] bg-ink font-medium text-white" style={{ width: size, height: size, fontSize: size * 0.5 }}>
+    <span className="flex shrink-0 items-center justify-center rounded-aw-sm bg-ink font-medium text-white" style={{ width: size, height: size, fontSize: size * 0.5 }}>
       {ws.name.slice(0, 1).toUpperCase()}
     </span>
   );

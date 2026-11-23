@@ -5,7 +5,7 @@ import { drawing, FRAME, isoVars, type DrawingKind } from "@/lib/isoArt";
 
 // The picture on an empty screen (docs/empty-screens-plan.md): one object of solid isometric blocks on a pale plate,
 // in the style of the city on arrowsterr.com. The art is in src/lib/isoArt.ts; the motion (blocks drop in, then the
-// object floats) is in calm-ui.css, section 14.
+// object floats) is in globals.css, under aw-drawing.
 
 export type { DrawingKind };
 

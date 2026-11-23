@@ -548,17 +548,17 @@ function ArticleView({
           {words.toLocaleString("en-US")} words · {Math.max(1, Math.round(words / 230))} min read
         </span>
         <span className="flex items-center gap-1.5 px-1 text-[12px] whitespace-nowrap text-muted">
-          <i className={`inline-block h-1.5 w-1.5 ${state.s === "error" ? "bg-neg" : state.s === "saving" ? "bg-warn" : "bg-pos"}`} aria-hidden="true" />
+          <i className={`inline-block h-1.5 w-1.5 rounded-full ${state.s === "error" ? "bg-neg" : state.s === "saving" ? "bg-warn" : "bg-pos"}`} aria-hidden="true" />
           {state.note || (state.s === "error" ? "Not saved" : state.s === "saving" ? "Saving" : "Saved")}
         </span>
         {extra}
-        <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" aria-pressed={showReview && panelTab === "review"} onClick={() => (showReview && panelTab === "review" ? setReviewOpen(false) : openPanel("review"))}>
+        <button type="button" className="aw-btn aw-btn--ghost aw-btn--sm" aria-pressed={showReview && panelTab === "review"} onClick={() => (showReview && panelTab === "review" ? setReviewOpen(false) : openPanel("review"))}>
           Review
         </button>
-        <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" aria-pressed={showReview && panelTab === "comments"} onClick={() => (showReview && panelTab === "comments" ? setReviewOpen(false) : openPanel("comments"))}>
+        <button type="button" className="aw-btn aw-btn--ghost aw-btn--sm" aria-pressed={showReview && panelTab === "comments"} onClick={() => (showReview && panelTab === "comments" ? setReviewOpen(false) : openPanel("comments"))}>
           Comments{openCount ? <span className="aw-num ml-1.5 text-muted">{openCount}</span> : null}
         </button>
-        <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" aria-haspopup="menu" disabled={!editor} onClick={(e) => setExportAt(e.currentTarget.getBoundingClientRect())}>
+        <button type="button" className="aw-btn aw-btn--ghost aw-btn--sm" aria-haspopup="menu" disabled={!editor} onClick={(e) => setExportAt(e.currentTarget.getBoundingClientRect())}>
           Export
         </button>
         {canEdit ? (
@@ -608,7 +608,7 @@ function ArticleView({
           ) : null}
         </div>
         {wide && showReview ? (
-          <aside className="sticky top-4 flex max-h-[calc(100vh-2rem)] min-w-0 flex-col border border-rule bg-white" aria-label="Review, comments and versions">
+          <aside className="sticky top-4 flex max-h-[calc(100vh-2rem)] min-w-0 flex-col rounded-aw-lg border border-rule bg-white" aria-label="Review, comments and versions">
             <div className="flex items-center justify-between gap-2 border-b border-rule-faint py-1 pr-2 pl-2">
               {panelTabs}
               <button type="button" className="aw-icon-btn flex h-8 w-8 shrink-0 items-center justify-center" aria-label="Close the panel" title="Close" onClick={() => setReviewOpen(false)}>

@@ -307,7 +307,7 @@ export function Onboarding({
           <ol className="aw-steps" aria-label="Steps">
             {steps.map((s, i) => (
               <li key={s.id} className={`aw-steps__item ${i === at ? "is-on" : i < at ? "is-done" : ""}`}>
-                <button type="button" disabled={i > at || Boolean(busy) || step === "done" || step === "writer" || (s.id === "prompts" && !plan.length)} onClick={() => go(s.id)} aria-current={i === at ? "step" : undefined}>
+                <button type="button" className="aw-steps__step" disabled={i > at || Boolean(busy) || step === "done" || step === "writer" || (s.id === "prompts" && !plan.length)} onClick={() => go(s.id)} aria-current={i === at ? "step" : undefined}>
                   <span className="aw-steps__dot">{i < at ? "✓" : i + 1}</span>
                   <span className="aw-steps__label">{s.label}</span>
                 </button>

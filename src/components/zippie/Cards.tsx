@@ -356,7 +356,7 @@ export function ChangeSetCard({ id, api, canEdit }: { id: string; api: ReturnTyp
                 ) : null}
               </div>
               <Diff c={c} />
-              {c.error ? <p className="text-[12px] text-[#B3093C]">{c.error}</p> : null}
+              {c.error ? <p className="text-[12px] text-neg">{c.error}</p> : null}
             </div>
           ))}
         </div>
@@ -377,12 +377,12 @@ function Diff({ c }: { c: Change }) {
     const b = c.before ?? {};
     return (
       <div className="grid gap-2 text-[13px] sm:grid-cols-2">
-        <div className="rounded-lg bg-surface-2 p-3">
+        <div className="rounded-aw bg-surface-2 p-3">
           <p className="mb-1 text-[11px] font-medium text-muted uppercase">Now</p>
           <p className="font-medium text-ink">{String(b.title || "No SEO title")}</p>
           <p className="text-body">{String(b.description || "No meta description")}</p>
         </div>
-        <div className="rounded-lg bg-brand-pale p-3">
+        <div className="rounded-aw bg-brand-pale p-3">
           <p className="mb-1 text-[11px] font-medium text-brand uppercase">Zippie&apos;s version</p>
           <p className="font-medium text-ink">{String(a.title ?? "")}</p>
           <p className="text-body">{String(a.description ?? "")}</p>
@@ -396,7 +396,7 @@ function Diff({ c }: { c: Change }) {
         {((a.images as { src: string; alt: string }[]) ?? []).map((img) => (
           <div key={img.src} className="flex items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={img.src} alt="" className="h-12 w-16 shrink-0 rounded-md object-cover" loading="lazy" />
+            <img src={img.src} alt="" className="h-12 w-16 shrink-0 rounded-aw object-cover" loading="lazy" />
             <span className="text-body">“{img.alt}”</span>
           </div>
         ))}

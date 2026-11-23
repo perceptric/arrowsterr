@@ -462,7 +462,7 @@ export function TrafficPage({ view, auth, canEdit }: { view: View; auth: RunAuth
           <section className="aw-frame">
             <div className="aw-frame__body flex flex-col gap-3">
               <span className="text-[15px] font-medium text-ink">Not your job? Send it to your web person.</span>
-              <div className="flex flex-col gap-3 border border-rule bg-surface-2 p-3 sm:flex-row sm:items-center">
+              <div className="flex flex-col gap-3 rounded-aw border border-rule bg-surface-2 p-3 sm:flex-row sm:items-center">
                 <code className="min-w-0 flex-1 truncate font-mono text-[12px] text-ink">{shareUrl}</code>
                 <Copy text={shareUrl} label="Copy link" />
               </div>

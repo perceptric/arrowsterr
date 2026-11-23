@@ -69,7 +69,7 @@ function CopyRow({ value, label }: { value: string; label: string }) {
   const [done, setDone] = useState(false);
   return (
     <span className="flex items-center gap-2">
-      <code aria-label={label} className="min-w-0 flex-1 truncate rounded-[6px] border border-rule bg-surface-2 px-2 py-1.5 text-[12px] text-ink">
+      <code aria-label={label} className="min-w-0 flex-1 truncate rounded-aw-sm border border-rule bg-surface-2 px-2 py-1.5 text-[12px] text-ink">
         {value}
       </code>
       <button
@@ -134,7 +134,7 @@ function McpCard({ off }: { off: boolean }) {
           <summary className="cursor-pointer font-medium text-ink">Cursor and other apps</summary>
           <div className="mt-2 flex flex-col gap-2 text-body">
             <span>Add this to your MCP settings (in Cursor: ~/.cursor/mcp.json). The app opens a sign-in page the first time.</span>
-            <pre className="overflow-x-auto rounded-[6px] border border-rule bg-surface-2 p-2 text-[12px] text-ink">{cursor}</pre>
+            <pre className="overflow-x-auto rounded-aw-sm border border-rule bg-surface-2 p-2 text-[12px] text-ink">{cursor}</pre>
             <span>Apps without sign-in can send an API key from below as a header: Authorization: Bearer aw_live_…</span>
           </div>
         </details>
@@ -159,7 +159,7 @@ type AppsState = { ready: boolean; allowed: boolean; groups?: string[]; apps: Ap
 
 function AppLogo({ src, size = 36 }: { src: string; size?: number }) {
   return (
-    <span className="flex shrink-0 items-center justify-center rounded-[10px] border border-rule-faint bg-surface-2" style={{ width: size, height: size }}>
+    <span className="flex shrink-0 items-center justify-center rounded-aw border border-rule-faint bg-surface-2" style={{ width: size, height: size }}>
       <img src={src} alt="" width={Math.round(size * 0.56)} height={Math.round(size * 0.56)} />
     </span>
   );
@@ -231,7 +231,7 @@ function AppsCard({ auth, isAdmin }: { auth: RunAuth; isAdmin: boolean }) {
       {connected.length ? (
         <section className="flex flex-col gap-2">
           <h3 className="aw-int-head">Connected</h3>
-          <ul className="flex flex-col divide-y divide-rule-faint rounded-[12px] border border-rule-faint">
+          <ul className="flex flex-col divide-y divide-rule-faint rounded-aw-lg border border-rule-faint">
             {connected.map((a) => (
               <li key={a.slug} className="flex flex-wrap items-center gap-3 px-3 py-3">
                 <AppLogo src={a.logo} />
@@ -274,7 +274,7 @@ function AppsCard({ auth, isAdmin }: { auth: RunAuth; isAdmin: boolean }) {
               <li key={a.slug} className="flex">
                 <button
                   type="button"
-                  className="group flex w-full flex-col items-start gap-2.5 rounded-[12px] border border-rule-faint p-3 text-left transition-colors hover:border-rule hover:bg-surface-2 disabled:cursor-default disabled:hover:border-rule-faint disabled:hover:bg-transparent"
+                  className="group flex w-full flex-col items-start gap-2.5 rounded-aw-lg border border-rule-faint p-3 text-left transition-colors hover:border-rule hover:bg-surface-2 disabled:cursor-default disabled:hover:border-rule-faint disabled:hover:bg-transparent"
                   disabled={!canConnect || Boolean(busy)}
                   title={canConnect ? `Connect ${a.name}` : s.allowed ? "Workspace admins connect apps" : undefined}
                   onClick={() => connect(a.slug)}
@@ -422,10 +422,10 @@ export function IntegrationsSettings({ auth, isAdmin }: { auth: RunAuth; isAdmin
           Use a key in Zapier, or call the API from your own tools. Send it in the <code>X-API-Key</code> header to <code>{typeof window === "undefined" ? "/api/v1" : api()}</code>.
         </p>
         {fresh ? (
-          <div className="flex flex-col gap-2 rounded-[10px] bg-brand-pale p-3">
+          <div className="flex flex-col gap-2 rounded-aw bg-brand-pale p-3">
             <span className="text-[13px] font-medium text-ink">Copy your key now. It won&apos;t be shown again.</span>
             <span className="flex items-center gap-2">
-              <code className="min-w-0 flex-1 truncate rounded-[6px] bg-white px-2 py-1.5 text-[12px]">{fresh}</code>
+              <code className="min-w-0 flex-1 truncate rounded-aw-sm bg-white px-2 py-1.5 text-[12px]">{fresh}</code>
               <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => navigator.clipboard.writeText(fresh)}>
                 Copy
               </button>

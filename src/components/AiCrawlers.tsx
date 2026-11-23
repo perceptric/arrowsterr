@@ -47,7 +47,7 @@ function Setup({ data }: { data: Data | null }) {
     <div className="flex flex-col gap-4 p-5">
       <p className="text-[14px] text-body">See which AI bots read your site and which key pages they never open. Pick the way that fits your site.</p>
       <div className="grid gap-3 md:grid-cols-2">
-        <div className="flex flex-col gap-2 rounded-md border border-rule-faint bg-surface-2 p-4">
+        <div className="flex flex-col gap-2 rounded-aw border border-rule-faint bg-surface-2 p-4">
           <div className="flex items-center justify-between gap-2">
             <span className="text-[14px] font-medium text-ink">Cloudflare</span>
             {cf && cf.state !== "off" ? <span className={`aw-status ${cf.state === "ok" ? "aw-status--ranked" : "aw-status--warn"}`}>{cf.state === "ok" ? "Connected" : "Needs a look"}</span> : null}
@@ -58,7 +58,7 @@ function Setup({ data }: { data: Data | null }) {
             Open Integrations
           </button>
         </div>
-        <div className="flex flex-col gap-2 rounded-md border border-rule-faint bg-surface-2 p-4">
+        <div className="flex flex-col gap-2 rounded-aw border border-rule-faint bg-surface-2 p-4">
           <div className="flex items-center justify-between gap-2">
             <span className="text-[14px] font-medium text-ink">WordPress</span>
             {wp && wp.state !== "off" ? <span className={`aw-status ${wp.state === "ok" ? "aw-status--ranked" : "aw-status--warn"}`}>{wp.state === "ok" ? "Connected" : "Needs a look"}</span> : null}
@@ -85,7 +85,7 @@ function Bars({ days }: { days: { day: string; hits: number }[] }) {
   return (
     <span className="flex h-6 items-end gap-px" aria-hidden="true">
       {days.slice(-30).map((d) => (
-        <span key={d.day} className="w-1 rounded-sm bg-brand" style={{ height: `${Math.max(d.hits ? 12 : 4, (d.hits / top) * 100)}%`, opacity: d.hits ? 1 : 0.2 }} title={`${day(d.day)}: ${d.hits}`} />
+        <span key={d.day} className="w-1 rounded-aw-xs bg-brand" style={{ height: `${Math.max(d.hits ? 12 : 4, (d.hits / top) * 100)}%`, opacity: d.hits ? 1 : 0.2 }} title={`${day(d.day)}: ${d.hits}`} />
       ))}
     </span>
   );
@@ -159,7 +159,7 @@ export function AiCrawlers({ auth, brand, days }: { auth: RunAuth; brand: { id: 
         {error ? <p className="aw-error">{error}</p> : null}
 
         {!data.total ? (
-          <div className="rounded-md border border-rule-faint bg-surface-2 p-4">
+          <div className="rounded-aw border border-rule-faint bg-surface-2 p-4">
             <p className="text-[14px] font-medium text-ink">No AI bot visits yet</p>
             <p className="aw-small mt-1">
               {data.source === "wordpress"

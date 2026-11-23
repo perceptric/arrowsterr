@@ -97,19 +97,17 @@ export function CmsSettings({ auth, isAdmin, brand, brands }: { auth: RunAuth; i
       {list?.length ? (
         <section className="flex flex-col gap-3">
           <h2 className="aw-int-head">Connected</h2>
-          <ul className="aw-int-grid">
+          <ul className="aw-int-list">
             {list.map((c) => (
-              <li key={c.id} className="aw-int-card">
-                <div className="flex items-start justify-between gap-3">
-                  <CmsLogo kind={c.kind} size={48} />
-                  <span className="aw-status aw-status--ranked">Connected</span>
-                </div>
-                <div className="flex min-w-0 flex-col gap-0.5">
+              <li key={c.id} className="aw-int-row">
+                <CmsLogo kind={c.kind} size={40} />
+                <div className="flex min-w-0 flex-1 basis-40 flex-col">
                   <span className="text-[15px] font-medium text-ink wrap-anywhere">{c.name}</span>
                   <span className="text-[13px] text-muted">{CMS.find((x) => x.id === c.kind)?.label}</span>
                 </div>
+                <span className="aw-status aw-status--ranked">Connected</span>
                 {isAdmin ? (
-                  <div className="mt-auto flex flex-wrap items-center gap-2 pt-1">
+                  <div className="flex flex-wrap items-center gap-2">
                     {brands.length > 1 ? (
                       <Dropdown label="Brand" value={brand.id} onChange={(to) => move(c, to)} className="aw-dropdown--sm" options={brands.map((b) => ({ id: b.id, label: b.name }))} />
                     ) : null}
@@ -143,13 +141,13 @@ export function CmsSettings({ auth, isAdmin, brand, brands }: { auth: RunAuth; i
             {CMS.map((c) => {
               const count = list?.filter((x) => x.kind === c.id).length ?? 0;
               return (
-                <li key={c.id} className="aw-int-card aw-int-card--add">
-                  <div className="flex items-start justify-between gap-3">
-                    <CmsLogo kind={c.id} size={48} />
+                <li key={c.id} className="aw-int-card">
+                  <CmsLogo kind={c.id} size={36} />
+                  <span className="flex min-w-0 flex-1 flex-col">
+                    <span className="text-[14px] font-medium text-ink">{c.label}</span>
                     {count ? <span className="text-[12px] text-muted">{count} connected</span> : null}
-                  </div>
-                  <span className="text-[15px] font-medium text-ink">{c.label}</span>
-                  <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm mt-auto self-start" disabled={!isAdmin} title={isAdmin ? undefined : "Admins connect sites"} onClick={() => setKind(c.id)}>
+                  </span>
+                  <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={!isAdmin} title={isAdmin ? undefined : "Admins connect sites"} onClick={() => setKind(c.id)}>
                     Connect
                   </button>
                 </li>
