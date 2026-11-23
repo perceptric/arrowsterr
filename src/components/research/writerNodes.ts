@@ -1,4 +1,5 @@
 import { mergeAttributes, Node } from "@tiptap/react";
+import { BLOCK_INFO, readBlock } from "@/lib/blockTemplates";
 
 /** An old-style note to the writer. Kept so older drafts still open; never shown in the draft. */
 export const Note = Node.create({
@@ -21,13 +22,28 @@ export const Embed = Node.create({
   renderHTML: ({ node }) => ["div", { "data-embed": encodeURIComponent(String(node.attrs.html ?? "")) }],
   addNodeView:
     () =>
-    ({ node }) => {
+    ({ node, getPos, editor }) => {
       const dom = document.createElement("div");
       dom.className = "aw-embed";
       dom.contentEditable = "false";
       const tag = document.createElement("span");
       tag.className = "aw-embed__tag";
-      tag.textContent = "Interactive element";
+      const block = readBlock(String(node.attrs.html ?? ""));
+      tag.textContent = block ? BLOCK_INFO[block.kind].label : "Interactive element";
+      // A block made from the slash menu can be opened again: the editor around it listens for aw-block-edit.
+      if (block && editor.isEditable) {
+        const edit = document.createElement("button");
+        edit.type = "button";
+        edit.className = "aw-embed__edit";
+        edit.textContent = "Edit";
+        edit.setAttribute("aria-label", `Edit ${BLOCK_INFO[block.kind].label.toLowerCase()}`);
+        edit.addEventListener("mousedown", (e) => e.preventDefault());
+        edit.addEventListener("click", () => {
+          const pos = typeof getPos === "function" ? getPos() : undefined;
+          if (typeof pos === "number") dom.dispatchEvent(new CustomEvent("aw-block-edit", { bubbles: true, detail: { pos, html: String(node.attrs.html ?? "") } }));
+        });
+        tag.append(" ", edit);
+      }
       const frame = document.createElement("iframe");
       frame.setAttribute("sandbox", "allow-scripts");
       frame.setAttribute("title", "Interactive element");

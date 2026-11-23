@@ -9,6 +9,7 @@ import { getBrief, type FullBrief } from "@/lib/writerLibrary";
 import { Modal } from "../reports/Dialog";
 import { post } from "../research/shared";
 import { SidePanel, Thinking } from "../ui";
+import { CommandMenu, type Command } from "./CommandMenu";
 import { StateTag, usePoll, useWide } from "./parts";
 
 // The outline screen (docs/draft-and-write-build.md, Phase 1). The brief sits in a card that folds away. The search
@@ -206,8 +207,30 @@ export function OutlineView({
     </span>
   ) : null;
 
+  const commands = (): Command[] => [
+    ...cards.map((c, i) => ({ group: "Sections", label: c.key === "intro" ? "Intro" : `${i}. ${sectionName(c)}`, run: () => setSel(c.key) })),
+    ...(canWrite ? [{ group: "Actions", label: "Write draft", run: () => setAsking(true) }] : []),
+    { group: "Actions", label: briefOpen ? "Fold the brief" : "Show the brief", run: () => setBriefOpen((o) => !o) },
+    ...(needs.length ? [{ group: "Actions", label: "Go to the next section that needs detail", run: () => setSel((needs.find((c) => cards.indexOf(c) > at) ?? needs[0]).key) }] : []),
+    { group: "Go to", label: "Drafts", run: onBack },
+  ];
+
   return (
     <div className="flex flex-col gap-5">
+      <CommandMenu
+        commands={commands}
+        shortcuts={[
+          {
+            title: "Outline",
+            keys: [
+              ["Next or previous section", ["J", "K"]],
+              ["Close the section", ["Esc"]],
+              ["Add a point below", ["Enter"]],
+              ["Remove an empty point", ["Backspace"]],
+            ],
+          },
+        ]}
+      />
       {top}
       {row.error ? <p className="aw-error">{row.error}</p> : null}
       {error ? <p className="aw-error">{error}</p> : null}

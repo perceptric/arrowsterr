@@ -924,6 +924,11 @@
 .aw .aw-embed { position: relative; margin: 1.2em 0; border: 1px dashed var(--aw-brand); border-radius: 12px; padding: 28px 8px 8px; }
 .aw .aw-embed iframe { width: 100%; height: 360px; border: 0; display: block; }
 .aw .aw-embed__tag { position: absolute; top: 6px; left: 10px; font-family: var(--aw-mono); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: var(--aw-brand); }
+.aw .aw-embed__edit { margin-left: 6px; padding: 0 6px; font: inherit; color: var(--aw-brand); border: 1px solid currentColor; background: #fff; cursor: pointer; }
+.aw .aw-embed__edit:hover { background: var(--aw-brand); color: #fff; }
+.aw .aw-embed.ProseMirror-selectednode { outline: 2px solid var(--aw-brand); outline-offset: 2px; }
+.aw .aw-cmt { background: #FFF1C2; border-bottom: 2px solid #D9A400; cursor: pointer; }
+.aw .aw-cmt.is-on { background: #FFE08A; }
 .aw .aw-editor--draft .ProseMirror h2 { margin-top: 1.6em; }
 
 /* Sidebar: big modules that open to their pages. */

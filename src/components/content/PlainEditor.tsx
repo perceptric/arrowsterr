@@ -12,6 +12,9 @@ import { EditorContent, useEditor, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { saveDoc, type Doc, type DocMeta } from "@/lib/db";
+import { BLOCK_INFO, BLOCK_KINDS, readBlock, type BlockKind, type BlockSpec } from "@/lib/blockTemplates";
+import { BlockDialog, useBlockKit } from "./BlockDialog";
+import { CommentHighlight } from "./commentHighlight";
 import { SLASH, SlashMenu, slashKeysExtension } from "./SlashMenu";
 import { draftText } from "../research/Writer";
 import { Embed, Note } from "../research/writerNodes";
@@ -19,7 +22,13 @@ import { Embed, Note } from "../research/writerNodes";
 // The plain editor in Content: a page editor with no AI in it.
 // Text, headings, lists, links, images, tables and interactive blocks. It saves as you type.
 
-const PLAIN_SLASH = SLASH.filter((s) => !s.ai);
+// The interactive blocks (blockTemplates.ts) come after the text choices: /calc, /faq, /chart and so on.
+const PLAIN_SLASH = [
+  ...SLASH.filter((s) => !s.ai),
+  ...BLOCK_KINDS.map((k) => ({ id: `block:${k}`, label: BLOCK_INFO[k].label, hint: BLOCK_INFO[k].hint, keys: BLOCK_INFO[k].keys, icon: "◆" })),
+];
+/** Ask the open article's editor to add a block, from outside it (the command menu). */
+export const NEW_BLOCK_EVENT = "aw-block-new";
 const countWords = (ed: Editor) => draftText(ed).split(/\s+/).filter(Boolean).length;
 
 export type SaveState = "saved" | "saving" | "error";
@@ -33,6 +42,7 @@ export function PlainEditor({
   onSaved,
   onEditor,
   onState,
+  onComment,
 }: {
   sb: SupabaseClient;
   workspaceId: string;
@@ -41,6 +51,8 @@ export function PlainEditor({
   onSaved: (meta: DocMeta) => void;
   onEditor: (ed: Editor | null) => void;
   onState: (s: SaveState, note?: string) => void;
+  /** Start a comment on the selected text. Leave out to hide the Comment button. */
+  onComment?: (quote: string) => void;
 }) {
   const [title, setTitle] = useState(doc.title);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -51,6 +63,9 @@ export function PlainEditor({
   // A plain box the slash menu fills with its key handler, read by the editor plugin.
   const [slashKeys] = useState<{ current: ((e: KeyboardEvent) => boolean) | null }>(() => ({ current: null }));
   const [slashExt] = useState(() => slashKeysExtension(slashKeys));
+  // The block being added (at) or changed (pos), with its settings open.
+  const [block, setBlock] = useState<{ kind: BlockKind; initial?: BlockSpec[BlockKind]; pos?: number; at?: number } | null>(null);
+  const kit = useBlockKit(sb, workspaceId, doc.site_id);
 
   // The same save path as the Agentic Writer: the whole draft, a moment after typing stops.
   const save = useCallback(
@@ -88,6 +103,7 @@ export function PlainEditor({
       TableHeader,
       TableCell,
       slashExt,
+      CommentHighlight,
     ],
     content: doc.content && Object.keys(doc.content).length ? doc.content : undefined,
     editorProps: {
@@ -155,6 +171,50 @@ export function PlainEditor({
     uploadRef.current = upload;
   });
 
+  // Edit on a block opens its settings; the command menu can ask for a new block where the cursor is.
+  useEffect(() => {
+    const el = canvas.current;
+    if (!editor || !canEdit || !el) return;
+    const edit = (e: Event) => {
+      const d = (e as CustomEvent<{ pos: number; html: string }>).detail;
+      const b = readBlock(d.html);
+      if (b) setBlock({ kind: b.kind, initial: b.spec, pos: d.pos });
+    };
+    const add = (e: Event) => {
+      const kind = (e as CustomEvent<{ kind: BlockKind }>).detail?.kind;
+      if (kind) setBlock({ kind, at: editor.state.selection.to });
+    };
+    el.addEventListener("aw-block-edit", edit);
+    window.addEventListener(NEW_BLOCK_EVENT, add);
+    return () => {
+      el.removeEventListener("aw-block-edit", edit);
+      window.removeEventListener(NEW_BLOCK_EVENT, add);
+    };
+  }, [editor, canEdit]);
+
+  /** Put a finished block in: over the old one when it was changed, at the cursor when it's new. */
+  function placeBlock(html: string) {
+    if (!editor || !block) return;
+    const pos = block.pos;
+    if (typeof pos === "number" && editor.state.doc.nodeAt(pos)?.type.name === "embed") {
+      editor
+        .chain()
+        .focus()
+        .command(({ tr }) => {
+          tr.setNodeMarkup(pos, undefined, { html });
+          return true;
+        })
+        .run();
+    } else {
+      editor
+        .chain()
+        .focus()
+        .insertContentAt(block.at ?? editor.state.selection.to, { type: "embed", attrs: { html } })
+        .run();
+    }
+    setBlock(null);
+  }
+
   /** Do what a slash menu choice says, after the "/word" is taken out. */
   function slash(id: string, range: { from: number; to: number }) {
     if (!editor) return;
@@ -166,7 +226,10 @@ export function PlainEditor({
     else if (id === "quote") c.toggleBlockquote().run();
     else if (id === "table") c.insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
     else if (id === "divider") c.setHorizontalRule().run();
-    else {
+    else if (id.startsWith("block:")) {
+      c.run();
+      setBlock({ kind: id.slice(6) as BlockKind, at: range.from });
+    } else {
       c.run();
       if (id === "image") fileInput.current?.click();
     }
@@ -175,7 +238,8 @@ export function PlainEditor({
   return (
     <section className="aw-frame flex min-w-0 flex-col">
       <div className="sticky top-[57px] z-20 flex flex-wrap items-center gap-2 border-b border-rule bg-white px-3 py-2">
-        {editor && canEdit ? <PlainToolbar editor={editor} onImage={() => fileInput.current?.click()} /> : <span className="flex-1" />}
+        {editor && canEdit ? <PlainToolbar editor={editor} onImage={() => fileInput.current?.click()} onComment={onComment} /> : <span className="flex-1" />}
+        {editor && !canEdit && onComment ? <CommentButton editor={editor} onComment={onComment} /> : null}
       </div>
       <input
         ref={fileInput}
@@ -204,6 +268,7 @@ export function PlainEditor({
         />
         <EditorContent editor={editor} />
         {editor && canEdit ? <SlashMenu editor={editor} canvas={canvas} keysRef={slashKeys} onPick={slash} items={PLAIN_SLASH} /> : null}
+        {block ? <BlockDialog kind={block.kind} initial={block.initial} kit={kit} onDone={placeBlock} onClose={() => setBlock(null)} /> : null}
       </div>
     </section>
   );
@@ -231,7 +296,31 @@ const ICON = {
 };
 
 /** Formatting buttons. A link opens a small field in the bar instead of the browser's prompt. */
-function PlainToolbar({ editor, onImage }: { editor: Editor; onImage: () => void }) {
+/** The selected text, trimmed and on one line, for a comment's quote. */
+const selectedQuote = (editor: Editor) => {
+  const { from, to } = editor.state.selection;
+  return editor.state.doc.textBetween(from, to, " ", " ").replace(/\s+/g, " ").trim().slice(0, 1000);
+};
+
+/** Comment on the selected text: the only tool a viewer gets. */
+function CommentButton({ editor, onComment }: { editor: Editor; onComment: (quote: string) => void }) {
+  const [, tick] = useState(0);
+  useEffect(() => {
+    const on = () => tick((n) => n + 1);
+    editor.on("selectionUpdate", on);
+    return () => {
+      editor.off("selectionUpdate", on);
+    };
+  }, [editor]);
+  const quote = selectedQuote(editor);
+  return (
+    <button type="button" className="aw-tool" title="Comment on the selected text" aria-label="Comment" disabled={!quote} onMouseDown={(e) => e.preventDefault()} onClick={() => quote && onComment(quote)}>
+      Comment
+    </button>
+  );
+}
+
+function PlainToolbar({ editor, onImage, onComment }: { editor: Editor; onImage: () => void; onComment?: (quote: string) => void }) {
   const [link, setLink] = useState<string | null>(null);
   const b = (label: React.ReactNode, on: boolean, run: () => void, title: string) => (
     <button key={title} type="button" title={title} aria-label={title} aria-pressed={on} onMouseDown={(e) => e.preventDefault()} onClick={run} className={`aw-tool ${on ? "is-on" : ""}`}>
@@ -271,6 +360,12 @@ function PlainToolbar({ editor, onImage }: { editor: Editor; onImage: () => void
       <span className="mx-1 h-5 w-px bg-rule" />
       {b("↶", false, () => c().undo().run(), "Undo")}
       {b("↷", false, () => c().redo().run(), "Redo")}
+      {onComment ? (
+        <>
+          <span className="mx-1 h-5 w-px bg-rule" />
+          <CommentButton editor={editor} onComment={onComment} />
+        </>
+      ) : null}
       {link !== null ? (
         <form
           className="ml-1 flex items-center gap-1"

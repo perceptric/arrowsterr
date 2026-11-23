@@ -113,6 +113,7 @@ export function SlashMenu({
           type="button"
           role="option"
           aria-selected={k === i}
+          ref={k === i ? (el) => el?.scrollIntoView({ block: "nearest" }) : undefined}
           className={`aw-slash__item ${k === i ? "is-hot" : ""}`}
           onMouseEnter={() => setI(k)}
           onClick={() => {

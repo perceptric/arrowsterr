@@ -24,7 +24,14 @@ import { brandTables } from "../research/Writer";
 import { exportClean } from "../research/writerNodes";
 import { EmptyScreen } from "../Drawing";
 import { Seg, SidePanel, Thinking } from "../ui";
+import { BLOCK_INFO, BLOCK_KINDS } from "@/lib/blockTemplates";
+import { NEW_BLOCK_EVENT } from "../content/PlainEditor";
 import { ArticleReview, type ReviewInput } from "./ArticleReview";
+import { CommandMenu, modKey, type Command } from "./CommandMenu";
+import { quoteFound, showComments } from "../content/commentHighlight";
+import { AUTO_EVERY_MS, listComments, listVersions, saveVersion, whoAmI, type DocComment, type Me } from "@/lib/docCollab";
+import { DocComments } from "./DocComments";
+import { DocHistory } from "./DocHistory";
 import { ContentGrid } from "./ContentGrid";
 import { OutlineView } from "./OutlineView";
 import { DraftProgress, libraryKey, RegenerateDialog, StateTag, useBrandSite, usePoll, useWide, type LibraryOpen } from "./parts";
@@ -214,7 +221,12 @@ function DraftView({ sb, auth, site, brandId, id, canEdit, onBack }: { sb: Supab
         doc={doc}
         canEdit={canEdit}
         onBack={onBack}
-        review={{ keyword: brief?.keyword, wordTarget: brief?.brief?.wordTarget, meta: brief?.brief?.metaDescription }}
+        review={{
+          keyword: brief?.keyword,
+          wordTarget: brief?.brief?.wordTarget,
+          meta: brief?.brief?.metaDescription,
+          links: [...(brief?.brief?.internalLinks ?? []), ...(brief?.brief?.cards ?? []).flatMap((c) => c.links)],
+        }}
         extra={
           canEdit && brief ? (
             <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setRegen(true)}>
@@ -291,6 +303,116 @@ function ArticleView({
   const [error, setError] = useState("");
   const [sync, setSync] = useState<{ s: "idle" | "syncing" | "done"; url?: string | null }>({ s: "idle" });
   const [connecting, setConnecting] = useState(false);
+
+  // The panel beside the article: the review, comment threads and saved versions (docCollab.ts).
+  type PanelTab = "review" | "comments" | "history";
+  const [panelTab, setPanelTab] = useState<PanelTab>("review");
+  const [me, setMe] = useState<Me | null>(null);
+  const [comments, setComments] = useState<DocComment[] | null>(null);
+  const [commentsError, setCommentsError] = useState("");
+  const [draftQuote, setDraftQuote] = useState<string | null>(null);
+  const [activeComment, setActiveComment] = useState<string | null>(null);
+  const [versionStamp, setVersionStamp] = useState(0);
+  // When the newest version was saved: null until known, -1 when versions can't be saved yet.
+  const lastVersion = useRef<number | null>(null);
+  const visitSaved = useRef(false);
+  useEffect(() => {
+    let live = true;
+    whoAmI(sb)
+      .then((m) => live && setMe(m))
+      .catch(() => {});
+    listComments(sb, doc.id)
+      .then((r) => live && setComments(r))
+      .catch((e) => live && setCommentsError(e instanceof Error ? e.message : String(e)));
+    listVersions(sb, doc.id, 1)
+      .then((v) => {
+        lastVersion.current = v[0] ? new Date(v[0].created_at).getTime() : 0;
+      })
+      .catch(() => {
+        lastVersion.current = -1;
+      });
+    return () => {
+      live = false;
+    };
+  }, [sb, doc.id]);
+  const openCount = (comments ?? []).filter((c) => !c.parent_id && !c.resolved_at).length;
+  // The open threads' quotes show as highlights in the article.
+  useEffect(() => {
+    showComments(
+      editor,
+      (comments ?? []).filter((c) => !c.parent_id && !c.resolved_at && c.quote).map((c) => ({ id: c.id, quote: c.quote })),
+      activeComment,
+    );
+  }, [editor, comments, activeComment]);
+  const openPanel = (t: PanelTab) => {
+    setPanelTab(t);
+    setReviewOpen(true);
+  };
+  const startComment = useCallback((quote: string) => {
+    if (!quote) return;
+    setDraftQuote(quote);
+    setPanelTab("comments");
+    setReviewOpen(true);
+  }, []);
+  const pickComment = (id: string) => {
+    setActiveComment(id);
+    editor?.view.dom.querySelector(`[data-comment="${id}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+  const selectionQuote = () => {
+    if (!editor) return "";
+    const { from, to } = editor.state.selection;
+    return editor.state.doc.textBetween(from, to, " ", " ").replace(/\s+/g, " ").trim().slice(0, 1000);
+  };
+  // A click on a highlight opens its thread; ⌘⌥M (Ctrl Alt M) comments on the selected text.
+  useEffect(() => {
+    const dom = editor?.view.dom;
+    if (!editor || !dom) return;
+    const click = (e: MouseEvent) => {
+      const el = (e.target as HTMLElement | null)?.closest?.("[data-comment]");
+      if (!el || !editor.state.selection.empty) return;
+      setActiveComment(el.getAttribute("data-comment"));
+      setPanelTab("comments");
+      setReviewOpen(true);
+    };
+    const key = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.altKey && e.code === "KeyM") {
+        e.preventDefault();
+        const { from, to } = editor.state.selection;
+        startComment(editor.state.doc.textBetween(from, to, " ", " ").replace(/\s+/g, " ").trim().slice(0, 1000));
+      }
+    };
+    dom.addEventListener("click", click);
+    window.addEventListener("keydown", key);
+    return () => {
+      dom.removeEventListener("click", click);
+      window.removeEventListener("keydown", key);
+    };
+  }, [editor, startComment]);
+  // Versions save on their own: the text as it opened, before the first edit of a visit, then every ten minutes of edits.
+  useEffect(() => {
+    const last = lastVersion.current;
+    if (!canEdit || !editor || last === null || last < 0) return;
+    const now = Date.now();
+    const bump = () => setVersionStamp((n) => n + 1);
+    if (state.s === "saving" && !visitSaved.current) {
+      visitSaved.current = true;
+      const opened = doc.content as Record<string, unknown> | null;
+      if (now - last > AUTO_EVERY_MS && opened && Object.keys(opened).length) {
+        lastVersion.current = now;
+        saveVersion(sb, { workspaceId: auth.workspaceId, docId: doc.id, title: doc.title, content: opened, words: doc.words, label: "Before this visit's edits", me })
+          .then(bump)
+          .catch(() => {});
+      }
+    } else if (state.s === "saved" && visitSaved.current && now - last > AUTO_EVERY_MS) {
+      lastVersion.current = now;
+      saveVersion(sb, { workspaceId: auth.workspaceId, docId: doc.id, title, content: editor.getJSON() as Record<string, unknown>, words, label: "", me })
+        .then(bump)
+        .catch(() => {});
+    }
+    // Only when the save state changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.s]);
+
   useEffect(() => {
     let live = true;
     getGuideline(sb, site.id)
@@ -339,8 +461,88 @@ function ArticleView({
     { id: "doc", label: "Google Doc (.doc)", run: () => download(`${name}.doc`, wordFile(title, html()), "application/msword") },
   ];
 
+  const commands = (): Command[] => {
+    const heads = editor ? [...editor.view.dom.querySelectorAll("h2, h3")] : [];
+    return [
+      ...heads.map((h) => ({ group: "Sections", label: `${h.tagName === "H3" ? "  " : ""}${h.textContent?.trim() || "Untitled heading"}`, run: () => h.scrollIntoView({ behavior: "smooth", block: "center" }) })),
+      ...(canEdit ? [{ group: "Actions", label: "Publish", run: () => setPublishing(true) }] : []),
+      ...(canEdit ? [{ group: "Actions", label: "Sync to CMS", run: () => void syncToCms() }] : []),
+      { group: "Actions", label: showReview ? "Close the panel" : "Open the review", run: () => (showReview ? setReviewOpen(false) : openPanel("review")) },
+      ...(selectionQuote() ? [{ group: "Comments", label: "Comment on the selected text", hint: `${modKey()} Alt M`, run: () => startComment(selectionQuote()) }] : []),
+      { group: "Comments", label: `Open comments${openCount ? ` (${openCount} open)` : ""}`, run: () => openPanel("comments") },
+      { group: "Versions", label: "Version history", run: () => openPanel("history") },
+      ...exports.map((x) => ({ group: "Export", label: `Download ${x.label}`, run: x.run })),
+      ...(["edit", "html", "md", "text"] as const).map((v) => ({ group: "View", label: { edit: "Edit", html: "HTML", md: "Markdown", text: "Text" }[v], run: () => setView(v) })),
+      ...(canEdit
+        ? BLOCK_KINDS.map((k) => ({
+            group: "Insert block",
+            label: BLOCK_INFO[k].label,
+            run: () => {
+              setView("edit");
+              window.dispatchEvent(new CustomEvent(NEW_BLOCK_EVENT, { detail: { kind: k } }));
+            },
+          }))
+        : []),
+      { group: "Go to", label: "Drafts", run: onBack },
+    ];
+  };
+
+  const panelTabs = (
+    <span className="flex min-w-0 items-center gap-1" role="tablist" aria-label="Panel">
+      {(["review", "comments", "history"] as const).map((t) => (
+        <button
+          key={t}
+          type="button"
+          role="tab"
+          aria-selected={panelTab === t}
+          onClick={() => setPanelTab(t)}
+          className={`border-b-2 px-2 py-1.5 text-[13px] whitespace-nowrap ${panelTab === t ? "border-brand font-medium text-ink" : "border-transparent text-muted hover:text-ink"}`}
+        >
+          {t === "review" ? "Review" : t === "comments" ? `Comments${openCount ? ` ${openCount}` : ""}` : "History"}
+        </button>
+      ))}
+    </span>
+  );
+  const panelBody =
+    panelTab === "review" ? (
+      <ArticleReview sb={sb} brandId={brandId} editor={editor} title={title} input={{ ...review, domain: site.domain }} />
+    ) : panelTab === "comments" ? (
+      <DocComments
+        sb={sb}
+        workspaceId={auth.workspaceId}
+        docId={doc.id}
+        me={me}
+        canEdit={canEdit}
+        rows={comments}
+        error={commentsError}
+        draft={draftQuote}
+        active={activeComment}
+        found={(q) => quoteFound(editor, q)}
+        onRows={setComments}
+        onDraftDone={() => setDraftQuote(null)}
+        onPick={pickComment}
+      />
+    ) : (
+      <DocHistory sb={sb} workspaceId={auth.workspaceId} docId={doc.id} editor={editor} title={title} words={words} me={me} canEdit={canEdit} stamp={versionStamp} />
+    );
+
   return (
     <div className="flex flex-col gap-4">
+      <CommandMenu
+        commands={commands}
+        shortcuts={[
+          {
+            title: "Article",
+            keys: [
+              ["Insert a heading, list or interactive block", ["/"]],
+              ["Bold", [modKey(), "B"]],
+              ["Italic", [modKey(), "I"]],
+              ["Undo", [modKey(), "Z"]],
+              ["Comment on the selected text", [modKey(), "Alt", "M"]],
+            ],
+          },
+        ]}
+      />
       <Back onBack={onBack} title={title || "Article"}>
         <span className="aw-num px-1 text-[12px] whitespace-nowrap text-muted">
           {words.toLocaleString("en-US")} words · {Math.max(1, Math.round(words / 230))} min read
@@ -350,8 +552,11 @@ function ArticleView({
           {state.note || (state.s === "error" ? "Not saved" : state.s === "saving" ? "Saving" : "Saved")}
         </span>
         {extra}
-        <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" aria-pressed={showReview} onClick={() => setReviewOpen(!showReview)}>
+        <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" aria-pressed={showReview && panelTab === "review"} onClick={() => (showReview && panelTab === "review" ? setReviewOpen(false) : openPanel("review"))}>
           Review
+        </button>
+        <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" aria-pressed={showReview && panelTab === "comments"} onClick={() => (showReview && panelTab === "comments" ? setReviewOpen(false) : openPanel("comments"))}>
+          Comments{openCount ? <span className="aw-num ml-1.5 text-muted">{openCount}</span> : null}
         </button>
         <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" aria-haspopup="menu" disabled={!editor} onClick={(e) => setExportAt(e.currentTarget.getBoundingClientRect())}>
           Export
@@ -392,7 +597,7 @@ function ArticleView({
       <div className={wide && showReview ? "grid grid-cols-[minmax(0,1fr)_320px] items-start gap-6" : ""}>
         <div className="min-w-0">
           <div className={view === "edit" ? "" : "hidden"}>
-            <PlainEditor sb={sb} workspaceId={auth.workspaceId} doc={doc} canEdit={canEdit} onSaved={saved} onEditor={setEditor} onState={onState} />
+            <PlainEditor sb={sb} workspaceId={auth.workspaceId} doc={doc} canEdit={canEdit} onSaved={saved} onEditor={setEditor} onState={onState} onComment={startComment} />
           </div>
           {view !== "edit" && editor ? (
             <Source
@@ -403,24 +608,23 @@ function ArticleView({
           ) : null}
         </div>
         {wide && showReview ? (
-          <aside className="sticky top-4 flex max-h-[calc(100vh-2rem)] min-w-0 flex-col border border-rule bg-white" aria-label="Review">
-            <div className="flex items-center justify-between gap-2 border-b border-rule-faint py-1.5 pr-2 pl-4">
-              <span className="text-[14px] font-medium text-ink">Review</span>
-              <button type="button" className="aw-icon-btn flex h-8 w-8 items-center justify-center" aria-label="Close review" title="Close" onClick={() => setReviewOpen(false)}>
+          <aside className="sticky top-4 flex max-h-[calc(100vh-2rem)] min-w-0 flex-col border border-rule bg-white" aria-label="Review, comments and versions">
+            <div className="flex items-center justify-between gap-2 border-b border-rule-faint py-1 pr-2 pl-2">
+              {panelTabs}
+              <button type="button" className="aw-icon-btn flex h-8 w-8 shrink-0 items-center justify-center" aria-label="Close the panel" title="Close" onClick={() => setReviewOpen(false)}>
                 <svg viewBox="0 0 24 24" width={16} height={16} fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" aria-hidden="true">
                   <path d="M6 6l12 12M18 6L6 18" />
                 </svg>
               </button>
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto">
-              <ArticleReview editor={editor} title={title} input={{ ...review, domain: site.domain }} />
-            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto">{panelBody}</div>
           </aside>
         ) : null}
       </div>
       {!wide && showReview ? (
-        <SidePanel title="Review" onClose={() => setReviewOpen(false)}>
-          <ArticleReview editor={editor} title={title} input={{ ...review, domain: site.domain }} />
+        <SidePanel title={panelTab === "review" ? "Review" : panelTab === "comments" ? "Comments" : "Versions"} onClose={() => setReviewOpen(false)}>
+          <div className="border-b border-rule-faint px-2 py-1">{panelTabs}</div>
+          {panelBody}
         </SidePanel>
       ) : null}
 
