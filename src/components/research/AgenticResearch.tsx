@@ -156,11 +156,7 @@ export function PlanProgress({
     <section className="aw-frame">
       <div className="aw-frame__body flex flex-col gap-5">
         <div className="flex items-center gap-3">
-          <span className="aw-think__icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
-              <path d="M12 1.5c.6 4.9 2.9 8.6 10.5 10.5-7.6 1.9-9.9 5.6-10.5 10.5-.6-4.9-2.9-8.6-10.5-10.5C9.1 10.1 11.4 6.4 12 1.5z" />
-            </svg>
-          </span>
+          <span className="aw-spin" aria-hidden="true" />
           <span className="aw-h4" role="status" aria-live="polite">
             {run.step || "Starting"}...
           </span>

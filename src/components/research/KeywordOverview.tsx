@@ -703,8 +703,8 @@ export function KeywordOverview({ sb, auth, site, canEdit }: { sb: SupabaseClien
 function Pending({ text }: { text: string }) {
   return (
     <div className="flex flex-col items-center gap-3 px-5 py-10 text-center" role="status" aria-live="polite">
+      <span className="aw-spin" aria-hidden="true" />
       <span className="aw-small">{text}</span>
-      <span className="aw-think__bar" aria-hidden="true" />
     </div>
   );
 }

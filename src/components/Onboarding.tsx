@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { MUSINGS } from "@/lib/musings";
-import { DinoGame } from "./DinoGame";
 import { flatPrompts, type Brand, type BusinessType, type Profile, type Topic } from "@/lib/db";
 import { ANGLES, BUSINESS_TYPES, MAX_PROMPTS, TOPIC_KINDS, type Angle, type PickedTopic } from "@/lib/onboarding";
 import type { RunAuth } from "@/lib/runner";
@@ -119,11 +117,8 @@ export function Onboarding({
       return null;
     }
   });
-  // The game runs while the brand is researched. When the topics are ready it keeps going until the
-  // player clicks the button or crashes; a crash moves on after a second.
-  const [playing, setPlaying] = useState(false);
+  // The step to open once the research is done. The loader shows a button to it.
   const [ready, setReady] = useState<Step | null>(null);
-  const [leaving, setLeaving] = useState(false);
   // The welcome steps that apply, in order: profile, workspace, then about the company. Then the brand's site.
   // Kept from the first render: saving a step changes the account, which would otherwise drop it from the list.
   const [welcomeSteps] = useState(() => ([welcome?.you ? "you" : null, welcome?.workspace != null ? "workspace" : null, welcome?.about ? "about" : null] as (Step | null)[]).filter((x): x is Step => Boolean(x)));
@@ -185,7 +180,7 @@ export function Onboarding({
     return promptsJob.current.promise;
   };
   useEffect(() => {
-    // Also while the player keeps playing after the topics are ready.
+    // Also while the "Your topics are ready" button waits for a click.
     if ((step === "topics" || ready === "topics") && topics.length) void getPrompts();
     // Only when the step changes or the topics come in.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -225,19 +220,13 @@ export function Onboarding({
 
   const advance = (to: Step) => {
     setReady(null);
-    setLeaving(false);
-    setPlaying(false);
     go(to);
   };
   const readSite = (e: React.FormEvent) => {
     e.preventDefault();
-    setPlaying(true);
     if (kit) setKitOpen(true);
     run("Researching your brand and finding its best topics...", async () => {
-      const d = await call("/api/onboard", auth, { website }).catch((err) => {
-        setPlaying(false); // research failed: no game left behind with nothing to wait for
-        throw err;
-      });
+      const d = await call("/api/onboard", auth, { website });
       setName(d.name);
       setDomain(d.domain);
       setUrl(d.url);
@@ -258,16 +247,6 @@ export function Onboarding({
         setReady(id ? "writer" : "done");
       } else setReady("topics");
     });
-  };
-  const readyRef = useRef<Step | null>(null);
-  useEffect(() => {
-    readyRef.current = ready;
-  });
-  const onGameOver = () => {
-    const to = readyRef.current;
-    if (!to || leaving) return;
-    setLeaving(true);
-    setTimeout(() => advance(to), 1000);
   };
   const loadPrompts = async () => {
     const d = await getPrompts().catch(() => {
@@ -338,16 +317,14 @@ export function Onboarding({
         {kitOpen && kit ? <KitStep auth={auth} website={website} agency={role === "Agency" || companyType === "agency"} agencySite={kit.agencySite} onClose={() => setKitOpen(false)} /> : null}
         {(busy || ready) && !kitOpen ? (
           <div className="mx-auto w-full max-w-4xl">
-            <Thinking text={leaving ? (ready === "done" ? "Opening your brand..." : ready === "writer" ? "Opening your writer..." : "Loading your topics...") : ready ? (ready === "done" || ready === "writer" ? "Setup done" : "Research done") : busy} done={Boolean(ready) && !leaving}>
-              {ready && !leaving ? (
+            <Thinking text={ready ? (ready === "done" || ready === "writer" ? "Setup done" : "Research done") : busy} done={Boolean(ready)}>
+              {ready ? (
                 <button type="button" className="aw-btn aw-btn--accent aw-btn--lg" onClick={() => advance(ready)}>
                   {ready === "done" ? "Your brand is ready" : ready === "writer" ? "Meet your writer" : "Your topics are ready"} →
                 </button>
               ) : (
-                <Musing />
+                <p className="aw-small">{busy.startsWith("Researching") ? "This takes about a minute." : "This takes a few seconds."}</p>
               )}
-              {playing ? <DinoGame onGameOver={onGameOver} /> : null}
-              <p className="aw-small">{ready ? "Keep playing as long as you like. When Zippie trips, we open them for you." : playing ? "This takes about a minute. Play while you wait." : "This takes a few seconds."}</p>
             </Thinking>
           </div>
         ) : null}
@@ -419,21 +396,6 @@ export function Onboarding({
         {step === "done" && !busy && !ready ? <DoneStep name={name} logo={logo} seo={seo} engines={engines} prompts={used} checking={checking ?? null} onExit={onExit} /> : null}
       </div>
     </main>
-  );
-}
-
-/** A rotating status line under the loading bar, in random order with no repeats until all have shown. */
-function Musing() {
-  const [order] = useState(() => [...MUSINGS].sort(() => Math.random() - 0.5));
-  const [i, setI] = useState(0);
-  useEffect(() => {
-    const t = setInterval(() => setI((n) => (n + 1) % order.length), 2400);
-    return () => clearInterval(t);
-  }, [order.length]);
-  return (
-    <p key={i} className="aw-musing" aria-live="off">
-      {order[i]}
-    </p>
   );
 }
 
@@ -513,12 +475,9 @@ function WriterStep({ auth, name, logo, brandId, build, onNext }: { auth: RunAut
   };
   return (
     <>
-      <div className="flex items-center gap-3">
-        {logo ? <BrandLogo src={logo} name={name} size={36} /> : null}
-        <StepHead n={3} kicker={name || "Your writer"} title="Your writer">
-          Every article is written by this persona, from your own pages and posts.
-        </StepHead>
-      </div>
+      <StepHead n={3} logo={logo ? <BrandLogo src={logo} name={name} size={18} /> : null} kicker={name || "Your writer"} title="Your writer">
+        Every article is written by this persona, from your own pages and posts.
+      </StepHead>
       {error ? (
         <div className="flex flex-wrap items-center gap-3">
           <p className="aw-error">{error}</p>
@@ -551,11 +510,12 @@ function WriterStep({ auth, name, logo, brandId, build, onNext }: { auth: RunAut
   );
 }
 
-function StepHead({ n, kicker, title, children }: { n?: number; kicker: string; title: string; children?: React.ReactNode }) {
+function StepHead({ n, logo, kicker, title, children }: { n?: number; logo?: React.ReactNode; kicker: string; title: string; children?: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1.5">
       <span className="aw-onb__kicker">
         {n ? <b>{String(n).padStart(2, "0")}</b> : null}
+        {logo}
         {kicker}
       </span>
       <h1 className="aw-onb__title">{title}</h1>
@@ -734,12 +694,9 @@ function TopicsStep({ name, logo, topics, setTopics, onBack, onNext, quick }: { 
   const on = topics.filter((t) => t.on).length;
   return (
     <>
-      <div className="flex items-center gap-3">
-        {logo ? <BrandLogo src={logo} name={name} size={36} /> : null}
-        <StepHead n={1} kicker={name || "Topics"} title="Topics to track">
-          The buying categories your customers ask AI about. Untick any that do not fit.
-        </StepHead>
-      </div>
+      <StepHead n={1} logo={logo ? <BrandLogo src={logo} name={name} size={18} /> : null} kicker={name || "Topics"} title="Topics to track">
+        The buying categories your customers ask AI about. Untick any that do not fit.
+      </StepHead>
 
       <section className="aw-frame overflow-x-auto">
         <table className="aw-table aw-table--compact">

@@ -787,11 +787,6 @@ body { background: var(--v10-canvas); }
 .aw table.aw-dgrid.aw-dgrid .aw-dgrid__key { box-shadow: inset -1px 0 0 var(--v10-border-strong); }
 .aw table.aw-dgrid.aw-dgrid tbody td { height: auto; padding: 10px 10px; vertical-align: top; white-space: normal; line-height: 1.45; }
 
-/* ── aw-dino ── */
-.aw .aw-dino { position: relative; width: 100%; max-width: 900px; border-top: 1px solid var(--v10-border); border-bottom: 1px solid var(--v10-border); }
-.aw .aw-dino__canvas { display: block; width: 100%; height: auto; aspect-ratio: 10 / 3; cursor: pointer; touch-action: manipulation; }
-.aw .aw-dino__best { position: absolute; top: 10px; left: 12px; font-size: 14px; color: var(--aw-muted); font-variant-numeric: tabular-nums; }
-
 /* ── aw-display ── */
 .aw .aw-display {
   font-size: 30px; line-height: 36px; text-wrap: balance; font-family: var(--aw-font); font-weight: 600; letter-spacing: -0.035em; color: var(--v10-ink);
@@ -1250,9 +1245,6 @@ body { background: var(--v10-canvas); }
 .aw .aw-move { display: inline-flex; align-items: center; gap: 2px; font-family: var(--aw-font); font-size: 12px; font-variant-numeric: tabular-nums; }
 .aw .aw-move.is-up { color: var(--v10-success); }
 .aw .aw-move.is-down { color: var(--v10-danger); }
-
-/* ── aw-musing ── */
-.aw .aw-musing { margin: 0; min-height: 1.5em; text-align: center; font-size: 15px; font-style: italic; animation: aw-musing-in .4s ease-out; color: var(--aw-brand); }
 
 /* ── aw-nav ── */
 .aw .aw-nav__icon { flex: none; width: var(--icon-md); height: var(--icon-md); stroke-width: 2; color: currentColor; }
@@ -1981,16 +1973,13 @@ body { background: var(--v10-canvas); }
 .aw .aw-textarea::placeholder { color: var(--v10-faint); }
 
 /* ── aw-think ── */
-.aw .aw-think.is-done .aw-think__icon svg { animation: none; }
-.aw .aw-think__icon {
-  color: var(--accent-9); border: 0; border-radius: var(--aw-r-md); background: var(--v10-signal-soft); box-shadow: none; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center;
+.aw .aw-think { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 56px 24px; text-align: center; }
+.aw .aw-think__mark { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; }
+.aw .aw-think__mark .aw-spin { width: 28px; height: 28px; border-width: 2.5px; }
+.aw .aw-think__done {
+  display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: var(--aw-r-pill); background: var(--v10-signal-soft); color: var(--signal);
 }
-.aw .aw-think__bar { background: var(--accent-9); position: relative; width: 180px; height: 2px; overflow: hidden; }
-.aw .aw-think__icon svg { fill: var(--signal); width: 26px; height: 26px; animation: aw-spark 1.6s var(--aw-ease) infinite; }
-.aw .aw-think__bar::after {
-  background: var(--signal); content: ""; position: absolute; top: 0; left: -40%; width: 40%; height: 100%; animation: aw-sweep 1.3s var(--aw-ease) infinite;
-}
-.aw .aw-think { display: flex; flex-direction: column; align-items: center; gap: 18px; padding: 56px 24px; text-align: center; }
+.aw .aw-think__done svg { width: 20px; height: 20px; }
 
 /* ── aw-tick ── */
 .aw .aw-tick {
@@ -2161,7 +2150,6 @@ body { background: var(--v10-canvas); }
 @keyframes aw-pulse { 50% { opacity: .3; } }
 @keyframes aw-scroll { from { transform: translateX(0) } to { transform: translateX(-50%) } }
 @keyframes aw-spin { to { transform: rotate(360deg); } }
-@keyframes aw-musing-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 @keyframes aw-pop { from { opacity: 0; transform: translate(-50%, -50%) scale(.6); } to { opacity: 1; transform: translate(-50%, -50%); } }
 @keyframes aw-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @keyframes aw-undo-in { from { opacity: 0; transform: translate(-50%, 8px); } to { opacity: 1; transform: translate(-50%, 0); } }
@@ -2177,5 +2165,3 @@ body { background: var(--v10-canvas); }
 @keyframes aw-empty-rise { from { opacity: 0; transform: translateY(6px); } }
 @keyframes aw-iso-drop { from { opacity: 0; transform: translateY(-10px); } }
 @keyframes aw-iso-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
-@keyframes aw-spark { 0%, 100% { transform: scale(0.82) rotate(0deg); opacity: 0.55 } 50% { transform: scale(1) rotate(45deg); opacity: 1 } }
-@keyframes aw-sweep { from { left: -40% } to { left: 100% } }

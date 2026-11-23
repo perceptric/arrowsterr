@@ -111,17 +111,22 @@ export function Seg<T extends string>({ value, options, onChange, label }: { val
   );
 }
 
-/** The AI is working: a pulsing spark, a sweeping line and one short line of text. */
+/** Something is loading: a spinner and one short line of text. When done, a check mark takes the spinner's place. */
 export function Thinking({ text, children, done }: { text: string; children?: React.ReactNode; done?: boolean }) {
   return (
-    <div className={`aw-frame aw-think ${done ? "is-done" : ""}`} role="status" aria-live="polite">
-      <span className="aw-think__icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24">
-          <path d="M12 1.5c.6 4.9 2.9 8.6 10.5 10.5-7.6 1.9-9.9 5.6-10.5 10.5-.6-4.9-2.9-8.6-10.5-10.5C9.1 10.1 11.4 6.4 12 1.5z" />
-        </svg>
+    <div className="aw-frame aw-think" role="status" aria-live="polite">
+      <span className="aw-think__mark" aria-hidden="true">
+        {done ? (
+          <span className="aw-think__done">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12.5 10 17.5 19 7" />
+            </svg>
+          </span>
+        ) : (
+          <span className="aw-spin" />
+        )}
       </span>
       <span className="aw-h4">{text}</span>
-      {done ? null : <span className="aw-think__bar" aria-hidden="true" />}
       {children}
     </div>
   );
