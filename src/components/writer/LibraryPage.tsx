@@ -12,7 +12,7 @@ import type { RunAuth } from "@/lib/runner";
 import { useStash } from "@/lib/stash";
 import { currentSupabase } from "@/lib/supa";
 import type { View } from "@/lib/view";
-import { getBrief, getDraft, listTopics, type FullBrief, type FullDraft, type Topic } from "@/lib/writerLibrary";
+import { briefIdForItem, getBrief, getDraftForBrief, listTopics, type FullBrief, type FullDraft, type Topic } from "@/lib/writerLibrary";
 import type { BrandGuideline } from "@/lib/writerTypes";
 import { PlainEditor, type SaveState } from "../content/PlainEditor";
 import { ConnectWizard } from "../ConnectWizard";
@@ -34,12 +34,12 @@ import { DocComments } from "./DocComments";
 import { DocHistory } from "./DocHistory";
 import { ContentGrid } from "./ContentGrid";
 import { OutlineView } from "./OutlineView";
-import { DraftProgress, libraryKey, RegenerateDialog, StateTag, useBrandSite, usePoll, useWide, type LibraryOpen } from "./parts";
+import { BriefProgress, DraftProgress, libraryKey, RegenerateDialog, StateTag, useBrandSite, usePoll, useWide, type LibraryOpen } from "./parts";
 
 // Drafts (docs/drafts-plan.md): every keyword from the Editorial Calendar, as a grid of articles (ContentGrid).
-// Write drafts starts there: the research and outline run in the background, then the draft. An article opens in the
-// plain editor with its interactive modules running in sandboxed frames, its HTML, Markdown and Text views, Export
-// and Publish.
+// Write drafts starts there: the research and outline run in the background, then the draft. Each piece opens to one
+// page that follows it from the outline to the article (PieceView). An article opens in the plain editor with its
+// interactive modules running in sandboxed frames, its HTML, Markdown and Text views, Export and Publish.
 
 const making = (t: Topic) => t.brief?.status === "generating" || t.draft?.status === "generating";
 
@@ -68,18 +68,23 @@ export function LibraryPage({ view, auth, canEdit, onCalendar }: { view: View; a
   }, [load]);
   usePoll(Boolean(!open && rows?.some(making)), 5000, load);
 
-  // A draft opened in a new tab comes as /drafts?doc=<id>&brand=<id> (an outline as ?outline=<id>): open it, then tidy the address.
+  // Links open one thing, then the address is tidied: /drafts?piece=<outline id> (?outline= in older links),
+  // ?item=<Calendar item id> from Zippie's cards, or ?doc=<id> for an article started in the grid.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const doc = params.get("doc");
-    const outline = params.get("outline");
-    if (!doc && !outline) return;
-    setOpen(doc ? { kind: "doc", id: doc } : { kind: "outline", id: outline! });
-    params.delete("doc");
-    params.delete("outline");
-    params.delete("brand");
+    const piece = params.get("piece") ?? params.get("outline");
+    const item = params.get("item");
+    if (!doc && !piece && !item) return;
+    if (doc) setOpen({ kind: "doc", id: doc });
+    else if (piece) setOpen({ kind: "piece", id: piece });
+    else
+      briefIdForItem(sb, item!)
+        .then((id) => id && setOpen({ kind: "piece", id }))
+        .catch(() => {});
+    for (const k of ["doc", "piece", "outline", "item", "brand"]) params.delete(k);
     window.history.replaceState(null, "", window.location.pathname + (params.size ? `?${params}` : ""));
-  }, [setOpen]);
+  }, [sb, setOpen]);
 
   if (site === undefined || (site && rows === null)) return <Thinking text="Opening Drafts..." />;
   if (!site)
@@ -95,8 +100,9 @@ export function LibraryPage({ view, auth, canEdit, onCalendar }: { view: View; a
     setOpen(null);
     load();
   };
-  if (open?.kind === "draft") return <DraftView key={open.id} sb={sb} auth={auth} site={site} brandId={brand.id} id={open.id} canEdit={canEdit} onBack={back} />;
-  if (open?.kind === "outline") return <OutlineView key={open.id} sb={sb} auth={auth} id={open.id} canEdit={canEdit} domain={site.domain} onBack={back} onDraft={(id) => setOpen({ kind: "draft", id })} />;
+  // "outline" is how a piece was kept open before outline and draft became one page.
+  const kind = open?.kind as string | undefined;
+  if (open && (kind === "piece" || kind === "outline")) return <PieceView key={open.id} sb={sb} auth={auth} site={site} brandId={brand.id} id={open.id} canEdit={canEdit} onBack={back} />;
   if (open?.kind === "doc") return <DocView key={open.id} sb={sb} auth={auth} site={site} brandId={brand.id} id={open.id} canEdit={canEdit} onBack={back} />;
 
   const list = rows ?? [];
@@ -139,25 +145,29 @@ function Back({ onBack, title, children }: { onBack: () => void; title: string; 
   );
 }
 
-/** A draft the writer job made: its progress while it runs, then the article with Regenerate. */
-function DraftView({ sb, auth, site, brandId, id, canEdit, onBack }: { sb: SupabaseClient; auth: RunAuth; site: Site; brandId: string; id: string; canEdit: boolean; onBack: () => void }) {
-  const [draft, setDraft] = useState<FullDraft | null | undefined>(undefined);
-  const [brief, setBrief] = useState<FullBrief | null>(null);
+/**
+ * One piece on one page, from start to finish: the research and outline while they're written, the outline to review,
+ * the sections filling in while the draft is written, then the article to edit and publish. It moves on by itself as
+ * the writer works, so every link to a piece (the grid, the Calendar, Zippie) lands here.
+ */
+function PieceView({ sb, auth, site, brandId, id, canEdit, onBack }: { sb: SupabaseClient; auth: RunAuth; site: Site; brandId: string; id: string; canEdit: boolean; onBack: () => void }) {
+  const [brief, setBrief] = useState<FullBrief | null | undefined>(undefined);
+  const [draft, setDraft] = useState<FullDraft | null>(null);
   const [doc, setDoc] = useState<Doc | null>(null);
   const [regen, setRegen] = useState(false);
+  const [retrying, setRetrying] = useState(false);
   const [error, setError] = useState("");
   const docRef = useRef<string | null>(null);
   const [docKey, setDocKey] = useState("");
 
   const load = useCallback(async () => {
     try {
-      const d = await getDraft(sb, id);
+      const [b, d] = await Promise.all([getBrief(sb, id), getDraftForBrief(sb, id)]);
+      setBrief(b);
       setDraft(d);
-      if (!d) return;
-      if (!brief || brief.id !== d.brief_id) setBrief(await getBrief(sb, d.brief_id));
       // The doc loads once per version the job wrote, so the editor never jumps under someone typing.
-      const stampOf = `${d.doc_id}:${d.ready_at}`;
-      if (d.status === "ready" && d.doc_id && docRef.current !== stampOf) {
+      const stampOf = d ? `${d.doc_id}:${d.ready_at}` : "";
+      if (d?.status === "ready" && d.doc_id && docRef.current !== stampOf) {
         const x = await getDoc(sb, d.doc_id);
         docRef.current = stampOf;
         setDocKey(stampOf);
@@ -165,20 +175,24 @@ function DraftView({ sb, auth, site, brandId, id, canEdit, onBack }: { sb: Supab
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
+      setBrief((b) => b ?? null);
     }
-  }, [sb, id, brief]);
+  }, [sb, id]);
   useEffect(() => {
-    // Loading the draft is the point of this effect.
+    // Loading the piece is the point of this effect.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
   }, [load]);
-  usePoll(draft?.status === "generating", 4000, load);
+  const working = brief?.status === "generating" || draft?.status === "generating";
+  usePoll(working, 4000, load);
+  // An outline waiting for review can have its draft started elsewhere (Zippie, the Calendar): look now and then.
+  usePoll(!working && !draft && (brief?.status === "ready" || brief?.status === "approved"), 15000, load);
 
-  if (draft === undefined) return <Thinking text="Opening the draft..." />;
-  if (!draft) return <Back onBack={onBack} title="This draft was deleted." />;
-  const head = doc?.title || brief?.brief?.h1 || brief?.keyword || "Draft";
+  if (brief === undefined) return <Thinking text="Opening..." />;
+  if (!brief) return <Back onBack={onBack} title="This piece was deleted." />;
+  const title = doc?.title || brief.brief?.h1 || brief.keyword;
   const regenerate =
-    regen && brief ? (
+    regen ? (
       <RegenerateDialog
         auth={auth}
         briefId={brief.id}
@@ -186,57 +200,143 @@ function DraftView({ sb, auth, site, brandId, id, canEdit, onBack }: { sb: Supab
         onStarted={() => {
           setRegen(false);
           setDoc(null);
+          docRef.current = null;
           load();
         }}
       />
     ) : null;
 
-  if (draft.status !== "ready" || !doc)
-    return (
-      <div className="flex flex-col gap-5">
-        <Back onBack={onBack} title={head}>
-          <StateTag status={draft.status} />
-          {canEdit && draft.status === "failed" && brief ? (
-            <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => setRegen(true)}>
-              Regenerate
-            </button>
-          ) : null}
-        </Back>
-        {draft.error ? <p className="aw-error">{draft.error}</p> : null}
-        {error ? <p className="aw-error">{error}</p> : null}
-        {draft.status === "generating" ? <DraftProgress draft={draft} brief={brief} /> : null}
-        {draft.status === "ready" && !doc ? <Thinking text="Opening the draft..." /> : null}
+  // The article, once the draft is written.
+  if (draft?.status === "ready")
+    return doc ? (
+      <>
+        <ArticleView
+          key={docKey || doc.id}
+          sb={sb}
+          auth={auth}
+          site={site}
+          brandId={brandId}
+          doc={doc}
+          canEdit={canEdit}
+          onBack={onBack}
+          review={{
+            keyword: brief.keyword,
+            wordTarget: brief.brief?.wordTarget,
+            meta: brief.brief?.metaDescription,
+            links: [...(brief.brief?.internalLinks ?? []), ...(brief.brief?.cards ?? []).flatMap((c) => c.links)],
+          }}
+          extra={
+            canEdit ? (
+              <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setRegen(true)}>
+                Regenerate
+              </button>
+            ) : null
+          }
+        />
         {regenerate}
-      </div>
+      </>
+    ) : (
+      <Thinking text="Opening the draft..." />
     );
 
+  // The draft being written: the outline's headings fill in as their sections are done.
+  if (draft?.status === "generating") return <Writing title={title} brief={brief} draft={draft} onBack={onBack} />;
+
+  if (draft?.status === "failed")
+    return (
+      <Stage onBack={onBack} title={title} status="failed" note="The draft stopped before it finished.">
+        {draft.error ? <p className="aw-error">{draft.error}</p> : null}
+        {canEdit ? (
+          <button type="button" className="aw-btn aw-btn--primary self-start" onClick={() => setRegen(true)}>
+            Write the draft again
+          </button>
+        ) : null}
+        {regenerate}
+      </Stage>
+    );
+
+  // The research and the outline while they're written.
+  if (brief.status === "generating")
+    return (
+      <Stage onBack={onBack} title={brief.keyword} status="generating" note="The outline shows here in a few minutes, with each heading built from what people search.">
+        <BriefProgress step={brief.step} />
+      </Stage>
+    );
+
+  if (brief.status === "failed")
+    return (
+      <Stage onBack={onBack} title={brief.keyword} status="failed" note="The outline stopped before it finished.">
+        {brief.error ? <p className="aw-error">{brief.error}</p> : null}
+        {error ? <p className="aw-error">{error}</p> : null}
+        {canEdit ? (
+          <button
+            type="button"
+            className="aw-btn aw-btn--primary self-start"
+            disabled={retrying}
+            onClick={async () => {
+              setRetrying(true);
+              setError("");
+              try {
+                await post(auth, "/api/agentic-writer", { action: "brief", itemId: brief.item_id });
+                await load();
+              } catch (e) {
+                setError(e instanceof Error ? e.message : String(e));
+              } finally {
+                setRetrying(false);
+              }
+            }}
+          >
+            {retrying ? "Starting..." : "Write the outline again"}
+          </button>
+        ) : null}
+      </Stage>
+    );
+
+  // The outline, ready to review and write.
+  return <OutlineView key={brief.id} sb={sb} auth={auth} id={brief.id} canEdit={canEdit} domain={site.domain} onBack={onBack} onDraft={() => void load()} />;
+}
+
+/** A piece's page while the writer works on it, or after it stopped: the title, a line on where it is, then the rest. */
+function Stage({ onBack, title, status, note, children }: { onBack: () => void; title: string; status: string; note: string; children: React.ReactNode }) {
   return (
-    <>
-      <ArticleView
-        key={docKey || doc.id}
-        sb={sb}
-        auth={auth}
-        site={site}
-        brandId={brandId}
-        doc={doc}
-        canEdit={canEdit}
-        onBack={onBack}
-        review={{
-          keyword: brief?.keyword,
-          wordTarget: brief?.brief?.wordTarget,
-          meta: brief?.brief?.metaDescription,
-          links: [...(brief?.brief?.internalLinks ?? []), ...(brief?.brief?.cards ?? []).flatMap((c) => c.links)],
-        }}
-        extra={
-          canEdit && brief ? (
-            <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setRegen(true)}>
-              Regenerate
-            </button>
-          ) : null
-        }
-      />
-      {regenerate}
-    </>
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-8">
+      <Back onBack={onBack} title="">
+        <StateTag status={status} />
+      </Back>
+      <header className="flex flex-col gap-3">
+        <h1 className="text-[28px] leading-tight font-semibold tracking-tight text-ink [overflow-wrap:anywhere]">{title}</h1>
+        <p className="text-[16px] leading-relaxed text-body">{note}</p>
+      </header>
+      {children}
+    </div>
+  );
+}
+
+/** The draft being written: the intro and each heading, done, being written or waiting, then the steps after them. */
+function Writing({ title, brief, draft, onBack }: { title: string; brief: FullBrief; draft: FullDraft; onBack: () => void }) {
+  const heads = ["Intro", ...(brief.brief?.outline ?? []).map((o) => o.h2)];
+  const sections = draft.sections ?? [];
+  const next = draft.step === "sections" ? heads.findIndex((_, i) => !sections[i]) : -1;
+  return (
+    <Stage onBack={onBack} title={title} status="generating" note="Zippie is writing the draft. The sections fill in here as they're done, then it checks the facts and builds the blocks.">
+      <ol className="flex flex-col overflow-hidden rounded-aw-lg border border-rule bg-white" aria-live="polite">
+        {heads.map((h, i) => {
+          const done = Boolean(sections[i]) || (draft.step !== "sections" && i < heads.length);
+          const now = i === next;
+          return (
+            <li key={`${i}:${h}`} className="flex items-center gap-4 px-6 py-4 not-first:border-t not-first:border-rule-faint">
+              <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[12px] ${done ? "bg-pos-bg text-pos" : now ? "bg-brand-bg text-brand" : "bg-surface-2 text-muted"}`} aria-hidden="true">
+                {done ? "✓" : now ? "●" : ""}
+              </span>
+              <span className={`flex-1 text-[16px] leading-snug [overflow-wrap:anywhere] ${i === 0 ? "text-muted" : done || now ? "font-medium text-ink" : "text-muted"}`}>{h}</span>
+              <span className="sr-only">{done ? "written" : now ? "being written" : "waiting"}</span>
+              {now ? <span className="text-[13px] text-brand">Writing…</span> : null}
+            </li>
+          );
+        })}
+      </ol>
+      <DraftProgress draft={draft} brief={brief} />
+    </Stage>
   );
 }
 

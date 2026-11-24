@@ -136,8 +136,8 @@ export function useWriteActions({
     if (onUpgrade) return onUpgrade();
     if (s.kind === "review") {
       if (onReview) return onReview(s.briefId);
-      if (brandId) return openInLibrary(brandId, { kind: "outline", id: s.briefId });
-      return void window.open(`/drafts?outline=${encodeURIComponent(s.briefId)}`, "_blank", "noopener");
+      if (brandId) return openInLibrary(brandId, { kind: "piece", id: s.briefId });
+      return void window.open(`/drafts?piece=${encodeURIComponent(s.briefId)}`, "_blank", "noopener");
     }
     setError("");
     mark(p.id, true);
@@ -176,9 +176,11 @@ export function useWriteActions({
     onChanged();
   }
 
+  /** The open button: a written piece opens to its one page in Drafts; a live post's doc opens on its own. */
   function open(_p: Piece, s: WriteState) {
-    const docId = s.kind === "publish" ? s.docId : s.kind === "view" ? s.docId : null;
-    if (docId) window.open(`/drafts?doc=${encodeURIComponent(docId)}${brandId ? `&brand=${encodeURIComponent(brandId)}` : ""}`, "_blank", "noopener");
+    const brand = brandId ? `&brand=${encodeURIComponent(brandId)}` : "";
+    if (s.kind === "publish") window.open(`/drafts?piece=${encodeURIComponent(s.briefId)}${brand}`, "_blank", "noopener");
+    else if (s.kind === "view" && s.docId) window.open(`/drafts?doc=${encodeURIComponent(s.docId)}${brand}`, "_blank", "noopener");
   }
 
   const overlays = (
