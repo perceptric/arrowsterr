@@ -292,7 +292,7 @@ export function toolDefs(canEdit = false): Anthropic.Tool[] {
     ...READ_TOOLS.map((t) => ({ name: t.name, description: t.description, input_schema: t.inputSchema as Anthropic.Tool.InputSchema })),
     ...(canEdit ? PLAN_TOOLS : []).map((t) => ({ name: t.name, description: t.description, input_schema: t.inputSchema as Anthropic.Tool.InputSchema })),
     ...LOCAL.map((t) => ({ name: t.name, description: t.description, input_schema: t.input_schema })),
-    ...ZIPPIE_TOOLS.filter((t) => canEdit || !t.name.startsWith("propose_")).map((t) => ({ name: t.name, description: t.description, input_schema: t.input_schema })),
+    ...ZIPPIE_TOOLS.filter((t) => canEdit || !/^(propose|write)_/.test(t.name)).map((t) => ({ name: t.name, description: t.description, input_schema: t.input_schema })),
     USE_SKILL,
   ];
 }
@@ -309,6 +309,7 @@ async function runTool(ctx: AskCtx, name: string, args: Record<string, unknown>,
     const zt = ZIPPIE_TOOLS.find((t) => t.name === name);
     if (zt) {
       if (name.startsWith("propose_") && !ctx.canEdit) return { text: "Only editors and admins can save skills and Knowledge.", ok: false };
+      if (name.startsWith("write_") && !ctx.canEdit) return { text: "Only editors and admins can start writing.", ok: false };
       return { text: JSON.stringify(await zt.run(ctx, args, emit)).slice(0, 60_000), ok: true };
     }
     const plan = PLAN_TOOLS.find((t) => t.name === name);
@@ -348,7 +349,7 @@ What you can do:
 - Read rankings from the Traffic rank tracker (get_rankings), clusters from Opportunities (get_clusters), and drafts from Drafts (read_draft).
 - Follow the team's skills: playbooks for SEO, linking, AI visibility and writing (use_skill). The writing skills carry the house rules and the anti-AI methods; use them on drafts and any text.
 ${canEdit ? "- Write a skill or a Knowledge page with propose_skill or propose_knowledge: a card shows it, and the person saves it with one click.\n" : ""}- Help connect things with show_setup. When a CMS, website tracking or Google Analytics is missing, call show_setup so a Connect card opens a click-by-click guide. Never write out setup steps or send people to Settings yourself.
-${canEdit ? "- Change the Content Plan: add pieces (add_to_content_plan), change status, due dates, stage, notes, keyword or live URL (update_content_plan), and delete pieces (remove_from_content_plan). Read the plan with get_content_plan first to get the ids. Ask before deleting anything.\n" : ""}
+${canEdit ? "- Write for the Editorial Calendar: write_outline starts the outline for a piece, write_article writes the whole article (outline, then draft), writing_status shows where it is. They run in the background for minutes; say so, and point to Drafts.\n" : ""}${canEdit ? "- Change the Content Plan: add pieces (add_to_content_plan), change status, due dates, stage, notes, keyword or live URL (update_content_plan), and delete pieces (remove_from_content_plan). Read the plan with get_content_plan first to get the ids. Ask before deleting anything.\n" : ""}
 How you work:
 - Use the tools for facts. Never guess numbers. Say which period and AI a number covers.
 - Be direct and short. Lead with the answer, then the 2 to 4 things worth doing, most impact first. Use plain words.

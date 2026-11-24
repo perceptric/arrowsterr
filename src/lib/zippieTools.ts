@@ -8,6 +8,7 @@ import { ToolError } from "./mcp/protocol";
 import { safeFetch } from "./safeFetch";
 import { findPages } from "./sitemap";
 import { filesProblems, MAIN } from "./skills/format";
+import { WRITER_TOOLS } from "./zippieWriter";
 import { pageFacts, robotsReport, siteIssues, speedReport, urlKey, type CrawledPage, type PageFacts } from "./zippieCrawl";
 
 /** What a tool needs from the chat it runs in. Same shape as AskCtx in ask.ts. */
@@ -78,7 +79,7 @@ const compactFacts = (f: PageFacts) => ({
   outside_links: f.links.filter((l) => !l.internal).slice(0, 40).map((l) => ({ url: l.url, anchor: l.anchor, nofollow: l.nofollow })),
 });
 
-export const ZIPPIE_TOOLS: ZippieTool[] = [
+const BASE_TOOLS: ZippieTool[] = [
   {
     name: "crawl_page",
     label: "Reading the page",
@@ -283,3 +284,6 @@ export const ZIPPIE_TOOLS: ZippieTool[] = [
     },
   },
 ];
+
+/** Every Zippie tool: the checks and proposals above, then the writer (zippieWriter.ts). */
+export const ZIPPIE_TOOLS: ZippieTool[] = [...BASE_TOOLS, ...WRITER_TOOLS];

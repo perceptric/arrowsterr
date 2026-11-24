@@ -284,6 +284,21 @@ async function writesWithoutReview(db: SupabaseClient, briefId: string): Promise
 }
 
 /**
+ * True once for a piece Zippie's write_article marked (calendar_items.extra.draft_after_outline): the outline goes
+ * straight on to the draft. The mark is cleared here, so a later outline waits for review again.
+ */
+async function draftAfterOutline(db: SupabaseClient, briefId: string): Promise<boolean> {
+  const row = must(await db.from("writer_briefs").select("item_id").eq("id", briefId).maybeSingle()) as { item_id: string } | null;
+  if (!row) return false;
+  const item = must(await db.from("calendar_items").select("extra").eq("id", row.item_id).maybeSingle()) as { extra: Record<string, unknown> | null } | null;
+  if (!item?.extra?.draft_after_outline) return false;
+  const extra = { ...item.extra };
+  delete extra.draft_after_outline;
+  must(await db.from("calendar_items").update({ extra }).eq("id", row.item_id));
+  return true;
+}
+
+/**
  * writer_brief: wait for the article research without using up attempts, then write the outline. There's no brief to
  * review (docs/drafts-plan.md): once the outline is written, the draft starts in the same turn.
  */
@@ -293,7 +308,7 @@ export async function writerBriefJob(db: SupabaseClient, job: Job) {
     const out = await runBrief(briefStore(db), briefDeps(db), id, version);
     // Draft and Write, Phase 1: the outline waits for a person's review (the outline screen's Write button), unless
     // the workspace turned on Write without review (Settings > AI) for bulk runs.
-    if (out.state === "done" && (await writesWithoutReview(db, id))) await draftFromOutline(db, id);
+    if (out.state === "done" && ((await writesWithoutReview(db, id)) || (await draftAfterOutline(db, id)))) await draftFromOutline(db, id);
     return out;
   };
   await drive(job, Q, step, async (error) => {
