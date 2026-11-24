@@ -16,7 +16,7 @@ import { KeywordOverview } from "./KeywordOverview";
 import { AnalyzeSeo, ResearchKeyword } from "./shared";
 import type { WriterAccess } from "./shared";
 
-export type Tool = "keywords" | "domain" | "gap" | "calendar" | "opportunities";
+export type Tool = "keywords" | "domain" | "gap" | "calendar";
 /** Research's tabs (docs/content-v3-plan.md, section 1). Content Research joins them in phase 2. */
 const TABS: { id: Tool; label: string }[] = [
   { id: "keywords", label: "Keywords" },
@@ -83,7 +83,7 @@ export function ResearchPage({
     >
     <div className="flex flex-col gap-5">
       {/* Calendar and Opportunities draw their own header, with their actions beside the title. */}
-      {tool === "calendar" || tool === "opportunities" ? null : (
+      {tool === "calendar" ? null : (
         <header className="flex flex-col gap-3">
           <h1 className="aw-h2 mb-0!">Research</h1>
           <div className="aw-tabs flex max-w-full overflow-x-auto" role="tablist" aria-label="Research">
@@ -128,7 +128,7 @@ export function ResearchPage({
           writer={writer}
           brandName={brand.name}
           onSite={setSite}
-          mode={tool === "opportunities" ? "plan" : "calendar"}
+          mode="calendar"
         />
       )}
     </div>

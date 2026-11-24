@@ -9,11 +9,13 @@ import { safeFetch } from "./safeFetch";
 import { findPages } from "./sitemap";
 import { filesProblems, MAIN } from "./skills/format";
 import { WRITER_TOOLS } from "./zippieWriter";
+import type { WriterCard } from "./contentPicks";
+import { brandOf } from "./zippieBrand";
 import { pageFacts, robotsReport, siteIssues, speedReport, urlKey, type CrawledPage, type PageFacts } from "./zippieCrawl";
 
 /** What a tool needs from the chat it runs in. Same shape as AskCtx in ask.ts. */
 export type ToolCtx = { db: SupabaseClient; ws: string; userId: string; canEdit: boolean; threadId: string; where?: { brand: string | null; page: string; id?: string | null } | null };
-export type ToolEmit = (e: { type: "proposal"; proposal: Proposal }) => void;
+export type ToolEmit = (e: { type: "proposal"; proposal: Proposal } | { type: "writer"; card: WriterCard }) => void;
 export type Proposal = { kind: "skill"; scope: "personal" | "workspace"; files: Record<string, string> } | { kind: "knowledge"; scope: "personal" | "workspace"; title: string; body: string; replaces: string | null };
 export type ZippieTool = { name: string; label: string; description: string; input_schema: Anthropic.Tool.InputSchema; run: (ctx: ToolCtx, args: Record<string, unknown>, emit: ToolEmit) => Promise<unknown> };
 
@@ -21,18 +23,6 @@ const str = (v: unknown, n = 300) => (typeof v === "string" ? v.trim().slice(0, 
 const SITE_MAX = 150;
 const SITE_BUDGET_MS = 110_000; // the ask route has 300 seconds for a whole answer
 const CONCURRENCY = 8;
-
-/** The brand a tool is about: the one named, else the one picked in the app, else the only one. */
-async function brandOf(ctx: ToolCtx, arg: unknown): Promise<{ id: string; name: string; domain: string }> {
-  const { data } = await ctx.db.from("brands").select("id, name, domain").eq("workspace_id", ctx.ws).order("created_at");
-  const all = (data ?? []) as { id: string; name: string; domain: string }[];
-  if (!all.length) throw new ToolError("This workspace has no brands yet.");
-  const want = (str(arg, 200) || ctx.where?.brand || "").toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/.*$/, "");
-  const hit = want ? all.find((b) => b.name.toLowerCase() === want || b.domain.toLowerCase() === want || b.domain.toLowerCase().includes(want)) : null;
-  if (hit) return hit;
-  if (all.length === 1 || !want) return all[0];
-  throw new ToolError(`Say which brand: ${all.map((b) => `${b.name} (${b.domain})`).join(", ")}.`);
-}
 
 /** A domain or URL as given, else the brand's domain. */
 async function domainOf(ctx: ToolCtx, arg: unknown): Promise<string> {

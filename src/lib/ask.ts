@@ -15,6 +15,7 @@ import { PLAYS, preparePlay, type Play } from "./plays";
 import { MAIN, skillCatalog, skillFromRow, skillPrompt, USE_SKILL, pickSkillResult, type Skill } from "./skills/format";
 import { SYSTEM_SKILLS } from "./skills/system";
 import { ZIPPIE_TOOLS, type Proposal } from "./zippieTools";
+import type { WriterCard } from "./contentPicks";
 
 // Zippie: a chat that can read everything Arrowsterr knows about a brand
 // and propose fixes to its CMS. It never changes a site on its own: every edit waits in a change set
@@ -28,6 +29,7 @@ export type AskEvent =
   | { type: "changeset"; id: string; title: string }
   | { type: "setup"; id: string }
   | { type: "proposal"; proposal: Proposal }
+  | { type: "writer"; card: WriterCard }
   | { type: "skill"; title: string }
   | { type: "done" }
   | { type: "error"; error: string };
@@ -359,6 +361,9 @@ How you work:
 ${canEdit ? "" : "- This person is a viewer: they can ask questions but can't prepare changes or change the Content Plan. Suggest asking an editor.\n"}- Off-site work (outreach, reviews, Reddit) you only suggest and draft. You can't post anywhere.
 - Fixes no play can make (redirects, canonicals, robots.txt, server settings): list them with the exact value and where it goes in their CMS. Never say you made them.`;
 
+/** On the Writer page (Plan & Create › Writer), Zippie is the content writer. */
+const WRITER_PAGE = `This is the Writer, where Zippie writes articles from the Editorial Calendar. When the person wants to write without naming a keyword ("write today's top pick", "outline the next 3"), call pick_content first and work from its picks; it shows them as a card with Write buttons, so keep your words short. To write, follow the write-article or write-outline skill: write_article runs research, the outline from real searches (with interactive blocks where they help), then the draft; write_outline stops at the outline for review. Each draft uses one of the month's drafts: ask before starting more than one. write_article, write_outline and writing_status show a card that updates as the writer works, so don't repeat its details. Autopilot (the button at the top) writes on a schedule; point people to it when they want articles every day. Publishing happens from the article in Drafts.`;
+
 /** Load the thread's messages for Claude, starting at a person's turn so tool calls stay paired. */
 async function history(db: SupabaseClient, threadId: string): Promise<Anthropic.MessageParam[]> {
   const { data } = await db.from("ask_messages").select("role, content").eq("thread_id", threadId).order("id", { ascending: false }).limit(40);
@@ -382,6 +387,7 @@ export async function answer(ctx: AskCtx, message: string, emit: (e: AskEvent) =
   if (extra) systemBlocks.push({ type: "text", text: extra });
   systemBlocks[systemBlocks.length - 1].cache_control = { type: "ephemeral" };
   // The brand and page the person asks from change often, so they go after the cached part.
+  if (ctx.where?.page === "Writer") systemBlocks.push({ type: "text", text: WRITER_PAGE });
   if (ctx.where?.page) systemBlocks.push({ type: "text", text: `The person is on the ${ctx.where.page} page${ctx.where.brand ? ` with the brand ${ctx.where.brand} picked` : ""}${ctx.where.id ? ` (the record on screen has id ${ctx.where.id}; read_draft reads it when it's a draft)` : ""}. Start from that brand and page unless they say otherwise.` });
   // A skill picked with / goes after the cached part too, since it changes from message to message.
   if (picked) {

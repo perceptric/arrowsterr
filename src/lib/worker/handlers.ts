@@ -25,6 +25,7 @@ import { articleResearchJob } from "../articleResearchServer";
 import { writerBriefJob, writerDraftJob } from "../writerServer";
 import { wpPublishJob } from "../wpSyncServer";
 import { queueReportSends } from "../scheduleServer";
+import { runAutopilots } from "../zippieWriter";
 import { applySet, preparePlay, undoSet } from "../plays";
 import { checkDue, promptAllowance } from "../plans";
 import type { PlanBrief } from "../research";
@@ -54,6 +55,8 @@ export async function schedule(db: SupabaseClient, job: Job) {
   await queueMatching(db).catch((e) => console.error("AI Shopping matching failed:", e instanceof Error ? e.message : e));
   await queueShopRuns(db).catch((e) => console.error("AI Shopping runs failed:", e instanceof Error ? e.message : e));
   await queueRankChecks(db).catch((e) => console.error("Rank checks failed:", e instanceof Error ? e.message : e));
+  // The Writer's Autopilot (zippieWriter.ts): brands whose daily writing is due start their best Calendar pieces.
+  await runAutopilots(db).catch((e) => console.error("Writer Autopilot failed:", e instanceof Error ? e.message : e));
   const engines = availableEngines();
   if (!engines.length) return finish(job.id);
   const now = new Date();
