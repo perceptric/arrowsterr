@@ -33,6 +33,10 @@ const stepIndex = (step: string) => {
   return s >= 0 ? s + 3 : 0;
 };
 const STALE = 20 * 60_000;
+/** A plan run older than 20 minutes that never finished has stopped. */
+export const isStale = (run: Pick<KeywordRun, "status" | "created_at"> | null | undefined, now = Date.now()) => run?.status === "running" && now - new Date(run.created_at).getTime() > STALE;
+/** A plan run that is still working. */
+export const isRunning = (run: Pick<KeywordRun, "status" | "created_at"> | null | undefined, now = Date.now()) => run?.status === "running" && !isStale(run, now);
 
 /** A finished plan as Content Plan rows: new pages to write and existing pages to improve. Rows already approved are left out. */
 export function planRows(res: AgentResult): Omit<BankRow, "id" | "added">[] {
@@ -119,8 +123,8 @@ export function PlanProgress({
   }, [load, refresh]);
 
   const run = runs?.[0] ?? null;
-  const stale = run?.status === "running" && now - new Date(run.created_at).getTime() > STALE;
-  const running = run?.status === "running" && !stale;
+  const stale = isStale(run, now);
+  const running = isRunning(run, now);
 
   // While a plan is working, check on it every 4 seconds.
   useEffect(() => {
