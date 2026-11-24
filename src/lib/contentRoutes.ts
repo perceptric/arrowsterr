@@ -1,28 +1,29 @@
 // The content pages' addresses (docs/content-v3-plan.md, section 1). Pure, so tests can cover the forwarding.
-// Brand moved into Settings; its old addresses are forwarded in App.tsx.
+// Brand moved into Settings; its old addresses are forwarded in App.tsx. Opportunities was the same list as the
+// Calendar, so it folded into Calendar; Writer is Zippie writing from the Calendar.
 
-export type ContentPage = "opportunities" | "calendar" | "library";
+export type ContentPage = "calendar" | "writer" | "library";
 
 export const CONTENT_SLUGS: Record<ContentPage, string> = {
-  opportunities: "/opportunities",
   calendar: "/calendar",
+  writer: "/writer",
   library: "/drafts",
 };
 
-/** Older addresses: every Content Plan name opens Opportunities; the Editorial Calendar opens Calendar; Content, the Library and the Agentic Writer open Drafts. */
+/** Older addresses: Opportunities and every Content Plan name open Calendar; Content, the Library and the Agentic Writer open Drafts. */
 export const CONTENT_ALIASES: Record<string, ContentPage> = {
-  "/content-plan": "opportunities",
-  "/agentic-research": "opportunities",
-  "/topic-bank": "opportunities",
-  "/planner": "opportunities",
-  "/inkwell": "opportunities",
+  "/opportunities": "calendar",
+  "/content-plan": "calendar",
+  "/agentic-research": "calendar",
+  "/topic-bank": "calendar",
+  "/planner": "calendar",
+  "/inkwell": "calendar",
   "/editorial-calendar": "calendar",
   "/content-calendar": "calendar",
   "/content-intelligence": "calendar",
   "/performance": "calendar",
   "/reports/content": "calendar",
   "/library": "library",
-  "/writer": "library",
   "/agentic-writer": "library",
   "/content": "library",
 };

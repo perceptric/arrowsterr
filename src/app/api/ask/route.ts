@@ -1,5 +1,7 @@
 import { answer, skillsOf, type AskEvent } from "@/lib/ask";
 import type { Proposal } from "@/lib/zippieTools";
+import type { WriterCard } from "@/lib/contentPicks";
+import { pieceStatus } from "@/lib/zippieWriter";
 import { take } from "@/lib/entitlements";
 import { meteredRoute, streamed } from "@/lib/meter";
 import { TASK_COST } from "@/lib/plans";
@@ -13,7 +15,7 @@ const missing = (e: { message: string } | null) => e && /ask_threads|ask_message
 const SETUP = "Run supabase/036_ask.sql in Supabase to turn on Zippie.";
 
 type Block = { type: string; text?: string; name?: string; content?: unknown };
-type Card = { kind: "changeset" | "setup"; id: string } | { kind: "proposal"; id: string; proposal: Proposal };
+type Card = { kind: "changeset" | "setup"; id: string } | { kind: "proposal"; id: string; proposal: Proposal } | { kind: "writer"; id: string; card: WriterCard };
 
 // Zippie. Everyone in the workspace can chat and read; only editors prepare changes.
 //   threads: {}                       the workspace's chats, newest first
@@ -30,6 +32,12 @@ async function handle(request: Request) {
   const ws = String(body.workspaceId);
   const { data: me } = await auth.sb.auth.getUser();
   const userId = me.user?.id ?? "";
+
+  // The Writer's piece card: where one Calendar piece's outline and draft stand (zippieWriter.ts).
+  if (body.action === "writer_piece") {
+    const piece = await pieceStatus(db, ws, String(body.itemId ?? ""));
+    return piece ? Response.json({ piece }) : err("Piece not found.", 404);
+  }
 
   if (body.action === "threads") {
     const { data, error } = await db.from("ask_threads").select("id, title, created_by, updated_at, project_id").eq("workspace_id", ws).order("updated_at", { ascending: false }).limit(100);
@@ -65,6 +73,14 @@ async function handle(request: Request) {
           if (owner && set) owner.cards.push({ kind: "changeset", id: set });
           const setup = raw.match(/"setup":"((?:cms|traffic)(?::[a-z]+)?)"/)?.[1];
           if (owner && setup) owner.cards.push({ kind: "setup", id: setup });
+          if (owner && raw.includes('"writer_card"')) {
+            try {
+              const w = (JSON.parse(raw) as { writer_card?: WriterCard }).writer_card;
+              if (w) owner.cards.push({ kind: "writer", id: `${m.id}:${owner.cards.length}`, card: w });
+            } catch {
+              /* a result cut short: no card */
+            }
+          }
           if (owner && raw.includes('"proposal"')) {
             try {
               const p = (JSON.parse(raw) as { proposal?: Proposal }).proposal;

@@ -13,8 +13,7 @@ import { useZippie } from "./ZippieContext";
 /** What to suggest on each page, by the page's name in the sidebar. */
 const SUGGEST: Record<string, string[]> = {
   Drafts: ["Run the anti-AI review on this draft", "Link this post from older posts", "Proofread this draft"],
-  Opportunities: ["Plan internal links for my top cluster", "Find pages fighting for one keyword", "Which cluster should we start with?"],
-  Calendar: ["What should we publish next?", "Write a brief for the next post"],
+  Calendar: ["What should we write next?", "Plan internal links for my top cluster", "Find pages fighting for one keyword"],
   Research: ["Find content gaps against my competitors", "Write a brief for this keyword"],
   Traffic: ["Why did my rankings drop?", "Run a site health check"],
   Prompts: ["How visible are we in AI this month?", "Suggest new prompts to track"],
@@ -147,25 +146,38 @@ export function ZippiePanel({ onOpenFull }: { onOpenFull: () => void }) {
 }
 
 /** The Zippie page: the chat full width. */
-export function ZippieHome() {
+/** A suggestion under the box: plain text, or text sent with a skill. */
+export type Suggestion = string | { text: string; skill: string };
+
+/** The Zippie page, and the Writer (Plan & Create › Writer) with its own hello, suggestions and a line under them. */
+export function ZippieHome({
+  hello = "What should Zippie do?",
+  intro = "Zippie reads your Arrowsterr data, checks your site and drafts, and prepares fixes for your CMS. You approve every change.",
+  start = START,
+  footer,
+}: { hello?: string; intro?: string; start?: Suggestion[]; footer?: React.ReactNode } = {}) {
   const z = useZippie();
   if (z.lib.setup) return <div className="aw-callout m-6 max-w-xl">{z.lib.setup}</div>;
   if (!z.messages.length)
     return (
       <div className="zp-home">
         <Zippie size={84} mood="happy" />
-        <h1 className="zp-hello">What should Zippie do?</h1>
-        <p className="max-w-md text-center text-[14px] text-muted">Zippie reads your Arrowsterr data, checks your site and drafts, and prepares fixes for your CMS. You approve every change.</p>
+        <h1 className="zp-hello">{hello}</h1>
+        <p className="max-w-md text-center text-[14px] text-muted">{intro}</p>
         <div className="w-full max-w-2xl">
           <Composer skills={z.lib.skills} busy={z.busy} pending={z.pending} onPending={z.setPending} onStop={z.stop} onSend={(t, k) => z.send(t, k)} big autoFocus />
         </div>
         <div className="zp-sugg">
-          {START.map((s) => (
-            <button key={s} type="button" onClick={() => z.send(s)}>
-              {s}
-            </button>
-          ))}
+          {start.map((s) => {
+            const text = typeof s === "string" ? s : s.text;
+            return (
+              <button key={text} type="button" onClick={() => (typeof s === "string" ? z.send(s) : z.send(s.text, s.skill))}>
+                {text}
+              </button>
+            );
+          })}
         </div>
+        {footer}
         {z.error ? <div className="aw-error w-full max-w-2xl">{z.error}</div> : null}
       </div>
     );

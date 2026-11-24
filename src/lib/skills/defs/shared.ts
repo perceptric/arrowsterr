@@ -56,6 +56,7 @@ export const SKILL_TOOLS = [
   "show_setup",
   "read_knowledge",
   "read_draft",
+  "pick_content",
   "write_outline",
   "write_article",
   "writing_status",

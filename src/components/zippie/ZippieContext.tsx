@@ -153,7 +153,7 @@ export function ZippieProvider({ auth, canEdit, where, onZippiePage, children }:
           method: "POST",
           signal: ctrl.signal,
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${await auth.token()}` },
-          body: JSON.stringify({ action: "send", workspaceId: auth.workspaceId, threadId, message, skill: skillKey, where: at && !onZippiePage ? at : at ? { brand: at.brand, page: "Zippie" } : null }),
+          body: JSON.stringify({ action: "send", workspaceId: auth.workspaceId, threadId, message, skill: skillKey, where: at && !onZippiePage ? at : at ? { brand: at.brand, page: at.page === "Writer" ? "Writer" : "Zippie" } : null }),
         });
         if (!res.ok || !res.body) {
           const out = await res.json().catch(() => ({}));
@@ -180,6 +180,7 @@ export function ZippieProvider({ auth, canEdit, where, onZippiePage, children }:
             else if (e.type === "changeset") patch((m) => ({ ...m, cards: [...m.cards, { kind: "changeset", id: e.id }] }));
             else if (e.type === "setup") patch((m) => ({ ...m, cards: [...m.cards, { kind: "setup", id: e.id }] }));
             else if (e.type === "proposal") patch((m) => ({ ...m, cards: [...m.cards, { kind: "proposal", id: `p${Date.now()}${m.cards.length}`, proposal: e.proposal }] }));
+            else if (e.type === "writer") patch((m) => ({ ...m, cards: [...m.cards, { kind: "writer", id: `w${Date.now()}${m.cards.length}`, card: e.card }] }));
             else if (e.type === "error") setError(e.error);
           }
         }
