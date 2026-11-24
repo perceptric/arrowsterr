@@ -70,13 +70,30 @@ export function usePoll(on: boolean, ms: number, fn: () => void) {
 }
 
 export const libraryKey = (brandId: string) => `library:${brandId}:open`;
-export type LibraryOpen = { kind: "draft" | "doc" | "outline"; id: string } | null;
+/**
+ * What Drafts has open: one piece by its outline's id (its outline, progress or article, as it moves on), or a doc on
+ * its own (an article started in the grid).
+ */
+export type LibraryOpen = { kind: "piece" | "doc"; id: string } | null;
 
-/** Go to Drafts with one draft open. */
+/** Go to Drafts with one piece or doc open. */
 export function openInLibrary(brandId: string, open: LibraryOpen) {
   putStash(libraryKey(brandId), open);
   window.history.pushState(null, "", `/drafts${window.location.search}`);
   window.dispatchEvent(new PopStateEvent("popstate"));
+}
+
+/** Where an outline stands while it's written: the research, then the outline. */
+export function BriefProgress({ step }: { step: string }) {
+  const writing = step !== "research";
+  return (
+    <Steps
+      steps={[
+        { label: "Reading Google's top pages, AI answers and what people search", note: "", done: writing, on: !writing },
+        { label: "Writing the outline", note: "", done: false, on: writing },
+      ]}
+    />
+  );
 }
 
 /** Where a draft stands: sections written, the check, the modules, the doc. */
