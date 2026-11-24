@@ -14,6 +14,7 @@ import { IMAGE_KINDS } from "./writerImageTypes.ts";
 import type { BriefImage, ImageKind } from "./writerImageTypes.ts";
 import { domainOf } from "./sources.ts";
 import { cleanCards, cleanNotes, notesPrompt, notesText, type FactNote, type SectionCard, type Shape } from "./articleNotes.ts";
+import { groupSearches, offSearchHeadings, searchesText, type Search, type SearchGroup } from "./searchGroups.ts";
 
 // ─────────────── shapes ───────────────
 export type Outcome = { state: "done" } | { state: "failed"; error: string } | { state: "wait"; seconds: number; why: string };
@@ -31,7 +32,8 @@ export type { BriefImage } from "./writerImageTypes.ts";
  * after the brief, so the draft writes about it from that page.
  */
 export type BriefExample = { name: string; url: string; kind: string; opener: string; facts: string[]; sources: number[]; page?: { title: string; text: string; ok: boolean; error?: string } };
-export type OutlinePart = { h2: string; points: string[]; h3: { title: string; points: string[] }[]; sources: number[] };
+/** `searches`: the real searches this H2 answers (searchGroups.ts). Empty for a topic the top pages share, and in older briefs. */
+export type OutlinePart = { h2: string; points: string[]; h3: { title: string; points: string[] }[]; sources: number[]; searches?: string[] };
 
 /** A source the research read, numbered so the outline and the draft can point to it. */
 export type ResearchSource = { n: number; url: string; title: string; domain: string; kind: "serp" | "ai" | "example"; position: number | null; words: number };
@@ -41,6 +43,8 @@ export type BriefResearch = {
   sources: ResearchSource[];
   questions: string[]; // People Also Ask
   engines: string[];
+  /** The question searches the outline was built from, with their volumes. Older briefs have none. */
+  searches?: Search[];
 };
 
 export type WriterBrief = {
@@ -162,6 +166,8 @@ export type BriefDeps = {
   notes?: (prefix: string, prompt: string) => Promise<unknown>;
   /** Read a featured example's own page (title and text). Without it, examples keep only the research's facts. */
   readPage?: (url: string) => Promise<{ title: string; text: string; ok: boolean; error?: string }>;
+  /** The question searches about a keyword, with volumes (kwReport.ts). Without it, H2s come from the top pages alone. */
+  searches?: (keyword: string) => Promise<Search[]>;
   model: string;
   now?: () => number;
 };
@@ -245,7 +251,7 @@ export const BRIEF_SCHEMA = obj({
   reader: S,
   angle: S,
   wordTarget: { type: "integer" },
-  outline: { type: "array", items: obj({ h2: S, points: LIST, h3: { type: "array", items: obj({ title: S, points: LIST }) }, sources: { type: "array", items: { type: "integer" } } }) },
+  outline: { type: "array", items: obj({ h2: S, searches: LIST, points: LIST, h3: { type: "array", items: obj({ title: S, points: LIST }) }, sources: { type: "array", items: { type: "integer" } } }) },
   entities: LIST,
   gaps: LIST,
   faqs: { type: "array", items: obj({ question: S, answer: S }) },
@@ -272,18 +278,20 @@ export const BRIEF_NOTES_SCHEMA = {
     shape: obj({ usual: S, others: LIST, picked: S, why: S }),
     intro: CARD_SCHEMA,
     ...BRIEF_SCHEMA.properties,
-    outline: { type: "array", items: obj({ h2: S, points: LIST, h3: { type: "array", items: obj({ title: S, points: LIST }) }, sources: { type: "array", items: { type: "integer" } }, job: S, facts: LIST, words: { type: "integer" }, links: { type: "array", items: obj({ url: S, anchor: S }) }, gaps: LIST }) },
+    outline: { type: "array", items: obj({ h2: S, searches: LIST, points: LIST, h3: { type: "array", items: obj({ title: S, points: LIST }) }, sources: { type: "array", items: { type: "integer" } }, job: S, facts: LIST, words: { type: "integer" }, links: { type: "array", items: obj({ url: S, anchor: S }) }, gaps: LIST }) },
   },
 };
 
 /** The instructions for the brief, after the cached brand and research. */
-export function briefPrompt(b: Pick<BriefRow, "keyword" | "notes" | "note">, c: WriterContext, sourceCount: number, factNotes?: string): string {
+export function briefPrompt(b: Pick<BriefRow, "keyword" | "notes" | "note">, c: WriterContext, sourceCount: number, factNotes?: string, groups: SearchGroup[] = []): string {
+  const searches = searchesText(groups);
   const links = c.sitemap.slice(0, 150);
   return `${factNotes ? `${factNotes}
 
 ` : ""}Write the content brief for an article on "${b.keyword}" for ${c.brand.name}. A writer and an AI will write the draft from it, so it must be complete and exact.
 ${b.notes ? `\nThe editor's notes:\n${b.notes}\n` : ""}${b.note ? `\nThe editor asked for this change: ${b.note}\n` : ""}
 ${links.length ? `The brand's own pages (internal links must come from this list):\n${links.join("\n")}\n` : "The brand's sitemap is not known: leave internalLinks empty.\n"}
+${searches ? `${searches}\n` : ""}
 Rules:
 - titles: 3 title options, under 65 characters, with the keyword or close to it. h1 is the one you'd pick.
 - metaDescription: under 155 characters. slug: short, lowercase, hyphens.
@@ -293,6 +301,14 @@ ${isBofu(c.stage) ? `${listicleRules(b.keyword, new Date().getFullYear())}\n` : 
 - angle: the point of view that makes this article better than the top pages, in 1 or 2 sentences.
 - wordTarget: a number, close to what the top pages need to cover the topic, plus what they miss.
 - outline: 5 to 9 H2s in order, each with 2 to 5 key points, H3s where useful, and the numbers of the sources [1..${sourceCount}] that back it. Every H2 cites at least one source when one fits. The intro is not an H2.
+  Headings are built from what people search, so the page ranks for those searches:
+  - Every H2 is one of two things. (a) A search group${searches ? " from the list above" : " from People Also Ask"}: word it as the clearest, grammatical form of the group's biggest search, keeping its words (a question stays a question: "what are ai agent" becomes "What are AI agents?"), and list the exact searches it answers in searches, copied from the list. (b) A topic that at least 2 of the top Google pages give its own heading: word it the way they do ("Benefits of AI agents", "Types of AI agents"), and leave searches empty.
+  - The one exception: a last H2 about ${c.brand.name} (how ${c.brand.name} helps, or uses it), with searches empty, when the brand has something real to say.
+  - Never a clever, vague or made-up heading, and never one that names an idea nobody searches ("The parts inside an agentic system", "Where it needs a human"). Write "Key components of agentic AI" or "Challenges of agentic AI" instead.
+  - Cover the biggest search groups first. Two groups that ask the same thing in other words share one H2.
+  - Order the H2s the way the top pages do: what it is, how it works, its types or parts, benefits, challenges, how to do it or get started, then the brand.
+  - H3s: the named items the section lists (each type, step, feature or benefit, by name), or smaller searches from the list and People Also Ask.
+  - The first point of every H2 is the direct answer to its heading in one or two sentences, so the draft opens each section with it.
 - entities: the people, products, terms and concepts the article must name.
 - gaps: what the top pages miss or get wrong, that this article will cover.
 - faqs: 3 to 6 questions from People Also Ask and the AI answers, each with a one-line note on what the answer must say.
@@ -308,9 +324,9 @@ ${kindsForPrompt(factNotes ? TEMPLATE_KINDS : undefined)
 - images: 3 to 8 places an image helps the reader, never two in a row. placement (the exact H2 it goes under, or "intro"), kind, shows (what it shows, in one line), alt (one plain sentence for screen readers). Kinds: screenshot (url: the page to capture; every featured example gets one under its H2), chart (numbers: each value with its label, all from the sources, with their source numbers in sources), steps (a process in order), comparison (two or three options side by side), checklist (things to check), anatomy (the parts of a page or a thing, labeled). Leave url, numbers and sources empty when the kind doesn't use them. No stock-photo filler and no featured image; that one is made from the H1.
 - checks: facts the article would like to use but the sources don't confirm, in one line each, for an editor to check. Empty when there are none.
 ${factNotes ? `- job: what the reader will do or decide after reading, in one sentence.
-- pov: the one claim this article argues, in one sentence ${c.brand.name} would agree with.
-- leadingWord: a short name for the idea the article hangs on (2 to 4 words), or empty when none fits.
-- shape: usual is the structure most writers would use for this topic; others are two different shapes; picked is the one you chose (it can be the usual one, by choice); why says why in one sentence. The outline follows picked.
+- pov: the one claim this article argues, in one sentence ${c.brand.name} would agree with. It shapes the writing, never the headings.
+- leadingWord: leave it empty.
+- shape: usual is the structure the top pages share; others are two other shapes; picked is the usual one unless the searches above ask for a part the top pages miss; why names the searches or top pages it follows. Headings follow the rules above whatever the shape.
 - intro and each outline part are cards: job (what this section does for the reader, one sentence), points, facts (the ids of the fact notes the section stands on, like "n3"; only ids from the list above), words (its share of wordTarget), links (from the brand's pages or the sources, with anchor text) and gaps. A point that needs a fact no note has is written "Detail needed: what to find and where" and goes in gaps, never in points.
 - Every number, price, date or claim about a named product in points must come from a fact note cited in facts.
 ` : ""}- topPages: 3 to 5 sentences on what Google's top pages do: format, length, what they all cover.
@@ -354,6 +370,8 @@ const linkKey = (u: string) => u.replace(/#.*$/, "").replace(/^https?:\/\/(www\.
 export function cleanBrief(x: unknown, research: Omit<BriefResearch, "topPages" | "aiAnswers">, sitemap: string[], meta: { model: string; at: string; keyword: string; stage?: string | null; notes?: FactNote[]; notesDropped?: number }): WriterBrief {
   const o = (x && typeof x === "object" ? x : {}) as Record<string, unknown>;
   const valid = new Set(research.sources.map((s) => s.n));
+  // An H2's searches must be real ones from the list the outline was built from.
+  const known = new Set((research.searches ?? []).map((q) => q.keyword.toLowerCase()));
   const outline: OutlinePart[] = arr(o.outline)
     .map((p) => ({
       h2: str(p.h2, 160),
@@ -363,6 +381,7 @@ export function cleanBrief(x: unknown, research: Omit<BriefResearch, "topPages" 
         .filter((h) => h.title)
         .slice(0, 6),
       sources: [...new Set((Array.isArray(p.sources) ? p.sources : []).map(Number).filter((n) => valid.has(n)))].slice(0, 8),
+      searches: [...new Set(strs(p.searches, 200, 20).map((q) => q.toLowerCase()).filter((q) => known.has(q)))],
     }))
     .filter((p) => p.h2)
     .slice(0, 12);
@@ -516,18 +535,36 @@ export async function runBrief(store: BriefStore, deps: BriefDeps, id: string, v
     notes = cleanNotes(rawNotes, sources.map((p, i) => ({ n: i + 1, url: p.url, body: p.body })));
   }
   const factNotes = notes ? notesText(notes.notes, numbered(sources)) : undefined;
-  const raw = await deps.write(prefix, briefPrompt(b, ctx, sources.length, factNotes), notes ? BRIEF_NOTES_SCHEMA : BRIEF_SCHEMA);
-  const brief = cleanBrief(
-    raw,
-    { sources: numbered(sources), questions: pack.questions.map((q) => q.question).slice(0, 10), engines: pack.answers.map((a) => a.engine) },
-    ctx.sitemap,
-    { model: deps.model, at: new Date(now()).toISOString(), keyword: b.keyword, stage: ctx.stage, ...(notes ? { notes: notes.notes, notesDropped: notes.dropped } : {}) },
-  );
+  // Search-led headings: the question searches about the keyword plus People Also Ask, grouped by what they ask.
+  // A failed lookup never stops the brief; its H2s then come from People Also Ask and the top pages.
+  const asked = deps.searches ? await deps.searches(b.keyword).catch(() => [] as Search[]) : [];
+  const groups = groupSearches([...asked, ...pack.questions.map((q) => ({ keyword: q.question, volume: null }))]);
+  const research = {
+    sources: numbered(sources),
+    questions: pack.questions.map((q) => q.question).slice(0, 10),
+    engines: pack.answers.map((a) => a.engine),
+    searches: groups.flatMap((g) => g.searches),
+  };
+  const meta = { model: deps.model, at: new Date(now()).toISOString(), keyword: b.keyword, stage: ctx.stage, ...(notes ? { notes: notes.notes, notesDropped: notes.dropped } : {}) };
+  const schema = notes ? BRIEF_NOTES_SCHEMA : BRIEF_SCHEMA;
+  const prompt = briefPrompt(b, ctx, sources.length, factNotes, groups);
+  const headings = sources.filter((p) => p.kind === "serp").slice(0, 5).map((p) => p.headings);
+  let brief = cleanBrief(await deps.write(prefix, prompt, schema), research, ctx.sitemap, meta);
+  // An H2 that matches no search and no heading the top pages share goes back once, named, to be replaced.
+  const off = offSearchHeadings(brief.outline, headings, ctx.brand.name, b.keyword);
+  if (off.length && brief.outline.length) {
+    const again = cleanBrief(await deps.write(prefix, `${prompt}\n\n${retryNote(off)}`, schema), research, ctx.sitemap, meta);
+    if (again.outline.length && offSearchHeadings(again.outline, headings, ctx.brand.name, b.keyword).length < off.length) brief = again;
+  }
   if (!brief.outline.length) return fail("The brief came back without an outline. Regenerate it.");
   if (deps.readPage && brief.examples?.length) Object.assign(brief, await readExamples(brief, deps.readPage));
   await store.update(id, { brief, status: "ready", step: "done", error: null });
   return { state: "done" };
 }
+
+/** The second try's note: which H2s broke the heading rules. */
+export const retryNote = (off: string[]) =>
+  `Your last outline had H2s that match no search and no heading the top pages share: ${off.map((h) => `"${h}"`).join(", ")}. Write the whole brief again. Replace each of those H2s with a search group from the list (with its searches) or a topic at least 2 of the top pages give its own heading, following the heading rules.`;
 
 export const EXAMPLE_TEXT = 4_000; // characters of each example's page the brief keeps
 
