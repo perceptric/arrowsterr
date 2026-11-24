@@ -10,6 +10,7 @@ import { Modal } from "../reports/Dialog";
 import { post } from "../research/shared";
 import { SidePanel, Thinking } from "../ui";
 import { CommandMenu, type Command } from "./CommandMenu";
+import { NavIcon } from "../NavIcon";
 import { StateTag, usePoll, useWide } from "./parts";
 
 // The outline screen (docs/draft-and-write-build.md, Phase 1). The brief sits in a card that folds away. The search
@@ -237,21 +238,30 @@ export function OutlineView({
       {row.error ? <p className="aw-error">{row.error}</p> : null}
       {error ? <p className="aw-error">{error}</p> : null}
 
-      <div className="flex flex-wrap gap-x-5 gap-y-1 text-[13px] text-muted">
-        {row.keyword ? (
-          <span>
-            Keyword <span className="text-ink">{row.keyword}</span>
-          </span>
-        ) : null}
-        <span className="aw-num">{plural(cards.length, "section")}</span>
-        <span className="aw-num">About {words.toLocaleString("en-US")} words</span>
-        {monthly ? <span className="aw-num">{monthly.toLocaleString("en-US")} searches a month answered</span> : null}
-        {needs.length ? (
-          <button type="button" className="aw-status aw-status--warn" onClick={() => setSel(needs[0].key)} title="Open the first section that still needs detail">
-            {plural(needs.length, "section")} need detail
-          </button>
-        ) : null}
+      <div className="aw-stats aw-stats--tight" style={{ ["--cols" as string]: 4 }}>
+        {[
+          { icon: "key", tone: "brand", label: "Keyword", value: row.keyword || "–" },
+          { icon: "lines", tone: "brand", label: "Sections", value: String(cards.length) },
+          { icon: "doc", tone: "brand", label: "Words planned", value: `~${words.toLocaleString("en-US")}` },
+          { icon: "report", tone: monthly ? "pos" : "", label: "Searches a month answered", value: monthly ? monthly.toLocaleString("en-US") : "–" },
+        ].map((x) => (
+          <div key={x.label} className="aw-stat">
+            <div className="aw-stat__lab">
+              <span className={`aw-glyph ${x.tone ? `aw-glyph--${x.tone}` : ""}`}>
+                <NavIcon name={x.icon} />
+              </span>
+              {x.label}
+            </div>
+            <span className="aw-stat__num block truncate text-[20px]!">{x.value}</span>
+          </div>
+        ))}
       </div>
+      {needs.length ? (
+        <button type="button" className="aw-status aw-status--warn inline-flex items-center gap-1.5 self-start" onClick={() => setSel(needs[0].key)} title="Open the first section that still needs detail">
+          <NavIcon name="alert" />
+          {plural(needs.length, "section")} need detail
+        </button>
+      ) : null}
 
       <div className={wide && card ? "grid grid-cols-[minmax(0,1fr)_380px] items-start gap-6" : ""}>
         <div className="flex min-w-0 flex-col gap-5">
@@ -338,17 +348,24 @@ type Searched = { keyword: string; volume: number };
 /** One section in the outline list. The whole row opens the section. */
 function SectionRow({ card, n, first, on, chips, searches, onOpen }: { card: SectionCard; n: number; first: boolean; on: boolean; chips: VisualChip[]; searches: Searched[]; onOpen: () => void }) {
   const volume = searches.reduce((v, q) => v + q.volume, 0);
+  const intro = card.key === "intro";
   return (
     <li className={first ? "" : "border-t border-rule-faint"}>
       <button
         type="button"
         aria-current={on ? "true" : undefined}
         onClick={onOpen}
-        className={`grid w-full grid-cols-[28px_minmax(0,1fr)] items-start gap-x-3 gap-y-2 px-4 py-3 text-left sm:grid-cols-[28px_minmax(0,1fr)_auto] ${on ? "bg-brand-bg" : "hover:bg-[var(--bg-secondary)]"}`}
+        className={`grid w-full grid-cols-[32px_minmax(0,1fr)] items-start gap-x-3 gap-y-2 px-4 py-3 text-left sm:grid-cols-[32px_minmax(0,1fr)_auto] ${on ? "bg-brand-bg" : "hover:bg-[var(--bg-secondary)]"}`}
       >
-        <span className={`aw-num pt-0.5 text-[12px] ${on ? "text-brand" : "text-muted"}`}>{card.key === "intro" ? "–" : n}</span>
+        {/* The intro, an H2 built from searches, or one from the top pages' shared headings. */}
+        <span className={`aw-glyph ${on ? "aw-glyph--solid" : intro ? "" : searches.length ? "aw-glyph--pos" : "aw-glyph--brand"}`} title={intro ? "Intro" : searches.length ? "Built from searches" : "From the top pages"}>
+          <NavIcon name={intro ? "lines" : searches.length ? "search" : "layers"} />
+        </span>
         <span className="flex min-w-0 flex-col gap-1">
-          <span className="text-[14px] font-medium text-ink [overflow-wrap:anywhere]">{sectionName(card)}</span>
+          <span className="flex min-w-0 items-center gap-2">
+            <span className={`aw-num shrink-0 rounded-aw-xs px-1.5 py-0.5 text-[11px] font-semibold ${on ? "bg-brand text-white" : "bg-brand-bg text-brand"}`}>{intro ? "INTRO" : `H2 · ${n}`}</span>
+            <span className="text-[14px] font-medium text-ink [overflow-wrap:anywhere]">{sectionName(card)}</span>
+          </span>
           <span className="aw-num text-[12px] text-muted">
             {plural(card.points.length, "point")} · ~{card.words} words
           </span>
@@ -447,7 +464,10 @@ function SearchListing({ brief, keyword, domain, disabled, onSave }: { brief: Wr
           </span>
         ) : null}
         <div className="flex flex-col gap-1 rounded-aw border border-rule-faint bg-[var(--bg-secondary)] px-4 py-3" aria-label="Google preview">
-          <span className="aw-micro">Google preview</span>
+          <span className="aw-micro flex items-center gap-1.5">
+            <NavIcon name="search" />
+            Google preview
+          </span>
           <span className="truncate text-[12px] text-muted">{[host || "your-site.com", ...v.slug.split("/").filter(Boolean)].join(" › ")}</span>
           <span className="truncate text-[18px] leading-6 text-brand">{v.h1.length > 60 ? `${v.h1.slice(0, 58).trim()} …` : v.h1 || "Add a title"}</span>
           <span className="text-[13px] leading-5 text-body">{v.meta.length > 155 ? `${v.meta.slice(0, 152).trim()} …` : v.meta || "Add a meta description."}</span>
@@ -521,14 +541,20 @@ function SectionDetail({
       )}
       {card.job ? (
         <div className="flex flex-col gap-1">
-          <span className="aw-micro">Goal</span>
+          <span className="aw-micro flex items-center gap-1.5">
+            <NavIcon name="target" />
+            Goal
+          </span>
           <p className="text-[13px] text-ink [overflow-wrap:break-word]">{card.job}</p>
         </div>
       ) : null}
 
       {searches.length ? (
         <div className="flex flex-col gap-2">
-          <span className="aw-micro">Searches this section answers</span>
+          <span className="aw-micro flex items-center gap-1.5">
+            <NavIcon name="search" />
+            Searches this section answers
+          </span>
           <ul className="flex flex-col rounded-aw border border-rule-faint">
             {searches.map((q, i) => (
               <li key={q.keyword} className={`flex items-center justify-between gap-3 px-3 py-2 text-[13px] ${i ? "border-t border-rule-faint" : ""}`}>
@@ -544,7 +570,10 @@ function SectionDetail({
 
       {chips.length ? (
         <div className="flex flex-col gap-2">
-          <span className="aw-micro">Images and modules</span>
+          <span className="aw-micro flex items-center gap-1.5">
+            <NavIcon name="image" />
+            Images and modules
+          </span>
           <span className="flex flex-wrap gap-2">
             {chips.map((c) => (
               <span key={`${c.kind}:${c.id}`} className="aw-chip inline-flex items-center gap-1.5">
@@ -562,7 +591,10 @@ function SectionDetail({
 
       {card.links.length ? (
         <div className="flex flex-col gap-1.5">
-          <span className="aw-micro">Links</span>
+          <span className="aw-micro flex items-center gap-1.5">
+            <NavIcon name="chain" />
+            Links
+          </span>
           {card.links.map((l) => (
             <a key={l.url} href={l.url} target="_blank" rel="noopener noreferrer" className="aw-text-link text-[13px] [overflow-wrap:anywhere]">
               {l.anchor || l.url}
@@ -573,7 +605,10 @@ function SectionDetail({
 
       {card.gaps.length ? (
         <div className="flex flex-col gap-1.5 rounded-aw border border-rule-faint bg-warn-bg px-3 py-2.5">
-          <span className="aw-micro text-warn">Detail needed</span>
+          <span className="aw-micro flex items-center gap-1.5 text-warn">
+            <NavIcon name="alert" />
+            Detail needed
+          </span>
           {card.gaps.map((g) => (
             <p key={g} className="text-[13px] text-ink [overflow-wrap:break-word]">
               {g}
@@ -607,7 +642,8 @@ function Points({ points, disabled, onSave }: { points: string[]; disabled: bool
       }}
     >
       <span className="flex items-center justify-between gap-2">
-        <span className="aw-micro">
+        <span className="aw-micro flex items-center gap-1.5">
+          <NavIcon name="list" />
           Points <span className="aw-num text-muted">{points.length}</span>
         </span>
         {disabled || list.length >= MAX_POINTS ? null : (

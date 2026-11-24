@@ -11,10 +11,42 @@ import { writerStateFor, type BriefLite, type DraftLite } from "@/lib/writerLibr
 import type { RunAuth } from "@/lib/runner";
 import { nextMonday, STAGES } from "@/lib/research";
 import { writeState } from "@/lib/writeFlow";
+import { NavIcon } from "../NavIcon";
 import { openInLibrary } from "../writer/parts";
 import { useWriteActions, WriteButton } from "../writer/WriteButton";
 import type { WriterAccess } from "./shared";
-import { Difficulty, FIELD, fmtCpc, fmtNum, slugify, slugOf, STAGE_LABEL, StageTag, STATUS_PICK, statusLabel, Tick } from "./shared";
+import { FIELD, fmtCpc, fmtNum, slugify, slugOf, STAGE_LABEL, StageTag, STATUS_PICK, statusLabel, Tick } from "./shared";
+
+// Each workflow step's icon and what happens in it.
+const STEP_LOOK: Record<string, { icon: string; hint: string }> = {
+  planned: { icon: "bulb", hint: "On the plan" },
+  brief: { icon: "doc", hint: "Research and outline" },
+  draft: { icon: "pen", hint: "The writer drafts it" },
+  review: { icon: "eye", hint: "An editor checks it" },
+  published: { icon: "globe", hint: "Live on your site" },
+};
+
+/** Keyword difficulty as a half-circle meter with its number and word. */
+function DifficultyMeter({ kd }: { kd: number | null }) {
+  if (kd === null || kd === undefined) return <span className="text-muted">–</span>;
+  const word = kd < 30 ? "Easy" : kd < 50 ? "Medium" : kd < 70 ? "Hard" : "Very hard";
+  const color = kd < 30 ? "var(--aw-pos)" : kd < 50 ? "var(--aw-warn)" : "var(--aw-neg)";
+  const arc = 88; // the half circle's length
+  return (
+    <span className="flex items-end gap-3">
+      <svg viewBox="0 0 72 44" width="60" height="37" role="img" aria-label={`Difficulty ${kd} out of 100, ${word}`} fill="none" strokeLinecap="round">
+        <path d="M8 40 A28 28 0 0 1 64 40" stroke="var(--v10-border)" strokeWidth="7" />
+        <path d="M8 40 A28 28 0 0 1 64 40" stroke={color} strokeWidth="7" strokeDasharray={`${(Math.min(100, Math.max(0, kd)) / 100) * arc} ${arc}`} />
+      </svg>
+      <span className="flex flex-col leading-none">
+        <span style={{ color }}>{kd}</span>
+        <span className="mt-1 text-[12px] font-semibold tracking-normal" style={{ color }}>
+          {word}
+        </span>
+      </span>
+    </span>
+  );
+}
 
 const isoDay = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
@@ -143,15 +175,21 @@ export function KeywordDeepDive({
       {brief?.status === "failed" && brief.error ? <p className="aw-error">{brief.error}</p> : null}
       {actions.overlays}
 
-      <ol className="aw-steps" aria-label="Workflow">
+      <ol className="aw-steps aw-steps--icons" aria-label="Workflow">
         {WORKFLOW.map((w, n) => {
           const done = n < stepAt;
           const now = n === stepAt;
+          const look = STEP_LOOK[w.id];
           return (
             <li key={w.id} className={`aw-steps__item ${now ? "is-on" : done ? "is-done" : ""}`} aria-current={now ? "step" : undefined}>
               <span className="aw-steps__step">
-                <span className="aw-steps__dot">{done ? "✓" : n + 1}</span>
-                <span className="aw-steps__label">{w.label}</span>
+                <span className="aw-steps__dot">
+                  <NavIcon name={done ? "tick" : look.icon} />
+                </span>
+                <span className="aw-steps__label">
+                  {w.label}
+                  <span className="aw-steps__hint">{now ? "You are here" : done ? "Done" : look.hint}</span>
+                </span>
               </span>
             </li>
           );
@@ -159,20 +197,24 @@ export function KeywordDeepDive({
       </ol>
 
       <div className="aw-stats aw-stats--tight" style={{ ["--cols" as string]: 6 }}>
-        <Stat label="Search volume" value={<>{fmtNum(item.volume)} <span className="text-[13px] font-normal tracking-normal text-muted">/ mo</span></>} />
-        <Stat label="Keyword difficulty" value={<Difficulty kd={item.difficulty} />} />
-        <Stat label="CPC" value={fmtCpc(item.cpc)} />
-        <Stat label="Search intent" value={<span className="capitalize">{item.intent ?? "–"}</span>} />
-        <Stat label="Current ranking" value={item.current_rank ? `#${item.current_rank}` : <span className="text-muted">Not ranking</span>} />
-        <Stat label="SERP features" value={features ?? <span className="text-muted">–</span>} />
+        <Stat icon="report" tone="brand" label="Search volume" value={<>{fmtNum(item.volume)} <span className="text-[13px] font-normal tracking-normal text-muted">/ mo</span></>} />
+        <Stat icon="gauge" tone={kdTone(item.difficulty)} label="Keyword difficulty" value={<DifficultyMeter kd={item.difficulty} />} />
+        <Stat icon="dollar" tone="pos" label="CPC" value={fmtCpc(item.cpc)} />
+        <Stat icon="compass" tone="brand" label="Search intent" value={<span className="capitalize">{item.intent ?? "–"}</span>} />
+        <Stat icon="target" tone={item.current_rank ? "pos" : ""} label="Current ranking" value={item.current_rank ? `#${item.current_rank}` : <span className="text-muted">Not ranking</span>} />
+        <Stat icon="snippet" tone="" label="SERP features" value={features ?? <span className="text-muted">–</span>} />
       </div>
 
       <Details item={item} site={site} members={members} canEdit={canEdit} onPatch={onPatch} />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <span className="text-[12px] text-muted">Added {item.created_at ? new Date(item.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "–"}</span>
+        <span className="flex items-center gap-1.5 text-[12px] text-muted">
+          <NavIcon name="clock" />
+          Added {item.created_at ? new Date(item.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "–"}
+        </span>
         {canEdit ? (
-          <button type="button" className="aw-text-link text-[13px] text-neg!" onClick={onRemove}>
+          <button type="button" className="aw-text-link inline-flex items-center gap-1.5 text-[13px] text-neg!" onClick={onRemove}>
+            <NavIcon name="x" />
             Remove from Editorial Calendar
           </button>
         ) : null}
@@ -181,10 +223,17 @@ export function KeywordDeepDive({
   );
 }
 
-function Stat({ label, value }: { label: string; value: React.ReactNode }) {
+const kdTone = (kd: number | null) => (kd === null || kd === undefined ? "" : kd < 30 ? "pos" : kd < 50 ? "warn" : "neg");
+
+function Stat({ icon, tone, label, value }: { icon: string; tone: string; label: string; value: React.ReactNode }) {
   return (
     <div className="aw-stat">
-      <div className="aw-stat__lab">{label}</div>
+      <div className="aw-stat__lab">
+        <span className={`aw-glyph ${tone ? `aw-glyph--${tone}` : ""}`}>
+          <NavIcon name={icon} />
+        </span>
+        {label}
+      </div>
       <span className="aw-stat__num">{value}</span>
     </div>
   );
@@ -200,16 +249,24 @@ function Details({ item, site, members, canEdit, onPatch }: { item: CalendarItem
   const [url, setUrl] = useState(item.url ?? "");
   const [extra, setExtra] = useState<Record<string, string>>(() => Object.fromEntries((site.profile.columns ?? []).map((c) => [c.id, String(item.extra?.[c.id] ?? "")])));
   // A row in the Details rail: the name on the left, the control on the right.
-  const row = (label: string, input: React.ReactNode) => (
+  const row = (label: string, icon: string, input: React.ReactNode) => (
     <label className="aw-props__row">
-      <span className="aw-props__label">{label}</span>
+      <span className="aw-props__label">
+        <NavIcon name={icon} />
+        {label}
+      </span>
       <span className="min-w-0 flex-1">{input}</span>
     </label>
   );
   // A full-width field in the main column.
-  const field = (label: string, input: React.ReactNode) => (
+  const field = (label: string, input: React.ReactNode, icon = "note") => (
     <label className="flex min-w-0 flex-col gap-1.5">
-      <span className="aw-label">{label}</span>
+      <span className="aw-label flex items-center gap-2">
+        <span className="text-muted">
+          <NavIcon name={icon} />
+        </span>
+        {label}
+      </span>
       {input}
     </label>
   );
@@ -220,7 +277,7 @@ function Details({ item, site, members, canEdit, onPatch }: { item: CalendarItem
   return (
     <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
       <section className="aw-frame flex flex-col gap-4 bg-white p-4" aria-label="Keywords and notes">
-        {field("Theme", <input value={theme} disabled={!canEdit} onChange={(e) => setTheme(e.target.value)} onBlur={() => theme !== (item.theme ?? "") && onPatch({ theme: theme.trim() || null })} className={box} />)}
+        {field("Theme", <input value={theme} disabled={!canEdit} onChange={(e) => setTheme(e.target.value)} onBlur={() => theme !== (item.theme ?? "") && onPatch({ theme: theme.trim() || null })} className={box} />, "tag")}
         {field(
           "Related keywords",
           <input
@@ -234,6 +291,7 @@ function Details({ item, site, members, canEdit, onPatch }: { item: CalendarItem
             placeholder="Other keywords this page covers, with commas"
             className={box}
           />,
+          "chain",
         )}
         {(site.profile.columns ?? []).map((c) =>
           field(
@@ -250,6 +308,7 @@ function Details({ item, site, members, canEdit, onPatch }: { item: CalendarItem
               }}
               className={box}
             />,
+            "lines",
           ),
         )}
         {field("Notes", <textarea value={notes} disabled={!canEdit} onChange={(e) => setNotes(e.target.value)} onBlur={() => notes !== (item.notes ?? "") && onPatch({ notes: notes || null })} rows={4} className="aw-textarea text-[13px]!" />)}
@@ -259,6 +318,7 @@ function Details({ item, site, members, canEdit, onPatch }: { item: CalendarItem
         <h2 className="aw-props__title">Details</h2>
         {row(
           "Status",
+          "status",
           <Dropdown
             label="Content status"
             value={status}
@@ -270,18 +330,21 @@ function Details({ item, site, members, canEdit, onPatch }: { item: CalendarItem
             options={STATUS_PICK.map((x) => ({ id: x.id as string, label: x.label }))}
           />,
         )}
-        {row("Publish date", <DateField label="Publish date" value={item.due_date ?? ""} disabled={!canEdit} onChange={(v) => onPatch({ due_date: v })} className={box} placeholder="Not scheduled" />)}
-        {row("Owner", <Dropdown label="Owner" value={item.owner ?? ""} disabled={!canEdit} onChange={(v) => onPatch({ owner: v || null })} className={box} options={[{ id: "", label: "Unassigned" }, ...owners.map((m) => ({ id: m, label: m }))]} />)}
+        {row("Publish date", "calendar", <DateField label="Publish date" value={item.due_date ?? ""} disabled={!canEdit} onChange={(v) => onPatch({ due_date: v })} className={box} placeholder="Not scheduled" />)}
+        {row("Owner", "user", <Dropdown label="Owner" value={item.owner ?? ""} disabled={!canEdit} onChange={(v) => onPatch({ owner: v || null })} className={box} options={[{ id: "", label: "Unassigned" }, ...owners.map((m) => ({ id: m, label: m }))]} />)}
         {row(
           "Impact",
+          "zap",
           <Dropdown label="Impact" value={item.stage ?? ""} disabled={!canEdit} onChange={(v) => onPatch({ stage: (v || null) as CalendarItem["stage"] })} className={box} options={[...STAGES.map((x) => ({ id: x.id as string, label: STAGE_LABEL[x.id] })), { id: "", label: "None" }]} />,
         )}
         {row(
           "Job",
+          "briefcase",
           <Dropdown label="Job" value={item.action} disabled={!canEdit} onChange={(v) => onPatch({ action: v })} className={box} options={[{ id: "new" as const, label: "New page" }, { id: "update" as const, label: "Update page" }]} />,
         )}
         {row(
           "Slug",
+          "hash",
           <input
             value={slug}
             disabled={!canEdit}
@@ -296,6 +359,7 @@ function Details({ item, site, members, canEdit, onPatch }: { item: CalendarItem
         )}
         {row(
           "Live URL",
+          "globe",
           <input
             value={url}
             disabled={!canEdit}
@@ -308,12 +372,13 @@ function Details({ item, site, members, canEdit, onPatch }: { item: CalendarItem
         {item.action === "update" && item.current_url
           ? row(
               "Page to update",
+              "doc",
               <a href={item.current_url} target="_blank" rel="noopener noreferrer" className="flex h-9 items-center truncate text-[13px]">
                 {item.current_url.replace(/^https?:\/\/(www\.)?/, "")} ↗
               </a>,
             )
           : null}
-        {row("Keyword", <input value={keyword} disabled={!canEdit} onChange={(e) => setKeyword(e.target.value)} onBlur={() => keyword.trim() && keyword !== item.keyword && onPatch({ keyword: keyword.trim() })} className={box} />)}
+        {row("Keyword", "key", <input value={keyword} disabled={!canEdit} onChange={(e) => setKeyword(e.target.value)} onBlur={() => keyword.trim() && keyword !== item.keyword && onPatch({ keyword: keyword.trim() })} className={box} />)}
       </section>
     </div>
   );
