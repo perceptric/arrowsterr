@@ -1,4 +1,4 @@
-// Zippie's system skills (docs/zippie-skills-plan.md, section 3): 50 skills in 7 groups, each a valid SKILL.md that names
+// Zippie's system skills (docs/zippie-skills-plan.md, section 3): 52 skills in 7 groups, each a valid SKILL.md that names
 // only tools Zippie has, says when to use it, and passes the same checks a person's own skill must pass to save.
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -6,11 +6,11 @@ import { filesProblems, MAIN, matchSkills, parseSkill, skillCatalog, skillFromRo
 import { GROUPS, SKILL_TOOLS, SYSTEM_SKILLS } from "../src/lib/skills/system.ts";
 import { readFileSync } from "node:fs";
 
-test("50 system skills in 7 groups, with unique slugs", () => {
-  assert.equal(SYSTEM_SKILLS.length, 50);
-  assert.equal(new Set(SYSTEM_SKILLS.map((s) => s.slug)).size, 50);
+test("52 system skills in 7 groups, with unique slugs", () => {
+  assert.equal(SYSTEM_SKILLS.length, 52);
+  assert.equal(new Set(SYSTEM_SKILLS.map((s) => s.slug)).size, 52);
   const count = (g: string) => SYSTEM_SKILLS.filter((s) => s.group === g).length;
-  assert.deepEqual(Object.fromEntries(GROUPS.map((g) => [g.key, count(g.key)])), { tech: 12, links: 6, page: 5, ai: 5, research: 4, writing: 16, helpers: 2 });
+  assert.deepEqual(Object.fromEntries(GROUPS.map((g) => [g.key, count(g.key)])), { tech: 12, links: 6, page: 7, ai: 5, research: 4, writing: 16, helpers: 2 });
 });
 
 test("every system skill is a valid SKILL.md that says when to use it", () => {
@@ -26,8 +26,8 @@ test("every system skill is a valid SKILL.md that says when to use it", () => {
 });
 
 test("system skills name only tools Zippie has", () => {
-  // Zippie's tools are the read-only MCP tools, the Content Plan tools and the local ones in ask.ts and zippieTools.ts.
-  const src = ["src/lib/mcp/tools.ts", "src/lib/ask.ts", "src/lib/zippieTools.ts"].map((f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8")).join("\n");
+  // Zippie's tools are the read-only MCP tools, the Content Plan tools and the local ones in ask.ts, zippieTools.ts and zippieWriter.ts.
+  const src = ["src/lib/mcp/tools.ts", "src/lib/ask.ts", "src/lib/zippieTools.ts", "src/lib/zippieWriter.ts"].map((f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8")).join("\n");
   for (const t of SKILL_TOOLS) assert.ok(src.includes(`name: "${t}"`), `${t} is not one of Zippie's tools`);
   for (const s of SYSTEM_SKILLS) for (const t of s.tools) assert.ok((SKILL_TOOLS as readonly string[]).includes(t), `${s.slug} names ${t}`);
 });
