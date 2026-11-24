@@ -300,7 +300,7 @@ ${isBofu(c.stage) ? `${listicleRules(b.keyword, new Date().getFullYear())}\n` : 
 - reader: who reads this, what they know, and what they want to do next.
 - angle: the point of view that makes this article better than the top pages, in 1 or 2 sentences.
 - wordTarget: a number, close to what the top pages need to cover the topic, plus what they miss.
-- outline: 5 to 9 H2s in order, each with 2 to 5 key points, H3s where useful, and the numbers of the sources [1..${sourceCount}] that back it. Every H2 cites at least one source when one fits. The intro is not an H2.
+- outline: 5 to 9 H2s in order, each with 2 to 4 key points (short plain phrases under 12 words that say what the section covers, never source names or "per X"), H3s where useful, and the numbers of the sources [1..${sourceCount}] that back it. Every H2 cites at least one source when one fits. The intro is not an H2.
   Headings are built from what people search, so the page ranks for those searches:
   - Every H2 is one of two things. (a) A search group${searches ? " from the list above" : " from People Also Ask"}: word it as the clearest, grammatical form of the group's biggest search, keeping its words (a question stays a question: "what are ai agent" becomes "What are AI agents?"), and list the exact searches it answers in searches, copied from the list. (b) A topic that at least 2 of the top Google pages give its own heading: word it the way they do ("Benefits of AI agents", "Types of AI agents"), and leave searches empty.
   - The one exception: a last H2 about ${c.brand.name} (how ${c.brand.name} helps, or uses it), with searches empty, when the brand has something real to say.
@@ -308,7 +308,7 @@ ${isBofu(c.stage) ? `${listicleRules(b.keyword, new Date().getFullYear())}\n` : 
   - Cover the biggest search groups first. Two groups that ask the same thing in other words share one H2.
   - Order the H2s the way the top pages do: what it is, how it works, its types or parts, benefits, challenges, how to do it or get started, then the brand.
   - H3s: the named items the section lists (each type, step, feature or benefit, by name), or smaller searches from the list and People Also Ask.
-  - The first point of every H2 is the direct answer to its heading in one or two sentences, so the draft opens each section with it.
+  - The first point of every H2 is its heading's direct answer in under 25 words, so the draft opens each section with it.
 - entities: the people, products, terms and concepts the article must name.
 - gaps: what the top pages miss or get wrong, that this article will cover.
 - faqs: 3 to 6 questions from People Also Ask and the AI answers, each with a one-line note on what the answer must say.
@@ -323,11 +323,11 @@ ${kindsForPrompt(factNotes ? TEMPLATE_KINDS : undefined)
 - examples: when the article features tools, companies, blogs, sites or pages (a listicle, an examples post, a comparison), one entry for each in the order they appear, and give each its own H2 that contains its name exactly (for a list, "1. Name"). name: as people write it. url: its own page, the homepage or the exact page the article talks about, from the sources or the AI answers. kind: what it is in two or three words ("SEO software", "B2B blog"). opener: one sentence, "{name} is a/an {kind of} company (or software) that {what it does}.", from the sources. facts: 2 to 4 facts the section will use, each from a source, with the source numbers in sources. Leave the list empty when the article features none.
 - images: 3 to 8 places an image helps the reader, never two in a row. placement (the exact H2 it goes under, or "intro"), kind, shows (what it shows, in one line), alt (one plain sentence for screen readers). Kinds: screenshot (url: the page to capture; every featured example gets one under its H2), chart (numbers: each value with its label, all from the sources, with their source numbers in sources), steps (a process in order), comparison (two or three options side by side), checklist (things to check), anatomy (the parts of a page or a thing, labeled). Leave url, numbers and sources empty when the kind doesn't use them. No stock-photo filler and no featured image; that one is made from the H1.
 - checks: facts the article would like to use but the sources don't confirm, in one line each, for an editor to check. Empty when there are none.
-${factNotes ? `- job: what the reader will do or decide after reading, in one sentence.
+${factNotes ? `- job: what the reader can do or decide after reading, in one plain sentence under 20 words.
 - pov: the one claim this article argues, in one sentence ${c.brand.name} would agree with. It shapes the writing, never the headings.
 - leadingWord: leave it empty.
 - shape: usual is the structure the top pages share; others are two other shapes; picked is the usual one unless the searches above ask for a part the top pages miss; why names the searches or top pages it follows. Headings follow the rules above whatever the shape.
-- intro and each outline part are cards: job (what this section does for the reader, one sentence), points, facts (the ids of the fact notes the section stands on, like "n3"; only ids from the list above), words (its share of wordTarget), links (from the brand's pages or the sources, with anchor text) and gaps. A point that needs a fact no note has is written "Detail needed: what to find and where" and goes in gaps, never in points.
+- intro and each outline part are cards: job (what the reader gets from this section, one plain sentence under 15 words), points (2 to 4, written as the outline points are), facts (the ids of the fact notes the section stands on, like "n3"; only ids from the list above), words (its share of wordTarget), links (from the brand's pages or the sources, with anchor text) and gaps. A point that needs a fact no note has is written "Detail needed: what to find and where" and goes in gaps, never in points. Add a gap only when the section can't be written well without that fact; most sections have none.
 - Every number, price, date or claim about a named product in points must come from a fact note cited in facts.
 ` : ""}- topPages: 3 to 5 sentences on what Google's top pages do: format, length, what they all cover.
 - aiAnswers: 2 to 4 sentences on what the AI answers say and which sites they cite.
