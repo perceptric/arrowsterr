@@ -5,54 +5,31 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Serp } from "@/lib/briefTypes";
 import { getSerp, listMembers, type CalendarItem, type Site } from "@/lib/db";
-import { statusChoice, statusPatch, workflowStep, WORKFLOW } from "@/lib/library";
+import { statusChoice, statusPatch } from "@/lib/library";
 import { inWriterAt } from "@/lib/writerImport";
 import { writerStateFor, type BriefLite, type DraftLite } from "@/lib/writerLibrary";
 import type { RunAuth } from "@/lib/runner";
 import { nextMonday, STAGES } from "@/lib/research";
 import { writeState } from "@/lib/writeFlow";
-import { NavIcon } from "../NavIcon";
 import { openInLibrary } from "../writer/parts";
 import { useWriteActions, WriteButton } from "../writer/WriteButton";
 import type { WriterAccess } from "./shared";
-import { FIELD, fmtCpc, fmtNum, slugify, slugOf, STAGE_LABEL, StageTag, STATUS_PICK, statusLabel, Tick } from "./shared";
-
-// Each workflow step's icon and what happens in it.
-const STEP_LOOK: Record<string, { icon: string; hint: string }> = {
-  planned: { icon: "bulb", hint: "On the plan" },
-  brief: { icon: "doc", hint: "Research and outline" },
-  draft: { icon: "pen", hint: "The writer drafts it" },
-  review: { icon: "eye", hint: "An editor checks it" },
-  published: { icon: "globe", hint: "Live on your site" },
-};
-
-/** Keyword difficulty as a half-circle meter with its number and word. */
-function DifficultyMeter({ kd }: { kd: number | null }) {
-  if (kd === null || kd === undefined) return <span className="text-muted">–</span>;
-  const word = kd < 30 ? "Easy" : kd < 50 ? "Medium" : kd < 70 ? "Hard" : "Very hard";
-  const color = kd < 30 ? "var(--aw-pos)" : kd < 50 ? "var(--aw-warn)" : "var(--aw-neg)";
-  const arc = 88; // the half circle's length
-  return (
-    <span className="flex items-end gap-3">
-      <svg viewBox="0 0 72 44" width="60" height="37" role="img" aria-label={`Difficulty ${kd} out of 100, ${word}`} fill="none" strokeLinecap="round">
-        <path d="M8 40 A28 28 0 0 1 64 40" stroke="var(--v10-border)" strokeWidth="7" />
-        <path d="M8 40 A28 28 0 0 1 64 40" stroke={color} strokeWidth="7" strokeDasharray={`${(Math.min(100, Math.max(0, kd)) / 100) * arc} ${arc}`} />
-      </svg>
-      <span className="flex flex-col leading-none">
-        <span style={{ color }}>{kd}</span>
-        <span className="mt-1 text-[12px] font-semibold tracking-normal" style={{ color }}>
-          {word}
-        </span>
-      </span>
-    </span>
-  );
-}
+import { FIELD, fmtCpc, slugify, slugOf, STAGE_LABEL, STATUS_PICK, Tick } from "./shared";
 
 const isoDay = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
+/** How hard a keyword is to rank for, in words and its color. */
+function ease(kd: number | null): { word: string; tone: string } | null {
+  if (kd === null || kd === undefined) return null;
+  if (kd < 30) return { word: "Easy to rank", tone: "text-pos" };
+  if (kd < 50) return { word: "Medium to rank", tone: "text-warn" };
+  return { word: kd < 70 ? "Hard to rank" : "Very hard to rank", tone: "text-neg" };
+}
+
 /**
- * The Keyword Deep Dive: one screen with the keyword's numbers, where it stands, its details and what to do about it.
- * Briefs and drafts are made and kept in the Library.
+ * The keyword's page, kept simple: the keyword with its searches, ease and intent in one line, the Write button, one
+ * card with what people change most (status, date, owner, the page to update), a note for the writer, and the rest
+ * under More details. Briefs and drafts are made and kept in Drafts.
  */
 export function KeywordDeepDive({
   sb,
@@ -134,32 +111,44 @@ export function KeywordDeepDive({
     return () => clearInterval(t);
   }, [making, loadWriter]);
 
-  const step = workflowStep(item.status);
-  const stepAt = WORKFLOW.findIndex((w) => w.id === step);
-  const label = statusLabel(item);
-  const tone = STATUS_PICK.find((x) => x.label === label)?.tone ?? "aw-status--pending";
   const features = serp?.serp?.features.length ?? null;
   const brandId = site.brand_id;
   const brief = ws?.brief ?? null;
   const state = writeState({ item: { status: item.status, url: item.url ?? null }, brief, draft: ws?.draft ?? null });
+  const kd = ease(item.difficulty);
+  const facts = [
+    item.volume ? <span key="v">{item.volume.toLocaleString("en-US")} searches a month</span> : null,
+    kd ? (
+      <span key="kd" className={`font-medium ${kd.tone}`}>
+        {kd.word}
+      </span>
+    ) : null,
+    item.intent ? (
+      <span key="i" className="capitalize">
+        {item.intent}
+      </span>
+    ) : null,
+  ].filter(Boolean);
 
   return (
-    <div className="flex flex-col gap-5">
-      <nav className="flex items-center gap-1.5 text-[13px] text-muted" aria-label="Breadcrumb">
-        <button type="button" className="aw-text-link" onClick={onBack}>
-          Editorial Calendar
-        </button>
-        <span aria-hidden="true">/</span>
-        <span className="truncate text-ink">{item.keyword}</span>
-      </nav>
+    <div className="mx-auto flex w-full max-w-[760px] flex-col gap-8 pb-10">
+      <button type="button" className="aw-text-link self-start text-[13px]" onClick={onBack}>
+        ← Editorial Calendar
+      </button>
 
-      <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
-        <div className="flex min-w-0 flex-col gap-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className={`aw-status ${tone}`}>{label}</span>
-            <StageTag stage={item.stage} />
-          </div>
-          <h1 className="aw-h2 min-w-0 truncate">{item.keyword}</h1>
+      <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4">
+        <div className="flex min-w-0 flex-col gap-3">
+          <h1 className="text-[32px] leading-tight font-bold tracking-tight text-ink [overflow-wrap:anywhere]">{item.keyword}</h1>
+          {facts.length ? (
+            <p className="flex flex-wrap gap-x-2 text-[15px] text-muted">
+              {facts.map((f, i) => (
+                <span key={i} className="flex gap-2">
+                  {i ? <span aria-hidden="true">·</span> : null}
+                  {f}
+                </span>
+              ))}
+            </p>
+          ) : null}
         </div>
         <span className="flex flex-wrap items-center gap-2">
           {inWriterAt(item) ? (
@@ -175,46 +164,12 @@ export function KeywordDeepDive({
       {brief?.status === "failed" && brief.error ? <p className="aw-error">{brief.error}</p> : null}
       {actions.overlays}
 
-      <ol className="aw-steps aw-steps--icons" aria-label="Workflow">
-        {WORKFLOW.map((w, n) => {
-          const done = n < stepAt;
-          const now = n === stepAt;
-          const look = STEP_LOOK[w.id];
-          return (
-            <li key={w.id} className={`aw-steps__item ${now ? "is-on" : done ? "is-done" : ""}`} aria-current={now ? "step" : undefined}>
-              <span className="aw-steps__step">
-                <span className="aw-steps__dot">
-                  <NavIcon name={done ? "tick" : look.icon} />
-                </span>
-                <span className="aw-steps__label">
-                  {w.label}
-                  <span className="aw-steps__hint">{now ? "You are here" : done ? "Done" : look.hint}</span>
-                </span>
-              </span>
-            </li>
-          );
-        })}
-      </ol>
+      <Details item={item} site={site} members={members} features={features} canEdit={canEdit} onPatch={onPatch} />
 
-      <div className="aw-stats aw-stats--tight" style={{ ["--cols" as string]: 6 }}>
-        <Stat icon="report" tone="brand" label="Search volume" value={<>{fmtNum(item.volume)} <span className="text-[13px] font-normal tracking-normal text-muted">/ mo</span></>} />
-        <Stat icon="gauge" tone={kdTone(item.difficulty)} label="Keyword difficulty" value={<DifficultyMeter kd={item.difficulty} />} />
-        <Stat icon="dollar" tone="pos" label="CPC" value={fmtCpc(item.cpc)} />
-        <Stat icon="compass" tone="brand" label="Search intent" value={<span className="capitalize">{item.intent ?? "–"}</span>} />
-        <Stat icon="target" tone={item.current_rank ? "pos" : ""} label="Current ranking" value={item.current_rank ? `#${item.current_rank}` : <span className="text-muted">Not ranking</span>} />
-        <Stat icon="snippet" tone="" label="SERP features" value={features ?? <span className="text-muted">–</span>} />
-      </div>
-
-      <Details item={item} site={site} members={members} canEdit={canEdit} onPatch={onPatch} />
-
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <span className="flex items-center gap-1.5 text-[12px] text-muted">
-          <NavIcon name="clock" />
-          Added {item.created_at ? new Date(item.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "–"}
-        </span>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-rule-faint pt-5">
+        <span className="text-[13px] text-muted">Added {item.created_at ? new Date(item.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "–"}</span>
         {canEdit ? (
-          <button type="button" className="aw-text-link inline-flex items-center gap-1.5 text-[13px] text-neg!" onClick={onRemove}>
-            <NavIcon name="x" />
+          <button type="button" className="aw-text-link text-[13px] text-neg!" onClick={onRemove}>
             Remove from Editorial Calendar
           </button>
         ) : null}
@@ -223,24 +178,11 @@ export function KeywordDeepDive({
   );
 }
 
-const kdTone = (kd: number | null) => (kd === null || kd === undefined ? "" : kd < 30 ? "pos" : kd < 50 ? "warn" : "neg");
-
-function Stat({ icon, tone, label, value }: { icon: string; tone: string; label: string; value: React.ReactNode }) {
-  return (
-    <div className="aw-stat">
-      <div className="aw-stat__lab">
-        <span className={`aw-glyph ${tone ? `aw-glyph--${tone}` : ""}`}>
-          <NavIcon name={icon} />
-        </span>
-        {label}
-      </div>
-      <span className="aw-stat__num">{value}</span>
-    </div>
-  );
-}
-
-/** Every detail of a piece, the same as its row in the Content Plan list, editable where the list is. */
-function Details({ item, site, members, canEdit, onPatch }: { item: CalendarItem; site: Site; members: string[]; canEdit: boolean; onPatch: (p: Partial<CalendarItem>) => void }) {
+/**
+ * The piece's details: the four people change most in one card, a note for the writer, and the rest under More
+ * details. Every row saves the way the Content Plan list does.
+ */
+function Details({ item, site, members, features, canEdit, onPatch }: { item: CalendarItem; site: Site; members: string[]; features: number | null; canEdit: boolean; onPatch: (p: Partial<CalendarItem>) => void }) {
   const [keyword, setKeyword] = useState(item.keyword);
   const [slug, setSlug] = useState(slugOf(item));
   const [theme, setTheme] = useState(item.theme ?? "");
@@ -248,77 +190,25 @@ function Details({ item, site, members, canEdit, onPatch }: { item: CalendarItem
   const [notes, setNotes] = useState(item.notes ?? "");
   const [url, setUrl] = useState(item.url ?? "");
   const [extra, setExtra] = useState<Record<string, string>>(() => Object.fromEntries((site.profile.columns ?? []).map((c) => [c.id, String(item.extra?.[c.id] ?? "")])));
-  // A row in the Details rail: the name on the left, the control on the right.
-  const row = (label: string, icon: string, input: React.ReactNode) => (
-    <label className="aw-props__row">
-      <span className="aw-props__label">
-        <NavIcon name={icon} />
-        {label}
-      </span>
-      <span className="min-w-0 flex-1">{input}</span>
+  const [noting, setNoting] = useState(Boolean(item.notes));
+  const [more, setMore] = useState(false);
+  // One row: the name on the left, the control on the right, the same width in every row so they line up.
+  const row = (label: string, input: React.ReactNode, first = false) => (
+    <label key={label} className={`aw-props__row min-h-13 gap-4 ${first ? "" : "border-t border-rule-faint"}`}>
+      <span className="aw-props__label text-[14px]!">{label}</span>
+      <span className="ml-auto w-full max-w-[320px] min-w-0">{input}</span>
     </label>
   );
-  // A full-width field in the main column.
-  const field = (label: string, input: React.ReactNode, icon = "note") => (
-    <label className="flex min-w-0 flex-col gap-1.5">
-      <span className="aw-label flex items-center gap-2">
-        <span className="text-muted">
-          <NavIcon name={icon} />
-        </span>
-        {label}
-      </span>
-      {input}
-    </label>
-  );
-  const box = `${FIELD} h-9 w-full rounded-aw text-[13px]!`;
+  const text = (value: React.ReactNode, muted = false) => <span className={`flex h-9 items-center text-[14px] ${muted ? "text-muted" : "text-ink"}`}>{value}</span>;
+  const box = `${FIELD} h-9 w-full rounded-aw text-[14px]!`;
   const status = statusChoice(item);
   const owners = [...new Set([...(item.owner ? [item.owner] : []), ...members])];
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
-      <section className="aw-frame flex flex-col gap-4 bg-white p-4" aria-label="Keywords and notes">
-        {field("Theme", <input value={theme} disabled={!canEdit} onChange={(e) => setTheme(e.target.value)} onBlur={() => theme !== (item.theme ?? "") && onPatch({ theme: theme.trim() || null })} className={box} />, "tag")}
-        {field(
-          "Related keywords",
-          <input
-            value={also}
-            disabled={!canEdit}
-            onChange={(e) => setAlso(e.target.value)}
-            onBlur={() => {
-              const list = also.split(",").map((x) => x.trim()).filter(Boolean);
-              if (list.join("|") !== item.secondary.join("|")) onPatch({ secondary: list });
-            }}
-            placeholder="Other keywords this page covers, with commas"
-            className={box}
-          />,
-          "chain",
-        )}
-        {(site.profile.columns ?? []).map((c) =>
-          field(
-            c.name,
-            <input
-              type={c.type === "date" ? "date" : c.type === "number" ? "number" : "text"}
-              value={extra[c.id] ?? ""}
-              disabled={!canEdit}
-              onChange={(e) => setExtra((x) => ({ ...x, [c.id]: e.target.value }))}
-              onBlur={() => {
-                const v = extra[c.id] ?? "";
-                if (v === String(item.extra?.[c.id] ?? "")) return;
-                onPatch({ extra: { ...(item.extra ?? {}), [c.id]: v === "" ? null : c.type === "number" ? Number(v) : v } });
-              }}
-              className={box}
-            />,
-            "lines",
-          ),
-        )}
-        {field("Notes", <textarea value={notes} disabled={!canEdit} onChange={(e) => setNotes(e.target.value)} onBlur={() => notes !== (item.notes ?? "") && onPatch({ notes: notes || null })} rows={4} className="aw-textarea text-[13px]!" />)}
-  
-      </section>
-      <section className="aw-frame aw-props bg-white" aria-label="Details">
-        <h2 className="aw-props__title">Details</h2>
+    <div className="flex flex-col gap-5">
+      <section className="aw-frame aw-props bg-white px-3! py-1.5!" aria-label="Plan">
         {row(
           "Status",
-          "status",
           <Dropdown
             label="Content status"
             value={status}
@@ -329,57 +219,133 @@ function Details({ item, site, members, canEdit, onPatch }: { item: CalendarItem
             className={box}
             options={STATUS_PICK.map((x) => ({ id: x.id as string, label: x.label }))}
           />,
+          true,
         )}
-        {row("Publish date", "calendar", <DateField label="Publish date" value={item.due_date ?? ""} disabled={!canEdit} onChange={(v) => onPatch({ due_date: v })} className={box} placeholder="Not scheduled" />)}
-        {row("Owner", "user", <Dropdown label="Owner" value={item.owner ?? ""} disabled={!canEdit} onChange={(v) => onPatch({ owner: v || null })} className={box} options={[{ id: "", label: "Unassigned" }, ...owners.map((m) => ({ id: m, label: m }))]} />)}
+        {row("Publish date", <DateField label="Publish date" value={item.due_date ?? ""} disabled={!canEdit} onChange={(v) => onPatch({ due_date: v })} className={box} placeholder="Set a date" />)}
         {row(
-          "Impact",
-          "zap",
-          <Dropdown label="Impact" value={item.stage ?? ""} disabled={!canEdit} onChange={(v) => onPatch({ stage: (v || null) as CalendarItem["stage"] })} className={box} options={[...STAGES.map((x) => ({ id: x.id as string, label: STAGE_LABEL[x.id] })), { id: "", label: "None" }]} />,
-        )}
-        {row(
-          "Job",
-          "briefcase",
-          <Dropdown label="Job" value={item.action} disabled={!canEdit} onChange={(v) => onPatch({ action: v })} className={box} options={[{ id: "new" as const, label: "New page" }, { id: "update" as const, label: "Update page" }]} />,
-        )}
-        {row(
-          "Slug",
-          "hash",
-          <input
-            value={slug}
+          "Owner",
+          <Dropdown
+            label="Owner"
+            value={item.owner ?? ""}
             disabled={!canEdit}
-            onChange={(e) => setSlug(e.target.value)}
-            onBlur={() => {
-              const next = slug.trim() ? `/${slugify(slug)}` : null;
-              if (next !== slugOf(item)) onPatch({ extra: { ...(item.extra ?? {}), slug: next } });
-              setSlug(next ?? slugOf({ ...item, extra: { ...(item.extra ?? {}), slug: null } }));
-            }}
-            className={`${box} font-mono text-[12px]!`}
-          />,
-        )}
-        {row(
-          "Live URL",
-          "globe",
-          <input
-            value={url}
-            disabled={!canEdit}
-            onChange={(e) => setUrl(e.target.value)}
-            onBlur={() => url !== (item.url ?? "") && onPatch(url && item.action === "new" ? { url, status: "published" } : { url: url || null })}
-            placeholder="https://"
+            onChange={(v) => onPatch({ owner: v || null })}
             className={box}
+            placeholder="Assign"
+            options={[...(item.owner ? [{ id: "", label: "No owner" }] : []), ...owners.map((m) => ({ id: m, label: m }))]}
           />,
         )}
         {item.action === "update" && item.current_url
           ? row(
               "Page to update",
-              "doc",
-              <a href={item.current_url} target="_blank" rel="noopener noreferrer" className="flex h-9 items-center truncate text-[13px]">
+              <a href={item.current_url} target="_blank" rel="noopener noreferrer" className="block truncate text-[14px] leading-9">
                 {item.current_url.replace(/^https?:\/\/(www\.)?/, "")} ↗
               </a>,
             )
           : null}
-        {row("Keyword", "key", <input value={keyword} disabled={!canEdit} onChange={(e) => setKeyword(e.target.value)} onBlur={() => keyword.trim() && keyword !== item.keyword && onPatch({ keyword: keyword.trim() })} className={box} />)}
       </section>
+
+      {noting ? (
+        <label className="flex flex-col gap-2">
+          <span className="text-[14px] font-medium text-ink">Note for the writer</span>
+          <textarea
+            value={notes}
+            disabled={!canEdit}
+            autoFocus={!item.notes}
+            onChange={(e) => setNotes(e.target.value)}
+            onBlur={() => notes !== (item.notes ?? "") && onPatch({ notes: notes || null })}
+            rows={4}
+            placeholder="The angle, sections it must have, stories or proof to use"
+            className="aw-textarea text-[14px]!"
+          />
+        </label>
+      ) : null}
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {!noting && canEdit ? (
+          <button type="button" className="aw-text-link text-[14px]" onClick={() => setNoting(true)}>
+            + Add a note for the writer
+          </button>
+        ) : (
+          <span />
+        )}
+        <button type="button" className="aw-text-link text-[14px] text-muted!" aria-expanded={more} onClick={() => setMore((m) => !m)}>
+          {more ? "Fewer details" : "More details"}
+        </button>
+      </div>
+
+      {more ? (
+        <section className="aw-frame aw-props bg-white px-3! py-1.5!" aria-label="More details">
+          {row("Theme", <input value={theme} disabled={!canEdit} onChange={(e) => setTheme(e.target.value)} onBlur={() => theme !== (item.theme ?? "") && onPatch({ theme: theme.trim() || null })} className={box} />, true)}
+          {row(
+            "Related keywords",
+            <input
+              value={also}
+              disabled={!canEdit}
+              onChange={(e) => setAlso(e.target.value)}
+              onBlur={() => {
+                const list = also.split(",").map((x) => x.trim()).filter(Boolean);
+                if (list.join("|") !== item.secondary.join("|")) onPatch({ secondary: list });
+              }}
+              placeholder="Other keywords, with commas"
+              className={box}
+            />,
+          )}
+          {(site.profile.columns ?? []).map((c) =>
+            row(
+              c.name,
+              <input
+                type={c.type === "date" ? "date" : c.type === "number" ? "number" : "text"}
+                value={extra[c.id] ?? ""}
+                disabled={!canEdit}
+                onChange={(e) => setExtra((x) => ({ ...x, [c.id]: e.target.value }))}
+                onBlur={() => {
+                  const v = extra[c.id] ?? "";
+                  if (v === String(item.extra?.[c.id] ?? "")) return;
+                  onPatch({ extra: { ...(item.extra ?? {}), [c.id]: v === "" ? null : c.type === "number" ? Number(v) : v } });
+                }}
+                className={box}
+              />,
+            ),
+          )}
+          {row(
+            "Impact",
+            <Dropdown label="Impact" value={item.stage ?? ""} disabled={!canEdit} onChange={(v) => onPatch({ stage: (v || null) as CalendarItem["stage"] })} className={box} options={[...STAGES.map((x) => ({ id: x.id as string, label: STAGE_LABEL[x.id] })), { id: "", label: "None" }]} />,
+          )}
+          {row(
+            "Job",
+            <Dropdown label="Job" value={item.action} disabled={!canEdit} onChange={(v) => onPatch({ action: v })} className={box} options={[{ id: "new" as const, label: "New page" }, { id: "update" as const, label: "Update page" }]} />,
+          )}
+          {row(
+            "Slug",
+            <input
+              value={slug}
+              disabled={!canEdit}
+              onChange={(e) => setSlug(e.target.value)}
+              onBlur={() => {
+                const next = slug.trim() ? `/${slugify(slug)}` : null;
+                if (next !== slugOf(item)) onPatch({ extra: { ...(item.extra ?? {}), slug: next } });
+                setSlug(next ?? slugOf({ ...item, extra: { ...(item.extra ?? {}), slug: null } }));
+              }}
+              className={`${box} font-mono text-[13px]!`}
+            />,
+          )}
+          {row(
+            "Live URL",
+            <input
+              value={url}
+              disabled={!canEdit}
+              onChange={(e) => setUrl(e.target.value)}
+              onBlur={() => url !== (item.url ?? "") && onPatch(url && item.action === "new" ? { url, status: "published" } : { url: url || null })}
+              placeholder="https://"
+              className={box}
+            />,
+          )}
+          {row("Keyword", <input value={keyword} disabled={!canEdit} onChange={(e) => setKeyword(e.target.value)} onBlur={() => keyword.trim() && keyword !== item.keyword && onPatch({ keyword: keyword.trim() })} className={box} />)}
+          {row("Cost per click", text(fmtCpc(item.cpc), item.cpc === null || item.cpc === undefined))}
+          {row("Current ranking", text(item.current_rank ? `#${item.current_rank}` : "Not ranking yet", !item.current_rank))}
+          {row("SERP features", text(features === null ? "–" : features ? String(features) : "None found", !features))}
+        </section>
+      ) : null}
     </div>
   );
 }
