@@ -454,7 +454,18 @@ body { background: var(--v10-canvas); }
 .aw .zp-panel__head .zp-icon-btn { width: 30px; height: 30px; }
 .aw .zp-panel__body { display: flex; flex: 1; min-height: 0; flex-direction: column; overflow-y: auto; }
 .aw .zp-panel__empty { margin-top: auto; display: flex; flex-direction: column; gap: 10px; padding: 16px; }
-.aw .zp-panel__foot { padding: 6px 10px max(10px, env(safe-area-inset-bottom, 0px)); }
+.aw .zp-panel__foot { position: relative; padding: 6px 10px max(10px, env(safe-area-inset-bottom, 0px)); }
+/* Jump to latest: shown above the box while the person has scrolled up from the newest message. */
+.aw .zp-jump {
+  position: absolute; bottom: calc(100% + 8px); left: 50%; z-index: 2; display: inline-flex; align-items: center; gap: 6px; transform: translateX(-50%);
+  height: 30px; padding: 0 12px; border-radius: var(--aw-r-pill); background: var(--v10-card); box-shadow: 0 0 0 1px var(--v10-border), var(--v10-shadow-sm);
+  font-size: 12.5px; font-weight: 500; color: var(--v10-ink-2); white-space: nowrap;
+}
+.aw .zp-jump:hover { color: var(--v10-ink); box-shadow: 0 0 0 1px var(--v10-border-strong), var(--v10-shadow-sm); }
+/* The outline card's fields while editing: they read as the outline itself until hovered or focused. */
+.aw .zp-outline__input { height: 32px; padding: 0 8px; margin-left: -8px; border: 0; border-radius: var(--aw-r-sm); background: transparent; color: var(--v10-ink); outline: none; }
+.aw .zp-outline__input:hover { background: var(--v10-soft); }
+.aw .zp-outline__input:focus { background: var(--v10-card); box-shadow: 0 0 0 1px var(--v10-border-strong); }
 .aw .zp-panel__foot .zp-cbox { border-radius: var(--aw-r-lg); box-shadow: 0 0 0 1px var(--v10-border-strong); }
 .aw .zp-thread--compact { gap: 18px; padding: 16px 14px 8px; max-width: none; }
 .aw .zp-thread--compact .zp-user { font-size: 13.5px; padding: 8px 12px; border-radius: var(--aw-r-lg); }

@@ -9,7 +9,7 @@ export const PAGE: Def[] = [
     group: "page",
     speed: "deep",
     result: "Outline in Drafts",
-    tools: ["pick_content", "get_content_plan", "add_to_content_plan", "write_outline", "writing_status"],
+    tools: ["pick_content", "get_content_plan", "add_to_content_plan", "write_outline", "writing_status", "edit_outline"],
     description:
       'Starts the writer on a piece from the Editorial Calendar: it researches the top pages and what people search, then writes an outline whose headings come from those searches. Use it when someone says "outline X", "write the outline for X" or "start the outline for the next post".',
     intro: "Picks the piece from the calendar and starts its outline. The writer does the research and the headings.",
@@ -22,8 +22,9 @@ export const PAGE: Def[] = [
       "Call write_outline with its keyword or item_id, plus a one-line note when the person asked for an angle.",
       "Say it started, that it takes a few minutes, and that it lands in Drafts. Offer write-article to go straight on to the draft.",
       "When the person asks how it's going, call writing_status and show the title and the headings, each with its searches a month and subheadings.",
+      "To change the outline (\"merge 3 and 4\", \"add a pricing section\", \"make #2 a question\"), call writing_status for the sections in order, then edit_outline with the whole new list; the person applies it on the card. They can also edit the outline card directly with Edit outline.",
     ],
-    hard: ["Writing it again replaces the outline: ask first when one is ready."],
+    hard: ["Writing it again replaces the outline: ask first when one is ready.", "Keep headings search-led when changing them: a new or renamed heading should still be something people search, not a clever phrase."],
     output: ["One line on what started, then the headings once the outline is ready, as a short numbered list."],
   }),
   def({

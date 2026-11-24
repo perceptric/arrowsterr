@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Zippie } from "../Zippie";
 import { I, Icon, Reply } from "./Cards";
 import { Composer } from "./Composer";
@@ -25,16 +25,80 @@ const SUGGEST: Record<string, string[]> = {
 };
 const START = ["Run a site health check", "Audit my homepage", "Can ChatGPT read my site?", "Write our monthly SEO report"];
 
-/** The messages of the open chat. */
-function Thread({ compact = false }: { compact?: boolean }) {
-  const z = useZippie();
-  const end = useRef<HTMLDivElement>(null);
-  const last = z.messages[z.messages.length - 1];
+const NEAR = 100; // px from the bottom that still counts as "at the bottom"
+
+/**
+ * Stick to the bottom, the way Claude's chat does: while the person is at the bottom, the chat stays there as anything
+ * grows (the reply's words, its steps, cards that fill in as the writer works). Scrolling up stops following and shows
+ * Jump to latest; sending a message always goes back down. `box` is the element that scrolls (the side panel's body),
+ * or null for the page itself (the Zippie and Writer pages).
+ */
+function useStickToBottom(box: React.RefObject<HTMLElement | null>, content: React.RefObject<HTMLElement | null>, count: number, lastIsMine: boolean, live: boolean, chat: string | null) {
+  const pinned = useRef(true);
+  const [away, setAway] = useState(false);
+  // `live`: the thread is on screen (and, in the panel, the panel is open), so the refs point at real elements.
   useEffect(() => {
-    end.current?.scrollIntoView({ block: "end" });
-  }, [z.messages.length, last?.text.length, last?.working, last?.cards.length]);
+    if (!live) return;
+    const target: HTMLElement | Window = box.current ?? window;
+    const onScroll = () => {
+      const el = scrollerOf(box.current);
+      const near = el.scrollHeight - el.scrollTop - el.clientHeight < NEAR;
+      pinned.current = near;
+      setAway(!near);
+    };
+    target.addEventListener("scroll", onScroll, { passive: true });
+    return () => target.removeEventListener("scroll", onScroll);
+  }, [box, live]);
+  // Anything that grows the thread keeps it at the bottom while pinned. Opening a chat starts at its bottom.
+  useEffect(() => {
+    const el = content.current;
+    if (!live || !el) return;
+    pinned.current = true;
+    toBottom(box.current);
+    const ro = new ResizeObserver(() => {
+      if (pinned.current) toBottom(box.current);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [box, content, live, chat]);
+  // A message just sent: back to the bottom, following again (the scroll that follows hides Jump to latest).
+  useEffect(() => {
+    if (!lastIsMine) return;
+    pinned.current = true;
+    toBottom(box.current);
+  }, [box, count, lastIsMine]);
+  return {
+    away,
+    jump: () => {
+      pinned.current = true;
+      setAway(false);
+      toBottom(box.current, true);
+    },
+  };
+}
+
+/** What scrolls: the panel's body, or the page. */
+const scrollerOf = (box: HTMLElement | null) => box ?? document.scrollingElement ?? document.documentElement;
+const toBottom = (box: HTMLElement | null, smooth = false) => {
+  const el = scrollerOf(box);
+  el.scrollTo({ top: el.scrollHeight, behavior: smooth ? "smooth" : "auto" });
+};
+
+/** Jump to latest, floating just above the box while the person has scrolled up. */
+function JumpToLatest({ show, onJump }: { show: boolean; onJump: () => void }) {
+  if (!show) return null;
   return (
-    <div className={`zp-thread ${compact ? "zp-thread--compact" : ""}`}>
+    <button type="button" className="zp-jump" onClick={onJump}>
+      <Icon d={I.arrowDown} size={14} /> Jump to latest
+    </button>
+  );
+}
+
+/** The messages of the open chat. `content` measures the thread so the chat can stick to the bottom. */
+function Thread({ compact = false, content }: { compact?: boolean; content: React.RefObject<HTMLDivElement | null> }) {
+  const z = useZippie();
+  return (
+    <div ref={content} className={`zp-thread ${compact ? "zp-thread--compact" : ""}`}>
       {z.messages.map((m) =>
         m.role === "user" ? (
           <div key={m.id} className="flex flex-col items-end gap-1">
@@ -59,7 +123,6 @@ function Thread({ compact = false }: { compact?: boolean }) {
         ),
       )}
       {z.error ? <div className="aw-error">{z.error}</div> : null}
-      <div ref={end} />
     </div>
   );
 }
@@ -89,6 +152,9 @@ export function ZippieDock({ offset = 0 }: { offset?: number }) {
 /** Zippie on the right of the page. It stays open as people move around the app. */
 export function ZippiePanel({ onOpenFull }: { onOpenFull: () => void }) {
   const z = useZippie();
+  const body = useRef<HTMLDivElement>(null);
+  const content = useRef<HTMLDivElement>(null);
+  const stick = useStickToBottom(body, content, z.messages.length, z.messages[z.messages.length - 1]?.role === "user", z.panel && z.messages.length > 0, z.threadId);
   useEffect(() => {
     if (!z.panel) return;
     const esc = (e: KeyboardEvent) => {
@@ -114,9 +180,9 @@ export function ZippiePanel({ onOpenFull }: { onOpenFull: () => void }) {
           <Icon d={I.x} size={16} />
         </button>
       </header>
-      <div className="zp-panel__body">
+      <div ref={body} className="zp-panel__body">
         {z.messages.length ? (
-          <Thread compact />
+          <Thread compact content={content} />
         ) : (
           <div className="zp-panel__empty">
             <h3 className="text-[15px] font-semibold text-ink">{z.where.page ? `Ask about ${z.where.page}` : "What can Zippie do?"}</h3>
@@ -131,6 +197,7 @@ export function ZippiePanel({ onOpenFull }: { onOpenFull: () => void }) {
         )}
       </div>
       <div className="zp-panel__foot">
+        <JumpToLatest show={stick.away && z.messages.length > 0} onJump={stick.jump} />
         <Composer
           skills={z.lib.skills}
           busy={z.busy}
@@ -157,6 +224,10 @@ export function ZippieHome({
   footer,
 }: { hello?: string; intro?: string; start?: Suggestion[]; footer?: React.ReactNode } = {}) {
   const z = useZippie();
+  // The page itself scrolls here (no box): the thread sticks to the bottom of the window.
+  const page = useRef<HTMLElement | null>(null);
+  const content = useRef<HTMLDivElement>(null);
+  const stick = useStickToBottom(page, content, z.messages.length, z.messages[z.messages.length - 1]?.role === "user", z.messages.length > 0, z.threadId);
   if (z.lib.setup) return <div className="aw-callout m-6 max-w-xl">{z.lib.setup}</div>;
   if (!z.messages.length)
     return (
@@ -184,9 +255,10 @@ export function ZippieHome({
   return (
     <div className="zp-full">
       <div className="zp-full__scroll">
-        <Thread />
+        <Thread content={content} />
       </div>
       <div className="zp-full__foot">
+        <JumpToLatest show={stick.away} onJump={stick.jump} />
         <Composer skills={z.lib.skills} busy={z.busy} pending={z.pending} onPending={z.setPending} onStop={z.stop} onSend={(t, k) => z.send(t, k)} />
       </div>
     </div>
