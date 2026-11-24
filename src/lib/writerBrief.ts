@@ -638,7 +638,7 @@ export function editBrief(old: WriterBrief, patch: unknown): WriterBrief {
   const faqs = rows(p.faqs);
   const cta = p.cta && typeof p.cta === "object" ? (p.cta as Record<string, unknown>) : null;
   const target = Number(p.wordTarget);
-  return {
+  const next: WriterBrief = {
     ...old,
     titles: lines(p.titles, 10, old.titles),
     h1: txt(p.h1, 200, old.h1),
@@ -674,6 +674,63 @@ export function editBrief(old: WriterBrief, patch: unknown): WriterBrief {
     ...(Array.isArray(p.checks) ? { checks: lines(p.checks, 20, old.checks ?? []) } : {}),
     ...editCards(old, p),
   };
+  // Older briefs have no cards, so editCards leaves their modules alone: a module turned off still goes.
+  if (!old.cards && Array.isArray(p.removeModules)) {
+    const drop = new Set((p.removeModules as unknown[]).map(String));
+    next.modules = next.modules.filter((m) => !drop.has(m.title));
+  }
+  return Array.isArray(p.sections) ? editSections(next, p.sections) : next;
+}
+
+/**
+ * The outline's sections in a new order, from the Writer's outline card in Zippie: each entry names the old section it
+ * keeps (`from`, its index) or none for a new one, with its heading and, when given, its subheadings. Sections left out
+ * are removed with the images and modules placed under them; a renamed section takes its images and modules along.
+ * Cards follow their sections and are numbered again ("h2-0", "h2-1", ...), so the draft keeps each card's facts.
+ */
+export function editSections(b: WriterBrief, sections: unknown[]): WriterBrief {
+  const list = (rows(sections) ?? [])
+    .slice(0, 30)
+    .map((x) => {
+      const n = x.from === null || x.from === undefined || x.from === "" ? null : Number(x.from);
+      const from = n !== null && Number.isInteger(n) && b.outline[n] ? n : null;
+      return { from, h2: txt(x.h2, 200, "").trim(), h3: Array.isArray(x.h3) ? lines(x.h3, 15, []).map((t) => t.trim()).filter(Boolean) : null };
+    })
+    // A section is kept once, and a new one needs a heading.
+    .filter((x, i, all) => (x.from === null ? Boolean(x.h2) : all.findIndex((y) => y.from === x.from) === i));
+  if (!list.length) return b;
+  const outline: OutlinePart[] = list.map((x) => {
+    const was = x.from !== null ? b.outline[x.from] : null;
+    const h3 = x.h3 ? x.h3.map((title, k) => ({ title, points: was?.h3.find((h) => h.title === title)?.points ?? was?.h3[k]?.points ?? [] })) : (was?.h3 ?? []);
+    return was ? { ...was, h2: x.h2 || was.h2, h3 } : { h2: x.h2, points: [], h3, sources: [], searches: [] };
+  });
+  const kept = new Set(list.map((x) => x.from).filter((x): x is number => x !== null));
+  const gone = new Set(b.outline.filter((_, i) => !kept.has(i)).map((o) => o.h2));
+  const renamed = new Map(list.flatMap((x, i) => (x.from !== null ? [[b.outline[x.from].h2, outline[i].h2] as const] : [])));
+  const moveTo = (placement: string) => (placement === "intro" ? "intro" : gone.has(placement) && !renamed.has(placement) ? null : (renamed.get(placement) ?? placement));
+  const images = b.images?.flatMap((m) => {
+    const at = moveTo(m.placement);
+    return at ? [{ ...m, placement: at }] : [];
+  });
+  const modules = b.modules.flatMap((m) => {
+    const at = moveTo(m.placement);
+    return at ? [{ ...m, placement: at }] : [];
+  });
+  // A featured example goes with its section: one whose section was removed is dropped.
+  const has = (h: string, name: string) => h.toLowerCase().includes(name.toLowerCase());
+  const examples = b.examples?.filter((e) => outline.some((o) => has(o.h2, e.name)) || ![...gone].some((h) => has(h, e.name)));
+  const each = Math.max(100, Math.round(b.wordTarget / Math.max(1, outline.length + 1)));
+  const cards = b.cards
+    ? [
+        ...b.cards.filter((c) => c.key === "intro"),
+        ...outline.map((o, i) => {
+          const x = list[i];
+          const was = x.from !== null ? b.cards!.find((c) => c.key === `h2-${x.from}`) : undefined;
+          return was ? { ...was, key: `h2-${i}`, h2: o.h2 } : { key: `h2-${i}`, h2: o.h2, job: "", points: [], facts: [], visual: null, words: each, links: [], gaps: [] };
+        }),
+      ]
+    : b.cards;
+  return { ...b, outline, images, modules, examples, cards };
 }
 
 /**

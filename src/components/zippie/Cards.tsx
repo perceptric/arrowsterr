@@ -10,7 +10,7 @@ import type { WriterCard } from "@/lib/contentPicks";
 import { ConnectWizard } from "../ConnectWizard";
 import { Markdown } from "../Markdown";
 import { Zippie } from "../Zippie";
-import { PicksCard, PieceCard, ReviseCard } from "./WriterCards";
+import { OutlineEditCard, PicksCard, PieceCard, ReviseCard } from "./WriterCards";
 
 // Zippie's replies and the cards inside them: a change set to review, a Connect card, and a skill or Knowledge page to
 // save. Shared by the chat bar's panel and the Zippie page.
@@ -47,6 +47,7 @@ const TOOL_LABEL: Record<string, string> = {
   writing_status: "Checked the writer",
   publish_article: "Got it ready to publish",
   revise_draft: "Prepared changes to the draft",
+  edit_outline: "Prepared changes to the outline",
   read_draft: "Read the draft",
   COMPOSIO_SEARCH_TOOLS: "Looked in your apps",
   COMPOSIO_GET_TOOL_SCHEMAS: "Looked in your apps",
@@ -86,6 +87,8 @@ export const Icon = ({ d, size = 16 }: { d: string; size?: number }) => (
 );
 export const I = {
   plus: '<path d="M12 5v14M5 12h14"/>',
+  arrowUp: '<path d="m6 15 6-6 6 6"/>',
+  arrowDown: '<path d="m6 9 6 6 6-6"/>',
   edit: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
   folder: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/>',
   book: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5Z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/>',
@@ -152,6 +155,8 @@ export function Reply({ m, api, auth, canEdit, onSend }: { m: Msg; api: ReturnTy
               <PicksCard key={c.id} picks={c.card.picks} canEdit={canEdit} onSend={onSend} />
             ) : c.card.view === "revise" ? (
               <ReviseCard key={c.id} docId={c.card.doc_id} title={c.card.title} edits={c.card.edits} canEdit={canEdit} />
+            ) : c.card.view === "outline_edit" ? (
+              <OutlineEditCard key={c.id} briefId={c.card.brief_id} before={c.card.before} sections={c.card.sections} why={c.card.why} auth={auth} canEdit={canEdit} />
             ) : (
               <PieceCard key={c.id} itemId={c.card.item_id} keyword={c.card.keyword} api={api} auth={auth} canEdit={canEdit} onSend={onSend} publish={c.card.view === "publish"} />
             )

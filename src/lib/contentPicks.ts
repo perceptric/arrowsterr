@@ -103,7 +103,12 @@ export type WriterCard =
   /** A finished piece ready to send out: Publish opens the Publish panel, where the person picks the site, draft or live and the date. */
   | { view: "publish"; item_id: string; keyword: string }
   /** Changes to a saved draft's text, applied only when the person presses Apply (draftEdits.ts). */
-  | { view: "revise"; doc_id: string; title: string; edits: { find: string; replace: string; why?: string }[] };
+  | { view: "revise"; doc_id: string; title: string; edits: { find: string; replace: string; why?: string }[] }
+  /** A change to an outline's sections asked for in chat: the headings before and after, applied only on Apply (editSections in writerBrief.ts). */
+  | { view: "outline_edit"; item_id: string; keyword: string; brief_id: string; before: string[]; sections: OutlineSection[]; why?: string };
+
+/** One section in an outline edit: the old section it keeps (its index), or none for a new one; its heading and subheadings. */
+export type OutlineSection = { from: number | null; h2: string; h3?: string[] };
 
 /** Where one piece stands, for its card and for writing_status. */
 export type PieceStatus = {
@@ -113,12 +118,15 @@ export type PieceStatus = {
   site_id: string;
   brand_id: string | null;
   outline: {
+    /** The outline's id, for edits from its card (/api/agentic-writer "edit"). */
+    brief_id: string;
     status: string;
     busy: boolean;
     error: string | null;
     title: string | null;
     words: number | null;
-    headings: { h2: string; searches_a_month: number | null; subheadings: string[]; blocks: string[] }[];
+    /** Each section's planned blocks: `id` is what removeModules takes. */
+    headings: { h2: string; searches_a_month: number | null; subheadings: string[]; blocks: { id: string; label: string }[] }[];
   } | null;
   draft: { status: string; busy: boolean; error: string | null; words: number | null; doc_id: string | null } | null;
 };
