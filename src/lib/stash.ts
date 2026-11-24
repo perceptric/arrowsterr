@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState, type SetStateAction } from "react";
+import { useCallback, useEffect, useState, type SetStateAction } from "react";
 
 // Remembers what someone was doing in each tool: their search, results and tab.
 // Kept in memory while the app is open and in this browser tab's session storage, so switching
@@ -8,6 +8,8 @@ import { useCallback, useState, type SetStateAction } from "react";
 
 const PREFIX = "aw:";
 const mem = new Map<string, unknown>();
+// Every mounted useStash, by key, so a write in one part of the page reaches the others reading the same key.
+const listeners = new Map<string, Set<() => void>>();
 
 function read<T>(key: string): T | undefined {
   if (mem.has(key)) return mem.get(key) as T;
@@ -33,6 +35,9 @@ function write(key: string, v: unknown) {
   } catch {
     // Storage blocked or full. Memory still works.
   }
+  // After the current render, so one component's update never sets another's state mid-render.
+  const subs = listeners.get(key);
+  if (subs?.size) queueMicrotask(() => subs.forEach((f) => f()));
 }
 
 /** Fill a stash before any page asks for it, so the page opens with data. Never overwrites what is there. */
@@ -55,6 +60,19 @@ export function useStash<T>(key: string, init: T | (() => T)) {
       }),
     [key],
   );
+  // Stay in step with every other part of the page that reads or writes this key.
+  useEffect(() => {
+    const sync = () => {
+      if (mem.has(key)) setV(mem.get(key) as T);
+    };
+    let subs = listeners.get(key);
+    if (!subs) listeners.set(key, (subs = new Set()));
+    subs.add(sync);
+    sync();
+    return () => {
+      subs.delete(sync);
+    };
+  }, [key]);
   return [v, set] as const;
 }
 

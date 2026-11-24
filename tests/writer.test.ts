@@ -28,8 +28,8 @@ const rawBrief = {
   angle: "Cost over time",
   wordTarget: 1500,
   outline: [
-    { h2: "What to look for", points: ["Price"], h3: [], sources: [1, 99] },
-    { h2: "The options", points: ["HubSpot", "Pipedrive"], h3: [], sources: [1, 2] },
+    { h2: "What to look for", searches: ["What is the cheapest CRM?"], points: ["Price"], h3: [], sources: [1, 99] },
+    { h2: "The options", searches: ["best crm for startups", "a search nobody made"], points: ["HubSpot", "Pipedrive"], h3: [], sources: [1, 2] },
   ],
   entities: ["HubSpot"],
   gaps: ["Cost after year one"],
@@ -67,6 +67,7 @@ function briefDeps(status: () => string, calls: { start: number; write: number }
       calls.write++;
       return rawBrief;
     },
+    searches: async () => [{ keyword: "best crm for startups", volume: 500 }],
     model: "claude-sonnet-5-5",
   };
 }
@@ -106,10 +107,28 @@ test("the brief waits for its research without paying or using up attempts", asy
   assert.equal(b.modules[0].placement, "The options", "placement matches an H2");
   assert.deepEqual(b.internalLinks.map((l) => l.url), ["https://acme.com/pricing"], "internal links come from the sitemap only");
   assert.equal(b.research.sources.length, 3);
+  assert.deepEqual(b.outline[0].searches, ["what is the cheapest crm?"], "People Also Ask counts as a search");
+  assert.deepEqual(b.outline[1].searches, ["best crm for startups"], "a search that isn't on the list is dropped");
+  assert.deepEqual(b.research.searches, [{ keyword: "best crm for startups", volume: 500 }, { keyword: "what is the cheapest crm?", volume: null }]);
 
   // A retried job after the brief is saved pays nothing.
   await runBrief(store, deps, "b1", 1);
   assert.equal(calls.write, 1);
+});
+
+test("an outline with made-up H2s goes back once, and the better outline is kept", async () => {
+  const { db, store } = briefMemory(briefRow({ step: "writing", research_run_id: "run1" }));
+  const prompts: string[] = [];
+  const madeUp = { ...rawBrief, outline: [{ h2: "The soul of a pipeline", searches: [], points: ["Price"], h3: [], sources: [1] }, ...rawBrief.outline] };
+  const deps: BriefDeps = {
+    ...briefDeps(() => "done", { start: 0, write: 0 }),
+    write: async (_prefix, prompt) => (prompts.push(prompt), prompts.length === 1 ? madeUp : rawBrief),
+  };
+  await runBrief(store, deps, "b1", 1);
+  assert.equal(prompts.length, 2);
+  assert.match(prompts[0], /G1 \(500 a month\): best crm for startups \(500\)/, "the prompt lists the search groups");
+  assert.match(prompts[1], /"The soul of a pipeline"/, "the second try names the H2 to replace");
+  assert.deepEqual(db.row.brief!.outline.map((o) => o.h2), ["What to look for", "The options"]);
 });
 
 test("a brief whose research failed fails, and an older version's job stops", async () => {

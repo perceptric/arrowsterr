@@ -5,6 +5,7 @@ import { loadBrandContext } from "./brandContext";
 import { askJson, claudeModel } from "./claude";
 import { enqueue, finish, retry, type Job } from "./jobs";
 import { NOTES_SCHEMA } from "./articleNotes";
+import { allSuggestions } from "./kwReport";
 import { drive, runBrief, toPack, type ResearchRows, type BriefDeps, type BriefRow, type BriefStore, type Outcome, type ResearchPack, type WriterContext } from "./writerBrief";
 import { chainDraft, CHECK_SCHEMA, requestDraft, runDraft, SECTION_SCHEMA, type DraftAsk, type DraftDeps, type DraftRow, type DraftStore, type QuotaStore, type ChainStore } from "./writerDraft";
 import { MODULE_SCHEMA } from "./writerModules";
@@ -161,6 +162,8 @@ const briefDeps = (db: SupabaseClient): BriefDeps => ({
   // Draft and Write, Phase 1: the fact notes the writer reads, each quoting its page word for word.
   notes: (prefix, prompt) => askJson(prompt, NOTES_SCHEMA, { prefix, model: writerModel(), maxTokens: 8000 }),
   readPage: readExample,
+  // The same question list as Research › Keywords › Questions, cached 30 days. The research is United States only.
+  searches: async (keyword) => (await allSuggestions(keyword, "United States", true, { total: 0 })).rows.slice(0, 150).map((r) => ({ keyword: r.keyword, volume: r.volume })),
   model: writerModel(),
 });
 

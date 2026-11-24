@@ -19,7 +19,7 @@ import { CalendarGrid, TopicSidebar } from "./CalendarGrid";
 import { KeywordDeepDive } from "./KeywordDeepDive";
 import { DayPanel } from "./DayPanel";
 import { byStage, CalendarViewIcon, Difficulty, downloadCsv, FIELD, ListViewIcon, pageError, post, slugify, slugOf, STAGE_LABEL, StageTag, STATUS_PICK, STATUSES, statusLabel, ViewSwitch, type WriterAccess } from "./shared";
-import { PlanProgress, planRows } from "./AgenticResearch";
+import { isRunning, PlanProgress, planRows } from "./AgenticResearch";
 import { EmptyScreen } from "../Drawing";
 import { EngineName } from "../Engines";
 import { LEVELS } from "@/lib/oppData";
@@ -473,7 +473,7 @@ export function EditorialCalendar({
 
   // The latest finished plan, and when the next monthly refresh opens.
   const lastDone = (runs ?? []).find((r) => r.status === "done") ?? null;
-  const running = (runs ?? [])[0]?.status === "running";
+  const running = isRunning((runs ?? [])[0]);
   const nextRefresh = lastDone ? new Date(new Date(lastDone.created_at).getTime() + REFRESH_DAYS * 864e5) : null;
   const canRefresh = Boolean(refresh?.paid && nextRefresh && nextRefresh <= new Date());
   const short = (d: Date) => d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
@@ -528,8 +528,8 @@ export function EditorialCalendar({
   );
   const progress = <PlanProgress sb={sb} site={site} refresh={tick} onRows={onPlan} onStop={canEdit ? (runId) => post(auth, "/api/research/agentic", { action: "stop", runId }).then(() => {}) : undefined} />;
 
-  // Before the first plan: the picture and one button.
-  if (!built && !running)
+  // Before the first plan: the picture and one button. While the first plan builds, the progress shows and the button goes.
+  if (!built)
     return (
       <div className="flex flex-col gap-5">
         {error ? <p className="aw-error">{error}</p> : null}
@@ -539,10 +539,10 @@ export function EditorialCalendar({
           drawing="calendar"
           title="Plan 12 weeks of content"
           action={
-            canEdit ? (
+            canEdit && !running ? (
               <>
-                <button type="button" className="aw-btn aw-btn--primary" onClick={build} disabled={building || running}>
-                  {building || running ? "Starting..." : "Build my plan"}
+                <button type="button" className="aw-btn aw-btn--primary" onClick={build} disabled={building}>
+                  {building ? "Starting..." : "Build my plan"}
                 </button>
                 {refresh && !refresh.paid ? (
                   <button type="button" className="aw-text-link text-[13px]" onClick={refresh.onUpgrade}>
@@ -553,7 +553,7 @@ export function EditorialCalendar({
             ) : undefined
           }
         >
-          {canEdit ? "Arrowsterr picks the keywords that bring buyers and gives each a date." : "Ask an editor to build the Content Plan."}
+          {running ? "Your plan is being built. It lands here when it is done." : canEdit ? "Arrowsterr picks the keywords that bring buyers and gives each a date." : "Ask an editor to build the Content Plan."}
         </EmptyScreen>
         {toast}
       </div>

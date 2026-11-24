@@ -2,7 +2,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { cardsFrom, visualsOf, type FactNote, type SectionCard, type VisualChip } from "@/lib/articleNotes";
+import { cardsFrom, visualsOf, type SectionCard, type VisualChip } from "@/lib/articleNotes";
 import type { RunAuth } from "@/lib/runner";
 import type { WriterBrief } from "@/lib/writerBrief";
 import { getBrief, type FullBrief } from "@/lib/writerLibrary";
@@ -15,7 +15,7 @@ import { StateTag, usePoll, useWide } from "./parts";
 // The outline screen (docs/draft-and-write-build.md, Phase 1). The brief sits in a card that folds away. The search
 // listing shows live counters, exact-keyword checks and a Google preview. The outline is one row per section; a row
 // opens that section beside the list on wide screens (a side panel on small ones): its heading, job, points as a
-// list, the fact notes behind it, its images and modules, its links and what's still needed. J and K move between
+// list, the searches it answers, its images and modules, its links and what's still needed. J and K move between
 // sections, Esc closes the panel. Write asks once, with what the draft will be built from, then starts the draft.
 // Every edit saves through the agentic-writer "edit" action (editBrief).
 
@@ -169,11 +169,14 @@ export function OutlineView({
 
   const editable = canEdit && row.status !== "generating";
   const cardsEditable = editable && Boolean(b.cards?.length);
-  const notes = b.notes ?? [];
   const words = cards.reduce((n, c) => n + c.words, 0) || b.wordTarget;
   const needs = cards.filter((c) => c.gaps.length);
+  // The searches each H2 answers, with their volumes (searchGroups.ts). Older briefs have none.
+  const volumes = new Map((b.research.searches ?? []).map((q) => [q.keyword, q.volume ?? 0]));
+  const searchesOf = (c: SectionCard) => (c.key === "intro" ? [] : (b.outline[Number(c.key.slice(3))]?.searches ?? [])).map((q) => ({ keyword: q, volume: volumes.get(q) ?? 0 }));
+  const monthly = [...new Set(b.outline.flatMap((p) => p.searches ?? []))].reduce((n, q) => n + (volumes.get(q) ?? 0), 0);
   const lines: [string, string | undefined][] = [
-    ["Job", b.job],
+    ["Goal", b.job],
     ["Point of view", b.pov],
     ["Reader", b.reader],
     ["Leading word", b.leadingWord],
@@ -185,8 +188,7 @@ export function OutlineView({
     <SectionDetail
       key={card.key}
       card={card}
-      notes={notes}
-      sources={b.research.sources}
+      searches={searchesOf(card)}
       chips={visualsOf(b, card)}
       disabled={!cardsEditable}
       onSave={(patch) => save({ cards: [{ key: card.key, ...patch }] })}
@@ -243,7 +245,7 @@ export function OutlineView({
         ) : null}
         <span className="aw-num">{plural(cards.length, "section")}</span>
         <span className="aw-num">About {words.toLocaleString("en-US")} words</span>
-        <span className="aw-num">{plural(notes.length, "fact note")}</span>
+        {monthly ? <span className="aw-num">{monthly.toLocaleString("en-US")} searches a month answered</span> : null}
         {needs.length ? (
           <button type="button" className="aw-status aw-status--warn" onClick={() => setSel(needs[0].key)} title="Open the first section that still needs detail">
             {plural(needs.length, "section")} need detail
@@ -284,7 +286,7 @@ export function OutlineView({
             </div>
             <ol className="flex flex-col">
               {cards.map((c, i) => (
-                <SectionRow key={c.key} card={c} n={i} first={i === 0} on={c.key === sel} chips={visualsOf(b, c)} onOpen={() => setSel((s) => (s === c.key ? null : c.key))} />
+                <SectionRow key={c.key} card={c} n={i} first={i === 0} on={c.key === sel} chips={visualsOf(b, c)} searches={searchesOf(c)} onOpen={() => setSel((s) => (s === c.key ? null : c.key))} />
               ))}
             </ol>
           </section>
@@ -315,7 +317,7 @@ export function OutlineView({
         <WriteDialog
           sections={cards.length}
           words={words}
-          facts={notes.length}
+          monthly={monthly}
           needs={needs}
           busy={writing}
           onReview={(key) => {
@@ -330,8 +332,12 @@ export function OutlineView({
   );
 }
 
+/** A search an H2 answers, with its volume a month (0 when unknown). */
+type Searched = { keyword: string; volume: number };
+
 /** One section in the outline list. The whole row opens the section. */
-function SectionRow({ card, n, first, on, chips, onOpen }: { card: SectionCard; n: number; first: boolean; on: boolean; chips: VisualChip[]; onOpen: () => void }) {
+function SectionRow({ card, n, first, on, chips, searches, onOpen }: { card: SectionCard; n: number; first: boolean; on: boolean; chips: VisualChip[]; searches: Searched[]; onOpen: () => void }) {
+  const volume = searches.reduce((v, q) => v + q.volume, 0);
   return (
     <li className={first ? "" : "border-t border-rule-faint"}>
       <button
@@ -344,8 +350,27 @@ function SectionRow({ card, n, first, on, chips, onOpen }: { card: SectionCard; 
         <span className="flex min-w-0 flex-col gap-1">
           <span className="text-[14px] font-medium text-ink [overflow-wrap:anywhere]">{sectionName(card)}</span>
           <span className="aw-num text-[12px] text-muted">
-            {plural(card.points.length, "point")} · {plural(card.facts.length, "fact")} · ~{card.words} words
+            {plural(card.points.length, "point")} · ~{card.words} words
           </span>
+          {searches.length ? (
+            <span className="flex min-w-0 items-center gap-1.5 text-[12px] text-muted" title={searches.map((q) => q.keyword).join(", ")}>
+              {svg(
+                <>
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="M20 20l-4-4" />
+                </>,
+                12,
+              )}
+              <span className="truncate">
+                {searches
+                  .slice(0, 3)
+                  .map((q) => q.keyword)
+                  .join(" · ")}
+                {searches.length > 3 ? ` · +${searches.length - 3} more` : ""}
+              </span>
+              {volume ? <span className="aw-num shrink-0 font-medium text-pos">{volume.toLocaleString("en-US")} a month</span> : null}
+            </span>
+          ) : null}
           {chips.length ? (
             <span className="flex flex-wrap gap-1.5">
               {chips.map((c) => (
@@ -458,28 +483,23 @@ function Field({ label, id, count, lo, hi, children }: { label: string; id: stri
   );
 }
 
-/** One section's card: heading, job, points, images and modules, facts, links and what's still needed. */
+/** One section's card: heading, goal, the searches it answers, points, images and modules, links and what's still needed. */
 function SectionDetail({
   card,
-  notes,
-  sources,
+  searches,
   chips,
   disabled,
   onSave,
   onChip,
 }: {
   card: SectionCard;
-  notes: FactNote[];
-  sources: { n: number; domain: string; url: string }[];
+  searches: Searched[];
   chips: VisualChip[];
   disabled: boolean;
   onSave: (patch: Patch) => void;
   onChip: (chip: VisualChip) => void;
 }) {
   const [h2, setH2] = useState(card.h2);
-  const [quote, setQuote] = useState<string | null>(null);
-  const [dropping, setDropping] = useState<string | null>(null);
-  const facts = card.facts.map((f) => notes.find((n) => n.id === f)).filter((n): n is FactNote => Boolean(n));
   const intro = card.key === "intro";
   return (
     <div className="flex flex-col gap-6 px-4 py-4">
@@ -501,8 +521,22 @@ function SectionDetail({
       )}
       {card.job ? (
         <div className="flex flex-col gap-1">
-          <span className="aw-micro">Job</span>
+          <span className="aw-micro">Goal</span>
           <p className="text-[13px] text-ink [overflow-wrap:break-word]">{card.job}</p>
+        </div>
+      ) : null}
+
+      {searches.length ? (
+        <div className="flex flex-col gap-2">
+          <span className="aw-micro">Searches this section answers</span>
+          <ul className="flex flex-col rounded-aw border border-rule-faint">
+            {searches.map((q, i) => (
+              <li key={q.keyword} className={`flex items-center justify-between gap-3 px-3 py-2 text-[13px] ${i ? "border-t border-rule-faint" : ""}`}>
+                <span className="min-w-0 text-ink [overflow-wrap:anywhere]">{q.keyword}</span>
+                {q.volume ? <span className="aw-num shrink-0 text-body">{q.volume.toLocaleString("en-US")}</span> : null}
+              </li>
+            ))}
+          </ul>
         </div>
       ) : null}
 
@@ -525,60 +559,6 @@ function SectionDetail({
           </span>
         </div>
       ) : null}
-
-      <div className="flex flex-col gap-2">
-        <span className="aw-micro">
-          Facts <span className="aw-num text-muted">{facts.length}</span>
-        </span>
-        {facts.length ? (
-          facts.map((n) => {
-            const src = sources.find((s) => s.n === n.source);
-            return (
-              <div key={n.id} className="flex flex-col gap-2 rounded-aw border border-rule-faint px-3 py-2.5">
-                <p className="text-[13px] text-ink [overflow-wrap:break-word]">{n.fact}</p>
-                {quote === n.id ? <p className="border-l-2 border-rule pl-2.5 text-[12px] text-muted [overflow-wrap:break-word]">&ldquo;{n.quote}&rdquo;</p> : null}
-                {dropping === n.id ? (
-                  <span className="flex flex-wrap items-center gap-2 text-[12px] text-body">
-                    Remove this fact? It can&apos;t be added back.
-                    <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setDropping(null)}>
-                      Keep
-                    </button>
-                    <button
-                      type="button"
-                      className="aw-btn aw-btn--primary aw-btn--sm"
-                      onClick={() => {
-                        setDropping(null);
-                        onSave({ facts: card.facts.filter((f) => f !== n.id) });
-                      }}
-                    >
-                      Remove
-                    </button>
-                  </span>
-                ) : (
-                  <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px]">
-                    {src ? (
-                      <a href={src.url} target="_blank" rel="noopener noreferrer" className="aw-text-link max-w-[200px] truncate">
-                        {src.domain}
-                      </a>
-                    ) : null}
-                    <button type="button" className="aw-text-link" aria-expanded={quote === n.id} onClick={() => setQuote((q) => (q === n.id ? null : n.id))}>
-                      {quote === n.id ? "Hide quote" : "Show quote"}
-                    </button>
-                    <span className="flex-1" />
-                    {disabled ? null : (
-                      <button type="button" className="aw-text-link text-muted" onClick={() => setDropping(n.id)}>
-                        Remove
-                      </button>
-                    )}
-                  </span>
-                )}
-              </div>
-            );
-          })
-        ) : (
-          <p className="text-[13px] text-muted">No fact notes. The writer covers this section from its points.</p>
-        )}
-      </div>
 
       {card.links.length ? (
         <div className="flex flex-col gap-1.5">
@@ -707,7 +687,7 @@ function Points({ points, disabled, onSave }: { points: string[]; disabled: bool
 function WriteDialog({
   sections,
   words,
-  facts,
+  monthly,
   needs,
   busy,
   onReview,
@@ -716,7 +696,7 @@ function WriteDialog({
 }: {
   sections: number;
   words: number;
-  facts: number;
+  monthly: number;
   needs: SectionCard[];
   busy: boolean;
   onReview: (key: string) => void;
@@ -732,11 +712,11 @@ function WriteDialog({
   return (
     <Modal title="Write the draft?" onClose={onClose} width="max-w-md">
       <div className="flex flex-col gap-4">
-        <p className="text-[13px] text-body">The writer drafts every section from this outline and its fact notes. You can edit the draft afterwards.</p>
+        <p className="text-[13px] text-body">The writer drafts every section from this outline. You can edit the draft afterwards.</p>
         <div className="grid grid-cols-3 gap-2">
           {stat(String(sections), "sections")}
           {stat(`~${words.toLocaleString("en-US")}`, "words")}
-          {stat(String(facts), "fact notes")}
+          {stat(monthly ? monthly.toLocaleString("en-US") : "–", "searches a month")}
         </div>
         {needs.length ? (
           <div className="flex flex-col gap-1.5 rounded-aw border border-rule-faint bg-warn-bg px-3 py-2.5 text-[13px] text-ink">

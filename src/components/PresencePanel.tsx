@@ -241,12 +241,12 @@ export function PresencePanel({ brand, rivals, reader, canCheck }: { brand: { id
           Where AI gets its facts
           <Tip text="AI tools lean on a few sites for basic facts about a company. See how you and your top competitors show up on each one." />
         </h2>
-        {canCheck && data?.paidReady && data.unchecked ? (
+        {checking ? (
+          <span className="aw-micro">Checking review sites. This usually takes a few minutes.</span>
+        ) : canCheck && data?.paidReady && data.unchecked ? (
           <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={busy} onClick={check}>
             {busy ? "Starting…" : `Check review sites · ${tasks} task${tasks === 1 ? "" : "s"}`}
           </button>
-        ) : checking ? (
-          <span className="aw-micro">Checking review sites. This usually takes a few minutes.</span>
         ) : null}
       </div>
       {error ? <p className="aw-error m-5">{error}</p> : null}
