@@ -8,16 +8,14 @@ import type { WriterBrief } from "@/lib/writerBrief";
 import { getBrief, type FullBrief } from "@/lib/writerLibrary";
 import { Modal } from "../reports/Dialog";
 import { post } from "../research/shared";
-import { SidePanel, Thinking } from "../ui";
+import { Thinking } from "../ui";
 import { CommandMenu, type Command } from "./CommandMenu";
-import { NavIcon } from "../NavIcon";
-import { StateTag, usePoll, useWide } from "./parts";
+import { StateTag, usePoll } from "./parts";
 
-// The outline screen (docs/draft-and-write-build.md, Phase 1). The brief sits in a card that folds away. The search
-// listing shows live counters, exact-keyword checks and a Google preview. The outline is one row per section; a row
-// opens that section beside the list on wide screens (a side panel on small ones): its heading, job, points as a
-// list, the searches it answers, its images and modules, its links and what's still needed. J and K move between
-// sections, Esc closes the panel. Write asks once, with what the draft will be built from, then starts the draft.
+// The outline screen (docs/draft-and-write-build.md, Phase 1), one calm reading column: the title and the piece's goal,
+// the Google preview (Edit opens the title, URL and description), then the outline as headings with their H3s. A
+// section opens in place under its heading: its heading, goal, the searches it answers, its H3s, what it covers, its
+// images and what's still missing. J and K move between sections, Esc closes one. Write asks once, then starts the draft.
 // Every edit saves through the agentic-writer "edit" action (editBrief).
 
 type Patch = Record<string, unknown>;
@@ -30,7 +28,6 @@ const svg = (d: React.ReactNode, size = 16) => (
 );
 const I = {
   x: () => svg(<path d="M6 6l12 12M18 6L6 18" />),
-  up: () => svg(<path d="m18 15-6-6-6 6" />),
   down: () => svg(<path d="m6 9 6 6 6-6" />),
   check: () => svg(<path d="M20 6 9 17l-5-5" />, 14),
   alert: () => svg(<path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />, 14),
@@ -65,8 +62,6 @@ export function OutlineView({
   const [writing, setWriting] = useState(false);
   const [sel, setSel] = useState<string | null>(null);
   const [asking, setAsking] = useState(false);
-  const [briefOpen, setBriefOpen] = useState(true);
-  const wide = useWide();
 
   const load = useCallback(async () => {
     try {
@@ -86,9 +81,8 @@ export function OutlineView({
   const b = row?.brief ?? null;
   const cards = useMemo(() => (b ? (b.cards?.length ? b.cards : cardsFrom(b)) : []), [b]);
   const at = sel ? cards.findIndex((c) => c.key === sel) : -1;
-  const card = at >= 0 ? cards[at] : undefined;
 
-  // J and K move between sections; Esc closes the docked section (the side panel closes itself).
+  // J and K move between sections; Esc closes the open one.
   useEffect(() => {
     if (!cards.length) return;
     const keys = (e: KeyboardEvent) => {
@@ -97,11 +91,11 @@ export function OutlineView({
         e.preventDefault();
         const i = at < 0 ? (e.key === "j" ? 0 : cards.length - 1) : Math.min(cards.length - 1, Math.max(0, at + (e.key === "j" ? 1 : -1)));
         setSel(cards[i].key);
-      } else if (e.key === "Escape" && wide && sel) setSel(null);
+      } else if (e.key === "Escape" && sel) setSel(null);
     };
     window.addEventListener("keydown", keys);
     return () => window.removeEventListener("keydown", keys);
-  }, [cards, at, sel, wide]);
+  }, [cards, at, sel]);
 
   async function save(patch: Patch) {
     if (!canEdit) return;
@@ -139,7 +133,7 @@ export function OutlineView({
         <button type="button" className="aw-text-link shrink-0 text-[13px]" onClick={onBack}>
           ← Drafts
         </button>
-        <span className="min-w-0 text-[15px] font-medium text-ink [overflow-wrap:anywhere]">{head}</span>
+        {b ? null : <span className="min-w-0 text-[15px] font-medium text-ink [overflow-wrap:anywhere]">{head}</span>}
         {row ? <StateTag status={row.status} /> : null}
       </span>
       <span className="flex items-center gap-3">
@@ -172,54 +166,24 @@ export function OutlineView({
   const cardsEditable = editable && Boolean(b.cards?.length);
   const words = cards.reduce((n, c) => n + c.words, 0) || b.wordTarget;
   const needs = cards.filter((c) => c.gaps.length);
-  // The searches each H2 answers, with their volumes (searchGroups.ts). Older briefs have none.
+  // The searches each H2 answers, with their volumes (searchGroups.ts), and its H3s. Older briefs have no searches.
   const volumes = new Map((b.research.searches ?? []).map((q) => [q.keyword, q.volume ?? 0]));
-  const searchesOf = (c: SectionCard) => (c.key === "intro" ? [] : (b.outline[Number(c.key.slice(3))]?.searches ?? [])).map((q) => ({ keyword: q, volume: volumes.get(q) ?? 0 }));
+  const partOf = (c: SectionCard) => (c.key === "intro" ? undefined : b.outline[Number(c.key.slice(3))]);
+  const searchesOf = (c: SectionCard) => (partOf(c)?.searches ?? []).map((q) => ({ keyword: q, volume: volumes.get(q) ?? 0 }));
+  const h3sOf = (c: SectionCard) => (partOf(c)?.h3 ?? []).map((h) => h.title).filter(Boolean);
   const monthly = [...new Set(b.outline.flatMap((p) => p.searches ?? []))].reduce((n, q) => n + (volumes.get(q) ?? 0), 0);
-  const lines: [string, string | undefined][] = [
-    ["Goal", b.job],
-    ["Point of view", b.pov],
-    ["Reader", b.reader],
-    ["Leading word", b.leadingWord],
-    ["Shape", b.shape ? `${b.shape.picked}${b.shape.why ? `. ${b.shape.why}` : ""}` : undefined],
-  ];
-  const shown = lines.filter(([, v]) => v);
-
-  const detail = card ? (
-    <SectionDetail
-      key={card.key}
-      card={card}
-      searches={searchesOf(card)}
-      chips={visualsOf(b, card)}
-      disabled={!cardsEditable}
-      onSave={(patch) => save({ cards: [{ key: card.key, ...patch }] })}
-      onChip={(chip) => save(chip.kind === "image" ? { removeImages: [chip.id] } : { removeModules: [chip.id] })}
-    />
-  ) : null;
-  const nav = card ? (
-    <span className="flex items-center gap-1">
-      <button type="button" className="aw-icon-btn flex h-8 w-8 items-center justify-center" aria-label="Previous section" title="Previous section (K)" disabled={at <= 0} onClick={() => setSel(cards[at - 1].key)}>
-        <I.up />
-      </button>
-      <button type="button" className="aw-icon-btn flex h-8 w-8 items-center justify-center" aria-label="Next section" title="Next section (J)" disabled={at >= cards.length - 1} onClick={() => setSel(cards[at + 1].key)}>
-        <I.down />
-      </button>
-      <span className="aw-num px-1 text-[12px] whitespace-nowrap text-muted">
-        Section {at + 1} of {cards.length}
-      </span>
-    </span>
-  ) : null;
+  const h2s = cards.filter((c) => c.key !== "intro").length;
+  const facts = [row.keyword, plural(h2s, "section"), `~${words.toLocaleString("en-US")} words`, ...(monthly ? [`${compact(monthly)} searches a month`] : [])].filter(Boolean);
 
   const commands = (): Command[] => [
     ...cards.map((c, i) => ({ group: "Sections", label: c.key === "intro" ? "Intro" : `${i}. ${sectionName(c)}`, run: () => setSel(c.key) })),
     ...(canWrite ? [{ group: "Actions", label: "Write draft", run: () => setAsking(true) }] : []),
-    { group: "Actions", label: briefOpen ? "Fold the brief" : "Show the brief", run: () => setBriefOpen((o) => !o) },
     ...(needs.length ? [{ group: "Actions", label: "Go to the next section that needs detail", run: () => setSel((needs.find((c) => cards.indexOf(c) > at) ?? needs[0]).key) }] : []),
     { group: "Go to", label: "Drafts", run: onBack },
   ];
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-8">
       <CommandMenu
         commands={commands}
         shortcuts={[
@@ -238,90 +202,41 @@ export function OutlineView({
       {row.error ? <p className="aw-error">{row.error}</p> : null}
       {error ? <p className="aw-error">{error}</p> : null}
 
-      <div className="aw-stats aw-stats--tight" style={{ ["--cols" as string]: 4 }}>
-        {[
-          { icon: "key", tone: "brand", label: "Keyword", value: row.keyword || "–" },
-          { icon: "lines", tone: "brand", label: "Sections", value: String(cards.length) },
-          { icon: "doc", tone: "brand", label: "Words planned", value: `~${words.toLocaleString("en-US")}` },
-          { icon: "report", tone: monthly ? "pos" : "", label: "Searches a month answered", value: monthly ? monthly.toLocaleString("en-US") : "–" },
-        ].map((x) => (
-          <div key={x.label} className="aw-stat">
-            <div className="aw-stat__lab">
-              <span className={`aw-glyph ${x.tone ? `aw-glyph--${x.tone}` : ""}`}>
-                <NavIcon name={x.icon} />
-              </span>
-              {x.label}
-            </div>
-            <span className="aw-stat__num block truncate text-[20px]!">{x.value}</span>
-          </div>
-        ))}
-      </div>
-      {needs.length ? (
-        <button type="button" className="aw-status aw-status--warn inline-flex items-center gap-1.5 self-start" onClick={() => setSel(needs[0].key)} title="Open the first section that still needs detail">
-          <NavIcon name="alert" />
-          {plural(needs.length, "section")} need detail
-        </button>
-      ) : null}
+      <header className="flex flex-col gap-3">
+        <h1 className="text-[28px] leading-tight font-semibold tracking-tight text-ink [overflow-wrap:anywhere]">{head}</h1>
+        {b.job ? <p className="max-w-3xl text-[16px] leading-relaxed text-body">{b.job}</p> : null}
+        <p className="flex flex-wrap gap-x-2 text-[13px] text-muted">
+          {facts.map((f, i) => (
+            <span key={f} className="aw-num">
+              {i ? <span aria-hidden="true">· </span> : null}
+              {f}
+            </span>
+          ))}
+        </p>
+      </header>
 
-      <div className={wide && card ? "grid grid-cols-[minmax(0,1fr)_380px] items-start gap-6" : ""}>
-        <div className="flex min-w-0 flex-col gap-5">
-          {shown.length ? (
-            <section className="aw-frame flex flex-col">
-              <button type="button" className="flex items-center gap-2 px-4 py-3 text-left" aria-expanded={briefOpen} onClick={() => setBriefOpen((o) => !o)}>
-                <span className={`text-muted transition-transform ${briefOpen ? "" : "-rotate-90"}`}>
-                  <I.down />
-                </span>
-                <span className="text-[14px] font-medium text-ink">Brief</span>
-                {!briefOpen && b.leadingWord ? <span className="min-w-0 truncate text-[13px] text-muted">{b.leadingWord}</span> : null}
-              </button>
-              {briefOpen ? (
-                <dl className="grid grid-cols-1 gap-x-6 border-t border-rule-faint px-4 py-3 sm:grid-cols-[140px_1fr]">
-                  {shown.map(([k, v]) => (
-                    <div key={k} className="contents">
-                      <dt className="pt-2 text-[13px] text-muted sm:pb-2">{k}</dt>
-                      <dd className={`min-w-0 pb-2 text-[13px] [overflow-wrap:break-word] sm:pt-2 ${k === "Leading word" ? "font-medium text-ink" : "text-body"}`}>{v}</dd>
-                    </div>
-                  ))}
-                </dl>
-              ) : null}
-            </section>
-          ) : null}
+      <SearchListing key={`${b.h1}|${b.slug}|${b.metaDescription}`} brief={b} keyword={row.keyword} domain={domain} disabled={!editable} onSave={save} />
 
-          <SearchListing key={`${b.h1}|${b.slug}|${b.metaDescription}`} brief={b} keyword={row.keyword} domain={domain} disabled={!editable} onSave={save} />
-
-          <section className="aw-frame flex flex-col">
-            <div className="flex items-center justify-between gap-3 border-b border-rule-faint px-4 py-3">
-              <span className="text-[14px] font-medium text-ink">Outline</span>
-              <span className="hidden text-[12px] text-muted sm:inline">Open a section to edit it. J and K move between sections.</span>
-            </div>
-            <ol className="flex flex-col">
-              {cards.map((c, i) => (
-                <SectionRow key={c.key} card={c} n={i} first={i === 0} on={c.key === sel} chips={visualsOf(b, c)} searches={searchesOf(c)} onOpen={() => setSel((s) => (s === c.key ? null : c.key))} />
-              ))}
-            </ol>
-          </section>
-        </div>
-
-        {wide && card ? (
-          <aside className="sticky top-4 flex max-h-[calc(100vh-2rem)] min-w-0 flex-col rounded-aw-lg border border-rule bg-white" aria-label={`Section: ${sectionName(card)}`}>
-            <div className="flex items-center gap-2 border-b border-rule-faint px-2 py-2">
-              {nav}
-              <span className="flex-1" />
-              <button type="button" className="aw-icon-btn flex h-8 w-8 items-center justify-center" aria-label="Close section" title="Close (Esc)" onClick={() => setSel(null)}>
-                <I.x />
-              </button>
-            </div>
-            <div className="min-h-0 flex-1 overflow-y-auto">{detail}</div>
-          </aside>
-        ) : null}
-      </div>
-
-      {!wide && card ? (
-        <SidePanel title={sectionName(card)} kicker={`Section ${at + 1} of ${cards.length}`} onClose={() => setSel(null)}>
-          <div className="flex items-center gap-2 border-b border-rule-faint px-4 py-2">{nav}</div>
-          {detail}
-        </SidePanel>
-      ) : null}
+      <section className="flex flex-col gap-3" aria-label="Outline">
+        <h2 className="aw-micro">Outline</h2>
+        <ol className="flex flex-col overflow-hidden rounded-aw-lg border border-rule bg-white">
+          {cards.map((c, i) => (
+            <Section
+              key={c.key}
+              card={c}
+              n={i}
+              open={c.key === sel}
+              searches={searchesOf(c)}
+              h3s={h3sOf(c)}
+              chips={visualsOf(b, c)}
+              disabled={!cardsEditable}
+              onToggle={() => setSel((s) => (s === c.key ? null : c.key))}
+              onSave={(patch) => save({ cards: [{ key: c.key, ...patch }] })}
+              onChip={(chip) => save(chip.kind === "image" ? { removeImages: [chip.id] } : { removeModules: [chip.id] })}
+            />
+          ))}
+        </ol>
+      </section>
 
       {asking ? (
         <WriteDialog
@@ -344,73 +259,83 @@ export function OutlineView({
 
 /** A search an H2 answers, with its volume a month (0 when unknown). */
 type Searched = { keyword: string; volume: number };
+/** 16,200 as 16.2K, for volumes beside a heading. */
+const compact = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, "")}K` : String(n));
 
-/** One section in the outline list. The whole row opens the section. */
-function SectionRow({ card, n, first, on, chips, searches, onOpen }: { card: SectionCard; n: number; first: boolean; on: boolean; chips: VisualChip[]; searches: Searched[]; onOpen: () => void }) {
-  const volume = searches.reduce((v, q) => v + q.volume, 0);
+/** One section: its heading and H3s, and when open, everything to edit about it, right under it. */
+function Section({
+  card,
+  n,
+  open,
+  searches,
+  h3s,
+  chips,
+  disabled,
+  onToggle,
+  onSave,
+  onChip,
+}: {
+  card: SectionCard;
+  n: number;
+  open: boolean;
+  searches: Searched[];
+  h3s: string[];
+  chips: VisualChip[];
+  disabled: boolean;
+  onToggle: () => void;
+  onSave: (patch: Patch) => void;
+  onChip: (chip: VisualChip) => void;
+}) {
   const intro = card.key === "intro";
+  const volume = searches.reduce((v, q) => v + q.volume, 0);
+  const [h2, setH2] = useState(card.h2);
+  const num = <span className="aw-num w-5 shrink-0 pt-0.5 text-[14px] text-muted">{intro ? "" : n}</span>;
+  const vol = volume ? <span className="aw-num shrink-0 pt-0.5 text-[13px] text-muted">{compact(volume)} / mo</span> : null;
+  const chevron = (
+    <span className={`shrink-0 pt-0.5 text-muted transition-transform ${open ? "rotate-180" : ""}`}>
+      <I.down />
+    </span>
+  );
   return (
-    <li className={first ? "" : "border-t border-rule-faint"}>
-      <button
-        type="button"
-        aria-current={on ? "true" : undefined}
-        onClick={onOpen}
-        className={`grid w-full grid-cols-[32px_minmax(0,1fr)] items-start gap-x-3 gap-y-2 px-4 py-3 text-left sm:grid-cols-[32px_minmax(0,1fr)_auto] ${on ? "bg-brand-bg" : "hover:bg-[var(--bg-secondary)]"}`}
-      >
-        {/* The intro, an H2 built from searches, or one from the top pages' shared headings. */}
-        <span className={`aw-glyph ${on ? "aw-glyph--solid" : intro ? "" : searches.length ? "aw-glyph--pos" : "aw-glyph--brand"}`} title={intro ? "Intro" : searches.length ? "Built from searches" : "From the top pages"}>
-          <NavIcon name={intro ? "lines" : searches.length ? "search" : "layers"} />
-        </span>
-        <span className="flex min-w-0 flex-col gap-1">
-          <span className="flex min-w-0 items-center gap-2">
-            <span className={`aw-num shrink-0 rounded-aw-xs px-1.5 py-0.5 text-[11px] font-semibold ${on ? "bg-brand text-white" : "bg-brand-bg text-brand"}`}>{intro ? "INTRO" : `H2 · ${n}`}</span>
-            <span className="text-[14px] font-medium text-ink [overflow-wrap:anywhere]">{sectionName(card)}</span>
+    <li className={`border-rule-faint not-first:border-t ${open ? "bg-[var(--bg-secondary)]" : ""}`}>
+      {open && !intro ? (
+        // Open: the heading itself is the field to rename it.
+        <div className="flex items-start gap-4 px-6 pt-5 pb-2">
+          {num}
+          <input
+            aria-label="Heading"
+            value={h2}
+            disabled={disabled}
+            onChange={(e) => setH2(e.target.value)}
+            onBlur={() => (h2.trim() && h2.trim() !== card.h2 ? onSave({ h2: h2.trim() }) : setH2(card.h2))}
+            onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+            className="tw-bare -mx-2 -my-1 min-w-0 flex-1 rounded-aw-sm border-0 bg-transparent px-2 py-1 text-[16px] leading-snug font-medium text-ink outline-none hover:bg-white focus:bg-white"
+          />
+          {vol}
+          <button type="button" aria-expanded aria-label="Close section" title="Close (Esc)" onClick={onToggle} className="flex">
+            {chevron}
+          </button>
+        </div>
+      ) : (
+        <button type="button" aria-expanded={open} onClick={onToggle} className="flex w-full items-start gap-4 px-6 py-5 text-left hover:bg-[var(--bg-secondary)]">
+          {num}
+          <span className="flex min-w-0 flex-1 flex-col gap-1.5">
+            <span className={`text-[16px] leading-snug [overflow-wrap:anywhere] ${intro ? "text-muted" : "font-medium text-ink"}`}>{sectionName(card)}</span>
+            {!open && h3s.length ? <span className="text-[14px] leading-relaxed text-muted">{h3s.join(" · ")}</span> : null}
           </span>
-          <span className="aw-num text-[12px] text-muted">
-            {plural(card.points.length, "point")} · ~{card.words} words
-          </span>
-          {searches.length ? (
-            <span className="flex min-w-0 items-center gap-1.5 text-[12px] text-muted" title={searches.map((q) => q.keyword).join(", ")}>
-              {svg(
-                <>
-                  <circle cx="11" cy="11" r="7" />
-                  <path d="M20 20l-4-4" />
-                </>,
-                12,
-              )}
-              <span className="truncate">
-                {searches
-                  .slice(0, 3)
-                  .map((q) => q.keyword)
-                  .join(" · ")}
-                {searches.length > 3 ? ` · +${searches.length - 3} more` : ""}
-              </span>
-              {volume ? <span className="aw-num shrink-0 font-medium text-pos">{volume.toLocaleString("en-US")} a month</span> : null}
-            </span>
-          ) : null}
-          {chips.length ? (
-            <span className="flex flex-wrap gap-1.5">
-              {chips.map((c) => (
-                <span key={`${c.kind}:${c.id}`} className="aw-chip">
-                  {c.label}
-                </span>
-              ))}
-            </span>
-          ) : null}
-        </span>
-        {card.gaps.length ? (
-          <span className="col-start-2 sm:col-start-3">
-            <span className="aw-status aw-status--warn">{card.gaps.length} needed</span>
-          </span>
-        ) : null}
-      </button>
+          {vol}
+          {chevron}
+        </button>
+      )}
+      {open ? <SectionDetail key={card.key} card={card} searches={searches} h3s={h3s} chips={chips} disabled={disabled} onSave={onSave} onChip={onChip} /> : null}
     </li>
   );
 }
 
-/** The H1, slug and meta with live counters, exact-keyword checks and a Google preview. Each saves when it loses focus. */
+/** How the page shows up on Google, with the keyword checks. Edit opens the title, URL and description; each saves on leaving. */
 function SearchListing({ brief, keyword, domain, disabled, onSave }: { brief: WriterBrief; keyword: string; domain?: string; disabled: boolean; onSave: (p: Patch) => void }) {
   const [v, setV] = useState<Live>({ h1: brief.h1, slug: brief.slug, meta: brief.metaDescription });
+  const [editing, setEditing] = useState(false);
   const kw = keyword.trim().toLowerCase();
   const done = (k: keyof Live, field: string, saved: string) => {
     const next = v[k].trim();
@@ -419,60 +344,62 @@ function SearchListing({ brief, keyword, domain, disabled, onSave }: { brief: Wr
   };
   const checks = kw
     ? [
-        { label: "Keyword in the title", ok: v.h1.toLowerCase().includes(kw) },
-        { label: "Keyword in the URL", ok: v.slug.toLowerCase().includes(kw.replace(/\s+/g, "-")) },
-        { label: "Keyword in the description", ok: v.meta.toLowerCase().includes(kw) },
+        { label: "Title", ok: v.h1.toLowerCase().includes(kw) },
+        { label: "URL", ok: v.slug.toLowerCase().includes(kw.replace(/\s+/g, "-")) },
+        { label: "Description", ok: v.meta.toLowerCase().includes(kw) },
       ]
     : [];
   const host = (domain || "").replace(/^https?:\/\//, "").replace(/\/+$/, "");
   return (
-    <section className="aw-frame flex flex-col">
-      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-rule-faint px-4 py-3">
-        <span className="text-[14px] font-medium text-ink">Search listing</span>
-        <span className="text-[12px] text-muted">How the page shows up on Google</span>
-      </div>
-      <div className="flex flex-col gap-4 px-4 py-4">
-        <Field label="Title (H1)" id="ol-h1" count={v.h1.length} lo={30} hi={60}>
-          <input id="ol-h1" value={v.h1} disabled={disabled} onChange={(e) => setV({ ...v, h1: e.target.value })} onBlur={() => done("h1", "h1", brief.h1)} onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()} className="aw-input" />
-        </Field>
-        <Field label="URL" id="ol-slug">
-          <span className="flex min-w-0 items-stretch">
-            {host ? <span className="flex shrink-0 items-center rounded-l-aw border border-r-0 border-rule bg-[var(--bg-secondary)] px-2.5 text-[13px] text-muted">{host}/</span> : null}
-            <input
-              id="ol-slug"
-              value={v.slug}
-              disabled={disabled}
-              spellCheck={false}
-              onChange={(e) => setV({ ...v, slug: e.target.value.toLowerCase().replace(/[^a-z0-9/-]+/g, "-").replace(/-{2,}/g, "-") })}
-              onBlur={() => done("slug", "slug", brief.slug)}
-              onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-              className={`aw-input min-w-0 flex-1 ${host ? "rounded-l-none!" : ""}`}
-            />
-          </span>
-        </Field>
-        <Field label="Meta description" id="ol-meta" count={v.meta.length} lo={120} hi={155}>
-          <textarea id="ol-meta" value={v.meta} rows={2} disabled={disabled} onChange={(e) => setV({ ...v, meta: e.target.value.replace(/\n/g, " ") })} onBlur={() => done("meta", "metaDescription", brief.metaDescription)} className="aw-input min-h-20 py-2" />
-        </Field>
-        {checks.length ? (
-          <span className="flex flex-wrap gap-2">
-            {checks.map((c) => (
-              <span key={c.label} className={`aw-status ${c.ok ? "aw-status--ranked" : "aw-status--warn"} inline-flex items-center gap-1`}>
-                {c.ok ? <I.check /> : <I.alert />}
-                {c.label}
-              </span>
-            ))}
-          </span>
-        ) : null}
-        <div className="flex flex-col gap-1 rounded-aw border border-rule-faint bg-[var(--bg-secondary)] px-4 py-3" aria-label="Google preview">
-          <span className="aw-micro flex items-center gap-1.5">
-            <NavIcon name="search" />
-            Google preview
-          </span>
-          <span className="truncate text-[12px] text-muted">{[host || "your-site.com", ...v.slug.split("/").filter(Boolean)].join(" › ")}</span>
-          <span className="truncate text-[18px] leading-6 text-brand">{v.h1.length > 60 ? `${v.h1.slice(0, 58).trim()} …` : v.h1 || "Add a title"}</span>
-          <span className="text-[13px] leading-5 text-body">{v.meta.length > 155 ? `${v.meta.slice(0, 152).trim()} …` : v.meta || "Add a meta description."}</span>
+    <section className="flex flex-col rounded-aw-lg border border-rule bg-white" aria-label="Google preview">
+      <div className="flex items-start gap-6 px-6 py-5">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <span className="truncate text-[13px] text-muted">{[host || "your-site.com", ...v.slug.split("/").filter(Boolean)].join(" › ")}</span>
+          <span className="text-[20px] leading-7 text-brand [overflow-wrap:anywhere]">{v.h1.length > 60 ? `${v.h1.slice(0, 58).trim()} …` : v.h1 || "Add a title"}</span>
+          <span className="text-[14px] leading-relaxed text-body">{v.meta.length > 155 ? `${v.meta.slice(0, 152).trim()} …` : v.meta || "Add a meta description."}</span>
         </div>
+        {disabled ? null : (
+          <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm shrink-0" aria-expanded={editing} onClick={() => setEditing((e) => !e)}>
+            {editing ? "Done" : "Edit"}
+          </button>
+        )}
       </div>
+      {checks.length ? (
+        <p className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-rule-faint px-6 py-3 text-[13px]">
+          <span className="text-muted">Keyword in</span>
+          {checks.map((c) => (
+            <span key={c.label} className={`inline-flex items-center gap-1 ${c.ok ? "text-pos" : "text-warn"}`}>
+              {c.ok ? <I.check /> : <I.alert />}
+              {c.label}
+            </span>
+          ))}
+        </p>
+      ) : null}
+      {editing ? (
+        <div className="flex flex-col gap-5 border-t border-rule-faint px-6 py-5">
+          <Field label="Title (H1)" id="ol-h1" count={v.h1.length} lo={30} hi={60}>
+            <input id="ol-h1" value={v.h1} disabled={disabled} onChange={(e) => setV({ ...v, h1: e.target.value })} onBlur={() => done("h1", "h1", brief.h1)} onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()} className="aw-input" />
+          </Field>
+          <Field label="URL" id="ol-slug">
+            <span className="flex min-w-0 items-stretch">
+              {host ? <span className="flex shrink-0 items-center rounded-l-aw border border-r-0 border-rule bg-[var(--bg-secondary)] px-2.5 text-[13px] text-muted">{host}/</span> : null}
+              <input
+                id="ol-slug"
+                value={v.slug}
+                disabled={disabled}
+                spellCheck={false}
+                onChange={(e) => setV({ ...v, slug: e.target.value.toLowerCase().replace(/[^a-z0-9/-]+/g, "-").replace(/-{2,}/g, "-") })}
+                onBlur={() => done("slug", "slug", brief.slug)}
+                onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+                className={`aw-input min-w-0 flex-1 ${host ? "rounded-l-none!" : ""}`}
+              />
+            </span>
+          </Field>
+          <Field label="Meta description" id="ol-meta" count={v.meta.length} lo={120} hi={155}>
+            <textarea id="ol-meta" value={v.meta} rows={2} disabled={disabled} onChange={(e) => setV({ ...v, meta: e.target.value.replace(/\n/g, " ") })} onBlur={() => done("meta", "metaDescription", brief.metaDescription)} className="aw-input min-h-20 py-2" />
+          </Field>
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -503,10 +430,11 @@ function Field({ label, id, count, lo, hi, children }: { label: string; id: stri
   );
 }
 
-/** One section's card: heading, goal, the searches it answers, points, images and modules, links and what's still needed. */
+/** An open section: goal, the searches it answers, its H3s, what it covers, its images and what's missing. */
 function SectionDetail({
   card,
   searches,
+  h3s,
   chips,
   disabled,
   onSave,
@@ -514,115 +442,84 @@ function SectionDetail({
 }: {
   card: SectionCard;
   searches: Searched[];
+  h3s: string[];
   chips: VisualChip[];
   disabled: boolean;
   onSave: (patch: Patch) => void;
   onChip: (chip: VisualChip) => void;
 }) {
-  const [h2, setH2] = useState(card.h2);
-  const intro = card.key === "intro";
+  const block = (label: string, body: React.ReactNode) => (
+    <div className="flex flex-col gap-2">
+      <span className="aw-micro">{label}</span>
+      {body}
+    </div>
+  );
   return (
-    <div className="flex flex-col gap-6 px-4 py-4">
-      {intro ? null : (
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="sd-h2" className="aw-micro">
-            Heading
-          </label>
-          <input
-            id="sd-h2"
-            value={h2}
-            disabled={disabled}
-            onChange={(e) => setH2(e.target.value)}
-            onBlur={() => (h2.trim() && h2.trim() !== card.h2 ? onSave({ h2: h2.trim() }) : setH2(card.h2))}
-            onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-            className="aw-input text-[15px] font-medium"
-          />
-        </div>
-      )}
-      {card.job ? (
-        <div className="flex flex-col gap-1">
-          <span className="aw-micro flex items-center gap-1.5">
-            <NavIcon name="target" />
-            Goal
-          </span>
-          <p className="text-[13px] text-ink [overflow-wrap:break-word]">{card.job}</p>
-        </div>
-      ) : null}
+    <div className="flex flex-col gap-7 pt-2 pr-6 pb-7 pl-15">
+      {card.job ? <p className="text-[15px] leading-relaxed text-body">{card.job}</p> : null}
 
-      {searches.length ? (
-        <div className="flex flex-col gap-2">
-          <span className="aw-micro flex items-center gap-1.5">
-            <NavIcon name="search" />
-            Searches this section answers
-          </span>
-          <ul className="flex flex-col rounded-aw border border-rule-faint">
-            {searches.map((q, i) => (
-              <li key={q.keyword} className={`flex items-center justify-between gap-3 px-3 py-2 text-[13px] ${i ? "border-t border-rule-faint" : ""}`}>
-                <span className="min-w-0 text-ink [overflow-wrap:anywhere]">{q.keyword}</span>
-                {q.volume ? <span className="aw-num shrink-0 text-body">{q.volume.toLocaleString("en-US")}</span> : null}
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
+      {searches.length
+        ? block(
+            "Answers these searches",
+            <span className="flex flex-wrap gap-2">
+              {searches.map((q) => (
+                <span key={q.keyword} className="inline-flex items-center gap-2 rounded-full border border-rule bg-white px-3 py-1 text-[13px] text-ink">
+                  {q.keyword}
+                  {q.volume ? <span className="aw-num text-muted">{q.volume.toLocaleString("en-US")}</span> : null}
+                </span>
+              ))}
+            </span>,
+          )
+        : null}
+
+      {h3s.length
+        ? block(
+            "Subheadings",
+            <ul className="flex flex-col gap-1.5">
+              {h3s.map((h) => (
+                <li key={h} className="text-[15px] text-ink">
+                  {h}
+                </li>
+              ))}
+            </ul>,
+          )
+        : null}
 
       <Points key={card.points.join("\n")} points={card.points} disabled={disabled} onSave={(points) => onSave({ points })} />
 
-      {chips.length ? (
-        <div className="flex flex-col gap-2">
-          <span className="aw-micro flex items-center gap-1.5">
-            <NavIcon name="image" />
-            Images and modules
-          </span>
-          <span className="flex flex-wrap gap-2">
-            {chips.map((c) => (
-              <span key={`${c.kind}:${c.id}`} className="aw-chip inline-flex items-center gap-1.5">
-                {c.label}
-                {disabled ? null : (
-                  <button type="button" className="flex h-4 w-4 items-center justify-center text-muted hover:text-ink" aria-label={`Remove ${c.label}`} title="Remove" onClick={() => onChip(c)}>
-                    {svg(<path d="M6 6l12 12M18 6L6 18" />, 12)}
-                  </button>
-                )}
-              </span>
-            ))}
-          </span>
-        </div>
-      ) : null}
-
-      {card.links.length ? (
-        <div className="flex flex-col gap-1.5">
-          <span className="aw-micro flex items-center gap-1.5">
-            <NavIcon name="chain" />
-            Links
-          </span>
-          {card.links.map((l) => (
-            <a key={l.url} href={l.url} target="_blank" rel="noopener noreferrer" className="aw-text-link text-[13px] [overflow-wrap:anywhere]">
-              {l.anchor || l.url}
-            </a>
-          ))}
-        </div>
-      ) : null}
+      {chips.length
+        ? block(
+            "Images and modules",
+            <span className="flex flex-wrap gap-2">
+              {chips.map((c) => (
+                <span key={`${c.kind}:${c.id}`} className="inline-flex items-center gap-1.5 rounded-full border border-rule bg-white px-3 py-1 text-[13px] text-ink">
+                  {c.label}
+                  {disabled ? null : (
+                    <button type="button" className="flex h-5 w-5 items-center justify-center text-muted hover:text-ink" aria-label={`Remove ${c.label}`} title="Remove" onClick={() => onChip(c)}>
+                      {svg(<path d="M6 6l12 12M18 6L6 18" />, 12)}
+                    </button>
+                  )}
+                </span>
+              ))}
+            </span>,
+          )
+        : null}
 
       {card.gaps.length ? (
-        <div className="flex flex-col gap-1.5 rounded-aw border border-rule-faint bg-warn-bg px-3 py-2.5">
-          <span className="aw-micro flex items-center gap-1.5 text-warn">
-            <NavIcon name="alert" />
-            Detail needed
+        <p className="flex items-start gap-2 text-[14px] leading-relaxed text-warn">
+          <span className="pt-1">
+            <I.alert />
           </span>
-          {card.gaps.map((g) => (
-            <p key={g} className="text-[13px] text-ink [overflow-wrap:break-word]">
-              {g}
-            </p>
-          ))}
-        </div>
+          <span>Still to find: {card.gaps.map((g) => g.replace(/^detail needed:\s*/i, "")).join(" ")}</span>
+        </p>
       ) : null}
     </div>
   );
 }
 
-const MAX_POINTS = 12;
+const MAX_POINTS = 8;
 
-/** Points as a list: one line each. Enter adds a point below, Backspace on an empty point removes it. Saves on leaving the list. */
+/** What the section covers, as plain lines. Enter adds a line below, Backspace on an empty line removes it. Saves on leaving. */
 function Points({ points, disabled, onSave }: { points: string[]; disabled: boolean; onSave: (points: string[]) => void }) {
   const [list, setList] = useState(points.length ? points : [""]);
   const [focus, setFocus] = useState<number | null>(null);
@@ -641,36 +538,18 @@ function Points({ points, disabled, onSave }: { points: string[]; disabled: bool
         if (!e.currentTarget.contains(e.relatedTarget as Node | null)) commit(list);
       }}
     >
-      <span className="flex items-center justify-between gap-2">
-        <span className="aw-micro flex items-center gap-1.5">
-          <NavIcon name="list" />
-          Points <span className="aw-num text-muted">{points.length}</span>
-        </span>
-        {disabled || list.length >= MAX_POINTS ? null : (
-          <button
-            type="button"
-            className="aw-text-link inline-flex items-center gap-1 text-[12px]"
-            onClick={() => {
-              setList([...list, ""]);
-              setFocus(list.length);
-            }}
-          >
-            <I.plus />
-            Add point
-          </button>
-        )}
-      </span>
-      <ul className="flex flex-col overflow-hidden rounded-aw border border-rule-faint">
+      <span className="aw-micro">Covers</span>
+      <ul className="flex flex-col">
         {list.map((p, i) => (
-          <li key={i} className={`flex items-start gap-2 px-2 ${i ? "border-t border-rule-faint" : ""}`}>
-            <span className="mt-[13px] h-1.5 w-1.5 shrink-0 rounded-full bg-muted" aria-hidden="true" />
+          <li key={i} className="flex items-start gap-3">
+            <span className="mt-4 h-1 w-1 shrink-0 rounded-full bg-ink" aria-hidden="true" />
             <textarea
               id={`pt-${i}`}
               value={p}
               rows={1}
               disabled={disabled}
               aria-label={`Point ${i + 1}`}
-              placeholder="Write a point"
+              placeholder="What this section covers"
               onFocus={() => setFocus(null)}
               onChange={(e) => setList(list.map((x, j) => (j === i ? e.target.value.replace(/\n/g, " ") : x)))}
               onKeyDown={(e) => {
@@ -694,27 +573,24 @@ function Points({ points, disabled, onSave }: { points: string[]; disabled: bool
                 e.currentTarget.style.height = "auto";
                 e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
               }}
-              className="min-h-9 w-full resize-none overflow-hidden bg-transparent py-2 text-[13px] text-ink outline-none focus-visible:outline-none"
+              className="tw-bare w-full resize-none overflow-hidden rounded-aw-sm border-0 bg-transparent px-2 py-1.5 text-[15px] leading-relaxed text-ink shadow-none outline-none hover:bg-white focus:bg-white focus-visible:outline-none"
             />
-            {disabled || list.length === 1 ? null : (
-              <button
-                type="button"
-                className="mt-1.5 flex h-7 w-7 shrink-0 items-center justify-center text-muted hover:text-ink"
-                aria-label={`Remove point ${i + 1}`}
-                title="Remove"
-                onClick={() => {
-                  const next = list.filter((_, j) => j !== i);
-                  setList(next);
-                  commit(next);
-                }}
-              >
-                {svg(<path d="M6 6l12 12M18 6L6 18" />, 14)}
-              </button>
-            )}
           </li>
         ))}
       </ul>
-      {list.length >= MAX_POINTS ? <span className="text-[12px] text-muted">A section holds up to {MAX_POINTS} points.</span> : null}
+      {disabled || list.length >= MAX_POINTS ? null : (
+        <button
+          type="button"
+          className="aw-text-link inline-flex items-center gap-1 self-start pl-4 text-[13px]"
+          onClick={() => {
+            setList([...list, ""]);
+            setFocus(list.length);
+          }}
+        >
+          <I.plus />
+          Add a line
+        </button>
+      )}
     </div>
   );
 }
