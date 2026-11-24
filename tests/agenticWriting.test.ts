@@ -139,7 +139,7 @@ test("the brief keeps real examples, gives each a screenshot and drops charts wi
 
 test("examples' own pages are read and added to the sources, and a page that fails is kept with its error", async () => {
   const b = { examples: [{ name: "HubSpot", url: "https://hubspot.com/", kind: "CRM", opener: "", facts: [], sources: [1] }, { name: "Down", url: "https://down.com/", kind: "", opener: "", facts: [], sources: [] }], research: { ...research, topPages: "", aiAnswers: "" } } as unknown as WriterBrief;
-  const out = await readExamples(b, async (url) => (url.includes("down") ? Promise.reject(new Error("timeout")) : { title: "HubSpot", text: "HubSpot is a CRM platform with free tools.", ok: true }));
+  const out = await readExamples(b, async (url) => (url.includes("down") || url.endsWith("/pricing") ? Promise.reject(new Error("timeout")) : { title: "HubSpot", text: "HubSpot is a CRM platform with free tools.", ok: true }));
   assert.equal(out.research.sources.length, 2);
   assert.deepEqual(out.research.sources[1], { n: 2, url: "https://hubspot.com/", title: "HubSpot", domain: "hubspot.com", kind: "example", position: null, words: 8 });
   assert.deepEqual(out.examples?.[0].sources, [1, 2]);
@@ -149,6 +149,14 @@ test("examples' own pages are read and added to the sources, and a page that fai
   const pages = sourcesFor({ ...b, ...out } as WriterBrief, { keyword: "", pages: [], questions: [], aiOverview: "", answers: [] });
   assert.equal(pages[1].body, "HubSpot is a CRM platform with free tools.");
   assert.equal(exampleFor({ examples: [{ name: "HubSpot", url: "", kind: "", opener: "", facts: [], sources: [] }, { name: "HubSpot CRM", url: "", kind: "", opener: "", facts: [], sources: [] }] }, "2. HubSpot CRM")?.name, "HubSpot CRM");
+});
+
+test("an example's pricing page is read with its own page, so plans and prices come from the source", async () => {
+  const b = { examples: [{ name: "HubSpot", url: "https://hubspot.com/products/crm", kind: "CRM", opener: "", facts: [], sources: [] }], research: { ...research, topPages: "", aiAnswers: "" } } as unknown as WriterBrief;
+  const asked: string[] = [];
+  const out = await readExamples(b, async (url) => (asked.push(url), url.endsWith("/pricing") ? { title: "Pricing", text: "Starter $20 per seat per month.", ok: true } : { title: "HubSpot", text: "HubSpot is a CRM.", ok: true }));
+  assert.deepEqual(asked.sort(), ["https://hubspot.com/pricing", "https://hubspot.com/products/crm"]);
+  assert.match(out.examples![0].page!.text, /HubSpot is a CRM\.\n\nPricing page \(https:\/\/hubspot\.com\/pricing\):\nStarter \$20/);
 });
 
 // ─────────────── the draft ───────────────
