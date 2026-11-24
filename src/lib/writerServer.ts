@@ -6,6 +6,7 @@ import { askJson, claudeModel } from "./claude";
 import { enqueue, finish, retry, type Job } from "./jobs";
 import { NOTES_SCHEMA } from "./articleNotes";
 import { allSuggestions } from "./kwReport";
+import { publishAfterDraft } from "./writerPublish";
 import { drive, runBrief, toPack, type ResearchRows, type BriefDeps, type BriefRow, type BriefStore, type Outcome, type ResearchPack, type WriterContext } from "./writerBrief";
 import { chainDraft, CHECK_SCHEMA, requestDraft, runDraft, SECTION_SCHEMA, type DraftAsk, type DraftDeps, type DraftRow, type DraftStore, type QuotaStore, type ChainStore } from "./writerDraft";
 import { MODULE_SCHEMA } from "./writerModules";
@@ -319,7 +320,13 @@ export async function writerBriefJob(db: SupabaseClient, job: Job) {
 /** writer_draft: a few steps per turn (sections, check, modules, doc), each saved, until the draft is ready. */
 export async function writerDraftJob(db: SupabaseClient, job: Job) {
   const { id = "", version } = payloadOf(job);
-  await drive(job, Q, () => runDraft(draftStore(db), draftDeps(db), id, version), async (error) => {
+  const step = async (): Promise<Outcome> => {
+    const out = await runDraft(draftStore(db), draftDeps(db), id, version);
+    // Autopilot's last step: send the finished draft to the brand's site when its settings say so (writerPublish.ts).
+    if (out.state === "done") await publishAfterDraft(db, id).catch((e) => console.error("Autopilot publish failed:", e instanceof Error ? e.message : e));
+    return out;
+  };
+  await drive(job, Q, step, async (error) => {
     await db.from("writer_drafts").update({ status: "failed", error: error.slice(0, 1000), updated_at: stamp() }).eq("id", id).eq("status", "generating");
   });
 }

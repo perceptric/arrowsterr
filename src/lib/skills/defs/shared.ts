@@ -60,6 +60,8 @@ export const SKILL_TOOLS = [
   "write_outline",
   "write_article",
   "writing_status",
+  "publish_article",
+  "revise_draft",
   "crawl_page",
   "crawl_site",
   "check_urls",
