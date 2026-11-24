@@ -6,6 +6,7 @@ import { askJson, claudeModel } from "./claude";
 import { enqueue, finish, retry, type Job } from "./jobs";
 import { NOTES_SCHEMA } from "./articleNotes";
 import { allSuggestions } from "./kwReport";
+import { publishAfterDraft } from "./writerPublish";
 import { drive, runBrief, toPack, type ResearchRows, type BriefDeps, type BriefRow, type BriefStore, type Outcome, type ResearchPack, type WriterContext } from "./writerBrief";
 import { chainDraft, CHECK_SCHEMA, requestDraft, runDraft, SECTION_SCHEMA, type DraftAsk, type DraftDeps, type DraftRow, type DraftStore, type QuotaStore, type ChainStore } from "./writerDraft";
 import { MODULE_SCHEMA } from "./writerModules";
@@ -284,6 +285,21 @@ async function writesWithoutReview(db: SupabaseClient, briefId: string): Promise
 }
 
 /**
+ * True once for a piece Zippie's write_article marked (calendar_items.extra.draft_after_outline): the outline goes
+ * straight on to the draft. The mark is cleared here, so a later outline waits for review again.
+ */
+async function draftAfterOutline(db: SupabaseClient, briefId: string): Promise<boolean> {
+  const row = must(await db.from("writer_briefs").select("item_id").eq("id", briefId).maybeSingle()) as { item_id: string } | null;
+  if (!row) return false;
+  const item = must(await db.from("calendar_items").select("extra").eq("id", row.item_id).maybeSingle()) as { extra: Record<string, unknown> | null } | null;
+  if (!item?.extra?.draft_after_outline) return false;
+  const extra = { ...item.extra };
+  delete extra.draft_after_outline;
+  must(await db.from("calendar_items").update({ extra }).eq("id", row.item_id));
+  return true;
+}
+
+/**
  * writer_brief: wait for the article research without using up attempts, then write the outline. There's no brief to
  * review (docs/drafts-plan.md): once the outline is written, the draft starts in the same turn.
  */
@@ -293,7 +309,7 @@ export async function writerBriefJob(db: SupabaseClient, job: Job) {
     const out = await runBrief(briefStore(db), briefDeps(db), id, version);
     // Draft and Write, Phase 1: the outline waits for a person's review (the outline screen's Write button), unless
     // the workspace turned on Write without review (Settings > AI) for bulk runs.
-    if (out.state === "done" && (await writesWithoutReview(db, id))) await draftFromOutline(db, id);
+    if (out.state === "done" && ((await writesWithoutReview(db, id)) || (await draftAfterOutline(db, id)))) await draftFromOutline(db, id);
     return out;
   };
   await drive(job, Q, step, async (error) => {
@@ -304,7 +320,13 @@ export async function writerBriefJob(db: SupabaseClient, job: Job) {
 /** writer_draft: a few steps per turn (sections, check, modules, doc), each saved, until the draft is ready. */
 export async function writerDraftJob(db: SupabaseClient, job: Job) {
   const { id = "", version } = payloadOf(job);
-  await drive(job, Q, () => runDraft(draftStore(db), draftDeps(db), id, version), async (error) => {
+  const step = async (): Promise<Outcome> => {
+    const out = await runDraft(draftStore(db), draftDeps(db), id, version);
+    // Autopilot's last step: send the finished draft to the brand's site when its settings say so (writerPublish.ts).
+    if (out.state === "done") await publishAfterDraft(db, id).catch((e) => console.error("Autopilot publish failed:", e instanceof Error ? e.message : e));
+    return out;
+  };
+  await drive(job, Q, step, async (error) => {
     await db.from("writer_drafts").update({ status: "failed", error: error.slice(0, 1000), updated_at: stamp() }).eq("id", id).eq("status", "generating");
   });
 }

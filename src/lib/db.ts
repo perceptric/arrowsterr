@@ -1,4 +1,5 @@
 // Every read and write the app makes. Row level security in Supabase decides what each person may do.
+import type { Autopilot } from "./contentPicks";
 import type { DocPublishMeta } from "./writerAgent";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Chat, Run } from "./chats";
@@ -49,6 +50,7 @@ export type Profile = {
   planBrief?: PlanBrief; // last answers to the content plan questionnaire
   bank?: BankRow[]; // ideas typed into the Topic Bank, not on the calendar yet
   knowledge?: string; // product facts the writing agent may use: pricing, features, customers, proof
+  autopilot?: Autopilot; // the Writer's daily writing (contentPicks.ts)
 };
 /** One idea in the Topic Bank. */
 export type BankRow = {

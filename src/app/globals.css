@@ -1472,7 +1472,7 @@ body { background: var(--v10-canvas); }
 
 /* ── aw-props ── */
 .aw .aw-props { display: flex; flex-direction: column; padding: 6px 8px 10px; }
-.aw .aw-props__label { flex: 0 0 104px; font-size: 13px; color: var(--v10-muted); }
+.aw .aw-props__label { flex: 0 0 120px; display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--v10-muted); }
 .aw .aw-props__row { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 8px; }
 .aw .aw-props__title { padding: 10px 8px 6px; font-size: 14px; line-height: 20px; font-weight: 600; letter-spacing: -0.01em; color: var(--v10-ink); }
 
@@ -1760,6 +1760,7 @@ body { background: var(--v10-canvas); }
 .aw .aw-stat + .aw-stat { border-left-color: var(--v10-border); }
 .aw .aw-stat { padding: var(--space-3) var(--space-4); }
 .aw .aw-stat__lab {
+  display: flex; align-items: center; gap: 10px;
   font-family: var(--font-sans); font-weight: 500; line-height: 16px; margin-bottom: 8px; font-size: 14px; color: var(--v10-muted); letter-spacing: 0; text-transform: none;
 }
 .aw .aw-stats .aw-stat { padding: var(--space-4) var(--space-5); border: 0;

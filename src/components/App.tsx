@@ -74,6 +74,7 @@ import { TrafficPage } from "./TrafficPage";
 import { ReportsPage } from "./reports/ReportsPage";
 import { VisitorsPage } from "./VisitorsPage";
 import { ZippieDock, ZippieHome, ZippiePanel } from "./zippie/Chat";
+import { WriterPage } from "./zippie/WriterPage";
 import { KnowledgePage } from "./zippie/KnowledgePage";
 import { SkillsPage, TREE_W } from "./zippie/SkillsPage";
 import { useZippie, ZippieProvider } from "./zippie/ZippieContext";
@@ -89,7 +90,7 @@ type ZippiePageId = "zippie" | "skills" | "knowledge";
 const ZIPPIE_PAGES: Page[] = ["zippie", "skills", "knowledge"];
 const ZIPPIE_LABEL: Record<ZippiePageId, string> = { zippie: "Zippie", skills: "Skills", knowledge: "Knowledge" };
 const isZippie = (p: Page): p is ZippiePageId => ZIPPIE_PAGES.includes(p);
-const RESEARCH: Page[] = ["keywords", "domain", "gap", "calendar", "opportunities"];
+const RESEARCH: Page[] = ["keywords", "domain", "gap", "calendar"];
 const VISIBILITY: Page[] = ["prompts", "competitors", "domains", "urls"];
 /** Pages with their own PDF (docs/reports.md, section 32.3). */
 const PDF_OF: Partial<Record<Page, PdfPage>> = { prompts: "prompts", competitors: "competitors", domains: "sources", urls: "sources", keywords: "keywords", domain: "domain", gap: "gap" };
@@ -726,7 +727,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
         onExit={() => {
           setAdding(false);
           // Starter on Organic Research lands on Opportunities; everyone else on their prompts.
-          go(plan && !plan.open.visibility ? "opportunities" : "prompts");
+          go(plan && !plan.open.visibility ? "calendar" : "prompts");
         }}
         engines={engines ?? []}
         checkEvery={plan?.limits.checkEvery ?? 1}
@@ -759,7 +760,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
   const zippieWhere = { brand: active?.name ?? null, page: pageTitle(page).label };
 
   return (
-    <ZippieProvider key={ws.id} auth={auth} canEdit={canEdit} where={zippieWhere} onZippiePage={page === "zippie"}>
+    <ZippieProvider key={ws.id} auth={auth} canEdit={canEdit} where={zippieWhere} onZippiePage={page === "zippie" || page === "writer"}>
     <div className="flex min-h-screen flex-col md:flex-row">
       <UndoKeys />
       <Sidebar
@@ -1030,6 +1031,8 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
               <h1 className="aw-h2 mb-0!">Integrations</h1>
               <CmsSettings key={view.brand.id} auth={auth} isAdmin={atLeast(ws.role, "admin")} brand={{ id: view.brand.id, name: view.brand.name }} brands={(brands ?? []).map((b) => ({ id: b.id, name: b.name }))} />
             </div>
+          ) : page === "writer" ? (
+            <WriterPage key={view.brand.id} sb={sb} brand={view.brand} canEdit={canEdit} userId={userId} workspaceId={ws.id} />
           ) : page === "library" ? (
             <LibraryPage key={view.brand.id} view={view} auth={auth} canEdit={canEdit} onCalendar={() => go("calendar")} />
           ) : RESEARCH.includes(page) ? (
@@ -1101,7 +1104,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
             />
           )}
         </main>
-        {page !== "zippie" ? <ZippieDock offset={page === "skills" || page === "knowledge" ? TREE_W : 0} /> : null}
+        {page !== "zippie" && page !== "writer" ? <ZippieDock offset={page === "skills" || page === "knowledge" ? TREE_W : 0} /> : null}
       </div>
       <ZippiePanel onOpenFull={() => go("zippie")} />
     </div>
@@ -1117,7 +1120,7 @@ const ROLE_LABEL = { owner: "Owner", admin: "Admin", editor: "Editor", viewer: "
 
 /** The toolset a page belongs to. Starter opens one of them. */
 const trackOf = (page: Page): Track | null =>
-  ["prompts", "competitors", "domains", "urls", "shopping"].includes(page) ? "visibility" : ["keywords", "domain", "gap", "calendar", "library", "opportunities"].includes(page) ? "seo" : null;
+  ["prompts", "competitors", "domains", "urls", "shopping"].includes(page) ? "visibility" : ["keywords", "domain", "gap", "calendar", "writer", "library"].includes(page) ? "seo" : null;
 
 /** The big modules of the app. Each opens to its own pages. */
 const NAV: { group: string; icon: string; items: { id: Page; label: string; icon: string; also?: Page[] }[] }[] = [
@@ -1137,8 +1140,8 @@ const NAV: { group: string; icon: string; items: { id: Page; label: string; icon
     icon: "pen",
     items: [
       { id: "keywords", label: "Research", icon: "search", also: ["domain", "gap"] },
-      { id: "opportunities", label: "Opportunities", icon: "trend" },
       { id: "calendar", label: "Calendar", icon: "calendar" },
+      { id: "writer", label: "Writer", icon: "spark" },
     ],
   },
   {

@@ -83,7 +83,11 @@ export const getBrief = async (sb: SupabaseClient, id: string) =>
   check(await sb.from("writer_briefs").select("id, item_id, status, step, error, version, research_run_id, updated_at, keyword, brief, notes, note, approved_at").eq("id", id).maybeSingle()) as FullBrief | null;
 
 export type FullDraft = DraftLite & { sections: (Section | null)[]; modules: (ModuleState | null)[]; checked: unknown | null; note: string | null };
-export const getDraft = async (sb: SupabaseClient, id: string) => check(await sb.from("writer_drafts").select(`${DRAFT_COLS}, sections, modules, checked, note`).eq("id", id).maybeSingle()) as FullDraft | null;
+/** The draft written from an outline, if there is one yet (one draft per piece). */
+export const getDraftForBrief = async (sb: SupabaseClient, briefId: string) =>
+  check(await sb.from("writer_drafts").select(`${DRAFT_COLS}, sections, modules, checked, note`).eq("brief_id", briefId).limit(1).maybeSingle()) as FullDraft | null;
+/** A piece's outline id from its Calendar item, for links that name the piece. */
+export const briefIdForItem = async (sb: SupabaseClient, itemId: string) => (check(await sb.from("writer_briefs").select("id").eq("item_id", itemId).limit(1).maybeSingle()) as { id: string } | null)?.id ?? null;
 
 // ─────────────── labels ───────────────
 const STATUS: Record<string, string> = { generating: "Generating", ready: "Ready", approved: "Approved", failed: "Failed" };

@@ -6,14 +6,16 @@ import type { RunAuth } from "@/lib/runner";
 import { CMS, type CmsKind } from "@/lib/cmsTypes";
 import { MAIN, parseSkill } from "@/lib/skills/format";
 import type { Proposal } from "@/lib/zippieTools";
+import type { WriterCard } from "@/lib/contentPicks";
 import { ConnectWizard } from "../ConnectWizard";
 import { Markdown } from "../Markdown";
 import { Zippie } from "../Zippie";
+import { PicksCard, PieceCard, ReviseCard } from "./WriterCards";
 
 // Zippie's replies and the cards inside them: a change set to review, a Connect card, and a skill or Knowledge page to
 // save. Shared by the chat bar's panel and the Zippie page.
 
-export type Card = { kind: "changeset" | "setup"; id: string } | { kind: "proposal"; id: string; proposal: Proposal };
+export type Card = { kind: "changeset" | "setup"; id: string } | { kind: "proposal"; id: string; proposal: Proposal } | { kind: "writer"; id: string; card: WriterCard };
 export type Msg = { id: number | string; role: "user" | "assistant"; text: string; tools: string[]; cards: Card[]; working?: string; skill?: string; context?: string };
 export type SendFn = (text: string, skillKey?: string | null) => void;
 
@@ -39,6 +41,13 @@ const TOOL_LABEL: Record<string, string> = {
   add_to_content_plan: "Added to the Content Plan",
   update_content_plan: "Updated the Content Plan",
   remove_from_content_plan: "Removed from the Content Plan",
+  pick_content: "Picked from the Calendar",
+  write_outline: "Started the outline",
+  write_article: "Started the article",
+  writing_status: "Checked the writer",
+  publish_article: "Got it ready to publish",
+  revise_draft: "Prepared changes to the draft",
+  read_draft: "Read the draft",
   COMPOSIO_SEARCH_TOOLS: "Looked in your apps",
   COMPOSIO_GET_TOOL_SCHEMAS: "Looked in your apps",
   COMPOSIO_MULTI_EXECUTE_TOOL: "Worked in your apps",
@@ -138,6 +147,14 @@ export function Reply({ m, api, auth, canEdit, onSend }: { m: Msg; api: ReturnTy
             <ChangeSetCard key={c.id} id={c.id} api={api} canEdit={canEdit} />
           ) : c.kind === "proposal" ? (
             <ProposalCard key={c.id} proposal={c.proposal} api={api} canEdit={canEdit} />
+          ) : c.kind === "writer" ? (
+            c.card.view === "picks" ? (
+              <PicksCard key={c.id} picks={c.card.picks} canEdit={canEdit} onSend={onSend} />
+            ) : c.card.view === "revise" ? (
+              <ReviseCard key={c.id} docId={c.card.doc_id} title={c.card.title} edits={c.card.edits} canEdit={canEdit} />
+            ) : (
+              <PieceCard key={c.id} itemId={c.card.item_id} keyword={c.card.keyword} api={api} auth={auth} canEdit={canEdit} onSend={onSend} publish={c.card.view === "publish"} />
+            )
           ) : (
             <SetupCard key={c.id} id={c.id} auth={auth} canEdit={canEdit} onSend={onSend} />
           ),

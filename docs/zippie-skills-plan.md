@@ -122,6 +122,8 @@ New plays for `propose_changes`: `redirects` (a redirect map, on CMSs that suppo
 | Content refresh | Marks each dated fact on a live page current, stale or to check, then plans the update (`content-refresh`) | `crawl_page` |
 | Answer-first rewrite | Rewrites a section so it answers the question in the first sentence, the way AI answers and featured snippets quote | `crawl_page`, `get_prompt_answers` |
 | Content brief | A brief for one keyword from the top pages and AI answers | `find_content_gaps`, `get_prompt_answers` |
+| Write outline | Picks a piece from the Editorial Calendar and starts the writer's outline, with headings built from real searches | `get_content_plan`, `write_outline`, `writing_status` |
+| Write article | Picks a piece from the calendar and writes it start to finish: outline, then draft, without stopping | `get_content_plan`, `write_article`, `writing_status` |
 
 **AI visibility**
 
@@ -150,7 +152,7 @@ Writer persona, Humanize in our voice, Anti-AI review, 47-pattern check, Fix def
 
 Create a skill, Add to Knowledge (pages by kind: "Competitor: Acme", "Product: Glide 3", "Persona: Stride writer").
 
-That's 50 skills in all: 12 technical SEO, 6 internal linking, 5 on-page, 5 AI visibility, 4 research and reporting, 16 writing, 2 helpers.
+That's 52 skills in all: 12 technical SEO, 6 internal linking, 7 on-page, 5 AI visibility, 4 research and reporting, 16 writing, 2 helpers.
 
 ---
 
