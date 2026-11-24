@@ -136,8 +136,21 @@ function AutopilotDialog({ sb, site, brand, tz, userId, canEdit, onClose }: { sb
               {tile(a.stop === "draft", "The full draft", "Outline, then draft, no stop", () => setA({ ...a, stop: "draft" }))}
             </div>
           </div>
+          {a.stop === "draft" ? (
+            <div className="flex flex-col gap-2.5 border-t border-rule-faint py-3.5">
+              <span className="text-[14px] text-muted">When the draft is done</span>
+              <div className="grid grid-cols-3 gap-2">
+                {tile(a.after === "keep", "Keep in Drafts", "You publish it", () => setA({ ...a, after: "keep" }))}
+                {tile(a.after === "draft", "Send as a draft", "To your site, unpublished", () => setA({ ...a, after: "draft" }))}
+                {tile(a.after === "live", "Publish live", "On its Calendar date", () => setA({ ...a, after: "live" }))}
+              </div>
+            </div>
+          ) : null}
         </div>
-        <p className="text-[13px] text-muted">{next} Finished pieces wait in Drafts for you to publish.</p>
+        <p className="text-[13px] text-muted">
+          {next}{" "}
+          {a.stop === "outline" || a.after === "keep" ? "Finished pieces wait in Drafts for you to publish." : a.after === "draft" ? "Finished drafts go to the brand's first connected site as unpublished drafts." : "Finished drafts go live on the brand's first connected site on their Calendar date (9:00 UTC), or right away when the date has passed."}
+        </p>
         {error ? <p className="aw-error">{error}</p> : null}
         <div className="flex justify-end gap-2">
           <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={onClose}>

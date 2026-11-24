@@ -32,7 +32,7 @@ export const PAGE: Def[] = [
     group: "page",
     speed: "deep",
     result: "Article in Drafts",
-    tools: ["pick_content", "get_content_plan", "add_to_content_plan", "write_article", "writing_status"],
+    tools: ["pick_content", "get_content_plan", "add_to_content_plan", "write_article", "writing_status", "read_draft", "revise_draft", "publish_article"],
     description:
       'Writes a whole article for a piece from the Editorial Calendar: the outline from real searches, then the draft, without stopping. Use it when someone says "write X", "write the article for X", "write the next post" or "draft this one".',
     intro: "Picks the piece from the calendar and writes it start to finish. It uses one of the month's drafts.",
@@ -45,6 +45,8 @@ export const PAGE: Def[] = [
       "Call write_article with its keyword or item_id, plus a one-line note when the person asked for an angle.",
       "Say what started and how long it takes, and that the article lands in Drafts.",
       "When the person asks how it's going, call writing_status and give the step, or the title and word count once it's ready.",
+      "To change the finished draft, read it with read_draft, then call revise_draft with exact find-and-replace edits; the person applies them on the card.",
+      "To publish, call publish_article; its card opens the Publish panel, where the person picks the site, draft or live, and the date.",
     ],
     hard: ["A piece with a draft already: say so and ask before writing it again, since a new draft replaces it.", "Several pieces at once: list them and ask first, since each uses one of the month's drafts."],
     output: ["One line on what started and when it should be ready. Once ready: the title, the word count and where to open it."],

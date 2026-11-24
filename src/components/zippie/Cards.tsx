@@ -10,7 +10,7 @@ import type { WriterCard } from "@/lib/contentPicks";
 import { ConnectWizard } from "../ConnectWizard";
 import { Markdown } from "../Markdown";
 import { Zippie } from "../Zippie";
-import { PicksCard, PieceCard } from "./WriterCards";
+import { PicksCard, PieceCard, ReviseCard } from "./WriterCards";
 
 // Zippie's replies and the cards inside them: a change set to review, a Connect card, and a skill or Knowledge page to
 // save. Shared by the chat bar's panel and the Zippie page.
@@ -45,6 +45,9 @@ const TOOL_LABEL: Record<string, string> = {
   write_outline: "Started the outline",
   write_article: "Started the article",
   writing_status: "Checked the writer",
+  publish_article: "Got it ready to publish",
+  revise_draft: "Prepared changes to the draft",
+  read_draft: "Read the draft",
   COMPOSIO_SEARCH_TOOLS: "Looked in your apps",
   COMPOSIO_GET_TOOL_SCHEMAS: "Looked in your apps",
   COMPOSIO_MULTI_EXECUTE_TOOL: "Worked in your apps",
@@ -147,8 +150,10 @@ export function Reply({ m, api, auth, canEdit, onSend }: { m: Msg; api: ReturnTy
           ) : c.kind === "writer" ? (
             c.card.view === "picks" ? (
               <PicksCard key={c.id} picks={c.card.picks} canEdit={canEdit} onSend={onSend} />
+            ) : c.card.view === "revise" ? (
+              <ReviseCard key={c.id} docId={c.card.doc_id} title={c.card.title} edits={c.card.edits} canEdit={canEdit} />
             ) : (
-              <PieceCard key={c.id} itemId={c.card.item_id} keyword={c.card.keyword} api={api} canEdit={canEdit} onSend={onSend} />
+              <PieceCard key={c.id} itemId={c.card.item_id} keyword={c.card.keyword} api={api} auth={auth} canEdit={canEdit} onSend={onSend} publish={c.card.view === "publish"} />
             )
           ) : (
             <SetupCard key={c.id} id={c.id} auth={auth} canEdit={canEdit} onSend={onSend} />

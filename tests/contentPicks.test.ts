@@ -43,7 +43,8 @@ test("Autopilot runs once a day after its hour, in the workspace's time zone, an
 });
 
 test("a saved Autopilot is checked field by field", () => {
-  assert.deepEqual(cleanAutopilot({ on: true, hour: 99, count: 9, stop: "x", cadence: "y" }), { on: true, cadence: "daily", hour: 8, count: 1, stop: "draft", by: null, lastRun: null, threadId: null });
+  assert.deepEqual(cleanAutopilot({ on: true, hour: 99, count: 9, stop: "x", cadence: "y" }), { on: true, cadence: "daily", hour: 8, count: 1, stop: "draft", after: "keep", by: null, lastRun: null, threadId: null });
+  assert.equal(cleanAutopilot({ after: "live" }).after, "live");
   assert.equal(hourLabel(0), "12:00 AM");
   assert.equal(hourLabel(8), "8:00 AM");
   assert.equal(hourLabel(15), "3:00 PM");

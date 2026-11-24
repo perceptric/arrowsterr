@@ -49,8 +49,9 @@ export function rankPicks(items: PickInput[], today: string, n = 3): Pick[] {
 
 // ─────────────── Autopilot ───────────────
 /** A brand's Autopilot, kept in sites.profile.autopilot. `by` is who turned it on: the runs start as them. */
-export type Autopilot = { on: boolean; cadence: "daily" | "weekdays"; hour: number; count: number; stop: "outline" | "draft"; by?: string | null; lastRun?: string | null; threadId?: string | null };
-export const AUTOPILOT_OFF: Autopilot = { on: false, cadence: "daily", hour: 8, count: 1, stop: "draft" };
+/** `after`: what happens to a finished draft: it waits in Drafts, goes to the brand's site as a draft, or goes live on its Calendar date. */
+export type Autopilot = { on: boolean; cadence: "daily" | "weekdays"; hour: number; count: number; stop: "outline" | "draft"; after: "keep" | "draft" | "live"; by?: string | null; lastRun?: string | null; threadId?: string | null };
+export const AUTOPILOT_OFF: Autopilot = { on: false, cadence: "daily", hour: 8, count: 1, stop: "draft", after: "keep" };
 
 /** A saved Autopilot, with every field checked. */
 export function cleanAutopilot(x: unknown): Autopilot {
@@ -63,6 +64,7 @@ export function cleanAutopilot(x: unknown): Autopilot {
     hour: Number.isInteger(hour) && hour >= 0 && hour <= 23 ? hour : 8,
     count: Number.isInteger(count) && count >= 1 && count <= 3 ? count : 1,
     stop: o.stop === "outline" ? "outline" : "draft",
+    after: o.after === "draft" || o.after === "live" ? o.after : "keep",
     by: typeof o.by === "string" ? o.by : null,
     lastRun: typeof o.lastRun === "string" ? o.lastRun : null,
     threadId: typeof o.threadId === "string" ? o.threadId : null,
@@ -95,12 +97,21 @@ export const hourLabel = (h: number) => `${h % 12 === 0 ? 12 : h % 12}:00 ${h < 
 
 // ─────────────── the Writer's cards in Zippie ───────────────
 /** A card under Zippie's reply: the top picks with Write buttons, or one piece that updates as the writer works. */
-export type WriterCard = { view: "picks"; brand: string; picks: Pick[] } | { view: "piece"; item_id: string; keyword: string };
+export type WriterCard =
+  | { view: "picks"; brand: string; picks: Pick[] }
+  | { view: "piece"; item_id: string; keyword: string }
+  /** A finished piece ready to send out: Publish opens the Publish panel, where the person picks the site, draft or live and the date. */
+  | { view: "publish"; item_id: string; keyword: string }
+  /** Changes to a saved draft's text, applied only when the person presses Apply (draftEdits.ts). */
+  | { view: "revise"; doc_id: string; title: string; edits: { find: string; replace: string; why?: string }[] };
 
 /** Where one piece stands, for its card and for writing_status. */
 export type PieceStatus = {
   item_id: string;
   keyword: string;
+  /** For the Publish panel: the brand's site and brand. */
+  site_id: string;
+  brand_id: string | null;
   outline: {
     status: string;
     busy: boolean;

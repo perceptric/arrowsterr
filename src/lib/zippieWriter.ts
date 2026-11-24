@@ -15,6 +15,7 @@ import { draftQuota, periodOf } from "./plans";
 import type { BriefRow } from "./writerBrief";
 import { stepLabel } from "./writeFlow";
 import { startBrief, startDraft } from "./writerServer";
+import { applyEdits } from "./draftEdits";
 import { brandOf } from "./zippieBrand";
 import type { ToolCtx, ToolEmit, ZippieTool } from "./zippieTools";
 
@@ -56,8 +57,8 @@ async function canWrite(ctx: ToolCtx) {
 }
 
 /** Put the piece in Drafts (as the Write button does) and, for a whole article, mark it to draft as soon as its outline is done. */
-async function markItem(db: SupabaseClient, item: Item, draftAfter: boolean) {
-  const extra = { ...(item.extra ?? {}), in_writer_at: item.extra?.in_writer_at ?? new Date().toISOString(), ...(draftAfter ? { draft_after_outline: true } : {}) };
+async function markItem(db: SupabaseClient, item: Item, draftAfter: boolean, more: Record<string, unknown> = {}) {
+  const extra = { ...(item.extra ?? {}), in_writer_at: item.extra?.in_writer_at ?? new Date().toISOString(), ...(draftAfter ? { draft_after_outline: true } : {}), ...more };
   const { error } = await db.from("calendar_items").update({ extra }).eq("id", item.id);
   if (error) throw new Error(error.message);
 }
@@ -72,8 +73,8 @@ async function draftOf(db: SupabaseClient, ws: string, itemId: string) {
   return data as { id: string; status: string; step: string; error: string | null; doc_id: string | null; words: number | null } | null;
 }
 
-async function outline(db: SupabaseClient, ws: string, userId: string | null, item: Item, note: string | null, draftAfter: boolean) {
-  await markItem(db, item, draftAfter);
+async function outline(db: SupabaseClient, ws: string, userId: string | null, item: Item, note: string | null, draftAfter: boolean, more: Record<string, unknown> = {}) {
+  await markItem(db, item, draftAfter, more);
   const out = await startBrief(db, { workspaceId: ws, item, userId, note });
   if (!out.ok) throw new ToolError(out.error);
   return out.briefId;
@@ -99,14 +100,17 @@ export async function loadPicks(db: SupabaseClient, ws: string, siteId: string, 
 
 /** Where one piece stands: the outline's headings with their searches, H3s and planned blocks, and the draft. */
 export async function pieceStatus(db: SupabaseClient, ws: string, itemId: string): Promise<PieceStatus | null> {
-  const { data: item } = await db.from("calendar_items").select("id, keyword").eq("id", itemId).eq("workspace_id", ws).maybeSingle();
+  const { data: item } = await db.from("calendar_items").select("id, keyword, site_id").eq("id", itemId).eq("workspace_id", ws).maybeSingle();
   if (!item) return null;
+  const { data: site } = await db.from("sites").select("brand_id").eq("id", item.site_id).maybeSingle();
   const [b, d] = await Promise.all([briefOf(db, ws, itemId), draftOf(db, ws, itemId)]);
   const brief = b?.brief ?? null;
   const volumes = new Map((brief?.research.searches ?? []).map((q) => [q.keyword, q.volume ?? 0]));
   return {
     item_id: item.id,
     keyword: item.keyword,
+    site_id: item.site_id,
+    brand_id: (site?.brand_id as string | null | undefined) ?? null,
     outline: b
       ? {
           status: b.status === "generating" ? stepLabel("brief", b.step) : b.status,
@@ -207,6 +211,52 @@ export const WRITER_TOOLS: ZippieTool[] = [
       return { ...status, writer_card: card(emit, { view: "piece", item_id: item.id, keyword: item.keyword }) };
     },
   },
+  {
+    name: "publish_article",
+    label: "Getting it ready to publish",
+    description:
+      "Get a finished article from the Writer ready to publish to the brand's site. Shows a card with Publish, which opens the Publish panel: the person picks the site, draft or live, and the date there, and nothing goes out until they press Publish. Pass the keyword or item_id. Needs a finished draft.",
+    input_schema: { type: "object", properties: { keyword: { type: "string" }, item_id: { type: "string" } } },
+    async run(ctx, args, emit) {
+      if (!ctx.canEdit) throw new ToolError("Only editors and admins can publish.");
+      const item = await findItem(ctx, args);
+      const d = await draftOf(ctx.db, ctx.ws, item.id);
+      if (!d?.doc_id || d.status !== "ready") throw new ToolError(d?.status === "generating" ? `"${item.keyword}" is still being written (${stepLabel("draft", d.step)}). Publish it once it's done.` : `"${item.keyword}" has no finished draft yet. Write it first with write_article.`);
+      return { ready: true, keyword: item.keyword, note: "A card with Publish is in the chat. The person picks the site, draft or live, and the date there.", writer_card: card(emit, { view: "publish", item_id: item.id, keyword: item.keyword }) };
+    },
+  },
+  {
+    name: "revise_draft",
+    label: "Preparing changes to the draft",
+    description:
+      "Change the text of a finished draft from the Writer: each edit swaps an exact piece of the article's text (find) for new text (replace), with a short why. Read the draft first with read_draft and copy each find exactly, long enough to appear only once and inside one run of text (not across a link or bold word). Shows the changes on a card; nothing changes until the person presses Apply. Up to 20 edits.",
+    input_schema: {
+      type: "object",
+      properties: {
+        keyword: { type: "string" },
+        item_id: { type: "string" },
+        edits: { type: "array", maxItems: 20, items: { type: "object", properties: { find: { type: "string" }, replace: { type: "string" }, why: { type: "string" } }, required: ["find", "replace"] } },
+      },
+      required: ["edits"],
+    },
+    async run(ctx, args, emit) {
+      if (!ctx.canEdit) throw new ToolError("Only editors and admins can change drafts.");
+      const item = await findItem(ctx, args);
+      const d = await draftOf(ctx.db, ctx.ws, item.id);
+      if (!d?.doc_id || d.status !== "ready") throw new ToolError(`"${item.keyword}" has no finished draft to change yet.`);
+      const { data: doc } = await ctx.db.from("docs").select("id, title, content").eq("id", d.doc_id).eq("workspace_id", ctx.ws).maybeSingle();
+      if (!doc) throw new ToolError("The draft was deleted.");
+      const edits = (Array.isArray(args.edits) ? args.edits : [])
+        .slice(0, 20)
+        .map((e) => e as Record<string, unknown>)
+        .map((e) => ({ find: str(e.find, 2000), replace: typeof e.replace === "string" ? e.replace.slice(0, 4000) : "", why: str(e.why, 200) }));
+      const check = applyEdits(doc.content as Record<string, unknown>, edits);
+      const ok = check.applied.map((i) => edits[i]);
+      const missed = check.missed.map((m) => ({ find: edits[m.index].find.slice(0, 120), why: m.why }));
+      if (!ok.length) throw new ToolError(`None of the edits match the draft exactly: ${missed.map((m) => `"${m.find}" (${m.why})`).join("; ")}. Read it again with read_draft and copy the text exactly.`);
+      return { ready: ok.length, missed, note: "A card with the changes is in the chat; nothing changes until the person presses Apply.", writer_card: card(emit, { view: "revise", doc_id: doc.id, title: doc.title ?? item.keyword, edits: ok }) };
+    },
+  },
 ];
 
 // ─────────────── Autopilot ───────────────
@@ -237,28 +287,31 @@ export async function runAutopilots(db: SupabaseClient, now = new Date()) {
 }
 
 async function autopilotRun(db: SupabaseClient, ws: string, siteId: string, brandId: string | null, a: Autopilot, day: string) {
+  if (!a.by) return;
   const blocked = await writable(ws);
   const picks = blocked ? [] : await loadPicks(db, ws, siteId, a.count);
+  // The day's chat first, so a piece published later (writerPublish.ts) can say so in it.
+  const { data: t } = await db.from("ask_threads").insert({ workspace_id: ws, title: `Autopilot · ${day}`, created_by: a.by }).select("id").single();
+  const thread = (t as { id: string } | null)?.id ?? null;
+  const publish = a.stop === "draft" && a.after !== "keep" ? { publish_after: a.after } : {};
   const started: string[] = [];
   const failed: string[] = [];
   for (const p of picks) {
     try {
       const { data } = await db.from("calendar_items").select("id, site_id, keyword, status, extra").eq("id", p.item_id).maybeSingle();
       if (!data) continue;
-      await outline(db, ws, a.by ?? null, data as Item, null, a.stop === "draft");
+      await outline(db, ws, a.by, data as Item, null, a.stop === "draft", { ...publish, ...(thread ? { autopilot_thread: thread } : {}) });
       started.push(p.keyword);
     } catch (e) {
       failed.push(`${p.keyword}: ${e instanceof Error ? e.message : String(e)}`);
     }
   }
   const brand = brandId ? ((await db.from("brands").select("name").eq("id", brandId).maybeSingle()).data as { name: string } | null)?.name : null;
-  const what = a.stop === "draft" ? "the outline, then the draft" : "the outline, for your review";
+  const what = a.stop === "outline" ? "the outline, for your review" : a.after === "live" ? "the outline and the draft, then publishing it on its Calendar date" : a.after === "draft" ? "the outline and the draft, then sending it to your site as a draft" : "the outline, then the draft";
   const text = blocked
     ? `Zippie's Autopilot didn't run today: ${blocked}`
     : !picks.length
       ? `Zippie's Autopilot found nothing left to write on ${brand ?? "the"} Calendar today. Build or refresh the plan in Calendar.`
-      : [`Zippie's Autopilot started ${started.length === 1 ? "1 piece" : `${started.length} pieces`} for ${brand ?? "your brand"} today, writing ${what}:`, ...started.map((k) => `- **${k}**`), ...(failed.length ? ["", "These didn't start:", ...failed.map((f) => `- ${f}`)] : []), "", "They land in Drafts. Ask Zippie how they're going any time."].join("\n");
-  if (!a.by) return;
-  const { data: t } = await db.from("ask_threads").insert({ workspace_id: ws, title: `Autopilot · ${day}`, created_by: a.by }).select("id").single();
-  if (t) await db.from("ask_messages").insert({ thread_id: (t as { id: string }).id, workspace_id: ws, role: "assistant", content: text, text });
+      : [`Zippie's Autopilot started ${started.length === 1 ? "1 piece" : `${started.length} pieces`} for ${brand ?? "your brand"} today, writing ${what}:`, ...started.map((k) => `- **${k}**`), ...(failed.length ? ["", "These didn't start:", ...failed.map((f) => `- ${f}`)] : []), "", "Zippie adds a line here as each one is done. Ask how they're going any time."].join("\n");
+  if (thread) await db.from("ask_messages").insert({ thread_id: thread, workspace_id: ws, role: "assistant", content: text, text });
 }
