@@ -20,9 +20,9 @@ import { I, Icon, msgOf, type SendFn, type useApi } from "./Cards";
 const WRITE_ARTICLE = "system:write-article";
 const WRITE_OUTLINE = "system:write-outline";
 
-/** Open an app page in place, the way the sidebar does. */
+/** Open an app page in place, the way the sidebar does. A piece opens on its own page in Drafts (?item=). */
 function goTo(path: string) {
-  window.history.pushState(null, "", `${path}${window.location.search}`);
+  window.history.pushState(null, "", path.includes("?") ? path : `${path}${window.location.search}`);
   window.dispatchEvent(new PopStateEvent("popstate"));
 }
 
@@ -131,7 +131,7 @@ export function PieceCard({ itemId, keyword, api, auth, canEdit, onSend, publish
         </span>
         {publish ? <span className="pl-[42px] text-[13px] text-body">Pick the site, draft or live, and the date. Nothing goes out until you press Publish there.</span> : null}
         <span className="flex gap-2 pl-[42px]">
-          <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => goTo("/drafts")}>
+          <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => goTo(`/drafts?item=${itemId}`)}>
             Open
           </button>
           {canEdit && d.doc_id ? (
@@ -188,7 +188,7 @@ export function PieceCard({ itemId, keyword, api, auth, canEdit, onSend, publish
             Write draft
           </button>
         ) : null}
-        <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => goTo("/drafts")}>
+        <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => goTo(`/drafts?item=${itemId}`)}>
           Open outline
         </button>
         <span className="ml-auto text-[12px] text-muted">The draft uses one of this month&apos;s drafts</span>
