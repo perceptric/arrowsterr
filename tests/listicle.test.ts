@@ -32,11 +32,26 @@ test("the Content Plan suggests a listicle slug only for bottom-of-funnel keywor
   assert.equal(planSlug("seo agency", null), "seo-agency");
 });
 
-test("the brief's listicle rules name the year, the shape and the slug", () => {
-  const r = listicleRules("seo agency", 2026);
-  assert.match(r, /N Best \.\.\. in 2026/);
-  assert.match(r, /one H2 per option/);
+test("the brief's listicle rules follow the best comparison pages: overview, table, one shape per option, how to choose", () => {
+  const r = listicleRules("seo agency", 2026, "Acme");
+  assert.match(r, /N Best Seo Agency in 2026/);
+  assert.match(r, /Best Seo Agency: Quick Overview/);
+  assert.match(r, /comparison table/);
+  assert.match(r, /"1\. \[Name\]: Best for \[use case\]"/);
+  assert.match(r, /"Overview", "Pros", "Cons", "Pricing"/);
+  assert.match(r, /How to Choose the Right Seo Agency/);
+  assert.match(r, /Acme goes in the list as option 1/);
   assert.match(r, /slug: "best-seo-agencies"/);
+});
+
+test("list keywords are listicles whatever their stage, and the listicle's fixed headings are known", async () => {
+  const { isListicle, skeletonHeading } = await import("../src/lib/listicle.ts");
+  assert.equal(isListicle("freshdesk alternatives", "tofu"), true);
+  assert.equal(isListicle("zendesk vs freshdesk", null), true);
+  assert.equal(isListicle("what is agentic ai", "tofu"), false);
+  assert.equal(isListicle("seo agency", "bofu"), true);
+  for (const h of ["Best Freshdesk Alternatives: Quick Overview", "6 Best Freshdesk Alternatives Compared", "1. Zendesk: Best for large teams", "How to Choose the Right Freshdesk Alternative"]) assert.equal(skeletonHeading(h), true, h);
+  assert.equal(skeletonHeading("What is agentic AI?"), false);
 });
 
 test("a BOFU brief's slug is the listicle slug, whatever came back; other briefs keep theirs", async () => {

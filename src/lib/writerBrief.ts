@@ -6,7 +6,7 @@
 import type { BrandKit } from "./brandKit.ts";
 import { voiceText, type BrandVoice } from "./brandVoice.ts";
 import { personaText, type WriterPersona } from "./writerPersona.ts";
-import { isBofu, listicleRules, listicleSlug } from "./listicle.ts";
+import { isListicle, listicleRules, listicleSlug, skeletonHeading } from "./listicle.ts";
 import { kindLabel, kindsForPrompt, MODULE_IDS } from "./moduleCatalog.ts";
 import { TEMPLATE_KINDS } from "./interactiveTemplates.ts";
 import { rulesText, sampleText } from "./houseRules.ts";
@@ -266,7 +266,7 @@ export const BRIEF_SCHEMA = obj({
 });
 
 /** With fact notes, the brief also returns the piece's job, point of view, leading word, shape and a card per section. */
-export const CARD_SCHEMA = obj({ job: S, points: LIST, facts: LIST, words: { type: "integer" }, links: { type: "array", items: obj({ url: S, anchor: S }) }, gaps: LIST });
+export const CARD_SCHEMA = obj({ job: S, points: LIST, facts: LIST, words: { type: "integer" }, links: { type: "array", items: obj({ url: S, anchor: S }) } });
 export const BRIEF_NOTES_SCHEMA = {
   ...BRIEF_SCHEMA,
   // The new fields come first, so a long reply that runs out of room loses the tail of the old ones, never the intro card.
@@ -278,7 +278,7 @@ export const BRIEF_NOTES_SCHEMA = {
     shape: obj({ usual: S, others: LIST, picked: S, why: S }),
     intro: CARD_SCHEMA,
     ...BRIEF_SCHEMA.properties,
-    outline: { type: "array", items: obj({ h2: S, searches: LIST, points: LIST, h3: { type: "array", items: obj({ title: S, points: LIST }) }, sources: { type: "array", items: { type: "integer" } }, job: S, facts: LIST, words: { type: "integer" }, links: { type: "array", items: obj({ url: S, anchor: S }) }, gaps: LIST }) },
+    outline: { type: "array", items: obj({ h2: S, searches: LIST, points: LIST, h3: { type: "array", items: obj({ title: S, points: LIST }) }, sources: { type: "array", items: { type: "integer" } }, job: S, facts: LIST, words: { type: "integer" }, links: { type: "array", items: obj({ url: S, anchor: S }) } }) },
   },
 };
 
@@ -295,7 +295,7 @@ ${searches ? `${searches}\n` : ""}
 Rules:
 - titles: 3 title options, under 65 characters, with the keyword or close to it. h1 is the one you'd pick.
 - metaDescription: under 155 characters. slug: short, lowercase, hyphens.
-${isBofu(c.stage) ? `${listicleRules(b.keyword, new Date().getFullYear())}\n` : ""}
+${isListicle(b.keyword, c.stage) ? `${listicleRules(b.keyword, new Date().getFullYear(), c.brand.name)}\n` : ""}
 - searchIntent: what the searcher wants and the format that serves it, in 1 or 2 sentences.
 - reader: who reads this, what they know, and what they want to do next.
 - angle: the point of view that makes this article better than the top pages, in 1 or 2 sentences.
@@ -306,7 +306,7 @@ ${isBofu(c.stage) ? `${listicleRules(b.keyword, new Date().getFullYear())}\n` : 
   - The one exception: a last H2 about ${c.brand.name} (how ${c.brand.name} helps, or uses it), with searches empty, when the brand has something real to say.
   - Never a clever, vague or made-up heading, and never one that names an idea nobody searches ("The parts inside an agentic system", "Where it needs a human"). Write "Key components of agentic AI" or "Challenges of agentic AI" instead.
   - Cover the biggest search groups first. Two groups that ask the same thing in other words share one H2.
-  - Order the H2s the way the top pages do: what it is, how it works, its types or parts, benefits, challenges, how to do it or get started, then the brand.
+  - Order the H2s the way the top pages do: what it is, how it works, its types or parts, benefits, challenges, how to do it or get started, then the brand. (A listicle follows its own shape below.)
   - H3s: the named items the section lists (each type, step, feature or benefit, by name), or smaller searches from the list and People Also Ask.
   - The first point of every H2 is its heading's direct answer in under 25 words, so the draft opens each section with it.
 - entities: the people, products, terms and concepts the article must name.
@@ -327,7 +327,8 @@ ${factNotes ? `- job: what the reader can do or decide after reading, in one pla
 - pov: the one claim this article argues, in one sentence ${c.brand.name} would agree with. It shapes the writing, never the headings.
 - leadingWord: leave it empty.
 - shape: usual is the structure the top pages share; others are two other shapes; picked is the usual one unless the searches above ask for a part the top pages miss; why names the searches or top pages it follows. Headings follow the rules above whatever the shape.
-- intro and each outline part are cards: job (what the reader gets from this section, one plain sentence under 15 words), points (2 to 4, written as the outline points are), facts (the ids of the fact notes the section stands on, like "n3"; only ids from the list above), words (its share of wordTarget), links (from the brand's pages or the sources, with anchor text) and gaps. A point that needs a fact no note has is written "Detail needed: what to find and where" and goes in gaps, never in points. Add a gap only when the section can't be written well without that fact; most sections have none.
+- The intro opens on the reader's real task or situation, in second person ("If you need...", "You have five minutes before..."), never with a definition, a statistic dump or "In today's world". It says what the reader will get and, when there's a choice to make, what it depends on.
+- intro and each outline part are cards: job (what the reader gets from this section, one plain sentence under 15 words), points (2 to 4, written as the outline points are), facts (the ids of the fact notes the section stands on, like "n3"; only ids from the list above), words (its share of wordTarget), links (from the brand's pages or the sources, with anchor text). When notes disagree, settle it yourself: trust the most authoritative source (the official site, the vendor or a standards body over a blog or a roundup) and never flag the conflict. A point no note backs is left out.
 - Every number, price, date or claim about a named product in points must come from a fact note cited in facts.
 ` : ""}- topPages: 3 to 5 sentences on what Google's top pages do: format, length, what they all cover.
 - aiAnswers: 2 to 4 sentences on what the AI answers say and which sites they cite.
@@ -416,7 +417,7 @@ export function cleanBrief(x: unknown, research: Omit<BriefResearch, "topPages" 
     h1,
     metaDescription: str(o.metaDescription, 170),
     // A BOFU piece is a listicle, so its slug is too, whatever came back.
-    slug: isBofu(meta.stage) ? listicleSlug(meta.keyword) || slugify(str(o.slug, 120) || h1) : slugify(str(o.slug, 120) || h1),
+    slug: isListicle(meta.keyword, meta.stage) ? listicleSlug(meta.keyword) || slugify(str(o.slug, 120) || h1) : slugify(str(o.slug, 120) || h1),
     searchIntent: str(o.searchIntent, 600),
     reader: str(o.reader, 600),
     angle: str(o.angle, 600),
@@ -549,12 +550,15 @@ export async function runBrief(store: BriefStore, deps: BriefDeps, id: string, v
   const schema = notes ? BRIEF_NOTES_SCHEMA : BRIEF_SCHEMA;
   const prompt = briefPrompt(b, ctx, sources.length, factNotes, groups);
   const headings = sources.filter((p) => p.kind === "serp").slice(0, 5).map((p) => p.headings);
+  // A listicle's fixed H2s (quick overview, compared, each "N. Name", how to choose) follow its shape, not searches.
+  const listicle = isListicle(b.keyword, ctx.stage);
+  const offOf = (outline: OutlinePart[]) => offSearchHeadings(listicle ? outline.filter((o) => !skeletonHeading(o.h2)) : outline, headings, ctx.brand.name, b.keyword);
   let brief = cleanBrief(await deps.write(prefix, prompt, schema), research, ctx.sitemap, meta);
   // An H2 that matches no search and no heading the top pages share goes back once, named, to be replaced.
-  const off = offSearchHeadings(brief.outline, headings, ctx.brand.name, b.keyword);
+  const off = offOf(brief.outline);
   if (off.length && brief.outline.length) {
     const again = cleanBrief(await deps.write(prefix, `${prompt}\n\n${retryNote(off)}`, schema), research, ctx.sitemap, meta);
-    if (again.outline.length && offSearchHeadings(again.outline, headings, ctx.brand.name, b.keyword).length < off.length) brief = again;
+    if (again.outline.length && offOf(again.outline).length < off.length) brief = again;
   }
   if (!brief.outline.length) return fail("The brief came back without an outline. Regenerate it.");
   if (deps.readPage && brief.examples?.length) Object.assign(brief, await readExamples(brief, deps.readPage));
@@ -567,6 +571,17 @@ export const retryNote = (off: string[]) =>
   `Your last outline had H2s that match no search and no heading the top pages share: ${off.map((h) => `"${h}"`).join(", ")}. Write the whole brief again. Replace each of those H2s with a search group from the list (with its searches) or a topic at least 2 of the top pages give its own heading, following the heading rules.`;
 
 export const EXAMPLE_TEXT = 4_000; // characters of each example's page the brief keeps
+export const PRICING_TEXT = 3_000; // characters of its pricing page
+
+/** The pricing page on an example's own site: https://acme.com/pricing. Null for an address that isn't a site. */
+export function pricingUrl(url: string): string | null {
+  try {
+    const u = new URL(url);
+    return /^https?:$/.test(u.protocol) ? `${u.origin}/pricing` : null;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Read every featured example's own page, six at a time, and add the ones read to the sources, numbered after the
@@ -578,8 +593,12 @@ export async function readExamples(b: WriterBrief, read: NonNullable<BriefDeps["
   for (let i = 0; i < list.length; i += 6)
     await Promise.all(
       list.slice(i, i + 6).map(async (e, k) => {
-        const p = await read(e.url).catch((err: unknown) => ({ title: "", text: "", ok: false, error: err instanceof Error ? err.message : String(err) }));
-        pages[i + k] = { title: p.title.slice(0, 200), text: p.text.slice(0, EXAMPLE_TEXT), ok: p.ok && p.text.length > 0, ...(p.error ? { error: p.error.slice(0, 300) } : {}) };
+        const fail = (err: unknown) => ({ title: "", text: "", ok: false, error: err instanceof Error ? err.message : String(err) });
+        // Its own page, and its pricing page so plans and prices come from the source (listicles compare pricing).
+        const [p, price] = await Promise.all([read(e.url).catch(fail), pricingUrl(e.url) ? read(pricingUrl(e.url)!).catch(fail) : Promise.resolve(null)]);
+        const pricing = price?.ok && price.text ? `\n\nPricing page (${pricingUrl(e.url)}):\n${price.text.slice(0, PRICING_TEXT)}` : "";
+        const text = `${p.text.slice(0, EXAMPLE_TEXT)}${pricing}`;
+        pages[i + k] = { title: p.title.slice(0, 200), text, ok: (p.ok && p.text.length > 0) || Boolean(pricing), ...(p.error && !pricing ? { error: p.error.slice(0, 300) } : {}) };
       }),
     );
   const sources = [...b.research.sources];
@@ -638,7 +657,7 @@ export function editBrief(old: WriterBrief, patch: unknown): WriterBrief {
   const faqs = rows(p.faqs);
   const cta = p.cta && typeof p.cta === "object" ? (p.cta as Record<string, unknown>) : null;
   const target = Number(p.wordTarget);
-  return {
+  const next: WriterBrief = {
     ...old,
     titles: lines(p.titles, 10, old.titles),
     h1: txt(p.h1, 200, old.h1),
@@ -674,6 +693,88 @@ export function editBrief(old: WriterBrief, patch: unknown): WriterBrief {
     ...(Array.isArray(p.checks) ? { checks: lines(p.checks, 20, old.checks ?? []) } : {}),
     ...editCards(old, p),
   };
+  // Older briefs have no cards, so editCards leaves their modules alone: a module turned off still goes.
+  if (!old.cards && Array.isArray(p.removeModules)) {
+    const drop = new Set((p.removeModules as unknown[]).map(String));
+    next.modules = next.modules.filter((m) => !drop.has(m.title));
+  }
+  if (!old.cards && Array.isArray(p.removeImages)) {
+    const drop = new Set((p.removeImages as unknown[]).map(String));
+    next.images = next.images?.filter((m) => !drop.has(`${m.placement}|${m.kind ?? ""}|${m.shows}`));
+  }
+  const edited = Array.isArray(p.visuals) ? editVisuals(next, rows(p.visuals) ?? []) : next;
+  return Array.isArray(p.sections) ? editSections(edited, p.sections) : edited;
+}
+
+/**
+ * Rewording a planned visual from its card on the outline screen: an image's description and alt text, or a module's
+ * title and purpose. Each entry names the visual by the id visualsOf gives it ("placement|kind|shows" for an image,
+ * the title for a module). Its kind, place and data stay, so nothing new or unchecked slips in.
+ */
+function editVisuals(b: WriterBrief, edits: Record<string, unknown>[]): WriterBrief {
+  const find = (kind: string, id: string) => edits.find((e) => e.kind === kind && e.id === id);
+  return {
+    ...b,
+    images: b.images?.map((m) => {
+      const e = find("image", `${m.placement}|${m.kind ?? ""}|${m.shows}`);
+      return e ? { ...m, shows: txt(e.shows, 300, m.shows).trim() || m.shows, alt: txt(e.alt, 200, m.alt) } : m;
+    }),
+    modules: b.modules.map((m) => {
+      const e = find("module", m.title);
+      return e ? { ...m, title: txt(e.title, 200, m.title).trim() || m.title, purpose: txt(e.purpose, 600, m.purpose) } : m;
+    }),
+  };
+}
+
+/**
+ * The outline's sections in a new order, from the Writer's outline card in Zippie: each entry names the old section it
+ * keeps (`from`, its index) or none for a new one, with its heading and, when given, its subheadings. Sections left out
+ * are removed with the images and modules placed under them; a renamed section takes its images and modules along.
+ * Cards follow their sections and are numbered again ("h2-0", "h2-1", ...), so the draft keeps each card's facts.
+ */
+export function editSections(b: WriterBrief, sections: unknown[]): WriterBrief {
+  const list = (rows(sections) ?? [])
+    .slice(0, 30)
+    .map((x) => {
+      const n = x.from === null || x.from === undefined || x.from === "" ? null : Number(x.from);
+      const from = n !== null && Number.isInteger(n) && b.outline[n] ? n : null;
+      return { from, h2: txt(x.h2, 200, "").trim(), h3: Array.isArray(x.h3) ? lines(x.h3, 15, []).map((t) => t.trim()).filter(Boolean) : null };
+    })
+    // A section is kept once, and a new one needs a heading.
+    .filter((x, i, all) => (x.from === null ? Boolean(x.h2) : all.findIndex((y) => y.from === x.from) === i));
+  if (!list.length) return b;
+  const outline: OutlinePart[] = list.map((x) => {
+    const was = x.from !== null ? b.outline[x.from] : null;
+    const h3 = x.h3 ? x.h3.map((title, k) => ({ title, points: was?.h3.find((h) => h.title === title)?.points ?? was?.h3[k]?.points ?? [] })) : (was?.h3 ?? []);
+    return was ? { ...was, h2: x.h2 || was.h2, h3 } : { h2: x.h2, points: [], h3, sources: [], searches: [] };
+  });
+  const kept = new Set(list.map((x) => x.from).filter((x): x is number => x !== null));
+  const gone = new Set(b.outline.filter((_, i) => !kept.has(i)).map((o) => o.h2));
+  const renamed = new Map(list.flatMap((x, i) => (x.from !== null ? [[b.outline[x.from].h2, outline[i].h2] as const] : [])));
+  const moveTo = (placement: string) => (placement === "intro" ? "intro" : gone.has(placement) && !renamed.has(placement) ? null : (renamed.get(placement) ?? placement));
+  const images = b.images?.flatMap((m) => {
+    const at = moveTo(m.placement);
+    return at ? [{ ...m, placement: at }] : [];
+  });
+  const modules = b.modules.flatMap((m) => {
+    const at = moveTo(m.placement);
+    return at ? [{ ...m, placement: at }] : [];
+  });
+  // A featured example goes with its section: one whose section was removed is dropped.
+  const has = (h: string, name: string) => h.toLowerCase().includes(name.toLowerCase());
+  const examples = b.examples?.filter((e) => outline.some((o) => has(o.h2, e.name)) || ![...gone].some((h) => has(h, e.name)));
+  const each = Math.max(100, Math.round(b.wordTarget / Math.max(1, outline.length + 1)));
+  const cards = b.cards
+    ? [
+        ...b.cards.filter((c) => c.key === "intro"),
+        ...outline.map((o, i) => {
+          const x = list[i];
+          const was = x.from !== null ? b.cards!.find((c) => c.key === `h2-${x.from}`) : undefined;
+          return was ? { ...was, key: `h2-${i}`, h2: o.h2 } : { key: `h2-${i}`, h2: o.h2, job: "", points: [], facts: [], visual: null, words: each, links: [], gaps: [] };
+        }),
+      ]
+    : b.cards;
+  return { ...b, outline, images, modules, examples, cards };
 }
 
 /**

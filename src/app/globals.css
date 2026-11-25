@@ -454,7 +454,18 @@ body { background: var(--v10-canvas); }
 .aw .zp-panel__head .zp-icon-btn { width: 30px; height: 30px; }
 .aw .zp-panel__body { display: flex; flex: 1; min-height: 0; flex-direction: column; overflow-y: auto; }
 .aw .zp-panel__empty { margin-top: auto; display: flex; flex-direction: column; gap: 10px; padding: 16px; }
-.aw .zp-panel__foot { padding: 6px 10px max(10px, env(safe-area-inset-bottom, 0px)); }
+.aw .zp-panel__foot { position: relative; padding: 6px 10px max(10px, env(safe-area-inset-bottom, 0px)); }
+/* Jump to latest: shown above the box while the person has scrolled up from the newest message. */
+.aw .zp-jump {
+  position: absolute; bottom: calc(100% + 8px); left: 50%; z-index: 2; display: inline-flex; align-items: center; gap: 6px; transform: translateX(-50%);
+  height: 30px; padding: 0 12px; border-radius: var(--aw-r-pill); background: var(--v10-card); box-shadow: 0 0 0 1px var(--v10-border), var(--v10-shadow-sm);
+  font-size: 12.5px; font-weight: 500; color: var(--v10-ink-2); white-space: nowrap;
+}
+.aw .zp-jump:hover { color: var(--v10-ink); box-shadow: 0 0 0 1px var(--v10-border-strong), var(--v10-shadow-sm); }
+/* The outline card's fields while editing: they read as the outline itself until hovered or focused. */
+.aw .zp-outline__input { height: 32px; padding: 0 8px; margin-left: -8px; border: 0; border-radius: var(--aw-r-sm); background: transparent; color: var(--v10-ink); outline: none; }
+.aw .zp-outline__input:hover { background: var(--v10-soft); }
+.aw .zp-outline__input:focus { background: var(--v10-card); box-shadow: 0 0 0 1px var(--v10-border-strong); }
 .aw .zp-panel__foot .zp-cbox { border-radius: var(--aw-r-lg); box-shadow: 0 0 0 1px var(--v10-border-strong); }
 .aw .zp-thread--compact { gap: 18px; padding: 16px 14px 8px; max-width: none; }
 .aw .zp-thread--compact .zp-user { font-size: 13.5px; padding: 8px 12px; border-radius: var(--aw-r-lg); }
@@ -2140,6 +2151,64 @@ body { background: var(--v10-canvas); }
 }
 .aw .tw-tag--green { background: var(--v10-success-soft); color: var(--v10-success); }
 .aw .tw-tag--red { background: var(--v10-danger-soft); color: var(--v10-danger); }
+
+/* ── aw-visual: a planned image or module on the outline, its sketch beside what it is ── */
+.aw .aw-visual { display: flex; flex-wrap: wrap; gap: 18px; padding: 16px; border: 1px solid var(--v10-border); border-radius: var(--aw-r-lg); background: var(--v10-card); }
+.aw .aw-visual__body { flex: 1; min-width: 240px; display: flex; flex-direction: column; gap: 6px; }
+.aw .aw-visual__kind { font-size: 12.5px; line-height: 16px; font-weight: 600; color: var(--v10-signal); }
+.aw .aw-visual__title { font-size: 16px; line-height: 1.4; font-weight: 600; color: var(--v10-ink); overflow-wrap: anywhere; }
+.aw .aw-visual__shows { font-size: 14.5px; line-height: 1.55; color: var(--v10-ink-2); }
+.aw .aw-visual__note { font-size: 13px; line-height: 1.5; color: var(--v10-faint); }
+.aw .aw-visual__actions { display: flex; gap: 8px; margin-top: auto; padding-top: 6px; }
+
+/* ── aw-sketch: a rough drawing from the brief's data (VisualSketch.tsx) ── */
+.aw .aw-sketch { flex: none; width: 260px; height: 150px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; padding: 12px; overflow: hidden; border: 1px dashed var(--v10-border-strong); border-radius: var(--aw-r-lg); background: var(--v10-signal-soft); font-size: 11px; line-height: 1.25; color: var(--v10-ink-2); }
+.aw .aw-sketch--sm { width: 148px; height: 84px; padding: 6px; border-radius: var(--aw-r-md); font-size: 8px; }
+.aw .aw-sketch__text { min-width: 0; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; text-align: center; overflow-wrap: normal; word-break: normal; }
+.aw .aw-sketch__steps { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; }
+.aw .aw-sketch__box { flex: 1; min-width: 0; max-width: 76px; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 8px 4px; border: 1px solid var(--v10-border-strong); border-radius: var(--aw-r-md); background: var(--v10-card); }
+.aw .aw-sketch__num { width: 20px; height: 20px; flex: none; display: flex; align-items: center; justify-content: center; border-radius: var(--aw-r-pill); background: var(--v10-signal); color: var(--text-on-accent); font-size: 11px; font-weight: 700; }
+.aw .aw-sketch__arrow { flex: none; color: var(--v10-faint); }
+.aw .aw-sketch__bars { display: flex; align-items: flex-end; justify-content: center; gap: 10px; width: 100%; height: 100%; }
+.aw .aw-sketch__col { flex: 1; max-width: 60px; height: 100%; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 3px; }
+.aw .aw-sketch__bar { width: 100%; max-height: 70%; border-radius: var(--aw-r-xs) var(--aw-r-xs) 0 0; background: var(--v10-signal); }
+.aw .aw-sketch__value { font-weight: 600; color: var(--v10-ink); }
+.aw .aw-sketch__grid { display: grid; width: 100%; border: 1px solid var(--v10-border-strong); border-radius: var(--aw-r-sm); overflow: hidden; background: var(--v10-card); }
+.aw .aw-sketch__cell { min-width: 0; padding: 4px 5px; border-top: 1px solid var(--v10-border); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; }
+.aw .aw-sketch__cell--head { border-top: 0; background: var(--v10-soft); font-weight: 600; color: var(--v10-ink); }
+.aw .aw-sketch__cell--row { font-weight: 500; color: var(--v10-ink); }
+.aw .aw-sketch__line { display: block; width: 70%; height: 4px; border-radius: var(--aw-r-pill); background: var(--v10-border-strong); }
+.aw .aw-sketch__line--wide { width: 90%; height: 6px; }
+.aw .aw-sketch__checks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; width: 100%; }
+.aw .aw-sketch__checks li { display: flex; align-items: center; gap: 6px; padding: 3px 6px; border: 1px solid var(--v10-border); border-radius: var(--aw-r-sm); background: var(--v10-card); }
+.aw .aw-sketch__checks .aw-sketch__text { text-align: left; -webkit-line-clamp: 1; }
+.aw .aw-sketch__tick { flex: none; width: 13px; height: 13px; display: flex; align-items: center; justify-content: center; border-radius: var(--aw-r-xs); background: var(--v10-success); color: var(--text-on-accent); font-size: 9px; font-weight: 700; }
+.aw .aw-sketch__parts { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; width: 100%; }
+.aw .aw-sketch__parts .aw-sketch__box { flex: 0 1 30%; max-width: none; padding: 8px 4px; }
+.aw .aw-sketch__browser { width: 100%; height: 100%; display: flex; flex-direction: column; border: 1px solid var(--v10-border-strong); border-radius: var(--aw-r-sm); overflow: hidden; background: var(--v10-card); }
+.aw .aw-sketch__chrome { display: flex; align-items: center; gap: 3px; padding: 4px 6px; background: var(--v10-soft); border-bottom: 1px solid var(--v10-border); }
+.aw .aw-sketch__chrome i { flex: none; width: 5px; height: 5px; border-radius: var(--aw-r-pill); background: var(--v10-border-strong); }
+.aw .aw-sketch__url { flex: 1; min-width: 0; margin-left: 4px; padding: 1px 6px; border-radius: var(--aw-r-pill); background: var(--v10-card); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.aw .aw-sketch__page { flex: 1; display: flex; flex-direction: column; gap: 6px; padding: 10px; }
+.aw .aw-sketch__form { display: flex; flex-direction: column; gap: 5px; width: 100%; }
+.aw .aw-sketch__input { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.aw .aw-sketch__input .aw-sketch__text { text-align: left; -webkit-line-clamp: 1; }
+.aw .aw-sketch__field { flex: none; width: 70px; height: 18px; border: 1px solid var(--v10-border-strong); border-radius: var(--aw-r-xs); background: var(--v10-card); }
+.aw .aw-sketch__result { align-self: flex-end; max-width: 100%; margin-top: 3px; padding: 3px 10px; border-radius: var(--aw-r-sm); background: var(--v10-signal); color: var(--text-on-accent); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.aw .aw-sketch--sm .aw-sketch__num { width: 12px; height: 12px; font-size: 7px; }
+.aw .aw-sketch--sm .aw-sketch__box { gap: 2px; padding: 4px 2px; }
+.aw .aw-sketch--sm .aw-sketch__field { width: 34px; height: 9px; }
+.aw .aw-sketch--sm .aw-sketch__steps, .aw .aw-sketch--sm .aw-sketch__parts { gap: 3px; }
+.aw .aw-sketch--sm .aw-sketch__form, .aw .aw-sketch--sm .aw-sketch__checks { gap: 2px; }
+.aw .aw-sketch--sm .aw-sketch__checks li { padding: 1px 3px; }
+.aw .aw-sketch--sm .aw-sketch__tick { width: 8px; height: 8px; font-size: 6px; }
+.aw .aw-sketch--sm .aw-sketch__cell { padding: 1px 3px; }
+.aw .aw-sketch--sm .aw-sketch__page { gap: 3px; padding: 5px; }
+.aw .aw-sketch--sm .aw-sketch__result { padding: 1px 5px; }
+.aw .aw-sketch--sm .aw-sketch__text { display: block; max-width: 100%; white-space: nowrap; }
+.aw .aw-sketch--sm .aw-sketch__bar { max-height: 55%; }
+.aw .aw-sketch--sm .aw-sketch__arrow { display: none; }
+.aw .aw-sketch--sm .aw-sketch__bars { gap: 4px; }
 
 /* ── zippie ── */
 .zippie { overflow: visible; flex-shrink: 0; }

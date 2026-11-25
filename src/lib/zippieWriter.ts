@@ -6,16 +6,17 @@ import "server-only";
 // ctx.db is the admin client: every query is scoped to ctx.ws by hand.
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { autopilotDue, cleanAutopilot, rankPicks, type Autopilot, type PieceStatus, type Pick, type WriterCard } from "./contentPicks";
+import { autopilotDue, cleanAutopilot, rankPicks, type Autopilot, type OutlineSection, type PieceStatus, type Pick, type WriterCard } from "./contentPicks";
 import { dfsReady } from "./dataforseo";
 import { entitlement, requireActive, requireWriter } from "./entitlements";
 import { ToolError } from "./mcp/protocol";
 import { kindLabel } from "./moduleCatalog";
 import { draftQuota, periodOf } from "./plans";
-import type { BriefRow } from "./writerBrief";
+import { editSections, type BriefRow } from "./writerBrief";
 import { stepLabel } from "./writeFlow";
 import { startBrief, startDraft } from "./writerServer";
 import { applyEdits } from "./draftEdits";
+import { insertThread, linkPiece, writingProject } from "./writingChatsServer";
 import { brandOf } from "./zippieBrand";
 import type { ToolCtx, ToolEmit, ZippieTool } from "./zippieTools";
 
@@ -38,6 +39,8 @@ async function findItem(ctx: ToolCtx, args: Record<string, unknown>): Promise<It
   const pick = id ? rows : exact.length ? exact : rows;
   if (!pick.length) throw new ToolError(`"${keyword || id}" isn't on the Editorial Calendar. Add it with add_to_content_plan first, then write it.`);
   if (pick.length > 1) throw new ToolError(`More than one piece matches: ${pick.map((r) => `"${r.keyword}" (${r.id})`).join(", ")}. Ask which one, then pass its item_id.`);
+  // Every writer tool finds its piece here, so this is where the chat records that it worked on it (writingChats.ts).
+  await linkPiece(ctx.db, ctx.ws, ctx.threadId, pick[0].id, ctx.userId);
   return pick[0];
 }
 
@@ -113,6 +116,7 @@ export async function pieceStatus(db: SupabaseClient, ws: string, itemId: string
     brand_id: (site?.brand_id as string | null | undefined) ?? null,
     outline: b
       ? {
+          brief_id: b.id,
           status: b.status === "generating" ? stepLabel("brief", b.step) : b.status,
           busy: b.status === "generating",
           error: b.error,
@@ -122,7 +126,7 @@ export async function pieceStatus(db: SupabaseClient, ws: string, itemId: string
             h2: o.h2,
             searches_a_month: (o.searches ?? []).reduce((n, q) => n + (volumes.get(q) ?? 0), 0) || null,
             subheadings: o.h3.map((h) => h.title),
-            blocks: (brief?.modules ?? []).filter((m) => m.placement.toLowerCase() === o.h2.toLowerCase()).map((m) => `${kindLabel(m.type)}: ${m.title}`),
+            blocks: (brief?.modules ?? []).filter((m) => m.placement.toLowerCase() === o.h2.toLowerCase()).map((m) => ({ id: m.title, label: `${kindLabel(m.type)}: ${m.title}` })),
           })),
         }
       : null,
@@ -212,6 +216,48 @@ export const WRITER_TOOLS: ZippieTool[] = [
     },
   },
   {
+    name: "edit_outline",
+    label: "Preparing changes to the outline",
+    description:
+      "Change an outline's sections from the Writer: move, rename, merge, remove or add sections and set their subheadings (\"merge 3 and 4\", \"add a pricing section\", \"make #2 a question\"). Call writing_status first to see the sections in order. Send the whole new list of sections in order: for each one kept, `section` is its number in that list (from 1), with a new `h2` only when it changes; a new section has no `section` and needs an `h2`. Give `h3` only to change its subheadings. Sections left out are removed. Shows the old and new headings on a card; nothing changes until the person presses Apply. Only for an outline with no draft being written.",
+    input_schema: {
+      type: "object",
+      properties: {
+        keyword: { type: "string" },
+        item_id: { type: "string" },
+        sections: {
+          type: "array",
+          maxItems: 30,
+          items: { type: "object", properties: { section: { type: "integer", minimum: 1 }, h2: { type: "string" }, h3: { type: "array", items: { type: "string" } } } },
+        },
+        why: { type: "string", description: "One line on what changes." },
+      },
+      required: ["sections"],
+    },
+    async run(ctx, args, emit) {
+      if (!ctx.canEdit) throw new ToolError("Only editors and admins can change outlines.");
+      const item = await findItem(ctx, args);
+      const [b, d] = await Promise.all([briefOf(ctx.db, ctx.ws, item.id), draftOf(ctx.db, ctx.ws, item.id)]);
+      if (!b?.brief || (b.status !== "ready" && b.status !== "approved")) throw new ToolError(b?.status === "generating" ? `The outline for "${item.keyword}" is still being written.` : `"${item.keyword}" has no outline yet. Start one with write_outline.`);
+      if (d?.status === "generating") throw new ToolError(`The draft for "${item.keyword}" is being written from this outline, so it can't change now.`);
+      const sections: OutlineSection[] = (Array.isArray(args.sections) ? args.sections : []).slice(0, 30).map((x) => {
+        const o = (x && typeof x === "object" ? x : {}) as Record<string, unknown>;
+        const n = Number(o.section);
+        return { from: Number.isInteger(n) && n >= 1 ? n - 1 : null, h2: str(o.h2, 200), ...(Array.isArray(o.h3) ? { h3: o.h3.filter((h): h is string => typeof h === "string").map((h) => h.trim().slice(0, 200)).filter(Boolean) } : {}) };
+      });
+      const after = editSections(b.brief, sections);
+      if (after === b.brief) throw new ToolError("No sections to keep or add: send the whole new list of sections in order.");
+      // The card carries the list as editSections kept it, so Apply saves exactly what the card shows.
+      const kept = sections.filter((s, i, all) => (s.from === null ? Boolean(s.h2) : Boolean(b.brief!.outline[s.from]) && all.findIndex((y) => y.from === s.from) === i));
+      return {
+        before: b.brief.outline.map((o) => o.h2),
+        after: after.outline.map((o) => o.h2),
+        note: "A card with the old and new outline is in the chat; nothing changes until the person presses Apply.",
+        writer_card: card(emit, { view: "outline_edit", item_id: item.id, keyword: item.keyword, brief_id: b.id, before: b.brief.outline.map((o) => o.h2), sections: kept, why: str(args.why, 200) || undefined }),
+      };
+    },
+  },
+  {
     name: "publish_article",
     label: "Getting it ready to publish",
     description:
@@ -291,7 +337,9 @@ async function autopilotRun(db: SupabaseClient, ws: string, siteId: string, bran
   const blocked = await writable(ws);
   const picks = blocked ? [] : await loadPicks(db, ws, siteId, a.count);
   // The day's chat first, so a piece published later (writerPublish.ts) can say so in it.
-  const { data: t } = await db.from("ask_threads").insert({ workspace_id: ws, title: `Autopilot · ${day}`, created_by: a.by }).select("id").single();
+  // It goes into the Content writing folder, marked as Autopilot's (writingChats.ts).
+  const project = await writingProject(db, ws, a.by);
+  const { data: t } = await insertThread(db, { workspace_id: ws, title: `Autopilot · ${day}`, created_by: a.by, project_id: project, kind: "autopilot" });
   const thread = (t as { id: string } | null)?.id ?? null;
   const publish = a.stop === "draft" && a.after !== "keep" ? { publish_after: a.after } : {};
   const started: string[] = [];
@@ -301,6 +349,7 @@ async function autopilotRun(db: SupabaseClient, ws: string, siteId: string, bran
       const { data } = await db.from("calendar_items").select("id, site_id, keyword, status, extra").eq("id", p.item_id).maybeSingle();
       if (!data) continue;
       await outline(db, ws, a.by, data as Item, null, a.stop === "draft", { ...publish, ...(thread ? { autopilot_thread: thread } : {}) });
+      if (thread) await linkPiece(db, ws, thread, p.item_id, a.by);
       started.push(p.keyword);
     } catch (e) {
       failed.push(`${p.keyword}: ${e instanceof Error ? e.message : String(e)}`);

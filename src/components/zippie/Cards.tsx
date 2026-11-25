@@ -10,7 +10,7 @@ import type { WriterCard } from "@/lib/contentPicks";
 import { ConnectWizard } from "../ConnectWizard";
 import { Markdown } from "../Markdown";
 import { Zippie } from "../Zippie";
-import { PicksCard, PieceCard, ReviseCard } from "./WriterCards";
+import { OutlineEditCard, PicksCard, PieceCard, ReviseCard } from "./WriterCards";
 
 // Zippie's replies and the cards inside them: a change set to review, a Connect card, and a skill or Knowledge page to
 // save. Shared by the chat bar's panel and the Zippie page.
@@ -47,6 +47,7 @@ const TOOL_LABEL: Record<string, string> = {
   writing_status: "Checked the writer",
   publish_article: "Got it ready to publish",
   revise_draft: "Prepared changes to the draft",
+  edit_outline: "Prepared changes to the outline",
   read_draft: "Read the draft",
   COMPOSIO_SEARCH_TOOLS: "Looked in your apps",
   COMPOSIO_GET_TOOL_SCHEMAS: "Looked in your apps",
@@ -81,11 +82,18 @@ export function Spark({ size = 14, className = "" }: { size?: number; className?
     </svg>
   );
 }
+/** Open an app page in place, the way the sidebar does. */
+export function goTo(path: string) {
+  window.history.pushState(null, "", path);
+  window.dispatchEvent(new PopStateEvent("popstate"));
+}
 export const Icon = ({ d, size = 16 }: { d: string; size?: number }) => (
   <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" dangerouslySetInnerHTML={{ __html: d }} />
 );
 export const I = {
   plus: '<path d="M12 5v14M5 12h14"/>',
+  arrowUp: '<path d="m6 15 6-6 6 6"/>',
+  arrowDown: '<path d="m6 9 6 6 6-6"/>',
   edit: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
   folder: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/>',
   book: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5Z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/>',
@@ -102,6 +110,7 @@ export const I = {
   chev: '<path d="m9 6 6 6-6 6"/>',
   panel: '<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M14.5 4.5v15"/>',
   chat: '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>',
   box: '<path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/>',
   doc: '<path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h5"/>',
   search: '<circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/>',
@@ -152,6 +161,8 @@ export function Reply({ m, api, auth, canEdit, onSend }: { m: Msg; api: ReturnTy
               <PicksCard key={c.id} picks={c.card.picks} canEdit={canEdit} onSend={onSend} />
             ) : c.card.view === "revise" ? (
               <ReviseCard key={c.id} docId={c.card.doc_id} title={c.card.title} edits={c.card.edits} canEdit={canEdit} />
+            ) : c.card.view === "outline_edit" ? (
+              <OutlineEditCard key={c.id} briefId={c.card.brief_id} before={c.card.before} sections={c.card.sections} why={c.card.why} auth={auth} canEdit={canEdit} />
             ) : (
               <PieceCard key={c.id} itemId={c.card.item_id} keyword={c.card.keyword} api={api} auth={auth} canEdit={canEdit} onSend={onSend} publish={c.card.view === "publish"} />
             )
@@ -223,10 +234,7 @@ function SetupCard({ id, auth, canEdit, onSend }: { id: string; auth: RunAuth; c
         <button
           type="button"
           className="aw-btn aw-btn--primary aw-btn--sm"
-          onClick={() => {
-            window.history.pushState(null, "", "/traffic");
-            window.dispatchEvent(new PopStateEvent("popstate"));
-          }}
+          onClick={() => goTo("/traffic")}
         >
           Open Traffic
         </button>

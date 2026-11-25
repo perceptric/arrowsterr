@@ -3,13 +3,16 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { RunAuth } from "@/lib/runner";
 import type { Skill } from "@/lib/skills/format";
+import type { WritingPiece } from "@/lib/writingChats";
 import { msgOf, useApi, type Msg } from "./Cards";
 
 // Zippie's chat, shared by everything that shows it (docs/zippie-skills-plan.md): the chat bar on every page, the panel
 // that opens on the right and stays open from page to page, the Zippie page, and the Chats list in the sidebar. One
 // chat at a time; a reply keeps streaming while you move around the app.
 
-export type Thread = { id: string; title: string; updated_at: string; project_id: string | null; created_by?: string | null };
+export type Thread = { id: string; title: string; updated_at: string; project_id: string | null; created_by?: string | null; kind?: string | null };
+/** The Content writing folder and the Calendar pieces each writing chat worked on (writingChats.ts). */
+export type Writing = { projectId: string | null; pieces: Record<string, WritingPiece[]> };
 export type KnowledgeRow = { id: string; kind: "file" | "url" | "note"; name: string; source: string; chars: number; scope: "workspace" | "personal"; owner_id: string | null; created_at: string; updated_at: string };
 export type Library = { skills: Skill[]; knowledge: KnowledgeRow[]; me: string; setup?: string };
 /** Where the person is: the brand picked, the page, and the record on screen (a draft) when there is one. */
@@ -20,6 +23,7 @@ type Ctx = {
   canEdit: boolean;
   api: ReturnType<typeof useApi>;
   threads: Thread[];
+  writing: Writing;
   threadId: string | null;
   messages: Msg[];
   busy: boolean;
@@ -63,6 +67,7 @@ const write = (k: string, v: string | null) => {
 export function ZippieProvider({ auth, canEdit, where, onZippiePage, children }: { auth: RunAuth; canEdit: boolean; where: Omit<ZippieWhere, "id">; onZippiePage: boolean; children: React.ReactNode }) {
   const api = useApi(auth);
   const [threads, setThreads] = useState<Thread[]>([]);
+  const [writing, setWriting] = useState<Writing>({ projectId: null, pieces: {} });
   const [threadId, setThreadId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [busy, setBusy] = useState(false);
@@ -79,8 +84,11 @@ export function ZippieProvider({ auth, canEdit, where, onZippiePage, children }:
     write(PANEL_KEY, open ? "1" : null);
   }, []);
   const loadThreads = useCallback(() => {
-    api<{ threads: Thread[]; setup?: string }>("/api/ask", { action: "threads" })
-      .then((r) => setThreads(r.threads))
+    api<{ threads: Thread[]; writing?: Writing; setup?: string }>("/api/ask", { action: "threads" })
+      .then((r) => {
+        setThreads(r.threads);
+        setWriting(r.writing ?? { projectId: null, pieces: {} });
+      })
       .catch(() => {});
   }, [api]);
   const reloadLib = useCallback(() => {
@@ -111,6 +119,8 @@ export function ZippieProvider({ auth, canEdit, where, onZippiePage, children }:
       setThreadId(id);
       setError("");
       setMessages([]);
+      // The chat's pieces may have moved on since the list loaded.
+      loadThreads();
       try {
         const r = await api<{ messages: Msg[] }>("/api/ask", { action: "thread", threadId: id });
         setMessages(r.messages);
@@ -118,7 +128,7 @@ export function ZippieProvider({ auth, canEdit, where, onZippiePage, children }:
         setError(msgOf(e));
       }
     },
-    [api],
+    [api, loadThreads],
   );
 
   const removeThread = useCallback(
@@ -180,7 +190,11 @@ export function ZippieProvider({ auth, canEdit, where, onZippiePage, children }:
             else if (e.type === "changeset") patch((m) => ({ ...m, cards: [...m.cards, { kind: "changeset", id: e.id }] }));
             else if (e.type === "setup") patch((m) => ({ ...m, cards: [...m.cards, { kind: "setup", id: e.id }] }));
             else if (e.type === "proposal") patch((m) => ({ ...m, cards: [...m.cards, { kind: "proposal", id: `p${Date.now()}${m.cards.length}`, proposal: e.proposal }] }));
-            else if (e.type === "writer") patch((m) => ({ ...m, cards: [...m.cards, { kind: "writer", id: `w${Date.now()}${m.cards.length}`, card: e.card }] }));
+            else if (e.type === "writer") {
+              patch((m) => ({ ...m, cards: [...m.cards, { kind: "writer", id: `w${Date.now()}${m.cards.length}`, card: e.card }] }));
+              // A writer tool just linked a piece to this chat: show it in Working on.
+              loadThreads();
+            }
             else if (e.type === "error") setError(e.error);
           }
         }
@@ -201,6 +215,7 @@ export function ZippieProvider({ auth, canEdit, where, onZippiePage, children }:
     canEdit,
     api,
     threads,
+    writing,
     threadId,
     messages,
     busy,

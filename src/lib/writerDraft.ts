@@ -202,7 +202,7 @@ export function sectionPrompt(plan: SectionPlan[], i: number, b: WriterBrief, so
   const example = s.kind === "h2" ? exampleFor(b, s.h2) : null;
   const what =
     s.kind === "intro"
-      ? `Write the intro: 2 or 3 short paragraphs, about ${Math.min(180, Math.round(words / 2))} words. Hook the reader with the problem, say what they'll get, and use the keyword naturally. No heading.`
+      ? `Write the intro: 2 or 3 short paragraphs, about ${Math.min(180, Math.round(words / 2))} words. Open on the reader's real task or situation, in second person ("If the task you want to hand off is...", "You have five minutes before..."), never with a definition, a statistic or a scene-setting cliché. Say what the right choice depends on when there is one, then what this article covers or judges each option on. Use the keyword naturally. No heading.`
       : s.kind === "faq"
         ? `Write the FAQ section "${s.h2}": each question as an h3 block, followed by a 2 to 4 sentence answer as a p block.\nQuestions:\n${s.h3.map((h) => `- ${h.title} (${h.points[0] ?? ""})`).join("\n")}`
         : `Write the section "${s.h2}", about ${s.words ?? words} words. Don't repeat the H2 itself.${s.job ? `\nIts job: ${s.job}` : ""}\nKey points:\n${s.points.map((p) => `- ${p}`).join("\n")}${s.h3.length ? `\nH3s (as h3 blocks, in order): ${s.h3.map((h) => `${h.title} (${h.points.join("; ")})`).join(" | ")}` : ""}`;
@@ -212,7 +212,13 @@ The article's sections, for flow: ${plan.map((p) => (p.kind === "intro" ? "Intro
 ${prev ? `The end of the section before this one:\n${sectionPlain(prev).slice(-1200)}\n` : ""}
 Cite from:
 ${cite}
-${example ? `This section features ${example.name} (${example.url}). Its first sentence is: "${example.opener}" Then walk the reader through it using its facts and its own page (source ${example.sources.join(", ") || "above"}), and link to it once.\n` : ""}${links.length ? `Put these internal links in naturally: ${links.map((l) => `[${l.anchor}](${l.url})`).join(", ")}\n` : ""}${s.cta ? `End the section with the call to action: ${b.cta.text}\n` : ""}${note ? `The editor asked for this change: ${note}\n` : ""}
+${example ? `This section features ${example.name} (${example.url}). Use its facts and its own page and pricing page (source ${example.sources.join(", ") || "above"}), and link to it once.${s.h3.some((h) => /^pros$/i.test(h.title)) ? `
+Write it the way the best comparison pages do:
+- Under "Overview": open with a short scene from the reader's day where ${example.name} helps (second person, 1 or 2 sentences, concrete: a call, a lead, a deadline). Then what it does in that moment, who it fits, and who should skip it or look elsewhere. Work in this sentence where it reads best: "${example.opener}"
+- Under "Pros": a ul of exactly 3 items, each starting with "✅ " and naming a concrete thing a team can do.
+- Under "Cons": a ul of exactly 2 items, each starting with "❌ " and naming a real limit (setup, cost model, missing feature).
+- Under "Pricing": a ul, one plan per item: "[Plan] — [price and unit], [billing terms]." Only plans and prices the sources state; when they state none, one item saying pricing is on request or not published.
+- No hype words ("robust", "seamless", "game-changing", "powerful"). Same plain, fair tone for every option, the brand included.` : ` Its first sentence is: "${example.opener}" Then walk the reader through it.`}\n` : ""}${links.length ? `Put these internal links in naturally: ${links.map((l) => `[${l.anchor}](${l.url})`).join(", ")}\n` : ""}${s.cta ? `End the section with the call to action: ${b.cta.text}\n` : ""}${note ? `The editor asked for this change: ${note}\n` : ""}
 Rules:
 - Write in the Brand Voice and the voice sample above, and follow every house rule. Plain words, no filler, no "in today's fast-paced world", no "delve".
 - Blocks: p (a paragraph), h3, ul or ol (items), quote, table (rows; the first row is the header). Fill only the field the block uses; leave the others empty.
