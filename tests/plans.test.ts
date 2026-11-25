@@ -21,8 +21,8 @@ test("every plan opens both toolsets unless one was picked; more tasks up the la
   assert.deepEqual(access("trial", "seo"), { visibility: true, seo: true }, "only paid plans can be one toolset");
   assert.deepEqual(access("foundation", "seo"), { visibility: false, seo: true });
   assert.deepEqual(access("foundation", "visibility"), { visibility: true, seo: false });
-  const v6 = limitsFor("foundation");
-  assert.deepEqual([v6.prompts, v6.tasksPerMonth, v6.articlesPerMonth, v6.mcp], [50, 2000, 3, true]);
+  const v8 = limitsFor("foundation");
+  assert.deepEqual([v8.prompts, v8.tasksPerMonth, v8.articleTasks, v8.mcp], [25, 1200, 200, true]);
   const vis = limitsFor("foundation", { track: "visibility", limitsFrom: "v5" });
   const seo = limitsFor("foundation", { track: "seo", limitsFrom: "v5" });
   assert.deepEqual([vis.prompts, vis.tasksPerMonth], [50, 300]);
@@ -37,48 +37,82 @@ test("every plan opens both toolsets unless one was picked; more tasks up the la
   assert.deepEqual(effectivePlan("free", "active", "2020-01-01T00:00:00Z"), { plan: "free", status: "active" }, "workspaces already on Free keep it");
 });
 
-test("pricing v7: tick one toolset for a lower price, with that toolset's limits", async () => {
+test("pricing v8: tick one toolset for a lower price, with that toolset's limits", async () => {
   const { priceOf, MIXES } = await import("../src/lib/plans.ts");
   const prices = (mix: "both" | "visibility" | "seo") => ["foundation", "scale", "agency"].map((id) => [priceOf(id as "scale", mix, "month"), priceOf(id as "scale", mix, "year")]);
-  assert.deepEqual(prices("both"), [[49, 42], [199, 169], [599, 509]]);
-  assert.deepEqual(prices("seo"), [[29, 25], [129, 110], [349, 297]]);
-  assert.deepEqual(prices("visibility"), [[29, 25], [99, 84], [299, 254]]);
+  assert.deepEqual(prices("both"), [[29, 25], [89, 76], [249, 212]]);
+  assert.deepEqual(prices("seo"), [[19, 16], [59, 50], [159, 135]]);
+  assert.deepEqual(prices("visibility"), [[19, 16], [59, 50], [169, 144]]);
   for (const id of ["foundation", "scale", "agency"] as const) {
     assert.equal(priceOf(id, "both", "month"), PLANS[id].price, `${id} both matches PLANS`);
     assert.equal(priceOf(id, "both", "year"), PLANS[id].annual);
-    for (const mix of MIXES) assert.ok(Math.abs(priceOf(id, mix, "year") - priceOf(id, mix, "month") * 0.85) <= 1, `${id} ${mix} yearly is 15% off`);
+    for (const mix of MIXES) assert.equal(priceOf(id, mix, "year"), Math.round(priceOf(id, mix, "month") * 0.85), `${id} ${mix} yearly is 15% off, rounded`);
     assert.ok(priceOf(id, "seo", "month") + priceOf(id, "visibility", "month") > priceOf(id, "both", "month"), `${id}: both costs less than the two apart`);
   }
   // SEO Research only: no prompts tracked, so nothing checked a day.
   const seo = limitsFor("scale", { track: "seo" });
-  assert.deepEqual([seo.prompts, seo.checkNowPerDay, dailyAnswers(seo), seo.tasksPerMonth, seo.articlesPerMonth, seo.writer], [0, 0, 0, 8000, 20, "full"]);
+  assert.deepEqual([seo.prompts, seo.checkNowPerDay, dailyAnswers(seo), seo.tasksPerMonth, seo.articleTasks, seo.writer], [0, 0, 0, 4000, 200, "full"]);
   // AI Visibility only: no Writer or Content Plan, and fewer tasks.
   const vis = (id: "foundation" | "scale" | "agency") => limitsFor(id, { track: "visibility" });
-  assert.deepEqual(["foundation", "scale", "agency"].map((id) => vis(id as "scale").tasksPerMonth), [500, 1500, 4000]);
-  assert.deepEqual([vis("scale").prompts, vis("scale").writer, vis("scale").articlesPerMonth, vis("scale").plansPerMonth], [150, "none", 0, 0]);
-  // A v5 Starter keeps its own split, not the v7 one.
+  assert.deepEqual(["foundation", "scale", "agency"].map((id) => vis(id as "scale").tasksPerMonth), [300, 1000, 3000]);
+  assert.deepEqual([vis("scale").prompts, vis("scale").writer, vis("scale").plansPerMonth], [75, "none", 0]);
+  // A v5 Starter keeps its own split, and a v7 one-toolset plan keeps the v7 split.
   assert.equal(limitsFor("foundation", { track: "visibility", limitsFrom: "v5" }).tasksPerMonth, 300);
+  assert.equal(limitsFor("scale", { track: "visibility", limitsFrom: "v7" }).tasksPerMonth, 1500);
+  assert.equal(limitsFor("agency", { track: "seo", limitsFrom: "v7" }).tasksPerMonth, 20_000);
 });
 
 test("extra tasks add 1,000 a month per step, on top of the plan and its mix", async () => {
   const { TASK_STEP, stepPrice } = await import("../src/lib/plans.ts");
   assert.deepEqual([TASK_STEP.tasks, TASK_STEP.price, TASK_STEP.annual], [1000, 10, 8.5]);
-  assert.equal(limitsFor("scale", { tasks: 2 }).tasksPerMonth, 10_000);
-  assert.equal(limitsFor("agency", { track: "visibility", tasks: 3 }).tasksPerMonth, 7_000);
-  assert.equal(limitsFor("scale", { tasks: -4 }).tasksPerMonth, 8_000, "never below the plan");
+  assert.equal(limitsFor("scale", { tasks: 2 }).tasksPerMonth, 6_000);
+  assert.equal(limitsFor("agency", { track: "visibility", tasks: 3 }).tasksPerMonth, 6_000);
+  assert.equal(limitsFor("scale", { tasks: -4 }).tasksPerMonth, 4_000, "never below the plan");
   assert.deepEqual([stepPrice(2, "month"), stepPrice(2, "year")], [20, 17]);
 });
 
-test("v7 Stripe keys carry the mix, and older keys still map", async () => {
-  const { planOfLookup, lookupKey, tasksLookupKey, isTasksLookup } = await import("../src/lib/plans.ts");
-  assert.equal(lookupKey("scale", "month"), "arrowsterr_v7_scale_both_month");
-  assert.equal(lookupKey("agency", "year", "seo"), "arrowsterr_v7_agency_seo_year");
+test("extra prompts add 25 a day per step; the card price adds prompts (not on SEO Research only) and tasks", async () => {
+  const { PROMPT_STEP, promptStepPrice, cardPrice } = await import("../src/lib/plans.ts");
+  assert.deepEqual([PROMPT_STEP.prompts, PROMPT_STEP.price, PROMPT_STEP.annual], [25, 15, 12.75]);
+  assert.equal(limitsFor("scale", { prompts: 2 * PROMPT_STEP.prompts }).prompts, 125);
+  assert.equal(limitsFor("scale", { track: "seo", prompts: 50 }).prompts, 50, "extras still add on top of a one-toolset plan");
+  assert.deepEqual([promptStepPrice(2, "month"), promptStepPrice(2, "year")], [30, 25.5]);
+  assert.equal(cardPrice("scale", "both", "month", 2, 2), 89 + 30 + 20);
+  assert.equal(cardPrice("scale", "seo", "month", 2, 2), 59 + 20, "SEO Research only buys no prompts");
+  assert.equal(cardPrice("foundation", "both", "year", 1, 1), 25 + 12.75 + 8.5);
+});
+
+test("pricing v8: an article takes 200 tasks, and older plans keep counting articles", async () => {
+  const { draftQuota, TASK_COST, ARTICLE_TASKS } = await import("../src/lib/plans.ts");
+  assert.equal(ARTICLE_TASKS, 200);
+  assert.equal(TASK_COST.article, 200);
+  for (const id of ["foundation", "scale", "agency"] as const) {
+    const q = draftQuota(PLANS[id], "2026-11-01");
+    assert.equal(q.tasks, 200, id);
+    assert.ok(q.limit >= 10_000, `${id}: no monthly article cap`);
+    assert.equal(q.scope, "workspace");
+  }
+  assert.equal(draftQuota(limitsFor("scale", { track: "visibility" }), "2026-11-01").limit, 0, "no Writer on AI Visibility only");
+  const v7 = limitsFor("scale", { limitsFrom: "v7" });
+  assert.deepEqual(draftQuota(v7, "2026-11-01"), { limit: 20, period: "2026-11-01", scope: "workspace" });
+  assert.equal(v7.prompts, 150);
+});
+
+test("v8 Stripe keys carry the mix, the add-ons are not plans, and v7 and older keys still map", async () => {
+  const { planOfLookup, lookupKey, tasksLookupKey, promptsLookupKey, isTasksLookup, isPromptsLookup, isAddonLookup } = await import("../src/lib/plans.ts");
+  assert.equal(lookupKey("scale", "month"), "arrowsterr_v8_scale_both_month");
+  assert.equal(lookupKey("agency", "year", "seo"), "arrowsterr_v8_agency_seo_year");
+  assert.deepEqual(planOfLookup("arrowsterr_v8_foundation_visibility_month"), { plan: "foundation", interval: "month", version: 8, mix: "visibility" });
   assert.deepEqual(planOfLookup("arrowsterr_v7_foundation_visibility_month"), { plan: "foundation", interval: "month", version: 7, mix: "visibility" });
   assert.deepEqual(planOfLookup("arrowsterr_v6_scale_year"), { plan: "scale", interval: "year", version: 6, mix: "both" });
   assert.equal(planOfLookup(tasksLookupKey("month")), null, "the extra-tasks price is not a plan");
-  assert.equal(tasksLookupKey("year"), "arrowsterr_v7_tasks_year");
+  assert.equal(planOfLookup(promptsLookupKey("month")), null, "the extra-prompts price is not a plan");
+  assert.equal(tasksLookupKey("year"), "arrowsterr_v8_tasks_year");
+  assert.equal(promptsLookupKey("month"), "arrowsterr_v8_prompts_month");
   assert.ok(isTasksLookup("arrowsterr_v7_tasks_month"));
-  assert.equal(isTasksLookup("arrowsterr_v7_scale_both_month"), false);
+  assert.ok(isPromptsLookup("arrowsterr_v8_prompts_year"));
+  assert.ok(isAddonLookup("arrowsterr_v8_prompts_month") && isAddonLookup("arrowsterr_v8_tasks_month"));
+  assert.equal(isAddonLookup("arrowsterr_v8_scale_both_month"), false);
 });
 
 test("Free, kept by the workspaces already on it: 15 weekly prompts on 2 AIs, 200 tasks, 1 article to try, no Content Plan or MCP", () => {
@@ -96,34 +130,39 @@ test("Free, kept by the workspaces already on it: 15 weekly prompts on 2 AIs, 20
   assert.equal(nextPlan("free"), "foundation");
 });
 
-test("pricing v7 plans with both toolsets, and v5 subscribers keep v5 limits", async () => {
+test("pricing v8 plans with both toolsets, and v5 and v7 subscribers keep their limits", async () => {
   const { draftQuota } = await import("../src/lib/plans.ts");
   assert.deepEqual(
     LADDER.map((id) => [PLANS[id].price, PLANS[id].annual]),
     [
-      [49, 42],
-      [199, 169],
-      [599, 509],
+      [29, 25],
+      [89, 76],
+      [249, 212],
       [1500, 1500],
     ],
   );
-  assert.deepEqual(LADDER.map((id) => PLANS[id].prompts), [50, 150, 500, 1500]);
-  assert.deepEqual(LADDER.map((id) => PLANS[id].tasksPerMonth), [2000, 8000, 20000, 50000]);
-  assert.deepEqual(LADDER.map((id) => PLANS[id].articlesPerMonth), [3, 20, 60, 150]);
+  assert.deepEqual(LADDER.map((id) => PLANS[id].prompts), [25, 75, 200, 1500]);
+  assert.deepEqual(LADDER.map((id) => PLANS[id].tasksPerMonth), [1200, 4000, 12000, 50000]);
+  assert.deepEqual(LADDER.map((id) => PLANS[id].articleTasks), [200, 200, 200, 0]);
   assert.deepEqual([PLANS.foundation.brands, PLANS.scale.brands, PLANS.agency.brands], [2, 5, 25]);
-  assert.deepEqual([PLANS.foundation.seats, PLANS.scale.seats, PLANS.agency.seats], [3, 5, 15]);
+  assert.deepEqual([PLANS.foundation.seats, PLANS.scale.seats, PLANS.agency.seats], [2, 5, 15]);
+  assert.deepEqual([PLANS.foundation.competitors, PLANS.scale.competitors, PLANS.agency.competitors], [10, 15, 25]);
+  assert.deepEqual([PLANS.foundation.historyDays, PLANS.scale.historyDays, PLANS.agency.historyDays], [180, 365, 730]);
   assert.deepEqual(LADDER.map((id) => PLANS[id].mcp), [true, true, true, true]);
   assert.deepEqual(LADDER.map((id) => PLANS[id].alerts), [false, true, true, true]);
   for (const id of LADDER) assert.equal(PLANS[id].writer, "full", id);
   const extra = limitsFor("foundation", { brands: 2 });
   assert.equal(extra.brands, 4);
+  // v7 subscribers (v6 and v7 prices)
+  const pro7 = limitsFor("scale", { limitsFrom: "v7" });
+  assert.deepEqual([pro7.prompts, pro7.tasksPerMonth, pro7.articlesPerMonth, pro7.articleTasks], [150, 8000, 20, 0]);
   // v5 subscribers
   const pro5 = limitsFor("scale", { limitsFrom: "v5" });
   assert.deepEqual([pro5.brands, pro5.draftsPerBrand, pro5.articlesPerMonth], [10, 10, 0]);
   assert.ok(limitsFor("agency", { limitsFrom: "v5" }).brands >= 1000);
   assert.equal(limitsFor("foundation", { limitsFrom: "v5" }).writer, "none");
   // how drafts count
-  assert.deepEqual(draftQuota(PLANS.scale, "2026-11-01"), { limit: 20, period: "2026-11-01", scope: "workspace" });
+  assert.deepEqual(draftQuota(PLANS.enterprise, "2026-11-01"), { limit: 150, period: "2026-11-01", scope: "workspace" });
   assert.deepEqual(draftQuota(PLANS.free, "2026-11-01"), { limit: 1, period: "once", scope: "workspace" });
   assert.deepEqual(draftQuota(pro5, "2026-11-01"), { limit: 10, period: "2026-11-01", scope: "brand" });
   assert.deepEqual(draftQuota(PLANS.trial, "2026-11-01"), { limit: 3, period: "2026-11-01", scope: "brand" });
@@ -142,14 +181,14 @@ test("white label is only on Agency and Enterprise", () => {
 
 test("extras add to the plan, and the daily extra overrides the schedule", () => {
   const l = limitsFor("foundation", { prompts: 10, seats: 1, daily: true });
-  assert.equal(l.prompts, 60);
-  assert.equal(l.seats, 4);
+  assert.equal(l.prompts, 35);
+  assert.equal(l.seats, 3);
   assert.equal(l.checkEvery, 1);
   assert.equal(limitsFor("trial").checkEvery, 1);
 });
 
 test("daily AI answers cover every prompt on every AI plus on-demand checks", () => {
-  assert.equal(dailyAnswers(PLANS.foundation), (50 + 3) * 6);
+  assert.equal(dailyAnswers(PLANS.foundation), (25 + 3) * 6);
   assert.equal(dailyAnswers(PLANS.trial), 180); // matches the database default for new workspaces (020_leaner_plans.sql)
 });
 
@@ -176,10 +215,10 @@ test("billing months start on the plan's day, and short months use their last da
   assert.equal(cycleStart(new Date("2026-10-14T00:00:00Z"), new Date("2026-10-13T23:00:00Z")).toISOString().slice(0, 10), "2026-09-14");
   assert.equal(periodOf("tasks", new Date("2026-10-20T00:00:00Z"), "2026-10-14T08:00:00Z"), "2026-10-14");
   assert.equal(periodOf("tasks", new Date("2026-10-20T00:00:00Z")), "2026-10");
-  assert.deepEqual(planOfLookup(lookupKey("scale", "year")), { plan: "scale", interval: "year", version: 7, mix: "both" });
+  assert.deepEqual(planOfLookup(lookupKey("scale", "year")), { plan: "scale", interval: "year", version: 8, mix: "both" });
   assert.deepEqual(planOfLookup("arrowsterr_thrive_year"), { plan: "thrive", interval: "year", version: 0, mix: "both" });
   assert.deepEqual(planOfLookup("arrowsterr_v3_scale_month"), { plan: "scale", interval: "month", version: 3, mix: "both" });
-  assert.equal(lookupKey("agency", "month"), "arrowsterr_v7_agency_both_month");
+  assert.equal(lookupKey("agency", "month"), "arrowsterr_v8_agency_both_month");
   assert.deepEqual(planOfLookup("arrowsterr_v5_foundation_year"), { plan: "foundation", interval: "year", version: 5, mix: "both" });
   assert.equal(planOfLookup("arrowsterr_enterprise_month"), null);
 });

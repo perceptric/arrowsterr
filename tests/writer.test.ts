@@ -360,6 +360,35 @@ test("the 11th draft in a month is refused, and Regenerate isn't counted", async
   assert.ok((await requestDraft(store, { brief: { ...brief, brand_id: "br2", id: "x", item_id: "j1" }, limit: 10, period: "2026-10" })).ok);
 });
 
+test("pricing v8: a new article takes 200 tasks, Regenerate takes none, and tasks come back when no draft is made", async () => {
+  const brief = await approvedBrief();
+  const { db, store } = quotaMemory();
+  let left = 450;
+  const paid: number[] = [];
+  store.pay = async (_ws, n) => {
+    if (n > left) return { ok: false, error: "Out of tasks." };
+    left -= n;
+    paid.push(n);
+    return { ok: true, giveBack: async () => void (left += n) };
+  };
+  const ask = (item: string, extra: Partial<Parameters<typeof requestDraft>[1]> = {}) => requestDraft(store, { brief: { ...brief, id: `b-${item}`, item_id: item }, limit: 100_000, period: "2026-11", tasks: 200, ...extra });
+  assert.ok((await ask("a1")).ok);
+  assert.ok((await ask("a2")).ok);
+  assert.equal(left, 50);
+  const third = await ask("a3");
+  assert.ok(!third.ok && third.status === 429 && third.error === "Out of tasks.");
+  // Regenerate is free.
+  db.drafts[0].status = "ready";
+  assert.ok((await ask("a1")).ok);
+  assert.equal(left, 50);
+  // A full month hands the tasks back.
+  left = 1000;
+  const full = await requestDraft(store, { brief: { ...brief, id: "b-z", item_id: "z1" }, limit: 2, period: "2026-11", tasks: 200 });
+  assert.ok(!full.ok && full.status === 429);
+  assert.equal(left, 1000, "tasks handed back");
+  assert.deepEqual(paid, [200, 200, 200]);
+});
+
 test("Regenerate asks before replacing hand edits, and a draft needs an approved brief", async () => {
   const brief = await approvedBrief();
   const { db, store } = quotaMemory();

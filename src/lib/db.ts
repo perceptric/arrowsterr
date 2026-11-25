@@ -6,7 +6,7 @@ import type { Chat, Run } from "./chats";
 import { cleanSources } from "./sources";
 import { cleanMentions } from "./brandNames";
 import type { AgentResult, PlanBrief } from "./research";
-import { access, cycleEnd, effectivePlan, limitsFor, METRICS, nextPlan, periodOf as periodFor, type Extras, type Metric, type PlanId, type Track } from "./plans";
+import { access, cycleEnd, effectivePlan, limitsFor, METRICS, nextPlan, periodOf as periodFor, type Extras, type Metric, type PlanId, type Track, PROMPT_STEP } from "./plans";
 import type { Brief, Serp } from "./briefTypes";
 import type { BrandGuideline } from "./writerTypes";
 
@@ -334,7 +334,11 @@ export async function getPlanUsage(sb: SupabaseClient, workspaceId: string) {
     track: (w.extras?.track ?? null) as Track | null,
     trackAt: (w.extras?.trackAt ?? null) as string | null,
     taskSteps: Math.max(0, Math.floor(Number(w.extras?.tasks ?? 0))),
+    // Pricing v8 prompt steps; an older price's extra prompts were set by hand and are no steps.
+    promptSteps: w.extras?.limitsFrom ? 0 : Math.max(0, Math.floor(Number(w.extras?.prompts ?? 0) / PROMPT_STEP.prompts)),
     v5: w.extras?.limitsFrom === "v5",
+    // On an older price (v5 to v7): any pick on a card moves the workspace to today's prices.
+    older: Boolean(w.extras?.limitsFrom),
     open: access(now.plan, w.extras?.track),
     name: limits.name,
     status: now.status,

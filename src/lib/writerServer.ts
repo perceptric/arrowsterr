@@ -11,7 +11,7 @@ import { drive, runBrief, toPack, type ResearchRows, type BriefDeps, type BriefR
 import { chainDraft, CHECK_SCHEMA, requestDraft, runDraft, SECTION_SCHEMA, type DraftAsk, type DraftDeps, type DraftRow, type DraftStore, type QuotaStore, type ChainStore } from "./writerDraft";
 import { MODULE_SCHEMA } from "./writerModules";
 import { ensureBrandSetup } from "./brandSetupServer";
-import { entitlement } from "./entitlements";
+import { entitlement, take } from "./entitlements";
 import { draftQuota, periodOf } from "./plans";
 import { DEFAULT_SAMPLE } from "./houseRules";
 import { pageText } from "./pageText";
@@ -104,6 +104,12 @@ export function quotaStore(db: SupabaseClient): QuotaStore {
       const rows = must(res) as { draft_id: string | null; outcome: "created" | "exists" | "full" }[] | null;
       const r = rows?.[0];
       return { outcome: r?.outcome ?? "full", id: r?.draft_id ?? null };
+    },
+    async pay(workspaceId, tasks) {
+      const t = await take(workspaceId, "tasks", tasks, { refundIfFree: false });
+      if (t.ok) return { ok: true as const, giveBack: t.giveBack };
+      const body = (await t.response.json().catch(() => ({}))) as { error?: string };
+      return { ok: false as const, error: body.error ?? `A new article takes ${tasks} tasks. Buy a task pack to keep going.` };
     },
     async regenerate(id, patch) {
       const cur = must(await db.from("writer_drafts").select("version").eq("id", id).single()) as { version: number };
