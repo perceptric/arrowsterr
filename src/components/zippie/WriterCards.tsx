@@ -6,16 +6,19 @@
 // Publish panel as Drafts; and changes to an outline or a draft's text that apply only when the person presses Apply.
 
 import { useCallback, useEffect, useState } from "react";
+import { visualsOf, type VisualChip } from "@/lib/articleNotes";
 import type { OutlineSection, PieceStatus, Pick } from "@/lib/contentPicks";
 import { getDoc, getGuideline, saveDoc } from "@/lib/db";
 import { docToHtml } from "@/lib/docHtml";
 import { applyEdits, wordsIn, type DraftEdit } from "@/lib/draftEdits";
 import { currentSupabase } from "@/lib/supa";
 import type { RunAuth } from "@/lib/runner";
+import { getBrief } from "@/lib/writerLibrary";
 import { PublishPanel } from "../research/PublishPanel";
 import { post } from "../research/shared";
 import { brandTables } from "../research/Writer";
 import { exportClean } from "../research/writerNodes";
+import { VisualSketch } from "../writer/VisualSketch";
 import { I, Icon, msgOf, type SendFn, type useApi } from "./Cards";
 
 const WRITE_ARTICLE = "system:write-article";
@@ -168,6 +171,7 @@ function OutlineCard({ outline: o, title, itemId, keyword, auth, canEdit, onSend
   const [edit, setEdit] = useState<Draft[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const visuals = useVisuals(o);
   const set = (i: number, patch: Partial<Draft>) => setEdit((l) => l && l.map((s, j) => (j === i ? { ...s, ...patch } : s)));
   const move = (i: number, by: number) =>
     setEdit((l) => {
@@ -261,7 +265,8 @@ function OutlineCard({ outline: o, title, itemId, keyword, auth, canEdit, onSend
               ) : s.h3.length ? (
                 <span className="text-[13px] text-muted">{s.h3.join(" · ")}</span>
               ) : null}
-              {s.blocks.map((b) => (
+              {!edit && visuals ? <VisualRows visuals={visuals[i] ?? []} /> : null}
+              {(edit || !visuals ? s.blocks : []).map((b) => (
                 <span key={b.id} className={`inline-flex items-center gap-2 self-start rounded-aw bg-surface-2 px-2.5 py-1.5 text-[13px] ${b.off ? "text-muted line-through" : "text-body"}`}>
                   <Icon d={I.box} size={14} />
                   {b.label}
@@ -313,6 +318,46 @@ function OutlineCard({ outline: o, title, itemId, keyword, auth, canEdit, onSend
         )}
       </div>
     </div>
+  );
+}
+
+/**
+ * The images and modules planned under each heading, read from the outline itself so each shows its sketch. null
+ * until it loads (the card shows the plain block names meanwhile). Reads again when the headings change.
+ */
+function useVisuals(o: Outline): VisualChip[][] | null {
+  const [state, setState] = useState<{ key: string; list: VisualChip[][] } | null>(null);
+  const key = `${o.brief_id}|${o.headings.map((h) => `${h.h2}:${h.blocks.map((b) => b.id).join(",")}`).join("|")}`;
+  useEffect(() => {
+    let live = true;
+    getBrief(currentSupabase(), o.brief_id)
+      .then((row) => {
+        const b = row?.brief;
+        if (live && b) setState({ key, list: b.outline.map((part, i) => visualsOf(b, { key: `h2-${i}`, h2: part.h2 })) });
+      })
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, [key, o.brief_id]);
+  return state?.key === key ? state.list : null;
+}
+
+/** A heading's visuals in the outline card: a small sketch beside what each one is. */
+function VisualRows({ visuals }: { visuals: VisualChip[] }) {
+  if (!visuals.length) return null;
+  return (
+    <span className="flex flex-col gap-2 pt-1">
+      {visuals.map((v) => (
+        <span key={`${v.kind}:${v.id}`} className="flex items-center gap-3">
+          <VisualSketch sketch={v.sketch} small />
+          <span className="flex min-w-0 flex-col gap-0.5">
+            <span className="text-[12px] font-semibold text-brand">{v.kindLabel}</span>
+            <span className="text-[13px] text-ink [overflow-wrap:anywhere]">{v.title}</span>
+          </span>
+        </span>
+      ))}
+    </span>
   );
 }
 

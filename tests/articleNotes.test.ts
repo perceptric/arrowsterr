@@ -44,7 +44,7 @@ const notes: FactNote[] = [
   { id: "n2", source: 1, quote: "HubSpot has a free plan for up to 2 users.", fact: "HubSpot is free for 2 users.", numbers: ["2"] },
 ];
 
-test("cards keep only real note ids and allowed links, move Detail needed points to gaps and share the words", () => {
+test("cards keep only real note ids and allowed links, drop Detail needed points and share the words", () => {
   const cards = cleanCards(
     [
       { key: "intro", h2: "", job: "Say who this is for", points: ["Founders pick on cost"], facts: ["n2"], words: 100, links: [], gaps: [] },
@@ -66,7 +66,7 @@ test("cards keep only real note ids and allowed links, move Detail needed points
   );
   assert.deepEqual(cards[1].facts, ["n1"]);
   assert.deepEqual(cards[1].points, ["Pipedrive per seat"]);
-  assert.deepEqual(cards[1].gaps, ["Attio's price"]);
+  assert.deepEqual(cards[1].gaps, []);
   assert.deepEqual(cards[1].links, [{ url: "https://acme.com/pricing", anchor: "our pricing" }]);
   assert.equal(cards[1].keyword, true);
   assert.deepEqual(
@@ -85,10 +85,26 @@ test("an older brief gets plain cards, and chips list the images and modules und
     ["intro", "h2-0"],
   );
   const chips = visualsOf({ images: [{ placement: "pricing", shows: "Prices", kind: "chart" }, { placement: "intro", shows: "Hero" }], modules: [{ title: "Cost calculator", placement: "Pricing" }] }, cards[1]);
-  assert.deepEqual(chips, [
-    { kind: "image", id: "pricing|chart|Prices", label: "Chart" },
-    { kind: "module", id: "Cost calculator", label: "Cost calculator" },
-  ]);
+  assert.deepEqual(
+    chips.map(({ kind, id, label, kindLabel }) => ({ kind, id, label, kindLabel })),
+    [
+      { kind: "image", id: "pricing|chart|Prices", label: "Chart", kindLabel: "Image · Chart" },
+      { kind: "module", id: "Cost calculator", label: "Cost calculator", kindLabel: "Interactive · Module" },
+    ],
+  );
+  const full = visualsOf(
+    {
+      images: [{ placement: "How to calculate NPS", shows: "The three steps", kind: "steps", alt: "Three boxes: collect, sort, subtract" }],
+      modules: [{ title: "NPS calculator", placement: "How to calculate NPS", type: "calculator", purpose: "Work out your score", inputs: ["Promoters", "Detractors"], outputs: ["Your NPS"] }],
+      outline: [{ h2: "How to calculate NPS", h3: [{ title: "Step 1: Collect responses" }, { title: "Step 2: Sort them" }, { title: "Step 3: Subtract" }] }],
+    },
+    { key: "h2-0", h2: "How to calculate NPS" },
+  );
+  assert.deepEqual(full[0].sketch, { kind: "steps", steps: ["Collect responses", "Sort", "Subtract"] });
+  assert.equal(full[0].note, "Alt text: Three boxes: collect, sort, subtract");
+  assert.equal(full[1].kindLabel, "Interactive · Calculator");
+  assert.equal(full[1].note, "Reader enters: Promoters, Detractors · Reader gets: Your NPS");
+  assert.deepEqual(full[1].sketch, { kind: "form", inputs: ["Promoters", "Detractors"], output: "Your NPS" });
   assert.deepEqual(
     visualsOf({ images: [{ placement: "intro", shows: "Hero" }], modules: [] }, cards[0]).map((c) => c.label),
     ["Image"],
@@ -172,7 +188,7 @@ test("the brief keeps the notes that quote their page, and cards that cite only 
     [
       ["intro", ["n2"], []],
       ["h2-0", ["n1"], []],
-      ["h2-1", [], ["a real trial length"]],
+      ["h2-1", [], []],
     ],
   );
   assert.deepEqual(cardProblems(b.cards!, { notes: b.notes!, keyword: "crm for startups", h1: b.h1 }).filter((p) => !p.includes("no points")), []);
@@ -204,13 +220,14 @@ test("outline edits rename a heading everywhere, drop a fact or a module, and ne
   assert.equal(fewer.modules.length, 0);
 });
 
-test("the brief schema asks for the intro card before the outline, and a gap drops its Detail needed label", async () => {
+test("the brief schema asks for the intro card before the outline and no longer asks for gaps", async () => {
   const { BRIEF_NOTES_SCHEMA } = await import("../src/lib/writerBrief.ts");
   const keys = Object.keys(BRIEF_NOTES_SCHEMA.properties);
   assert.ok(keys.indexOf("intro") < keys.indexOf("outline"));
   assert.ok(keys.indexOf("job") < keys.indexOf("titles"));
   const [c] = cleanCards([{ key: "intro", h2: "", job: "j", points: ["p"], facts: [], words: 100, links: [], gaps: ["Detail needed: the 2026 price"] }], { notes, keyword: "x", wordTarget: 100, sitemap: [], sources: [] });
-  assert.deepEqual(c.gaps, ["the 2026 price"]);
+  assert.deepEqual(c.gaps, []);
+  assert.equal("gaps" in BRIEF_NOTES_SCHEMA.properties.intro.properties, false);
 });
 
 test("a card with no points takes its outline part's points", async () => {

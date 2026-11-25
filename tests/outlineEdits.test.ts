@@ -74,3 +74,29 @@ test("a section can't be kept twice, a new one needs a heading, and an empty lis
   assert.deepEqual(next.outline.map((o) => o.h2), ["1. HubSpot"]);
   assert.equal(editBrief(brief, { sections: [] }).outline.length, 3);
 });
+
+test("a visual's card rewords it: an image's description and alt text, a module's title and purpose", () => {
+  const next = editBrief(brief, {
+    visuals: [
+      { kind: "image", id: "1. HubSpot|screenshot|HubSpot", shows: "HubSpot's pricing page", alt: "HubSpot pricing tiers" },
+      { kind: "module", id: "Seat cost calculator", title: "CRM cost calculator", purpose: "Work out a year of seats" },
+      { kind: "module", id: "Not a module", title: "Ignored" },
+    ],
+  });
+  assert.deepEqual(next.images?.[0], { placement: "1. HubSpot", kind: "screenshot", shows: "HubSpot's pricing page", alt: "HubSpot pricing tiers", url: "https://hubspot.com" });
+  assert.deepEqual(next.images?.slice(1), brief.images?.slice(1));
+  assert.equal(next.modules[0].title, "CRM cost calculator");
+  assert.equal(next.modules[0].purpose, "Work out a year of seats");
+  assert.equal(next.modules[0].placement, "2. Pipedrive");
+  assert.equal(next.modules.length, 1);
+  // A blank title keeps the old one.
+  assert.equal(editBrief(brief, { visuals: [{ kind: "module", id: "Seat cost calculator", title: "  " }] }).modules[0].title, "Seat cost calculator");
+});
+
+test("an older brief with no cards still drops a removed image", () => {
+  const old = { ...brief, cards: undefined } as unknown as WriterBrief;
+  assert.deepEqual(
+    editBrief(old, { removeImages: ["intro|chart|Market"] }).images?.map((m) => m.shows),
+    ["HubSpot", "Pipedrive"],
+  );
+});
