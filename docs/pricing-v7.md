@@ -1,5 +1,7 @@
 # Pricing v7
 
+Replaced by `docs/pricing-v8.md`. Subscribers on a v6 or v7 price keep these limits (`extras.limitsFrom = "v7"`).
+
 Built November 2026. Replaces the prices in `docs/pricing-v6.md`. Unit costs are the same as v6: one prompt tracked for a month ~$0.27, one task ~$0.005, one article ~$0.82, plus each plan's other costs from v6 (traffic, reports and the rest: ~$1.72 on Starter, ~$6.07 on Pro, ~$17.67 on Agency).
 
 What changed from v6:

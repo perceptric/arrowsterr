@@ -2,7 +2,7 @@
 // Needs STRIPE_SECRET_KEY (test or live). Safe to run again: it only adds what is missing,
 // and moves a lookup key to a new price when a plan's price changed in src/lib/plans.ts.
 
-import { MIXES, PLANS, SELF_SERVE, TASK_STEP, lookupKey, priceOf, tasksLookupKey } from "../src/lib/plans.ts";
+import { MIXES, PLANS, PROMPT_STEP, SELF_SERVE, TASK_STEP, lookupKey, priceOf, promptsLookupKey, tasksLookupKey } from "../src/lib/plans.ts";
 
 const key = (process.env.STRIPE_SECRET_KEY ?? "").trim();
 if (!key) {
@@ -76,5 +76,10 @@ for (const id of SELF_SERVE) {
 await product("arrowsterr_tasks", `Arrowsterr extra tasks (${TASK_STEP.tasks.toLocaleString("en-US")} a month)`, { addon: "tasks" });
 for (const interval of ["month", "year"]) {
   await price("arrowsterr_tasks", tasksLookupKey(interval), Math.round((interval === "year" ? TASK_STEP.annual * 12 : TASK_STEP.price) * 100), interval, { addon: "tasks", interval });
+}
+// Extra prompts (pricing v8): one unit is PROMPT_STEP.prompts checked daily, bought by quantity next to a plan.
+await product("arrowsterr_prompts", `Arrowsterr extra prompts (${PROMPT_STEP.prompts} checked daily)`, { addon: "prompts" });
+for (const interval of ["month", "year"]) {
+  await price("arrowsterr_prompts", promptsLookupKey(interval), Math.round((interval === "year" ? PROMPT_STEP.annual * 12 : PROMPT_STEP.price) * 100), interval, { addon: "prompts", interval });
 }
 console.log("Done. Existing customers keep their old price until you move them.");

@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { Fragment, useState } from "react";
-import { MIX_PRICES, PLANS, SELF_SERVE, TASK_PACKS, TASK_STEP, UNLIMITED, VIS_TASKS, type Interval, type Plan, type PlanId } from "@/lib/plans";
+import { ARTICLE_TASKS, MIX_PRICES, PLANS, PROMPT_STEP, SELF_SERVE, TASK_COST, TASK_STEP, UNLIMITED, VIS_TASKS, type Interval, type Plan, type PlanId } from "@/lib/plans";
 import { SALES } from "./BillingPage";
 import { BrandLogo } from "./BrandLogo";
 import { Logo } from "./Logo";
 import { NavIcon } from "./NavIcon";
-import { AIS, CMS, IntervalSwitch, LogoRow, LogoStack, LOGOS, MCP_APPS, PlanGrid } from "./PlanGrid";
+import { AIS, CMS, CMS_MORE, IntervalSwitch, LogoRow, LogoStack, LOGOS, MCP_APPS, PlanGrid } from "./PlanGrid";
 
 const n = (v: number) => (v >= UNLIMITED ? "Unlimited" : v.toLocaleString("en-US"));
 const yes = (on: boolean) => (on ? "✓" : "–");
@@ -24,7 +24,7 @@ const ROWS: { group: string; rows: CompareRow[] }[] = [
     rows: [
       { label: "Tasks a month", icon: icon("zap"), value: (p) => n(p.tasksPerMonth) },
       { label: "Tasks a month, AI Visibility only", icon: icon("zap"), value: (_, id) => n(VIS_TASKS[id] ?? 0) },
-      { label: `Extra tasks, ${n(TASK_STEP.tasks)} a month`, icon: icon("plus"), value: () => `+$${TASK_STEP.price}/mo` },
+      { label: "Add prompts and tasks on the card", icon: icon("plus"), value: () => "✓" },
       { label: "Seats", icon: icon("user"), value: (p) => n(p.seats) },
       { label: "Brands", icon: icon("globe"), value: (p) => n(p.brands) },
       { label: "60+ Zippie skills", icon: icon("bot"), value: (p) => yes(p.mcp) },
@@ -43,10 +43,12 @@ const ROWS: { group: string; rows: CompareRow[] }[] = [
   {
     group: "SEO Research",
     rows: [
-      { label: "Keyword, Domain & Competitive Research", icon: icon("search"), value: () => "✓" },
+      { label: "Keyword Research, 8.4 billion keywords", icon: icon("search"), value: () => "✓" },
+      { label: "Domain Research", icon: icon("globe"), value: () => "✓" },
+      { label: "Keyword gap", icon: icon("gap"), value: () => "✓" },
       { label: "Content Plan & Calendar", icon: icon("calendar"), value: (p) => yes(p.plansPerMonth > 0) },
-      { label: "Agentic Writer articles a month", icon: icon("pen"), value: (p) => n(p.articlesPerMonth) },
-      { label: "Publish to your CMS", icon: icon("upload"), logos: <LogoRow logos={CMS} more={4} />, value: (p) => yes(p.writer === "full") },
+      { label: "Agentic Writer, about this many articles", icon: icon("pen"), value: (p) => n(Math.floor(p.tasksPerMonth / ARTICLE_TASKS)) },
+      { label: "Publish to your CMS", icon: icon("upload"), logos: <LogoRow logos={CMS} more={CMS_MORE} />, value: (p) => yes(p.writer === "full") },
     ],
   },
   {
@@ -74,12 +76,22 @@ const FAQ: { q: string; a: string }[] = [
   { q: "What is a prompt?", a: "A question people ask AI, like “best CRM for startups”. We ask it to every AI and record whether your brand is named, in what spot, next to which competitors, and which sources the AI used." },
   { q: "Which AIs do you track?", a: "ChatGPT, Claude, Gemini, Perplexity, Google AI Overviews and Google AI Mode, on every plan with AI Visibility." },
   { q: "Do my brands share prompts?", a: "Yes. Your prompts are one pool for the whole workspace. Split them between your brands any way you like." },
-  { q: "What is a task?", a: "Every action you run costs a few tasks: an MCP call is 1, a keyword lookup is 10, a domain report is 10 and a writer agent job is 15. Tracking your prompts never uses tasks." },
   {
-    q: "What if I need more tasks?",
-    a: `Press + on any plan to add ${n(TASK_STEP.tasks)} tasks a month for $${TASK_STEP.price} each. Ran out mid-month? Buy a task pack from ${n(TASK_PACKS[0].tasks)} tasks for $${TASK_PACKS[0].price}. Pack tasks never expire and are used after your monthly tasks.`,
+    q: "What is a task?",
+    a: `Every action you run uses a few tasks: a Zippie or MCP step is ${TASK_COST.mcp}, a keyword lookup ${TASK_COST.keyword}, a domain report ${TASK_COST.domain}, a competitive analysis ${TASK_COST.gap} and a content brief ${TASK_COST.brief}. Tracking your prompts never uses tasks.`,
   },
-  { q: "What does Starter include?", a: "Both toolsets: 50 prompts checked daily on all six AIs, 2,000 tasks a month, the Content Plan, 3 articles a month from the Agentic Writer, and MCP with 60+ Zippie skills. Pro and up add more of each, plus Slack, Zapier and the API." },
+  {
+    q: "How many articles can I write?",
+    a: `As many as your tasks cover. One Agentic Writer article takes ${ARTICLE_TASKS} tasks for the research, the outline and the writing, so ${n(PLANS.scale.tasksPerMonth)} tasks is about ${n(Math.floor(PLANS.scale.tasksPerMonth / ARTICLE_TASKS))} articles. Writing an article again is free.`,
+  },
+  {
+    q: "What if I need more prompts or tasks?",
+    a: `Press + on any card. Prompts go up ${PROMPT_STEP.prompts} at a time and tasks ${n(TASK_STEP.tasks)} at a time, and the price on the card changes as you go. Ran out mid-month? Buy a task pack on the Billing page. Pack tasks never expire and are used after your monthly tasks.`,
+  },
+  {
+    q: "What does Starter include?",
+    a: `Both toolsets: ${PLANS.foundation.prompts} prompts checked daily on all six AIs, ${n(PLANS.foundation.tasksPerMonth)} tasks a month (about ${Math.floor(PLANS.foundation.tasksPerMonth / ARTICLE_TASKS)} articles), Keyword and Domain Research, the Content Plan, and MCP with 60+ Zippie skills. Pro and up add more of each, plus Slack, Zapier and the API.`,
+  },
   { q: "Can I change plans later?", a: "Any time. Upgrades start right away and you only pay the difference. Downgrades credit what is left of your month." },
 ];
 

@@ -30,6 +30,7 @@ export type Plan = {
   draftsPerBrand: number; // Agentic Writer drafts each brand may start a month (pricing v5 and the trial); Regenerate is free
   articlesPerMonth: number; // Agentic Writer drafts the whole workspace may start a month (pricing v6); 0 counts per brand instead
   articlesOnce: boolean; // articlesPerMonth is a one-time allowance, never reset (Free: 1 article to try)
+  articleTasks: number; // pricing v8: tasks one Agentic Writer article takes instead of counting articles (0: counted by articlesPerMonth or draftsPerBrand)
   mcp: boolean; // the MCP server and the 60+ skills; each call uses tasks (TASK_COST.mcp)
   reports: Reports;
   alerts: boolean; // Slack, Zapier and the API
@@ -41,17 +42,21 @@ export type Plan = {
 export const UNLIMITED = 1000;
 /** A partner workspace's brand cap: one brand per customer, so in practice none. Fits the database's int. */
 export const PARTNER_BRANDS = 1_000_000;
-const base = { sso: false, engines: null, briefsPerMonth: 0, planMaxKeywords: 120, researchPerMonth: 0, aiPerMonth: 0, draftsPerBrand: 0, articlesPerMonth: 0, articlesOnce: false, trackedKeywords: 100, partner: false } as const;
+const base = { sso: false, engines: null, briefsPerMonth: 0, planMaxKeywords: 120, researchPerMonth: 0, aiPerMonth: 0, draftsPerBrand: 0, articlesPerMonth: 0, articlesOnce: false, articleTasks: 0, trackedKeywords: 100, partner: false } as const;
 /** Drafts a brand may start each month on plans with the Agentic Writer (docs/content-v2.md: 10 articles a month). */
 export const DRAFTS_PER_BRAND = 10;
 
-// Pricing v7 (docs/pricing-v7.md). Prices are US dollars a month for both toolsets; MIX_PRICES has the one-toolset prices.
+/** Pricing v8: one Agentic Writer article takes this many tasks (research, outline and writing), instead of a monthly article count. */
+export const ARTICLE_TASKS = 200;
+
+// Pricing v8 (docs/pricing-v8.md). Small plans that grow with the prompts and tasks steppers. Prices are US dollars a
+// month for both toolsets; MIX_PRICES has the one-toolset prices.
 export const PLANS: Record<PlanId, Plan> = {
   // No longer sold (pricing v7 has no Free plan). Workspaces already on it keep it.
   free: { ...base, id: "free", trackedKeywords: 10, name: "Free", tagline: "Free forever. See where AI names you.", price: 0, annual: 0, prompts: 15, brands: 1, seats: 1, competitors: 3, historyDays: 30, checkEvery: 7, checkNowPerDay: 0, engines: ["ChatGPT", "AI Overview"], plansPerMonth: 0, planMaxKeywords: 30, tasksPerMonth: 200, pageviewsPerMonth: 10_000, writer: "full", articlesPerMonth: 1, articlesOnce: true, mcp: false, reports: "basic", alerts: false },
-  foundation: { ...base, id: "foundation", name: "Starter", tagline: "For one marketer", price: 49, annual: 42, prompts: 50, brands: 2, seats: 3, competitors: 10, historyDays: 180, checkEvery: 1, checkNowPerDay: 3, plansPerMonth: 1, tasksPerMonth: 2_000, pageviewsPerMonth: 25_000, writer: "full", articlesPerMonth: 3, mcp: true, reports: "templates", alerts: false },
-  scale: { ...base, id: "scale", trackedKeywords: 300, name: "Pro", tagline: "More prompts, tasks and articles for a growing team", price: 199, annual: 169, prompts: 150, brands: 5, seats: 5, competitors: 15, historyDays: 365, checkEvery: 1, checkNowPerDay: 10, plansPerMonth: 1, tasksPerMonth: 8_000, pageviewsPerMonth: 250_000, writer: "full", articlesPerMonth: 20, mcp: true, reports: "templates", alerts: true },
-  agency: { ...base, id: "agency", trackedKeywords: 1000, name: "Agency", tagline: "Every client, your brand on the report", price: 599, annual: 509, prompts: 500, brands: 25, seats: 15, competitors: 25, historyDays: 730, checkEvery: 1, checkNowPerDay: 30, plansPerMonth: 1, tasksPerMonth: 20_000, pageviewsPerMonth: 2_000_000, writer: "full", articlesPerMonth: 60, mcp: true, reports: "whitelabel", alerts: true },
+  foundation: { ...base, id: "foundation", name: "Starter", tagline: "For one marketer and one site", price: 29, annual: 25, prompts: 25, brands: 2, seats: 2, competitors: 10, historyDays: 180, checkEvery: 1, checkNowPerDay: 3, plansPerMonth: 1, tasksPerMonth: 1_200, pageviewsPerMonth: 25_000, writer: "full", articleTasks: ARTICLE_TASKS, mcp: true, reports: "templates", alerts: false },
+  scale: { ...base, id: "scale", trackedKeywords: 300, name: "Pro", tagline: "More of everything for a growing team", price: 89, annual: 76, prompts: 75, brands: 5, seats: 5, competitors: 15, historyDays: 365, checkEvery: 1, checkNowPerDay: 10, plansPerMonth: 1, tasksPerMonth: 4_000, pageviewsPerMonth: 250_000, writer: "full", articleTasks: ARTICLE_TASKS, mcp: true, reports: "templates", alerts: true },
+  agency: { ...base, id: "agency", trackedKeywords: 1000, name: "Agency", tagline: "Every client, your brand on the report", price: 249, annual: 212, prompts: 200, brands: 25, seats: 15, competitors: 25, historyDays: 730, checkEvery: 1, checkNowPerDay: 30, plansPerMonth: 1, tasksPerMonth: 12_000, pageviewsPerMonth: 2_000_000, writer: "full", articleTasks: ARTICLE_TASKS, mcp: true, reports: "whitelabel", alerts: true },
   enterprise: { ...base, id: "enterprise", trackedKeywords: 5000, name: "Enterprise", tagline: "Custom volume, security and support", price: 1500, annual: 1500, prompts: 1500, brands: UNLIMITED, seats: UNLIMITED, competitors: 50, historyDays: 1095, checkEvery: 1, checkNowPerDay: 500, plansPerMonth: 1, tasksPerMonth: 50_000, pageviewsPerMonth: 10_000_000, writer: "full", articlesPerMonth: 150, mcp: true, reports: "whitelabel", alerts: true, sso: true },
   // No longer sold. Workspaces that bought it keep it.
   thrive: { ...base, id: "thrive", trackedKeywords: 300, name: "Thrive", tagline: "", price: 149, annual: 127, prompts: 50, brands: UNLIMITED, seats: 5, competitors: 15, historyDays: 365, checkEvery: 1, checkNowPerDay: 10, plansPerMonth: 1, tasksPerMonth: 20_000, pageviewsPerMonth: 500_000, writer: "full", draftsPerBrand: DRAFTS_PER_BRAND, mcp: true, reports: "templates", alerts: true },
@@ -59,6 +64,13 @@ export const PLANS: Record<PlanId, Plan> = {
   trial: { ...base, id: "trial", trackedKeywords: 50, name: "Trial", tagline: "", price: 0, annual: 0, prompts: 25, brands: 3, seats: 3, competitors: 10, historyDays: 180, checkEvery: 1, checkNowPerDay: 5, plansPerMonth: 1, tasksPerMonth: 500, pageviewsPerMonth: 25_000, writer: "full", draftsPerBrand: 3, mcp: true, reports: "templates", alerts: false },
   // Workspaces made before billing existed keep what they had until they pick a plan.
   legacy: { ...base, id: "legacy", trackedKeywords: 300, name: "Early access", tagline: "", price: 0, annual: 0, prompts: 50, brands: UNLIMITED, seats: 15, competitors: 25, historyDays: 365, checkEvery: 1, checkNowPerDay: 50, plansPerMonth: 1, tasksPerMonth: 30_000, pageviewsPerMonth: 500_000, writer: "full", draftsPerBrand: DRAFTS_PER_BRAND, mcp: true, reports: "whitelabel", alerts: true },
+};
+
+/** Pricing v6 and v7 limits. Workspaces whose Stripe price is v6 or v7 keep them (Extras.limitsFrom "v7"). */
+export const PLANS_V7: Partial<Record<PlanId, Plan>> = {
+  foundation: { ...base, id: "foundation", name: "Starter", tagline: "For one marketer", price: 49, annual: 42, prompts: 50, brands: 2, seats: 3, competitors: 10, historyDays: 180, checkEvery: 1, checkNowPerDay: 3, plansPerMonth: 1, tasksPerMonth: 2_000, pageviewsPerMonth: 25_000, writer: "full", articlesPerMonth: 3, mcp: true, reports: "templates", alerts: false },
+  scale: { ...base, id: "scale", trackedKeywords: 300, name: "Pro", tagline: "More prompts, tasks and articles for a growing team", price: 199, annual: 169, prompts: 150, brands: 5, seats: 5, competitors: 15, historyDays: 365, checkEvery: 1, checkNowPerDay: 10, plansPerMonth: 1, tasksPerMonth: 8_000, pageviewsPerMonth: 250_000, writer: "full", articlesPerMonth: 20, mcp: true, reports: "templates", alerts: true },
+  agency: { ...base, id: "agency", trackedKeywords: 1000, name: "Agency", tagline: "Every client, your brand on the report", price: 599, annual: 509, prompts: 500, brands: 25, seats: 15, competitors: 25, historyDays: 730, checkEvery: 1, checkNowPerDay: 30, plansPerMonth: 1, tasksPerMonth: 20_000, pageviewsPerMonth: 2_000_000, writer: "full", articlesPerMonth: 60, mcp: true, reports: "whitelabel", alerts: true },
 };
 
 /**
@@ -71,11 +83,15 @@ export const PLANS_V5: Partial<Record<PlanId, Plan>> = {
   agency: { ...base, id: "agency", trackedKeywords: 1000, name: "Agency", tagline: "Every client, your brand on the report", price: 499, annual: 424, prompts: 400, brands: UNLIMITED, seats: 15, competitors: 25, historyDays: 730, checkEvery: 1, checkNowPerDay: 30, plansPerMonth: 1, tasksPerMonth: 20_000, pageviewsPerMonth: 2_000_000, writer: "full", draftsPerBrand: DRAFTS_PER_BRAND, mcp: true, reports: "whitelabel", alerts: true },
 };
 
+/** No monthly article cap on v8 plans: each article pays in tasks instead. Fits writer_take_draft's int limit. */
+const ARTICLE_ROOM = 100_000;
+
 /**
- * How the Agentic Writer counts drafts for these limits: per workspace (v6), once ever (Free), or per brand (v5 and the trial).
- * `period` is the billing month from periodOf("tasks").
+ * How the Agentic Writer counts drafts for these limits: in tasks (v8), per workspace (v6 and v7), once ever (Free),
+ * or per brand (v5 and the trial). `period` is the billing month from periodOf("tasks").
  */
-export function draftQuota(l: Plan, period: string): { limit: number; period: string; scope: "brand" | "workspace" } {
+export function draftQuota(l: Plan, period: string): { limit: number; period: string; scope: "brand" | "workspace"; tasks?: number } {
+  if (l.articleTasks > 0) return { limit: l.writer === "full" ? ARTICLE_ROOM : 0, period, scope: "workspace", tasks: l.articleTasks };
   if (l.articlesPerMonth > 0) return { limit: l.articlesPerMonth, period: l.articlesOnce ? "once" : period, scope: "workspace" };
   return { limit: l.draftsPerBrand, period, scope: "brand" };
 }
@@ -116,10 +132,11 @@ export const TASK_COST = {
   mcp: 1, // one MCP tool call or skill step that reads or changes the workspace; keyword_research uses keyword, domain_overview uses domain
   guideline: 10, // reading a site for its brand guideline
   presence: 2, // one brand's Trustpilot and Google Business Profile check, kept a week
+  article: ARTICLE_TASKS, // pricing v8: one Agentic Writer article
 } as const;
 
 /**
- * The two toolsets. A v7 plan opens both, or one when that's all its subscriber ticked (Extras.track).
+ * The two toolsets. A v7 or v8 plan opens both, or one when that's all its subscriber ticked (Extras.track).
  * Starter subscribers on v5 prices keep the one they picked.
  */
 export type Track = "visibility" | "seo";
@@ -128,19 +145,27 @@ export const TRACKS: Record<Track, { label: string; short: string; text: string 
   seo: { label: "SEO Research", short: "SEO Research", text: "Keyword, domain and competitive research, Content Plan, the Editorial Calendar and the Agentic Writer" },
 };
 
-/** What a v7 subscriber ticked on the pricing card: both toolsets, or one. */
+/** What a v7 or v8 subscriber ticked on the pricing card: both toolsets, or one. */
 export type Mix = "both" | Track;
 export const MIXES: Mix[] = ["both", "visibility", "seo"];
 export const mixOf = (track?: Track | null): Mix => track ?? "both";
 
-/** Pricing v7 prices for each plan and mix, US dollars a month. Yearly is 15% off. "both" matches PLANS. */
-export const MIX_PRICES: Partial<Record<PlanId, Record<Mix, { price: number; annual: number }>>> = {
+type MixPrices = Partial<Record<PlanId, Record<Mix, { price: number; annual: number }>>>;
+/** Pricing v8 prices for each plan and mix, US dollars a month. Yearly is 15% off, rounded. "both" matches PLANS. */
+export const MIX_PRICES: MixPrices = {
+  foundation: { both: { price: 29, annual: 25 }, seo: { price: 19, annual: 16 }, visibility: { price: 19, annual: 16 } },
+  scale: { both: { price: 89, annual: 76 }, seo: { price: 59, annual: 50 }, visibility: { price: 59, annual: 50 } },
+  agency: { both: { price: 249, annual: 212 }, seo: { price: 159, annual: 135 }, visibility: { price: 169, annual: 144 } },
+};
+/** Pricing v7 prices, kept for the Stripe setup script's history and v7 subscribers. */
+export const MIX_PRICES_V7: MixPrices = {
   foundation: { both: { price: 49, annual: 42 }, seo: { price: 29, annual: 25 }, visibility: { price: 29, annual: 25 } },
   scale: { both: { price: 199, annual: 169 }, seo: { price: 129, annual: 110 }, visibility: { price: 99, annual: 84 } },
   agency: { both: { price: 599, annual: 509 }, seo: { price: 349, annual: 297 }, visibility: { price: 299, annual: 254 } },
 };
 /** Tasks a month on an AI Visibility-only plan: enough for Zippie, MCP and reports, none for research. */
-export const VIS_TASKS: Partial<Record<PlanId, number>> = { foundation: 500, scale: 1_500, agency: 4_000 };
+export const VIS_TASKS: Partial<Record<PlanId, number>> = { foundation: 300, scale: 1_000, agency: 3_000 };
+export const VIS_TASKS_V7: Partial<Record<PlanId, number>> = { foundation: 500, scale: 1_500, agency: 4_000 };
 
 /** A plan's price for a mix and billing period, US dollars a month. */
 export function priceOf(plan: PlanId, mix: Mix, interval: Interval): number {
@@ -151,11 +176,18 @@ export function priceOf(plan: PlanId, mix: Mix, interval: Interval): number {
 /** Extra tasks a month, sold in steps on top of a paid plan (Extras.tasks). Yearly is 15% off. */
 export const TASK_STEP = { tasks: 1_000, price: 10, annual: 8.5, max: 100 } as const;
 export const stepPrice = (steps: number, interval: Interval) => steps * (interval === "year" ? TASK_STEP.annual : TASK_STEP.price);
+/** Extra prompts checked daily, sold in steps on top of a paid plan (pricing v8; Extras.prompts holds the prompts). Yearly is 15% off. */
+export const PROMPT_STEP = { prompts: 25, price: 15, annual: 12.75, max: 40 } as const;
+export const promptStepPrice = (steps: number, interval: Interval) => steps * (interval === "year" ? PROMPT_STEP.annual : PROMPT_STEP.price);
+/** A card's whole price: the plan for its mix, plus prompt steps (not on SEO Research only) and task steps. US dollars a month. */
+export function cardPrice(plan: PlanId, mix: Mix, interval: Interval, promptSteps: number, taskSteps: number): number {
+  return priceOf(plan, mix, interval) + (mix === "seo" ? 0 : promptStepPrice(promptSteps, interval)) + stepPrice(taskSteps, interval);
+}
 
-/** What a one-toolset v7 plan leaves out: SEO Research only tracks no prompts; AI Visibility only has no Writer or Content Plan. */
-function oneToolset(p: Plan, track: Track): Plan {
+/** What a one-toolset v7 or v8 plan leaves out: SEO Research only tracks no prompts; AI Visibility only has no Writer or Content Plan. */
+function oneToolset(p: Plan, track: Track, visTasks: Partial<Record<PlanId, number>>): Plan {
   if (track === "seo") return { ...p, prompts: 0, checkNowPerDay: 0 };
-  return { ...p, writer: "none", articlesPerMonth: 0, draftsPerBrand: 0, plansPerMonth: 0, tasksPerMonth: VIS_TASKS[p.id] ?? p.tasksPerMonth };
+  return { ...p, writer: "none", articlesPerMonth: 0, draftsPerBrand: 0, plansPerMonth: 0, tasksPerMonth: visTasks[p.id] ?? p.tasksPerMonth };
 }
 /** Pricing v5 Starter's limits for each toolset: the AI Visibility side tracks prompts, the Organic Research side gets the tasks. */
 const STARTER: Record<Track, Partial<Plan>> = {
@@ -191,14 +223,16 @@ export const LADDER: PlanId[] = ["foundation", "scale", "agency", "enterprise"];
 
 /** Paid extras on top of a plan. Stored on the workspace as counts. */
 // partner: the workspace may use the partner API (supabase/098_partner.sql). We set it by hand; billing keeps it.
-// tasks: extra steps of 1,000 tasks a month (TASK_STEP), bought with the plan. track: the one toolset a v7 plan or a v5 Starter opens.
-export type Extras = { prompts?: number; brands?: number; seats?: number; tasks?: number; daily?: boolean; track?: Track; trackAt?: string; limitsFrom?: "v5"; partner?: boolean };
+// tasks: extra steps of 1,000 tasks a month (TASK_STEP), bought with the plan. prompts: extra prompts (PROMPT_STEP steps on v8,
+// or set by hand). track: the one toolset a v7 or v8 plan, or a v5 Starter, opens. limitsFrom: an older price's limits.
+export type Extras = { prompts?: number; brands?: number; seats?: number; tasks?: number; daily?: boolean; track?: Track; trackAt?: string; limitsFrom?: "v5" | "v7"; partner?: boolean };
 
 /** What a workspace can use: its plan plus any extras. */
 export function limitsFor(plan: PlanId, extras: Extras = {}): Plan {
   const v5 = extras.limitsFrom === "v5" ? PLANS_V5[plan] : undefined;
-  const sold = v5 ?? PLANS[plan] ?? PLANS.trial;
-  const p: Plan = v5 ? (plan === "foundation" ? { ...sold, ...STARTER[extras.track ?? "visibility"] } : sold) : extras.track && MIX_PRICES[plan] ? oneToolset(sold, extras.track) : sold;
+  const v7 = extras.limitsFrom === "v7" ? PLANS_V7[plan] : undefined;
+  const sold = v5 ?? v7 ?? PLANS[plan] ?? PLANS.trial;
+  const p: Plan = v5 ? (plan === "foundation" ? { ...sold, ...STARTER[extras.track ?? "visibility"] } : sold) : extras.track && MIX_PRICES[plan] ? oneToolset(sold, extras.track, v7 ? VIS_TASKS_V7 : VIS_TASKS) : sold;
   return {
     ...p,
     tasksPerMonth: p.tasksPerMonth + Math.max(0, Math.floor(extras.tasks ?? 0)) * TASK_STEP.tasks,
@@ -284,14 +318,19 @@ export function periodOf(m: Metric, at = new Date(), anchor?: string | null) {
 /** Plans sold by card, and the Stripe price lookup key for each. */
 export const SELF_SERVE: PlanId[] = ["foundation", "scale", "agency"];
 export type Interval = "month" | "year";
-// v7 prices follow pricing v7: one key per plan, mix and period, like arrowsterr_v7_scale_seo_month. Older keys
-// (v3 to v6 and unversioned) still map, so earlier subscribers keep their plan, and `version` below 6 keeps their
-// v5 limits (Extras.limitsFrom). A key with no mix opens both toolsets.
-export const PRICE_VERSION = 7;
+// v8 prices follow pricing v8: one key per plan, mix and period, like arrowsterr_v8_scale_seo_month. Older keys
+// (v3 to v7 and unversioned) still map, so earlier subscribers keep their plan: `version` below 6 keeps v5 limits and
+// 6 or 7 keeps v7 limits (Extras.limitsFrom). A key with no mix opens both toolsets.
+export const PRICE_VERSION = 8;
 export const lookupKey = (plan: PlanId, interval: Interval, mix: Mix = "both") => `arrowsterr_v${PRICE_VERSION}_${plan}_${mix}_${interval}`;
 /** The extra-tasks price, sold by quantity: one unit is one TASK_STEP a month. */
 export const tasksLookupKey = (interval: Interval) => `arrowsterr_v${PRICE_VERSION}_tasks_${interval}`;
 export const isTasksLookup = (key: string | null | undefined) => /^arrowsterr_v\d+_tasks_(month|year)$/.test(key ?? "");
+/** The extra-prompts price (pricing v8), sold by quantity: one unit is one PROMPT_STEP checked daily. */
+export const promptsLookupKey = (interval: Interval) => `arrowsterr_v${PRICE_VERSION}_prompts_${interval}`;
+export const isPromptsLookup = (key: string | null | undefined) => /^arrowsterr_v\d+_prompts_(month|year)$/.test(key ?? "");
+/** True for an add-on price that sits next to the plan on a subscription. */
+export const isAddonLookup = (key: string | null | undefined) => isTasksLookup(key) || isPromptsLookup(key);
 export function planOfLookup(key: string | null | undefined): { plan: PlanId; interval: Interval; version: number; mix: Mix } | null {
   const m = /^arrowsterr_(?:v(\d+)_)?([a-z]+)_(?:(both|visibility|seo)_)?(month|year)$/.exec(key ?? "");
   if (!m || ![...SELF_SERVE, "thrive"].includes(m[2] as PlanId)) return null;

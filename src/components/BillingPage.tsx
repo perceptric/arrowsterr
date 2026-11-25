@@ -16,9 +16,9 @@ const rank = (id: PlanId) => LADDER.indexOf(id);
 
 /**
  * Pick a plan: Checkout for a first plan, an instant switch after that. Returns a message, or opens Stripe.
- * Without a mix or extra tasks, the workspace keeps the ones it has.
+ * Without a mix, extra tasks or extra prompts, the workspace keeps the ones it has.
  */
-export async function choosePlan(auth: RunAuth, plan: PlanId, interval: Interval, choice: { mix?: Mix; tasks?: number } = {}) {
+export async function choosePlan(auth: RunAuth, plan: PlanId, interval: Interval, choice: { mix?: Mix; tasks?: number; prompts?: number } = {}) {
   const r = await post<{ url?: string; changed?: boolean }>(auth, "/api/billing/checkout", { plan, interval, ...choice });
   if (r.url) window.location.href = r.url;
   return r.changed ? `You're on ${PLANS[plan].name} now.` : "";
@@ -101,7 +101,7 @@ export function BillingPage({ sb, ws, auth, onPlan }: { sb: SupabaseClient; ws: 
       window.location.href = r.url;
     });
   // What the current plan has, so its card starts there. A v5 Starter's card starts on both toolsets: today's Starter.
-  const current = paying && plan ? { plan: plan.plan, mix: plan.v5 ? ("both" as Mix) : mixOf(plan.track), tasks: plan.taskSteps } : null;
+  const current = paying && plan ? { plan: plan.plan, mix: plan.v5 ? ("both" as Mix) : mixOf(plan.track), tasks: plan.taskSteps, prompts: plan.promptSteps } : null;
   const button = (id: PlanId, choice: Choice | null) => {
     if (id === "enterprise" || !choice)
       return (
@@ -109,7 +109,7 @@ export function BillingPage({ sb, ws, auth, onPlan }: { sb: SupabaseClient; ws: 
           Talk to us
         </a>
       );
-    const samePick = current?.plan === id && current.mix === choice.mix && current.tasks === choice.tasks && !plan?.v5;
+    const samePick = current?.plan === id && current.mix === choice.mix && current.tasks === choice.tasks && current.prompts === choice.prompts && !plan?.older;
     const same = samePick && (plan?.interval ?? "month") === cycle;
     if (same)
       return (
@@ -119,7 +119,7 @@ export function BillingPage({ sb, ws, auth, onPlan }: { sb: SupabaseClient; ws: 
       );
     const up = !paying || !plan || rank(id) > rank(plan.plan);
     const label = !paying ? "Choose" : samePick ? `Switch to ${cycle === "year" ? "yearly" : "monthly"}` : plan?.plan === id ? "Update plan" : up ? "Boost" : "Switch";
-    const key = `${id}-${choice.mix}-${choice.tasks}`;
+    const key = `${id}-${choice.mix}-${choice.tasks}-${choice.prompts}`;
     return (
       <button
         type="button"
@@ -169,7 +169,7 @@ export function BillingPage({ sb, ws, auth, onPlan }: { sb: SupabaseClient; ws: 
           </div>
           {plan.plan === "foundation" && plan.track ? (
             <p className="text-[14px] text-body">
-              Your Starter plan, at its earlier price, opens <strong>{TRACKS[plan.track].label}</strong>. Choose Starter again below to get both toolsets, 3 articles a month and MCP, or tick one toolset for a lower price.
+              Your Starter plan, at its earlier price, opens <strong>{TRACKS[plan.track].label}</strong>. Choose Starter again below to get both toolsets, the Agentic Writer and MCP, or tick one toolset for a lower price.
             </p>
           ) : null}
           <div className="grid gap-3 sm:grid-cols-3">
@@ -239,7 +239,7 @@ export function BillingPage({ sb, ws, auth, onPlan }: { sb: SupabaseClient; ws: 
           <h2 className="aw-h4 mb-0!">Plans</h2>
           <IntervalSwitch value={cycle} onChange={setCycle} />
         </div>
-        {plan ? <PlanGrid key={current ? `${current.plan}-${current.mix}-${current.tasks}` : "new"} interval={cycle} current={current} action={button} /> : null}
+        {plan ? <PlanGrid key={current ? `${current.plan}-${current.mix}-${current.tasks}-${current.prompts}` : "new"} interval={cycle} current={current} action={button} /> : null}
       </section>
     </div>
   );
