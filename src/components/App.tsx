@@ -38,7 +38,7 @@ import {
   type Workspace,
 } from "@/lib/db";
 import { PLANS, promptAllowance, reportLimits, type PlanId, type Track } from "@/lib/plans";
-import { Glimpse } from "./Glimpse";
+import { addPlanFor, Glimpse } from "./Glimpse";
 import { splitPeriods, type Filter } from "@/lib/metrics";
 import type { View } from "@/lib/view";
 import { runAll, type RunAuth } from "@/lib/runner";
@@ -729,7 +729,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
         onDone={onboard}
         onExit={() => {
           setAdding(false);
-          // Starter on Organic Research lands on Opportunities; everyone else on their prompts.
+          // A plan with SEO Research only lands on the Calendar; everyone else on their prompts.
           go(plan && !plan.open.visibility ? "calendar" : "prompts");
         }}
         engines={engines ?? []}
@@ -866,7 +866,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
         <main className={`aw-page-body min-w-0 flex-1 ${isZippie(page) ? "zp-page-body" : "px-4 py-5 pb-44 sm:px-6"}`}>
           {limitHit || (plan && plan.status === "read_only" && page !== "billing") ? (
             <div className="aw-callout aw-callout--warn mb-5 flex flex-wrap items-center justify-between gap-3">
-              <span>{limitHit?.error || (plan?.plan === "trial" ? "Your free trial has ended. Your data is safe." : "This workspace is read-only. Your data is safe.")}</span>
+              <span>{limitHit?.error || (plan?.plan === "trial" ? "Your free trial has ended. Pick a plan to keep going. Your data is safe." : "This workspace is read-only. Pick a plan to keep going. Your data is safe.")}</span>
               <span className="flex items-center gap-3">
                 {limitHit?.packs ? (
                   <button
@@ -912,7 +912,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
                       go("billing");
                     }}
                   >
-                    See plans
+                    {limitHit ? "See plans" : "Pick a plan"}
                   </button>
                 )}
                 {limitHit ? (
@@ -1009,12 +1009,14 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
           ) : plan && trackOf(page) && !plan.open[trackOf(page)!] ? (
             <Glimpse
               track={trackOf(page)!}
+              plan={plan.plan}
+              interval={plan.interval ?? "month"}
               admin={atLeast(ws.role, "admin")}
               busy={boosting}
               onBoost={async () => {
                 setBoosting(true);
                 try {
-                  const done = await choosePlan(auth, "scale", plan.interval ?? "month");
+                  const done = await choosePlan(auth, addPlanFor(plan.plan), plan.interval ?? "month", { mix: "both" });
                   if (done) {
                     setNotice(done);
                     loadPlan();

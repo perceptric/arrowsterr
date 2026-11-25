@@ -1,5 +1,5 @@
 import "server-only";
-import { access, cycleEnd, dailyAnswers, effectivePlan, firstWith, limitsFor, TRACKS, METRICS, nextPlan, PLANS, periodOf, type Extras, type Metric, type Plan, type PlanId, type Track } from "./plans";
+import { access, cycleEnd, effectivePlan, firstWith, limitsFor, TRACKS, METRICS, nextPlan, PLANS, periodOf, type Extras, type Metric, type Plan, type PlanId, type Track } from "./plans";
 import { onRefund } from "./meter";
 import { adminClient } from "./serverAuth";
 
@@ -19,22 +19,12 @@ export async function entitlement(workspaceId: string): Promise<Entitlement> {
   const { data, error } = await db.from("workspaces").select("*").eq("id", workspaceId).maybeSingle();
   if (error || !data?.plan) return legacy; // before 015_billing.sql
   const w = data as { plan: PlanId; plan_status: string; trial_ends_at: string | null; period_end: string | null; extras: Extras; billing_anchor?: string | null; task_credits?: number };
-  // A trial that ended, or a canceled plan, drops to Free. Nothing goes read-only for that.
+  // A trial that ended, or a canceled plan, goes read-only until someone picks a plan (pricing v7 has no Free plan).
   const now = effectivePlan(w.plan, w.plan_status, w.trial_ends_at);
-  if (now.plan !== w.plan) {
-    // Save the move once, so the database limits (brands, prompts, seats, answers a day) follow Free too.
-    const free = limitsFor("free");
-    const { error: moved } = await db
-      .from("workspaces")
-      .update({ plan: "free", plan_status: "active", brand_limit: free.brands, prompt_limit: free.prompts, daily_answer_limit: dailyAnswers(free), seat_limit: free.seats })
-      .eq("id", workspaceId)
-      .eq("plan", w.plan);
-    if (moved) console.error("Moving to Free failed:", moved.message);
-  }
   const e: Entitlement = {
     plan: now.plan,
     status: now.status,
-    limits: limitsFor(now.plan, now.plan === w.plan ? (w.extras ?? {}) : {}),
+    limits: limitsFor(now.plan, w.extras ?? {}),
     readOnly: now.status === "read_only",
     credits: Number(w.task_credits ?? 0),
     open: access(now.plan, w.extras?.track),
@@ -78,7 +68,8 @@ function limitReached(e: Entitlement, m: Metric, limit: number) {
 export async function requireTrack(workspaceId: string, track: Track): Promise<Response | null> {
   const e = await entitlement(workspaceId);
   if (e.open[track]) return null;
-  return Response.json({ error: `Your Starter plan has ${TRACKS[e.open.seo ? "seo" : "visibility"].label}. Get ${TRACKS[track].label} too on Pro.`, limit: true, boost: "scale" }, { status: 429 });
+  // A v5 Starter gets both toolsets on today's Starter; a one-toolset v7 plan ticks the other box on Billing.
+  return Response.json({ error: `Your ${e.limits.name} plan has ${TRACKS[e.open.seo ? "seo" : "visibility"].label}. Add ${TRACKS[track].label} on the Billing page.`, limit: true, boost: null }, { status: 429 });
 }
 
 /** The Content Plan starts on Starter. Free gets the research tools only. */
@@ -96,7 +87,8 @@ export async function requireWriter(workspaceId: string): Promise<Response | nul
 }
 
 function readOnly(e: Entitlement) {
-  const error = e.plan === "trial" ? "Your free trial has ended. Pick a plan to keep going. Your data is safe." : "This workspace is read-only until billing is sorted out. Your data is safe.";
+  const error =
+    e.plan === "trial" ? "Your free trial has ended. Pick a plan to keep going. Your data is safe." : "This workspace is read-only until you pick a plan or billing is sorted out. Your data is safe.";
   return Response.json({ error, readOnly: true }, { status: 402 });
 }
 

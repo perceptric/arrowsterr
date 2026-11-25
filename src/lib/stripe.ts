@@ -53,7 +53,7 @@ export type Subscription = {
   cancel_at: number | null;
   billing_cycle_anchor: number;
   current_period_end?: number;
-  items: { data: { id: string; price: Price; current_period_end?: number }[] };
+  items: { data: { id: string; price: Price; quantity?: number; current_period_end?: number }[] };
 };
 
 const prices = new Map<string, { at: number; price: Price }>();

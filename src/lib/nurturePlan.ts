@@ -8,7 +8,7 @@
 // 3    prompts     fewer than 10 prompts
 // 4    (trial3)    the existing "3 days left" email (src/lib/nudges.ts)
 // 5    plan        on the trial and no Content Plan yet
-// 7+   trialover   the trial just ended and the workspace is on Free
+// 7+   trialover   the trial just ended and the workspace is read-only until it picks a plan
 // 14   upgrade     on Free and seen in the last 7 days
 // 14   help        on Free and not seen in the last 7 days
 // 21+  winback     not seen for 21 days, at most once every 90 days
@@ -24,7 +24,7 @@ export type NurtureStep = (typeof NURTURE_STEPS)[number];
 export type NurtureState = {
   /** Hours since the workspace was made. */
   ageHours: number;
-  /** The plan in force now: a trial that ended counts as Free. */
+  /** The plan in force now. A trial that ended stays "trial" and goes read-only (trialEndedHours says when). */
   plan: PlanId;
   /** The plan column, which still says trial after a trial ends. */
   storedPlan: PlanId;
@@ -57,8 +57,8 @@ export function pickStep(s: NurtureState): NurtureStep | null {
   if (due("prompts") && s.brands > 0 && s.prompts < 10 && days >= 3 && days < 7) return "prompts";
   if (PAYING.has(s.plan)) return null;
 
-  if (due("plan") && s.plan === "trial" && s.brands > 0 && s.contentPlans === 0 && days >= 5) return "plan";
-  if (due("trialover") && s.plan === "free" && s.storedPlan === "trial" && s.trialEndedHours !== null && s.trialEndedHours < 72) return "trialover";
+  if (due("plan") && s.plan === "trial" && s.trialEndedHours === null && s.brands > 0 && s.contentPlans === 0 && days >= 5) return "plan";
+  if (due("trialover") && s.storedPlan === "trial" && s.trialEndedHours !== null && s.trialEndedHours < 72) return "trialover";
   if (s.plan === "free" && days >= 14 && days < 18 && due("upgrade") && due("help")) return s.idleDays !== null && s.idleDays <= 7 ? "upgrade" : "help";
   if (due("winback") && days >= 21 && s.hasAnswers && s.idleDays !== null && s.idleDays >= 21) return "winback";
   return null;

@@ -246,7 +246,7 @@ export function trialEmail(t: TrialData, footer: Footer): Email {
     ...(t.prompts ? [{ label: "Prompts tracked", value: num(t.prompts) }] : []),
     ...(t.briefs ? [{ label: "Briefs", value: num(t.briefs) }] : []),
   ];
-  const blocks: Block[] = [{ t: "p", text: `Your trial for ${t.workspace} ends on ${day(t.ends)}. After that the workspace moves to the Free plan: fewer AIs, checked once a week. Nothing is deleted.` }];
+  const blocks: Block[] = [{ t: "p", text: `Your trial for ${t.workspace} ends on ${day(t.ends)}. After that the workspace is read-only until you pick a plan, and your prompts stop being checked. Nothing is deleted.` }];
   if (found.length) blocks.push({ t: "label", text: "What your trial found" }, { t: "stats", items: found });
   blocks.push({ t: "label", text: "Plans" }, { t: "rows", items: t.plans.map((p) => ({ title: p.name, meta: p.tagline, right: `$${num(p.price)} a month` })) });
   return renderEmail({
@@ -403,7 +403,7 @@ export function contentPlanEmail(c: { brand: string; site: string; trialEnds?: D
     subject: "Turn your AI gaps into a content plan",
     preview: `The pages to write for ${c.site}, closest to a sale first.`,
     title: "Get the pages to write so AI quotes you",
-    sub: { text: c.trialEnds ? `In your trial until ${day(c.trialEnds)}. Not on Free.` : `Planned for ${c.site} in one click.` },
+    sub: { text: c.trialEnds ? `In your trial until ${day(c.trialEnds)}.` : `Planned for ${c.site} in one click.` },
     hero: { kicker: "Content Plan", visual: { k: "big", value: "1", label: `free Content Plan for ${c.site}` } },
     blocks: [
       {
@@ -420,18 +420,17 @@ export function contentPlanEmail(c: { brand: string; site: string; trialEnds?: D
   });
 }
 
-export type TrialOverData = { workspace: string; cols: string[]; rows: { label: string; values: string[] }[]; pick: number; price: number; annual: number; url: string; stayUrl: string };
+export type TrialOverData = { workspace: string; cols: string[]; rows: { label: string; values: string[] }[]; pick: number; price: number; annual: number; url: string };
 
 export function trialOverEmail(t: TrialOverData, footer: Footer): Email {
   return renderEmail({
     subject: "Your trial ended. Your data is safe.",
-    preview: `${t.workspace} is on Free now. Nothing was deleted.`,
+    preview: `${t.workspace} is read-only until you pick a plan. Nothing was deleted.`,
     title: "Your trial ended. Your data is safe.",
-    sub: { text: `${t.workspace} is on Free now. Nothing was deleted.` },
+    sub: { text: `${t.workspace} is read-only until you pick a plan. Nothing was deleted.` },
     hero: { kicker: "Trial over", visual: { k: "big", value: "100%", label: "of your brands, prompts and history kept" } },
     blocks: [{ t: "compare", cols: t.cols, rows: t.rows, pick: t.pick }],
     button: { label: `Get ${t.cols[t.pick]}, $${num(t.price)} a month →`, url: t.url },
-    link: { label: "Stay on Free", url: t.stayUrl },
     footer,
   });
 }

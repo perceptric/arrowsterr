@@ -333,6 +333,8 @@ export async function getPlanUsage(sb: SupabaseClient, workspaceId: string) {
     credits: Number(w.task_credits ?? 0),
     track: (w.extras?.track ?? null) as Track | null,
     trackAt: (w.extras?.trackAt ?? null) as string | null,
+    taskSteps: Math.max(0, Math.floor(Number(w.extras?.tasks ?? 0))),
+    v5: w.extras?.limitsFrom === "v5",
     open: access(now.plan, w.extras?.track),
     name: limits.name,
     status: now.status,

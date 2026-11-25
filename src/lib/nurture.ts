@@ -125,8 +125,8 @@ async function build(db: SupabaseClient, step: NurtureStep, w: Ws, ctx: { plan: 
       if (!brand) return null;
       return (f) => contentPlanEmail({ brand: brand.name, site: brand.domain || brand.name, trialEnds: onTrial, url: `${app}/opportunities` }, f);
     case "trialover": {
-      const cols = [PLANS.trial, PLANS.free, PLANS.foundation];
-      return (f) => trialOverEmail({ workspace: w.name, cols: ["Trial", "Free", PLANS.foundation.name], rows: planRows(cols), pick: 2, price: PLANS.foundation.price, annual: PLANS.foundation.annual, url: `${app}/settings/billing`, stayUrl: `${app}/prompts` }, f);
+      const cols = [PLANS.trial, PLANS.foundation, PLANS.scale];
+      return (f) => trialOverEmail({ workspace: w.name, cols: ["Trial", PLANS.foundation.name, PLANS.scale.name], rows: planRows(cols), pick: 1, price: PLANS.foundation.price, annual: PLANS.foundation.annual, url: `${app}/settings/billing` }, f);
     }
     case "upgrade": {
       if (!brand) return null;
@@ -163,7 +163,8 @@ async function nurtureOne(db: SupabaseClient, w: Ws): Promise<boolean> {
   if (pref && (pref as { tips?: boolean }).tips === false) return false;
 
   const e = await entitlement(w.id);
-  if (e.readOnly) return false;
+  // A read-only workspace gets nothing, except a trial that just ended: it gets the trial-over email.
+  if (e.readOnly && w.plan !== "trial") return false;
 
   const now = Date.now();
   const { data: log } = await db.from("email_log").select("kind, sent_at").eq("workspace_id", w.id);

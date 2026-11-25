@@ -1,6 +1,6 @@
 # Pricing v6
 
-Built November 2026. Replaces the prices in `docs/pricing-v5.md`. Unit costs are from `docs/pricing-v4.md` (cost_ledger) and `docs/agentic-writing.md`: one prompt tracked for a month ~$0.27, one task ~$0.005, one article ~$0.82.
+Replaced by `docs/pricing-v7.md` (one-toolset prices, no Free plan, extra tasks on the card). Built November 2026. Replaces the prices in `docs/pricing-v5.md`. Unit costs are from `docs/pricing-v4.md` (cost_ledger) and `docs/agentic-writing.md`: one prompt tracked for a month ~$0.27, one task ~$0.005, one article ~$0.82.
 
 ## The plans
 

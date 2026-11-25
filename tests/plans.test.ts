@@ -12,10 +12,13 @@ test("every sold plan costs more and gives more prompts, more often checks or mo
   }
 });
 
-test("every plan opens both toolsets, a v5 Starter keeps its pick; more tasks up the ladder; trials and cancels drop to Free", async () => {
+test("every plan opens both toolsets unless one was picked; more tasks up the ladder; trials and cancels go read-only", async () => {
   const { TASK_PACKS, effectivePlan, access } = await import("../src/lib/plans.ts");
-  assert.equal(LADDER[0], "free");
+  assert.equal(LADDER[0], "foundation", "no Free plan on the ladder");
+  assert.equal(LADDER.includes("free"), false);
   for (const id of LADDER) assert.deepEqual(access(id), { visibility: true, seo: true }, id);
+  assert.deepEqual(access("scale", "seo"), { visibility: false, seo: true });
+  assert.deepEqual(access("trial", "seo"), { visibility: true, seo: true }, "only paid plans can be one toolset");
   assert.deepEqual(access("foundation", "seo"), { visibility: false, seo: true });
   assert.deepEqual(access("foundation", "visibility"), { visibility: true, seo: false });
   const v6 = limitsFor("foundation");
@@ -27,13 +30,58 @@ test("every plan opens both toolsets, a v5 Starter keeps its pick; more tasks up
   assert.equal(dailyAnswers(seo), 0);
   for (let i = 1; i < LADDER.length; i++) assert.ok(PLANS[LADDER[i]].tasksPerMonth > PLANS[LADDER[i - 1]].tasksPerMonth, LADDER[i]);
   for (let i = 1; i < TASK_PACKS.length; i++) assert.ok(TASK_PACKS[i].price / TASK_PACKS[i].tasks < TASK_PACKS[i - 1].price / TASK_PACKS[i - 1].tasks);
-  assert.deepEqual(effectivePlan("trial", "trialing", "2020-01-01T00:00:00Z"), { plan: "free", status: "active" });
+  assert.deepEqual(effectivePlan("trial", "trialing", "2020-01-01T00:00:00Z"), { plan: "trial", status: "read_only" });
   assert.deepEqual(effectivePlan("trial", "trialing", "2999-01-01T00:00:00Z"), { plan: "trial", status: "trialing" });
-  assert.deepEqual(effectivePlan("scale", "canceled", null), { plan: "free", status: "active" });
+  assert.deepEqual(effectivePlan("scale", "canceled", null), { plan: "scale", status: "read_only" });
   assert.deepEqual(effectivePlan("scale", "past_due", null), { plan: "scale", status: "past_due" });
+  assert.deepEqual(effectivePlan("free", "active", "2020-01-01T00:00:00Z"), { plan: "free", status: "active" }, "workspaces already on Free keep it");
 });
 
-test("Free forever: 15 weekly prompts on 2 AIs, 200 tasks, 1 article to try, no Content Plan or MCP", () => {
+test("pricing v7: tick one toolset for a lower price, with that toolset's limits", async () => {
+  const { priceOf, MIXES } = await import("../src/lib/plans.ts");
+  const prices = (mix: "both" | "visibility" | "seo") => ["foundation", "scale", "agency"].map((id) => [priceOf(id as "scale", mix, "month"), priceOf(id as "scale", mix, "year")]);
+  assert.deepEqual(prices("both"), [[49, 42], [199, 169], [599, 509]]);
+  assert.deepEqual(prices("seo"), [[29, 25], [129, 110], [349, 297]]);
+  assert.deepEqual(prices("visibility"), [[29, 25], [99, 84], [299, 254]]);
+  for (const id of ["foundation", "scale", "agency"] as const) {
+    assert.equal(priceOf(id, "both", "month"), PLANS[id].price, `${id} both matches PLANS`);
+    assert.equal(priceOf(id, "both", "year"), PLANS[id].annual);
+    for (const mix of MIXES) assert.ok(Math.abs(priceOf(id, mix, "year") - priceOf(id, mix, "month") * 0.85) <= 1, `${id} ${mix} yearly is 15% off`);
+    assert.ok(priceOf(id, "seo", "month") + priceOf(id, "visibility", "month") > priceOf(id, "both", "month"), `${id}: both costs less than the two apart`);
+  }
+  // SEO Research only: no prompts tracked, so nothing checked a day.
+  const seo = limitsFor("scale", { track: "seo" });
+  assert.deepEqual([seo.prompts, seo.checkNowPerDay, dailyAnswers(seo), seo.tasksPerMonth, seo.articlesPerMonth, seo.writer], [0, 0, 0, 8000, 20, "full"]);
+  // AI Visibility only: no Writer or Content Plan, and fewer tasks.
+  const vis = (id: "foundation" | "scale" | "agency") => limitsFor(id, { track: "visibility" });
+  assert.deepEqual(["foundation", "scale", "agency"].map((id) => vis(id as "scale").tasksPerMonth), [500, 1500, 4000]);
+  assert.deepEqual([vis("scale").prompts, vis("scale").writer, vis("scale").articlesPerMonth, vis("scale").plansPerMonth], [150, "none", 0, 0]);
+  // A v5 Starter keeps its own split, not the v7 one.
+  assert.equal(limitsFor("foundation", { track: "visibility", limitsFrom: "v5" }).tasksPerMonth, 300);
+});
+
+test("extra tasks add 1,000 a month per step, on top of the plan and its mix", async () => {
+  const { TASK_STEP, stepPrice } = await import("../src/lib/plans.ts");
+  assert.deepEqual([TASK_STEP.tasks, TASK_STEP.price, TASK_STEP.annual], [1000, 10, 8.5]);
+  assert.equal(limitsFor("scale", { tasks: 2 }).tasksPerMonth, 10_000);
+  assert.equal(limitsFor("agency", { track: "visibility", tasks: 3 }).tasksPerMonth, 7_000);
+  assert.equal(limitsFor("scale", { tasks: -4 }).tasksPerMonth, 8_000, "never below the plan");
+  assert.deepEqual([stepPrice(2, "month"), stepPrice(2, "year")], [20, 17]);
+});
+
+test("v7 Stripe keys carry the mix, and older keys still map", async () => {
+  const { planOfLookup, lookupKey, tasksLookupKey, isTasksLookup } = await import("../src/lib/plans.ts");
+  assert.equal(lookupKey("scale", "month"), "arrowsterr_v7_scale_both_month");
+  assert.equal(lookupKey("agency", "year", "seo"), "arrowsterr_v7_agency_seo_year");
+  assert.deepEqual(planOfLookup("arrowsterr_v7_foundation_visibility_month"), { plan: "foundation", interval: "month", version: 7, mix: "visibility" });
+  assert.deepEqual(planOfLookup("arrowsterr_v6_scale_year"), { plan: "scale", interval: "year", version: 6, mix: "both" });
+  assert.equal(planOfLookup(tasksLookupKey("month")), null, "the extra-tasks price is not a plan");
+  assert.equal(tasksLookupKey("year"), "arrowsterr_v7_tasks_year");
+  assert.ok(isTasksLookup("arrowsterr_v7_tasks_month"));
+  assert.equal(isTasksLookup("arrowsterr_v7_scale_both_month"), false);
+});
+
+test("Free, kept by the workspaces already on it: 15 weekly prompts on 2 AIs, 200 tasks, 1 article to try, no Content Plan or MCP", () => {
   const f = PLANS.free;
   assert.equal(f.price, 0);
   assert.equal(f.prompts, 15);
@@ -44,28 +92,28 @@ test("Free forever: 15 weekly prompts on 2 AIs, 200 tasks, 1 article to try, no 
   assert.equal(f.plansPerMonth, 0);
   assert.deepEqual([f.articlesPerMonth, f.articlesOnce, f.mcp], [1, true, false]);
   assert.equal(dailyAnswers(f), 30);
-  for (const id of LADDER.slice(1)) assert.equal(PLANS[id].engines, null, id);
+  for (const id of LADDER) assert.equal(PLANS[id].engines, null, id);
+  assert.equal(nextPlan("free"), "foundation");
 });
 
-test("pricing v6 prices and limits, and v5 subscribers keep v5 limits", async () => {
+test("pricing v7 plans with both toolsets, and v5 subscribers keep v5 limits", async () => {
   const { draftQuota } = await import("../src/lib/plans.ts");
   assert.deepEqual(
     LADDER.map((id) => [PLANS[id].price, PLANS[id].annual]),
     [
-      [0, 0],
       [49, 42],
       [199, 169],
       [599, 509],
       [1500, 1500],
     ],
   );
-  assert.deepEqual(LADDER.map((id) => PLANS[id].prompts), [15, 50, 150, 500, 1500]);
-  assert.deepEqual(LADDER.map((id) => PLANS[id].tasksPerMonth), [200, 2000, 8000, 20000, 50000]);
-  assert.deepEqual(LADDER.map((id) => PLANS[id].articlesPerMonth), [1, 3, 20, 60, 150]);
+  assert.deepEqual(LADDER.map((id) => PLANS[id].prompts), [50, 150, 500, 1500]);
+  assert.deepEqual(LADDER.map((id) => PLANS[id].tasksPerMonth), [2000, 8000, 20000, 50000]);
+  assert.deepEqual(LADDER.map((id) => PLANS[id].articlesPerMonth), [3, 20, 60, 150]);
   assert.deepEqual([PLANS.foundation.brands, PLANS.scale.brands, PLANS.agency.brands], [2, 5, 25]);
   assert.deepEqual([PLANS.foundation.seats, PLANS.scale.seats, PLANS.agency.seats], [3, 5, 15]);
-  assert.deepEqual(LADDER.slice(1).map((id) => PLANS[id].mcp), [true, true, true, true]);
-  assert.deepEqual(LADDER.map((id) => PLANS[id].alerts), [false, false, true, true, true]);
+  assert.deepEqual(LADDER.map((id) => PLANS[id].mcp), [true, true, true, true]);
+  assert.deepEqual(LADDER.map((id) => PLANS[id].alerts), [false, true, true, true]);
   for (const id of LADDER) assert.equal(PLANS[id].writer, "full", id);
   const extra = limitsFor("foundation", { brands: 2 });
   assert.equal(extra.brands, 4);
@@ -128,11 +176,11 @@ test("billing months start on the plan's day, and short months use their last da
   assert.equal(cycleStart(new Date("2026-10-14T00:00:00Z"), new Date("2026-10-13T23:00:00Z")).toISOString().slice(0, 10), "2026-09-14");
   assert.equal(periodOf("tasks", new Date("2026-10-20T00:00:00Z"), "2026-10-14T08:00:00Z"), "2026-10-14");
   assert.equal(periodOf("tasks", new Date("2026-10-20T00:00:00Z")), "2026-10");
-  assert.deepEqual(planOfLookup(lookupKey("scale", "year")), { plan: "scale", interval: "year", version: 6 });
-  assert.deepEqual(planOfLookup("arrowsterr_thrive_year"), { plan: "thrive", interval: "year", version: 0 });
-  assert.deepEqual(planOfLookup("arrowsterr_v3_scale_month"), { plan: "scale", interval: "month", version: 3 });
-  assert.equal(lookupKey("agency", "month"), "arrowsterr_v6_agency_month");
-  assert.deepEqual(planOfLookup("arrowsterr_v5_foundation_year"), { plan: "foundation", interval: "year", version: 5 });
+  assert.deepEqual(planOfLookup(lookupKey("scale", "year")), { plan: "scale", interval: "year", version: 7, mix: "both" });
+  assert.deepEqual(planOfLookup("arrowsterr_thrive_year"), { plan: "thrive", interval: "year", version: 0, mix: "both" });
+  assert.deepEqual(planOfLookup("arrowsterr_v3_scale_month"), { plan: "scale", interval: "month", version: 3, mix: "both" });
+  assert.equal(lookupKey("agency", "month"), "arrowsterr_v7_agency_both_month");
+  assert.deepEqual(planOfLookup("arrowsterr_v5_foundation_year"), { plan: "foundation", interval: "year", version: 5, mix: "both" });
   assert.equal(planOfLookup("arrowsterr_enterprise_month"), null);
 });
 

@@ -4,9 +4,9 @@ import { askConfirm } from "@/components/Dialogs";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useState } from "react";
 import { atLeast, getPlanUsage, type PlanUsage, type Workspace } from "@/lib/db";
-import { LADDER, PLANS, TASK_COST, TASK_PACKS, TRACKS, type Interval, type PackId, type PlanId } from "@/lib/plans";
+import { LADDER, mixOf, PLANS, TASK_COST, TASK_PACKS, TRACKS, type Interval, type Mix, type PackId, type PlanId } from "@/lib/plans";
 import type { RunAuth } from "@/lib/runner";
-import { IntervalSwitch, PlanGrid } from "./PlanGrid";
+import { IntervalSwitch, PlanGrid, type Choice } from "./PlanGrid";
 import { post } from "./research/shared";
 import { Meter } from "./ui";
 
@@ -14,9 +14,12 @@ export const SALES = "mailto:sales@arrowsterr.com?subject=Arrowsterr%20Enterpris
 const date = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 const rank = (id: PlanId) => LADDER.indexOf(id);
 
-/** Pick a plan: Checkout for a first plan, an instant switch after that. Returns a message, or opens Stripe. */
-export async function choosePlan(auth: RunAuth, plan: PlanId, interval: Interval) {
-  const r = await post<{ url?: string; changed?: boolean }>(auth, "/api/billing/checkout", { plan, interval });
+/**
+ * Pick a plan: Checkout for a first plan, an instant switch after that. Returns a message, or opens Stripe.
+ * Without a mix or extra tasks, the workspace keeps the ones it has.
+ */
+export async function choosePlan(auth: RunAuth, plan: PlanId, interval: Interval, choice: { mix?: Mix; tasks?: number } = {}) {
+  const r = await post<{ url?: string; changed?: boolean }>(auth, "/api/billing/checkout", { plan, interval, ...choice });
   if (r.url) window.location.href = r.url;
   return r.changed ? `You're on ${PLANS[plan].name} now.` : "";
 }
@@ -97,28 +100,17 @@ export function BillingPage({ sb, ws, auth, onPlan }: { sb: SupabaseClient; ws: 
       const r = await post<{ url: string }>(auth, "/api/billing/portal", {});
       window.location.href = r.url;
     });
-  const button = (id: PlanId) => {
-    if (id === "free") {
-      if (paying)
-        return (
-          <button type="button" className="aw-btn aw-btn--secondary aw-btn--block" disabled={!isAdmin || busy !== null} title={isAdmin ? undefined : "Ask an admin"} onClick={portal}>
-            {busy === "portal" ? "Opening..." : "Cancel plan"}
-          </button>
-        );
-      return (
-        <button type="button" className="aw-btn aw-btn--secondary aw-btn--block" disabled>
-          {plan?.plan === "free" ? "Current plan" : plan?.plan === "trial" ? "After your trial" : "Free"}
-        </button>
-      );
-    }
-    if (id === "enterprise")
+  // What the current plan has, so its card starts there. A v5 Starter's card starts on both toolsets: today's Starter.
+  const current = paying && plan ? { plan: plan.plan, mix: plan.v5 ? ("both" as Mix) : mixOf(plan.track), tasks: plan.taskSteps } : null;
+  const button = (id: PlanId, choice: Choice | null) => {
+    if (id === "enterprise" || !choice)
       return (
         <a href={SALES} className="aw-btn aw-btn--block bg-white! text-ink!">
           Talk to us
         </a>
       );
-    // A v5 Starter with one toolset can choose Starter again to move to the v6 price with both.
-    const same = plan?.plan === id && paying && (plan.interval ?? "month") === cycle && !(id === "foundation" && plan.track);
+    const samePick = current?.plan === id && current.mix === choice.mix && current.tasks === choice.tasks && !plan?.v5;
+    const same = samePick && (plan?.interval ?? "month") === cycle;
     if (same)
       return (
         <button type="button" className="aw-btn aw-btn--secondary aw-btn--block" disabled>
@@ -126,19 +118,20 @@ export function BillingPage({ sb, ws, auth, onPlan }: { sb: SupabaseClient; ws: 
         </button>
       );
     const up = !paying || !plan || rank(id) > rank(plan.plan);
-    const label = !paying ? "Choose" : plan?.plan === id ? `Switch to ${cycle === "year" ? "yearly" : "monthly"}` : up ? "Boost" : "Switch";
+    const label = !paying ? "Choose" : samePick ? `Switch to ${cycle === "year" ? "yearly" : "monthly"}` : plan?.plan === id ? "Update plan" : up ? "Boost" : "Switch";
+    const key = `${id}-${choice.mix}-${choice.tasks}`;
     return (
       <button
         type="button"
-        className={`aw-btn aw-btn--block ${up ? "aw-btn--primary" : "aw-btn--secondary"}`}
+        className={`aw-btn aw-btn--block ${up || !paying ? "aw-btn--primary" : "aw-btn--secondary"}`}
         disabled={!isAdmin || busy !== null}
         title={isAdmin ? undefined : "Ask an admin"}
         onClick={async () => {
-          if (paying && !(await askConfirm({ title: `Switch to ${PLANS[id].name}?`, text: "The difference is charged or credited today.", action: "Switch", danger: false }))) return;
-          act(id, () => choosePlan(auth, id, cycle));
+          if (paying && !(await askConfirm({ title: plan?.plan === id ? `Update your ${PLANS[id].name} plan?` : `Switch to ${PLANS[id].name}?`, text: "The difference is charged or credited today.", action: "Switch", danger: false }))) return;
+          act(key, () => choosePlan(auth, id, cycle, choice));
         }}
       >
-        {busy === id ? "Opening..." : label}
+        {busy === key ? "Opening..." : label}
       </button>
     );
   };
@@ -176,7 +169,7 @@ export function BillingPage({ sb, ws, auth, onPlan }: { sb: SupabaseClient; ws: 
           </div>
           {plan.plan === "foundation" && plan.track ? (
             <p className="text-[14px] text-body">
-              Your Starter plan, at its earlier price, opens <strong>{TRACKS[plan.track].label}</strong>. Choose Starter again below to get both toolsets, 3 articles a month and MCP.
+              Your Starter plan, at its earlier price, opens <strong>{TRACKS[plan.track].label}</strong>. Choose Starter again below to get both toolsets, 3 articles a month and MCP, or tick one toolset for a lower price.
             </p>
           ) : null}
           <div className="grid gap-3 sm:grid-cols-3">
@@ -246,7 +239,7 @@ export function BillingPage({ sb, ws, auth, onPlan }: { sb: SupabaseClient; ws: 
           <h2 className="aw-h4 mb-0!">Plans</h2>
           <IntervalSwitch value={cycle} onChange={setCycle} />
         </div>
-        <PlanGrid interval={cycle} current={paying ? plan?.plan : null} action={button} />
+        {plan ? <PlanGrid key={current ? `${current.plan}-${current.mix}-${current.tasks}` : "new"} interval={cycle} current={current} action={button} /> : null}
       </section>
     </div>
   );

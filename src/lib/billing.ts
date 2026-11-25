@@ -1,6 +1,6 @@
 import "server-only";
 import { forgetEntitlement } from "./entitlements";
-import { dailyAnswers, limitsFor, planOfLookup, PRICE_VERSION, type Extras } from "./plans";
+import { dailyAnswers, isTasksLookup, limitsFor, planOfLookup, type Extras } from "./plans";
 import { adminClient } from "./serverAuth";
 import { stripe, type Subscription } from "./stripe";
 
@@ -32,7 +32,9 @@ export async function syncSubscription(sub: Subscription) {
   if (!ws) return null;
   const status = statusOf(sub.status);
   if (!status) return ws;
-  const item = sub.items.data[0];
+  // The plan's item, and the extra-tasks item (pricing v7) when there is one.
+  const item = sub.items.data.find((i) => !isTasksLookup(i.price.lookup_key)) ?? sub.items.data[0];
+  const tasksItem = sub.items.data.find((i) => isTasksLookup(i.price.lookup_key));
   const found = planOfLookup(item?.price.lookup_key);
   const { data: w } = await db.from("workspaces").select("plan, extras, stripe_subscription_id").eq("id", ws).maybeSingle();
   // An older subscription changing or ending never undoes the workspace's current one.
@@ -44,15 +46,20 @@ export async function syncSubscription(sub: Subscription) {
   // A price with no Arrowsterr lookup key keeps the plan as it is, so nobody gets a plan they didn't pay for.
   if (!found && status !== "canceled") console.error(`Subscription ${sub.id} has a price with no Arrowsterr lookup key. Plan left as ${w?.plan ?? "trial"}.`);
   const plan = found?.plan ?? w?.plan ?? "trial";
-  // A v5 or older price keeps its v5 limits and Starter's toolset pick. A v6 price gets v6 limits and both toolsets.
+  // A v5 or older price keeps its v5 limits and Starter's toolset pick. A v6 price opens both toolsets. A v7 price
+  // opens what was ticked on the card (its mix) and carries the extra tasks bought with it.
   const extras = { ...((w?.extras ?? {}) as Extras) };
   if (found) {
-    if (found.version < PRICE_VERSION) extras.limitsFrom = "v5";
+    if (found.version < 6) extras.limitsFrom = "v5";
     else {
       delete extras.limitsFrom;
-      delete extras.track;
       delete extras.trackAt;
+      if (found.mix === "both") delete extras.track;
+      else extras.track = found.mix;
     }
+    const steps = tasksItem?.quantity ?? 0;
+    if (steps > 0) extras.tasks = steps;
+    else delete extras.tasks;
   }
   const limits = limitsFor(plan, extras);
   const { error } = await db
