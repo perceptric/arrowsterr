@@ -30,8 +30,10 @@ test("each setup step is skipped once it's done", () => {
 });
 
 test("the trial-over email goes out once, within 3 days of the trial ending", () => {
-  const over = { plan: "free" as const, storedPlan: "trial" as const };
+  const over = { plan: "trial" as const, storedPlan: "trial" as const };
   assert.equal(pickStep(at(8, { ...over, trialEndedHours: 20 }, ["welcome", "plan"])), "trialover");
+  // An ended trial is read-only: it gets the trial-over email, never the Content Plan nudge.
+  assert.equal(pickStep(at(8, { ...over, trialEndedHours: 20 }, ["welcome", "trialover"])), null);
   assert.equal(pickStep(at(11, { ...over, trialEndedHours: 80 }, ["welcome", "plan"])), null);
   assert.equal(pickStep(at(8, { ...over, trialEndedHours: 20 }, ["welcome", "trialover"])), null);
 });

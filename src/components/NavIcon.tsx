@@ -63,6 +63,9 @@ const ICONS: Record<string, string> = {
   lines: '<path d="M4 6h16M4 10h16M4 14h10M4 18h7"/>',
   list: '<path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/>',
   alert: '<path d="M12 3l9.5 17h-19z"/><path d="M12 10v4M12 17h.01"/>',
+  code: '<path d="m8 8-5 4 5 4M16 8l5 4-5 4"/>',
+  upload: '<path d="M12 15V4M7 9l5-5 5 5"/><path d="M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/>',
+  quote: '<path d="M7 7h4v4c0 3-2 5-4 6M15 7h4v4c0 3-2 5-4 6"/>',
 };
 export function NavIcon({ name }: { name: string }) {
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="aw-nav__icon" dangerouslySetInnerHTML={{ __html: ICONS[name] }} />;

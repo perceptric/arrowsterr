@@ -57,7 +57,7 @@ const all: Record<string, Email> = {
   firstLookLead: firstLookEmail({ brand: "Acme", visibility: 60, answers: 40, top: [{ name: "Rival", visibility: 30 }], example: null, url }, footer),
   prompts: promptsEmail({ brand: "Acme", count: 4, limit: 25, ideas: [{ prompt: "Rival alternatives", stage: "bofu" }], url }, footer),
   contentPlan: contentPlanEmail({ brand: "Acme", site: "acme.com", trialEnds: new Date("2026-11-26T12:00:00Z"), url }, footer),
-  trialOver: trialOverEmail({ workspace: "Acme", cols: ["Trial", "Free", "Starter"], rows: [{ label: "Prompts", values: ["25", "15", "50"] }], pick: 2, price: 49, annual: 42, url, stayUrl: url }, footer),
+  trialOver: trialOverEmail({ workspace: "Acme", cols: ["Trial", "Starter", "Pro"], rows: [{ label: "Prompts", values: ["25", "50", "150"] }], pick: 1, price: 49, annual: 42, url }, footer),
   upgrade: upgradeEmail({ brand: "Acme", visibility: 22.5, prompts: 12, promptLimit: 15, engines: ["ChatGPT", "AI Overview"], missing: ["Claude", "Gemini"], plan: { name: "Starter", price: 49, prompts: 50, competitors: 10 }, url }, footer),
   help: helpEmail({ brand: "Acme", url }, footer),
   winBack: winBackEmail({ brand: "Acme", since: new Date("2026-10-19T12:00:00Z"), before: 22.5, now: 15.8, byEngine: [{ engine: "ChatGPT", visibility: 19 }], top: [{ name: "Rival", visibility: 57 }], url }, footer),
@@ -108,9 +108,11 @@ test("the plan puts ready-to-buy pages first, and the trial shows the prices it 
   assert.match(all.tasks.subject, /^1,280 tasks left this month$/);
 });
 
-test("the trial email says the workspace moves to Free, never read-only", () => {
-  assert.match(all.trial.text, /moves to the Free plan/);
-  assert.doesNotMatch(all.trial.text + all.trial.preview, /read-only/);
+test("the trial emails say the workspace goes read-only until a plan is picked, with nothing deleted", () => {
+  assert.match(all.trial.text, /read-only until you pick a plan/);
+  assert.match(all.trial.text, /Nothing is deleted/);
+  assert.match(all.trialOver.text, /read-only until you pick a plan\. Nothing was deleted/);
+  assert.doesNotMatch(all.trial.text + all.trialOver.text, /Free plan|on Free/);
 });
 
 test("getting-started emails use the brand's real numbers and show the answer that skipped it", () => {
@@ -122,8 +124,8 @@ test("getting-started emails use the brand's real numbers and show the answer th
   assert.match(all.welcome.text, /Sam\nFounder/);
   assert.equal(all.welcomeNoBrand.subject, "See what ChatGPT says about your brand");
   assert.match(all.prompts.text, /4\/25 prompts tracked/);
-  assert.match(all.contentPlan.text, /In your trial until Nov 26\. Not on Free\./);
-  assert.match(all.trialOver.text, /Trial \| Free \| Starter\nPrompts: Trial 25, Free 15, Starter 50/);
+  assert.match(all.contentPlan.text, /In your trial until Nov 26\./);
+  assert.match(all.trialOver.text, /Trial \| Starter \| Pro\nPrompts: Trial 25, Starter 50, Pro 150/);
   assert.equal(all.upgrade.subject, "You're seeing 2 of 4 AIs for Acme");
   assert.match(all.trialOver.text, /Get Starter, \$49 a month/);
   assert.match(all.firstLook.text, /Acme 18% vs Rival 54%/);
