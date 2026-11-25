@@ -99,8 +99,8 @@ if [ -z "${DEPLOY_TMP:-}" ] && [ -n "$SCRIPT_REF" ]; then
   rm -f "$NEW"
 fi
 
-# Database migrations aren't run here: the runner in /docker/arrowsterr-migrate runs new supabase/NNN_*.sql files from
-# the production branch on its own (README, Migrations run on their own).
+# Database migrations aren't run here: the app runs new supabase/NNN_*.sql files on its own (README, Migrations run on
+# their own).
 each_project "restarting what changed in" up -d
 
 # Old images pile up with every build. Remove the ones nothing uses.
