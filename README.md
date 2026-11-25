@@ -28,7 +28,7 @@ The database starts from `supabase/schema.sql`, then each numbered file in `supa
 
 ### Migrations run on their own
 
-A runner on the server (`/docker/arrowsterr-migrate`) checks the production branch every 2 minutes. It runs each `supabase/NNN_*.sql` file it hasn't run yet, in filename order, one transaction per file, and records it in `ops.schema_migrations`. If a file fails, it's rolled back and its error goes to `docker logs arrowsterr-migrate-migrate-1`. The files after it wait until the next push, or 30 minutes.
+The app runs them. On each schedule tick (every 10 minutes), `src/lib/migrationsServer.ts` runs each `supabase/NNN_*.sql` file it hasn't run yet, in filename order, one transaction per file, through the database's SQL endpoint (`/pg/query` on `SUPABASE_URL`, with `SUPABASE_SECRET_KEY`). It records each file in `ops.schema_migrations`. If a file fails, it's rolled back, the error goes to the app's logs ("Migration failed"), and the files after it wait for the next tick. The old runner in `/docker/arrowsterr-migrate` stopped on Nov 18 and is no longer needed.
 
 So a new migration file must:
 
@@ -36,7 +36,7 @@ So a new migration file must:
 - Be safe to run twice: use `if not exists`, `drop policy if exists` and `on conflict do nothing`.
 - Work with the code that's already live. It can run a few minutes before the new images do, so drop or rename a column only after the code has stopped using it.
 
-To run a file again, delete its row from `ops.schema_migrations`, then run `docker compose restart` in `/docker/arrowsterr-migrate`.
+To run a file again, delete its row from `ops.schema_migrations`. The next tick runs it.
 
 Render and Fly are no longer used ([docs/fly.md](docs/fly.md) is kept for its history).
 

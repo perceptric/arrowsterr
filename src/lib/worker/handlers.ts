@@ -26,6 +26,7 @@ import { writerBriefJob, writerDraftJob } from "../writerServer";
 import { wpPublishJob } from "../wpSyncServer";
 import { queueReportSends } from "../scheduleServer";
 import { runAutopilots } from "../zippieWriter";
+import { runMigrations } from "../migrationsServer";
 import { applySet, preparePlay, undoSet } from "../plays";
 import { checkDue, promptAllowance } from "../plans";
 import type { PlanBrief } from "../research";
@@ -49,6 +50,8 @@ export const slotOf = (brandId: string) => seed(brandId) % WINDOW_MIN;
 
 // ─────────────── schedule: start today's runs that are due ───────────────
 export async function schedule(db: SupabaseClient, job: Job) {
+  // New database files first (migrationsServer.ts), so the work below sees the newest tables.
+  await runMigrations().catch((e) => console.error("Migration failed:", e instanceof Error ? e.message : e));
   // Scheduled reports due this tick (docs/reports.md, section 32.4). A failure here never holds up the daily checks.
   await queueReportSends(db).catch((e) => console.error("Report schedules failed:", e instanceof Error ? e.message : e));
   await queueShopWork(db).catch((e) => console.error("AI Shopping jobs failed:", e instanceof Error ? e.message : e));
