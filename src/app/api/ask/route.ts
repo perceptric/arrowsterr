@@ -2,6 +2,8 @@ import { answer, skillsOf, type AskEvent } from "@/lib/ask";
 import type { Proposal } from "@/lib/zippieTools";
 import type { WriterCard } from "@/lib/contentPicks";
 import { pieceStatus } from "@/lib/zippieWriter";
+import { kindOf } from "@/lib/writingChats";
+import { before103, chatsOfItem, insertThread, writingPieces, writingProject, writingProjectId } from "@/lib/writingChatsServer";
 import { take } from "@/lib/entitlements";
 import { meteredRoute, streamed } from "@/lib/meter";
 import { TASK_COST } from "@/lib/plans";
@@ -18,7 +20,9 @@ type Block = { type: string; text?: string; name?: string; content?: unknown };
 type Card = { kind: "changeset" | "setup"; id: string } | { kind: "proposal"; id: string; proposal: Proposal } | { kind: "writer"; id: string; card: WriterCard };
 
 // Zippie. Everyone in the workspace can chat and read; only editors prepare changes.
-//   threads: {}                       the workspace's chats, newest first
+//   threads: {}                       the workspace's chats, newest first, with the Content writing folder and
+//                                     each writing chat's Calendar pieces (writingChats.ts)
+//   item_chats: { itemId }            the chats that worked on one Calendar piece, newest first
 //   thread: { threadId }              one chat's messages
 //   send: { threadId?, message, where? }  answer one message, streamed as one JSON event per line.
 //                                     where is the brand and page the person asks from
@@ -40,10 +44,19 @@ async function handle(request: Request) {
   }
 
   if (body.action === "threads") {
-    const { data, error } = await db.from("ask_threads").select("id, title, created_by, updated_at, project_id").eq("workspace_id", ws).order("updated_at", { ascending: false }).limit(100);
+    const list = (cols: string) => db.from("ask_threads").select(cols).eq("workspace_id", ws).order("updated_at", { ascending: false }).limit(100);
+    let { data, error } = await list("id, title, created_by, updated_at, project_id, kind");
+    if (before103(error)) ({ data, error } = await list("id, title, created_by, updated_at, project_id"));
     if (missing(error)) return Response.json({ threads: [], setup: SETUP });
     if (error) return err(error.message, 500);
-    return Response.json({ threads: data });
+    const threads = (data ?? []) as unknown as { id: string }[];
+    const [projectId, pieces] = await Promise.all([writingProjectId(db, ws), writingPieces(db, ws, threads.map((t) => t.id)).catch(() => ({}))]);
+    return Response.json({ threads, writing: { projectId, pieces } });
+  }
+
+  if (body.action === "item_chats") {
+    const chats = await chatsOfItem(db, ws, str(body.itemId, 60)).catch(() => []);
+    return Response.json({ chats });
   }
 
   const threadOf = async (id: unknown) => {
@@ -145,7 +158,10 @@ async function handle(request: Request) {
         const { data: p } = await db.from("ask_projects").select("id").eq("id", str(body.projectId, 60)).eq("workspace_id", ws).maybeSingle();
         projectId = p?.id ?? null;
       }
-      const { data, error } = await db.from("ask_threads").insert({ workspace_id: ws, title, created_by: userId, project_id: projectId }).select("id, title, created_by, project_id").single();
+      // A chat started on the Writer goes into the Content writing folder (writingChats.ts).
+      const kind = kindOf(body.where);
+      if (!projectId && kind) projectId = await writingProject(db, ws, userId);
+      const { data, error } = await insertThread(db, { workspace_id: ws, title, created_by: userId, project_id: projectId, kind });
       if (missing(error)) return err(SETUP, 500);
       if (error || !data) return err(error?.message ?? "Could not start a chat.", 500);
       thread = data;

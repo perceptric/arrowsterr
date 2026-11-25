@@ -16,6 +16,7 @@ import { editSections, type BriefRow } from "./writerBrief";
 import { stepLabel } from "./writeFlow";
 import { startBrief, startDraft } from "./writerServer";
 import { applyEdits } from "./draftEdits";
+import { insertThread, linkPiece, writingProject } from "./writingChatsServer";
 import { brandOf } from "./zippieBrand";
 import type { ToolCtx, ToolEmit, ZippieTool } from "./zippieTools";
 
@@ -38,6 +39,8 @@ async function findItem(ctx: ToolCtx, args: Record<string, unknown>): Promise<It
   const pick = id ? rows : exact.length ? exact : rows;
   if (!pick.length) throw new ToolError(`"${keyword || id}" isn't on the Editorial Calendar. Add it with add_to_content_plan first, then write it.`);
   if (pick.length > 1) throw new ToolError(`More than one piece matches: ${pick.map((r) => `"${r.keyword}" (${r.id})`).join(", ")}. Ask which one, then pass its item_id.`);
+  // Every writer tool finds its piece here, so this is where the chat records that it worked on it (writingChats.ts).
+  await linkPiece(ctx.db, ctx.ws, ctx.threadId, pick[0].id, ctx.userId);
   return pick[0];
 }
 
@@ -334,7 +337,9 @@ async function autopilotRun(db: SupabaseClient, ws: string, siteId: string, bran
   const blocked = await writable(ws);
   const picks = blocked ? [] : await loadPicks(db, ws, siteId, a.count);
   // The day's chat first, so a piece published later (writerPublish.ts) can say so in it.
-  const { data: t } = await db.from("ask_threads").insert({ workspace_id: ws, title: `Autopilot · ${day}`, created_by: a.by }).select("id").single();
+  // It goes into the Content writing folder, marked as Autopilot's (writingChats.ts).
+  const project = await writingProject(db, ws, a.by);
+  const { data: t } = await insertThread(db, { workspace_id: ws, title: `Autopilot · ${day}`, created_by: a.by, project_id: project, kind: "autopilot" });
   const thread = (t as { id: string } | null)?.id ?? null;
   const publish = a.stop === "draft" && a.after !== "keep" ? { publish_after: a.after } : {};
   const started: string[] = [];
@@ -344,6 +349,7 @@ async function autopilotRun(db: SupabaseClient, ws: string, siteId: string, bran
       const { data } = await db.from("calendar_items").select("id, site_id, keyword, status, extra").eq("id", p.item_id).maybeSingle();
       if (!data) continue;
       await outline(db, ws, a.by, data as Item, null, a.stop === "draft", { ...publish, ...(thread ? { autopilot_thread: thread } : {}) });
+      if (thread) await linkPiece(db, ws, thread, p.item_id, a.by);
       started.push(p.keyword);
     } catch (e) {
       failed.push(`${p.keyword}: ${e instanceof Error ? e.message : String(e)}`);

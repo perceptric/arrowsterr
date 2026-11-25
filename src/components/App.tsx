@@ -78,6 +78,9 @@ import { WriterPage } from "./zippie/WriterPage";
 import { KnowledgePage } from "./zippie/KnowledgePage";
 import { SkillsPage, TREE_W } from "./zippie/SkillsPage";
 import { useZippie, ZippieProvider } from "./zippie/ZippieContext";
+import { AutopilotTag, StateDot } from "./zippie/WritingChats";
+import { I, Icon } from "./zippie/Cards";
+import { chatLine, isAutopilot, PROJECT_NAME, splitChats } from "@/lib/writingChats";
 import { LibraryPage } from "./writer/LibraryPage";
 import { ShoppingPage } from "./ShoppingPage";
 import { shopOn, type ShopMode } from "@/lib/shopDetect";
@@ -1239,6 +1242,43 @@ function Sidebar({
     if (group) setClosedGroups((x) => new Set([...x].filter((n) => n !== group)));
     onHide();
   };
+  // Zippie's chats: the Content writing folder first (writingChats.ts), then the rest.
+  const chats = splitChats(z.threads, z.writing.projectId, z.writing.pieces);
+  const chatRow = (t: (typeof z.threads)[number], writing: boolean) => {
+    const on = page === "zippie" && z.threadId === t.id;
+    const line = writing ? chatLine(z.writing.pieces[t.id]) : null;
+    return (
+      <div key={t.id} className={`aw-side-chat ${on ? "is-on" : ""}`}>
+        <button
+          type="button"
+          className="flex min-w-0 flex-1 flex-col gap-0.5 text-left wrap-break-word"
+          aria-current={on ? "true" : undefined}
+          onClick={() => {
+            setMenu(false);
+            z.openThread(t.id);
+            onPage("zippie");
+          }}
+        >
+          <span className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
+            <span>{t.title}</span>
+            {writing && isAutopilot(t) ? <AutopilotTag /> : null}
+          </span>
+          {line ? <StateDot piece={line} label={line.text} /> : null}
+        </button>
+        <button
+          type="button"
+          className="aw-side-chat__del"
+          aria-label={`Delete ${t.title}`}
+          title="Delete chat"
+          onClick={async () => {
+            if (await askConfirm({ title: "Delete this chat?", text: t.title, action: "Delete", danger: true })) z.removeThread(t.id);
+          }}
+        >
+          <NavIcon name="x" />
+        </button>
+      </div>
+    );
+  };
   return (
     <>
     {hidden ? (
@@ -1379,37 +1419,16 @@ function Sidebar({
               <span className="text-[11px] text-faint tabular-nums">{id === "skills" ? z.lib.skills.length || "" : z.lib.knowledge.length || ""}</span>
             </button>
           ))}
-          {z.threads.length ? <div className="aw-side-label">Chats</div> : null}
-          {z.threads.slice(0, 40).map((t) => {
-            const on = page === "zippie" && z.threadId === t.id;
-            return (
-              <div key={t.id} className={`aw-side-chat ${on ? "is-on" : ""}`}>
-                <button
-                  type="button"
-                  className="min-w-0 flex-1 text-left wrap-break-word"
-                  aria-current={on ? "true" : undefined}
-                  onClick={() => {
-                    setMenu(false);
-                    z.openThread(t.id);
-                    onPage("zippie");
-                  }}
-                >
-                  {t.title}
-                </button>
-                <button
-                  type="button"
-                  className="aw-side-chat__del"
-                  aria-label={`Delete ${t.title}`}
-                  title="Delete chat"
-                  onClick={async () => {
-                    if (await askConfirm({ title: "Delete this chat?", text: t.title, action: "Delete", danger: true })) z.removeThread(t.id);
-                  }}
-                >
-                  <NavIcon name="x" />
-                </button>
-              </div>
-            );
-          })}
+          {chats.writing.length ? (
+            <div className="aw-side-label flex items-center gap-2 text-ink">
+              <Icon d={I.folder} size={15} />
+              <span className="flex-1">{PROJECT_NAME}</span>
+              <span className="font-normal text-faint tabular-nums">{chats.writing.length}</span>
+            </div>
+          ) : null}
+          {chats.writing.slice(0, 40).map((t) => chatRow(t, true))}
+          {chats.other.length ? <div className="aw-side-label">{chats.writing.length ? "Other chats" : "Chats"}</div> : null}
+          {chats.other.slice(0, 40).map((t) => chatRow(t, false))}
         </nav>
       ) : (
       <nav className={`${menu ? "flex" : "hidden"} flex-col gap-0.5 md:flex`} aria-label="Modules">

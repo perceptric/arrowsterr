@@ -14,6 +14,7 @@ import { Modal } from "../reports/Dialog";
 import { useBrandSite } from "../writer/parts";
 import { I, Icon } from "./Cards";
 import { ZippieHome, type Suggestion } from "./Chat";
+import { RecentWriting } from "./WritingChats";
 import { useZippie } from "./ZippieContext";
 
 const START: Suggestion[] = [
@@ -55,12 +56,15 @@ export function WriterPage({ sb, brand, canEdit, userId, workspaceId }: { sb: Su
         intro="Zippie picks from your Calendar, researches the topic, outlines it from what people search and writes the draft."
         start={START}
         footer={
-          auto.on ? (
-            <p className="flex items-center gap-2 text-[13px] text-muted">
-              <span className="inline-block h-2 w-2 rounded-full bg-pos" aria-hidden="true" />
-              Autopilot writes {auto.count === 1 ? "1 article" : `${auto.count} articles`} {auto.cadence === "weekdays" ? "every weekday" : "every day"} at {hourLabel(auto.hour)}.
-            </p>
-          ) : null
+          <>
+            {auto.on ? (
+              <p className="flex items-center gap-2 text-[13px] text-muted">
+                <span className="inline-block h-2 w-2 rounded-full bg-pos" aria-hidden="true" />
+                Autopilot writes {auto.count === 1 ? "1 article" : `${auto.count} articles`} {auto.cadence === "weekdays" ? "every weekday" : "every day"} at {hourLabel(auto.hour)}.
+              </p>
+            ) : null}
+            <RecentWriting />
+          </>
         }
       />
       {editing && site ? <AutopilotDialog site={site} brand={brand} tz={tz} userId={userId} canEdit={canEdit} sb={sb} onClose={() => setEditing(false)} /> : null}
