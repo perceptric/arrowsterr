@@ -8,7 +8,7 @@ node_modules
 tests
 docs
 brand
-supabase
+supabase/templates
 coverage
 *.tsbuildinfo
 next-env.d.ts
