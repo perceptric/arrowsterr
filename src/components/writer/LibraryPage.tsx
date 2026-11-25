@@ -19,6 +19,7 @@ import { ConnectWizard } from "../ConnectWizard";
 import { Pop } from "../Pickers";
 import { PublishPanel } from "../research/PublishPanel";
 import { useZippieRecord } from "../zippie/ZippieContext";
+import { ChatsAboutPiece } from "../zippie/WritingChats";
 import { post } from "../research/shared";
 import { brandTables } from "../research/Writer";
 import { exportClean } from "../research/writerNodes";
@@ -226,11 +227,14 @@ function PieceView({ sb, auth, site, brandId, id, canEdit, onBack }: { sb: Supab
             links: [...(brief.brief?.internalLinks ?? []), ...(brief.brief?.cards ?? []).flatMap((c) => c.links)],
           }}
           extra={
-            canEdit ? (
-              <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setRegen(true)}>
-                Regenerate
-              </button>
-            ) : null
+            <>
+              <ChatsAboutPiece itemId={brief.item_id} />
+              {canEdit ? (
+                <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setRegen(true)}>
+                  Regenerate
+                </button>
+              ) : null}
+            </>
           }
         />
         {regenerate}

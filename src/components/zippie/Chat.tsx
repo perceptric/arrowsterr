@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Zippie } from "../Zippie";
 import { I, Icon, Reply } from "./Cards";
 import { Composer } from "./Composer";
+import { WorkingOn } from "./WritingChats";
 import { useZippie } from "./ZippieContext";
 
 // Zippie on every page, the way Lightfield and Omniscient do it: a chat box floating at the bottom of the page names
@@ -180,6 +181,7 @@ export function ZippiePanel({ onOpenFull }: { onOpenFull: () => void }) {
           <Icon d={I.x} size={16} />
         </button>
       </header>
+      <WorkingOn compact />
       <div ref={body} className="zp-panel__body">
         {z.messages.length ? (
           <Thread compact content={content} />
@@ -254,6 +256,7 @@ export function ZippieHome({
     );
   return (
     <div className="zp-full">
+      <WorkingOn />
       <div className="zp-full__scroll">
         <Thread content={content} />
       </div>

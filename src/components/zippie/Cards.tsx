@@ -82,6 +82,11 @@ export function Spark({ size = 14, className = "" }: { size?: number; className?
     </svg>
   );
 }
+/** Open an app page in place, the way the sidebar does. */
+export function goTo(path: string) {
+  window.history.pushState(null, "", path);
+  window.dispatchEvent(new PopStateEvent("popstate"));
+}
 export const Icon = ({ d, size = 16 }: { d: string; size?: number }) => (
   <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" dangerouslySetInnerHTML={{ __html: d }} />
 );
@@ -105,6 +110,7 @@ export const I = {
   chev: '<path d="m9 6 6 6-6 6"/>',
   panel: '<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M14.5 4.5v15"/>',
   chat: '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>',
   box: '<path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/>',
   doc: '<path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h5"/>',
   search: '<circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/>',
@@ -228,10 +234,7 @@ function SetupCard({ id, auth, canEdit, onSend }: { id: string; auth: RunAuth; c
         <button
           type="button"
           className="aw-btn aw-btn--primary aw-btn--sm"
-          onClick={() => {
-            window.history.pushState(null, "", "/traffic");
-            window.dispatchEvent(new PopStateEvent("popstate"));
-          }}
+          onClick={() => goTo("/traffic")}
         >
           Open Traffic
         </button>
