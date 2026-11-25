@@ -11,11 +11,13 @@ import { post } from "../research/shared";
 import { Thinking } from "../ui";
 import { CommandMenu, type Command } from "./CommandMenu";
 import { StateTag, usePoll } from "./parts";
+import { VisualSketch } from "./VisualSketch";
 
 // The outline screen (docs/draft-and-write-build.md, Phase 1), one calm reading column: the title and the piece's goal,
 // the Google preview (Edit opens the title, URL and description), then the outline as headings with their H3s. A
-// section opens in place under its heading: its heading, goal, the searches it answers, its H3s, what it covers, its
-// images and what's still missing. J and K move between sections, Esc closes one. Write asks once, then starts the draft.
+// section opens in place under its heading: its heading, goal, the searches it answers, its H3s, what it covers and
+// its visuals, each a card with a sketch drawn from the brief's data. J and K move between sections, Esc closes one.
+// Write asks once, then starts the draft.
 // Every edit saves through the agentic-writer "edit" action (editBrief).
 
 type Patch = Record<string, unknown>;
@@ -165,7 +167,6 @@ export function OutlineView({
   const editable = canEdit && row.status !== "generating";
   const cardsEditable = editable && Boolean(b.cards?.length);
   const words = cards.reduce((n, c) => n + c.words, 0) || b.wordTarget;
-  const needs = cards.filter((c) => c.gaps.length);
   // The searches each H2 answers, with their volumes (searchGroups.ts), and its H3s. Older briefs have no searches.
   const volumes = new Map((b.research.searches ?? []).map((q) => [q.keyword, q.volume ?? 0]));
   const partOf = (c: SectionCard) => (c.key === "intro" ? undefined : b.outline[Number(c.key.slice(3))]);
@@ -178,7 +179,6 @@ export function OutlineView({
   const commands = (): Command[] => [
     ...cards.map((c, i) => ({ group: "Sections", label: c.key === "intro" ? "Intro" : `${i}. ${sectionName(c)}`, run: () => setSel(c.key) })),
     ...(canWrite ? [{ group: "Actions", label: "Write draft", run: () => setAsking(true) }] : []),
-    ...(needs.length ? [{ group: "Actions", label: "Go to the next section that needs detail", run: () => setSel((needs.find((c) => cards.indexOf(c) > at) ?? needs[0]).key) }] : []),
     { group: "Go to", label: "Drafts", run: onBack },
   ];
 
@@ -228,11 +228,12 @@ export function OutlineView({
               open={c.key === sel}
               searches={searchesOf(c)}
               h3s={h3sOf(c)}
-              chips={visualsOf(b, c)}
+              visuals={visualsOf(b, c)}
               disabled={!cardsEditable}
+              fixed={!editable}
               onToggle={() => setSel((s) => (s === c.key ? null : c.key))}
               onSave={(patch) => save({ cards: [{ key: c.key, ...patch }] })}
-              onChip={(chip) => save(chip.kind === "image" ? { removeImages: [chip.id] } : { removeModules: [chip.id] })}
+              onVisual={(v, edit) => save(edit ? { visuals: [{ kind: v.kind, id: v.id, ...edit }] } : v.kind === "image" ? { removeImages: [v.id] } : { removeModules: [v.id] })}
             />
           ))}
         </ol>
@@ -243,12 +244,7 @@ export function OutlineView({
           sections={cards.length}
           words={words}
           monthly={monthly}
-          needs={needs}
           busy={writing}
-          onReview={(key) => {
-            setAsking(false);
-            setSel(key);
-          }}
           onWrite={() => void write()}
           onClose={() => setAsking(false)}
         />
@@ -269,22 +265,26 @@ function Section({
   open,
   searches,
   h3s,
-  chips,
+  visuals,
   disabled,
+  fixed,
   onToggle,
   onSave,
-  onChip,
+  onVisual,
 }: {
   card: SectionCard;
   n: number;
   open: boolean;
   searches: Searched[];
   h3s: string[];
-  chips: VisualChip[];
+  visuals: VisualChip[];
+  /** The card's own fields can't change (an older brief with no cards, or no edit rights). */
   disabled: boolean;
+  /** Nothing can change: no edit rights, or the outline is still being written. */
+  fixed: boolean;
   onToggle: () => void;
   onSave: (patch: Patch) => void;
-  onChip: (chip: VisualChip) => void;
+  onVisual: OnVisual;
 }) {
   const intro = card.key === "intro";
   const volume = searches.reduce((v, q) => v + q.volume, 0);
@@ -327,7 +327,7 @@ function Section({
           {chevron}
         </button>
       )}
-      {open ? <SectionDetail key={card.key} card={card} searches={searches} h3s={h3s} chips={chips} disabled={disabled} onSave={onSave} onChip={onChip} /> : null}
+      {open ? <SectionDetail key={card.key} card={card} searches={searches} h3s={h3s} visuals={visuals} disabled={disabled} fixed={fixed} onSave={onSave} onVisual={onVisual} /> : null}
     </li>
   );
 }
@@ -430,40 +430,48 @@ function Field({ label, id, count, lo, hi, children }: { label: string; id: stri
   );
 }
 
-/** An open section: goal, the searches it answers, its H3s, what it covers, its images and what's missing. */
+/** Saves a visual's new wording, or removes it when there's no edit. */
+type OnVisual = (v: VisualChip, edit?: Patch) => void;
+
+/** A part's heading inside an open section: as big as the text under it, and bolder. */
+const Label = ({ children }: { children: React.ReactNode }) => <h3 className="text-[15px] leading-snug font-semibold text-ink">{children}</h3>;
+
+/** An open section: goal, the searches it answers, its H3s, what it covers and its visuals. */
 function SectionDetail({
   card,
   searches,
   h3s,
-  chips,
+  visuals,
   disabled,
+  fixed,
   onSave,
-  onChip,
+  onVisual,
 }: {
   card: SectionCard;
   searches: Searched[];
   h3s: string[];
-  chips: VisualChip[];
+  visuals: VisualChip[];
   disabled: boolean;
+  fixed: boolean;
   onSave: (patch: Patch) => void;
-  onChip: (chip: VisualChip) => void;
+  onVisual: OnVisual;
 }) {
   const block = (label: string, body: React.ReactNode) => (
-    <div className="flex flex-col gap-2">
-      <span className="aw-micro">{label}</span>
+    <div className="flex flex-col gap-2.5">
+      <Label>{label}</Label>
       {body}
     </div>
   );
   return (
     <div className="flex flex-col gap-7 pt-2 pr-6 pb-7 pl-15">
-      {card.job ? <p className="text-[15px] leading-relaxed text-body">{card.job}</p> : null}
+      {card.job ? <p className="text-[15.5px] leading-relaxed text-body">{card.job}</p> : null}
 
       {searches.length
         ? block(
             "Answers these searches",
             <span className="flex flex-wrap gap-2">
               {searches.map((q) => (
-                <span key={q.keyword} className="inline-flex items-center gap-2 rounded-full border border-rule bg-white px-3 py-1 text-[13px] text-ink">
+                <span key={q.keyword} className="inline-flex items-center gap-2 rounded-full border border-rule bg-white px-3 py-1 text-[14px] text-ink">
                   {q.keyword}
                   {q.volume ? <span className="aw-num text-muted">{q.volume.toLocaleString("en-US")}</span> : null}
                 </span>
@@ -487,32 +495,16 @@ function SectionDetail({
 
       <Points key={card.points.join("\n")} points={card.points} disabled={disabled} onSave={(points) => onSave({ points })} />
 
-      {chips.length
+      {visuals.length
         ? block(
-            "Images and modules",
-            <span className="flex flex-wrap gap-2">
-              {chips.map((c) => (
-                <span key={`${c.kind}:${c.id}`} className="inline-flex items-center gap-1.5 rounded-full border border-rule bg-white px-3 py-1 text-[13px] text-ink">
-                  {c.label}
-                  {disabled ? null : (
-                    <button type="button" className="flex h-5 w-5 items-center justify-center text-muted hover:text-ink" aria-label={`Remove ${c.label}`} title="Remove" onClick={() => onChip(c)}>
-                      {svg(<path d="M6 6l12 12M18 6L6 18" />, 12)}
-                    </button>
-                  )}
-                </span>
+            "Visuals",
+            <div className="flex flex-col gap-3">
+              {visuals.map((v) => (
+                <VisualCard key={`${v.kind}:${v.id}`} visual={v} fixed={fixed} onVisual={onVisual} />
               ))}
-            </span>,
+            </div>,
           )
         : null}
-
-      {card.gaps.length ? (
-        <p className="flex items-start gap-2 text-[14px] leading-relaxed text-warn">
-          <span className="pt-1">
-            <I.alert />
-          </span>
-          <span>Still to find: {card.gaps.map((g) => g.replace(/^detail needed:\s*/i, "")).join(" ")}</span>
-        </p>
-      ) : null}
     </div>
   );
 }
@@ -538,7 +530,7 @@ function Points({ points, disabled, onSave }: { points: string[]; disabled: bool
         if (!e.currentTarget.contains(e.relatedTarget as Node | null)) commit(list);
       }}
     >
-      <span className="aw-micro">Covers</span>
+      <Label>What it covers</Label>
       <ul className="flex flex-col">
         {list.map((p, i) => (
           <li key={i} className="flex items-start gap-3">
@@ -595,23 +587,96 @@ function Points({ points, disabled, onSave }: { points: string[]; disabled: bool
   );
 }
 
-/** Write asks once: what the draft is built from, and which sections still need detail. */
+/** One planned image or module: its sketch, what it is, and Edit and Remove. Edit rewords it in place. */
+function VisualCard({ visual: v, fixed, onVisual }: { visual: VisualChip; fixed: boolean; onVisual: OnVisual }) {
+  const image = v.kind === "image";
+  const alt = image ? v.note.replace(/^Alt text:\s*/, "") : "";
+  // An image's words are what it shows and its alt text; a module's are its title and what it does.
+  const [editing, setEditing] = useState(false);
+  const [a, setA] = useState(v.title);
+  const [z, setZ] = useState(image ? alt : v.shows);
+  const ids = { a: `vis-a-${v.kind}-${v.id}`, z: `vis-z-${v.kind}-${v.id}` };
+  const done = () => {
+    const first = a.trim();
+    const second = z.trim();
+    setEditing(false);
+    if (!first) return;
+    if (image ? first !== v.title || second !== alt : first !== v.title || second !== v.shows) onVisual(v, image ? { shows: first, alt: second } : { title: first, purpose: second });
+  };
+  return (
+    <div className="aw-visual">
+      <VisualSketch sketch={v.sketch} />
+      <div className="aw-visual__body">
+        <span className="aw-visual__kind">{v.kindLabel}</span>
+        {editing ? (
+          <div className="flex flex-col gap-3">
+            <Field label={image ? "What it shows" : "Title"} id={ids.a}>
+              <input id={ids.a} value={a} onChange={(e) => setA(e.target.value)} onKeyDown={(e) => e.key === "Enter" && done()} className="aw-input" autoFocus />
+            </Field>
+            <Field label={image ? "Alt text" : "What it does"} id={ids.z}>
+              {image ? (
+                <input id={ids.z} value={z} onChange={(e) => setZ(e.target.value)} onKeyDown={(e) => e.key === "Enter" && done()} className="aw-input" />
+              ) : (
+                <textarea id={ids.z} value={z} rows={2} onChange={(e) => setZ(e.target.value.replace(/\n/g, " "))} className="aw-input min-h-16 py-2" />
+              )}
+            </Field>
+          </div>
+        ) : (
+          <>
+            <span className="aw-visual__title">{v.title}</span>
+            {v.shows ? <span className="aw-visual__shows">{v.shows}</span> : null}
+            {v.note ? <span className="aw-visual__note">{v.note}</span> : null}
+          </>
+        )}
+        {fixed ? null : (
+          <span className="aw-visual__actions">
+            {editing ? (
+              <>
+                <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={done}>
+                  Save
+                </button>
+                <button
+                  type="button"
+                  className="aw-btn aw-btn--ghost aw-btn--sm"
+                  onClick={() => {
+                    setA(v.title);
+                    setZ(image ? alt : v.shows);
+                    setEditing(false);
+                  }}
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <>
+                <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" aria-label={`Edit ${v.title}`} onClick={() => setEditing(true)}>
+                  Edit
+                </button>
+                <button type="button" className="aw-btn aw-btn--ghost aw-btn--sm" aria-label={`Remove ${v.title}`} onClick={() => onVisual(v)}>
+                  Remove
+                </button>
+              </>
+            )}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Write asks once: what the draft is built from. */
 function WriteDialog({
   sections,
   words,
   monthly,
-  needs,
   busy,
-  onReview,
   onWrite,
   onClose,
 }: {
   sections: number;
   words: number;
   monthly: number;
-  needs: SectionCard[];
   busy: boolean;
-  onReview: (key: string) => void;
   onWrite: () => void;
   onClose: () => void;
 }) {
@@ -630,25 +695,6 @@ function WriteDialog({
           {stat(`~${words.toLocaleString("en-US")}`, "words")}
           {stat(monthly ? monthly.toLocaleString("en-US") : "–", "searches a month")}
         </div>
-        {needs.length ? (
-          <div className="flex flex-col gap-1.5 rounded-aw border border-rule-faint bg-warn-bg px-3 py-2.5 text-[13px] text-ink">
-            <span>
-              {needs.length === 1 ? (
-                <>
-                  <b>{sectionName(needs[0])}</b> still needs detail.
-                </>
-              ) : (
-                <>
-                  <b>{needs.length} sections</b> still need detail.
-                </>
-              )}{" "}
-              The writer leaves out what it can&apos;t back up.
-            </span>
-            <button type="button" className="aw-text-link self-start text-[13px]" onClick={() => onReview(needs[0].key)}>
-              Review first
-            </button>
-          </div>
-        ) : null}
         <div className="flex justify-end gap-2">
           <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={onClose}>
             Cancel

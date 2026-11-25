@@ -2,11 +2,14 @@
 //   Fact notes: one call reads the picked source pages and returns facts with their quotes. Code keeps a note only
 //     when its quote is on that page word for word (spaces and quote marks evened out) and every number in the fact is
 //     in the quote. The notes are saved on the brief and frozen: the writer reads only these.
-//   Cards: the outline comes back as one card per section (its job, points, the note ids behind them, words, links and
-//     gaps). cleanCards checks each in code: fact ids must be real notes, links come from the sitemap or the sources,
-//     words add up to the target, and a point that needs a fact with no note becomes a Detail needed gap.
+//   Cards: the outline comes back as one card per section (its job, points, the note ids behind them, words and links).
+//     cleanCards checks each in code: fact ids must be real notes, links come from the sitemap or the sources, words add
+//     up to the target, and a point still marked "Detail needed" is dropped. Cards keep a gaps field for older briefs,
+//     but nothing asks for gaps now: the writer settles conflicts by the most authoritative source.
 // Pure, shared by the server, the browser and tests.
 import { loose } from "./writerPersona.ts";
+import { kindLabel } from "./moduleCatalog.ts";
+import { imageSketch, moduleSketch, type Sketch } from "./visualSketch.ts";
 
 export type FactNote = { id: string; source: number; quote: string; fact: string; numbers: string[] };
 export type Shape = { usual: string; others: string[]; picked: string; why: string };
@@ -97,8 +100,8 @@ const has = (text: string, keyword: string) => {
 
 /**
  * The cards from the reply, checked in code. Fact ids must be real notes; links must be on the brand's sitemap or one
- * of the sources; words are scaled so the sections add up to the target; a point the model flagged as needing a fact
- * it couldn't find (written "Detail needed: ...") moves into gaps. keyword marks the cards whose H2 carries it.
+ * of the sources; words are scaled so the sections add up to the target; a point the model still flags as needing a
+ * fact it couldn't find (written "Detail needed: ...") is dropped. keyword marks the cards whose H2 carries it.
  */
 export function cleanCards(
   raw: unknown[],
@@ -112,13 +115,9 @@ export function cleanCards(
     const h2 = str(o.h2, 160);
     const key = str(o.key, 40) || (h2 ? `h2-${i}` : "intro");
     const points: string[] = [];
-    const gaps: string[] = Array.isArray(o.gaps) ? o.gaps.map((g) => str(g, 300).replace(/^detail needed:?\s*/i, "")).filter(Boolean) : [];
     for (const p of Array.isArray(o.points) ? o.points : []) {
       const t = str(p, 400);
-      if (!t) continue;
-      const m = t.match(/^detail needed:?\s*(.+)$/i);
-      if (m) gaps.push(m[1]);
-      else points.push(t);
+      if (t && !/^detail needed\b/i.test(t)) points.push(t);
     }
     const facts = [...new Set((Array.isArray(o.facts) ? o.facts : []).map((f) => str(f, 10)).filter((f) => ids.has(f)))];
     const links = (Array.isArray(o.links) ? o.links : [])
@@ -127,7 +126,7 @@ export function cleanCards(
       .filter((l) => l.url && l.anchor)
       .slice(0, 4);
     const words = Math.round(Number(o.words));
-    cards.push({ key, h2, job: str(o.job, 300), points: points.slice(0, 8), facts: facts.slice(0, 12), visual: null, words: Number.isFinite(words) && words > 0 ? words : 0, links, ...(h2 && has(h2, opts.keyword) ? { keyword: true } : {}), gaps: [...new Set(gaps)].slice(0, 6) });
+    cards.push({ key, h2, job: str(o.job, 300), points: points.slice(0, 8), facts: facts.slice(0, 12), visual: null, words: Number.isFinite(words) && words > 0 ? words : 0, links, ...(h2 && has(h2, opts.keyword) ? { keyword: true } : {}), gaps: [] });
   });
   // Words: the sections share the target in proportion to what each asked for (an even share when none did).
   const asked = cards.reduce((n, c) => n + c.words, 0);
@@ -159,11 +158,16 @@ export function cardsFrom(b: { outline: { h2: string; points: string[] }[]; word
   ];
 }
 
-/** The images and modules the brief places under a section, as the outline screen's chips. id is what editBrief's
- * removeImages ("placement|kind|shows") or removeModules (the title) takes. */
-export type VisualChip = { kind: "image" | "module"; id: string; label: string };
+/** The images and modules the brief places under a section, as the outline screen's visual cards. id is what
+ * editBrief's removeImages ("placement|kind|shows") or removeModules (the title) takes; sketch is a rough drawing of it
+ * from the brief's own data (visualSketch.ts). `outline` gives the section's subheadings for a steps sketch. */
+export type VisualChip = { kind: "image" | "module"; id: string; label: string; kindLabel: string; title: string; shows: string; note: string; sketch: Sketch };
 export function visualsOf(
-  b: { images?: { placement: string; shows: string; kind?: string }[]; modules: { title: string; placement: string }[] },
+  b: {
+    images?: { placement: string; shows: string; kind?: string; alt?: string; url?: string; numbers?: string }[];
+    modules: { title: string; placement: string; type?: string; purpose?: string; inputs?: string[]; outputs?: string[]; data?: string }[];
+    outline?: { h2: string; h3?: { title: string }[] }[];
+  },
   card: Pick<SectionCard, "key" | "h2">,
 ): VisualChip[] {
   const at = (p: string) => {
@@ -171,8 +175,33 @@ export function visualsOf(
     return card.key === "intro" ? x === "intro" || x === "" : x === card.h2.trim().toLowerCase();
   };
   const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+  const h3s = (b.outline ?? []).find((o) => card.key !== "intro" && o.h2.trim().toLowerCase() === card.h2.trim().toLowerCase())?.h3?.map((h) => h.title) ?? [];
+  const list = (xs: string[] | undefined) => (xs ?? []).filter(Boolean).join(", ");
   return [
-    ...(b.images ?? []).filter((m) => at(m.placement)).map((m) => ({ kind: "image" as const, id: `${m.placement}|${m.kind ?? ""}|${m.shows}`, label: cap(m.kind ?? "image") })),
-    ...b.modules.filter((m) => at(m.placement)).map((m) => ({ kind: "module" as const, id: m.title, label: m.title })),
+    ...(b.images ?? [])
+      .filter((m) => at(m.placement))
+      .map((m) => ({
+        kind: "image" as const,
+        id: `${m.placement}|${m.kind ?? ""}|${m.shows}`,
+        label: cap(m.kind ?? "image"),
+        kindLabel: `Image · ${IMAGE_NAMES[m.kind ?? ""] ?? "Image"}`,
+        title: m.shows,
+        shows: "",
+        note: m.alt ? `Alt text: ${m.alt}` : "",
+        sketch: imageSketch(m, h3s),
+      })),
+    ...b.modules
+      .filter((m) => at(m.placement))
+      .map((m) => ({
+        kind: "module" as const,
+        id: m.title,
+        label: m.title,
+        kindLabel: `Interactive · ${m.type ? kindLabel(m.type) : "Module"}`,
+        title: m.title,
+        shows: m.purpose ?? "",
+        note: [m.inputs?.length ? `Reader enters: ${list(m.inputs)}` : "", m.outputs?.length ? `Reader gets: ${list(m.outputs)}` : ""].filter(Boolean).join(" · "),
+        sketch: moduleSketch(m, h3s),
+      })),
   ];
 }
+const IMAGE_NAMES: Record<string, string> = { featured: "Featured image", screenshot: "Screenshot", chart: "Chart", steps: "Steps graphic", comparison: "Comparison graphic", checklist: "Checklist graphic", anatomy: "Labeled diagram" };

@@ -266,7 +266,7 @@ export const BRIEF_SCHEMA = obj({
 });
 
 /** With fact notes, the brief also returns the piece's job, point of view, leading word, shape and a card per section. */
-export const CARD_SCHEMA = obj({ job: S, points: LIST, facts: LIST, words: { type: "integer" }, links: { type: "array", items: obj({ url: S, anchor: S }) }, gaps: LIST });
+export const CARD_SCHEMA = obj({ job: S, points: LIST, facts: LIST, words: { type: "integer" }, links: { type: "array", items: obj({ url: S, anchor: S }) } });
 export const BRIEF_NOTES_SCHEMA = {
   ...BRIEF_SCHEMA,
   // The new fields come first, so a long reply that runs out of room loses the tail of the old ones, never the intro card.
@@ -278,7 +278,7 @@ export const BRIEF_NOTES_SCHEMA = {
     shape: obj({ usual: S, others: LIST, picked: S, why: S }),
     intro: CARD_SCHEMA,
     ...BRIEF_SCHEMA.properties,
-    outline: { type: "array", items: obj({ h2: S, searches: LIST, points: LIST, h3: { type: "array", items: obj({ title: S, points: LIST }) }, sources: { type: "array", items: { type: "integer" } }, job: S, facts: LIST, words: { type: "integer" }, links: { type: "array", items: obj({ url: S, anchor: S }) }, gaps: LIST }) },
+    outline: { type: "array", items: obj({ h2: S, searches: LIST, points: LIST, h3: { type: "array", items: obj({ title: S, points: LIST }) }, sources: { type: "array", items: { type: "integer" } }, job: S, facts: LIST, words: { type: "integer" }, links: { type: "array", items: obj({ url: S, anchor: S }) } }) },
   },
 };
 
@@ -328,7 +328,7 @@ ${factNotes ? `- job: what the reader can do or decide after reading, in one pla
 - leadingWord: leave it empty.
 - shape: usual is the structure the top pages share; others are two other shapes; picked is the usual one unless the searches above ask for a part the top pages miss; why names the searches or top pages it follows. Headings follow the rules above whatever the shape.
 - The intro opens on the reader's real task or situation, in second person ("If you need...", "You have five minutes before..."), never with a definition, a statistic dump or "In today's world". It says what the reader will get and, when there's a choice to make, what it depends on.
-- intro and each outline part are cards: job (what the reader gets from this section, one plain sentence under 15 words), points (2 to 4, written as the outline points are), facts (the ids of the fact notes the section stands on, like "n3"; only ids from the list above), words (its share of wordTarget), links (from the brand's pages or the sources, with anchor text) and gaps. A point that needs a fact no note has is written "Detail needed: what to find and where" and goes in gaps, never in points. Add a gap only when the section can't be written well without that fact; most sections have none.
+- intro and each outline part are cards: job (what the reader gets from this section, one plain sentence under 15 words), points (2 to 4, written as the outline points are), facts (the ids of the fact notes the section stands on, like "n3"; only ids from the list above), words (its share of wordTarget), links (from the brand's pages or the sources, with anchor text). When notes disagree, settle it yourself: trust the most authoritative source (the official site, the vendor or a standards body over a blog or a roundup) and never flag the conflict. A point no note backs is left out.
 - Every number, price, date or claim about a named product in points must come from a fact note cited in facts.
 ` : ""}- topPages: 3 to 5 sentences on what Google's top pages do: format, length, what they all cover.
 - aiAnswers: 2 to 4 sentences on what the AI answers say and which sites they cite.
@@ -698,7 +698,32 @@ export function editBrief(old: WriterBrief, patch: unknown): WriterBrief {
     const drop = new Set((p.removeModules as unknown[]).map(String));
     next.modules = next.modules.filter((m) => !drop.has(m.title));
   }
-  return Array.isArray(p.sections) ? editSections(next, p.sections) : next;
+  if (!old.cards && Array.isArray(p.removeImages)) {
+    const drop = new Set((p.removeImages as unknown[]).map(String));
+    next.images = next.images?.filter((m) => !drop.has(`${m.placement}|${m.kind ?? ""}|${m.shows}`));
+  }
+  const edited = Array.isArray(p.visuals) ? editVisuals(next, rows(p.visuals) ?? []) : next;
+  return Array.isArray(p.sections) ? editSections(edited, p.sections) : edited;
+}
+
+/**
+ * Rewording a planned visual from its card on the outline screen: an image's description and alt text, or a module's
+ * title and purpose. Each entry names the visual by the id visualsOf gives it ("placement|kind|shows" for an image,
+ * the title for a module). Its kind, place and data stay, so nothing new or unchecked slips in.
+ */
+function editVisuals(b: WriterBrief, edits: Record<string, unknown>[]): WriterBrief {
+  const find = (kind: string, id: string) => edits.find((e) => e.kind === kind && e.id === id);
+  return {
+    ...b,
+    images: b.images?.map((m) => {
+      const e = find("image", `${m.placement}|${m.kind ?? ""}|${m.shows}`);
+      return e ? { ...m, shows: txt(e.shows, 300, m.shows).trim() || m.shows, alt: txt(e.alt, 200, m.alt) } : m;
+    }),
+    modules: b.modules.map((m) => {
+      const e = find("module", m.title);
+      return e ? { ...m, title: txt(e.title, 200, m.title).trim() || m.title, purpose: txt(e.purpose, 600, m.purpose) } : m;
+    }),
+  };
 }
 
 /**
