@@ -6,8 +6,10 @@ import { addCalendarItems, siteForBrand, type Site } from "@/lib/db";
 import type { Keyword } from "@/lib/research";
 import { stageFromIntent } from "@/lib/research";
 import type { RunAuth } from "@/lib/runner";
-import { CHANCE_LABEL, expectedCtr, OPP_LABEL, type Chance, type Opportunity, type OppKind } from "@/lib/seoAnalytics";
-import type { Overview } from "@/lib/seoAnalyticsServer";
+import { CHANCE_LABEL, CITED_LABEL, expectedCtr, OPP_LABEL, type Chance, type CitedBucket, type CitedPage, type Opportunity, type OppKind } from "@/lib/seoAnalytics";
+import type { ArticleResult, Overview } from "@/lib/seoAnalyticsServer";
+import { RESULT_COLS, ResultDelta, resultSpan } from "./analytics/ArticleResults";
+import { ENGINE_LOGOS } from "./Engines";
 import type { View } from "@/lib/view";
 import { BrandLogo } from "./BrandLogo";
 import { propertyName } from "./traffic/searchShared";
@@ -44,7 +46,8 @@ const pctText = (r: number) => `${(r * 100).toFixed(r < 0.1 ? 1 : 0)}%`;
 /** Change against the period before, as a percent. */
 const Change = ({ pair }: { pair: [number, number] }) => (pair[1] ? <Delta now={((pair[0] - pair[1]) / pair[1]) * 100} before={0} unit="%" digits={0} /> : null);
 const CHANCE_CLASS: Record<Chance, string> = { low_ctr: "aw-status--missed", page2: "aw-status--warn", winning: "aw-status--ranked" };
-const OPP_CLASS: Record<OppKind, string> = { low_ctr: "aw-status--missed", page2: "aw-status--warn", losing: "aw-status--missed", new_topic: "aw-status--pending", cannibal: "aw-status--warn" };
+const OPP_CLASS: Record<OppKind, string> = { low_ctr: "aw-status--missed", page2: "aw-status--warn", losing: "aw-status--missed", new_topic: "aw-status--pending", cannibal: "aw-status--warn", links: "aw-status--pending" };
+const CITED_CLASS: Record<CitedBucket, string> = { cited_visits: "aw-status--ranked", cited_few: "aw-status--warn", visits_uncited: "aw-status--pending" };
 
 export function AnalyticsPage({ view, auth, sb, canEdit }: { view: View; auth: RunAuth; sb: SupabaseClient; canEdit: boolean }) {
   const { brand } = view;
@@ -300,11 +303,22 @@ function Dashboard({ status, call, sb, auth, view, canEdit, onSetup, onReload }:
   const [site, setSite] = useState<Site | null>(null);
   const waiting = !status.state?.synced_at || (Boolean(status.gscProperty) && !status.state?.gsc_to);
 
+  const [results, setResults] = useState<ArticleResult[] | null>(null);
+  const [cited, setCited] = useState<CitedPage[] | null>(null);
+  // From a Sources row (?page=/blog/x): that page's Google and AI numbers first.
+  const [focus, setFocus] = useState(() => (typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("page")));
   useEffect(() => {
     let live = true;
     call("/api/seo-analytics", { action: "overview", days: Number(days) })
       .then((d) => live && setData(d as unknown as Overview))
       .catch((e) => live && setError(e instanceof Error ? e.message : String(e)));
+    // Results and Cited by AI load beside the numbers; a failure there never hides the dashboard.
+    call("/api/seo-analytics", { action: "results" })
+      .then((d) => live && setResults((d.results as ArticleResult[]) ?? []))
+      .catch(() => live && setResults([]));
+    call("/api/seo-analytics", { action: "cited", days: Number(days) })
+      .then((d) => live && setCited((d.pages as CitedPage[]) ?? []))
+      .catch(() => live && setCited([]));
     return () => {
       live = false;
     };
@@ -353,6 +367,20 @@ function Dashboard({ status, call, sb, auth, view, canEdit, onSetup, onReload }:
     const text = `Fix the SEO title and meta description of ${url(o.page ?? "/")}. It ranks ${pos ? `#${pos}` : "on page 1"} for “${o.query}” but only ${pctText(Number(o.data.ctr ?? 0))} of searchers click; results at that spot usually get ${pctText(Number(o.data.expected ?? expectedCtr(pos)))}. Use the meta play on that page so I can review the change before it goes live.`;
     if (zippie) zippie.send(text);
     else setNotice("Open Zippie and ask it to fix this page's title and meta description.");
+  }
+
+  /** Refresh the page: Zippie's refresh_page keeps the sections that still rank and shows the changes on a card. */
+  function refreshPage(page: string, why: string, keyword?: string | null) {
+    if (zippie) zippie.send(`Refresh ${url(page)} with refresh_page. ${why}`);
+    else void toCalendar({ keyword: keyword ?? page.replace(/^\//, "").replace(/[-/]+/g, " "), page, notes: why });
+  }
+
+  /** Needs links: Zippie proposes the links from the busier pages, for review before anything changes. */
+  function addLinks(o: Opportunity) {
+    const sources = (Array.isArray(o.data.sources) ? o.data.sources : []).map((s) => url(String(s)));
+    const text = `Add internal links to ${url(o.page ?? "/")} with the words “${o.data.anchor ?? o.query}” (or close to them, using words already in the text) from ${sources.join(", ")}. It ranks #${o.data.position} with ${n(Number(o.data.impressions ?? 0))} impressions, and links from busier pages on the same topic can move it up. Propose the changes with the internal links play so I can review them before anything goes live.`;
+    if (zippie) zippie.send(text);
+    else setNotice("Open Zippie and ask it to add these internal links.");
   }
 
   const k = data?.kpis;
@@ -427,6 +455,8 @@ function Dashboard({ status, call, sb, auth, view, canEdit, onSetup, onReload }:
             ]}
           />
 
+          {focus ? <PageFocus page={focus} data={data} cited={cited} url={url} canEdit={canEdit} onRefresh={refreshPage} onClose={() => setFocus(null)} /> : null}
+
           {data.opportunities.length ? (
             <section className="aw-frame">
               <div className="aw-frame__head">
@@ -455,8 +485,12 @@ function Dashboard({ status, call, sb, auth, view, canEdit, onSetup, onReload }:
                           <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => toCalendar({ keyword: o.query ?? o.title, notes: o.why })}>
                             Add to Calendar
                           </button>
+                        ) : o.kind === "links" ? (
+                          <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => addLinks(o)}>
+                            Add links
+                          </button>
                         ) : (
-                          <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => toCalendar({ keyword: o.query ?? o.title.replace(/^\//, "").replace(/[-/]+/g, " "), page: o.page, position: Number(o.data.position ?? 0) || null, notes: o.why })}>
+                          <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" disabled={!o.page} onClick={() => o.page && refreshPage(o.page, o.why, o.query)}>
                             Refresh the page
                           </button>
                         )}
@@ -614,17 +648,227 @@ function Dashboard({ status, call, sb, auth, view, canEdit, onSetup, onReload }:
               <p className="aw-small p-5">No pages with data in this period yet.</p>
             )}
           </section>
+
+          <Results results={results} url={url} canEdit={canEdit} onRefresh={refreshPage} />
+          <CitedByAi pages={cited} url={url} />
         </>
       )}
 
-      {panel ? <ResearchPanel panel={panel} days={Number(days)} auth={auth} canEdit={canEdit} siteOf={siteOf} url={url} onClose={() => setPanel(null)} onAdd={toCalendar} /> : null}
+      {panel ? (
+        <ResearchPanel
+          panel={panel}
+          days={Number(days)}
+          auth={auth}
+          canEdit={canEdit}
+          siteOf={siteOf}
+          url={url}
+          onClose={() => setPanel(null)}
+          onAdd={toCalendar}
+          onRefresh={(page, query) => {
+            setPanel(null);
+            refreshPage(page, `It ranks #${panel.position?.toFixed(1) ?? "?"} for “${query}” with ${n(panel.impressions)} impressions.`, query);
+          }}
+        />
+      ) : null}
     </div>
+  );
+}
+
+// ─────────────── One page, from Sources ───────────────
+
+function PageFocus({ page, data, cited, url, canEdit, onRefresh, onClose }: { page: string; data: Overview; cited: CitedPage[] | null; url: (p: string) => string; canEdit: boolean; onRefresh: (page: string, why: string) => void; onClose: () => void }) {
+  const p = data.pages.find((x) => x.page === page);
+  const c = cited?.find((x) => x.page === page);
+  const queries = data.queries.filter((q) => q.page === page).slice(0, 5);
+  return (
+    <section className="aw-frame">
+      <div className="aw-frame__head">
+        <h2 className="min-w-0 truncate">
+          <a href={url(page)} target="_blank" rel="noopener noreferrer">
+            {page}
+          </a>
+        </h2>
+        <span className="aw-small">{c ? `Cited in ${c.answers} AI answer${c.answers === 1 ? "" : "s"} for ${c.prompts} prompt${c.prompts === 1 ? "" : "s"}` : "Not seen in the tracked AI answers in this period"}</span>
+        <span className="ml-auto flex gap-2">
+          {canEdit && p ? (
+            <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => onRefresh(page, `It gets ${n(p.clicks)} Google clicks and ${n(p.ai_sessions)} visits from AI in this period.`)}>
+              Refresh the page
+            </button>
+          ) : null}
+          <button type="button" className="aw-btn aw-btn--ghost aw-btn--sm" onClick={onClose}>
+            Close
+          </button>
+        </span>
+      </div>
+      <div className="flex flex-col gap-4 p-5">
+        {p ? (
+          <StatStrip
+            stats={[
+              { label: "Google clicks", value: n(p.clicks) },
+              { label: "Avg. position", value: p.position === null ? "–" : p.position.toFixed(1) },
+              { label: "Sessions", value: n(p.sessions) },
+              { label: "Key events", value: n(p.conversions) },
+              { label: "Visits from AI", value: n(p.ai_sessions) },
+            ]}
+          />
+        ) : (
+          <p className="aw-small">No Search Console or GA4 data for this page in this period.</p>
+        )}
+        {c?.engines.length ? (
+          <span className="flex flex-wrap items-center gap-2 text-[13px] text-muted">
+            Cited by
+            {c.engines.map((e) => (
+              <span key={e} className="aw-chip">
+                <BrandLogo src={ENGINE_LOGOS[e] ?? ""} name={e} size={14} />
+                {e}
+              </span>
+            ))}
+          </span>
+        ) : null}
+        {queries.length ? <span className="aw-small">Top searches: {queries.map((q) => `“${q.query}” (#${q.position.toFixed(1)})`).join(", ")}</span> : null}
+      </div>
+    </section>
+  );
+}
+
+// ─────────────── Results: before and after each article and refresh ───────────────
+
+function Results({ results, url, canEdit, onRefresh }: { results: ArticleResult[] | null; url: (p: string) => string; canEdit: boolean; onRefresh: (page: string, why: string, keyword?: string | null) => void }) {
+  if (!results) return null;
+  return (
+    <section className="aw-frame">
+      <div className="aw-frame__head">
+        <h2>Results</h2>
+        <span className="aw-small">Each published article and refresh: the days since it went live against the same number of days before.</span>
+      </div>
+      {results.length ? (
+        <div className="overflow-x-auto">
+          <table className="aw-table">
+            <thead>
+              <tr>
+                <th>Article</th>
+                <th>Live</th>
+                {RESULT_COLS.map((c) => (
+                  <th key={c.key} className="text-right">
+                    {c.label}
+                  </th>
+                ))}
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {results.map((r) => {
+                const res = r.result;
+                const slipping = Boolean(res && r.full && (res.clicks.change ?? 0) <= -0.25);
+                return (
+                  <tr key={r.item_id}>
+                    <td className="max-w-[320px]">
+                      <span className="block truncate font-medium text-ink">{r.keyword}</span>
+                      <a className="block truncate text-[12px]" href={url(r.page)} target="_blank" rel="noopener noreferrer">
+                        {r.page}
+                      </a>
+                    </td>
+                    <td className="whitespace-nowrap">
+                      <span className={`aw-status ${r.event === "refreshed" ? "aw-status--pending" : "aw-status--ranked"}`}>{r.event === "refreshed" ? "Refreshed" : "Published"}</span>
+                      <span className="aw-small block" title={res ? resultSpan(r) : undefined}>
+                        {new Date(r.at).toLocaleDateString("en-US", { month: "short", day: "numeric" })} · {r.days ? `${r.days}d` : "today"}
+                      </span>
+                    </td>
+                    {RESULT_COLS.map((c) => (
+                      <td key={c.key} className="aw-num text-right whitespace-nowrap">
+                        {!res ? (
+                          "–"
+                        ) : (
+                          <span className="inline-flex flex-col items-end">
+                            <span>{c.position ? (res.position.after === null ? "–" : res.position.after.toFixed(1)) : n(res[c.key].after ?? 0)}</span>
+                            <ResultDelta m={res[c.key]} position={c.position} />
+                          </span>
+                        )}
+                      </td>
+                    ))}
+                    <td className="text-right">
+                      {slipping && canEdit ? (
+                        <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => onRefresh(r.page, `Clicks are down ${Math.round(-(res!.clicks.change ?? 0) * 100)}% since it went live.`, r.keyword)}>
+                          Refresh
+                        </button>
+                      ) : null}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <p className="aw-small p-5">Articles you publish from Arrowsterr, and pages you refresh, show here with their clicks, position, sessions and sign-ups before and after.</p>
+      )}
+    </section>
+  );
+}
+
+// ─────────────── Cited by AI: visits from AI next to the tracked AI answers ───────────────
+
+function CitedByAi({ pages, url }: { pages: CitedPage[] | null; url: (p: string) => string }) {
+  if (!pages) return null;
+  const groups: { bucket: CitedBucket; text: string }[] = [
+    { bucket: "cited_visits", text: "AI cites these pages and people click through." },
+    { bucket: "cited_few", text: "AI cites them but few people click: give the answer a reason to visit, like a tool, template or the full numbers." },
+    { bucket: "visits_uncited", text: "Visits from AI, but no tracked prompt cites them yet: add the questions that lead here to your prompts." },
+  ];
+  return (
+    <section className="aw-frame">
+      <div className="aw-frame__head">
+        <h2>Cited by AI</h2>
+        <span className="aw-small">GA4 visits from AI next to the AI answers you track (Prompts and Sources).</span>
+      </div>
+      {pages.length ? (
+        <div className="aw-an-cited">
+          {groups.map((g) => {
+            const list = pages.filter((p) => p.bucket === g.bucket).slice(0, 8);
+            return (
+              <div key={g.bucket} className="aw-an-cited__group">
+                <div className="flex items-center gap-2">
+                  <span className={`aw-status ${CITED_CLASS[g.bucket]}`}>{CITED_LABEL[g.bucket]}</span>
+                  <span className="aw-num text-[13px] text-muted">{pages.filter((p) => p.bucket === g.bucket).length}</span>
+                </div>
+                <p className="aw-small">{g.text}</p>
+                {list.length ? (
+                  <ul className="flex flex-col">
+                    {list.map((p) => (
+                      <li key={p.page} className="aw-an-cited__row">
+                        <a className="min-w-0 flex-1 truncate font-medium text-ink" href={url(p.page)} target="_blank" rel="noopener noreferrer">
+                          {p.page}
+                        </a>
+                        <span className="flex items-center gap-1">
+                          {p.engines.slice(0, 4).map((e) => (
+                            <span key={e} title={`Cited by ${e}`}>
+                              <BrandLogo src={ENGINE_LOGOS[e] ?? ""} name={e} size={16} />
+                            </span>
+                          ))}
+                        </span>
+                        <span className="aw-num w-16 text-right text-[13px]" title="Visits from AI in this period">
+                          {n(p.ai_sessions)} visits
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="aw-small text-faint">None in this period.</p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <p className="aw-small p-5">No page of yours is cited in the tracked AI answers or gets visits from AI in this period yet.</p>
+      )}
+    </section>
   );
 }
 
 // ─────────────── Research from any row ───────────────
 
-function ResearchPanel({ panel, days, auth, canEdit, siteOf, url, onClose, onAdd }: { panel: Panel; days: number; auth: RunAuth; canEdit: boolean; siteOf: () => Promise<Site | null>; url: (p: string) => string; onClose: () => void; onAdd: (item: { keyword: string; page?: string | null; position?: number | null; volume?: number | null; kd?: number | null; intent?: string | null; cpc?: number | null }) => void }) {
+function ResearchPanel({ panel, days, auth, canEdit, siteOf, url, onClose, onAdd, onRefresh }: { panel: Panel; days: number; auth: RunAuth; canEdit: boolean; siteOf: () => Promise<Site | null>; url: (p: string) => string; onClose: () => void; onAdd: (item: { keyword: string; page?: string | null; position?: number | null; volume?: number | null; kd?: number | null; intent?: string | null; cpc?: number | null }) => void; onRefresh: (page: string, query: string) => void }) {
   const [rows, setRows] = useState<Keyword[] | null>(null);
   const [error, setError] = useState("");
 
@@ -718,7 +962,7 @@ function ResearchPanel({ panel, days, auth, canEdit, siteOf, url, onClose, onAdd
                 Add to Calendar
               </button>
               {panel.page ? (
-                <button type="button" className="aw-btn aw-btn--primary" onClick={() => onAdd({ keyword: panel.query, page: panel.page, position: panel.position, volume: main?.volume, kd: main?.kd, intent: main?.intent, cpc: main?.cpc })}>
+                <button type="button" className="aw-btn aw-btn--primary" onClick={() => onRefresh(panel.page!, panel.query)}>
                   Refresh {panel.page}
                 </button>
               ) : null}

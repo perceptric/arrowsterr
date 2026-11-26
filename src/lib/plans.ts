@@ -133,6 +133,7 @@ export const TASK_COST = {
   guideline: 10, // reading a site for its brand guideline
   presence: 2, // one brand's Trustpilot and Google Business Profile check, kept a week
   article: ARTICLE_TASKS, // pricing v8: one Agentic Writer article
+  refresh: 100, // a refresh of a live page from its Search Console searches (Analytics, pageRefreshServer.ts)
 } as const;
 
 /**

@@ -20,6 +20,7 @@ import {
   type UrlRow,
 } from "@/lib/metrics";
 import { treemap } from "@/lib/treemap";
+import { pagePath } from "@/lib/seoAnalytics";
 import type { RunAuth } from "@/lib/runner";
 import { isAnswered, type Run } from "@/lib/chats";
 import type { View } from "@/lib/view";
@@ -572,6 +573,11 @@ function LinkPanel({
         </a>
         <TypeTag type={u.type} />
         <span className="ml-auto flex flex-wrap gap-2">
+          {u.type === "You" ? (
+            <a className="aw-btn aw-btn--secondary aw-btn--sm" href={`/analytics?page=${encodeURIComponent(pagePath(u.url))}`}>
+              Clicks and AI visits in Analytics
+            </a>
+          ) : null}
           <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => onSeo(u.url, "url")}>
             Analyze SEO performance
           </button>

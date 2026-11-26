@@ -7,10 +7,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { visualsOf, type VisualChip } from "@/lib/articleNotes";
-import type { OutlineSection, PieceStatus, Pick } from "@/lib/contentPicks";
-import { getDoc, getGuideline, saveDoc } from "@/lib/db";
+import type { OutlineSection, PieceStatus, Pick, RefreshInfo } from "@/lib/contentPicks";
+import { getDoc, getDocMeta, getGuideline, saveDoc, saveDocMeta } from "@/lib/db";
 import { docToHtml } from "@/lib/docHtml";
-import { applyEdits, wordsIn, type DraftEdit } from "@/lib/draftEdits";
+import { addSections, applyEdits, wordsIn, type DraftEdit } from "@/lib/draftEdits";
 import { currentSupabase } from "@/lib/supa";
 import type { RunAuth } from "@/lib/runner";
 import { getBrief } from "@/lib/writerLibrary";
@@ -19,6 +19,7 @@ import { post } from "../research/shared";
 import { brandTables } from "../research/Writer";
 import { exportClean } from "../research/writerNodes";
 import { VisualSketch } from "../writer/VisualSketch";
+import { ArticleResults } from "../analytics/ArticleResults";
 import { I, Icon, msgOf, type SendFn, type useApi } from "./Cards";
 
 const WRITE_ARTICLE = "system:write-article";
@@ -146,6 +147,9 @@ export function PieceCard({ itemId, keyword, api, auth, canEdit, onSend, publish
         </span>
         {pub.error ? <p className="aw-error pl-[42px]">{pub.error}</p> : null}
         {pub.panel}
+        <div className="pl-[42px] empty:hidden">
+          <ArticleResults itemId={itemId} brandId={piece?.brand_id ?? null} auth={auth} />
+        </div>
       </div>
     );
   if (d?.busy) return working(`Writing “${title}”`, `${d.status}. Then Zippie checks every fact against the sources and builds the blocks.`);
@@ -465,10 +469,17 @@ function usePublish(auth: RunAuth) {
   };
 }
 
-/** Changes to a draft's text, each shown before and after. Apply saves them into the draft; nothing changes before. */
-export function ReviseCard({ docId, title, edits, canEdit }: { docId: string; title: string; edits: (DraftEdit & { why?: string })[]; canEdit: boolean }) {
+/**
+ * Changes to a draft's text, each shown before and after. Apply saves them into the draft; nothing changes before.
+ * A refresh (refresh_page) also lists the sections kept because they still rank, adds new sections and a new SEO title
+ * and meta description, and then offers Publish so the refreshed page goes live through the usual Publish panel.
+ */
+export function ReviseCard({ docId, title, edits, canEdit, refresh, auth }: { docId: string; title: string; edits: (DraftEdit & { why?: string })[]; canEdit: boolean; refresh?: RefreshInfo; auth?: RunAuth }) {
   const [state, setState] = useState<"waiting" | "busy" | "done" | "dismissed">("waiting");
   const [note, setNote] = useState("");
+  const [where, setWhere] = useState<{ siteId: string; brandId: string | null } | null>(null);
+  const pub = usePublish(auth ?? { workspaceId: "", token: async () => "" });
+  const count = edits.length + (refresh?.add.length ?? 0) + (refresh?.seo ? 1 : 0);
   async function apply() {
     setState("busy");
     setNote("");
@@ -476,15 +487,37 @@ export function ReviseCard({ docId, title, edits, canEdit }: { docId: string; ti
       const sb = currentSupabase();
       const doc = await getDoc(sb, docId);
       const out = applyEdits(doc.content as Record<string, unknown>, edits);
-      if (!out.applied.length) throw new Error("The draft changed since Zippie read it, so none of the changes match any more. Ask Zippie to try again.");
-      await saveDoc(sb, docId, { title: doc.title, content: out.doc, words: wordsIn(out.doc) });
-      setNote(out.missed.length ? `Applied ${out.applied.length} of ${edits.length}. The rest no longer match the draft.` : `Applied ${out.applied.length === 1 ? "the change" : `all ${out.applied.length} changes`}.`);
+      if (!out.applied.length && edits.length && !refresh) throw new Error("The draft changed since Zippie read it, so none of the changes match any more. Ask Zippie to try again.");
+      const content = refresh?.add.length ? addSections(out.doc, refresh.add) : out.doc;
+      await saveDoc(sb, docId, { title: doc.title, content, words: wordsIn(content) });
+      if (refresh) {
+        if (refresh.seo) await saveDocMeta(sb, docId, { ...(await getDocMeta(sb, docId)), metaTitle: refresh.seo.title, description: refresh.seo.description });
+        // Publishing it again then counts as a refresh in Analytics' before and after (calendar_items.refreshed_at).
+        await sb.from("calendar_items").update({ status: "review" }).eq("id", refresh.item_id).eq("status", "published");
+        const { data: site } = await sb.from("sites").select("brand_id").eq("id", doc.site_id).maybeSingle();
+        setWhere({ siteId: doc.site_id, brandId: (site?.brand_id as string | null | undefined) ?? null });
+      }
+      const missed = out.missed.length ? ` ${out.missed.length} of the text changes no longer match the draft.` : "";
+      setNote(`Applied ${count === 1 ? "the change" : `${count - out.missed.length} changes`}.${missed}${refresh ? " Publish it to send the refreshed page live." : ""}`);
       setState("done");
     } catch (e) {
       setNote(msgOf(e));
       setState("waiting");
     }
   }
+  const list = (label: string, items: string[]) =>
+    items.length ? (
+      <div className="flex flex-col gap-1.5 px-4 py-3 not-first:border-t not-first:border-rule-faint">
+        <span className="text-[12px] font-medium text-muted">{label}</span>
+        <span className="flex flex-wrap gap-1.5">
+          {items.map((h) => (
+            <span key={h} className="aw-chip">
+              {h}
+            </span>
+          ))}
+        </span>
+      </div>
+    ) : null;
   return (
     <div className="flex flex-col overflow-hidden rounded-aw-lg border border-rule bg-white">
       <div className="flex items-start gap-3 border-b border-rule-faint px-4 py-4">
@@ -492,11 +525,35 @@ export function ReviseCard({ docId, title, edits, canEdit }: { docId: string; ti
           <Icon d={I.edit} />
         </span>
         <span className="flex min-w-0 flex-col gap-0.5">
-          <span className="text-[15px] font-semibold text-ink [overflow-wrap:anywhere]">Changes to “{title}”</span>
-          <span className="text-[13px] text-muted">{edits.length === 1 ? "1 change" : `${edits.length} changes`} · nothing changes until you apply</span>
+          <span className="text-[15px] font-semibold text-ink [overflow-wrap:anywhere]">{refresh ? `Refresh of “${title}”` : `Changes to “${title}”`}</span>
+          <span className="text-[13px] text-muted">
+            {count === 1 ? "1 change" : `${count} changes`} · nothing changes until you apply
+            {refresh ? (
+              <>
+                {" · "}
+                <a href={refresh.url} target="_blank" rel="noopener noreferrer">
+                  Live page
+                </a>
+              </>
+            ) : null}
+          </span>
         </span>
       </div>
-      <ol className="flex flex-col">
+      {refresh ? (
+        <>
+          {list("Kept: still ranks well", refresh.keep)}
+          {list("Rewritten: slipped in Google", refresh.rewrite)}
+        </>
+      ) : null}
+      {refresh?.seo ? (
+        <div className="flex flex-col gap-1.5 border-t border-rule-faint px-4 py-3">
+          <span className="text-[12px] font-medium text-muted">New SEO title and meta description</span>
+          <span className="text-[14px] font-medium text-ink [overflow-wrap:anywhere]">{refresh.seo.title}</span>
+          <span className="text-[13px] text-body [overflow-wrap:anywhere]">{refresh.seo.description}</span>
+          {refresh.seo.why ? <span className="text-[12px] text-muted">{refresh.seo.why}</span> : null}
+        </div>
+      ) : null}
+      <ol className="flex flex-col border-t border-rule-faint empty:hidden">
         {edits.map((e, i) => (
           <li key={i} className="flex flex-col gap-1.5 px-4 py-3 not-first:border-t not-first:border-rule-faint">
             <span className="text-[14px] leading-relaxed text-neg line-through decoration-1 [overflow-wrap:anywhere]">{e.find}</span>
@@ -505,8 +562,36 @@ export function ReviseCard({ docId, title, edits, canEdit }: { docId: string; ti
           </li>
         ))}
       </ol>
+      {refresh?.add.length ? (
+        <ol className="flex flex-col border-t border-rule-faint">
+          {refresh.add.map((a) => (
+            <li key={a.h2} className="flex flex-col gap-1.5 px-4 py-3 not-first:border-t not-first:border-rule-faint">
+              <span className="text-[12px] font-medium text-muted">New section</span>
+              <span className="text-[14px] font-semibold text-pos [overflow-wrap:anywhere]">{a.h2}</span>
+              {a.paragraphs.map((p, i) => (
+                <span key={i} className="text-[14px] leading-relaxed text-pos [overflow-wrap:anywhere]">
+                  {p}
+                </span>
+              ))}
+              {a.why ? <span className="text-[12px] text-muted">{a.why}</span> : null}
+            </li>
+          ))}
+        </ol>
+      ) : null}
       <div className="flex flex-wrap items-center gap-2 border-t border-rule-faint bg-surface-2 px-4 py-3">
-        {state === "done" || state === "dismissed" ? (
+        {state === "done" && refresh && canEdit && where ? (
+          <>
+            <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" disabled={pub.busy} onClick={() => void pub.open(docId, where.siteId, where.brandId)}>
+              {pub.busy ? "Opening..." : "Publish"}
+            </button>
+            <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => goTo(`/drafts?item=${refresh.item_id}`)}>
+              Open in Drafts
+            </button>
+            <span className="text-[13px] text-pos">{note}</span>
+            {pub.error ? <span className="text-[13px] text-neg">{pub.error}</span> : null}
+            {pub.panel}
+          </>
+        ) : state === "done" || state === "dismissed" ? (
           <span className={`text-[13px] ${state === "done" ? "text-pos" : "text-muted"}`}>{state === "done" ? note : "Dismissed. The draft is unchanged."}</span>
         ) : canEdit ? (
           <>

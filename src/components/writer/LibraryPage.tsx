@@ -20,6 +20,7 @@ import { Pop } from "../Pickers";
 import { PublishPanel } from "../research/PublishPanel";
 import { useZippieRecord } from "../zippie/ZippieContext";
 import { ChatsAboutPiece } from "../zippie/WritingChats";
+import { ArticleResults } from "../analytics/ArticleResults";
 import { post } from "../research/shared";
 import { brandTables } from "../research/Writer";
 import { exportClean } from "../research/writerNodes";
@@ -226,6 +227,7 @@ function PieceView({ sb, auth, site, brandId, id, canEdit, onBack }: { sb: Supab
             meta: brief.brief?.metaDescription,
             links: [...(brief.brief?.internalLinks ?? []), ...(brief.brief?.cards ?? []).flatMap((c) => c.links)],
           }}
+          banner={<ArticleResults itemId={brief.item_id} brandId={brandId} auth={auth} />}
           extra={
             <>
               <ChatsAboutPiece itemId={brief.item_id} />
@@ -379,6 +381,7 @@ function ArticleView({
   canEdit,
   onBack,
   extra,
+  banner,
   review,
 }: {
   sb: SupabaseClient;
@@ -389,6 +392,8 @@ function ArticleView({
   canEdit: boolean;
   onBack: () => void;
   extra?: React.ReactNode;
+  /** Shown under the toolbar: the article's results since it went live (Analytics). */
+  banner?: React.ReactNode;
   /** What the brief knows, for the checks: the keyword, the word target and the meta description. */
   review?: Omit<ReviewInput, "domain">;
 }) {
@@ -683,6 +688,7 @@ function ArticleView({
         ) : null}
       </Back>
       {error ? <p className="aw-error">{error}</p> : null}
+      {banner}
 
       <Seg
         label="View"

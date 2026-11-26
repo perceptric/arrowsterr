@@ -1,4 +1,4 @@
-import { analyticsOverview, googleFor, gscSitesFor, hasGscScope, ownRanks, queueSyncNow } from "@/lib/seoAnalyticsServer";
+import { analyticsOverview, articleResults, citedPages, googleFor, gscSitesFor, hasGscScope, ownRanks, queueSyncNow } from "@/lib/seoAnalyticsServer";
 import { googleReady } from "@/lib/google";
 import { adminClient, requireRole } from "@/lib/serverAuth";
 
@@ -7,6 +7,8 @@ import { adminClient, requireRole } from "@/lib/serverAuth";
 //   "status"    the Google sign-in, the picked properties and the sync. Viewers and up.
 //   "overview"  { days: 7 | 28 | 90 } numbers, chart, AI visits, queries, pages and Opportunities. Viewers and up.
 //   "ranks"     { queries: string[] } where the brand ranks for each, from Search Console. Viewers and up.
+//   "results"   { itemId? } before and after for published articles and refreshes (all recent ones, or one). Viewers and up.
+//   "cited"     { days } the brand's pages: GA4 visits from AI next to the tracked AI answers that cite them. Viewers and up.
 //   "sites"     the Search Console properties the sign-in can read. Editors only.
 //   "site"      { property } use one for this brand and sync it. Editors only.
 //   "sync"      sync now. Editors only.
@@ -47,6 +49,16 @@ export async function POST(request: Request) {
     if (action === "ranks") {
       const queries = Array.isArray(body.queries) ? body.queries.map(String).slice(0, 300) : [];
       return Response.json({ ranks: brand.gsc_property ? await ownRanks(db, brand.id, queries, state) : {} });
+    }
+
+    if (action === "results") {
+      const itemId = typeof body.itemId === "string" ? body.itemId : undefined;
+      return Response.json({ results: await articleResults(db, brand.id, state, { itemId, limit: itemId ? 1 : 20 }), connected: Boolean(conn && (brand.gsc_property || brand.ga4_property)) });
+    }
+
+    if (action === "cited") {
+      const days = [7, 28, 90].includes(Number(body.days)) ? Number(body.days) : 28;
+      return Response.json({ pages: await citedPages(db, brand, days, state) });
     }
 
     if (!conn) return Response.json({ error: "Connect Google first." }, { status: 400 });

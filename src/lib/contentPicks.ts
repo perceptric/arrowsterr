@@ -102,10 +102,23 @@ export type WriterCard =
   | { view: "piece"; item_id: string; keyword: string }
   /** A finished piece ready to send out: Publish opens the Publish panel, where the person picks the site, draft or live and the date. */
   | { view: "publish"; item_id: string; keyword: string }
-  /** Changes to a saved draft's text, applied only when the person presses Apply (draftEdits.ts). */
-  | { view: "revise"; doc_id: string; title: string; edits: { find: string; replace: string; why?: string }[] }
+  /** Changes to a saved draft's text, applied only when the person presses Apply (draftEdits.ts). A refresh adds `refresh`. */
+  | { view: "revise"; doc_id: string; title: string; edits: { find: string; replace: string; why?: string }[]; refresh?: RefreshInfo }
   /** A change to an outline's sections asked for in chat: the headings before and after, applied only on Apply (editSections in writerBrief.ts). */
   | { view: "outline_edit"; item_id: string; keyword: string; brief_id: string; before: string[]; sections: OutlineSection[]; why?: string };
+
+/**
+ * A refresh of a live page (pageRefreshServer.ts): the sections kept because they still rank, the ones rewritten,
+ * new sections for searches no section answers, and a new SEO title and meta description when the click rate is weak.
+ */
+export type RefreshInfo = {
+  item_id: string;
+  url: string;
+  keep: string[];
+  rewrite: string[];
+  add: { h2: string; paragraphs: string[]; why?: string }[];
+  seo: { title: string; description: string; why?: string } | null;
+};
 
 /** One section in an outline edit: the old section it keeps (its index), or none for a new one; its heading and subheadings. */
 export type OutlineSection = { from: number | null; h2: string; h3?: string[] };
