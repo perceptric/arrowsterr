@@ -1,11 +1,13 @@
 import "server-only";
 import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 
-// Google sign-in for Google Analytics 4: the sign-in link, token storage and the GA4 APIs.
+// Google sign-in for Google Analytics 4 and Search Console: the sign-in link, token storage, and both read-only APIs.
 // Needs GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET. Tokens are encrypted with GOOGLE_TOKEN_KEY,
 // or a key made from SUPABASE_SECRET_KEY when that is not set.
 
-const SCOPES = ["openid", "email", "https://www.googleapis.com/auth/analytics.readonly"];
+/** Search Console, read-only. One sign-in asks for it together with GA4 (Analytics page, seoAnalyticsServer.ts). */
+export const GSC_SCOPE = "https://www.googleapis.com/auth/webmasters.readonly";
+const SCOPES = ["openid", "email", "https://www.googleapis.com/auth/analytics.readonly", GSC_SCOPE];
 /** Google Merchant Center, read through the Merchant API, for AI Shopping's catalog (docs/ai-shopping-plan.md, section 3). */
 export const MERCHANT_SCOPES = ["openid", "email", "https://www.googleapis.com/auth/content"];
 
@@ -72,7 +74,7 @@ async function token(params: Record<string, string>) {
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(`Google sign-in failed: ${data.error_description || data.error || res.status}`);
-  return data as { access_token: string; refresh_token?: string; id_token?: string; expires_in: number };
+  return data as { access_token: string; refresh_token?: string; id_token?: string; expires_in: number; scope?: string };
 }
 
 /** Trade the code from Google's sign-in for tokens, and read the account's email. */
@@ -84,7 +86,7 @@ export async function exchange(code: string, origin: string) {
   } catch {
     // No email in the token. The connection still works.
   }
-  return { refresh: t.refresh_token ?? null, email };
+  return { refresh: t.refresh_token ?? null, email, scopes: t.scope ?? "" };
 }
 
 // Access tokens last an hour. Keep them in memory and refresh a minute early.
@@ -146,4 +148,14 @@ export async function runReports(accessTok: string, property: string, requests: 
 export async function activeNow(accessTok: string, property: string) {
   const data = await api<{ rows?: ReportRow[] }>(`https://analyticsdata.googleapis.com/v1beta/properties/${property}:runRealtimeReport`, accessTok, { metrics: [{ name: "activeUsers" }] });
   return Number(data.rows?.[0]?.metricValues?.[0]?.value ?? 0);
+}
+
+/** Every Search Console property the signed-in account can read, in the shape searchEngines.ts reads. */
+export async function listGscSites(accessTok: string): Promise<unknown> {
+  return api("https://www.googleapis.com/webmasters/v3/sites", accessTok, undefined, "Search Console");
+}
+
+/** One Search Analytics query for a property. Rows come back in the shape gscRows() reads. */
+export async function gscQuery(accessTok: string, site: string, body: { startDate: string; endDate: string; dimensions: string[]; rowLimit?: number; startRow?: number; dataState?: "all" | "final" }) {
+  return api<unknown>(`https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(site)}/searchAnalytics/query`, accessTok, { type: "web", ...body }, "Search Console");
 }

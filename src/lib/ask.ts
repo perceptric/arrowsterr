@@ -67,7 +67,7 @@ const LOCAL: LocalTool[] = [
     name: "show_setup",
     label: "Opening a setup guide",
     description:
-      "Put a Connect card in the chat that opens a click-by-click setup guide. Use it whenever something needs connecting, instead of writing out the steps: kind cms connects a CMS (WordPress, Webflow, Shopify, HubSpot or Ghost) so Zippie can read and fix pages; kind traffic opens the Traffic page to add website tracking or connect Google Analytics.",
+      "Put a Connect card in the chat that opens a click-by-click setup guide. Use it whenever something needs connecting, instead of writing out the steps: kind cms connects a CMS (WordPress, Webflow, Shopify, HubSpot or Ghost) so Zippie can read and fix pages; kind traffic opens the Analytics page to connect Google (Search Console and Google Analytics in one sign-in) or add website tracking.",
     input_schema: {
       type: "object",
       properties: {
@@ -81,7 +81,7 @@ const LOCAL: LocalTool[] = [
       const platform = kind === "cms" && ["wordpress", "webflow", "framer", "shopify", "hubspot", "ghost", "wix", "contentful", "sanity", "strapi", "webhook"].includes(String(args.platform)) ? String(args.platform) : "";
       const id = platform ? `${kind}:${platform}` : kind;
       emit({ type: "setup", id });
-      return { setup: id, note: kind === "cms" ? "A Connect card is now in the chat. Connecting a CMS needs a workspace admin. Point to the card in one short line; don't list the steps." : "A card that opens the Traffic page is now in the chat. Point to it in one short line." };
+      return { setup: id, note: kind === "cms" ? "A Connect card is now in the chat. Connecting a CMS needs a workspace admin. Point to the card in one short line; don't list the steps." : "A card that opens the Analytics page is now in the chat. Point to it in one short line." };
     },
   },
   {
@@ -348,7 +348,7 @@ What you can do:
 - Read Arrowsterr's data with the tools: AI visibility, trends, prompts and full AI answers, competitors, cited sources, the Content Plan and topic bank.
 - Read their posts and pages from a connected CMS, and prepare fixes with propose_changes: alt text, SEO titles and meta descriptions, structured data, FAQ sections and internal links.
 - Check technical SEO on any site right now: crawl_site for a whole-site check, crawl_page for one page, check_urls for links and redirects, read_robots for robots.txt and AI bots, page_speed for Core Web Vitals. Nothing is saved between checks.
-- Read rankings from the Traffic rank tracker (get_rankings), clusters from Opportunities (get_clusters), and drafts from Drafts (read_draft).
+- Read rankings from the rank tracker (get_rankings), the brand's own Search Console and GA4 numbers with today's Opportunities from Analytics (get_site_analytics: use it first for traffic drops and what to fix), clusters from Opportunities (get_clusters), and drafts from Drafts (read_draft).
 - Follow the team's skills: playbooks for SEO, linking, AI visibility and writing (use_skill). The writing skills carry the house rules and the anti-AI methods; use them on drafts and any text.
 ${canEdit ? "- Write a skill or a Knowledge page with propose_skill or propose_knowledge: a card shows it, and the person saves it with one click.\n" : ""}- Help connect things with show_setup. When a CMS, website tracking or Google Analytics is missing, call show_setup so a Connect card opens a click-by-click guide. Never write out setup steps or send people to Settings yourself.
 ${canEdit ? "- Write for the Editorial Calendar: write_outline starts the outline for a piece, write_article writes the whole article (outline, then draft), writing_status shows where it is. They run in the background for minutes; say so, and point to Drafts.\n" : ""}${canEdit ? "- Change the Content Plan: add pieces (add_to_content_plan), change status, due dates, stage, notes, keyword or live URL (update_content_plan), and delete pieces (remove_from_content_plan). Read the plan with get_content_plan first to get the ids. Ask before deleting anything.\n" : ""}

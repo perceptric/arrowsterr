@@ -102,7 +102,7 @@ export const AI: Def[] = [
     group: "research",
     speed: "deep",
     result: "Answer",
-    tools: ["get_rankings", "crawl_page", "get_competitors"],
+    tools: ["get_site_analytics", "get_rankings", "crawl_page", "get_competitors"],
     description: 'Why a keyword fell: the page changed, a competitor moved up, links were lost, or two pages split the traffic. Use it when someone says "we dropped", "lost rankings", "traffic fell" or "why did this keyword go down".',
     intro: "Finds the most likely reason a ranking fell, from the data there is.",
     use: ["A tracked keyword fell."],

@@ -86,7 +86,7 @@ export const PAGE: Def[] = [
     group: "page",
     speed: "quick",
     result: "Update plan",
-    tools: ["crawl_page", "get_prompt_answers"],
+    tools: ["crawl_page", "get_site_analytics", "get_prompt_answers"],
     description: 'Reads a live page and marks each dated fact (years, numbers, prices, names, "last year") current, stale or to check, then plans the update. Use it when someone says "is this post outdated", "refresh this page", "update this article" or a page is losing traffic.',
     intro: "Finds what's out of date on a page and plans the update, using only facts the person or the tools give.",
     use: ["A page is old or losing traffic."],

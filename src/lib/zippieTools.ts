@@ -11,6 +11,8 @@ import { filesProblems, MAIN } from "./skills/format";
 import { WRITER_TOOLS } from "./zippieWriter";
 import type { WriterCard } from "./contentPicks";
 import { brandOf } from "./zippieBrand";
+import { analyticsOverview, googleFor, pagesIn } from "./seoAnalyticsServer";
+import { addDays, OPP_LABEL } from "./seoAnalytics";
 import { pageFacts, robotsReport, siteIssues, speedReport, urlKey, type CrawledPage, type PageFacts } from "./zippieCrawl";
 
 /** What a tool needs from the chat it runs in. Same shape as AskCtx in ask.ts. */
@@ -164,12 +166,12 @@ const BASE_TOOLS: ZippieTool[] = [
   {
     name: "get_rankings",
     label: "Reading rankings",
-    description: "The Traffic rank tracker's keywords for a brand: each keyword's latest Google position, the page that ranks, the change over 7 and 30 days, and every URL that ranked in the last 30 days (two URLs means two pages compete).",
+    description: "The rank tracker's keywords for a brand: each keyword's latest Google position, the page that ranks, the change over 7 and 30 days, and every URL that ranked in the last 30 days (two URLs means two pages compete).",
     input_schema: { type: "object", properties: { brand: { type: "string" }, keyword: { type: "string", description: "Only keywords containing this." } } },
     async run(ctx, args) {
       const brand = await brandOf(ctx, args.brand);
       const { data: projects } = await ctx.db.from("rank_projects").select("id, name, target").eq("workspace_id", ctx.ws).or(`brand_id.eq.${brand.id},target.ilike.*${brand.domain.replace(/[%,*()]/g, "")}*`);
-      if (!projects?.length) return { brand: brand.name, keywords: [], note: "No rank tracking for this brand yet. It starts on the Traffic page." };
+      if (!projects?.length) return { brand: brand.name, keywords: [], note: "No rank tracking for this brand yet. It starts on the Rank tracking page (Visibility › Rank tracking)." };
       let kq = ctx.db.from("rank_keywords").select("id, keyword, volume, project_id").in("project_id", projects.map((p) => p.id)).limit(500);
       const want = str(args.keyword, 100);
       if (want) kq = kq.ilike("keyword", `%${want.replace(/[%,]/g, "")}%`);
@@ -191,6 +193,41 @@ const BASE_TOOLS: ZippieTool[] = [
         return { keyword: k.keyword, volume: k.volume, position: now, url: rows[0]?.url ?? null, change_7d: now && w ? w - now : null, change_30d: now && m ? m - now : null, urls_seen: [...new Set(rows.map((r) => r.url).filter(Boolean))] };
       });
       return { brand: brand.name, keywords: out.sort((a, b) => (a.position ?? 999) - (b.position ?? 999)).slice(0, 200) };
+    },
+  },
+  {
+    name: "get_site_analytics",
+    label: "Reading Search Console and GA4",
+    description:
+      "A brand's own Google numbers from the daily Analytics sync: Search Console clicks, impressions and average position, GA4 sessions, key events and visits from AI, each against the period before; the top search queries (with a Low CTR, Page 2 or Winning tag); the pages that gained or lost the most clicks; and today's Opportunities. Use it for \"why did traffic drop?\", \"which pages are slipping?\" or \"what should I fix first?\". Free: uses no tasks.",
+    input_schema: { type: "object", properties: { brand: { type: "string" }, days: { type: "number", enum: [7, 28, 90], description: "The period, compared with the one before. Default 28." } } },
+    async run(ctx, args) {
+      const b = await brandOf(ctx, args.brand);
+      const g = await googleFor(ctx.db, b.id);
+      if (!g?.conn) return { brand: b.name, connected: false, note: "Google isn't connected for this brand. Connect it on the Analytics page (Visibility › Analytics)." };
+      if (!g.brand.gsc_property && !g.brand.ga4_property) return { brand: b.name, connected: true, note: "Signed in to Google, but no Search Console or GA4 property is picked yet. Pick them on the Analytics page." };
+      const days = [7, 28, 90].includes(Number(args.days)) ? Number(args.days) : 28;
+      const o = await analyticsOverview(ctx.db, b.id, days, g.state);
+      const prev = await pagesIn(ctx.db, b.id, addDays(o.from, -days), addDays(o.from, -1), 500);
+      const before = new Map(prev.map((p) => [p.page, p]));
+      const moves = o.pages
+        .map((p) => ({ page: p.page, clicks: p.clicks, clicks_before: before.get(p.page)?.clicks ?? 0, position: p.position, position_before: before.get(p.page)?.position ?? null, sessions: p.sessions, conversions: p.conversions }))
+        .concat(prev.filter((p) => !o.pages.some((x) => x.page === p.page)).map((p) => ({ page: p.page, clicks: 0, clicks_before: p.clicks, position: null, position_before: p.position, sessions: 0, conversions: 0 })))
+        .map((p) => ({ ...p, change: p.clicks - p.clicks_before }));
+      const change = (pair: [number | null, number | null]) => ({ now: pair[0], before: pair[1] });
+      return {
+        brand: b.name,
+        search_console: g.brand.gsc_property,
+        ga4: g.brand.ga4_property_name ?? g.brand.ga4_property,
+        period: { from: o.from, to: o.to, compared_with_the_same_length_before: true },
+        last_sync: g.state?.synced_at ?? null,
+        totals: { clicks: change(o.kpis.clicks), impressions: change(o.kpis.impressions), avg_position: change(o.kpis.position), sessions: change(o.kpis.sessions), key_events: change(o.kpis.conversions), visits_from_ai: change(o.kpis.ai) },
+        visits_from_ai: o.ai,
+        top_queries: o.queries.slice(0, 25).map((q) => ({ query: q.query, clicks: q.clicks, impressions: q.impressions, ctr: Math.round(q.ctr * 1000) / 10, position: Math.round(q.position * 10) / 10, tag: q.chance })),
+        pages_losing_clicks: [...moves].sort((a, b) => a.change - b.change).filter((p) => p.change < 0).slice(0, 10),
+        pages_gaining_clicks: [...moves].sort((a, b) => b.change - a.change).filter((p) => p.change > 0).slice(0, 10),
+        opportunities: o.opportunities.map((x) => ({ type: OPP_LABEL[x.kind], title: x.title, page: x.page, query: x.query, extra_clicks_a_month: x.gain_clicks, signups_a_month: x.gain_signups, why: x.why })),
+      };
     },
   },
   {

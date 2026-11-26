@@ -13,6 +13,7 @@ import { Sheet } from "../Sheet";
 import { EmptyScreen } from "../Drawing";
 import { CalendarIcon, Card, favicon, Seg, Thinking } from "../ui";
 import { BulkKeywords } from "./Bulk";
+import { OwnRank } from "../analytics/OwnRank";
 import { BAR_BUTTON, BAR_FIELD, BAR_INPUT, AnalyzeSeo, downloadCsv, fmtCpc, post, postLines, Sparkline } from "./shared";
 
 export { ISO };
@@ -498,6 +499,7 @@ export function KeywordOverview({ sb, auth, site, canEdit }: { sb: SupabaseClien
               <span className="text-[13px] text-muted">
                 {flag(report.country)} {report.country}{live ? " · Loading..." : ""}
               </span>
+              <OwnRank auth={auth} brandId={site.brand_id} keyword={report.keyword} />
             </div>
             {canEdit && o ? (
               <span className="flex flex-wrap gap-2">

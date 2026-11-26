@@ -1,7 +1,6 @@
 "use client";
 
 import { askConfirm } from "@/components/Dialogs";
-import { Dropdown } from "./Pickers";
 import { useCallback, useEffect, useState } from "react";
 import { answered, ownsDomain } from "@/lib/metrics";
 import type { RunAuth } from "@/lib/runner";
@@ -15,6 +14,7 @@ import { useStash } from "@/lib/stash";
 import { EmptyScreen } from "./Drawing";
 import { Card, Delta, favicon, pct, Seg, sortRows, SortTh, Thinking, useSort } from "./ui";
 import { SearchEngines } from "./traffic/SearchEngines";
+import { PropertyPicker } from "./analytics/PropertyPicker";
 
 type Ga4 = { email: string; property: string | null; name: string | null };
 export type SiteStatus = Status;
@@ -33,27 +33,9 @@ type Status = {
 
 /** Connect Google Analytics 4: sign in with Google, then pick the property for this brand. */
 export function Ga4Connect({ status, canEdit, call, onDone, bare = false }: { status: Status; canEdit: boolean; call: (path: string, body: Record<string, unknown>) => Promise<Record<string, unknown>>; bare?: boolean; onDone: () => void }) {
-  const [props, setProps] = useState<{ id: string; name: string; account: string }[] | null>(null);
-  const [pick, setPick] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const signedIn = Boolean(status.ga4?.email);
-
-  useEffect(() => {
-    if (!signedIn || !canEdit) return;
-    let live = true;
-    call("/api/ga4", { action: "properties" })
-      .then((d) => {
-        if (!live) return;
-        const list = (d.properties as { id: string; name: string; account: string }[]) ?? [];
-        setProps(list);
-        setPick(list[0]?.id ?? "");
-      })
-      .catch((e) => live && setError(e instanceof Error ? e.message : String(e)));
-    return () => {
-      live = false;
-    };
-  }, [signedIn, canEdit, call]);
 
   async function signIn() {
     setBusy(true);
@@ -63,18 +45,6 @@ export function Ga4Connect({ status, canEdit, call, onDone, bare = false }: { st
       window.location.href = String(d.url);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
-      setBusy(false);
-    }
-  }
-  async function choose() {
-    setBusy(true);
-    setError("");
-    try {
-      await call("/api/ga4", { action: "select", property: pick });
-      onDone();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
       setBusy(false);
     }
   }
@@ -99,21 +69,25 @@ export function Ga4Connect({ status, canEdit, call, onDone, bare = false }: { st
             {busy ? "Opening Google..." : "Connect Google Analytics"}
           </button>
         </div>
-      ) : props === null ? (
-        <p className="aw-small">Loading your properties...</p>
-      ) : props.length ? (
-        <div className="flex flex-wrap items-center gap-2">
-          <Dropdown label="GA4 property" value={pick} onChange={setPick} className="aw-dropdown--field h-11! min-w-72" options={props.map((p) => ({ id: p.id, label: `${p.name} · ${p.account}` }))} />
-          <button type="button" className="aw-btn aw-btn--primary h-11! py-0!" onClick={choose} disabled={busy || !pick}>
-            Use this property
-          </button>
-        </div>
       ) : (
-        <p className="aw-small">No GA4 properties on this Google account.</p>
+        <PropertyPicker
+          label="GA4 property"
+          empty="No GA4 properties on this Google account."
+          load={() => ga4Properties(call)}
+          choose={async (id) => {
+            await call("/api/ga4", { action: "select", property: id });
+            onDone();
+          }}
+        />
       )}
     </section>
   );
 }
+
+/** The GA4 properties the brand's Google sign-in can read, for PropertyPicker. */
+export const ga4Properties = async (call: (path: string, body: Record<string, unknown>) => Promise<Record<string, unknown>>) =>
+  ((await call("/api/ga4", { action: "properties" })).properties as { id: string; name: string; account: string }[]).map((p) => ({ id: p.id, label: `${p.name} · ${p.account}` }));
+
 type Totals = { pageviews: number; visitors: number; visits: number; bounces: number; totaltime: number };
 type Row = { x: string; y: number };
 type Traffic = {
@@ -133,7 +107,8 @@ type Traffic = {
 type Verify = { checks: { label: string; state: "ok" | "warn" | "fail"; note: string }[]; live: boolean; at: string };
 
 const AI_COLORS: Record<string, string> = { ChatGPT: "#10A37F", Perplexity: "#20808D", Gemini: "#4285F4", Claude: "#D97757", Copilot: "#0F141F", "Other AI": "#A8AEBA" };
-const LOGO: Record<string, string> = { ...ENGINE_LOGOS, Copilot: "https://www.google.com/s2/favicons?domain=copilot.microsoft.com&sz=64" };
+/** Each AI assistant's logo, for visits from AI. */
+export const AI_LOGO: Record<string, string> = { ...ENGINE_LOGOS, Copilot: "https://www.google.com/s2/favicons?domain=copilot.microsoft.com&sz=64" };
 const pathOf = (u: string) => {
   try {
     return new URL(u).pathname.replace(/\/+$/, "") || "/";
@@ -692,7 +667,7 @@ export function TrafficPage({ view, auth, canEdit }: { view: View; auth: RunAuth
               <li key={e.engine} className="flex flex-col gap-1.5">
                 <span className="flex items-center justify-between gap-3 text-[14px]">
                   <span className="flex items-center gap-2 text-ink">
-                    {LOGO[e.engine] ? <BrandLogo src={LOGO[e.engine]} name={e.engine} size={16} /> : null}
+                    {AI_LOGO[e.engine] ? <BrandLogo src={AI_LOGO[e.engine]} name={e.engine} size={16} /> : null}
                     {e.engine}
                   </span>
                   <span className="flex items-center gap-2">

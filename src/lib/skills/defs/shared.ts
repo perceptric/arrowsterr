@@ -69,6 +69,7 @@ export const SKILL_TOOLS = [
   "read_robots",
   "page_speed",
   "get_rankings",
+  "get_site_analytics",
   "get_clusters",
   "propose_skill",
   "propose_knowledge",

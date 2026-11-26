@@ -26,6 +26,7 @@ import { writerBriefJob, writerDraftJob } from "../writerServer";
 import { wpPublishJob } from "../wpSyncServer";
 import { queueReportSends } from "../scheduleServer";
 import { runAutopilots } from "../zippieWriter";
+import { queueAnalyticsSyncs } from "../seoAnalyticsServer";
 import { runMigrations } from "../migrationsServer";
 import { applySet, preparePlay, undoSet } from "../plays";
 import { checkDue, promptAllowance } from "../plans";
@@ -58,6 +59,8 @@ export async function schedule(db: SupabaseClient, job: Job) {
   await queueMatching(db).catch((e) => console.error("AI Shopping matching failed:", e instanceof Error ? e.message : e));
   await queueShopRuns(db).catch((e) => console.error("AI Shopping runs failed:", e instanceof Error ? e.message : e));
   await queueRankChecks(db).catch((e) => console.error("Rank checks failed:", e instanceof Error ? e.message : e));
+  // Search Console and GA4 for the Analytics page, once a day per connected brand (seoAnalyticsServer.ts).
+  await queueAnalyticsSyncs(db).catch((e) => console.error("Analytics sync failed:", e instanceof Error ? e.message : e));
   // The Writer's Autopilot (zippieWriter.ts): brands whose daily writing is due start their best Calendar pieces.
   await runAutopilots(db).catch((e) => console.error("Writer Autopilot failed:", e instanceof Error ? e.message : e));
   const engines = availableEngines();
@@ -424,3 +427,4 @@ export { shopDetectJob as shop_detect, shopCatalogSyncJob as shop_catalog_sync }
 export { shopMatchJob as shop_match, shopLookupJob as shop_lookup } from "../shopMatchServer";
 export { shopRunsPostJob as shop_runs_post, shopRunsCollectJob as shop_runs_collect } from "../shopRunsServer";
 export { rankCheckJob as rank_check, rankCollectJob as rank_collect } from "../rankTrackServer";
+export { analyticsSyncJob as analytics_sync } from "../seoAnalyticsServer";
