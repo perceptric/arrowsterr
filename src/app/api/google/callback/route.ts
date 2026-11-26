@@ -1,6 +1,7 @@
 import { exchange, googleReady, readState, seal } from "@/lib/google";
 import { adminClient } from "@/lib/serverAuth";
 import { merchantConnected } from "@/lib/shopServer";
+import { gscSitesFor, hasGscScope, queueSyncNow } from "@/lib/seoAnalyticsServer";
 
 // Google sends people back here after they allow access. Save the encrypted sign-in, then return to the app.
 export async function GET(request: Request) {
@@ -26,11 +27,24 @@ export async function GET(request: Request) {
       await merchantConnected(db, state, m.refresh, m.email);
       return go(state.back, { catalog: "connected" });
     }
-    const { refresh, email } = await exchange(url.searchParams.get("code") ?? "", base);
+    // Google Analytics and Search Console share one sign-in (Analytics page).
+    const { refresh, email, scopes } = await exchange(url.searchParams.get("code") ?? "", base);
     if (!refresh) return go(state.back, { ga4: "error", reason: "Google did not return access. Try again." });
-    const res = await db.from("ga4_connections").upsert({ brand_id: state.brandId, workspace_id: state.workspaceId, refresh_token: seal(refresh), email, connected_by: state.userId });
+    const sealed = seal(refresh);
+    let res = await db.from("ga4_connections").upsert({ brand_id: state.brandId, workspace_id: state.workspaceId, refresh_token: sealed, email, connected_by: state.userId, scopes });
+    // Before supabase/104_analytics.sql there is no scopes column.
+    if (res.error && /scopes/.test(res.error.message)) res = await db.from("ga4_connections").upsert({ brand_id: state.brandId, workspace_id: state.workspaceId, refresh_token: sealed, email, connected_by: state.userId });
     if (res.error) throw new Error(res.error.message + (/ga4_connections/.test(res.error.message) ? " Run supabase/014_google_analytics.sql in Supabase." : ""));
-    await db.from("brands").update({ ga4_email: email, ga4_property: null, ga4_property_name: null }).eq("id", state.brandId);
+    // A different Google account can't read the old property: pick again. The same account keeps its picks.
+    const { data: brand } = await db.from("brands").select("id, workspace_id, domain, ga4_email, gsc_property").eq("id", state.brandId).maybeSingle();
+    const same = Boolean(brand?.ga4_email && brand.ga4_email === email);
+    await db.from("brands").update(same ? { ga4_email: email } : { ga4_email: email, ga4_property: null, ga4_property_name: null, gsc_property: null }).eq("id", state.brandId);
+    // Search Console: pick the property that fits the brand's domain, then start the first sync.
+    if (brand && hasGscScope(scopes) && !(same && brand.gsc_property)) {
+      const fit = await gscSitesFor({ refresh_token: sealed, email, scopes }, String(brand.domain ?? "")).catch(() => null);
+      if (fit?.suggested) await db.from("brands").update({ gsc_property: fit.suggested }).eq("id", state.brandId);
+    }
+    if (brand) await queueSyncNow({ id: brand.id, workspace_id: brand.workspace_id }).catch(() => null);
     return go(state.back, { ga4: "connected" });
   } catch (e) {
     return go(state.back, { [state.kind === "merchant" ? "catalog" : "ga4"]: "error", reason: e instanceof Error ? e.message.slice(0, 200) : "Could not connect." });

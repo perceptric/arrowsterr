@@ -70,7 +70,7 @@ import { PromptsPage } from "./PromptsPage";
 import { ResearchPage, type Tool } from "./research/ResearchPage";
 import type { SeoStart } from "./research/DomainResearch";
 import { SourcesPage } from "./SourcesPage";
-import { TrafficPage } from "./TrafficPage";
+import { AnalyticsPage } from "./AnalyticsPage";
 import { ReportsPage } from "./reports/ReportsPage";
 import { VisitorsPage } from "./VisitorsPage";
 import { ZippieDock, ZippieHome, ZippiePanel } from "./zippie/Chat";
@@ -316,7 +316,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
   const [adding, setAdding] = useState(() => window.location.pathname.replace(/\/+$/, "") === ONBOARDING);
   const [promptRoom, setPromptRoom] = useState<number | undefined>(undefined); // prompts the plan still has room for, while adding a brand
   // The Website pages are gone: old links land on Prompts.
-  const allowed = useCallback((p: Page): Page => (p === "traffic" || p === "visitors" ? "prompts" : p), []);
+  const allowed = useCallback((p: Page): Page => (p === "visitors" ? "prompts" : p), []);
   const [page, setPage] = useState<Page>(() => allowed(pageFromPath(window.location.pathname)));
   // Hide the sidebar for more room. Remembered on this device. ⌘B / Ctrl+B toggles it outside text fields.
   const [navHidden, setNavHidden] = useState(() => readLocal(NAV_HIDDEN) === "1");
@@ -1078,7 +1078,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
           ) : page === "shopping" ? (
             <ShoppingPage key={view.brand.id} auth={auth} brand={{ id: view.brand.id, name: view.brand.name, domain: view.brand.domain }} canEdit={canEdit} onPublishing={() => go("publishing")} />
           ) : page === "traffic" ? (
-            <TrafficPage key={view.brand.id} view={view} auth={auth} canEdit={canEdit} />
+            <AnalyticsPage key={view.brand.id} view={view} auth={auth} sb={sb} canEdit={canEdit} />
           ) : page === "domains" || page === "urls" ? (
             <SourcesPage
               key={view.brand.id}
@@ -1128,12 +1128,13 @@ const trackOf = (page: Page): Track | null =>
   ["prompts", "competitors", "domains", "urls", "shopping"].includes(page) ? "visibility" : ["keywords", "domain", "gap", "calendar", "writer", "library"].includes(page) ? "seo" : null;
 
 /** The big modules of the app. Each opens to its own pages. */
-const NAV: { group: string; icon: string; items: { id: Page; label: string; icon: string; also?: Page[] }[] }[] = [
+const NAV: { group: string; icon: string; items: { id: Page; label: string; icon: string; also?: Page[]; badge?: string }[] }[] = [
   {
     group: "Visibility",
     icon: "radar",
     items: [
-      { id: "rank", label: "Traffic", icon: "pulse" },
+      { id: "traffic", label: "Analytics", icon: "trend", badge: "New" },
+      { id: "rank", label: "Rank tracking", icon: "pulse" },
       { id: "prompts", label: "Prompts", icon: "prompts" },
       { id: "competitors", label: "Competitors", icon: "competitors" },
       { id: "domains", label: "Sources", icon: "sources", also: ["urls"] },
@@ -1453,6 +1454,7 @@ function Sidebar({
               >
                 <NavIcon name={item.icon} />
                 <span className="aw-nav-label min-w-0">{item.label}</span>
+                {item.badge ? <span className="aw-badge ml-auto">{item.badge}</span> : null}
               </button>
             );
           };
