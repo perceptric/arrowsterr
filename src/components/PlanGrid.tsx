@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { createContext, useContext, useEffect, useId, useState } from "react";
 import { ARTICLE_TASKS, cardPrice, PLANS, PROMPT_STEP, SELF_SERVE, TASK_COST, TASK_STEP, UNLIMITED, VIS_TASKS, type Interval, type Mix, type Plan, type PlanId } from "@/lib/plans";
 import { BrandLogo } from "./BrandLogo";
 import { ENGINE_LOGOS } from "./Engines";
@@ -37,7 +37,7 @@ const n = (v: number) => v.toLocaleString("en-US");
 const count = (v: number, one: string, many = `${one}s`) => (v >= UNLIMITED ? `Unlimited ${many}` : `${n(v)} ${v === 1 ? one : many}`);
 const history = (d: number) => (d >= 365 ? `${Math.round(d / 365)} ${d >= 730 ? "years" : "year"}` : `${Math.round(d / 30)} months`);
 
-/** What each feature does, for the hover and focus tooltips on the cards. */
+/** What each feature does, for the (i) tooltips on the cards. */
 export const FEATURE_TIPS = {
   prompts: ["AI visibility tracking", "Track the questions your buyers ask ChatGPT, Claude, Gemini, Perplexity, Google AI Overviews and AI Mode. Every day we ask each AI, save the full answer and show if your brand is named, where it ranks and how AI describes you. Share of voice, mention rate and visibility score for GEO, AEO and LLM SEO, with no spreadsheets."],
   comp: ["Competitor tracking in AI search", "See who AI recommends instead of you. Share of voice, mention rate and position for every competitor, on every prompt and every AI. Spot the brands winning AI answers before your buyers do."],
@@ -58,22 +58,28 @@ export const FEATURE_TIPS = {
 } as const;
 type TipKey = keyof typeof FEATURE_TIPS;
 
-/** What each action uses, for the tasks tooltip. The first two need SEO Research. */
+/** What each action uses, for the tasks tooltip. Lines marked seo need SEO Research. */
 export const TASK_USES: { text: string; tasks: number; seo?: boolean }[] = [
   { text: "One article (research, outline, write)", tasks: ARTICLE_TASKS, seo: true },
   { text: "A content brief", tasks: TASK_COST.brief, seo: true },
   { text: "A competitive analysis", tasks: TASK_COST.gap },
   { text: "A keyword lookup", tasks: TASK_COST.keyword },
+  { text: "Bulk keywords (per 10)", tasks: 1, seo: true },
   { text: "A domain report", tasks: TASK_COST.domain },
   { text: "A Zippie or MCP step", tasks: TASK_COST.mcp },
 ];
-/** "About this many" for a number of tasks: articles and keyword lookups with SEO Research, else competitor checks and Zippie steps. */
-export function tasksGet(tasks: number, seo: boolean): [string, string] {
-  if (seo) return [`${n(Math.floor(tasks / ARTICLE_TASKS))} articles`, `${n(Math.floor(tasks / TASK_COST.keyword))} keyword lookups`];
+/** Keywords a bulk lookup enriches for each task (TASK_COST.bulk: 1 task per 10 keywords). */
+export const BULK_PER_TASK = 10;
+/**
+ * "About this many" for a number of tasks: articles, keyword lookups and keywords in bulk with SEO Research, else
+ * competitor checks and Zippie steps. The first one is the headline.
+ */
+export function tasksGet(tasks: number, seo: boolean): string[] {
+  if (seo) return [`${n(Math.floor(tasks / ARTICLE_TASKS))} articles`, `${n(Math.floor(tasks / TASK_COST.keyword))} keyword lookups`, `${n(tasks * BULK_PER_TASK)} keywords in bulk`];
   return [`${n(Math.floor(tasks / TASK_COST.gap))} competitor checks`, `${n(Math.floor(tasks / TASK_COST.mcp))} Zippie steps`];
 }
 
-/** What Zippie's 60+ skills cover, for the hover list. */
+/** What Zippie's 60+ skills cover, for its (i) list. */
 export const SKILL_GROUPS = [
   "AI visibility reviews and prompt finding",
   "Competitor teardowns",
@@ -133,7 +139,37 @@ const pickOf = (c?: Choice | null): Pick => ({ visibility: !c || c.mix !== "seo"
 /** A plan's monthly tasks for a mix, before extra steps. */
 export const tasksFor = (id: PlanId, mix: Mix) => (mix === "visibility" ? (VIS_TASKS[id] ?? PLANS[id].tasksPerMonth) : PLANS[id].tasksPerMonth);
 
-const tipBox = "pointer-events-none absolute top-full z-40 rounded-aw border border-rule bg-white p-3.5 text-left text-[13px] leading-relaxed font-normal text-body opacity-0 shadow-aw-lg transition-opacity";
+const tipBox = "absolute top-full z-40 rounded-aw border border-rule bg-white p-3.5 text-left text-[13px] leading-relaxed font-normal text-body shadow-aw-lg";
+
+/** Which (i) tooltip is open on the grid. Only one at a time; a click outside or Escape closes it. */
+const OpenTip = createContext<{ open: string | null; setOpen: (id: string | null) => void }>({ open: null, setOpen: () => {} });
+
+/** The (i) button. Clicking it opens or closes `card`, which the caller places with `place`. */
+function InfoTip({ label, title, place, children }: { label: string; title: string; place: string; children: React.ReactNode }) {
+  const id = useId();
+  const { open, setOpen } = useContext(OpenTip);
+  const shown = open === id;
+  return (
+    <>
+      <button
+        type="button"
+        data-tip={id}
+        aria-label={label}
+        aria-expanded={shown}
+        aria-controls={id}
+        onClick={() => setOpen(shown ? null : id)}
+        className={`inline-flex h-4 w-4 shrink-0 cursor-pointer items-center justify-center rounded-full border border-current text-[10px] leading-none font-medium hover:text-brand ${shown ? "text-brand" : "text-muted"}`}
+      >
+        i
+      </button>
+      {shown ? (
+        <span id={id} data-tip={id} role="dialog" aria-label={title} className={`${tipBox} ${place}`}>
+          {children}
+        </span>
+      ) : null}
+    </>
+  );
+}
 
 function Check() {
   return (
@@ -143,31 +179,26 @@ function Check() {
   );
 }
 
-/** One feature: icon, a label that explains itself on hover or focus, and a check, a value or a dash. */
+/** One feature: icon, a label with an (i) that explains it on click, and a check, a value or a dash. */
 function Row({ on = true, icon, text, end, logos, tip }: { on?: boolean; icon: React.ReactNode; text: React.ReactNode; end?: React.ReactNode; logos?: React.ReactNode; tip?: TipKey }) {
-  const id = useId();
   return (
-    <li className={`group/row relative flex items-start gap-3 py-2 text-[15px] leading-snug ${on ? "text-ink" : "text-faint"}`}>
+    <li className={`relative flex items-start gap-3 py-2 text-[15px] leading-snug ${on ? "text-ink" : "text-faint"}`}>
       <span aria-hidden="true" className={`flex h-5 w-5 shrink-0 items-center justify-center ${on ? "text-brand" : "opacity-50 grayscale"}`}>
         {icon}
       </span>
       <span className="flex min-w-0 flex-1 flex-col gap-1.5">
-        {tip ? (
-          <button type="button" aria-describedby={id} className="cursor-help self-start text-left">
-            <span className="border-b-[1.5px] border-dotted border-current">{text}</span>
-          </button>
-        ) : (
-          text
-        )}
+        <span className="flex items-center gap-1.5">
+          {text}
+          {tip ? (
+            <InfoTip label={`About ${FEATURE_TIPS[tip][0]}`} title={FEATURE_TIPS[tip][0]} place="-right-2 -left-2 mt-1">
+              <span className="mb-1 block text-[14px] font-semibold text-ink">{FEATURE_TIPS[tip][0]}</span>
+              {FEATURE_TIPS[tip][1]}
+            </InfoTip>
+          ) : null}
+        </span>
         {logos ? <span className={on ? "" : "opacity-50 grayscale"}>{logos}</span> : null}
       </span>
       <span className={`ml-2 shrink-0 text-right text-[14px] ${on ? "aw-num font-semibold text-ink" : "text-faint"}`}>{!on ? <span aria-label="Not included">–</span> : (end ?? <Check />)}</span>
-      {tip ? (
-        <span id={id} role="tooltip" className={`${tipBox} -right-2 -left-2 mt-1 group-focus-within/row:opacity-100 group-hover/row:opacity-100`}>
-          <span className="mb-1 block text-[14px] font-semibold text-ink">{FEATURE_TIPS[tip][0]}</span>
-          {FEATURE_TIPS[tip][1]}
-        </span>
-      ) : null}
     </li>
   );
 }
@@ -176,27 +207,26 @@ const Icon = ({ name }: { name: string }) => <NavIcon name={name} />;
 const Logo = ({ l }: { l: { name: string; logo: string } }) => <BrandLogo src={l.logo} name={l.name} size={18} />;
 const Section = ({ children }: { children: React.ReactNode }) => <li className="mt-3 mb-0.5 text-[12px] font-semibold tracking-wide text-muted uppercase">{children}</li>;
 
-/** "60+ Zippie skills", with what they cover on hover or focus. */
+/** "60+ Zippie skills", with an (i) that lists what they cover. */
 function SkillsRow() {
-  const id = useId();
   return (
-    <li className="group/skills relative flex items-start gap-3 py-2 text-[15px] leading-snug text-ink">
+    <li className="relative flex items-start gap-3 py-2 text-[15px] leading-snug text-ink">
       <span aria-hidden="true" className="flex h-5 w-5 shrink-0 items-center justify-center text-brand">
         <Icon name="bot" />
       </span>
-      <button type="button" aria-describedby={id} className="flex-1 cursor-help text-left">
-        <span className="border-b-[1.5px] border-dotted border-current">60+ Zippie skills</span>
-      </button>
+      <span className="flex flex-1 items-center gap-1.5">
+        60+ Zippie skills
+        <InfoTip label="What Zippie can do" title="What Zippie can do" place="left-8 mt-1 w-72">
+          <span className="mb-1 block font-semibold text-ink">What Zippie can do</span>
+          {SKILL_GROUPS.map((s) => (
+            <span key={s} className="block">
+              • {s}
+            </span>
+          ))}
+        </InfoTip>
+      </span>
       <span className="ml-2 shrink-0">
         <Check />
-      </span>
-      <span id={id} role="tooltip" className={`${tipBox} left-8 mt-1 w-72 group-focus-within/skills:opacity-100 group-hover/skills:opacity-100`}>
-        <span className="mb-1 block font-semibold text-ink">What Zippie can do</span>
-        {SKILL_GROUPS.map((s) => (
-          <span key={s} className="block">
-            • {s}
-          </span>
-        ))}
       </span>
     </li>
   );
@@ -249,27 +279,22 @@ function Stepper({ label, info, value, max, onChange, less, more }: { label: str
 
 /** The (i) next to tasks: what this many tasks gets, and what each action uses. */
 function TasksInfo({ tasks, seo }: { tasks: number; seo: boolean }) {
-  const id = useId();
-  const [a, b] = tasksGet(tasks, seo);
+  const [first, ...rest] = tasksGet(tasks, seo);
   return (
-    <span className="group/tasks static inline-flex">
-      <button type="button" aria-describedby={id} aria-label="What tasks pay for" className="inline-flex h-4 w-4 cursor-help items-center justify-center rounded-full border border-current text-[10px] leading-none font-medium text-muted">
-        i
-      </button>
-      <span id={id} role="tooltip" className={`${tipBox} right-0 left-0 mt-2 group-focus-within/tasks:opacity-100 group-hover/tasks:opacity-100`}>
-        <span className="block text-[14px] font-semibold text-ink">{n(tasks)} tasks gets you about</span>
-        <span className="mt-1 mb-3 block">
-          ≈ <b className="font-semibold text-ink">{a}</b>, or {b}
-        </span>
-        <span className="mb-1.5 block text-[14px] font-semibold text-ink">What each action uses</span>
-        {TASK_USES.filter((u) => seo || !u.seo).map((u, i) => (
-          <span key={u.text} className={`flex justify-between gap-3 py-1 ${i ? "border-t border-rule-faint" : ""}`}>
-            <span>{u.text}</span>
-            <span className="aw-num font-semibold text-ink">{n(u.tasks)}</span>
-          </span>
-        ))}
+    <InfoTip label="What tasks pay for" title="What tasks pay for" place="right-0 left-0 mt-2">
+      <span className="block text-[14px] font-semibold text-ink">{n(tasks)} tasks gets you about</span>
+      <span className="mt-1 mb-3 block">
+        ≈ <b className="font-semibold text-ink">{first}</b>
+        {rest.length > 1 ? `, ${rest.slice(0, -1).join(", ")} or ${rest[rest.length - 1]}` : `, or ${rest[0]}`}
       </span>
-    </span>
+      <span className="mb-1.5 block text-[14px] font-semibold text-ink">What each action uses</span>
+      {TASK_USES.filter((u) => seo || !u.seo).map((u, i) => (
+        <span key={u.text} className={`flex justify-between gap-3 py-1 ${i ? "border-t border-rule-faint" : ""}`}>
+          <span>{u.text}</span>
+          <span className="aw-num font-semibold text-ink">{n(u.tasks)}</span>
+        </span>
+      ))}
+    </InfoTip>
   );
 }
 
@@ -386,25 +411,47 @@ export function PlanGrid({
   action: (plan: PlanId, choice: Choice | null) => React.ReactNode;
 }) {
   const [picks, setPicks] = useState<Partial<Record<PlanId, Pick>>>(() => (current ? { [current.plan]: pickOf(current) } : {}));
+  const [open, setOpen] = useState<string | null>(null);
+  // A click outside the open tooltip and its (i), or Escape, closes it.
+  useEffect(() => {
+    if (!open) return;
+    const click = (e: MouseEvent) => {
+      const t = e.target as Element | null;
+      // An (i) button opens or closes its own tooltip; any other click outside the open one closes it.
+      if (t?.closest?.("button[data-tip]") || t?.closest?.(`[data-tip="${CSS.escape(open)}"]`)) return;
+      setOpen(null);
+    };
+    const key = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(null);
+    };
+    document.addEventListener("click", click);
+    document.addEventListener("keydown", key);
+    return () => {
+      document.removeEventListener("click", click);
+      document.removeEventListener("keydown", key);
+    };
+  }, [open]);
   return (
-    <div className="flex flex-col gap-5">
-      <div className="grid items-start gap-5 lg:grid-cols-3">
-        {SELF_SERVE.map((id) => {
-          const pick = picks[id] ?? pickOf(null);
-          const same = current?.plan === id && current.mix === mixOfPick(pick) && current.tasks === pick.tasks && current.prompts === (pick.visibility ? pick.prompts : 0);
-          return <Card key={id} id={id} interval={interval} current={Boolean(same)} pick={pick} setPick={(p) => setPicks((all) => ({ ...all, [id]: p }))} action={action} />;
-        })}
-      </div>
-      <div className="flex flex-col gap-5 rounded-aw-lg bg-ink p-6 text-white sm:p-8 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-col gap-2">
-          <span className="text-[13px] font-medium tracking-wide text-white/60 uppercase">Enterprise</span>
-          <h3 className="text-[24px] font-medium text-white">{PLANS.enterprise.tagline}</h3>
-          <p className="text-[15px] text-white/70">
-            {n(PLANS.enterprise.prompts)}+ prompts a day and {n(PLANS.enterprise.tasksPerMonth)}+ tasks a month, unlimited seats and brands, SSO, a security review and a named success manager. From ${n(PLANS.enterprise.price)}/mo.
-          </p>
+    <OpenTip.Provider value={{ open, setOpen }}>
+      <div className="flex flex-col gap-5">
+        <div className="grid items-start gap-5 lg:grid-cols-3">
+          {SELF_SERVE.map((id) => {
+            const pick = picks[id] ?? pickOf(null);
+            const same = current?.plan === id && current.mix === mixOfPick(pick) && current.tasks === pick.tasks && current.prompts === (pick.visibility ? pick.prompts : 0);
+            return <Card key={id} id={id} interval={interval} current={Boolean(same)} pick={pick} setPick={(p) => setPicks((all) => ({ ...all, [id]: p }))} action={action} />;
+          })}
         </div>
-        <div className="shrink-0 lg:w-56">{action("enterprise", null)}</div>
+        <div className="flex flex-col gap-5 rounded-aw-lg bg-ink p-6 text-white sm:p-8 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-col gap-2">
+            <span className="text-[13px] font-medium tracking-wide text-white/60 uppercase">Enterprise</span>
+            <h3 className="text-[24px] font-medium text-white">{PLANS.enterprise.tagline}</h3>
+            <p className="text-[15px] text-white/70">
+              {n(PLANS.enterprise.prompts)}+ prompts a day and {n(PLANS.enterprise.tasksPerMonth)}+ tasks a month, unlimited seats and brands, SSO, a security review and a named success manager. From ${n(PLANS.enterprise.price)}/mo.
+            </p>
+          </div>
+          <div className="shrink-0 lg:w-56">{action("enterprise", null)}</div>
+        </div>
       </div>
-    </div>
+    </OpenTip.Provider>
   );
 }
