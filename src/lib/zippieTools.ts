@@ -11,7 +11,7 @@ import { filesProblems, MAIN } from "./skills/format";
 import { WRITER_TOOLS } from "./zippieWriter";
 import type { WriterCard } from "./contentPicks";
 import { brandOf } from "./zippieBrand";
-import { analyticsOverview, googleFor, pagesIn } from "./seoAnalyticsServer";
+import { analyticsOverview, articleResults, googleFor, pagesIn } from "./seoAnalyticsServer";
 import { addDays, OPP_LABEL } from "./seoAnalytics";
 import { pageFacts, robotsReport, siteIssues, speedReport, urlKey, type CrawledPage, type PageFacts } from "./zippieCrawl";
 
@@ -199,7 +199,7 @@ const BASE_TOOLS: ZippieTool[] = [
     name: "get_site_analytics",
     label: "Reading Search Console and GA4",
     description:
-      "A brand's own Google numbers from the daily Analytics sync: Search Console clicks, impressions and average position, GA4 sessions, key events and visits from AI, each against the period before; the top search queries (with a Low CTR, Page 2 or Winning tag); the pages that gained or lost the most clicks; and today's Opportunities. Use it for \"why did traffic drop?\", \"which pages are slipping?\" or \"what should I fix first?\". Free: uses no tasks.",
+      "A brand's own Google numbers from the daily Analytics sync: Search Console clicks, impressions and average position, GA4 sessions, key events and visits from AI, each against the period before; the top search queries (with a Low CTR, Page 2 or Winning tag); the pages that gained or lost the most clicks; today's Opportunities; recent_articles: each published article or refresh with its clicks, position, sessions, key events and AI visits since it went live against the same number of days before; and refresh_candidates: pages worth refreshing with refresh_page. Use it for \"why did traffic drop?\", \"which pages are slipping?\", \"what should I fix first?\" or \"how did my last posts do?\". Free: uses no tasks.",
     input_schema: { type: "object", properties: { brand: { type: "string" }, days: { type: "number", enum: [7, 28, 90], description: "The period, compared with the one before. Default 28." } } },
     async run(ctx, args) {
       const b = await brandOf(ctx, args.brand);
@@ -208,7 +208,7 @@ const BASE_TOOLS: ZippieTool[] = [
       if (!g.brand.gsc_property && !g.brand.ga4_property) return { brand: b.name, connected: true, note: "Signed in to Google, but no Search Console or GA4 property is picked yet. Pick them on the Analytics page." };
       const days = [7, 28, 90].includes(Number(args.days)) ? Number(args.days) : 28;
       const o = await analyticsOverview(ctx.db, b.id, days, g.state);
-      const prev = await pagesIn(ctx.db, b.id, addDays(o.from, -days), addDays(o.from, -1), 500);
+      const [prev, articles] = await Promise.all([pagesIn(ctx.db, b.id, addDays(o.from, -days), addDays(o.from, -1), 500), articleResults(ctx.db, b.id, g.state, { limit: 10 })]);
       const before = new Map(prev.map((p) => [p.page, p]));
       const moves = o.pages
         .map((p) => ({ page: p.page, clicks: p.clicks, clicks_before: before.get(p.page)?.clicks ?? 0, position: p.position, position_before: before.get(p.page)?.position ?? null, sessions: p.sessions, conversions: p.conversions }))
@@ -227,6 +227,22 @@ const BASE_TOOLS: ZippieTool[] = [
         pages_losing_clicks: [...moves].sort((a, b) => a.change - b.change).filter((p) => p.change < 0).slice(0, 10),
         pages_gaining_clicks: [...moves].sort((a, b) => b.change - a.change).filter((p) => p.change > 0).slice(0, 10),
         opportunities: o.opportunities.map((x) => ({ type: OPP_LABEL[x.kind], title: x.title, page: x.page, query: x.query, extra_clicks_a_month: x.gain_clicks, signups_a_month: x.gain_signups, why: x.why })),
+        recent_articles: articles.map((a) => ({
+          keyword: a.keyword,
+          url: a.url,
+          went_live: a.event === "refreshed" ? `refreshed ${a.at.slice(0, 10)}` : `published ${a.at.slice(0, 10)}`,
+          days_since: a.days,
+          compared_with: a.result ? `the ${a.days} days before against the ${a.days} since` : "no data since it went live yet",
+          clicks: a.result?.clicks ?? null,
+          avg_position: a.result?.position ?? null,
+          sessions: a.result?.sessions ?? null,
+          key_events: a.result?.conversions ?? null,
+          visits_from_ai: a.result?.ai_sessions ?? null,
+        })),
+        refresh_candidates: [
+          ...o.opportunities.filter((x) => (x.kind === "losing" || x.kind === "page2" || x.kind === "cannibal") && x.page).map((x) => ({ page: x.page, why: `${OPP_LABEL[x.kind]}: ${x.why}` })),
+          ...articles.filter((a) => (a.result?.clicks.change ?? 0) <= -0.25 && a.full).map((a) => ({ page: a.page, why: `Clicks ${Math.round((a.result!.clicks.change ?? 0) * 100)}% since it went live.` })),
+        ].slice(0, 10),
       };
     },
   },

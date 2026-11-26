@@ -39,6 +39,23 @@ export function applyEdits(doc: Record<string, unknown>, edits: DraftEdit[]): { 
   return { doc: copy as Record<string, unknown>, applied, missed };
 }
 
+/**
+ * New sections for a refresh, added to a copy of the draft: before the FAQ when the draft has one (an H2 that says
+ * "questions" or "FAQ"), otherwise at the end. Paragraphs are plain text.
+ */
+export function addSections(doc: Record<string, unknown>, sections: { h2: string; paragraphs: string[] }[]): Record<string, unknown> {
+  const copy = structuredClone(doc) as Node;
+  const content = (copy.content ??= []);
+  const nodes: Node[] = sections.flatMap((s) => [
+    { type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: s.h2 }] },
+    ...s.paragraphs.filter((t) => t.trim()).map((t) => ({ type: "paragraph", content: [{ type: "text", text: t.trim() }] })),
+  ]);
+  const isFaq = (n: Node) => n.type === "heading" && (n.attrs as { level?: number } | undefined)?.level === 2 && /\b(faqs?|questions)\b/i.test(runs(n).map((r) => r.node.text).join(" "));
+  const at = content.findIndex(isFaq);
+  content.splice(at >= 0 ? at : content.length, 0, ...nodes);
+  return copy as Record<string, unknown>;
+}
+
 /** The draft's word count, for the Drafts list. */
 export function wordsIn(doc: Record<string, unknown>): number {
   return runs(doc as Node)

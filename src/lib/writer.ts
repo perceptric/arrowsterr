@@ -139,3 +139,23 @@ export function coverage(text: string, html: string, brief: Brief, sections: Sec
   const done = items.filter((i) => i.done).length;
   return { items, score: items.length ? Math.round((done / items.length) * 100) : 0 };
 }
+
+const li = (text: string): Node => ({ type: "listItem", content: [p(text)] });
+type Block = { type: "p" | "li"; text: string };
+
+/** A live page's outline (pageOutline in pageText.ts) as a draft, so a refresh can show its changes against it. */
+export function outlineToDoc(o: { h1: string; title: string; intro: Block[]; sections: { heading: string; level: 2 | 3; blocks: Block[] }[] }): Node {
+  const blocks = (list: Block[]): Node[] => {
+    const out: Node[] = [];
+    for (const b of list) {
+      const last = out.at(-1);
+      if (b.type === "p") out.push(p(b.text));
+      else if (last?.type === "bulletList") last.content!.push(li(b.text));
+      else out.push({ type: "bulletList", content: [li(b.text)] });
+    }
+    return out;
+  };
+  const content: Node[] = [h(1, o.h1 || o.title), ...blocks(o.intro)];
+  for (const s of o.sections) content.push(h(s.level, s.heading), ...blocks(s.blocks));
+  return { type: "doc", content };
+}

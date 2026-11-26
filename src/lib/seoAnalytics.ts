@@ -51,8 +51,8 @@ export function chanceOf(q: { clicks: number; impressions: number; position: num
   return null;
 }
 
-export type OppKind = "low_ctr" | "page2" | "losing" | "new_topic" | "cannibal";
-export const OPP_LABEL: Record<OppKind, string> = { low_ctr: "Low CTR", page2: "Page 2", losing: "Losing clicks", new_topic: "New topic", cannibal: "Two pages compete" };
+export type OppKind = "low_ctr" | "page2" | "losing" | "new_topic" | "cannibal" | "links";
+export const OPP_LABEL: Record<OppKind, string> = { low_ctr: "Low CTR", page2: "Page 2", losing: "Losing clicks", new_topic: "New topic", cannibal: "Two pages compete", links: "Needs links" };
 
 export type Opportunity = {
   id: string;
@@ -227,8 +227,248 @@ export function findOpportunities(input: OppInput, limit = 12): Opportunity[] {
     });
   }
 
+  // Pages at positions 5 to 15 that links from the site's busiest related pages can push up.
+  for (const s of linkSuggestions(input)) {
+    const gain = Math.max(0, expectedCtr(Math.max(3, s.position - 3)) * s.impressions - s.clicks) * month * 0.5;
+    if (gain < 15) continue;
+    out.push({
+      id: `links:${s.page}`,
+      kind: "links",
+      title: s.page,
+      page: s.page,
+      query: s.anchor,
+      gain_clicks: Math.round(gain),
+      gain_signups: signups(gain, s.page),
+      why: `Position ${s.position.toFixed(1)} with ${fmt(s.impressions)} impressions, close to the top. ${s.sources.map((x) => x.page).join(" and ")} ${s.sources.length === 1 ? "gets" : "get"} far more visits and ${s.sources.length === 1 ? "covers" : "cover"} the same topic. Links from ${s.sources.length === 1 ? "it" : "them"} with the words “${s.anchor}” tell Google this page is the answer.`,
+      data: { position: round1(s.position), impressions: s.impressions, clicks: s.clicks, anchor: s.anchor, sources: s.sources.map((x) => x.page) },
+    });
+  }
+
   const score = (o: Opportunity) => o.gain_clicks + (o.gain_signups ?? 0) * 25;
   return out.sort((a, b) => score(b) - score(a)).slice(0, limit);
+}
+
+// ─────────────── Internal links to pages that need a push ───────────────
+
+export type LinkSuggestion = { page: string; position: number; impressions: number; clicks: number; anchor: string; sources: { page: string; traffic: number; overlap: number }[] };
+
+/** Folder names in addresses that say nothing about the topic ("/blog/x"). */
+const PATH_STOP = new Set("blog blogs post posts news article articles resources resource guides guide learn page pages www html".split(" "));
+
+/** The words a page is about: its address and its top searches. */
+function topicOf(page: string, queries: QueryPageAgg[]): Set<string> {
+  const words = new Set(wordsOf(page.replace(/[/_.-]+/g, " ")).filter((w) => !PATH_STOP.has(w)));
+  for (const q of queries.slice(0, 10)) for (const w of wordsOf(q.query)) words.add(w);
+  return words;
+}
+
+/**
+ * Pages at average position 5 to 15 with real impressions, each with up to three of the site's busiest pages
+ * (sessions plus Google clicks) that share its topic: the pages to link from, with the target's top search as the
+ * link's words. The home page is left out on both sides: it links everywhere already.
+ */
+export function linkSuggestions(input: Pick<OppInput, "pages" | "queryPages">, opts: { minImpressions?: number; perTarget?: number } = {}): LinkSuggestion[] {
+  const minImpressions = opts.minImpressions ?? 100;
+  const per = opts.perTarget ?? 3;
+  const queriesOf = new Map<string, QueryPageAgg[]>();
+  for (const r of input.queryPages) queriesOf.set(r.page, [...(queriesOf.get(r.page) ?? []), r]);
+  for (const list of queriesOf.values()) list.sort((a, b) => b.impressions - a.impressions);
+  const pages = input.pages.filter((p) => p.page !== "/");
+  const topics = new Map(pages.map((p) => [p.page, topicOf(p.page, queriesOf.get(p.page) ?? [])]));
+  const traffic = (p: PageAgg) => p.sessions + p.clicks;
+  const out: LinkSuggestion[] = [];
+  for (const t of pages) {
+    if (!t.position || t.position < 5 || t.position > 15 || t.impressions < minImpressions) continue;
+    const want = topics.get(t.page)!;
+    if (!want.size) continue;
+    const sources = pages
+      .filter((s) => s.page !== t.page && traffic(s) > traffic(t))
+      .map((s) => {
+        const have = topics.get(s.page)!;
+        const shared = [...want].filter((w) => have.has(w)).length;
+        return { page: s.page, traffic: traffic(s), overlap: shared / want.size, shared };
+      })
+      .filter((s) => s.shared >= 1 && s.overlap >= 0.25)
+      .sort((a, b) => b.overlap * Math.log10(1 + b.traffic) - a.overlap * Math.log10(1 + a.traffic))
+      .slice(0, per)
+      .map(({ page, traffic: tr, overlap }) => ({ page, traffic: tr, overlap: round3(overlap) }));
+    if (!sources.length) continue;
+    const anchor = queriesOf.get(t.page)?.[0]?.query ?? t.page.split("/").filter(Boolean).pop()!.replace(/[-_]+/g, " ");
+    out.push({ page: t.page, position: t.position, impressions: t.impressions, clicks: t.clicks, anchor, sources });
+  }
+  return out.sort((a, b) => b.impressions - a.impressions);
+}
+
+// ─────────────── Before and after: an article's results ───────────────
+
+export type Totals = { clicks: number; impressions: number; position: number | null; sessions: number; conversions: number; ai_sessions: number };
+export const NO_TOTALS: Totals = { clicks: 0, impressions: 0, position: null, sessions: 0, conversions: 0, ai_sessions: 0 };
+
+/**
+ * The days to compare for a page that went live (or was refreshed) at `at`: the `days` before it, and from that day
+ * up to `days` after, cut at the last day with data. Null when there is no data since then yet.
+ */
+export function resultWindows(at: string, lastDay: string, days = 28): { before: [string, string]; after: [string, string]; afterDays: number; full: boolean } | null {
+  const day = at.slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || day > lastDay) return null;
+  const end = addDays(day, days - 1) < lastDay ? addDays(day, days - 1) : lastDay;
+  const afterDays = Math.round((Date.parse(`${end}T00:00:00Z`) - Date.parse(`${day}T00:00:00Z`)) / 864e5) + 1;
+  return { before: [addDays(day, -days), addDays(day, -1)], after: [day, end], afterDays, full: afterDays >= days };
+}
+
+export type ResultMetric = { before: number | null; after: number | null; change: number | null };
+export type Result = Record<"clicks" | "impressions" | "position" | "sessions" | "conversions" | "ai_sessions", ResultMetric>;
+
+/**
+ * After against before, over the same number of days: the period before is scaled to the days since the change, so
+ * a page live for 9 days is compared with 9 days' worth of the 28 before. `change` is a share (0.4 = up 40%) for
+ * counts and places moved for position (negative is better). Null when there is nothing to compare with.
+ */
+export function compareResult(before: Totals, after: Totals, beforeDays: number, afterDays: number): Result {
+  const scale = beforeDays ? afterDays / beforeDays : 0;
+  const count = (b: number, a: number): ResultMetric => {
+    const was = Math.round(b * scale);
+    return { before: was, after: a, change: was ? Math.round(((a - was) / was) * 1000) / 1000 : null };
+  };
+  return {
+    clicks: count(before.clicks, after.clicks),
+    impressions: count(before.impressions, after.impressions),
+    sessions: count(before.sessions, after.sessions),
+    conversions: count(before.conversions, after.conversions),
+    ai_sessions: count(before.ai_sessions, after.ai_sessions),
+    position: {
+      before: before.position === null ? null : round1(before.position),
+      after: after.position === null ? null : round1(after.position),
+      change: before.position !== null && after.position !== null ? round1(after.position - before.position) : null,
+    },
+  };
+}
+
+// ─────────────── Refresh: keep what ranks, rewrite what slipped ───────────────
+
+export type PageSection = { heading: string; text: string };
+export type SectionPlan = { heading: string; action: "keep" | "rewrite"; queries: string[]; why: string };
+export type RefreshPlan = { sections: SectionPlan[]; add: QueryAgg[]; titleFix: { query: string; ctr: number; expected: number; position: number } | null };
+
+/** How well a search fits a section: the share of the search's words found in it (heading words count most). */
+function fit(query: string, s: PageSection): number {
+  const words = wordsOf(query);
+  if (!words.length) return 0;
+  const head = new Set(wordsOf(s.heading));
+  const body = new Set(wordsOf(s.text));
+  return words.reduce((a, w) => a + (head.has(w) ? 1 : body.has(w) ? 0.6 : 0), 0) / words.length;
+}
+
+/**
+ * What to do with each section of a page, from its Search Console queries now and in the period before:
+ * - keep: a search it answers still ranks well (top 5, normal click rate);
+ * - rewrite: the searches it answers slipped (down 1.5 places or more) or sit past page 1, and none ranks well;
+ * - add: searches with real impressions that no section answers, as new sections (up to four);
+ * - titleFix: the page's biggest page-1 search with a weak click rate, for a new title and meta description.
+ */
+export function planSections(sections: PageSection[], now: QueryAgg[], before: QueryAgg[] = []): RefreshPlan {
+  const was = new Map(before.map((q) => [q.query, q]));
+  type Kind = "good" | "slipped" | "weak" | "low_ctr" | "other";
+  const kindOf = (q: QueryAgg): Kind => {
+    const ctr = q.impressions ? q.clicks / q.impressions : 0;
+    const prev = was.get(q.query);
+    if (prev && prev.position && q.position - prev.position >= 1.5) return "slipped";
+    if (q.position <= 5 && ctr >= expectedCtr(q.position) * 0.75) return "good";
+    if (q.position <= 10.5 && q.impressions >= 100 && ctr < expectedCtr(q.position) * 0.75) return "low_ctr";
+    if (q.position > 10.5) return "weak";
+    return "other";
+  };
+  const by = sections.map(() => ({ good: [] as string[], bad: [] as string[] }));
+  const unplaced: QueryAgg[] = [];
+  for (const q of now) {
+    const k = kindOf(q);
+    let best = -1;
+    let score = 0.5;
+    sections.forEach((s, i) => {
+      const f = fit(q.query, s);
+      if (f >= score) [best, score] = [i, f];
+    });
+    if (best < 0) {
+      if ((k === "weak" || k === "slipped") && q.impressions >= 30) unplaced.push(q);
+      continue;
+    }
+    if (k === "good") by[best].good.push(q.query);
+    else if (k === "slipped" || k === "weak") by[best].bad.push(q.query);
+  }
+  const plans: SectionPlan[] = sections.map((s, i) => {
+    const { good, bad } = by[i];
+    if (good.length) return { heading: s.heading, action: "keep", queries: good.slice(0, 5), why: `Still ranks well for ${good.slice(0, 2).map((q) => `“${q}”`).join(" and ")}.` };
+    if (bad.length) return { heading: s.heading, action: "rewrite", queries: bad.slice(0, 5), why: `${bad.slice(0, 2).map((q) => `“${q}”`).join(" and ")} slipped or sit past page 1.` };
+    return { heading: s.heading, action: "keep", queries: [], why: "No search lands here, so it stays as it is." };
+  });
+  const seen = new Set<string>();
+  const add = unplaced
+    .sort((a, b) => b.impressions - a.impressions)
+    .filter((q) => {
+      const key = wordsOf(q.query).slice(0, 2).sort().join(" ");
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, 4);
+  const weakCtr = now.filter((q) => kindOf(q) === "low_ctr").sort((a, b) => b.impressions - a.impressions)[0];
+  const titleFix = weakCtr ? { query: weakCtr.query, ctr: round3(weakCtr.clicks / weakCtr.impressions), expected: round3(expectedCtr(weakCtr.position)), position: round1(weakCtr.position) } : null;
+  return { sections: plans, add, titleFix };
+}
+
+// ─────────────── Cited by AI: GA4's AI visits next to the AI answers ───────────────
+
+export type OwnCitation = { page: string; engines: string[]; prompts: number; answers: number };
+
+const hostOf = (url: string) => {
+  try {
+    return new URL(url).hostname.toLowerCase().replace(/^www\./, "");
+  } catch {
+    return "";
+  }
+};
+
+/** The brand's own pages the tracked AI answers cite, with the AIs that cite each and how many prompts and answers. */
+export function ownCitations(chats: { engine: string; prompt: string; sources?: { url: string }[] | null }[], domain: string): OwnCitation[] {
+  const own = domain.toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/.*$/, "");
+  const by = new Map<string, { engines: Set<string>; prompts: Set<string>; answers: number }>();
+  for (const c of chats) {
+    const pages = new Set<string>();
+    for (const s of c.sources ?? []) {
+      const host = hostOf(s.url);
+      if (!host || (host !== own && !host.endsWith(`.${own}`))) continue;
+      pages.add(pagePath(s.url));
+    }
+    for (const page of pages) {
+      const x = by.get(page) ?? { engines: new Set<string>(), prompts: new Set<string>(), answers: 0 };
+      x.engines.add(c.engine);
+      x.prompts.add(c.prompt);
+      x.answers += 1;
+      by.set(page, x);
+    }
+  }
+  return [...by.entries()].map(([page, x]) => ({ page, engines: [...x.engines].sort(), prompts: x.prompts.size, answers: x.answers })).sort((a, b) => b.answers - a.answers);
+}
+
+export type CitedBucket = "cited_visits" | "cited_few" | "visits_uncited";
+export type CitedPage = { page: string; ai_sessions: number; engines: string[]; prompts: number; answers: number; bucket: CitedBucket };
+export const CITED_LABEL: Record<CitedBucket, string> = { cited_visits: "Cited and sends visits", cited_few: "Cited, few visits", visits_uncited: "Visits, not seen cited" };
+
+/**
+ * Pages by how AI treats them: cited in the tracked answers and sending visits; cited but sending fewer than `few`
+ * visits (the answer names you without a reason to click); and getting visits from AI with no tracked answer citing
+ * them yet (prompts worth tracking).
+ */
+export function citedByAi(pages: { page: string; ai_sessions: number }[], cited: OwnCitation[], few = 5): CitedPage[] {
+  const visits = new Map(pages.map((p) => [p.page, p.ai_sessions]));
+  const out: CitedPage[] = cited.map((c) => {
+    const ai = visits.get(c.page) ?? 0;
+    return { ...c, ai_sessions: ai, bucket: ai >= few ? "cited_visits" : "cited_few" };
+  });
+  const citedSet = new Set(cited.map((c) => c.page));
+  for (const p of pages) if (p.ai_sessions >= few && !citedSet.has(p.page)) out.push({ page: p.page, ai_sessions: p.ai_sessions, engines: [], prompts: 0, answers: 0, bucket: "visits_uncited" });
+  const order: Record<CitedBucket, number> = { cited_visits: 0, cited_few: 1, visits_uncited: 2 };
+  return out.sort((a, b) => order[a.bucket] - order[b.bucket] || b.ai_sessions - a.ai_sessions || b.answers - a.answers);
 }
 
 const sum = (list: { impressions: number }[]) => list.reduce((a, q) => a + q.impressions, 0);

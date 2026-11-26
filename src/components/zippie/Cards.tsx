@@ -160,7 +160,7 @@ export function Reply({ m, api, auth, canEdit, onSend }: { m: Msg; api: ReturnTy
             c.card.view === "picks" ? (
               <PicksCard key={c.id} picks={c.card.picks} canEdit={canEdit} onSend={onSend} />
             ) : c.card.view === "revise" ? (
-              <ReviseCard key={c.id} docId={c.card.doc_id} title={c.card.title} edits={c.card.edits} canEdit={canEdit} />
+              <ReviseCard key={c.id} docId={c.card.doc_id} title={c.card.title} edits={c.card.edits} canEdit={canEdit} refresh={c.card.refresh} auth={auth} />
             ) : c.card.view === "outline_edit" ? (
               <OutlineEditCard key={c.id} briefId={c.card.brief_id} before={c.card.before} sections={c.card.sections} why={c.card.why} auth={auth} canEdit={canEdit} />
             ) : (

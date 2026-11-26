@@ -303,6 +303,39 @@ export const WRITER_TOOLS: ZippieTool[] = [
       return { ready: ok.length, missed, note: "A card with the changes is in the chat; nothing changes until the person presses Apply.", writer_card: card(emit, { view: "revise", doc_id: doc.id, title: doc.title ?? item.keyword, edits: ok }) };
     },
   },
+  {
+    name: "refresh_page",
+    label: "Refreshing the page from its Search Console data",
+    description:
+      "Refresh a live page on the brand's site so it wins back Google clicks. Reads the page, lines up its sections with the page's Search Console searches now and 28 days before (Analytics), keeps the sections that still rank, rewrites the ones that slipped, adds sections for searches no section answers, and writes a new SEO title and meta description when the click rate is weak. Shows the changes on a card; nothing changes until the person presses Apply, then they publish it from the card. Pass the page's address (or path like /blog/x), or the item_id of an update piece on the Calendar. Uses 100 tasks. Use it for Analytics Opportunities (Page 2, Losing clicks, Two pages compete) and Calendar update pieces.",
+    input_schema: { type: "object", properties: { url: { type: "string", description: "The live page, like https://site.com/blog/x or /blog/x." }, item_id: { type: "string" }, brand: { type: "string" } } },
+    async run(ctx, args, emit) {
+      if (!ctx.canEdit) throw new ToolError("Only editors and admins can refresh pages.");
+      if (!process.env.ANTHROPIC_API_KEY) throw new ToolError("ANTHROPIC_API_KEY is not set on the server.");
+      const blocked = (await requireWriter(ctx.ws)) ?? (await requireActive(ctx.ws));
+      if (blocked) throw new ToolError(((await blocked.json().catch(() => ({}))) as { error?: string }).error ?? "Refreshing pages isn't available on this plan.");
+      let url = str(args.url, 1000);
+      const itemId = str(args.item_id, 60) || null;
+      if (!url && itemId) {
+        const { data } = await ctx.db.from("calendar_items").select("url, current_url").eq("id", itemId).eq("workspace_id", ctx.ws).maybeSingle();
+        url = (data?.url as string | null) ?? (data?.current_url as string | null) ?? "";
+      }
+      if (!url) throw new ToolError("Say which page to refresh: its address, or the item_id of an update piece with a live address.");
+      const b = await brandOf(ctx, args.brand);
+      const { prepareRefresh } = await import("./pageRefreshServer");
+      const r = await prepareRefresh(ctx.db, { ws: ctx.ws, userId: ctx.userId, brandId: b.id, url, itemId });
+      await linkPiece(ctx.db, ctx.ws, ctx.threadId, r.refresh.item_id, ctx.userId);
+      return {
+        ready: r.edits.length,
+        kept: r.refresh.keep,
+        rewritten: r.refresh.rewrite,
+        new_sections: r.refresh.add.map((a) => a.h2),
+        new_title: r.refresh.seo?.title ?? null,
+        note: "A card with the changes is in the chat. Nothing changes until the person presses Apply; then Publish on the card sends the refreshed page to their site.",
+        writer_card: card(emit, { view: "revise", doc_id: r.doc_id, title: r.title, edits: r.edits, refresh: r.refresh }),
+      };
+    },
+  },
 ];
 
 // ─────────────── Autopilot ───────────────
@@ -362,5 +395,20 @@ async function autopilotRun(db: SupabaseClient, ws: string, siteId: string, bran
     : !picks.length
       ? `Zippie's Autopilot found nothing left to write on ${brand ?? "the"} Calendar today. Build or refresh the plan in Calendar.`
       : [`Zippie's Autopilot started ${started.length === 1 ? "1 piece" : `${started.length} pieces`} for ${brand ?? "your brand"} today, writing ${what}:`, ...started.map((k) => `- **${k}**`), ...(failed.length ? ["", "These didn't start:", ...failed.map((f) => `- ${f}`)] : []), "", "Zippie adds a line here as each one is done. Ask how they're going any time."].join("\n");
-  if (thread) await db.from("ask_messages").insert({ thread_id: thread, workspace_id: ws, role: "assistant", content: text, text });
+  const best = brandId && !blocked ? await bestLine(db, brandId).catch(() => null) : null;
+  const full = best ? `${text}\n\n${best}` : text;
+  if (thread) await db.from("ask_messages").insert({ thread_id: thread, workspace_id: ws, role: "assistant", content: full, text: full });
+}
+
+/** "Your best post lately: …", from Analytics' before-and-after results, when Google is connected and one has clicks. */
+async function bestLine(db: SupabaseClient, brandId: string): Promise<string | null> {
+  const { googleFor, articleResults, bestResult } = await import("./seoAnalyticsServer");
+  const g = await googleFor(db, brandId);
+  if (!g?.conn) return null;
+  const best = bestResult(await articleResults(db, brandId, g.state, { limit: 20 }));
+  const r = best?.result;
+  if (!best || !r) return null;
+  const signups = r.conversions.after ? ` and ${r.conversions.after} sign-up${r.conversions.after === 1 ? "" : "s"}` : "";
+  const was = r.clicks.change !== null ? ` (${r.clicks.change >= 0 ? "+" : ""}${Math.round(r.clicks.change * 100)}% on the ${best.days} days before)` : "";
+  return `Your best post lately: **${best.keyword}** brought ${r.clicks.after} clicks${signups} in the ${best.days} days since it ${best.event === "refreshed" ? "was refreshed" : "went live"}${was}.`;
 }

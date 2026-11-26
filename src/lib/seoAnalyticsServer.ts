@@ -4,16 +4,25 @@ import { AI_SOURCES } from "./aiSources";
 import {
   addDays,
   chanceOf,
+  citedByAi,
+  compareResult,
   findOpportunities,
   ga4DbRows,
   gscDbRows,
   gscWindows,
   GSC_LAG,
+  NO_TOTALS,
+  ownCitations,
+  pagePath,
+  resultWindows,
   type Chance,
+  type CitedPage,
   type Opportunity,
   type PageAgg,
   type QueryAgg,
   type QueryPageAgg,
+  type Result,
+  type Totals,
 } from "./seoAnalytics";
 import { accessToken, GSC_SCOPE, gscQuery, listGscSites, runReports, type ReportRow } from "./google";
 import { enqueue, enqueueMany, finish, retry, type Job } from "./jobs";
@@ -213,7 +222,74 @@ async function queryPagesIn(db: SupabaseClient, brandId: string, from: string, t
 }
 
 /** The last day with Search Console data, or three days ago. */
-const lastDay = (state: { gsc_to: string | null } | null) => state?.gsc_to ?? addDays(today(), -GSC_LAG);
+export const lastDay = (state: { gsc_to: string | null } | null) => state?.gsc_to ?? addDays(today(), -GSC_LAG);
+
+/** One page's searches over a date range, most impressions first. */
+export async function pageQueriesIn(db: SupabaseClient, brandId: string, page: string, from: string, to: string, limit = 200): Promise<QueryAgg[]> {
+  return (await rpc<Rpc>(db, "analytics_page_queries", { p_brand: brandId, p_page: page, p_from: from, p_to: to, p_limit: limit })).map((r) => ({ query: String(r.query), clicks: N(r.clicks), impressions: N(r.impressions), position: N(r.avg_position) }));
+}
+
+/** Totals for a few pages over one date range. Pages with no data come back empty. */
+async function pageTotals(db: SupabaseClient, brandId: string, pages: string[], from: string, to: string): Promise<Map<string, Totals>> {
+  const rows = await rpc<Rpc>(db, "analytics_page_totals", { p_brand: brandId, p_pages: pages, p_from: from, p_to: to });
+  return new Map(rows.map((r) => [String(r.page), { clicks: N(r.clicks), impressions: N(r.impressions), position: r.avg_position === null ? null : N(r.avg_position), sessions: N(r.sessions), conversions: N(r.conversions), ai_sessions: N(r.ai_sessions) }]));
+}
+
+export type ArticleResult = { item_id: string; keyword: string; url: string; page: string; event: "published" | "refreshed"; at: string; days: number; full: boolean; result: Result | null };
+
+/**
+ * Before and after for the brand's published Calendar pieces with a live address, newest change first: the 28 days
+ * before it went live (or was refreshed) against the days since, up to 28. `itemId` picks one piece.
+ */
+export async function articleResults(db: SupabaseClient, brandId: string, state: SyncState | null, opts: { itemId?: string; limit?: number } = {}): Promise<ArticleResult[]> {
+  const { data: sites } = await db.from("sites").select("id").eq("brand_id", brandId);
+  const ids = (sites ?? []).map((s) => s.id as string);
+  if (!ids.length) return [];
+  let q = db.from("calendar_items").select("id, keyword, url, current_url, published_at, refreshed_at").in("site_id", ids).eq("status", "published").not("published_at", "is", null);
+  if (opts.itemId) q = q.eq("id", opts.itemId);
+  const { data, error } = await q.order("published_at", { ascending: false }).limit(200);
+  if (error) return []; // before supabase/105_analytics_results.sql runs
+  type Row = { id: string; keyword: string; url: string | null; current_url: string | null; published_at: string; refreshed_at: string | null };
+  const last = lastDay(state);
+  const rows = ((data ?? []) as Row[])
+    .filter((r) => r.url || r.current_url)
+    .map((r) => ({ ...r, at: r.refreshed_at ?? r.published_at }))
+    .sort((a, b) => b.at.localeCompare(a.at))
+    .slice(0, opts.limit ?? 20);
+  return Promise.all(
+    rows.map(async (r): Promise<ArticleResult> => {
+      const url = (r.url ?? r.current_url)!;
+      const page = pagePath(url);
+      const w = resultWindows(r.at, last);
+      const base = { item_id: r.id, keyword: r.keyword, url, page, event: (r.refreshed_at ? "refreshed" : "published") as ArticleResult["event"], at: r.at, days: w?.afterDays ?? 0, full: w?.full ?? false };
+      if (!w) return { ...base, result: null };
+      const [before, after] = await Promise.all([pageTotals(db, brandId, [page], ...w.before), pageTotals(db, brandId, [page], ...w.after)]);
+      return { ...base, result: compareResult(before.get(page) ?? NO_TOTALS, after.get(page) ?? NO_TOTALS, 28, w.afterDays) };
+    }),
+  );
+}
+
+/** The piece that did best since it went live: the most clicks, then sign-ups. Null when none has clicks yet. */
+export function bestResult(list: ArticleResult[]): ArticleResult | null {
+  const live = list.filter((r) => (r.result?.clicks.after ?? 0) > 0);
+  return live.sort((a, b) => (b.result!.clicks.after ?? 0) - (a.result!.clicks.after ?? 0) || (b.result!.conversions.after ?? 0) - (a.result!.conversions.after ?? 0))[0] ?? null;
+}
+
+/**
+ * The brand's own pages next to AI: GA4 visits from AI over the last `days` of data, joined with the pages the
+ * tracked AI answers cite over the same days (runs.chats).
+ */
+export async function citedPages(db: SupabaseClient, brand: BrandRow, days: number, state: SyncState | null): Promise<CitedPage[]> {
+  const to = lastDay(state);
+  const from = addDays(to, -(days - 1));
+  const [runs, pages] = await Promise.all([
+    db.from("runs").select("chats").eq("brand_id", brand.id).gte("at", `${from}T00:00:00Z`).order("at", { ascending: false }).limit(400),
+    pagesIn(db, brand.id, from, to, 1000),
+  ]);
+  type Chat = { engine: string; prompt: string; sources?: { url: string }[] | null };
+  const chats = ((runs.data ?? []) as { chats: Chat[] | null }[]).flatMap((r) => r.chats ?? []);
+  return citedByAi(pages, ownCitations(chats, brand.domain));
+}
 
 /** Work out and save the day's Opportunities from the last 28 days against the 28 before. */
 export async function computeOpportunities(db: SupabaseClient, brand: BrandRow, state: { gsc_to: string | null }) {
