@@ -13,10 +13,11 @@ import { ENGINE_LOGOS } from "./Engines";
 import type { View } from "@/lib/view";
 import { BrandLogo } from "./BrandLogo";
 import { propertyName } from "./traffic/searchShared";
-import { PropertyPicker } from "./analytics/PropertyPicker";
+import { EmptyScreen } from "./Drawing";
+import { Dropdown } from "./Pickers";
 import { AI_LOGO, ga4Properties, TrafficPage } from "./TrafficPage";
 import { TrendChart } from "./TrendChart";
-import { Delta, Seg, SidePanel, StatStrip, Thinking, YOU_COLOR } from "./ui";
+import { Delta, favicon, Seg, SidePanel, StatStrip, Thinking, YOU_COLOR } from "./ui";
 import { post } from "./research/shared";
 import { useZippieMaybe } from "./zippie/ZippieContext";
 
@@ -109,14 +110,25 @@ export function AnalyticsPage({ view, auth, sb, canEdit }: { view: View; auth: R
     <div className="flex flex-col gap-5">
       <div>{tabs}</div>
       {back?.get("ga4") === "error" ? <p className="aw-error">{back.get("reason") ?? "Could not connect Google."}</p> : null}
-      {!picked || setup ? <Setup status={status} canEdit={canEdit} call={call} domain={brand.domain} onDone={() => load().then(() => setSetup(false))} onClose={picked ? () => setSetup(false) : undefined} /> : <Dashboard status={status} call={call} sb={sb} auth={auth} view={view} canEdit={canEdit} onSetup={() => setSetup(true)} onReload={load} />}
+      {!picked || setup ? <Setup status={status} canEdit={canEdit} call={call} brandName={brand.name} onDone={() => load().then(() => setSetup(false))} onClose={picked ? () => setSetup(false) : undefined} /> : <Dashboard status={status} call={call} sb={sb} auth={auth} view={view} canEdit={canEdit} onSetup={() => setSetup(true)} onReload={load} />}
     </div>
   );
 }
 
 // ─────────────── Connect ───────────────
 
-function Setup({ status, canEdit, call, domain, onDone, onClose }: { status: Status; canEdit: boolean; call: Call; domain: string; onDone: () => void; onClose?: () => void }) {
+const GOOGLE_LOGO = "https://www.google.com/s2/favicons?domain=google.com&sz=64";
+/** A Search Console property's domain, for its favicon: "sc-domain:a.com" and "https://a.com/" both give a.com. */
+const siteDomain = (url: string) => propertyName(url).split("/")[0];
+type Pick = { id: string; label: string; icon?: string };
+type Loaded = { list: Pick[] | null; pick: string; error: string };
+const SKIP = { id: "", label: "Skip for now" };
+
+/**
+ * Sign in to Google, then pick the Search Console site and the GA4 property. Both screens are the app's empty
+ * screen (the chart picture, a title and one line); signed in, the picks sit under it with one Start syncing button.
+ */
+function Setup({ status, canEdit, call, brandName, onDone, onClose }: { status: Status; canEdit: boolean; call: Call; brandName: string; onDone: () => void; onClose?: () => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const signedIn = status.connected && status.gsc;
@@ -133,157 +145,159 @@ function Setup({ status, canEdit, call, domain, onDone, onClose }: { status: Sta
     }
   }
 
-  const steps: { title: string; text: string; state: "done" | "now" | "next"; body?: React.ReactNode }[] = [
-    {
-      title: "Sign in with Google",
-      text: signedIn ? `Signed in as ${status.email ?? "your Google account"}. Read-only: we never change your Google data.` : status.connected ? "Your Google sign-in only covers Analytics. Sign in again to add Search Console." : "One sign-in, read-only. We never change your Google data.",
-      state: signedIn ? "done" : "now",
-    },
-    {
-      title: "Pick your site",
-      text: status.gscProperty ? `Search Console: ${propertyName(status.gscProperty)}` : `The Search Console property for ${domain}`,
-      state: status.gscProperty ? "done" : signedIn ? "now" : "next",
-      body:
-        signedIn && canEdit ? (
-          <PropertyPicker
-            label="Search Console property"
-            initial={status.gscProperty}
-            action={status.gscProperty ? "Change site" : "Use this site"}
-            empty="No verified Search Console properties on this Google account."
-            load={async () => {
-              const d = (await call("/api/seo-analytics", { action: "sites" })) as { sites: { url: string }[]; suggested: string | null };
-              return [...d.sites].sort((a, b) => Number(b.url === d.suggested) - Number(a.url === d.suggested)).map((s) => ({ id: s.url, label: propertyName(s.url) }));
-            }}
-            choose={async (id) => {
-              await call("/api/seo-analytics", { action: "site", property: id });
-              onDone();
-            }}
-          />
-        ) : null,
-    },
-    {
-      title: "Pick your GA4 property",
-      text: status.ga4Property ? `Google Analytics: ${status.ga4Name ?? status.ga4Property}` : "So clicks and sign-ups line up by page",
-      state: status.ga4Property ? "done" : signedIn ? "now" : "next",
-      body:
-        status.connected && canEdit ? (
-          <PropertyPicker
-            label="GA4 property"
-            initial={status.ga4Property}
-            action={status.ga4Property ? "Change property" : "Use this property"}
-            empty="No GA4 properties on this Google account."
-            load={() => ga4Properties(call)}
-            choose={async (id) => {
-              await call("/api/ga4", { action: "select", property: id });
-              onDone();
-            }}
-          />
-        ) : null,
-    },
-  ];
+  if (!signedIn)
+    return (
+      <EmptyScreen
+        drawing="chart"
+        title="Connect your Google data"
+        action={
+          <div className="flex flex-col items-center gap-5">
+            <div className="flex flex-wrap justify-center gap-2">
+              <span className="aw-chip">
+                <BrandLogo src={GSC_LOGO} name="Search Console" size={16} />
+                Search Console
+              </span>
+              <span className="aw-chip">
+                <BrandLogo src={GA4_LOGO} name="Google Analytics" size={16} />
+                Google Analytics
+              </span>
+            </div>
+            {!canEdit ? (
+              <p className="aw-small">Ask an editor to connect Google.</p>
+            ) : !status.ready ? (
+              <p className="aw-small">Google sign-in isn&apos;t set up on this server yet.</p>
+            ) : (
+              <button type="button" className="aw-btn aw-btn--primary" onClick={signIn} disabled={busy}>
+                <BrandLogo src={GOOGLE_LOGO} name="Google" size={16} />
+                {busy ? "Opening Google..." : status.connected ? "Sign in again to add Search Console" : "Continue with Google"}
+              </button>
+            )}
+            {error ? <p className="aw-error">{error}</p> : null}
+          </div>
+        }
+      >
+        See Search Console and Google Analytics in one place, with fixes ranked by the traffic they bring.
+      </EmptyScreen>
+    );
 
   return (
-    <div className="aw-an-connect">
-      <div className="flex flex-col gap-5">
-        <span className="aw-chip aw-chip--brand self-start">Analytics · New</span>
-        <h1 className="aw-an-connect__title">
-          Your Google data,
-          <br />
-          <span>working on your SEO</span>
-        </h1>
-        <p className="aw-lede">Connect Search Console and Google Analytics once. Arrowsterr reads both every day, finds the pages and keywords worth your time, and turns them into title fixes, refreshes and Calendar items.</p>
-        {error ? <p className="aw-error">{error}</p> : null}
-        <ol className="aw-an-steps">
-          {steps.map((s, i) => (
-            <li key={s.title} className={`aw-an-step is-${s.state}`}>
-              <span className="aw-an-step__num" aria-hidden="true">
-                {s.state === "done" ? <CheckMark /> : i + 1}
-              </span>
-              <div className="flex min-w-0 flex-1 flex-col gap-3">
-                <div>
-                  <span className="aw-an-step__title">{s.title}</span>
-                  <span className="aw-an-step__text">{s.text}</span>
-                </div>
-                {s.state !== "next" && s.body && (s.state === "now" || onClose) ? s.body : null}
-              </div>
-            </li>
-          ))}
-        </ol>
-        {!canEdit ? (
-          <p className="aw-small">Ask an editor to connect Google.</p>
-        ) : !status.ready ? (
-          <p className="aw-small">Google sign-in isn&apos;t set up on this server yet.</p>
-        ) : !signedIn ? (
-          <button type="button" className="aw-btn aw-btn--primary aw-btn--lg aw-btn--block" onClick={signIn} disabled={busy}>
-            <BrandLogo src="https://www.google.com/s2/favicons?domain=google.com&sz=64" name="Google" size={18} />
-            {busy ? "Opening Google..." : status.connected ? "Sign in again to add Search Console" : "Continue with Google"}
-          </button>
-        ) : onClose ? (
-          <button type="button" className="aw-btn aw-btn--secondary self-start" onClick={onClose}>
-            Back to the dashboard
-          </button>
-        ) : null}
-        <ul className="aw-an-trust">
-          <li>Read-only</li>
-          <li>16 months of Search Console history on day one</li>
-          <li>Free: uses no tasks</li>
-        </ul>
-      </div>
-      <Preview />
-    </div>
+    <EmptyScreen
+      drawing="chart"
+      title="Choose what to connect"
+      action={
+        <div className="flex w-full max-w-[560px] flex-col gap-3 text-left">
+          <div className="aw-an-account">
+            <BrandLogo src={GOOGLE_LOGO} name="Google" size={20} />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[14px] font-medium text-ink">{status.email ?? "Your Google account"}</span>
+              <span className="block text-[12.5px] text-muted">Google account</span>
+            </span>
+            {canEdit ? (
+              <button type="button" className="aw-text-link text-[13px]" onClick={signIn} disabled={busy}>
+                {busy ? "Opening..." : "Switch"}
+              </button>
+            ) : null}
+          </div>
+          {canEdit ? <Picks status={status} call={call} onDone={onDone} /> : <p className="aw-small text-center">Ask an editor to pick the site and GA4 property.</p>}
+          {error ? <p className="aw-error">{error}</p> : null}
+          {onClose ? (
+            <button type="button" className="aw-btn aw-btn--secondary self-center" onClick={onClose}>
+              Back to the dashboard
+            </button>
+          ) : null}
+        </div>
+      }
+    >
+      Pick the site and GA4 property for {brandName}.
+    </EmptyScreen>
   );
 }
 
-const CheckMark = () => (
-  <svg className="aw-icon" viewBox="0 0 24 24" aria-hidden="true">
-    <path d="m5 12 5 5 9-10" />
-  </svg>
-);
+/** The two picks, Search Console and GA4, and the one button that saves both. Either can be skipped. */
+function Picks({ status, call, onDone }: { status: Status; call: Call; onDone: () => void }) {
+  const [gsc, setGsc] = useState<Loaded>({ list: null, pick: "", error: "" });
+  const [ga4, setGa4] = useState<Loaded>({ list: null, pick: "", error: "" });
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
 
-/** What the dashboard looks like, with sample numbers, beside the sign-in. */
-function Preview() {
-  const opps: [OppKind, string, string][] = [
-    ["page2", "review management software", "+640 clicks/mo"],
-    ["low_ctr", "restaurant guest feedback", "+1,200 clicks/mo"],
-    ["losing", "/blog/restaurant-survey-questions", "−38% in 28 days"],
-  ];
-  return (
-    <div className="aw-an-preview" aria-label="Preview with sample data">
-      <span className="aw-an-preview__note">Preview with sample data</span>
-      <div className="flex items-center gap-2">
-        <span className="aw-chip">
-          <BrandLogo src={GSC_LOGO} name="Search Console" size={16} />
-          Search Console
+  useEffect(() => {
+    let live = true;
+    const fail = (set: typeof setGsc) => (e: unknown) => live && set({ list: [], pick: "", error: e instanceof Error ? e.message : String(e) });
+    call("/api/seo-analytics", { action: "sites" })
+      .then((d) => {
+        if (!live) return;
+        const { sites, suggested } = d as { sites: { url: string }[]; suggested: string | null };
+        const list = [...sites].sort((a, b) => Number(b.url === suggested) - Number(a.url === suggested)).map((s) => ({ id: s.url, label: propertyName(s.url), icon: favicon(siteDomain(s.url)) }));
+        setGsc({ list, pick: list.find((o) => o.id === status.gscProperty)?.id ?? list[0]?.id ?? "", error: "" });
+      })
+      .catch(fail(setGsc));
+    ga4Properties(call)
+      .then((l) => {
+        if (!live) return;
+        const list = l.map((o) => ({ ...o, icon: GA4_LOGO }));
+        setGa4({ list, pick: list.find((o) => o.id === status.ga4Property)?.id ?? list[0]?.id ?? "", error: "" });
+      })
+      .catch(fail(setGa4));
+    return () => {
+      live = false;
+    };
+    // Load once: the lists come from Google.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function start() {
+    setBusy(true);
+    setError("");
+    try {
+      if (gsc.pick && gsc.pick !== status.gscProperty) await call("/api/seo-analytics", { action: "site", property: gsc.pick });
+      if (ga4.pick && ga4.pick !== status.ga4Property) await call("/api/ga4", { action: "select", property: ga4.pick });
+      if (!gsc.pick && !ga4.pick) throw new Error("Pick a Search Console site or a GA4 property.");
+      if (gsc.pick === status.gscProperty && ga4.pick === status.ga4Property) await call("/api/seo-analytics", { action: "sync" });
+      onDone();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+      setBusy(false);
+    }
+  }
+
+  const card = (name: string, logo: string, hint: string, l: Loaded, set: typeof setGsc, none: string, open: string) => (
+    <div className="aw-an-pick">
+      <span className="flex items-center gap-2 text-[14px] font-medium text-ink">
+        <BrandLogo src={logo} name={name} size={20} />
+        {name}
+      </span>
+      {!l.list ? (
+        <span className="aw-small">Loading from Google...</span>
+      ) : l.list.length ? (
+        <Dropdown label={name} value={l.pick} onChange={(v) => set({ ...l, pick: v })} className="aw-dropdown--field h-10! w-full" options={[...l.list, SKIP]} />
+      ) : (
+        <span className="aw-small">
+          {l.error ? "Couldn't load this from Google." : none}{" "}
+          <a className="aw-text-link" href={open} target="_blank" rel="noopener noreferrer">
+            Open
+          </a>
         </span>
-        <span className="text-faint">+</span>
-        <span className="aw-chip">
-          <BrandLogo src={GA4_LOGO} name="Google Analytics" size={16} />
-          Analytics
-        </span>
-      </div>
-      <div className="grid grid-cols-3 gap-2">
-        {[
-          ["Clicks", "8,412", "+18%"],
-          ["Sessions", "14,920", "+12%"],
-          ["From AI", "607", "+41%"],
-        ].map(([l, v, d]) => (
-          <div key={l} className="aw-an-preview__kpi">
-            <span>{l}</span>
-            <b className="aw-num">{v}</b>
-            <i>{d}</i>
-          </div>
-        ))}
-      </div>
-      <div className="flex flex-col gap-2">
-        {opps.map(([k, t, g]) => (
-          <div key={t} className="aw-an-preview__opp">
-            <span className={`aw-status ${OPP_CLASS[k]}`}>{OPP_LABEL[k]}</span>
-            <span className="min-w-0 flex-1 truncate font-medium text-ink">{t}</span>
-            <span className={`aw-num whitespace-nowrap font-medium ${k === "losing" ? "text-neg" : "text-pos"}`}>{g}</span>
-          </div>
-        ))}
-      </div>
+      )}
+      <span className="text-[12.5px] text-muted">{hint}</span>
     </div>
+  );
+
+  const loaded = gsc.list !== null && ga4.list !== null;
+  return (
+    <>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {card("Search Console", GSC_LOGO, "Clicks, impressions and positions", gsc, setGsc, "No Search Console sites on this account.", "https://search.google.com/search-console")}
+        {card("Google Analytics", GA4_LOGO, "Sessions, sign-ups and AI visits", ga4, setGa4, "No GA4 properties on this account.", "https://analytics.google.com/")}
+      </div>
+      {[gsc.error, ga4.error, error].filter(Boolean).map((m) => (
+        <p key={m} className="aw-error">
+          {m}
+        </p>
+      ))}
+      <button type="button" className="aw-btn aw-btn--primary aw-btn--block" onClick={start} disabled={busy || !loaded || (!gsc.pick && !ga4.pick)}>
+        {busy ? "Starting..." : "Start syncing"}
+      </button>
+    </>
   );
 }
 

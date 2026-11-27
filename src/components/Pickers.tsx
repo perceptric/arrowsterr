@@ -5,13 +5,18 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { BrandLogo } from "./BrandLogo";
 
 export type Option = {
   id: string;
   label: string;
   /** Other words that mean this option when pasted. */ aliases?: string[];
   /** A status class for the chip. */ tone?: string;
+  /** A small logo shown before the label, like a site's favicon. */ icon?: string;
 };
+
+/** The small logo before an option's label, like a site's favicon. */
+const OptIcon = ({ src }: { src: string }) => <BrandLogo src={src} name="" size={16} />;
 
 const portalRoot = () => (typeof document === "undefined" ? null : ((document.querySelector(".aw") as HTMLElement | null) ?? document.body));
 const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -145,7 +150,14 @@ export function SelectPop({ anchor, options, value, onPick, onClose, label }: { 
         {list.map((o, k) => (
           <li key={o.id || "none"} role="option" aria-selected={o.id === value}>
             <button type="button" className={`aw-pop__opt ${k === i ? "is-hot" : ""}`} onMouseEnter={() => setI(k)} onClick={() => onPick(o.id)}>
-              {o.tone ? <span className={`aw-status ${o.tone}`}>{o.label}</span> : <span>{o.label}</span>}
+              {o.tone ? (
+                <span className={`aw-status ${o.tone}`}>{o.label}</span>
+              ) : (
+                <span className="flex min-w-0 items-center gap-2">
+                  {o.icon ? <OptIcon src={o.icon} /> : null}
+                  <span className="truncate">{o.label}</span>
+                </span>
+              )}
               {o.id === value ? <span className="aw-pop__check">✓</span> : null}
             </button>
           </li>
@@ -295,7 +307,7 @@ export function Dropdown<V extends string | number>({
   placeholder = "Choose",
 }: {
   value: V;
-  options: { id: V; label: string; tone?: string }[];
+  options: { id: V; label: string; tone?: string; icon?: string }[];
   onChange: (v: V) => void;
   label: string;
   className?: string;
@@ -314,7 +326,7 @@ export function Dropdown<V extends string | number>({
         <SelectPop
           anchor={anchor}
           label={label}
-          options={options.map((o) => ({ id: String(o.id), label: o.label, tone: o.tone }))}
+          options={options.map((o) => ({ id: String(o.id), label: o.label, tone: o.tone, icon: o.icon }))}
           value={String(value)}
           onPick={(id) => {
             const o = options.find((x) => String(x.id) === id);
@@ -325,7 +337,8 @@ export function Dropdown<V extends string | number>({
         />
       )}
     >
-      <span className={`truncate ${current ? "" : "text-muted"}`}>{current?.label ?? placeholder}</span>
+      {current?.icon ? <OptIcon src={current.icon} /> : null}
+      <span className={`truncate ${current ? "" : "text-muted"} ${current?.icon ? "flex-1" : ""}`}>{current?.label ?? placeholder}</span>
       <Chevron />
     </PickerButton>
   );
