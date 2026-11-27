@@ -26,7 +26,7 @@ import {
 } from "./seoAnalytics";
 import { accessToken, GSC_SCOPE, gscQuery, listGscSites, runReports, type ReportRow } from "./google";
 import { enqueue, enqueueMany, finish, retry, type Job } from "./jobs";
-import { gscRows, gscSites, pickGscProperty, type GscSite, type SearchReport } from "./searchEngines";
+import { gscRows, gscSites, pickGscProperty, type GscSite } from "./searchEngines";
 
 // Analytics on the server: Search Console and Google Analytics 4, synced once a day per brand into the analytics_*
 // tables (supabase/104_analytics.sql). The first sync pulls the last 30 days, then walks back a month at a time to
@@ -393,26 +393,4 @@ export async function ownRanks(db: SupabaseClient, brandId: string, queries: str
     out[q] = { position: Math.round((x.weighted / x.impressions) * 10) / 10, impressions: x.impressions, clicks: x.clicks, ctr: x.clicks / x.impressions, page };
   }
   return out;
-}
-
-/** The Search Console card's report from the synced data, for brands signed in to Google directly (no Composio). */
-export async function syncedGscReport(db: SupabaseClient, brand: BrandRow, state: SyncState | null, days: number): Promise<SearchReport | null> {
-  if (!brand.gsc_property || !state?.gsc_to) return null;
-  const o = await analyticsOverview(db, brand.id, days, state);
-  const g = await db.from("analytics_gsc_days").select("day, clicks, impressions").eq("brand_id", brand.id).gte("day", o.from).lte("day", o.to).order("day");
-  const row = (key: string, r: { clicks: number; impressions: number; position: number | null }) => ({ key, clicks: r.clicks, impressions: r.impressions, ctr: r.impressions ? (r.clicks * 100) / r.impressions : 0, position: r.position });
-  const totals = (i: 0 | 1) => ({ clicks: o.kpis.clicks[i], impressions: o.kpis.impressions[i], ctr: o.kpis.impressions[i] ? (o.kpis.clicks[i] * 100) / o.kpis.impressions[i] : 0, position: o.kpis.position[i] });
-  return {
-    allowed: true,
-    connected: true,
-    property: brand.gsc_property,
-    from: o.from,
-    to: o.to,
-    current: totals(0),
-    previous: totals(1),
-    series: ((g.data ?? []) as { day: string; clicks: number; impressions: number }[]).map((d) => ({ day: d.day, clicks: d.clicks, impressions: d.impressions })),
-    queries: [...o.queries].sort((a, b) => b.clicks - a.clicks).slice(0, 10).map((q) => row(q.query, q)),
-    pages: o.pages.filter((p) => p.impressions).slice(0, 10).map((p) => row(p.page, p)),
-    at: state.synced_at ?? new Date().toISOString(),
-  };
 }

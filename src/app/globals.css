@@ -955,12 +955,6 @@ body { background: var(--v10-canvas); }
   .aw .aw-faq__a { padding-right: 0; }
 }
 
-/* ── aw-field-label ── */
-.aw .aw-field-label {
-  display: block; margin-bottom: 8px; font-family: var(--aw-font); font-size: 13px; font-weight: var(--aw-w-medium); color: var(--aw-muted); text-transform: none; letter-spacing: 0;
-}
-.aw .aw-field-label span { color: var(--aw-brand); margin-left: 3px; }
-
 /* ── aw-frame ── */
 .aw .aw-frame__head {
   display: flex; align-items: center; justify-content: space-between; border-color: var(--v10-border); border-radius: var(--aw-r-lg) var(--aw-r-lg) 0 0; background: transparent;
@@ -1276,11 +1270,6 @@ body { background: var(--v10-canvas); }
 
 /* ── aw-mono ── */
 .aw .aw-mono { font-feature-settings: 'tnum' 1; letter-spacing: 0; font-variant-numeric: tabular-nums; }
-
-/* ── aw-move ── */
-.aw .aw-move { display: inline-flex; align-items: center; gap: 2px; font-family: var(--aw-font); font-size: 12px; font-variant-numeric: tabular-nums; }
-.aw .aw-move.is-up { color: var(--v10-success); }
-.aw .aw-move.is-down { color: var(--v10-danger); }
 
 /* ── aw-nav ── */
 .aw .aw-nav__icon { flex: none; width: var(--icon-md); height: var(--icon-md); stroke-width: 2; color: currentColor; }
@@ -1780,7 +1769,6 @@ body { background: var(--v10-canvas); }
 .aw .aw-sheet .aw-sort__arrow { margin-left: auto; }
 
 /* ── aw-spark ── */
-.aw .aw-spark.aw-spark--cell { display: block; width: 110px; height: 22px; }
 
 /* ── aw-spin ── */
 .aw .aw-spin {

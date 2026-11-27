@@ -121,7 +121,7 @@ export async function hasApp(ws: AppOwner, slug: AppSlug): Promise<boolean> {
 }
 
 /**
- * Run one app tool for an Arrowsterr feature (not Zippie), like Search Console numbers on the Traffic page.
+ * Run one app tool for an Arrowsterr feature (not Zippie), like reading Bing sites for indexing.
  * Throws when the app isn't connected or the tool fails. Composio bills each call.
  */
 export async function runAppTool<T = unknown>(ws: AppOwner, slug: AppSlug, tool: string, args: Record<string, unknown>): Promise<T> {

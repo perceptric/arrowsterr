@@ -101,11 +101,11 @@ export function VisitorsPage({ view, auth }: { view: View; auth: RunAuth }) {
               type="button"
               className="aw-btn aw-btn--primary"
               onClick={() => {
-                window.history.pushState(null, "", "/traffic");
+                window.history.pushState(null, "", "/analytics");
                 window.dispatchEvent(new PopStateEvent("popstate"));
               }}
             >
-              Open Traffic
+              Open Analytics
             </button>
           }
         >

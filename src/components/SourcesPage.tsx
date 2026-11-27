@@ -136,7 +136,7 @@ export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseCli
   const [open, setOpen] = useState<Set<string>>(new Set());
   const [deep, setDeep] = useState<UrlRow | null>(null);
   const [full, setFull] = useState(false);
-  // Visits from AI to each of your pages, from Google Analytics or the tracking script. Shared with the Traffic page.
+  // Visits from AI to each of your pages, from Google Analytics or the tracking script.
   const [traffic, setTraffic] = useStash<Record<number, AiPages>>(`traffic:${brand.id}:data`, {});
   const aiPages = traffic[days] ?? null;
   const [fetched, setFetched] = useStash<Record<string, string>>("link-titles", {});

@@ -12,10 +12,9 @@ import { RESULT_COLS, ResultDelta, resultSpan } from "./analytics/ArticleResults
 import { ENGINE_LOGOS } from "./Engines";
 import type { View } from "@/lib/view";
 import { BrandLogo } from "./BrandLogo";
-import { propertyName } from "./traffic/searchShared";
 import { EmptyScreen } from "./Drawing";
 import { Dropdown } from "./Pickers";
-import { AI_LOGO, ga4Properties, TrafficPage } from "./TrafficPage";
+import { AI_LOGO, ga4Properties, propertyName } from "./analytics/google";
 import { TrendChart } from "./TrendChart";
 import { Delta, favicon, Seg, SidePanel, StatStrip, Thinking, YOU_COLOR } from "./ui";
 import { post } from "./research/shared";
@@ -52,7 +51,6 @@ const CITED_CLASS: Record<CitedBucket, string> = { cited_visits: "aw-status--ran
 
 export function AnalyticsPage({ view, auth, sb, canEdit }: { view: View; auth: RunAuth; sb: SupabaseClient; canEdit: boolean }) {
   const { brand } = view;
-  const [tab, setTab] = useState<"overview" | "site">("overview");
   const [status, setStatus] = useState<Status | null>(null);
   const [error, setError] = useState("");
   const [setup, setSetup] = useState(false);
@@ -85,30 +83,10 @@ export function AnalyticsPage({ view, auth, sb, canEdit }: { view: View; auth: R
   }, [load]);
 
   const picked = Boolean(status?.connected && (status.gscProperty || status.ga4Property));
-  const tabs = (
-    <Seg
-      label="Analytics view"
-      value={tab}
-      onChange={setTab}
-      options={[
-        { id: "overview", label: "Search & conversions" },
-        { id: "site", label: "Site traffic" },
-      ]}
-    />
-  );
-
-  if (tab === "site")
-    return (
-      <div className="flex flex-col gap-5">
-        <div>{tabs}</div>
-        <TrafficPage view={view} auth={auth} canEdit={canEdit} />
-      </div>
-    );
   if (!status) return error ? <p className="aw-error">{error}</p> : <Thinking text="Checking your Google connection..." />;
 
   return (
     <div className="flex flex-col gap-5">
-      <div>{tabs}</div>
       {back?.get("ga4") === "error" ? <p className="aw-error">{back.get("reason") ?? "Could not connect Google."}</p> : null}
       {!picked || setup ? <Setup status={status} canEdit={canEdit} call={call} brandName={brand.name} onDone={() => load().then(() => setSetup(false))} onClose={picked ? () => setSetup(false) : undefined} /> : <Dashboard status={status} call={call} sb={sb} auth={auth} view={view} canEdit={canEdit} onSetup={() => setSetup(true)} onReload={load} />}
     </div>

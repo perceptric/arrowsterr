@@ -13,6 +13,6 @@ export async function POST(request: Request) {
   if (!brand || !user?.user) return Response.json({ error: "Brand not found." }, { status: 404 });
   const host = request.headers.get("x-forwarded-host");
   const base = host ? `https://${host}` : new URL(request.url).origin;
-  const back = typeof body.back === "string" && body.back.startsWith("/") && !body.back.startsWith("//") ? body.back : "/traffic";
+  const back = typeof body.back === "string" && body.back.startsWith("/") && !body.back.startsWith("//") ? body.back : "/analytics";
   return Response.json({ url: authUrl(base, signState({ brandId: brand.id, workspaceId: body.workspaceId, userId: user.user.id, back, kind: "ga4" })) });
 }
