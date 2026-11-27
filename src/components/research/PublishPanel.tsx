@@ -363,7 +363,7 @@ export function PublishPanel({ sb, auth, docId, brandId, title, html, onClose }:
                   <Dropdown label="Publish time" value={time} onChange={setTime} className="aw-dropdown--field w-28" options={TIMES.map((t) => ({ id: t, label: t }))} />
                 </div>
               ) : null}
-              {late ? <p className="aw-error">That time has passed. It publishes now.</p> : null}
+              {late ? <ErrorNote error="That time has passed. It publishes now." /> : null}
               <button type="button" className="aw-btn aw-btn--primary self-start" disabled={busy || !to || !f.title.trim() || (mode === "schedule" && !day)} onClick={publish}>
                 {busy ? "Publishing..." : action}
               </button>
