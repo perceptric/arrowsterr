@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Dropdown } from "../Pickers";
 
-export type PropertyOption = { id: string; label: string };
+export type PropertyOption = { id: string; label: string; sub?: string };
 
 /**
  * Pick one property from a Google account: a GA4 property or a Search Console site. Loads the list once,

@@ -13,6 +13,7 @@ export type Option = {
   /** Other words that mean this option when pasted. */ aliases?: string[];
   /** A status class for the chip. */ tone?: string;
   /** A small logo shown before the label, like a site's favicon. */ icon?: string;
+  /** A second, smaller line under the label, like a GA4 property's account. */ sub?: string;
 };
 
 /** The small logo before an option's label, like a site's favicon. */
@@ -122,7 +123,7 @@ export function SelectPop({ anchor, options, value, onPick, onClose, label }: { 
     }
   };
   return (
-    <Pop anchor={anchor} onClose={onClose} label={label} width={Math.max(200, anchor.width)}>
+    <Pop anchor={anchor} onClose={onClose} label={label} width={Math.min(440, Math.max(anchor.width, options.some((o) => o.sub || o.icon) ? 300 : 200))}>
       {options.length > 7 ? (
         <input
           autoFocus
@@ -153,12 +154,15 @@ export function SelectPop({ anchor, options, value, onPick, onClose, label }: { 
               {o.tone ? (
                 <span className={`aw-status ${o.tone}`}>{o.label}</span>
               ) : (
-                <span className="flex min-w-0 items-center gap-2">
+                <span className="flex min-w-0 items-center gap-2 py-1.5">
                   {o.icon ? <OptIcon src={o.icon} /> : null}
-                  <span className="truncate">{o.label}</span>
+                  <span className="flex min-w-0 flex-col">
+                    <span className="break-words">{o.label}</span>
+                    {o.sub ? <span className="break-words text-[12px] leading-4 text-muted">{o.sub}</span> : null}
+                  </span>
                 </span>
               )}
-              {o.id === value ? <span className="aw-pop__check">✓</span> : null}
+              {o.id === value ? <span className="aw-pop__check shrink-0">✓</span> : null}
             </button>
           </li>
         ))}
@@ -307,7 +311,7 @@ export function Dropdown<V extends string | number>({
   placeholder = "Choose",
 }: {
   value: V;
-  options: { id: V; label: string; tone?: string; icon?: string }[];
+  options: { id: V; label: string; tone?: string; icon?: string; sub?: string }[];
   onChange: (v: V) => void;
   label: string;
   className?: string;
@@ -320,13 +324,13 @@ export function Dropdown<V extends string | number>({
       label={label}
       className={className}
       disabled={disabled}
-      title={current?.label}
+      title={current ? [current.label, current.sub].filter(Boolean).join(" · ") : undefined}
       popup="listbox"
       pop={(anchor, close) => (
         <SelectPop
           anchor={anchor}
           label={label}
-          options={options.map((o) => ({ id: String(o.id), label: o.label, tone: o.tone, icon: o.icon }))}
+          options={options.map((o) => ({ id: String(o.id), label: o.label, tone: o.tone, icon: o.icon, sub: o.sub }))}
           value={String(value)}
           onPick={(id) => {
             const o = options.find((x) => String(x.id) === id);
