@@ -129,7 +129,7 @@ export function Composer({
                 <div className="zp-slash__prev">
                   <b>{sel.title}</b>
                   <span className="flex flex-wrap gap-1">
-                    <span className={`zp-badge ${sel.speed === "deep" ? "zp-badge--violet" : ""}`}>{SPEED[sel.speed]}</span>
+                    <span className="zp-badge">{SPEED[sel.speed]}</span>
                     <span className="zp-badge">{sel.scope === "system" ? (GROUPS.find((g) => g.key === sel.group)?.label ?? "System") : sel.scope === "workspace" ? "Workspace" : "Personal"}</span>
                   </span>
                   <span className="wrap-break-word">{sel.description}</span>

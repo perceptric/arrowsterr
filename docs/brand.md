@@ -635,9 +635,14 @@ A `--soft` panel, `--aw-r-md`, 16px padding, title 13px 600, then `<dl>` rows: 3
 ### Empty state and first screen
 
 - Every empty screen, a tool's first screen included, is one picture, a title of six words or fewer, one 13.5px `--muted` line of 90 characters or fewer, and one main button (`EmptyScreen` in `src/components/Drawing.tsx`). Search tools keep their search bar above it and three Try chips under it. No lead paragraphs, feature cards, sample tables or bullet lists.
-- The picture is one object of solid isometric blocks on a pale plate, in the style of the arrowsterr.com city: 30° angle, three tones per block, no outlines, Signal Blue with gold as the small extra color (`src/lib/isoArt.ts`, 21 pictures). The blocks drop in, then the object floats; reduced motion keeps it still.
+- The picture is one object of solid isometric blocks on a pale plate, in the style of the arrowsterr.com city: 30° angle, three tones per block, no outlines, Signal Blue with gold as the small extra color (`src/lib/isoArt.ts`, 25 pictures). The blocks drop in, then the object floats; reduced motion keeps it still.
 - Inside a panel or a list, an empty state is the 120px picture and one line (`EmptyNote`).
 - `tests/emptyScreens.test.ts` holds these rules. The plan behind them is `docs/empty-screens-plan.md`.
+
+### Skill cards
+
+- The Skills page shows each skill as a card (`zp-skill`): the skill's picture on a `--signal-soft` to `--soft` plate, a Quick or Deep tag (Deep has a Signal Blue dot), the name, its one opening line and what it hands back. Clicking the card opens the skill. Use shows on hover and puts the skill in the chat box.
+- The pictures are the same isometric art (`Drawing` with `crop`), one per skill, set in `ART` in `src/components/zippie/SkillsPage.tsx`. Three cards sit larger at the top of All. Group tabs filter the page; Workspace and Personal are the last two tabs.
 
 ### Illustration cards (mock UI)
 

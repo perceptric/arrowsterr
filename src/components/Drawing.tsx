@@ -11,15 +11,19 @@ export type { DrawingKind };
 
 const COLORS = isoVars("light") as React.CSSProperties;
 
-/** One picture. 220 px wide on a screen; 96 in a panel or list. */
-export function Drawing({ kind, size = 220 }: { kind: DrawingKind; size?: number }) {
+/** The frame trimmed to the object and its plate, for a picture that fills a card. */
+const CROP = { x: 24, y: 2, w: 192, h: 154 } as const;
+
+/** One picture. 220 px wide on a screen; 96 in a panel or list. crop trims the empty margin, for a skill card. */
+export function Drawing({ kind, size = 220, crop = false }: { kind: DrawingKind; size?: number; crop?: boolean }) {
+  const f = crop ? CROP : { x: 0, y: 0, ...FRAME };
   // The art is our own markup, built from numbers in isoArt.ts, with no text from anyone in it.
   const body = useMemo(() => drawing(kind).body, [kind]);
   return (
     <svg
       width={size}
-      height={(size * FRAME.h) / FRAME.w}
-      viewBox={`0 0 ${FRAME.w} ${FRAME.h}`}
+      height={(size * f.h) / f.w}
+      viewBox={`${f.x} ${f.y} ${f.w} ${f.h}`}
       aria-hidden="true"
       className="aw-drawing shrink-0"
       style={COLORS}
