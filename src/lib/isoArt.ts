@@ -321,9 +321,9 @@ export const DRAWINGS = {
     s.step = 1;
     s.box(1.2, 1.4, 0, 5.6, 5.2, 1.0, "paper");
     s.step = 2;
-    s.box(1.2, 1.4, 1.0, 5.6, 1.1, 0.5, "blue");
-    s.box(2.4, 1.7, 1.5, 0.35, 0.35, 0.6, "gray");
-    s.box(5.3, 1.7, 1.5, 0.35, 0.35, 0.6, "gray");
+    s.box(1.2, 1.4, 1.0, 5.6, 1.1, 0.5, "blue", 1, 8.05); // on the body's top, so after it, and behind the blocks in front
+    s.box(2.4, 1.7, 1.5, 0.35, 0.35, 0.6, "gray", 1, 8.1);
+    s.box(5.3, 1.7, 1.5, 0.35, 0.35, 0.6, "gray", 1, 8.1);
     for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) s.flat([[1.7 + i * 1.65, 2.9 + j * 1.2], [2.9 + i * 1.65, 2.9 + j * 1.2], [2.9 + i * 1.65, 3.8 + j * 1.2], [1.7 + i * 1.65, 3.8 + j * 1.2]], 1.0, "mist", "", 8);
     s.step = 3;
     s.box(3.35, 2.9, 1.0, 1.2, 0.9, 0.6, "blue");
@@ -342,14 +342,14 @@ export const DRAWINGS = {
     s.box(3.6, 4.6, 0, 1.1, 1.1, 4.6, "blue");
     s.step = 4;
     s.cyl(5.6, 2.2, 0, 1.5, 0.5, "blue");
-    s.disc(5.6, 2.2, 0.51, 1.05, "pale", "", 9, ' fill-opacity="0.85"');
+    s.disc(5.6, 2.2, 0.51, 1.05, "pale", "", 9.4, ' fill-opacity="0.85"');
     s.box(5.3, 3.7, 0, 0.6, 2.2, 0.45, "gold");
   },
   globe: (s: Iso) => {
     s.plate({ cx: 4, cy: 4, r: 2.4 });
     s.step = 1;
     s.cyl(4, 4, 0, 1.8, 0.6, "mist");
-    s.box(3.8, 3.8, 0.6, 0.4, 0.4, 1.0, "gray");
+    s.box(3.8, 3.8, 0.6, 0.4, 0.4, 1.0, "gray", 1, 10); // on the base's top, so after it
     s.step = 2;
     const r = 2.5 * S;
     s.at(4, 4, 4.0, 20, (x, y) =>
@@ -416,6 +416,8 @@ export const DRAWINGS = {
     // An AI answer card citing two source pages: a link runs from each of its marks down to the page it cites.
     s.plate({ cx: 4, cy: 4, r: 3 });
     s.step = 1;
+    s.box(3.6, 0.6, 0, 1.8, 1.0, 0.2, "gray");
+    s.box(4.35, 0.95, 0.2, 0.3, 0.25, 1.2, "gray");
     const ans = card(s, 2.2, 1.0, 1.4, 4.6, 3.4, "blue");
     barY(s, ans.at, 2.6, 4.2, 4.1, 4.3, "gray", ans.depth);
     for (let k = 0; k < 3; k++) barY(s, ans.at, 2.6, 6.3 - k * 0.6, 3.5 - k * 0.6, 3.66 - k * 0.6, "mist", ans.depth);
@@ -466,7 +468,7 @@ export const DRAWINGS = {
     person(3.75, 4.55, 0.42, "sky", 6);
     s.step = 7;
     s.cyl(6.3, 1.8, 0, 1.0, 0.3, "blue");
-    s.box(6.2, 1.7, 0.3, 0.2, 0.2, 2.2, "gray");
+    s.box(6.2, 1.7, 0.3, 0.2, 0.2, 2.2, "gray", 1, 9.2); // on the base's top, so after it
     const r = 1.0 * S;
     s.at(6.3, 1.8, 3.0, 12, (x, y) => `<circle cx="${n(x)}" cy="${n(y)}" r="${n(r)}" fill="${fill("blue")}"/><circle cx="${n(x - r * 0.15)}" cy="${n(y - r * 0.15)}" r="${n(r * 0.38)}" fill="${fill("paper")}"/><circle cx="${n(x - r * 0.45)}" cy="${n(y - r * 0.5)}" r="${n(r * 0.18)}" fill="#fff" fill-opacity="0.4"/>`, r);
   },
@@ -474,7 +476,7 @@ export const DRAWINGS = {
     // A report: last month's sheet behind, this month's in front with its bar chart and headline number.
     s.plate({ cx: 4, cy: 3.8, r: 2.8 });
     s.step = 1;
-    card(s, 2.2, 1.4, 0.4, 4.0, 4.6, "pale", "mist");
+    card(s, 2.2, 1.4, 0, 4.0, 4.6, "pale", "mist");
     s.step = 2;
     const c = card(s, 1.0, 3.6, 0, 4.4, 4.7);
     barY(s, c.at, 1.6, 3.4, 3.95, 4.2, "gray", c.depth);
@@ -513,14 +515,14 @@ export const DRAWINGS = {
     for (let k = 0; k < 4; k++) barY(s, a.at, 1.2, 3.2 - (k % 2) * 0.6, 2.7 - k * 0.55, 2.86 - k * 0.55, "mist", a.depth);
     barY(s, a.at, 1.6, 2.9, 2.08, 2.4, "sky", a.depth + 0.05);
     s.step = 3;
-    s.line([[2.25, 4.3, 2.24], [3.0, 3.6, 4.4], [4.4, 2.3, 4.9], [5.8, 1.5, 3.48]], "blue", 2.2, 40);
+    s.line([[2.25, 4.3, 2.24], [2.25, 4.32, 4.25], [2.6, 3.95, 4.7], [4.4, 2.5, 4.9], [5.8, 1.5, 3.48]], "blue", 2.2, 40);
     s.at(5.8, 1.5, 3.48, 40.1, (x, y) => `<circle cx="${n(x)}" cy="${n(y)}" r="3.4" fill="${fill("blue")}"/>`, 4);
     s.at(2.25, 4.3, 2.24, 40.1, (x, y) => `<circle cx="${n(x)}" cy="${n(y)}" r="2.6" fill="${fill("paper")}" stroke="${fill("blue")}" stroke-width="2"/>`, 3);
   },
   palette: (s: Iso) => {
     s.plate({ cx: 3.8, cy: 3.6, r: 3 });
     s.step = 1;
-    s.box(1.0, 3.0, 0, 5.6, 1.2, 0.35, "paper");
+    s.box(1.0, 3.0, 0, 5.6, 1.2, 0.35, "paper", 1, 1); // the tray is behind everything on it
     const cards: [number, Role][] = [
       [1.3, "blue"],
       [2.6, "sky"],
@@ -541,15 +543,15 @@ export const DRAWINGS = {
     s.step = 1;
     const arc = Array.from({ length: 13 }, (_, i) => {
       const t = Math.PI - (i / 12) * Math.PI;
-      return [4 + 0.95 * Math.cos(t), 4.2, 2.6 + 1.5 * Math.sin(t)] as [number, number, number];
+      return [4 + 0.95 * Math.cos(t), 4.2, 2.68 + 1.42 * Math.sin(t)] as [number, number, number];
     });
-    s.line(arc, "gray", 0.55 * S, 7, "l");
+    s.line(arc, "gray", 0.55 * S, 9, "l"); // after the body, so the top's back half sits behind it
   },
   files: (s: Iso) => {
     s.plate({ cx: 4, cy: 3.8, r: 2.9 });
     s.step = 1;
     s.box(1.6, 3.0, 0, 4.8, 0.35, 3.6, "sky");
-    s.box(1.6, 3.0, 3.6, 1.8, 0.35, 0.5, "sky");
+    s.box(1.6, 3.0, 3.6, 1.8, 0.35, 0.5, "sky", 1, 7.2); // part of the back panel, behind the papers
     s.step = 2;
     s.box(2.0, 3.4, 0.2, 4.0, 0.2, 3.8, "paper");
     s.step = 3;
@@ -565,27 +567,28 @@ export const DRAWINGS = {
   plug: (s: Iso) => {
     s.plate({ cx: 4, cy: 4, r: 3 });
     s.step = 1;
-    s.box(1.2, 3.4, 0, 2.6, 2.6, 1.6, "paper");
-    s.flat([[1.9, 4.2], [2.3, 4.2], [2.3, 4.4], [1.9, 4.4]], 1.6, "gray", "r", 9);
-    s.flat([[1.9, 5.0], [2.3, 5.0], [2.3, 5.2], [1.9, 5.2]], 1.6, "gray", "r", 9);
+    // A socket with its two slots on the face toward the plug, and the plug about to go in.
+    s.box(0.8, 3.2, 0, 2.6, 2.6, 1.8, "paper");
+    s.face("x", 3.4, 3.95, 0.7, 4.25, 1.2, "gray", "r");
+    s.face("x", 3.4, 4.75, 0.7, 5.05, 1.2, "gray", "r");
     s.step = 2;
-    s.box(3.5, 1.6, 0.6, 1.4, 0.2, 0.2, "gray");
-    s.box(3.5, 2.3, 0.6, 1.4, 0.2, 0.2, "gray");
-    s.box(4.8, 1.2, 0, 1.8, 1.8, 1.4, "blue");
+    s.box(4.1, 4.0, 0.85, 1.1, 0.2, 0.2, "gray");
+    s.box(4.1, 4.8, 0.85, 1.1, 0.2, 0.2, "gray");
+    s.box(5.2, 3.6, 0, 1.8, 1.8, 1.6, "blue");
     s.step = 3;
-    s.line([[6.6, 2.1, 0.5], [7.2, 3.6, 0.2], [6.6, 5.4, 0.1], [7.4, 7.2, 0.1]], "gray", 3.5, 20, "l");
+    s.line([[7.0, 4.5, 0.5], [7.5, 5.1, 0.1], [7.1, 6.3, 0.05], [7.6, 7.4, 0.05]], "gray", 3.5, 20, "l");
   },
   flag: (s: Iso) => {
     s.plate({ cx: 4, cy: 4, r: 2.6 });
     s.step = 1;
     s.cyl(4, 4, 0, 2.4, 0.5, "green");
-    s.cyl(4, 4, 0.5, 1.4, 0.45, "green", 9.5);
+    s.cyl(4, 4, 0.5, 1.4, 0.45, "green", 10.5); // on the base, so after it
     s.step = 2;
-    s.box(3.9, 3.9, 0.95, 0.2, 0.2, 4.4, "gray");
+    s.box(3.9, 3.9, 0.95, 0.2, 0.2, 4.4, "gray", 1, 10.6); // planted in the mound's top, so after it
     s.step = 3;
     const wave = Array.from({ length: 9 }, (_, i) => [4.1 + i * 0.28, 4.0, 5.3 - Math.sin((i / 8) * Math.PI) * 0.18] as [number, number, number]);
     const low = [...wave].reverse().map(([x, y, z]) => [x, y, z - 1.6] as [number, number, number]);
-    s.add(10, `<polygon points="${[...wave, ...low].map(([x, y, z]) => s.p(x, y, z)).map(([a, b]) => `${n(a)},${n(b)}`).join(" ")}" fill="${fill("blue")}"/>`);
+    s.add(10.7, `<polygon points="${[...wave, ...low].map(([x, y, z]) => s.p(x, y, z)).map(([a, b]) => `${n(a)},${n(b)}`).join(" ")}" fill="${fill("blue")}"/>`);
   },
   chart: (s: Iso) => {
     // A dashboard card: a rising line over its shaded area, and the headline number on a tile in front.
@@ -601,8 +604,8 @@ export const DRAWINGS = {
     strokeY(s, c.at, pts, "blue", 2.6, c.depth + 0.1);
     s.at(6.35, c.at, 3.0, c.depth + 0.15, (x, y) => `<circle cx="${n(x)}" cy="${n(y)}" r="3.6" fill="${fill("paper")}" stroke="${fill("blue")}" stroke-width="2.2"/>`, 4);
     s.step = 3;
-    s.box(5.2, 4.6, 0.9, 2.0, 1.9, 0.55, "blue");
-    s.at(6.2, 5.55, 1.45, 40, (x, y) => `<path d="M${n(x - 5)} ${n(y + 1.5)}L${n(x)} ${n(y - 3.5)}L${n(x + 5)} ${n(y + 1.5)}M${n(x)} ${n(y - 3.5)}V${n(y + 4)}" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`);
+    s.box(5.2, 4.6, 0, 2.0, 1.9, 0.55, "blue");
+    s.at(6.2, 5.55, 0.55, 40, (x, y) => `<path d="M${n(x - 5)} ${n(y + 1.5)}L${n(x)} ${n(y - 3.5)}L${n(x + 5)} ${n(y + 1.5)}M${n(x)} ${n(y - 3.5)}V${n(y + 4)}" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`);
   },
   opportunities: (s: Iso) => {
     s.plate({ cx: 4.2, cy: 4, r: 3 });
@@ -642,8 +645,18 @@ export const DRAWINGS = {
     s.face("y", 3.8, 3.0, 1.6, 4.6, 1.85, "mist", "", 11);
     s.face("y", 3.8, 3.0, 1.0, 4.2, 1.25, "mist", "", 11);
     s.step = 3;
-    s.at(4 + 3.1 * Math.cos(-0.35), 4 + 3.1 * Math.sin(-0.35), 0.5, 25, (x, y) => `<path d="M${n(x - 10)} ${n(y - 7)}L${n(x + 9)} ${n(y + 1.5)}L${n(x - 6)} ${n(y + 10)}Z" fill="${fill("blue")}"/>`, 11);
-    s.at(4 + 3.1 * Math.cos(Math.PI - 0.35), 4 + 3.1 * Math.sin(Math.PI - 0.35), 0.5, 2, (x, y) => `<path d="M${n(x + 10)} ${n(y + 7)}L${n(x - 9)} ${n(y - 1.5)}L${n(x + 6)} ${n(y - 10)}Z" fill="${fill("blue")}"/>`, 11);
+    // Each arrowhead sits on the ring and points the way the ring turns, along its curve on screen.
+    const head = (t: number, depth: number) => {
+      const [cx, cy] = [4 + 3.1 * Math.cos(t), 4 + 3.1 * Math.sin(t)];
+      const [x0, y0] = s.p(cx, cy, 0.5);
+      const [x1, y1] = s.p(4 + 3.1 * Math.cos(t + 0.05), 4 + 3.1 * Math.sin(t + 0.05), 0.5);
+      const len = Math.hypot(x1 - x0, y1 - y0);
+      const [dx, dy] = [(x1 - x0) / len, (y1 - y0) / len];
+      const pts = [[x0 + dx * 10, y0 + dy * 10], [x0 - dx * 5 - dy * 8, y0 - dy * 5 + dx * 8], [x0 - dx * 5 + dy * 8, y0 - dy * 5 - dx * 8]];
+      s.at(cx, cy, 0.5, depth, () => `<polygon points="${pts.map(([a, b]) => `${n(a)},${n(b)}`).join(" ")}" fill="${fill("blue")}"/>`, 11);
+    };
+    head(-0.35, 25);
+    head(Math.PI - 0.35, 2);
   },
   shop: (s: Iso) => {
     s.plate({ cx: 4, cy: 4, r: 2.9 });
