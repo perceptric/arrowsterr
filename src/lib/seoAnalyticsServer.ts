@@ -4,32 +4,20 @@ import { AI_SOURCES } from "./aiSources";
 import {
   addDays,
   chanceOf,
-  channelMix,
   compareResult,
-  daySeries,
   findOpportunities,
   ga4DbRows,
   gscDbRows,
   gscWindows,
   GSC_LAG,
-  movers,
   NO_TOTALS,
-  ownCitations,
   pagePath,
-  periodTotals,
-  rankWeeks,
   resultWindows,
-  trendPoints,
   type Chance,
-  type DayPoint,
-  type DayRow,
-  type Mover,
   type Opportunity,
   type PageAgg,
-  type PeriodTotals,
   type QueryAgg,
   type QueryPageAgg,
-  type RankBucket,
   type Result,
   type Totals,
 } from "./seoAnalytics";
@@ -123,40 +111,6 @@ async function syncGa4(db: SupabaseClient, token: string, brand: BrandRow, start
     ai.map((r) => ({ date: val(r, 0), page: val(r, 1), source: val(r, 2), sessions: num(r, 0) })),
   );
   await upsert(db, "analytics_ga4", rows.map((r) => ({ brand_id: brand.id, workspace_id: brand.workspace_id, ...r })), "brand_id,day,page");
-  await syncGa4Extras(db, token, brand, start, end).catch(() => null); // before supabase/106 runs, the rest still syncs
-}
-
-/**
- * Sessions by channel for the dashboard's "Where visitors come from", and each page's title for the Pages table.
- * The first time (no channel rows yet), channels go back the same 90 days as the first GA4 sync.
- */
-async function syncGa4Extras(db: SupabaseClient, token: string, brand: BrandRow, start: string, end: string) {
-  const { data: had } = await db.from("analytics_ga4_channels").select("day").eq("brand_id", brand.id).limit(1);
-  const from = had?.length ? start : addDays(end, -(GA4_FIRST_DAYS - 1));
-  const [channels, titles] = await runReports(token, brand.ga4_property!, [
-    { dateRanges: [{ startDate: from, endDate: end }], dimensions: [{ name: "date" }, { name: "sessionDefaultChannelGroup" }], metrics: [{ name: "sessions" }], limit: 20_000 },
-    { dateRanges: [{ startDate: addDays(end, -89), endDate: end }], dimensions: [{ name: "pagePath" }, { name: "pageTitle" }], metrics: [{ name: "screenPageViews" }], limit: 10_000 },
-  ]);
-  const ymd = (s: string) => (s.length === 8 ? `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}` : s);
-  const byChannel = new Map<string, { day: string; channel: string; sessions: number }>();
-  for (const r of channels) {
-    const day = ymd(val(r, 0));
-    const channel = val(r, 1) || "Unassigned";
-    const key = `${day}|${channel}`;
-    const had = byChannel.get(key);
-    if (had) had.sessions += num(r, 0);
-    else byChannel.set(key, { day, channel, sessions: num(r, 0) });
-  }
-  await upsert(db, "analytics_ga4_channels", [...byChannel.values()].map((r) => ({ brand_id: brand.id, workspace_id: brand.workspace_id, ...r })), "brand_id,day,channel");
-  // Each path's title: the one with the most views (a page can have had several).
-  const best = new Map<string, { title: string; views: number }>();
-  for (const r of titles) {
-    const page = pagePath(val(r, 0));
-    const title = val(r, 1).trim();
-    if (!title || title === "(not set)") continue;
-    if ((best.get(page)?.views ?? -1) < num(r, 0)) best.set(page, { title: title.slice(0, 300), views: num(r, 0) });
-  }
-  await upsert(db, "analytics_page_titles", [...best.entries()].map(([page, t]) => ({ brand_id: brand.id, workspace_id: brand.workspace_id, page, title: t.title })), "brand_id,page");
 }
 
 /**
@@ -239,7 +193,6 @@ export async function queueAnalyticsSyncs(db: SupabaseClient) {
 
 type Rpc = { query?: string; page?: string; clicks: number | string; impressions: number | string; avg_position: number | string | null; sessions?: number | string; conversions?: number | string; ai_sessions?: number | string };
 const N = (v: unknown) => Number(v ?? 0) || 0;
-const round1 = (v: number) => Math.round(v * 10) / 10;
 
 async function rpc<T>(db: SupabaseClient, fn: string, args: Record<string, unknown>): Promise<T[]> {
   const { data, error } = await db.rpc(fn, args);
@@ -397,57 +350,10 @@ export async function analyticsOverview(db: SupabaseClient, brandId: string, day
   };
 }
 
-// ─────────────── The Analytics dashboard ───────────────
+// ─────────────── Published pieces ───────────────
 
-export type DashRow = {
-  key: string; // the page path or the search
-  title: string | null; // pages: the title GA4 saw
-  clicks: number;
-  impressions: number;
-  ctr: number | null;
-  position: number | null;
-  position_change: number | null; // places moved since the period before; negative is better
-  sessions: number | null;
-  conversions: number | null;
-  ai_sessions: number | null; // pages: GA4 visits from AI assistants
-  trend: number[]; // clicks over the last 28 days, oldest first
-  page: string | null; // searches: their main page
-  live: { at: string; event: "published" | "refreshed" } | null; // pages published or refreshed from Arrowsterr
-  cited: string[]; // AIs that cite this page in the tracked answers
-};
-export type DashMover = Mover & { trend: number[] };
-export type Dashboard = {
-  days: number;
-  from: string;
-  to: string;
-  prevFrom: string;
-  gsc: boolean;
-  ga4: boolean;
-  series: { cur: DayPoint[]; prev: DayPoint[] };
-  totals: { cur: PeriodTotals; prev: PeriodTotals };
-  pubs: { day: string; title: string; event: "published" | "refreshed" }[];
-  opportunities: (Opportunity & { computed_at: string })[];
-  movers: { queries: { up: DashMover[]; down: DashMover[] }; pages: { up: DashMover[]; down: DashMover[] } };
-  channels: { channel: string; sessions: number }[] | null; // null: no GA4, or channels not synced yet
-  sessionsPrev: number | null;
-  ai: { engine: string; sessions: number }[];
-  ranks: Record<RankBucket, number>[];
-  pages: { rows: DashRow[]; more: boolean };
-  queries: { rows: DashRow[]; more: boolean };
-};
-
-const PAGE_SIZE = 25;
-
-/** The dashboard's date ranges: the last `days` days with Search Console data, and the same number before. */
-function ranges(days: number, state: SyncState | null) {
-  const to = lastDay(state);
-  const from = addDays(to, -(days - 1));
-  const prevTo = addDays(from, -1);
-  return { to, from, prevTo, prevFrom: addDays(prevTo, -(days - 1)) };
-}
-
-/** Published pieces with a live address: when each went live or was last refreshed, by page path. */
-async function liveItems(db: SupabaseClient, brandId: string) {
+/** Published pieces with a live address: when each went live or was last refreshed, by page path. The reports pin these on their charts. */
+export async function liveItems(db: SupabaseClient, brandId: string) {
   const { data: sites } = await db.from("sites").select("id").eq("brand_id", brandId);
   const ids = (sites ?? []).map((s) => s.id as string);
   if (!ids.length) return [];
@@ -458,166 +364,6 @@ async function liveItems(db: SupabaseClient, brandId: string) {
     if (!url) return [];
     return [{ page: pagePath(url), title: r.keyword, at: r.refreshed_at ?? r.published_at, event: (r.refreshed_at ? "refreshed" : "published") as "published" | "refreshed" }];
   });
-}
-
-/** The brand's own pages cited in the tracked AI answers since `from`, with the AIs that cite each. */
-async function citedBy(db: SupabaseClient, brand: BrandRow, from: string): Promise<Map<string, string[]>> {
-  const { data } = await db.from("runs").select("chats").eq("brand_id", brand.id).gte("at", `${from}T00:00:00Z`).order("at", { ascending: false }).limit(400);
-  type Chat = { engine: string; prompt: string; sources?: { url: string }[] | null };
-  const chats = ((data ?? []) as { chats: Chat[] | null }[]).flatMap((r) => r.chats ?? []);
-  return new Map(ownCitations(chats, brand.domain).map((c) => [c.page, c.engines]));
-}
-
-async function trendsOf(db: SupabaseClient, brandId: string, kind: "query" | "page", keys: string[], from: string, days: number, points: number) {
-  if (!keys.length) return new Map<string, number[]>();
-  const rows = await rpc<{ key: string; day: string; clicks: number }>(db, "analytics_trends", { p_brand: brandId, p_kind: kind, p_keys: keys, p_from: from, p_to: addDays(from, days - 1) });
-  const by = new Map<string, { day: string; clicks: number }[]>();
-  for (const r of rows) by.set(String(r.key), [...(by.get(String(r.key)) ?? []), { day: String(r.day).slice(0, 10), clicks: N(r.clicks) }]);
-  return new Map(keys.map((k) => [k, trendPoints(by.get(k) ?? [], from, days, points)]));
-}
-
-/**
- * One page of the Pages or Searches table (25 rows from `offset`), with the period before for position changes, the
- * last 28 days' clicks for the trend line, page titles, and pages published from Arrowsterr or cited by AI.
- * `focus` (a page path) comes first when given.
- */
-export async function dashboardRows(db: SupabaseClient, brand: BrandRow, kind: "pages" | "queries", days: number, state: SyncState | null, offset = 0, opts: { focus?: string | null; live?: Awaited<ReturnType<typeof liveItems>>; cited?: Map<string, string[]> } = {}): Promise<{ rows: DashRow[]; more: boolean }> {
-  const r = ranges(days, state);
-  const ga4 = Boolean(brand.ga4_property);
-  const trendFrom = addDays(r.to, -27);
-  const [live, cited] = await Promise.all([opts.live ?? liveItems(db, brand.id), opts.cited ?? citedBy(db, brand, r.from)]);
-  const liveBy = new Map<string, { at: string; event: "published" | "refreshed" }>();
-  for (const l of live) if ((liveBy.get(l.page)?.at ?? "") < l.at) liveBy.set(l.page, { at: l.at, event: l.event });
-  const posChange = (now: number | null, before: number | null | undefined) => (now !== null && before ? round1(now - before) : null);
-
-  if (kind === "pages") {
-    let list = await pagesIn(db, brand.id, r.from, r.to, offset + PAGE_SIZE + 1);
-    const more = list.length > offset + PAGE_SIZE;
-    list = list.slice(offset, offset + PAGE_SIZE);
-    if (opts.focus && offset === 0 && !list.some((p) => p.page === opts.focus)) {
-      const one = (await pageTotals(db, brand.id, [opts.focus], r.from, r.to)).get(opts.focus);
-      list.unshift({ page: opts.focus, ...(one ?? NO_TOTALS) });
-    } else if (opts.focus && offset === 0) list.sort((a, b) => Number(b.page === opts.focus) - Number(a.page === opts.focus));
-    const keys = list.map((p) => p.page);
-    const [prev, titles, trends] = await Promise.all([
-      pageTotals(db, brand.id, keys, r.prevFrom, r.prevTo),
-      db.from("analytics_page_titles").select("page, title").eq("brand_id", brand.id).in("page", keys.length ? keys : ["-"]),
-      trendsOf(db, brand.id, "page", keys, trendFrom, 28, 14),
-    ]);
-    const titleBy = new Map(((titles.data ?? []) as { page: string; title: string }[]).map((t) => [t.page, t.title]));
-    const liveTitle = new Map(live.map((l) => [l.page, l.title]));
-    return {
-      more,
-      rows: list.map((p) => ({
-        key: p.page,
-        title: titleBy.get(p.page) ?? null,
-        clicks: p.clicks,
-        impressions: p.impressions,
-        ctr: p.impressions ? p.clicks / p.impressions : null,
-        position: p.position === null ? null : round1(p.position),
-        position_change: posChange(p.position, prev.get(p.page)?.position),
-        sessions: ga4 ? p.sessions : null,
-        conversions: ga4 ? p.conversions : null,
-        ai_sessions: ga4 ? p.ai_sessions : null,
-        trend: trends.get(p.page) ?? [],
-        page: p.page,
-        live: liveBy.get(p.page) ?? null,
-        cited: cited.get(p.page) ?? [],
-        ...(titleBy.has(p.page) ? {} : { title: liveTitle.get(p.page) ?? null }),
-      })),
-    };
-  }
-
-  let list = await queriesIn(db, brand.id, r.from, r.to, offset + PAGE_SIZE + 1);
-  const more = list.length > offset + PAGE_SIZE;
-  list = list.slice(offset, offset + PAGE_SIZE);
-  const keys = list.map((q) => q.query);
-  const [prev, trends, qp] = await Promise.all([queriesIn(db, brand.id, r.prevFrom, r.prevTo, 2000), trendsOf(db, brand.id, "query", keys, trendFrom, 28, 14), queryPagesIn(db, brand.id, r.from, r.to, 2000)]);
-  const prevBy = new Map(prev.map((q) => [q.query, q.position]));
-  const pageOf = new Map<string, string>();
-  for (const x of qp) if (!pageOf.has(x.query)) pageOf.set(x.query, x.page);
-  return {
-    more,
-    rows: list.map((q) => ({
-      key: q.query,
-      title: null,
-      clicks: q.clicks,
-      impressions: q.impressions,
-      ctr: q.impressions ? q.clicks / q.impressions : null,
-      position: q.position ? round1(q.position) : null,
-      position_change: posChange(q.position || null, prevBy.get(q.query)),
-      sessions: null,
-      conversions: null,
-      ai_sessions: null,
-      trend: trends.get(q.query) ?? [],
-      page: pageOf.get(q.query) ?? null,
-      live: null,
-      cited: [],
-    })),
-  };
-}
-
-/** Everything the Analytics dashboard shows for the last `days` days of data, against the same number of days before. */
-export async function analyticsDashboard(db: SupabaseClient, brand: BrandRow, days: number, state: SyncState | null, focus: string | null = null): Promise<Dashboard> {
-  const r = ranges(days, state);
-  const ga4 = Boolean(brand.ga4_property);
-  const [gscDays, ga4Days, opps, qNow, qPrev, pNow, pPrev, ai, channels, channelsPrev, rankRows, live, cited] = await Promise.all([
-    db.from("analytics_gsc_days").select("day, clicks, impressions, position").eq("brand_id", brand.id).gte("day", r.prevFrom).lte("day", r.to).order("day"),
-    ga4 ? rpc<{ day: string; sessions: number; conversions: number }>(db, "analytics_ga4_days", { p_brand: brand.id, p_from: r.prevFrom, p_to: r.to }) : Promise.resolve([]),
-    db.from("analytics_opportunities").select("id, kind, title, page, query, gain_clicks, gain_signups, why, data, computed_at").eq("brand_id", brand.id).order("gain_clicks", { ascending: false }),
-    queriesIn(db, brand.id, r.from, r.to, 1000),
-    queriesIn(db, brand.id, r.prevFrom, r.prevTo, 1000),
-    pagesIn(db, brand.id, r.from, r.to, 1000),
-    pagesIn(db, brand.id, r.prevFrom, r.prevTo, 1000),
-    ga4 ? rpc<{ engine: string; sessions: number }>(db, "analytics_ai", { p_brand: brand.id, p_from: r.from, p_to: r.to }) : Promise.resolve([]),
-    ga4 ? rpc<{ channel: string; sessions: number }>(db, "analytics_channels", { p_brand: brand.id, p_from: r.from, p_to: r.to }).catch(() => []) : Promise.resolve([]),
-    ga4 ? rpc<{ channel: string; sessions: number }>(db, "analytics_channels", { p_brand: brand.id, p_from: r.prevFrom, p_to: r.prevTo }).catch(() => []) : Promise.resolve([]),
-    rpc<{ week_back: number; bucket: string; queries: number }>(db, "analytics_rank_weeks", { p_brand: brand.id, p_to: r.to, p_weeks: 12 }).catch(() => []),
-    liveItems(db, brand.id),
-    citedBy(db, brand, r.from),
-  ]);
-  const byDay = new Map<string, DayRow>();
-  for (const g of (gscDays.data ?? []) as { day: string; clicks: number; impressions: number; position: number | null }[]) byDay.set(g.day, { day: g.day, clicks: g.clicks, impressions: g.impressions, position: g.position });
-  for (const a of ga4Days) {
-    const day = String(a.day).slice(0, 10);
-    byDay.set(day, { ...(byDay.get(day) ?? { day }), sessions: N(a.sessions), conversions: N(a.conversions) });
-  }
-  const rows = [...byDay.values()];
-  const cur = daySeries(rows, r.from, days, ga4);
-  const prev = daySeries(rows, r.prevFrom, days, ga4);
-  const aiList = ai.map((x) => ({ engine: x.engine, sessions: N(x.sessions) }));
-  const aiTotal = aiList.reduce((a, x) => a + x.sessions, 0);
-
-  const mq = movers(qNow.map((q) => ({ key: q.query, clicks: q.clicks })), qPrev.map((q) => ({ key: q.query, clicks: q.clicks })));
-  const mp = movers(pNow.map((p) => ({ key: p.page, clicks: p.clicks })), pPrev.map((p) => ({ key: p.page, clicks: p.clicks })));
-  // Trend lines span both periods, so a loss shows the fall.
-  const [tq, tp, pages, queries] = await Promise.all([
-    trendsOf(db, brand.id, "query", [...mq.up, ...mq.down].map((m) => m.key), r.prevFrom, days * 2, 12),
-    trendsOf(db, brand.id, "page", [...mp.up, ...mp.down].map((m) => m.key), r.prevFrom, days * 2, 12),
-    dashboardRows(db, brand, "pages", days, state, 0, { focus, live, cited }),
-    dashboardRows(db, brand, "queries", days, state, 0, { live, cited }),
-  ]);
-  const withTrend = (list: Mover[], t: Map<string, number[]>) => list.map((m) => ({ ...m, trend: t.get(m.key) ?? [] }));
-
-  return {
-    days,
-    from: r.from,
-    to: r.to,
-    prevFrom: r.prevFrom,
-    gsc: Boolean(brand.gsc_property),
-    ga4,
-    series: { cur, prev },
-    totals: { cur: periodTotals(cur), prev: periodTotals(prev) },
-    pubs: live.filter((l) => l.at.slice(0, 10) >= r.from && l.at.slice(0, 10) <= r.to).map((l) => ({ day: l.at.slice(0, 10), title: l.title, event: l.event })),
-    opportunities: ((opps.data ?? []) as (Opportunity & { computed_at: string })[]).map((o) => ({ ...o, gain_signups: o.gain_signups === null ? null : N(o.gain_signups) })),
-    movers: { queries: { up: withTrend(mq.up, tq), down: withTrend(mq.down, tq) }, pages: { up: withTrend(mp.up, tp), down: withTrend(mp.down, tp) } },
-    channels: ga4 && channels.length ? channelMix(channels.map((c) => ({ channel: c.channel, sessions: N(c.sessions) })), aiTotal) : null,
-    sessionsPrev: ga4 && channelsPrev.length ? channelsPrev.reduce((a, c) => a + N(c.sessions), 0) : null,
-    ai: aiList,
-    ranks: rankWeeks(rankRows.map((x) => ({ week_back: N(x.week_back), bucket: String(x.bucket), queries: N(x.queries) }))),
-    pages,
-    queries,
-  };
 }
 
 export type OwnRank = { position: number; impressions: number; clicks: number; ctr: number; page: string | null };
