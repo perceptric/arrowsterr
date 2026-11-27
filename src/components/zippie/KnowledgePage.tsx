@@ -5,9 +5,10 @@ import { askConfirm, askText } from "@/components/Dialogs";
 import { EmptyNote } from "../Drawing";
 import { Markdown } from "../Markdown";
 import { I, Icon, msgOf, readFile } from "./Cards";
-import { TREE_W } from "./SkillsPage";
 import { useZippie, type KnowledgeRow } from "./ZippieContext";
 import { BusyButton } from "../ui";
+
+export const TREE_W = 288;
 
 // Knowledge, laid out like Omniscient's: the pages on the left (the team's Workspace pages, then your Personal ones),
 // the open page on the right with Preview and Edit. Zippie and the writer read every page. Files and links become

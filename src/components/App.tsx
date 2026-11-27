@@ -74,8 +74,8 @@ import { ReportsPage } from "./reports/ReportsPage";
 import { VisitorsPage } from "./VisitorsPage";
 import { ZippieDock, ZippieHome, ZippiePanel } from "./zippie/Chat";
 import { WriterPage } from "./zippie/WriterPage";
-import { KnowledgePage } from "./zippie/KnowledgePage";
-import { SkillsPage, TREE_W } from "./zippie/SkillsPage";
+import { KnowledgePage, TREE_W } from "./zippie/KnowledgePage";
+import { SkillsPage } from "./zippie/SkillsPage";
 import { useZippie, ZippieProvider } from "./zippie/ZippieContext";
 import { AutopilotTag, StateDot } from "./zippie/WritingChats";
 import { I, Icon } from "./zippie/Cards";
@@ -759,7 +759,8 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
   const view: View | null = active
     ? { brand: active, current, previous, filter, topics: topicList, engines: model === "All" ? modelList : [model], days }
     : null;
-  const zippieWhere = { brand: active?.name ?? null, page: pageTitle(page).label };
+  // The Skills page is a catalog, so chats started there carry no page.
+  const zippieWhere = { brand: active?.name ?? null, page: page === "skills" ? "" : pageTitle(page).label };
 
   return (
     <ZippieProvider key={ws.id} auth={auth} canEdit={canEdit} where={zippieWhere} onZippiePage={page === "zippie" || page === "writer"}>
@@ -1109,7 +1110,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
             />
           )}
         </main>
-        {page !== "zippie" && page !== "writer" ? <ZippieDock offset={page === "skills" || page === "knowledge" ? TREE_W : 0} /> : null}
+        {page !== "zippie" && page !== "writer" ? <ZippieDock offset={page === "knowledge" ? TREE_W : 0} /> : null}
       </div>
       <ZippiePanel onOpenFull={() => go("zippie")} />
     </div>

@@ -4,20 +4,45 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { askConfirm } from "@/components/Dialogs";
 import { blankSkill, copyFiles, MAIN, matchSkills, parseSkill, type Skill } from "@/lib/skills/format";
 import { GROUPS } from "@/lib/skills/defs/shared";
+import { Drawing, EmptyNote, type DrawingKind } from "../Drawing";
 import { Markdown } from "../Markdown";
+import { toast } from "../ui";
 import { I, Icon, msgOf } from "./Cards";
 import { useZippie } from "./ZippieContext";
 
-// Skills, laid out like Omniscient's: a tree on the left with the team's Workspace skills, your Personal ones and the
-// System skills in folders; the open skill on the right with its files. A skill's name opens its SKILL.md; only extra
-// files show under it. Your own skills edit in place and save a moment after you stop typing. Explore, the first
-// screen, shows every skill as a card.
+// Skills: every skill as a card with its picture (the isometric art from the empty screens), with search and the
+// groups as tabs. Clicking a card opens the skill and its files; Use puts it in the chat box. Your own skills edit in
+// place and save a moment after you stop typing.
 
-const SPEED = { quick: { label: "Quick", cls: "" }, deep: { label: "Deep", cls: "zp-badge--violet" } } as const;
+const SPEED = { quick: "Quick", deep: "Deep" } as const;
 const SCOPE = { system: "System", workspace: "Workspace", personal: "Personal" } as const;
 const short = (d: string) => d.split(/\s+Use it /)[0] ?? d;
 const groupLabel = (g: string) => GROUPS.find((x) => x.key === g)?.label ?? "";
-export const TREE_W = 288;
+const FEATURED = ["system:site-health-check", "system:write-article", "system:ai-visibility-review"];
+
+/** The picture on each skill's card. Skills not listed take their group's picture. */
+const ART: Record<string, DrawingKind> = {
+  "site-health-check": "gears", "page-audit": "search", "indexing-check": "lock", "page-speed": "clock", "broken-links": "link", "structured-data": "files",
+  "image-check": "palette", canonicals: "flag", hreflang: "globe", "site-move": "refresh", "ai-crawlers": "zippie", "llms-txt": "drafts",
+  "cluster-link-plan": "sources", "add-internal-links": "link", "orphan-pages": "flag", "link-new-post": "plug", "anchor-review": "prompts", cannibalization: "gap",
+  "write-outline": "files", "write-article": "drafts", "meta-writer": "prompts", "faq-builder": "queue", "content-refresh": "refresh", "answer-first": "zippie",
+  "content-brief": "reports", "ai-visibility-review": "globe", "competitor-teardown": "gap", "prompt-finder": "prompts", "source-outreach": "sources",
+  "community-replies": "visitors", "content-gaps": "opportunities", "cluster-review": "chart", "rank-drop": "traffic", "monthly-report": "reports",
+  "writer-persona": "palette", humanize: "drafts", "anti-ai-review": "lock", "pattern-check": "queue", "fix-structure": "files", "claim-check": "flag",
+  "fact-safety": "lock", "house-lint": "gears", "plain-language": "prompts", "brand-review": "palette", copyedit: "drafts", proofread: "search",
+  "cut-to-length": "clock", "style-sheet": "files", "business-writing": "reports", "press-release": "globe", "create-a-skill": "gears", "add-to-knowledge": "files",
+};
+const GROUP_ART: Record<string, DrawingKind> = { tech: "gears", links: "link", page: "drafts", ai: "globe", research: "reports", writing: "drafts", helpers: "gears" };
+const artOf = (s: Skill): DrawingKind => (s.scope === "system" ? (ART[s.slug] ?? GROUP_ART[s.group]) : undefined) ?? "zippie";
+
+/** The card's line: a system skill's opening line, or the start of the description. */
+function blurb(s: Skill) {
+  const line = parseSkill(s.files[MAIN] ?? "")
+    .body.split("\n")
+    .map((l) => l.trim())
+    .find((l) => l && !/^[#|>*-]/.test(l));
+  return (s.scope === "system" && line) || short(s.description) || "No description yet";
+}
 
 /** The open skill lives in the address (?skill=...), so a link opens it. */
 const readOpen = () => (typeof window === "undefined" ? "" : (new URLSearchParams(window.location.search).get("skill") ?? ""));
@@ -33,8 +58,6 @@ export function SkillsPage() {
   const list = z.lib.skills;
   const [openKey, setOpenKey] = useState(readOpen);
   const [file, setFile] = useState(MAIN);
-  const [fold, setFold] = useState<Record<string, boolean>>({});
-  const [folders, setFolders] = useState<Set<string>>(new Set());
   const [error, setError] = useState("");
   const current = list.find((s) => s.key === openKey) ?? null;
   const editable = (s: Skill) => z.canEdit && s.scope !== "system" && (s.scope === "workspace" || s.ownerId === z.lib.me);
@@ -43,15 +66,11 @@ export function SkillsPage() {
     setOpenKey(key);
     setFile(MAIN);
     writeOpen(key);
-    const s = list.find((x) => x.key === key);
-    if (s?.scope === "system") setFolders((f) => new Set(f).add(s.group));
   };
-  // A skill opened from a link shows its folder.
-  const [seenKey, setSeenKey] = useState("");
-  if (current && current.key !== seenKey) {
-    setSeenKey(current.key);
-    if (current.scope === "system" && !folders.has(current.group)) setFolders(new Set(folders).add(current.group));
-  }
+  const use = (s: Pick<Skill, "key" | "title">) => {
+    z.setPending({ key: s.key, title: s.title });
+    toast(`Added ${s.title} to the chat`);
+  };
 
   async function insert(scope: "workspace" | "personal", files: Record<string, string>) {
     setError("");
@@ -64,71 +83,8 @@ export function SkillsPage() {
     }
   }
 
-  const scoped = (sc: "workspace" | "personal") => list.filter((s) => s.scope === sc);
-  const row = (s: Skill, depth: number) => {
-    const on = s.key === openKey;
-    return (
-      <div key={s.key} className="contents">
-        <button type="button" className={`zp-tree__row ${depth ? "is-deep" : ""} ${on ? "is-on" : ""}`} aria-current={on ? "page" : undefined} onClick={() => open(s.key)}>
-          <Icon d={I.box} size={15} />
-          <span className="min-w-0 flex-1 wrap-break-word">{s.title}</span>
-          {!s.ready ? <span className="text-[11px] text-faint">Soon</span> : null}
-        </button>
-        {on
-          ? Object.keys(s.files)
-              .filter((f) => f !== MAIN)
-              .map((f) => (
-                <button key={f} type="button" className={`zp-tree__file ${depth ? "is-deep" : ""} ${f === file ? "is-on" : ""}`} onClick={() => setFile(f)}>
-                  <Icon d={I.file} size={13} />
-                  <span className="min-w-0 wrap-anywhere">{f}</span>
-                </button>
-              ))
-          : null}
-      </div>
-    );
-  };
-  const head = (key: string, label: string, n: number, add?: () => void) => (
-    <div className="zp-tree__head">
-      <button type="button" className="zp-tree__tog" aria-expanded={!fold[key]} onClick={() => setFold((f) => ({ ...f, [key]: !f[key] }))}>
-        <span className={`zp-caret ${fold[key] ? "" : "is-open"}`}>
-          <Icon d={I.chev} size={12} />
-        </span>
-        <span className="flex-1">{label}</span>
-        {n ? <span className="text-faint tabular-nums">{n}</span> : null}
-      </button>
-      {add ? (
-        <button type="button" className="zp-icon-btn zp-icon-btn--sm" onClick={add} aria-label={`New ${label.toLowerCase()} skill`} title={`New ${label.toLowerCase()} skill`}>
-          <Icon d={I.plus} size={14} />
-        </button>
-      ) : null}
-    </div>
-  );
-
   return (
     <div className="zp-split">
-      <aside className="zp-tree" style={{ width: TREE_W }} aria-label="Skills">
-        {head("workspace", "Workspace", scoped("workspace").length, z.canEdit ? () => void insert("workspace", blankSkill()) : undefined)}
-        {!fold.workspace ? scoped("workspace").length ? scoped("workspace").map((s) => row(s, 0)) : <p className="zp-tree__none">No skills</p> : null}
-        {head("personal", "Personal", scoped("personal").length, z.canEdit ? () => void insert("personal", blankSkill()) : undefined)}
-        {!fold.personal ? scoped("personal").length ? scoped("personal").map((s) => row(s, 0)) : <p className="zp-tree__none">No skills</p> : null}
-        {head("system", "System", list.filter((s) => s.scope === "system").length)}
-        {!fold.system
-          ? GROUPS.map((g) => {
-              const inG = list.filter((s) => s.scope === "system" && s.group === g.key);
-              const on = folders.has(g.key);
-              return (
-                <div key={g.key} className="flex flex-col">
-                  <button type="button" className="zp-tree__folder" aria-expanded={on} onClick={() => setFolders((f) => (f.has(g.key) ? new Set([...f].filter((x) => x !== g.key)) : new Set(f).add(g.key)))}>
-                    <Icon d={I.folder} size={15} />
-                    <span className="flex-1">{g.label}</span>
-                    <span className="text-[12px] text-faint tabular-nums">{inG.length}</span>
-                  </button>
-                  {on ? inG.map((s) => row(s, 1)) : null}
-                </div>
-              );
-            })
-          : null}
-      </aside>
       <section className="zp-pane">
         {error ? <div className="aw-error mx-6 mt-4">{error}</div> : null}
         {current ? (
@@ -138,7 +94,7 @@ export function SkillsPage() {
             file={file in current.files ? file : MAIN}
             onFile={setFile}
             editable={editable(current)}
-            onUse={() => z.setPending({ key: current.key, title: current.title })}
+            onUse={() => use(current)}
             onCopy={() => void insert("personal", copyFiles(current, `${current.title} (copy)`))}
             onDeleted={() => {
               z.reloadLib();
@@ -151,31 +107,68 @@ export function SkillsPage() {
             }}
           />
         ) : (
-          <Explore list={list} onOpen={open} onNew={z.canEdit ? () => void insert("personal", blankSkill()) : undefined} />
+          <Explore list={list} onOpen={open} onUse={use} onNew={z.canEdit ? (scope) => void insert(scope, blankSkill()) : undefined} />
         )}
       </section>
     </div>
   );
 }
 
+/** One skill as a card: its picture, name, opening line and what it hands back. The name opens it; Use puts it in the chat. */
+function SkillCard({ s, big, onOpen, onUse }: { s: Skill; big?: boolean; onOpen: (key: string) => void; onUse: (s: Skill) => void }) {
+  return (
+    <div className={`zp-skill ${big ? "zp-skill--big" : ""}`}>
+      <div className="zp-skill__art">
+        <span className="zp-skill__tags">
+          <span className={`zp-skill__tag ${s.speed === "deep" ? "is-deep" : ""}`}>{SPEED[s.speed]}</span>
+          {s.scope !== "system" ? <span className="zp-skill__tag">{SCOPE[s.scope]}</span> : null}
+          {!s.ready ? <span className="zp-skill__tag">Soon</span> : null}
+        </span>
+        <Drawing kind={artOf(s)} size={big ? 260 : 210} crop />
+      </div>
+      <h3 className="zp-skill__title">
+        <button type="button" onClick={() => onOpen(s.key)}>
+          {s.title}
+        </button>
+      </h3>
+      <p className="zp-skill__text">{blurb(s)}</p>
+      <span className="zp-skill__meta">
+        <Icon d={I.file} size={13} />
+        {s.result || "Answer"}
+      </span>
+      {s.ready ? (
+        <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm zp-skill__use" onClick={() => onUse(s)} aria-label={`Use ${s.title} in the chat`}>
+          Use
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
 /** Every skill as a card, with search and the groups as tabs. */
-function Explore({ list, onOpen, onNew }: { list: Skill[]; onOpen: (key: string) => void; onNew?: () => void }) {
+function Explore({ list, onOpen, onUse, onNew }: { list: Skill[]; onOpen: (key: string) => void; onUse: (s: Skill) => void; onNew?: (scope: "workspace" | "personal") => void }) {
   const [q, setQ] = useState("");
   const [group, setGroup] = useState("all");
-  const hit = (x: Skill) => group === "all" || (group === "yours" ? x.scope !== "system" : x.group === group);
+  const mine = group === "workspace" || group === "personal";
+  const hit = (x: Skill) => group === "all" || (mine ? x.scope === group : x.scope === "system" && x.group === group);
   const found = matchSkills(list.filter(hit), q);
-  const own = list.filter((x) => x.scope !== "system");
-  const sections = [{ key: "yours", label: "Your skills", items: found.filter((x) => x.scope !== "system") }, ...GROUPS.map((g) => ({ key: g.key as string, label: g.label as string, items: found.filter((x) => x.scope === "system" && x.group === g.key) }))].filter((x) => x.items.length);
-  const tabs = [{ v: "all", l: "All", n: list.length }, ...(own.length ? [{ v: "yours", l: "Your skills", n: own.length }] : []), ...GROUPS.map((g) => ({ v: g.key as string, l: g.label as string, n: list.filter((x) => x.scope === "system" && x.group === g.key).length }))];
+  const sections = [
+    { key: "workspace", label: "Workspace", items: found.filter((x) => x.scope === "workspace") },
+    { key: "personal", label: "Personal", items: found.filter((x) => x.scope === "personal") },
+    ...GROUPS.map((g) => ({ key: g.key as string, label: g.label as string, items: found.filter((x) => x.scope === "system" && x.group === g.key) })),
+  ].filter((x) => x.items.length);
+  const count = (v: string) => list.filter((x) => (v === "workspace" || v === "personal" ? x.scope === v : x.scope === "system" && x.group === v)).length;
+  const tabs = [{ v: "all", l: "All", n: list.length }, ...GROUPS.map((g) => ({ v: g.key as string, l: g.label as string, n: count(g.key) })), { v: "workspace", l: "Workspace", n: count("workspace") }, { v: "personal", l: "Personal", n: count("personal") }];
+  const featured = group === "all" && !q.trim() ? FEATURED.map((k) => list.find((x) => x.key === k)).filter((x): x is Skill => !!x) : [];
   return (
     <div className="zp-pane__wide">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="zp-h2">Explore skills</h2>
-          <p className="mt-1 text-[13px] text-muted">Type / in the chat to use one.</p>
+          <h2 className="zp-h2">Skills</h2>
+          <p className="mt-1 text-[14px] text-muted">Pick a skill and Zippie runs it on your site. You can also type / in the chat.</p>
         </div>
         {onNew ? (
-          <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={onNew}>
+          <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => onNew(group === "workspace" ? "workspace" : "personal")}>
             <Icon d={I.plus} size={13} /> New skill
           </button>
         ) : null}
@@ -186,32 +179,41 @@ function Explore({ list, onOpen, onNew }: { list: Skill[]; onOpen: (key: string)
       </label>
       <div className="zp-tabs" role="tablist" aria-label="Skill groups">
         {tabs.map((t) => (
-          <button key={t.v} type="button" role="tab" className="zp-tab" aria-selected={group === t.v} onClick={() => setGroup(t.v)}>
+          <button key={t.v} type="button" role="tab" className={`zp-tab ${t.v === "workspace" ? "zp-tab--split" : ""}`} aria-selected={group === t.v} onClick={() => setGroup(t.v)}>
             {t.l}
             <span className="text-faint">{t.n}</span>
           </button>
         ))}
       </div>
+      {featured.length ? (
+        <div className="zp-skills zp-skills--big">
+          {featured.map((x) => (
+            <SkillCard key={x.key} s={x} big onOpen={onOpen} onUse={onUse} />
+          ))}
+        </div>
+      ) : null}
       {sections.length ? (
         sections.map((sec) => (
-          <div key={sec.key} className="mt-4">
-            <p className="zp-lbl pb-2">{sec.label}</p>
-            <div className="zp-grid">
+          <div key={sec.key} className="mt-7">
+            {mine ? null : (
+              <h3 className="zp-skills__head">
+                {sec.label}
+                <span>{sec.items.length}</span>
+              </h3>
+            )}
+            <div className="zp-skills">
               {sec.items.map((x) => (
-                <button key={x.key} type="button" className="zp-skillcard" onClick={() => onOpen(x.key)}>
-                  <span className="flex items-start gap-2">
-                    <span className="min-w-0 flex-1 text-[13px] font-medium text-ink wrap-break-word">{x.title}</span>
-                    {x.scope !== "system" ? <span className="zp-badge zp-badge--brand">{SCOPE[x.scope]}</span> : null}
-                    <span className={`zp-badge ${SPEED[x.speed].cls}`}>{SPEED[x.speed].label}</span>
-                  </span>
-                  <span className="text-[12px] leading-relaxed text-muted wrap-break-word">{short(x.description) || "No description yet"}</span>
-                </button>
+                <SkillCard key={x.key} s={x} onOpen={onOpen} onUse={onUse} />
               ))}
             </div>
           </div>
         ))
+      ) : mine && !q.trim() ? (
+        <EmptyNote drawing="gears" action={onNew ? <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => onNew(group as "workspace" | "personal")}><Icon d={I.plus} size={13} /> New skill</button> : undefined}>
+          {group === "workspace" ? "Skills you make for the whole team show up here." : "Skills only you can see show up here."}
+        </EmptyNote>
       ) : (
-        <p className="py-10 text-center text-[13px] text-muted">No matches</p>
+        <p className="py-10 text-center text-[13px] text-muted">No skills match {`"${q.trim()}"`}.</p>
       )}
     </div>
   );
@@ -253,7 +255,7 @@ function Detail({ skill, file, onFile, editable, onUse, onCopy, onDeleted, onExp
           ← Skills
         </button>
         <span className={`zp-badge ${skill.scope === "workspace" ? "zp-badge--brand" : ""}`}>{SCOPE[skill.scope]}</span>
-        <span className={`zp-badge ${SPEED[parsed.head.speed].cls}`}>{SPEED[parsed.head.speed].label}</span>
+        <span className="zp-badge">{SPEED[parsed.head.speed]}</span>
         {!skill.ready ? <span className="zp-badge zp-badge--warn">Soon</span> : null}
         {editable ? <span className="text-[12px] text-faint">{state === "saving" ? "Saving" : state === "unsaved" ? "Not saved" : state === "saved" ? "Saved" : ""}</span> : null}
         <span className="ml-auto flex flex-wrap items-center gap-2">
@@ -301,7 +303,7 @@ function Detail({ skill, file, onFile, editable, onUse, onCopy, onDeleted, onExp
       </div>
       <h2 className="zp-stitle">
         <span className="zp-stitle__box">
-          <Icon d={I.box} size={18} />
+          <Drawing kind={artOf(skill)} size={64} crop />
         </span>
         <span className="min-w-0 wrap-break-word">{parsed.title || skill.title}</span>
       </h2>
