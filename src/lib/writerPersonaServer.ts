@@ -76,7 +76,7 @@ export async function savePersona(
     ...(!keepSample && (input.postText ?? "").trim().length >= 300 ? { sample_text: input.postText!.slice(0, 9000) } : {}),
   };
   const { error } = await db.from("brand_voices").upsert(row, { onConflict: "brand_id" });
-  if (error) throw new Error(/persona/.test(error.message) ? "Run supabase/087_writer_persona.sql first." : error.message);
+  if (error) throw new Error(error.message);
 
   const name = personaPageName(brand);
   const content = personaMarkdown(brand, input.persona, input.stats);

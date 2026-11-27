@@ -4,10 +4,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useState } from "react";
 import type { RunAuth } from "@/lib/runner";
 import { EmptyScreen } from "../Drawing";
-import { Thinking } from "../ui";
+import { ErrorNote, Thinking } from "../ui";
 import { Confirm, Modal } from "./Dialog";
 import { LinkSettings, type LinkLock } from "./LinkSettings";
-import { ago, errText, post } from "./reportApi";
+import { ago, post } from "./reportApi";
+import { errorText } from "@/lib/errors";
 
 // Reports → Links (docs/reports.md, section 32.7): every link shared from the app, with its views. Editors add a
 // password or an expiry date, or revoke a link so it stops opening at once.
@@ -31,7 +32,7 @@ export function LinksTab({ sb, auth, brands, canEdit, secure }: { sb: SupabaseCl
 
   const load = useCallback(async () => {
     const { data, error: e } = await sb.from("report_links").select(COLS).eq("workspace_id", auth.workspaceId).order("created_at", { ascending: false }).limit(200);
-    if (e) setError(/report_links/.test(e.message) ? "Run supabase/043_reports.sql in Supabase." : e.message);
+    if (e) setError(errorText(e));
     else {
       setNow(Date.now());
       setLinks((data ?? []) as unknown as LinkRow[]);
@@ -62,13 +63,13 @@ export function LinksTab({ sb, auth, brands, canEdit, secure }: { sb: SupabaseCl
       patch(l.id, { revoked_at: new Date().toISOString() });
       setRevoking(null);
     } catch (e) {
-      setError(errText(e));
+      setError(errorText(e));
     } finally {
       setBusy(false);
     }
   }
 
-  if (!links) return error ? <p className="aw-error max-w-2xl">{error}</p> : <Thinking text="Loading your links..." />;
+  if (!links) return error ? <ErrorNote error={error} className="max-w-2xl" /> : <Thinking text="Loading your links..." />;
   const brandName = (id: string | null) => brands.find((b) => b.id === id)?.name ?? "–";
   const state = (l: LinkRow) =>
     l.revoked_at ? (
@@ -81,7 +82,7 @@ export function LinksTab({ sb, auth, brands, canEdit, secure }: { sb: SupabaseCl
 
   return (
     <>
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
       {!links.length ? (
         <EmptyScreen drawing="link" title="Links you share land here" fill={false}>
           Click Share on Prompts or Competitors to make one.

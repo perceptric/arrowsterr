@@ -1,6 +1,7 @@
 import { accessToken, listProperties } from "@/lib/google";
 import { adminClient, requireRole } from "@/lib/serverAuth";
 import { queueSyncNow } from "@/lib/seoAnalyticsServer";
+import { errorResponse } from "@/lib/errorsServer";
 
 // Google Analytics for one brand, after sign-in. Picking a property starts the Analytics sync.
 //   action "properties": every GA4 property the account can read. Editors only.
@@ -35,6 +36,6 @@ export async function POST(request: Request) {
     }
     return Response.json({ properties: list });
   } catch (e) {
-    return Response.json({ error: e instanceof Error ? e.message : String(e) }, { status: 500 });
+    return errorResponse(e, "api/ga4");
   }
 }

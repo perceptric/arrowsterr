@@ -8,6 +8,8 @@ import { CMS, type CmsConnection, type CmsKind } from "@/lib/cmsTypes";
 import { authorizeUrl, siteAddress, WP_ANSWER_KEY, type WpAnswer } from "@/lib/wpAuthorize";
 import type { RunAuth } from "@/lib/runner";
 import { Modal } from "./reports/Dialog";
+import { errorText, httpError } from "@/lib/errors";
+import { ErrorNote } from "./ui";
 
 async function call<T>(auth: RunAuth, body: Record<string, unknown>): Promise<T> {
   const res = await fetch("/api/cms", {
@@ -15,8 +17,8 @@ async function call<T>(auth: RunAuth, body: Record<string, unknown>): Promise<T>
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${await auth.token()}` },
     body: JSON.stringify({ ...body, workspaceId: auth.workspaceId }),
   });
-  const out = await res.json().catch(() => ({ error: `The server returned ${res.status}.` }));
-  if (!res.ok) throw new Error(out.error ?? `The server returned ${res.status}.`);
+  const out = await res.json().catch(() => ({}));
+  if (!res.ok) throw httpError(res.status, out);
   return out as T;
 }
 
@@ -91,7 +93,7 @@ export function ConnectWizard({
       track("cms_connected", { kind: spec.id, one_click: Boolean(given) });
       onConnected(r.connection);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(errorText(err));
     } finally {
       setBusy(false);
     }
@@ -154,7 +156,7 @@ export function ConnectWizard({
         track("cms_connected", { kind, one_click: true });
         onConnected(c);
       } catch (err) {
-        setError(err instanceof Error ? err.message : String(err));
+        setError(errorText(err));
       }
     };
     window.addEventListener("message", onMessage);
@@ -173,7 +175,7 @@ export function ConnectWizard({
       setSigning(kind);
     } catch (err) {
       w.close();
-      setError(err instanceof Error ? err.message : String(err));
+      setError(errorText(err));
     }
   }
 
@@ -254,7 +256,7 @@ export function ConnectWizard({
             <span className="aw-label">Site address</span>
             <input autoFocus value={form.siteUrl ?? ""} onChange={(e) => setForm({ ...form, siteUrl: e.target.value })} placeholder="example.com" className="aw-input py-2! text-[14px]!" />
           </label>
-          {error ? <p className="aw-error">{error}</p> : null}
+          {error ? <ErrorNote error={error} /> : null}
           <div className="flex items-center justify-between gap-2">
             <button type="button" className="aw-btn aw-btn--ghost aw-btn--sm" onClick={() => (platform ? onClose() : setKind(null))}>
               {platform ? "Cancel" : "Back"}
@@ -278,7 +280,7 @@ export function ConnectWizard({
               <input autoFocus value={form.shop ?? ""} onChange={(e) => setForm({ ...form, shop: e.target.value })} placeholder="acme.myshopify.com" className="aw-input py-2! text-[14px]!" />
             </label>
           ) : null}
-          {error ? <p className="aw-error">{error}</p> : null}
+          {error ? <ErrorNote error={error} /> : null}
           <div className="flex items-center justify-between gap-2">
             <button type="button" className="aw-btn aw-btn--ghost aw-btn--sm" onClick={() => (platform ? onClose() : setKind(null))}>
               {platform ? "Cancel" : "Back"}
@@ -323,7 +325,7 @@ export function ConnectWizard({
               ) : null}
             </label>
           ))}
-          {error ? <p className="aw-error">{error}</p> : null}
+          {error ? <ErrorNote error={error} /> : null}
           <div className="flex justify-between gap-2">
             <button type="button" className="aw-btn aw-btn--ghost aw-btn--sm" onClick={() => (platform ? onClose() : setKind(null))}>
               {platform ? "Cancel" : "Back"}

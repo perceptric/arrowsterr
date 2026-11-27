@@ -4,9 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import { askConfirm, askText } from "@/components/Dialogs";
 import { EmptyNote } from "../Drawing";
 import { Markdown } from "../Markdown";
-import { I, Icon, msgOf, readFile } from "./Cards";
+import { I, Icon, readFile } from "./Cards";
 import { useZippie, type KnowledgeRow } from "./ZippieContext";
-import { BusyButton } from "../ui";
+import { BusyButton, ErrorNote } from "../ui";
+import { errorText } from "@/lib/errors";
 
 export const TREE_W = 288;
 
@@ -52,7 +53,7 @@ export function KnowledgePage() {
       z.reloadLib();
       open(r.item.id);
     } catch (e) {
-      setError(msgOf(e));
+      setError(errorText(e));
     }
   }
   async function upload(list: FileList | null) {
@@ -63,7 +64,7 @@ export function KnowledgePage() {
       try {
         await z.api("/api/ask/library", { action: "knowledge_add", kind: "file", ...(await readFile(f)) });
       } catch (e) {
-        setError(msgOf(e));
+        setError(errorText(e));
       }
     }
     setBusy("");
@@ -79,7 +80,7 @@ export function KnowledgePage() {
       z.reloadLib();
       open(r.item.id);
     } catch (e) {
-      setError(msgOf(e));
+      setError(errorText(e));
     }
     setBusy("");
   }
@@ -131,7 +132,7 @@ export function KnowledgePage() {
       </aside>
       <section className="zp-pane">
         {busy ? <p className="mx-6 mt-4 text-[13px] text-muted">{busy}...</p> : null}
-        {error ? <div className="aw-error mx-6 mt-4">{error}</div> : null}
+        {error ? <ErrorNote error={error} className="mx-6 mt-4" /> : null}
         {current ? (
           <Page key={current.id} doc={current} onDeleted={() => (z.reloadLib(), open(""))} />
         ) : (
@@ -172,7 +173,7 @@ function Page({ doc, onDeleted }: { doc: KnowledgeRow; onDeleted: () => void }) 
         setBody(r.item.content);
         if (!r.item.content.trim() && editable) setMode("edit");
       })
-      .catch((e) => setError(msgOf(e)));
+      .catch((e) => setError(errorText(e)));
     // Once per page.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [doc.id]);
@@ -189,7 +190,7 @@ function Page({ doc, onDeleted }: { doc: KnowledgeRow; onDeleted: () => void }) 
         setError("");
         z.reloadLib();
       } catch (e) {
-        setError(msgOf(e));
+        setError(errorText(e));
         setState("Not saved");
       }
     }, 900);
@@ -224,7 +225,7 @@ function Page({ doc, onDeleted }: { doc: KnowledgeRow; onDeleted: () => void }) 
                   await z.api("/api/ask/library", { action: "knowledge_delete", id: doc.id });
                   onDeleted();
                 } catch (e) {
-                  setError(msgOf(e));
+                  setError(errorText(e));
                 }
               }}
             >
@@ -244,7 +245,7 @@ function Page({ doc, onDeleted }: { doc: KnowledgeRow; onDeleted: () => void }) 
         }}
         className="zp-kn-title tw-bare"
       />
-      {error ? <div className="aw-error mt-2">{error}</div> : null}
+      {error ? <ErrorNote error={error} className="mt-2" /> : null}
       <div className="zp-filebox">
         {body === null ? (
           <p className="px-5 py-4 text-[13px] text-muted">Opening...</p>

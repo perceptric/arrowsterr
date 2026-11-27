@@ -3,10 +3,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { BriefStatus, WriterBrief } from "./writerBrief.ts";
 import type { DraftStatus, ModuleState, Section } from "./writerDraft.ts";
+import { NOT_READY } from "@/lib/errors";
 
-const NOT_RUN = "Run supabase/050_agentic_writer.sql in Supabase.";
 const check = <T>(r: { data: T; error: { message: string } | null }) => {
-  if (r.error) throw new Error(/writer_/.test(r.error.message) ? NOT_RUN : r.error.message);
+  if (r.error) throw new Error(/writer_/.test(r.error.message) ? NOT_READY : r.error.message);
   return r.data;
 };
 

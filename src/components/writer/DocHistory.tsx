@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { docToHtml } from "@/lib/docHtml";
 import { ago, getVersion, listVersions, saveVersion, versionName, type DocVersion, type Me } from "@/lib/docCollab";
 import { Confirm, Modal } from "../reports/Dialog";
+import { errorText } from "@/lib/errors";
 
 // An article's saved versions in Drafts: made on their own while someone edits (the article screen saves one before
 // the first edit of a visit and then every ten minutes of edits) or by hand with a name. Any version can be read and
@@ -45,7 +46,7 @@ export function DocHistory({
       setRows(await listVersions(sb, docId));
       setError("");
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     }
   }, [sb, docId]);
   useEffect(() => {
@@ -62,7 +63,7 @@ export function DocHistory({
       setLabel("");
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     } finally {
       setBusy("");
     }
@@ -73,7 +74,7 @@ export function DocHistory({
       const full = await getVersion(sb, v.id);
       setView({ v, html: docToHtml(full.content) });
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     } finally {
       setBusy("");
     }
@@ -90,7 +91,7 @@ export function DocHistory({
       setView(null);
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     } finally {
       setBusy("");
     }
@@ -115,7 +116,7 @@ export function DocHistory({
           </button>
         </form>
       ) : null}
-      {error ? <p className="text-[13px] text-muted">{error}</p> : null}
+      {error ? <p className="text-[13px] text-muted">{errorText(error)}</p> : null}
       {!rows && !error ? <p className="text-[13px] text-muted">Loading versions...</p> : null}
       {rows && !rows.length ? <p className="text-[13px] text-muted">No versions yet. One is saved before your first edit, then every ten minutes while you edit.</p> : null}
       {rows?.length ? (

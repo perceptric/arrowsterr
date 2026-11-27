@@ -67,5 +67,3 @@ export async function userIdOf(sb: SupabaseClient, request: Request): Promise<st
   return data.user?.id ?? null;
 }
 
-/** Plain text for an error that came from a missing migration. */
-export const migrationHint = (message: string) => (/report_links|reports|report_versions|relation .* does not exist/.test(message) ? `${message} Run supabase/043_reports.sql in Supabase.` : message);

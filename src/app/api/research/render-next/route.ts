@@ -1,6 +1,7 @@
 import { allowed } from "@/lib/cronAuth";
 import { leaseNextPage } from "@/lib/articleResearchServer";
 import { adminClient } from "@/lib/serverAuth";
+import { errorResponse } from "@/lib/errorsServer";
 
 // The Fly worker asks for the next page to read for article research (docs/content-v2.md, steps 2 and 3).
 // The page is leased to that worker for 90 seconds, after its address and robots.txt were checked.
@@ -15,6 +16,6 @@ export async function POST(request: Request) {
     const page = await leaseNextPage(db, worker);
     return Response.json(page ?? { idle: true });
   } catch (e) {
-    return Response.json({ error: e instanceof Error ? e.message : String(e) }, { status: 500 });
+    return errorResponse(e, "api/research/render-next");
   }
 }

@@ -6,6 +6,7 @@ import { dfsReady } from "@/lib/dataforseo";
 import { askEngine, type Engine } from "@/lib/engines";
 import { adminClient } from "@/lib/serverAuth";
 import { fetchSite, logoFor, normalizeSite } from "@/lib/site";
+import { report } from "@/lib/errorsServer";
 
 // Free AI Snapshot for arrowsterr.com: a quick look at how AI answers a brand's buyer questions.
 // Public, so it is capped: 3 new snapshots per visitor a day, a daily total (SNAPSHOT_DAILY_CAP, default 200),
@@ -82,7 +83,7 @@ Answer with JSON only: {"name": "the brand name", "category": "what it sells, in
             const a = await withTimeout(askEngine(engine, prompt), 120_000);
             return await readAnswer(engine, prompt, a, name, site.domain);
           } catch (e) {
-            return { engine, prompt, text: "", sources: [], brands: [], error: e instanceof Error ? e.message : String(e) } as Chat;
+            return { engine, prompt, text: "", sources: [], brands: [], error: report(e, "api/snapshot").error } as Chat;
           }
         }),
       ),
@@ -121,8 +122,7 @@ Answer with JSON only: {"name": "the brand name", "category": "what it sells, in
     if (row) await db.from("snapshots").update({ result }).eq("id", row.id);
     return json(request, result);
   } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    console.error("Snapshot failed:", message);
-    return json(request, { error: message.length < 160 ? message : "Something went wrong. Please try again." }, 500);
+    const r = report(e, "api/snapshot");
+    return json(request, { error: r.error, ...(r.ref ? { ref: r.ref } : {}) }, 500);
   }
 }

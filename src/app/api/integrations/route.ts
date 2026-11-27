@@ -3,9 +3,10 @@ import { makeKey } from "@/lib/apiKeys";
 import { discordSend, newKey, slackSend, teamsSend } from "@/lib/integrations";
 import { DEFAULT_ALERT_POINTS, DISCORD_HOOK, SLACK_HOOK, TEAMS_HOOK } from "@/lib/integrationTypes";
 import { adminClient, requireRole } from "@/lib/serverAuth";
+import { NOT_READY } from "@/lib/errors";
+import { errorResponse } from "@/lib/errorsServer";
 
 const err = (error: string, status = 400) => Response.json({ error }, { status });
-const SETUP = "Run supabase/024_integrations.sql in Supabase first.";
 
 // Slack, API keys and webhooks for a workspace. Secrets stay on the server; the page sees only names and prefixes.
 //   get: {}                                  viewers
@@ -35,10 +36,9 @@ export async function POST(request: Request) {
   if (typeof body.action === "string" && body.action.startsWith("brand")) {
     const { data: brand } = await auth.sb.from("brands").select("id, name").eq("id", String(body.brandId ?? "")).eq("workspace_id", ws).maybeSingle();
     if (!brand) return err("That brand is not in this workspace.", 404);
-    const BRAND_SETUP = "Run supabase/048_brand_integrations.sql in Supabase first.";
     const save = async (patch: { slack_channel?: string | null; alert_points?: number | null }) => {
       const { error } = await db.from("brand_settings").upsert({ brand_id: brand.id, workspace_id: ws, ...patch, updated_at: new Date().toISOString() }, { onConflict: "brand_id" });
-      if (error) return err(/brand_settings/.test(error.message) ? BRAND_SETUP : error.message, 500);
+      if (error) return errorResponse(error, "api/integrations");
       return Response.json({ ok: true });
     };
     if (body.action === "brandGet") {
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
         db.from("integrations").select("slack_webhook, alert_points").eq("workspace_id", ws).maybeSingle(),
         db.from("brand_settings").select("slack_channel, alert_points").eq("brand_id", brand.id).maybeSingle(),
       ]);
-      if (own.error && /brand_settings/.test(own.error.message)) return Response.json({ allowed: e.limits.alerts, setup: BRAND_SETUP });
+      if (own.error && /brand_settings/.test(own.error.message)) return Response.json({ allowed: e.limits.alerts, setup: NOT_READY });
       return Response.json({
         allowed: e.limits.alerts,
         slack: Boolean(own.data?.slack_channel),
@@ -62,7 +62,7 @@ export async function POST(request: Request) {
       try {
         await slackSend(url, `Arrowsterr alerts for ${brand.name}`, [`You'll get a message here when ${brand.name}'s AI visibility moves or a competitor overtakes it.`]);
       } catch (x) {
-        return err(`Slack said no: ${x instanceof Error ? x.message : String(x)}`);
+        return errorResponse(x, "api/integrations", { status: 400, hint: "Slack didn't accept that webhook. Check the URL." });
       }
       return save({ slack_channel: url });
     }
@@ -78,7 +78,7 @@ export async function POST(request: Request) {
       db.from("api_keys").select("*").eq("workspace_id", ws).is("revoked_at", null).order("created_at"),
       db.from("webhooks").select("id, url, event, source, created_at").eq("workspace_id", ws).order("created_at"),
     ]);
-    if (cfg.error && /integrations/.test(cfg.error.message)) return Response.json({ allowed: e.limits.alerts, mcp: e.limits.mcp, setup: SETUP });
+    if (cfg.error && /integrations/.test(cfg.error.message)) return Response.json({ allowed: e.limits.alerts, mcp: e.limits.mcp, setup: NOT_READY });
     return Response.json({
       allowed: e.limits.alerts,
       mcp: e.limits.mcp,
@@ -107,11 +107,11 @@ export async function POST(request: Request) {
     try {
       await slackSend(url, "Arrowsterr is connected", ["You'll get a message here when your AI visibility moves or a competitor overtakes you."]);
     } catch (x) {
-      return err(`Slack said no: ${x instanceof Error ? x.message : String(x)}`);
+      return errorResponse(x, "api/integrations", { status: 400, hint: "Slack didn't accept that webhook. Check the URL." });
     }
     const points = Math.min(50, Math.max(1, Number(body.points) || 5));
     const { error } = await db.from("integrations").upsert({ workspace_id: ws, slack_webhook: url, alert_points: points, updated_at: new Date().toISOString() });
-    if (error) return err(/integrations/.test(error.message) ? SETUP : error.message, 500);
+    if (error) return errorResponse(error, "api/integrations");
     return Response.json({ ok: true });
   }
   if (body.action === "teams" || body.action === "discord") {
@@ -121,10 +121,10 @@ export async function POST(request: Request) {
     try {
       await (teams ? teamsSend : discordSend)(url, "Arrowsterr is connected", ["You'll get a message here when your AI visibility moves or a competitor overtakes you."]);
     } catch (x) {
-      return err(`${teams ? "Teams" : "Discord"} said no: ${x instanceof Error ? x.message : String(x)}`);
+      return errorResponse(x, "api/integrations", { status: 400, hint: `${teams ? "Teams" : "Discord"} didn't accept that webhook. Check the URL.` });
     }
     const { error } = await db.from("integrations").upsert({ workspace_id: ws, [teams ? "teams_webhook" : "discord_webhook"]: url, updated_at: new Date().toISOString() });
-    if (error) return err(/teams_webhook|discord_webhook/.test(error.message) ? "Run supabase/091_team_chat_alerts.sql in Supabase first." : /integrations/.test(error.message) ? SETUP : error.message, 500);
+    if (error) return errorResponse(error, "api/integrations");
     return Response.json({ ok: true });
   }
   if (body.action === "teamsOff" || body.action === "discordOff") {
@@ -138,14 +138,14 @@ export async function POST(request: Request) {
   if (body.action === "points") {
     const points = Math.min(50, Math.max(1, Number(body.points) || 5));
     const { error } = await db.from("integrations").upsert({ workspace_id: ws, alert_points: points, updated_at: new Date().toISOString() });
-    if (error) return err(/integrations/.test(error.message) ? SETUP : error.message, 500);
+    if (error) return errorResponse(error, "api/integrations");
     return Response.json({ ok: true });
   }
   if (body.action === "key") {
     const name = String(body.name ?? "").trim().slice(0, 60) || "API key";
     const k = newKey();
     const { data, error } = await db.from("api_keys").insert({ workspace_id: ws, name, prefix: k.prefix, hash: k.hash, created_by: auth.userId }).select("id, name, prefix, created_at, last_used_at").single();
-    if (error) return err(/api_keys/.test(error.message) ? SETUP : error.message, 500);
+    if (error) return errorResponse(error, "api/integrations");
     return Response.json({ key: k.key, row: data });
   }
   if (body.action === "partnerKey") {
@@ -155,7 +155,7 @@ export async function POST(request: Request) {
     const name = String(body.name ?? "").trim().slice(0, 60) || "Partner key";
     const k = makeKey("partner");
     const { data, error } = await db.from("api_keys").insert({ workspace_id: ws, name, prefix: k.prefix, hash: k.hash, created_by: auth.userId, partner: true }).select("id, name, prefix, created_at, last_used_at").single();
-    if (error) return err(/partner/.test(error.message) ? "Run supabase/098_partner.sql in Supabase first." : error.message, 500);
+    if (error) return errorResponse(error, "api/integrations");
     return Response.json({ key: k.key, row: { ...data, partner: true } });
   }
   if (body.action === "unhook") {

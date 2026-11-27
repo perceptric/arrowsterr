@@ -4,6 +4,7 @@ import { requireTrack, take } from "@/lib/entitlements";
 import { meteredRoute } from "@/lib/meter";
 import { TASK_COST } from "@/lib/plans";
 import { requireRole } from "@/lib/serverAuth";
+import { errorResponse } from "@/lib/errorsServer";
 
 // SERP analysis for one Content Plan piece: Google's top 10 in the brand's market, every page read.
 // Saved on the piece. A brief written later reads it; a brief written before gets it copied in.
@@ -17,7 +18,7 @@ async function handle(request: Request) {
   if (!dfsReady()) return Response.json({ error: "DataForSEO is not set up. Add DFS_LOGIN and DFS_PASSWORD to the server's settings." }, { status: 500 });
 
   const { data: item, error } = await auth.sb.from("calendar_items").select("id").eq("id", body.itemId).eq("workspace_id", body.workspaceId).maybeSingle();
-  if (error) return Response.json({ error: error.message }, { status: 500 });
+  if (error) return errorResponse(error, "api/research/serp");
   if (!item) return Response.json({ error: "Content Plan item not found." }, { status: 404 });
 
   const took = await take(body.workspaceId, "tasks", TASK_COST.serp, { refundIfFree: false });
@@ -27,9 +28,7 @@ async function handle(request: Request) {
     return Response.json(out);
   } catch (e) {
     await took.giveBack();
-    const message = e instanceof Error ? e.message : String(e);
-    console.error("SERP analysis failed:", message);
-    return Response.json({ error: message }, { status: 500 });
+    return errorResponse(e, "api/research/serp");
   }
 }
 

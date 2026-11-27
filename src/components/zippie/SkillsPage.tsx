@@ -6,9 +6,10 @@ import { blankSkill, copyFiles, MAIN, matchSkills, parseSkill, type Skill } from
 import { GROUPS } from "@/lib/skills/defs/shared";
 import { Drawing, EmptyNote, type DrawingKind } from "../Drawing";
 import { Markdown } from "../Markdown";
-import { toast } from "../ui";
-import { I, Icon, msgOf } from "./Cards";
+import { ErrorNote, toast } from "../ui";
+import { I, Icon } from "./Cards";
 import { useZippie } from "./ZippieContext";
+import { errorText } from "@/lib/errors";
 
 // Skills: every skill as a card with its picture (the isometric art from the empty screens), with search and the
 // groups as tabs. Clicking a card opens the skill and its files; Use puts it in the chat box. Your own skills edit in
@@ -79,14 +80,14 @@ export function SkillsPage() {
       z.reloadLib();
       open(r.id);
     } catch (e) {
-      setError(msgOf(e));
+      setError(errorText(e));
     }
   }
 
   return (
     <div className="zp-split">
       <section className="zp-pane">
-        {error ? <div className="aw-error mx-6 mt-4">{error}</div> : null}
+        {error ? <ErrorNote error={error} className="mx-6 mt-4" /> : null}
         {current ? (
           <Detail
             key={current.key}
@@ -241,7 +242,7 @@ function Detail({ skill, file, onFile, editable, onUse, onCopy, onDeleted, onExp
         setError("");
         z.reloadLib();
       } catch (e) {
-        setError(msgOf(e));
+        setError(errorText(e));
         setState("unsaved");
       }
     }, 900);
@@ -292,7 +293,7 @@ function Detail({ skill, file, onFile, editable, onUse, onCopy, onDeleted, onExp
                   await z.api("/api/ask/library", { action: "skill_delete", id: skill.key });
                   onDeleted();
                 } catch (e) {
-                  setError(msgOf(e));
+                  setError(errorText(e));
                 }
               }}
             >
@@ -333,7 +334,7 @@ function Detail({ skill, file, onFile, editable, onUse, onCopy, onDeleted, onExp
           </>
         ) : null}
       </dl>
-      {error ? <div className="aw-error mt-3">{error}</div> : null}
+      {error ? <ErrorNote error={error} className="mt-3" /> : null}
       <div className="zp-filebox">
         <div className="zp-filebox__head">
           <Icon d={file === MAIN ? I.box : I.file} size={13} />

@@ -6,7 +6,8 @@ import type { RunAuth } from "@/lib/runner";
 import { useStash } from "@/lib/stash";
 import { BrandLogo } from "./BrandLogo";
 import { EmptyNote } from "./Drawing";
-import { favicon, guessDomain, Thinking, Tip } from "./ui";
+import { ErrorNote, favicon, guessDomain, Thinking, Tip } from "./ui";
+import { errorText, httpError } from "@/lib/errors";
 
 // "Where AI gets its facts": the picked brand and its top competitors on Wikipedia, Wikidata,
 // Trustpilot and Google Business Profile. Wikipedia is free and loads on open. Review sites are
@@ -180,7 +181,7 @@ export function PresencePanel({ brand, rivals, reader, canCheck }: { brand: { id
       body: JSON.stringify({ workspaceId: reader.workspaceId, brandId: brand.id, competitors: JSON.parse(key), action }),
     }).catch(() => null);
     const out = res ? await res.json().catch(() => null) : null;
-    if (!res?.ok || !out?.brands) throw new Error(out?.error ?? "Couldn't load this right now. Try again in a minute.");
+    if (!res?.ok || !out?.brands) throw res && !res.ok ? httpError(res.status, out) : new Error("Couldn't load this right now. Try again in a minute.");
     return out as Data;
   };
 
@@ -194,7 +195,7 @@ export function PresencePanel({ brand, rivals, reader, canCheck }: { brand: { id
         setError(null);
       })
       .catch((e) => {
-        if (live) setError(e instanceof Error ? e.message : String(e));
+        if (live) setError(errorText(e));
       })
       .finally(() => {
         if (live) setLoaded(`${brand.id}:${key}`);
@@ -227,7 +228,7 @@ export function PresencePanel({ brand, rivals, reader, canCheck }: { brand: { id
       setData(await ask("check"));
       setPolls(0);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     } finally {
       setBusy(false);
     }
@@ -249,7 +250,7 @@ export function PresencePanel({ brand, rivals, reader, canCheck }: { brand: { id
           </button>
         ) : null}
       </div>
-      {error ? <p className="aw-error m-5">{error}</p> : null}
+      {error ? <ErrorNote error={error} className="m-5" /> : null}
       {!data && loading ? (
         <div className="p-5">
           <Thinking text="Looking up Wikipedia and review sites" />

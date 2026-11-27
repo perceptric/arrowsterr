@@ -1,5 +1,6 @@
 import { crawlerData } from "@/lib/aiCrawlersServer";
 import { adminClient, requireRole } from "@/lib/serverAuth";
+import { errorResponse } from "@/lib/errorsServer";
 
 // The AI crawler report for one brand's site (Visitors page): which AI bots read which pages, from Cloudflare
 // or the Arrowsterr Connector plugin on WordPress. Viewers can read it; fresh: true skips the 15-minute cache.
@@ -15,8 +16,6 @@ export async function POST(request: Request) {
   try {
     return Response.json(await crawlerData(db, brand.workspace_id as string, { id: brand.id as string, domain: brand.domain as string, partner: Boolean(brand.created_by_key) }, days, body.fresh === true));
   } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    console.error("AI crawlers failed:", message);
-    return Response.json({ error: message.slice(0, 300) }, { status: 500 });
+    return errorResponse(e, "api/crawlers");
   }
 }

@@ -3,7 +3,9 @@
 import { useState } from "react";
 import type { RunAuth } from "@/lib/runner";
 import { DateField } from "../Pickers";
-import { errText, post } from "./reportApi";
+import { post } from "./reportApi";
+import { errorText } from "@/lib/errors";
+import { ErrorNote } from "../ui";
 
 // A shared link's password and expiry date (docs/reports.md, section 32.7). Adding either is on Pro and up;
 // removing works on every plan. Used in the Share window and in Reports → Links.
@@ -29,7 +31,7 @@ export function LinkSettings({ auth, link, secure, onSaved }: { auth: RunAuth; l
       setSaved(true);
       onSaved(l);
     } catch (e) {
-      setError(errText(e));
+      setError(errorText(e));
     } finally {
       setBusy(false);
     }
@@ -60,7 +62,7 @@ export function LinkSettings({ auth, link, secure, onSaved }: { auth: RunAuth; l
           />
         </label>
       </div>
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
       <div className="flex flex-wrap items-center justify-end gap-3">
         {saved && !changed ? <span className="text-[13px] text-muted">Saved</span> : null}
         {link.locked ? (

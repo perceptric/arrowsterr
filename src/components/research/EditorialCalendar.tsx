@@ -14,7 +14,7 @@ import { usePoll } from "../writer/parts";
 import { useWriteActions, WriteButton } from "../writer/WriteButton";
 import { Sheet, type Col, type Edit } from "../Sheet";
 import { Confirm } from "../reports/Dialog";
-import { BusyButton, SidePanel, Thinking } from "../ui";
+import { BusyButton, ErrorNote, SidePanel, Thinking } from "../ui";
 import { CalendarGrid, TopicSidebar } from "./CalendarGrid";
 import { KeywordDeepDive } from "./KeywordDeepDive";
 import { DayPanel } from "./DayPanel";
@@ -532,7 +532,7 @@ export function EditorialCalendar({
   if (!built)
     return (
       <div className="flex flex-col gap-5">
-        {error ? <p className="aw-error">{error}</p> : null}
+        {error ? <ErrorNote error={error} /> : null}
         {head}
         {progress}
         <EmptyScreen
@@ -596,8 +596,8 @@ export function EditorialCalendar({
   }
   return (
     <div className="flex flex-col gap-5">
-      {error ? <p className="aw-error">{error}</p> : null}
-      {actions.error ? <p className="aw-error">{actions.error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
+      {actions.error ? <ErrorNote error={actions.error} /> : null}
       {head}
       {progress}
       {!items.length && lastDone && !running ? (

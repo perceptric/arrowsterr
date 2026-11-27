@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import type { RunAuth } from "@/lib/runner";
 import { type VoiceStats, type WriterPersona } from "@/lib/writerPersona";
 import { post } from "./research/shared";
-import { Glyph, Thinking, type GlyphName } from "./ui";
+import { ErrorNote, Glyph, Thinking, type GlyphName } from "./ui";
+import { errorText } from "@/lib/errors";
 
 // The writer persona card (docs/zippie-skills-plan.md, section 4): the persona, the reader, the point of view, the
 // tone and sentences. Read it, or edit it.
@@ -107,7 +108,7 @@ export function WriterPersonaSettings({ auth, brand, canEdit }: { auth: RunAuth;
         setStats(r.stats);
         setSetup(r.setup ?? "");
       })
-      .catch((e) => live && (setPersona(null), setError(e instanceof Error ? e.message : String(e))));
+      .catch((e) => live && (setPersona(null), setError(errorText(e))));
     return () => {
       live = false;
     };
@@ -126,7 +127,7 @@ export function WriterPersonaSettings({ auth, brand, canEdit }: { auth: RunAuth;
       setDirty(true);
       setEdit(false);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     } finally {
       setBusy("");
     }
@@ -140,7 +141,7 @@ export function WriterPersonaSettings({ auth, brand, canEdit }: { auth: RunAuth;
       setDirty(false);
       setEdit(false);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     } finally {
       setBusy("");
     }
@@ -168,7 +169,7 @@ export function WriterPersonaSettings({ auth, brand, canEdit }: { auth: RunAuth;
         ) : null}
       </div>
       {setup ? <div className="aw-callout">{setup}</div> : null}
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
       {busy === "build" ? <Thinking text={`Reading ${brand.domain ?? "your site"} and its posts...`} /> : null}
       {persona ? (
         <PersonaCard

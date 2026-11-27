@@ -9,13 +9,13 @@ import { avatarFromFile } from "./WorkspaceAvatar";
 import { getProfile, saveProfile, type UserProfile } from "@/lib/db";
 import { recordUndo } from "@/lib/undo";
 import { passwordProblem } from "@/lib/passwordCheck";
-import { BusyButton } from "./ui";
+import { BusyButton, ErrorNote } from "./ui";
+import { errorText } from "@/lib/errors";
 
-const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
 /** A saved note or an error, shown at the top of a settings page. */
 function Status({ error, saved }: { error: string; saved: string }) {
-  if (error) return <p className="aw-error">{error}</p>;
+  if (error) return <ErrorNote error={error} />;
   if (saved) return <p className="aw-callout text-[15px]!">{saved}</p>;
   return null;
 }
@@ -70,7 +70,7 @@ export function ProfileSettings({ sb, user }: { sb: SupabaseClient; user: User }
       await fn();
       setSaved(done);
     } catch (e) {
-      setError(message(e));
+      setError(errorText(e));
     } finally {
       setBusy(false);
     }
@@ -112,7 +112,7 @@ export function ProfileSettings({ sb, user }: { sb: SupabaseClient; user: User }
                     try {
                       await photo(await avatarFromFile(file));
                     } catch (err) {
-                      setError(message(err));
+                      setError(errorText(err));
                     }
                   }}
                 />
@@ -225,7 +225,7 @@ function PasskeySection({ sb }: { sb: SupabaseClient }) {
   async function remove(id: string) {
     if (!(await askConfirm({ title: "Remove this passkey?", text: "You won't be able to sign in with it anymore.", action: "Remove" }))) return;
     const { error: err } = await sb.auth.passkey.delete({ passkeyId: id });
-    if (err) setError(err.message);
+    if (err) setError(errorText(err));
     await load();
   }
 
@@ -237,7 +237,7 @@ function PasskeySection({ sb }: { sb: SupabaseClient }) {
         </h3>
         <p className="aw-small mt-1">Sign in with Face ID, Touch ID, Windows Hello or a security key. No password to type, and nothing a fake site can steal.</p>
       </div>
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
       {keys?.length ? (
         <ul className="flex flex-col divide-y divide-rule-faint rounded-aw border border-rule-faint">
           {keys.map((k) => (
@@ -340,7 +340,7 @@ export function SecuritySettings({ sb, user }: { sb: SupabaseClient; user: User 
       await fn();
       setSaved(done);
     } catch (e) {
-      setError(message(e));
+      setError(errorText(e));
     } finally {
       setBusy(false);
     }
@@ -561,7 +561,7 @@ export function NotificationSettings({ sb, wsId, wsName, userId, alertsOnPlan }:
     const { error: err } = await sb.from("notification_prefs").upsert({ workspace_id: wsId, user_id: userId, ...next, updated_at: new Date().toISOString() }, { onConflict: "workspace_id,user_id" });
     if (err) {
       setPrefs(was);
-      setError(err.message);
+      setError(errorText(err));
     } else recordUndo({ label: "the email change", undo: () => set(was, next), redo: () => set(next, was) });
   }
 
@@ -571,7 +571,7 @@ export function NotificationSettings({ sb, wsId, wsName, userId, alertsOnPlan }:
       <p className="text-[15px] text-body">
         Emails from <strong className="text-ink">{wsName}</strong>, sent to you only. Each person in the workspace picks their own.
       </p>
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
       <div className="aw-table-wrap">
         <table className="aw-table">
           <tbody>

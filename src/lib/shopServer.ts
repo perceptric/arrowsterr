@@ -164,7 +164,7 @@ export async function merchantConnected(db: SupabaseClient, s: { brandId: string
     .upsert({ workspace_id: s.workspaceId, brand_id: s.brandId, kind: "merchant", refresh_token: sealed, email, status: "new", error: null, created_by: s.userId }, { onConflict: "brand_id,kind" })
     .select("id")
     .single();
-  if (error) throw new Error(error.message + (/shop_sources/.test(error.message) ? " Run supabase/079_ai_shopping.sql." : ""));
+  if (error) throw new Error(error.message);
   const accounts = await merchantAccounts(sealed).catch(() => []);
   if (accounts.length === 1) await pickMerchantAccount(db, data.id, s.workspaceId, accounts[0]);
   await storeAdded(db, s.brandId);

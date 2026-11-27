@@ -11,6 +11,8 @@ import { statusLabel } from "@/lib/writerLibrary";
 import { useStash } from "@/lib/stash";
 import { Confirm, Modal } from "../reports/Dialog";
 import { post } from "../research/shared";
+import { errorText } from "@/lib/errors";
+import { ErrorNote } from "../ui";
 
 // Pieces the Library shares.
 
@@ -32,7 +34,7 @@ export function useBrandSite(sb: SupabaseClient, brand: Brand, canEdit: boolean)
       .then((s) => live && setSite(s))
       .catch((e) => {
         if (!live) return;
-        setError(e instanceof Error ? e.message : String(e));
+        setError(errorText(e));
         setSite(null);
       });
     return () => {
@@ -151,7 +153,7 @@ export function RegenerateDialog({
       await post(auth, "/api/agentic-writer", { action: "draft", briefId, note, confirm });
       onStarted();
     } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
+      const message = errorText(e);
       if (/edited by hand/i.test(message)) setEdited(true);
       else setError(message);
     } finally {
@@ -173,7 +175,7 @@ export function RegenerateDialog({
           Note
           <input autoFocus value={note} maxLength={300} onChange={(e) => setNote(e.target.value)} className="aw-input" placeholder="Shorter intro" />
         </label>
-        {error ? <p className="aw-error">{error}</p> : null}
+        {error ? <ErrorNote error={error} /> : null}
         <div className="flex justify-end gap-2">
           <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={onClose}>
             Cancel

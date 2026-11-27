@@ -11,7 +11,8 @@ import type { RunAuth } from "@/lib/runner";
 import { Dropdown } from "../Pickers";
 import { Modal } from "../reports/Dialog";
 import { post } from "../research/shared";
-import { Thinking } from "../ui";
+import { ErrorNote, Thinking } from "../ui";
+import { errorText } from "@/lib/errors";
 
 // Generate content, one section or all of them (docs/content-grid.md). The screen shows what each section will be
 // written from: the brief's points (edit them), the interactive module to build (or none) and a note for all.
@@ -71,7 +72,7 @@ export function GenerateDialog({
       .then((r) => live && setMissing(r.missing))
       .catch((e) => {
         if (!live) return;
-        setError(e instanceof Error ? e.message : String(e));
+        setError(errorText(e));
         setMissing([]);
       });
     return () => {
@@ -105,7 +106,7 @@ export function GenerateDialog({
         track("section_generated", { module: r.module || "none", module_failed: Boolean(out.moduleError), all: only === null });
         setState((x) => ({ ...x, [r.pair]: out.moduleError ? { s: "done", note: out.moduleError } : { s: "done" } }));
       } catch (e) {
-        setState((x) => ({ ...x, [r.pair]: { s: "failed", note: e instanceof Error ? e.message : String(e) } }));
+        setState((x) => ({ ...x, [r.pair]: { s: "failed", note: errorText(e) } }));
       }
     }
     setRunning(false);
@@ -152,12 +153,12 @@ export function GenerateDialog({
                     <span className="min-w-0 flex-1 truncate font-medium text-ink">{r.pair === 0 ? "Intro" : r.heading || "Untitled"}</span>
                     {r.hasText && r.on && !st ? <span className="tw-tag">Replaces text</span> : null}
                     {st ? (
-                      <span className={`tw-tag ${TAG[st.s][1]}`} title={st.note}>
+                      <span className={`tw-tag ${TAG[st.s][1]}`} title={st.s === "failed" ? errorText(st.note) : st.note}>
                         {TAG[st.s][0]}
                       </span>
                     ) : null}
                   </label>
-                  {st?.note ? <p className={st.s === "failed" ? "aw-error" : "text-[12px] text-muted"}>{st.note}</p> : null}
+                  {st?.note ? st.s === "failed" ? <ErrorNote error={st.note} /> : <p className="text-[12px] text-muted">{st.note}</p> : null}
                   {r.on && !st ? (
                     <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_220px]">
                       <textarea value={r.points} rows={3} onChange={(e) => set(r.pair, { points: e.target.value })} aria-label={`Points for section ${r.pair + 1}`} className="aw-input min-h-20 py-2 text-[12px]" placeholder="One point per line" />
@@ -181,7 +182,7 @@ export function GenerateDialog({
               <input value={note} maxLength={500} disabled={running} onChange={(e) => setNote(e.target.value)} className="aw-input" placeholder="Short paragraphs, name real prices" />
             </label>
           ) : null}
-          {error ? <p className="aw-error">{error}</p> : null}
+          {error ? <ErrorNote error={error} /> : null}
           <div className="flex justify-end gap-2">
             {finished ? (
               <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={onClose}>

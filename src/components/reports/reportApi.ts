@@ -1,18 +1,17 @@
 import type { RunAuth } from "@/lib/runner";
+import { httpError } from "@/lib/errors";
 
-/** POST to a report route as the signed-in member. Throws the route's error text. */
+/** POST to a report route as the signed-in member. Throws the route's error in plain words (httpError). */
 export async function post<T>(auth: RunAuth, path: string, body: Record<string, unknown>): Promise<T> {
   const res = await fetch(path, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${await auth.token()}` },
     body: JSON.stringify({ ...body, workspaceId: auth.workspaceId }),
   });
-  const out = await res.json().catch(() => ({ error: `The server returned ${res.status}.` }));
-  if (!res.ok) throw Object.assign(new Error(out.error || `Error ${res.status}`), { limit: Boolean(out.limit) });
+  const out = await res.json().catch(() => ({}));
+  if (!res.ok) throw httpError(res.status, out);
   return out as T;
 }
-
-export const errText = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
 /** "2h ago", "3d ago", or a date. */
 export function ago(iso: string | null | undefined) {

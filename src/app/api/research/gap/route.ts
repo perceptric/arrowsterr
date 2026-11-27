@@ -9,6 +9,7 @@ import { requireTrack, take } from "@/lib/entitlements";
 import { TASK_COST } from "@/lib/plans";
 import type { Gap } from "@/lib/gap";
 import { intersect, rows } from "@/lib/gapServer";
+import { errorResponse } from "@/lib/errorsServer";
 
 // Competitive analysis: the keyword gap between the site and one competitor, and suggested competitors.
 //   gap: { siteId, competitor }
@@ -22,7 +23,7 @@ async function handle(request: Request) {
   if (!dfsReady()) return Response.json({ error: "DataForSEO is not set up. Add DFS_LOGIN and DFS_PASSWORD to the server's settings." }, { status: 500 });
 
   const { data: site, error } = await auth.sb.from("sites").select("domain, profile").eq("id", body.siteId).eq("workspace_id", body.workspaceId).maybeSingle();
-  if (error) return Response.json({ error: error.message }, { status: 500 });
+  if (error) return errorResponse(error, "api/research/gap");
   if (!site) return Response.json({ error: "Website not found." }, { status: 404 });
   const you = normalizeSite(site.domain)?.domain ?? site.domain;
   const m = marketOf((site.profile as { country?: string })?.country);
@@ -52,9 +53,7 @@ async function handle(request: Request) {
     });
     return Response.json({ gap: data, you, them, cost: spend.total });
   } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    console.error("Keyword gap failed:", message);
-    return Response.json({ error: message }, { status: 500 });
+    return errorResponse(e, "api/research/gap");
   }
 }
 

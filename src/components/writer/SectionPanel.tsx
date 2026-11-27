@@ -16,6 +16,7 @@ import type { PmNode } from "@/lib/docHtml";
 import { Modal } from "../reports/Dialog";
 import { Embed, Note } from "../research/writerNodes";
 import { SidePanel } from "../ui";
+import { NOT_READY, errorText } from "@/lib/errors";
 
 // One section of an article, open in the side panel so a writer can work section by section: what the brief
 // says to write in it, then the editor (text, headings, lists, links, tables, images and HTML blocks).
@@ -73,7 +74,7 @@ export function SectionPanel({
       await saveRef.current(nodesOf(ed));
       setState({ s: "saved" });
     } catch (e) {
-      setState({ s: "error", note: e instanceof Error ? e.message : String(e) });
+      setState({ s: "error", note: errorText(e) });
     }
   };
 
@@ -122,7 +123,7 @@ export function SectionPanel({
       const path = `${workspaceId}/${docId}/${Date.now()}-${f.name.toLowerCase().replace(/[^a-z0-9.]+/g, "-")}`;
       const { error } = await sb.storage.from("doc-images").upload(path, f, { contentType: f.type, upsert: false });
       if (error) {
-        setState({ s: "error", note: /bucket|not found/i.test(error.message) ? "Run supabase/028_doc_images.sql in Supabase to turn on images." : error.message });
+        setState({ s: "error", note: /bucket|not found/i.test(error.message) ? NOT_READY : error.message });
         continue;
       }
       const src = sb.storage.from("doc-images").getPublicUrl(path).data.publicUrl;

@@ -5,9 +5,10 @@ import { take } from "@/lib/entitlements";
 import { meteredRoute } from "@/lib/meter";
 import { TASK_COST } from "@/lib/plans";
 import { requireRole, takeAnswer } from "@/lib/serverAuth";
+import { errorResponse } from "@/lib/errorsServer";
+import { NOT_READY } from "@/lib/errors";
 
 const err = (error: string, status = 400) => Response.json({ error }, { status });
-const SETUP = "Run supabase/047_brand_voice.sql in Supabase first.";
 const COLS = "brand_id, sample_urls, sample_text, voice, distilled_at, updated_at";
 const words = (s: string) => s.split(/\s+/).filter(Boolean).length;
 
@@ -25,8 +26,8 @@ async function handle(request: Request) {
 
   if (body.action === "get") {
     const { data, error } = await auth.sb.from("brand_voices").select(COLS).eq("brand_id", brand.id).maybeSingle();
-    if (error && /brand_voices/.test(error.message)) return Response.json({ row: null, setup: SETUP });
-    if (error) return err(error.message, 500);
+    if (error && /brand_voices/.test(error.message)) return Response.json({ row: null, setup: NOT_READY });
+    if (error) return errorResponse(error, "api/brand-voice");
     return Response.json({ row: data ?? null });
   }
 
@@ -47,9 +48,7 @@ async function handle(request: Request) {
       const out = await distillVoice({ name: brand.name, domain: brand.domain }, { urls, text }, kitRow?.kit ? cleanKit(kitRow.kit) : null);
       return Response.json(out);
     } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
-      console.error("Brand Voice failed:", message);
-      return err(message, 502);
+      return errorResponse(e, "api/brand-voice", { status: 502 });
     }
   }
 
@@ -57,7 +56,7 @@ async function handle(request: Request) {
     const now = new Date().toISOString();
     const row = { brand_id: brand.id, workspace_id: ws, sample_urls: urls, sample_text: text, voice: cleanVoice(body.voice), updated_at: now, ...(body.distilled ? { distilled_at: now } : {}) };
     const { data, error } = await auth.sb.from("brand_voices").upsert(row, { onConflict: "brand_id" }).select(COLS).single();
-    if (error) return err(/brand_voices/.test(error.message) ? SETUP : error.message, 500);
+    if (error) return errorResponse(error, "api/brand-voice");
     return Response.json({ row: data });
   }
 

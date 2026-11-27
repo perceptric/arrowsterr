@@ -2,6 +2,7 @@ import { getSubscription, syncSubscription } from "@/lib/billing";
 import { isPromptsLookup, isTasksLookup, isAddonLookup, lookupKey, MIXES, PROMPT_STEP, promptsLookupKey, SELF_SERVE, TASK_STEP, tasksLookupKey, type Extras, type Interval, type Mix, type PlanId } from "@/lib/plans";
 import { adminClient, requireRole } from "@/lib/serverAuth";
 import { originOf, priceFor, stripe, stripeReady, type Subscription } from "@/lib/stripe";
+import { errorResponse } from "@/lib/errorsServer";
 
 // Pick or change a plan. With no subscription yet, this opens Stripe Checkout.
 // With one, it switches the plan at once and charges or credits the difference.
@@ -23,7 +24,7 @@ export async function POST(request: Request) {
   if (body.prompts !== undefined && !(Number.isInteger(body.prompts) && body.prompts >= 0 && body.prompts <= PROMPT_STEP.max)) return Response.json({ error: `Extra prompts go from 0 to ${PROMPT_STEP.max} steps.` }, { status: 400 });
 
   const { data: ws, error } = await db.from("workspaces").select("id, name, plan_status, stripe_customer_id, stripe_subscription_id, extras").eq("id", body.workspaceId).maybeSingle();
-  if (error || !ws) return Response.json({ error: error?.message.includes("stripe") ? "Run supabase/015_billing.sql in Supabase." : error?.message ?? "Workspace not found." }, { status: 500 });
+  if (error || !ws) return errorResponse(error ?? new Error("Workspace not found."), "api/billing/checkout");
   const extras = (ws.extras ?? {}) as Extras;
   // A v5 Starter's toolset pick was free to switch; a v7 one-toolset plan was paid for, so only that one carries over.
   const mix: Mix = (body.mix as Mix | undefined) ?? (extras.limitsFrom === "v5" ? "both" : (extras.track ?? "both"));
@@ -88,6 +89,6 @@ export async function POST(request: Request) {
     });
     return Response.json({ url: session.url });
   } catch (e) {
-    return Response.json({ error: e instanceof Error ? e.message : String(e) }, { status: 500 });
+    return errorResponse(e, "api/billing/checkout");
   }
 }

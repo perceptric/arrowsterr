@@ -2,6 +2,7 @@ import { getSubscription, syncSubscription } from "@/lib/billing";
 import { forgetEntitlement } from "@/lib/entitlements";
 import { adminClient } from "@/lib/serverAuth";
 import { readEvent, type Subscription } from "@/lib/stripe";
+import { errorResponse } from "@/lib/errorsServer";
 
 // Stripe calls this on every billing change. In Stripe → Developers → Webhooks, add
 // https://YOUR-APP/api/billing/webhook with the events below, and put its signing secret in STRIPE_WEBHOOK_SECRET.
@@ -26,7 +27,7 @@ export async function POST(request: Request) {
   const { error: dupe } = await db.from("stripe_events").insert({ id: event.id, type: event.type });
   if (dupe) {
     if (dupe.code === "23505") return Response.json({ ok: true, duplicate: true });
-    if (!/stripe_events/.test(dupe.message)) return Response.json({ error: dupe.message }, { status: 500 });
+    if (!/stripe_events/.test(dupe.message)) return errorResponse(dupe, "api/billing/webhook");
   }
 
   try {
@@ -60,8 +61,6 @@ export async function POST(request: Request) {
     return Response.json({ ok: true });
   } catch (e) {
     await db.from("stripe_events").delete().eq("id", event.id);
-    const message = e instanceof Error ? e.message : String(e);
-    console.error("Stripe webhook failed:", message);
-    return Response.json({ error: message }, { status: 500 });
+    return errorResponse(e, "api/billing/webhook");
   }
 }

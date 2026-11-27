@@ -8,7 +8,8 @@ import { LADDER, mixOf, PLANS, TASK_COST, TASK_PACKS, TRACKS, type Interval, typ
 import type { RunAuth } from "@/lib/runner";
 import { IntervalSwitch, PlanGrid, type Choice } from "./PlanGrid";
 import { post } from "./research/shared";
-import { Meter } from "./ui";
+import { ErrorNote, Meter } from "./ui";
+import { errorText } from "@/lib/errors";
 
 export const SALES = "mailto:sales@arrowsterr.com?subject=Arrowsterr%20Enterprise";
 const date = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -40,7 +41,7 @@ export function BillingPage({ sb, ws, auth, onPlan }: { sb: SupabaseClient; ws: 
   const [notice, setNotice] = useState("");
 
   const load = useCallback(async () => {
-    const p = await getPlanUsage(sb, ws.id).catch(() => null);
+    const p = await getPlanUsage(sb, ws.id).catch((e) => (setError(errorText(e)), null));
     setPlan(p);
     if (p?.interval) setCycle(p.interval);
     return p;
@@ -88,7 +89,7 @@ export function BillingPage({ sb, ws, auth, onPlan }: { sb: SupabaseClient; ws: 
         onPlan();
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     } finally {
       setBusy(null);
     }
@@ -151,7 +152,7 @@ export function BillingPage({ sb, ws, auth, onPlan }: { sb: SupabaseClient; ws: 
           </button>
         ) : null}
       </div>
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} onRetry={plan ? undefined : () => (setError(""), void load())} /> : null}
       {notice ? <p className="aw-callout text-[15px]!">{notice}</p> : null}
 
       {plan ? (

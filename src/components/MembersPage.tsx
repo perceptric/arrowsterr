@@ -7,7 +7,7 @@ import { IntegrationsSettings } from "./IntegrationsSettings";
 import type { RunAuth } from "@/lib/runner";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useState } from "react";
-import { Meter, SkeletonRows } from "./ui";
+import { ErrorNote, Meter, SkeletonRows } from "./ui";
 import { WorkspaceAvatar, avatarFromFile } from "./WorkspaceAvatar";
 import {
   atLeast,
@@ -28,6 +28,7 @@ import {
   type Usage,
   type Workspace,
 } from "@/lib/db";
+import { errorText } from "@/lib/errors";
 
 const ROLES: { id: Role; label: string; can: string }[] = [
   { id: "owner", label: "Owner", can: "Full control. Made the workspace." },
@@ -36,7 +37,6 @@ const ROLES: { id: Role; label: string; can: string }[] = [
   { id: "viewer", label: "Viewer", can: "Sees the dashboard and prompts." },
 ];
 const label = (r: Role) => ROLES.find((x) => x.id === r)?.label ?? r;
-const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 const inviteLink = (token: string) => `${window.location.origin}/?invite=${token}`;
 
 function CopyButton({ text }: { text: string }) {
@@ -95,7 +95,7 @@ export function MembersPage({
       setPlan(await getPlanUsage(sb, ws.id).catch(() => null));
       if (isAdmin) setInvites(await listInvites(sb, ws.id));
     } catch (e) {
-      setError(message(e));
+      setError(errorText(e));
     }
   }, [sb, ws.id, isAdmin]);
 
@@ -113,7 +113,7 @@ export function MembersPage({
       if (done) setSaved(done);
       await load();
     } catch (e) {
-      setError(message(e));
+      setError(errorText(e));
     }
   }
 
@@ -127,7 +127,7 @@ export function MembersPage({
 
   return (
     <div className="flex max-w-3xl flex-col gap-8">
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
       {saved ? <p className="aw-callout text-[15px]!">{saved}</p> : null}
 
       {section === "workspace" ? (

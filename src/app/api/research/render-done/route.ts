@@ -1,6 +1,7 @@
 import { allowed } from "@/lib/cronAuth";
 import { savePage } from "@/lib/articleResearchServer";
 import { adminClient } from "@/lib/serverAuth";
+import { errorResponse } from "@/lib/errorsServer";
 
 // The Fly worker sends what it read on a page: { ok: true, final_url, title, headings, body, word_count, tables, published_at },
 // or why it could not: { ok: false, reason: "timeout" | "failed" | "blocked" | "private" | "empty", error }.
@@ -17,6 +18,6 @@ export async function POST(request: Request) {
     const saved = await savePage(db, worker, id, body as Record<string, unknown>);
     return Response.json(saved, { status: saved.ok ? 200 : 409 });
   } catch (e) {
-    return Response.json({ error: e instanceof Error ? e.message : String(e) }, { status: 500 });
+    return errorResponse(e, "api/research/render-done");
   }
 }

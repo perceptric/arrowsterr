@@ -7,6 +7,8 @@ import { listWorkspaces, type Workspace } from "@/lib/db";
 import { getSupabase, type SupaConfig } from "@/lib/supa";
 import { AuthScreen } from "./AuthScreen";
 import { Logo } from "./Logo";
+import { errorText, httpError } from "@/lib/errors";
+import { ErrorNote } from "./ui";
 
 const KEY = "aw.oauth.request";
 type Ask = { client_id: string; redirect_uri: string; state: string; code_challenge: string; code_challenge_method: string };
@@ -65,11 +67,11 @@ export function Authorize({ config }: { config: SupaConfig }) {
     if (!ask) return;
     fetch(`/api/oauth/client?${new URLSearchParams({ client_id: ask.client_id, redirect_uri: ask.redirect_uri })}`)
       .then(async (r) => {
-        const out = await r.json();
-        if (!r.ok) throw new Error(out.error);
+        const out = await r.json().catch(() => ({}));
+        if (!r.ok) throw httpError(r.status, out);
         setApp(out);
       })
-      .catch((e) => setError(e instanceof Error ? e.message : String(e)));
+      .catch((e) => setError(errorText(e)));
   }, [ask]);
 
   const userId = session?.user.id;
@@ -81,7 +83,7 @@ export function Authorize({ config }: { config: SupaConfig }) {
         setSpaces(mine);
         setWs((w) => w || mine[0]?.id || "");
       })
-      .catch((e) => setError(e instanceof Error ? e.message : String(e)));
+      .catch((e) => setError(errorText(e)));
   }, [sb, userId]);
 
   async function answer(deny: boolean) {
@@ -94,8 +96,8 @@ export function Authorize({ config }: { config: SupaConfig }) {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
         body: JSON.stringify({ ...ask, workspaceId: ws || spaces?.[0]?.id, deny }),
       });
-      const out = await res.json();
-      if (!res.ok) throw new Error(out.error);
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) throw httpError(res.status, out);
       try {
         sessionStorage.removeItem(KEY);
       } catch {
@@ -103,7 +105,7 @@ export function Authorize({ config }: { config: SupaConfig }) {
       }
       window.location.href = out.redirect;
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
       setBusy(false);
     }
   }
@@ -140,7 +142,7 @@ export function Authorize({ config }: { config: SupaConfig }) {
           </label>
         </div>
       ) : null}
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
       <div className="flex flex-col gap-2 text-[14px] text-body">
         <span className="font-medium text-ink">It will be able to:</span>
         <ul className="aw-list aw-list--tight aw-list--dots">

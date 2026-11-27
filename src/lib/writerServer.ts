@@ -27,7 +27,7 @@ import { draftImages } from "./writerImagesServer";
 export const writerModel = () => process.env.WRITER_MODEL?.trim() || claudeModel();
 
 const must = <T>(r: { data: T; error: { message: string } | null }) => {
-  if (r.error) throw new Error(r.error.message + (/writer_/.test(r.error.message) ? " Run supabase/050_agentic_writer.sql in Supabase." : ""));
+  if (r.error) throw new Error(r.error.message);
   return r.data;
 };
 const stamp = () => new Date().toISOString();

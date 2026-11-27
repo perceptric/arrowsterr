@@ -6,10 +6,11 @@ import { FROM_SIGNUP, passkeyError, wantsSignup } from "@/lib/authLink";
 import { passwordProblem, strength } from "@/lib/passwordCheck";
 import { Logo } from "./Logo";
 import { Turnstile } from "./Turnstile";
+import { errorText, httpError } from "@/lib/errors";
+import { ErrorNote } from "./ui";
 
 type Mode = "signin" | "signup" | "forgot" | "link";
 
-const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
 /** A centered card, for the short screens after sign-in: a new password and the 2-step code. */
 function Frame({ children }: { children: React.ReactNode }) {
@@ -227,7 +228,7 @@ export function AuthScreen({ sb, invited, turnstileSiteKey = null, passkeys = fa
       const { error } = await sb.auth.signInWithPasskey({ options: { captchaToken } });
       if (error) setError(passkeyError(error.message, false));
     } catch (err) {
-      setError(passkeyError(message(err), false));
+      setError(passkeyError(errorText(err), false));
     } finally {
       setBusy(false);
     }
@@ -244,7 +245,7 @@ export function AuthScreen({ sb, invited, turnstileSiteKey = null, passkeys = fa
       if (error && mode === "signup") ({ error } = await sb.auth.verifyOtp({ email, token, type: "signup" }));
       if (error) throw error;
     } catch (err) {
-      setError(/invalid|expired/i.test(message(err)) ? "That code is not right or has expired. Check the newest email." : message(err));
+      setError(/invalid|expired/i.test(errorText(err)) ? "That code is not right or has expired. Check the newest email." : errorText(err));
       setCode("");
     } finally {
       setBusy(false);
@@ -264,7 +265,7 @@ export function AuthScreen({ sb, invited, turnstileSiteKey = null, passkeys = fa
         // Through the server, which counts wrong tries and locks them out.
         const res = await fetch("/api/auth/signin", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password, captchaToken }) });
         const out = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(out.error || "Sign-in failed. Try again.");
+        if (!res.ok) throw httpError(res.status, out.error ? out : { error: "Sign-in failed. Try again." });
         const { error } = await sb.auth.setSession({ access_token: out.access_token, refresh_token: out.refresh_token });
         if (error) throw error;
       } else if (mode === "signup") {
@@ -285,7 +286,7 @@ export function AuthScreen({ sb, invited, turnstileSiteKey = null, passkeys = fa
         setSent(`If ${email} has an account, a reset link is on its way.`);
       }
     } catch (err) {
-      setError(message(err));
+      setError(errorText(err));
     } finally {
       setBusy(false);
       // A token works once, so get a new one for the next try.
@@ -301,7 +302,7 @@ export function AuthScreen({ sb, invited, turnstileSiteKey = null, passkeys = fa
     setError("");
     const { error } = await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.origin + window.location.pathname, queryParams: { prompt: "select_account" } } });
     if (error) {
-      setError(error.message);
+      setError(errorText(error));
       setBusy(false);
     }
   }
@@ -390,7 +391,7 @@ export function AuthScreen({ sb, invited, turnstileSiteKey = null, passkeys = fa
               </div>
             ) : null}
             {turnstileSiteKey ? <Turnstile siteKey={turnstileSiteKey} round={round} onToken={onToken} /> : null}
-            {error ? <p className="aw-error">{error}</p> : null}
+            {error ? <ErrorNote error={error} /> : null}
             {sent ? <p className="aw-callout text-[14px]!">{sent}</p> : null}
             <button type="submit" className="aw-btn aw-btn--primary aw-btn--block mt-1" disabled={busy}>
               {busy ? "Please wait..." : mode === "signin" ? "Sign in" : mode === "signup" ? "Create account" : mode === "link" ? "Email me a sign-in link" : "Send reset link"}
@@ -479,7 +480,7 @@ export function NewPassword({ sb, onDone }: { sb: SupabaseClient; onDone: () => 
     }
     const { error } = await sb.auth.updateUser({ password });
     setBusy(false);
-    if (error) setError(error.message);
+    if (error) setError(errorText(error));
     else onDone();
   }
 
@@ -488,7 +489,7 @@ export function NewPassword({ sb, onDone }: { sb: SupabaseClient; onDone: () => 
       <h1 className="aw-h3 mb-0!">Choose a new password</h1>
       <form onSubmit={submit} className="flex flex-col gap-5">
         <PasswordField id="new-password" label="New password" value={password} onChange={setPassword} autoComplete="new-password" autoFocus meter />
-        {error ? <p className="aw-error">{error}</p> : null}
+        {error ? <ErrorNote error={error} /> : null}
         <button type="submit" className="aw-btn aw-btn--primary aw-btn--block" disabled={busy}>
           {busy ? "Saving..." : "Save password"}
         </button>
@@ -515,7 +516,7 @@ export function CodeCheck({ sb, onDone }: { sb: SupabaseClient; onDone: () => vo
       if (error) throw error;
       onDone();
     } catch (err) {
-      setError(/invalid/i.test(message(err)) ? "That code is not right. Check the app and try the newest one." : message(err));
+      setError(/invalid/i.test(errorText(err)) ? "That code is not right. Check the app and try the newest one." : errorText(err));
       setCode("");
     } finally {
       setBusy(false);
@@ -539,7 +540,7 @@ export function CodeCheck({ sb, onDone }: { sb: SupabaseClient; onDone: () => vo
           onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
           className="aw-input aw-mono text-center text-[22px] tracking-[0.3em]"
         />
-        {error ? <p className="aw-error">{error}</p> : null}
+        {error ? <ErrorNote error={error} /> : null}
         <button type="submit" className="aw-btn aw-btn--primary aw-btn--block" disabled={busy || code.length !== 6}>
           {busy ? "Checking..." : "Continue"}
         </button>

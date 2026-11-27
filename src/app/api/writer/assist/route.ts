@@ -7,6 +7,7 @@ import type { BrandGuideline, ChatMessage } from "@/lib/writerTypes";
 import { meteredRoute } from "@/lib/meter";
 import { requireWriter, take } from "@/lib/entitlements";
 import { TASK_COST } from "@/lib/plans";
+import { errorResponse } from "@/lib/errorsServer";
 
 // The writing assistant. It knows the brand guideline, the content brief and the draft, and helps the
 // writer: ideas, edits in the brand's voice, checks, and on-brand HTML and CSS. One AI answer per message.
@@ -74,9 +75,7 @@ How to answer:
     const { text } = await askClaude(prompt, { maxTokens: 4000 });
     return Response.json({ reply: text.trim() });
   } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
-    console.error("Writer assistant failed:", msg);
-    return Response.json({ error: msg }, { status: 500 });
+    return errorResponse(e, "api/writer/assist");
   }
 }
 

@@ -25,7 +25,7 @@ import { post } from "../research/shared";
 import { brandTables } from "../research/Writer";
 import { exportClean } from "../research/writerNodes";
 import { EmptyScreen } from "../Drawing";
-import { Seg, SidePanel, Thinking } from "../ui";
+import { ErrorNote, Seg, SidePanel, Thinking } from "../ui";
 import { BLOCK_INFO, BLOCK_KINDS } from "@/lib/blockTemplates";
 import { NEW_BLOCK_EVENT } from "../content/PlainEditor";
 import { ArticleReview, type ReviewInput } from "./ArticleReview";
@@ -37,6 +37,7 @@ import { DocHistory } from "./DocHistory";
 import { ContentGrid } from "./ContentGrid";
 import { OutlineView } from "./OutlineView";
 import { BriefProgress, DraftProgress, libraryKey, RegenerateDialog, StateTag, useBrandSite, usePoll, useWide, type LibraryOpen } from "./parts";
+import { errorText } from "@/lib/errors";
 
 // Drafts (docs/drafts-plan.md): every keyword from the Editorial Calendar, as a grid of articles (ContentGrid).
 // Write drafts starts there: the research and outline run in the background, then the draft. Each piece opens to one
@@ -59,7 +60,7 @@ export function LibraryPage({ view, auth, canEdit, onCalendar }: { view: View; a
       setRows(await listTopics(sb, site.id));
       setError("");
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
       setRows((r) => r ?? []);
     }
   }, [sb, site, setRows]);
@@ -91,7 +92,7 @@ export function LibraryPage({ view, auth, canEdit, onCalendar }: { view: View; a
   if (site === undefined || (site && rows === null)) return <Thinking text="Opening Drafts..." />;
   if (!site)
     return siteError ? (
-      <p className="aw-error">{siteError}</p>
+      <ErrorNote error={siteError} />
     ) : (
       <EmptyScreen drawing="globe" title="Add this brand's website">
         Drafts need it to write in the brand&apos;s voice.
@@ -111,7 +112,7 @@ export function LibraryPage({ view, auth, canEdit, onCalendar }: { view: View; a
   return (
     <div className="flex flex-col gap-5">
       {list.length ? null : <h1 className="aw-h2">Drafts</h1>}
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
       {list.length ? (
         <ContentGrid sb={sb} auth={auth} site={site} brandId={brand.id} canEdit={canEdit} onOpen={setOpen} />
       ) : (
@@ -176,7 +177,7 @@ function PieceView({ sb, auth, site, brandId, id, canEdit, onBack }: { sb: Supab
         setDoc(x);
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
       setBrief((b) => b ?? null);
     }
   }, [sb, id]);
@@ -251,7 +252,7 @@ function PieceView({ sb, auth, site, brandId, id, canEdit, onBack }: { sb: Supab
   if (draft?.status === "failed")
     return (
       <Stage onBack={onBack} title={title} status="failed" note="The draft stopped before it finished.">
-        {draft.error ? <p className="aw-error">{draft.error}</p> : null}
+        {draft.error ? <ErrorNote error={draft.error} /> : null}
         {canEdit ? (
           <button type="button" className="aw-btn aw-btn--primary self-start" onClick={() => setRegen(true)}>
             Write the draft again
@@ -272,8 +273,8 @@ function PieceView({ sb, auth, site, brandId, id, canEdit, onBack }: { sb: Supab
   if (brief.status === "failed")
     return (
       <Stage onBack={onBack} title={brief.keyword} status="failed" note="The outline stopped before it finished.">
-        {brief.error ? <p className="aw-error">{brief.error}</p> : null}
-        {error ? <p className="aw-error">{error}</p> : null}
+        {brief.error ? <ErrorNote error={brief.error} /> : null}
+        {error ? <ErrorNote error={error} /> : null}
         {canEdit ? (
           <button
             type="button"
@@ -286,7 +287,7 @@ function PieceView({ sb, auth, site, brandId, id, canEdit, onBack }: { sb: Supab
                 await post(auth, "/api/agentic-writer", { action: "brief", itemId: brief.item_id });
                 await load();
               } catch (e) {
-                setError(e instanceof Error ? e.message : String(e));
+                setError(errorText(e));
               } finally {
                 setRetrying(false);
               }
@@ -358,7 +359,7 @@ function DocView({ sb, auth, site, brandId, id, canEdit, onBack }: { sb: Supabas
       .then((d) => live && setDoc(d))
       .catch((e) => {
         if (!live) return;
-        setError(e instanceof Error ? e.message : String(e));
+        setError(errorText(e));
         setDoc(null);
       });
     return () => {
@@ -432,7 +433,7 @@ function ArticleView({
       .catch(() => {});
     listComments(sb, doc.id)
       .then((r) => live && setComments(r))
-      .catch((e) => live && setCommentsError(e instanceof Error ? e.message : String(e)));
+      .catch((e) => live && setCommentsError(errorText(e)));
     listVersions(sb, doc.id, 1)
       .then((v) => {
         lastVersion.current = v[0] ? new Date(v[0].created_at).getTime() : 0;
@@ -549,7 +550,7 @@ function ArticleView({
       setSync({ s: "done", url: out.published.url });
       track("article_synced", { from: "full_view" });
     } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
+      const message = errorText(e);
       setSync({ s: "idle" });
       if (/connect a publishing site/i.test(message)) setConnecting(true);
       else setError(message);
@@ -687,7 +688,7 @@ function ArticleView({
           </button>
         ) : null}
       </Back>
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
       {banner}
 
       <Seg

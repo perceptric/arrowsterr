@@ -2,6 +2,7 @@ import { exchange, googleReady, readState, seal } from "@/lib/google";
 import { adminClient } from "@/lib/serverAuth";
 import { merchantConnected } from "@/lib/shopServer";
 import { gscSitesFor, hasGscScope, queueSyncNow } from "@/lib/seoAnalyticsServer";
+import { report } from "@/lib/errorsServer";
 
 // Google sends people back here after they allow access. Save the encrypted sign-in, then return to the app.
 export async function GET(request: Request) {
@@ -34,7 +35,7 @@ export async function GET(request: Request) {
     let res = await db.from("ga4_connections").upsert({ brand_id: state.brandId, workspace_id: state.workspaceId, refresh_token: sealed, email, connected_by: state.userId, scopes });
     // Before supabase/104_analytics.sql there is no scopes column.
     if (res.error && /scopes/.test(res.error.message)) res = await db.from("ga4_connections").upsert({ brand_id: state.brandId, workspace_id: state.workspaceId, refresh_token: sealed, email, connected_by: state.userId });
-    if (res.error) throw new Error(res.error.message + (/ga4_connections/.test(res.error.message) ? " Run supabase/014_google_analytics.sql in Supabase." : ""));
+    if (res.error) throw new Error(res.error.message);
     // A different Google account can't read the old property: pick again. The same account keeps its picks.
     const { data: brand } = await db.from("brands").select("id, workspace_id, domain, ga4_email, gsc_property").eq("id", state.brandId).maybeSingle();
     const same = Boolean(brand?.ga4_email && brand.ga4_email === email);
@@ -47,6 +48,6 @@ export async function GET(request: Request) {
     if (brand) await queueSyncNow({ id: brand.id, workspace_id: brand.workspace_id }).catch(() => null);
     return go(state.back, { ga4: "connected" });
   } catch (e) {
-    return go(state.back, { [state.kind === "merchant" ? "catalog" : "ga4"]: "error", reason: e instanceof Error ? e.message.slice(0, 200) : "Could not connect." });
+    return go(state.back, { [state.kind === "merchant" ? "catalog" : "ga4"]: "error", reason: report(e, "api/google/callback", "Couldn't connect Google.").error });
   }
 }

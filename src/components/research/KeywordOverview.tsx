@@ -11,10 +11,11 @@ import { peek, putStash, useStash } from "@/lib/stash";
 import { BrandLogo } from "../BrandLogo";
 import { Sheet } from "../Sheet";
 import { EmptyScreen } from "../Drawing";
-import { BusyButton, CalendarIcon, Card, favicon, Seg, Thinking } from "../ui";
+import { BusyButton, CalendarIcon, Card, ErrorNote, favicon, Seg, Thinking } from "../ui";
 import { BulkKeywords } from "./Bulk";
 import { OwnRank } from "../analytics/OwnRank";
 import { BAR_BUTTON, BAR_FIELD, BAR_INPUT, AnalyzeSeo, downloadCsv, fmtCpc, post, postLines, Sparkline } from "./shared";
+import { errorText } from "@/lib/errors";
 
 export { ISO };
 export const flag = (country: string) => {
@@ -204,7 +205,7 @@ export function KeywordOverview({ sb, auth, site, canEdit }: { sb: SupabaseClien
       setWaiting(left);
       // Each piece shows the moment it lands, so the numbers come up before Google's results.
       await postLines(auth, "/api/research/report", { action: "report", keyword: list[0], country: c, stream: true }, (x) => {
-        if (x.part === "error") throw new Error(String(x.error));
+        if (x.part === "error") throw Object.assign(new Error(typeof x.error === "string" ? x.error : ""), { ref: x.ref ?? undefined });
         if (x.part === "done") {
           done = x.report as KeywordReport;
           setReport(done);
@@ -219,7 +220,7 @@ export function KeywordOverview({ sb, auth, site, canEdit }: { sb: SupabaseClien
         setBusy("");
       });
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     } finally {
       setBusy("");
       setLive(null);
@@ -242,7 +243,7 @@ export function KeywordOverview({ sb, auth, site, canEdit }: { sb: SupabaseClien
       setPicked(new Set());
       setGroup(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     } finally {
       setBusy("");
     }
@@ -259,7 +260,7 @@ export function KeywordOverview({ sb, auth, site, canEdit }: { sb: SupabaseClien
       setNotice(`${n} added to the Content Plan.${n < rows.length ? ` ${rows.length - n} were already in it.` : ""}`);
       setPicked(new Set());
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     }
   }
 
@@ -487,7 +488,7 @@ export function KeywordOverview({ sb, auth, site, canEdit }: { sb: SupabaseClien
         </button>
       </form>
 
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
       {notice ? <div className="aw-callout">{notice}</div> : null}
       {busy ? <Thinking text={busy} /> : null}
 

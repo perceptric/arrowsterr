@@ -5,13 +5,14 @@ import { skillsOf } from "@/lib/ask";
 import { filesProblems, MAIN } from "@/lib/skills/format";
 import { SYSTEM_SKILLS } from "@/lib/skills/system";
 import { adminClient, requireRole } from "@/lib/serverAuth";
+import { errorResponse } from "@/lib/errorsServer";
+import { NOT_READY } from "@/lib/errors";
 
 export const maxDuration = 60;
 
 const str = (v: unknown, n: number) => String(v ?? "").trim().slice(0, n);
 const err = (error: string, status = 400) => Response.json({ error }, { status });
 const MAX_CHARS = 400_000;
-const SETUP = "Run supabase/037_zippie.sql and 086_zippie_skills.sql in Supabase to turn on Knowledge and skills.";
 
 /** Block addresses inside private networks, so a pasted link can't reach the server's own network. */
 function privateIp(ip: string): boolean {
@@ -83,8 +84,8 @@ export async function POST(request: Request) {
 
   if (body.action === "list") {
     const knowledge = await db.from("ask_knowledge").select(KN).eq("workspace_id", ws).is("project_id", null).order("updated_at", { ascending: false });
-    if (missing(knowledge.error)) return Response.json({ knowledge: [], skills: SYSTEM_SKILLS, me, setup: SETUP });
-    if (knowledge.error) return err(knowledge.error.message, 500);
+    if (missing(knowledge.error)) return Response.json({ knowledge: [], skills: SYSTEM_SKILLS, me, setup: NOT_READY });
+    if (knowledge.error) return errorResponse(knowledge.error, "api/ask/library");
     const visible = (knowledge.data ?? []).filter((k) => k.scope !== "personal" || k.owner_id === me);
     return Response.json({ knowledge: visible, skills: await skillsOf(db, ws, me), me });
   }
@@ -102,7 +103,7 @@ export async function POST(request: Request) {
     if (body.id) {
       if (!(await ownKnowledge(body.id))) return err("Page not found.", 404);
       const { data, error } = await db.from("ask_knowledge").update({ name, content, chars: content.length, updated_at: now, ...(body.scope ? { scope: scopeOf(body.scope) } : {}) }).eq("id", str(body.id, 60)).select(KN).single();
-      if (error) return err(error.message, 500);
+      if (error) return errorResponse(error, "api/ask/library");
       return Response.json({ item: data });
     }
     // replaces: a page from a chat card that takes the place of an older one with that title.
@@ -110,13 +111,13 @@ export async function POST(request: Request) {
       const { data: old } = await db.from("ask_knowledge").select("id, scope, owner_id").eq("workspace_id", ws).eq("name", str(body.replaces, 200)).limit(1).maybeSingle();
       if (old && (old.scope !== "personal" || old.owner_id === me)) {
         const { data, error } = await db.from("ask_knowledge").update({ name, content, chars: content.length, updated_at: now }).eq("id", old.id).select(KN).single();
-        if (error) return err(error.message, 500);
+        if (error) return errorResponse(error, "api/ask/library");
         return Response.json({ item: data, replaced: true });
       }
     }
     const { data, error } = await db.from("ask_knowledge").insert({ workspace_id: ws, kind: "note", name, source: "", content, chars: content.length, scope: scopeOf(body.scope), owner_id: me || null, created_by: userId }).select(KN).single();
-    if (missing(error)) return err(SETUP, 500);
-    if (error) return err(error.message, 500);
+    if (missing(error)) return err(NOT_READY, 500);
+    if (error) return errorResponse(error, "api/ask/library");
     return Response.json({ item: data });
   }
 
@@ -128,15 +129,15 @@ export async function POST(request: Request) {
       ? db.from("ask_projects").update(row).eq("id", str(body.id, 60)).eq("workspace_id", ws)
       : db.from("ask_projects").insert({ ...row, workspace_id: ws, created_by: userId });
     const { data, error } = await q.select("id, name, instructions, updated_at").single();
-    if (missing(error)) return err(SETUP, 500);
-    if (error) return err(error.message, 500);
+    if (missing(error)) return err(NOT_READY, 500);
+    if (error) return errorResponse(error, "api/ask/library");
     return Response.json({ project: data });
   }
 
   if (body.action === "project_delete") {
     // Its chats stay, outside any project. Its knowledge goes with it.
     const { error } = await db.from("ask_projects").delete().eq("id", str(body.id, 60)).eq("workspace_id", ws);
-    if (error) return err(error.message, 500);
+    if (error) return errorResponse(error, "api/ask/library");
     return Response.json({ ok: true });
   }
 
@@ -160,7 +161,7 @@ export async function POST(request: Request) {
         source = kind === "file" ? name : "";
       }
     } catch (e) {
-      return err(e instanceof Error ? e.message : String(e));
+      return errorResponse(e, "api/ask/library");
     }
     content = content.replace(/\u0000/g, "").trim();
     if (!content) return err(kind === "file" ? "Couldn't find any text in that file." : "Add some text first.");
@@ -176,8 +177,8 @@ export async function POST(request: Request) {
       .insert({ workspace_id: ws, project_id: projectId, kind, name, source, content: content.slice(0, MAX_CHARS), chars: Math.min(content.length, MAX_CHARS), created_by: userId, scope: scopeOf(body.scope), owner_id: me || null })
       .select(KN)
       .single();
-    if (missing(error)) return err(SETUP, 500);
-    if (error) return err(error.message, 500);
+    if (missing(error)) return err(NOT_READY, 500);
+    if (error) return errorResponse(error, "api/ask/library");
     return Response.json({ item: data, cut: content.length > MAX_CHARS });
   }
 
@@ -187,7 +188,7 @@ export async function POST(request: Request) {
     for (const id of ids) if (await ownKnowledge(id)) mine.push(id);
     if (!mine.length) return err("Page not found.", 404);
     const { error } = await db.from("ask_knowledge").delete().in("id", mine).eq("workspace_id", ws);
-    if (error) return err(error.message, 500);
+    if (error) return errorResponse(error, "api/ask/library");
     return Response.json({ ok: true });
   }
 
@@ -201,12 +202,12 @@ export async function POST(request: Request) {
       const { data: old } = await db.from("ask_skills").select("id, scope, owner_id").eq("id", str(body.id, 60)).eq("workspace_id", ws).is("builtin", null).maybeSingle();
       if (!old || (old.scope === "personal" && old.owner_id !== me)) return err("Skill not found.", 404);
       const { data, error } = await db.from("ask_skills").update({ files, updated_at: now, ...(body.scope ? { scope: scopeOf(body.scope) } : {}) }).eq("id", old.id).select("id").single();
-      if (error) return err(error.message, 500);
+      if (error) return errorResponse(error, "api/ask/library");
       return Response.json({ id: data.id, skills: await skillsOf(db, ws, me) });
     }
     const { data, error } = await db.from("ask_skills").insert({ workspace_id: ws, scope: scopeOf(body.scope), owner_id: me || null, files, name: files[MAIN].match(/^# (.+)$/m)?.[1]?.slice(0, 80) ?? "", created_by: userId }).select("id").single();
-    if (missing(error)) return err(SETUP, 500);
-    if (error) return err(error.message, 500);
+    if (missing(error)) return err(NOT_READY, 500);
+    if (error) return errorResponse(error, "api/ask/library");
     return Response.json({ id: data.id, skills: await skillsOf(db, ws, me) });
   }
 
@@ -214,7 +215,7 @@ export async function POST(request: Request) {
     const { data: old } = await db.from("ask_skills").select("id, scope, owner_id").eq("id", str(body.id, 60)).eq("workspace_id", ws).is("builtin", null).maybeSingle();
     if (!old || (old.scope === "personal" && old.owner_id !== me)) return err("Skill not found.", 404);
     const { error } = await db.from("ask_skills").delete().eq("id", old.id);
-    if (error) return err(error.message, 500);
+    if (error) return errorResponse(error, "api/ask/library");
     return Response.json({ skills: await skillsOf(db, ws, me) });
   }
 

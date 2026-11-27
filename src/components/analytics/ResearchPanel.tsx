@@ -8,7 +8,8 @@ import type { RunAuth } from "@/lib/runner";
 import { expectedCtr } from "@/lib/seoAnalytics";
 import { KdDot } from "../research/KeywordOverview";
 import { post } from "../research/shared";
-import { BusyButton, SidePanel, SkeletonRows } from "../ui";
+import { BusyButton, ErrorNote, SidePanel, SkeletonRows } from "../ui";
+import { errorText } from "@/lib/errors";
 
 // Keyword research for one search from the Search Console report's Queries table: where the brand ranks, the
 // keyword's own numbers, close variations to add to the Calendar, and a refresh of the page that ranks.
@@ -23,7 +24,7 @@ const n = (v: number | null | undefined) => (v === null || v === undefined ? "�
 /** Turns a Calendar add into a done label, or throws its error so the button shows it. */
 const added = async (r: Promise<CalendarResult>) => {
   const out = await r;
-  if (typeof out === "object") throw new Error(out.error);
+  if (typeof out === "object") throw out;
   return out === "exists" ? "In Calendar ✓" : "Added ✓";
 };
 
@@ -40,7 +41,7 @@ export function ResearchPanel({ panel, days, auth, canEdit, siteOf, url, onClose
         const d = await post<{ rows: Keyword[]; exact?: Keyword | null }>(auth, "/api/research/keywords", { mode: "phrase", exact: true, query: panel.query, siteId: site.id });
         if (live) setData({ rows: d.rows ?? [], exact: d.exact ?? null });
       })
-      .catch((e) => live && setError(e instanceof Error ? e.message : String(e)));
+      .catch((e) => live && setError(errorText(e)));
     return () => {
       live = false;
     };
@@ -96,9 +97,7 @@ export function ResearchPanel({ panel, days, auth, canEdit, siteOf, url, onClose
       {!canEdit ? (
         <p className="aw-small">Ask an editor to run keyword research.</p>
       ) : error ? (
-        <p className="aw-error" role="alert">
-          {error}
-        </p>
+        <ErrorNote error={error} />
       ) : !data ? (
         <div className="flex flex-col gap-4" role="status" aria-label="Looking up this keyword">
           <SkeletonRows rows={1} cols={4} />

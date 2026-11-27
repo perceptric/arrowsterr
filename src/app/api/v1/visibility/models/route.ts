@@ -1,5 +1,6 @@
 import { apiAuth } from "@/lib/integrations";
 import { brandById } from "@/lib/keyScope";
+import { errorResponse } from "@/lib/errorsServer";
 
 type Row = { day: string; engine: string; named: string; is_you: boolean; answers: number; mentions: number; position_sum: number; sentiment_sum: number };
 type Sum = { answers: number; mentions: number; position: number; sentiment: number };
@@ -37,7 +38,7 @@ export async function GET(request: Request) {
       .order("engine")
       .order("named")
       .range(from, from + 999);
-    if (error) return Response.json({ error: error.message }, { status: 500 });
+    if (error) return errorResponse(error, "api/v1/visibility/models");
     rows.push(...((data ?? []) as Row[]));
     if ((data ?? []).length < 1000) break;
   }

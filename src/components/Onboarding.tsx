@@ -9,8 +9,9 @@ import { KitLearn } from "./BrandKit";
 import { ENGINE_LOGOS } from "./Engines";
 import { Dropdown } from "./Pickers";
 import { Logo } from "./Logo";
-import { Thinking } from "./ui";
+import { ErrorNote, Thinking } from "./ui";
 import { PersonaCard, SharperBox, type Built } from "./WriterPersona";
+import { errorText, httpError } from "@/lib/errors";
 
 export type NewBrand = Omit<Brand, "id" | "workspace_id" | "daily">;
 type Step = "you" | "workspace" | "about" | "site" | "topics" | "prompts" | "writer" | "done";
@@ -35,7 +36,6 @@ type PlanTopic = { name: string; prompts: PromptPick[] };
 type Saved = { step: Step; website: string; name: string; domain: string; url: string; logo: string; profile: Profile; topics: TopicPick[]; plan: PlanTopic[]; brandId?: string };
 type PromptsReply = { topics: { name: string; prompts: { text: string; angle: Angle }[] }[] };
 
-const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 const angleLabel = (a: Angle) => ANGLES.find((x) => x.id === a)?.label ?? a;
 const kindLabel = (k: string) => TOPIC_KINDS.find((x) => x.id === k)?.label ?? k;
 
@@ -45,8 +45,8 @@ async function call(path: string, auth: RunAuth, body: Record<string, unknown>) 
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${await auth.token()}` },
     body: JSON.stringify({ ...body, workspaceId: auth.workspaceId }),
   });
-  const data = await res.json().catch(() => ({ error: `The server returned ${res.status}.` }));
-  if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw httpError(res.status, data);
   return data;
 }
 
@@ -159,7 +159,7 @@ export function Onboarding({
     try {
       await fn();
     } catch (e) {
-      setError(message(e));
+      setError(errorText(e));
     } finally {
       setBusy("");
     }
@@ -313,7 +313,7 @@ export function Onboarding({
       </header>
 
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-4 py-6 sm:px-6">
-        {error ? <p className="aw-error">{error}</p> : null}
+        {error ? <ErrorNote error={error} /> : null}
         {kitOpen && kit ? <KitStep auth={auth} website={website} agency={role === "Agency" || companyType === "agency"} agencySite={kit.agencySite} onClose={() => setKitOpen(false)} /> : null}
         {(busy || ready) && !kitOpen ? (
           <div className="mx-auto w-full max-w-4xl">
@@ -450,14 +450,14 @@ function WriterStep({ auth, name, logo, brandId, build, onNext }: { auth: RunAut
         setBuilt(b);
         setEdit(false);
       })
-      .catch((e) => setError(message(e)))
+      .catch((e) => setError(errorText(e)))
       .finally(() => setBusy(""));
   };
   useEffect(() => {
     // Once: the job started while the person picked topics.
     build()
       .then(setBuilt)
-      .catch((e) => setError(message(e)))
+      .catch((e) => setError(errorText(e)))
       .finally(() => setBusy(""));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -469,7 +469,7 @@ function WriterStep({ auth, name, logo, brandId, build, onNext }: { auth: RunAut
       await call("/api/writer-persona", auth, { action: "save", brandId, persona: built.persona, stats: built.stats, postText: built.postText });
       onNext();
     } catch (e) {
-      setError(message(e));
+      setError(errorText(e));
       setBusy("");
     }
   };
@@ -480,7 +480,7 @@ function WriterStep({ auth, name, logo, brandId, build, onNext }: { auth: RunAut
       </StepHead>
       {error ? (
         <div className="flex flex-wrap items-center gap-3">
-          <p className="aw-error">{error}</p>
+          <ErrorNote error={error} />
           <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => load(undefined, true)}>
             Retry
           </button>

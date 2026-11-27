@@ -18,6 +18,7 @@ import { CommentHighlight } from "./commentHighlight";
 import { SLASH, SlashMenu, slashKeysExtension } from "./SlashMenu";
 import { draftText } from "../research/Writer";
 import { Embed, Note } from "../research/writerNodes";
+import { NOT_READY } from "@/lib/errors";
 
 // The plain editor in Content: a page editor with no AI in it.
 // Text, headings, lists, links, images, tables and interactive blocks. It saves as you type.
@@ -155,7 +156,7 @@ export function PlainEditor({
       const path = `${workspaceId}/${doc.id}/${Date.now()}-${f.name.toLowerCase().replace(/[^a-z0-9.]+/g, "-")}`;
       const { error } = await sb.storage.from("doc-images").upload(path, f, { contentType: f.type, upsert: false });
       if (error) {
-        onState("error", /bucket|not found/i.test(error.message) ? "Run supabase/028_doc_images.sql in Supabase to turn on images." : error.message);
+        onState("error", /bucket|not found/i.test(error.message) ? NOT_READY : error.message);
         continue;
       }
       const src = sb.storage.from("doc-images").getPublicUrl(path).data.publicUrl;

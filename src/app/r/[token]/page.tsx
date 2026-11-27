@@ -15,6 +15,7 @@ import { checkSig, unlockCookie } from "@/lib/reportServer";
 import type { CompetitorsSnapshot, IntelSnapshot, PromptsSnapshot, ReportSnapshot } from "@/lib/reportTypes";
 import { themeOf } from "@/lib/reportTheme";
 import { adminClient } from "@/lib/serverAuth";
+import { errorText } from "@/lib/errors";
 
 export const metadata: Metadata = { title: "Shared report", robots: { index: false, follow: false } };
 export const maxDuration = 120;
@@ -66,7 +67,7 @@ export default async function SharedReport({ params }: { params: Promise<{ token
       try {
         data = link.report_id ? await liveSnapshot(db, link.report_id) : null;
       } catch (e) {
-        console.error("Live report failed:", e instanceof Error ? e.message : e);
+        console.error("Live report failed:", errorText(e));
         return <Note text="This report can't be loaded right now. Try again in a few minutes." />;
       }
       if (!data) return <Note text="This report is no longer shared." />;

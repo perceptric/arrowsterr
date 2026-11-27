@@ -8,9 +8,10 @@ import type { RunAuth } from "@/lib/runner";
 import type { View } from "@/lib/view";
 import { BrandLogo } from "../BrandLogo";
 import { Dropdown } from "../Pickers";
-import { SkeletonRows, Thinking } from "../ui";
+import { ErrorNote, SkeletonRows, Thinking } from "../ui";
 import { AI_LOGO, GSC_LOGO, type Call, type Status } from "./google";
 import { AddFilter, ago, changeOf, compact, duration, FilterChips, GranPick, HeadTools, isoToday, LineChart, pinsAt, place, RangePicker, rate, ReportTable, Switch, TableTabs, Tiles, usePageActions, whole, type Col, type CsvRef, type Line, type Metric } from "./Report";
+import { errorText } from "@/lib/errors";
 
 // Visibility › Analytics › Google Analytics: GA4's reports inside Arrowsterr, read live from the Data API
 // (googleReportsServer.ts). Ranges, compare, filters, five checkable totals that draw the chart, traffic sources with
@@ -59,6 +60,7 @@ export function Ga4Report({ status, call, view, auth, sb, canEdit, title, onSetu
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState("");
   const [loaded, setLoaded] = useState("");
+  const [tries, setTries] = useState(0);
   const [now, setNow] = useState<number | null>(null);
   const [search, setSearch] = useState<Map<string, PageSearch> | null>(null);
   const csvRef: CsvRef = useRef(null);
@@ -78,12 +80,12 @@ export function Ga4Report({ status, call, view, auth, sb, canEdit, title, onSetu
         setData(d as unknown as Data);
         setError("");
       })
-      .catch((e) => live && setError(e instanceof Error ? e.message : String(e)))
+      .catch((e) => live && setError(errorText(e)))
       .finally(() => live && setLoaded(asked));
     return () => {
       live = false;
     };
-  }, [call, range, compare, filters, hourly, asked]);
+  }, [call, range, compare, filters, hourly, asked, tries]);
 
   // People on the site now, every minute. Hidden when GA4's realtime report fails.
   useEffect(() => {
@@ -106,7 +108,7 @@ export function Ga4Report({ status, call, view, auth, sb, canEdit, title, onSetu
     let live = true;
     call("/api/seo-analytics", { action: "join", source: "gsc", range })
       .then((d) => live && setSearch(new Map((d.rows as PageSearch[]).map((r) => [r.path, r]))))
-      .catch((e) => live && setError(e instanceof Error ? e.message : String(e)));
+      .catch((e) => live && setError(errorText(e)));
     return () => {
       live = false;
     };
@@ -131,7 +133,7 @@ export function Ga4Report({ status, call, view, auth, sb, canEdit, title, onSetu
     return (
       <div className="aw-rep">
         {head}
-        {error ? <p className="aw-error">{error}</p> : <Thinking text="Reading Google Analytics..." />}
+        {error ? <ErrorNote error={error} onRetry={() => (setError(""), setTries((t) => t + 1))} /> : <Thinking text="Reading Google Analytics..." />}
       </div>
     );
 
@@ -239,7 +241,7 @@ export function Ga4Report({ status, call, view, auth, sb, canEdit, title, onSetu
         </span>
       </div>
       {actions.banner}
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} onRetry={() => (setError(""), setTries((t) => t + 1))} /> : null}
 
       <section className="aw-frame">
         <Tiles metrics={METRICS} cur={data.totals.cur} prev={data.totals.prev} on={on} onToggle={toggle} vs={vs} end={data.hourly ? <span className="aw-rep-form__hint">By hour</span> : <GranPick weeks={weeks} onChange={setWeeks} />} />

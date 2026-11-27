@@ -3,7 +3,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useState } from "react";
 import { addComment, ago, deleteComment, resolveComment, threadsOf, type DocComment, type Me } from "@/lib/docCollab";
-import { Seg } from "../ui";
+import { ErrorNote, Seg } from "../ui";
+import { errorText } from "@/lib/errors";
 
 // Comment threads on an article in Drafts. A thread starts on a quote from the text (the editor highlights it);
 // people reply, resolve and reopen. The list and its loading live with the article screen, so the highlights and the
@@ -51,7 +52,7 @@ export function DocComments({
     try {
       await fn();
     } catch (e) {
-      setFail(e instanceof Error ? e.message : String(e));
+      setFail(errorText(e));
     } finally {
       setBusy("");
     }
@@ -85,7 +86,7 @@ export function DocComments({
       onRows((rows ?? []).filter((r) => r.id !== t.id && r.parent_id !== t.id));
     });
 
-  if (error) return <p className="px-4 py-4 text-[13px] text-muted">{error}</p>;
+  if (error) return <p className="px-4 py-4 text-[13px] text-muted">{errorText(error)}</p>;
   if (!rows) return <p className="px-4 py-4 text-[13px] text-muted">Loading comments...</p>;
   const threads = threadsOf(rows);
   const open = threads.filter((t) => !t.resolved_at);
@@ -135,7 +136,7 @@ export function DocComments({
           </span>
         </form>
       ) : null}
-      {fail ? <p className="aw-error text-[13px]">{fail}</p> : null}
+      {fail ? <ErrorNote error={fail} className="text-[13px]" /> : null}
       <Seg
         label="Show"
         value={filter}

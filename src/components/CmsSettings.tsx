@@ -8,6 +8,8 @@ import { CmsLogo } from "./CmsLogo";
 import { Dropdown } from "./Pickers";
 import { Confirm } from "./reports/Dialog";
 import { post } from "./research/shared";
+import { errorText } from "@/lib/errors";
+import { ErrorNote } from "./ui";
 
 type BrandRef = { id: string; name: string };
 
@@ -31,7 +33,7 @@ export function CmsSettings({ auth, isAdmin, brand, brands }: { auth: RunAuth; i
         setSetup(r.setup ?? "");
         setNotice(Boolean(r.notice));
       })
-      .catch((e) => live && setError(e instanceof Error ? e.message : String(e)));
+      .catch((e) => live && setError(errorText(e)));
     return () => {
       live = false;
     };
@@ -58,7 +60,7 @@ export function CmsSettings({ auth, isAdmin, brand, brands }: { auth: RunAuth; i
       setList((l) => (l ?? []).filter((x) => x.id !== c.id));
       setRemoving(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     } finally {
       setBusy(false);
     }
@@ -72,7 +74,7 @@ export function CmsSettings({ auth, isAdmin, brand, brands }: { auth: RunAuth; i
       setList((l) => (l ?? []).filter((x) => x.id !== c.id));
       setDone(`${c.name} moved to ${brands.find((b) => b.id === to)?.name ?? "the other brand"}.`);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     }
   }
   async function dismiss() {
@@ -91,7 +93,7 @@ export function CmsSettings({ auth, isAdmin, brand, brands }: { auth: RunAuth; i
           </button>
         </div>
       ) : null}
-      {error ? <p className="aw-error max-w-2xl">{error}</p> : null}
+      {error ? <ErrorNote error={error} className="max-w-2xl" /> : null}
       {done ? <div className="aw-callout max-w-2xl">{done}</div> : null}
 
       {list?.length ? (

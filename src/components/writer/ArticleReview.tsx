@@ -6,7 +6,8 @@ import { useEffect, useState } from "react";
 import { listRuns, type SavedRun } from "@/lib/db";
 import type { PmNode } from "@/lib/docHtml";
 import { citations, coverage, promptsFor } from "@/lib/promptCoverage";
-import { Seg } from "../ui";
+import { ErrorNote, Seg } from "../ui";
+import { errorText } from "@/lib/errors";
 
 // The review panel beside a draft in Drafts, read from the live editor as it changes:
 //   Checks: length against the brief, reading level, the keyword in the title and the opening, headings, image alt
@@ -220,12 +221,12 @@ function AiAnswers({ sb, brandId, topic, text }: { sb: SupabaseClient; brandId: 
     let live = true;
     Promise.all([sb.from("brands").select("name, domain, prompts").eq("id", brandId).maybeSingle(), listRuns(sb, brandId, 60)])
       .then(([b, runs]) => live && setData({ brand: (b.data as BrandRow | null) ?? null, runs }))
-      .catch((e) => live && setError(e instanceof Error ? e.message : String(e)));
+      .catch((e) => live && setError(errorText(e)));
     return () => {
       live = false;
     };
   }, [sb, brandId]);
-  if (error) return <p className="aw-error text-[13px]">{error}</p>;
+  if (error) return <ErrorNote error={error} className="text-[13px]" />;
   if (!data) return <p className="text-[13px] text-muted">Reading your tracked prompts...</p>;
   const brand = data.brand;
   const tracked = brand?.prompts ?? [];

@@ -13,10 +13,11 @@ import { BrandLogo } from "../BrandLogo";
 import { TrendChart } from "../TrendChart";
 import { Sheet } from "../Sheet";
 import { EmptyScreen } from "../Drawing";
-import { BusyButton, CalendarIcon, Card, favicon, Seg, Thinking } from "../ui";
+import { BusyButton, CalendarIcon, Card, ErrorNote, favicon, Seg, Thinking } from "../ui";
 import { BulkDomains } from "./Bulk";
 import { flag, KdDot, short } from "./KeywordOverview";
 import { BAR_BUTTON, BAR_FIELD, BAR_INPUT, downloadCsv, KeywordLink, post } from "./shared";
+import { errorText } from "@/lib/errors";
 
 export type Scope = NonNullable<DomainReport["scope"]>;
 const SCOPES: { id: Scope; label: string; hint: string }[] = [
@@ -48,7 +49,7 @@ export function DomainResearch({ sb, auth, site, canEdit, start, onStarted }: { 
     try {
       setReport(await post<DomainReport>(auth, "/api/research/domain", { domain: report.domain, scope: report.scope ?? "domain", country: report.country, more: true }));
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     } finally {
       setBusy("");
     }
@@ -76,7 +77,7 @@ export function DomainResearch({ sb, auth, site, canEdit, start, onStarted }: { 
     try {
       setReport(await post<DomainReport>(auth, "/api/research/domain", { domain: d, scope: as, country: c }));
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     } finally {
       setBusy("");
     }
@@ -165,7 +166,7 @@ export function DomainResearch({ sb, auth, site, canEdit, start, onStarted }: { 
       setNotice(`${n} added to the Content Plan.${n < rows.length ? ` ${rows.length - n} were already in it.` : ""}`);
       setPicked(new Set());
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     }
   }
 
@@ -222,7 +223,7 @@ export function DomainResearch({ sb, auth, site, canEdit, start, onStarted }: { 
         </button>
       </form>
 
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
       {notice ? <div className="aw-callout">{notice}</div> : null}
       {busy ? <Thinking text={busy} /> : null}
 

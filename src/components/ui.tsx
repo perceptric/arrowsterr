@@ -1,7 +1,8 @@
 "use client";
 
 // Small pieces every page shares.
-import { useEffect, useRef, useState } from "react";
+import { Component, useEffect, useRef, useState } from "react";
+import { errorText, splitRef } from "@/lib/errors";
 import { BrandLogo } from "./BrandLogo";
 
 export const favicon = (domain: string) => `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=64`;
@@ -24,7 +25,9 @@ export function Card({ title, action, children, className = "" }: { title?: Reac
           {action}
         </div>
       ) : null}
-      <div className="min-h-0 flex-1">{children}</div>
+      <div className="min-h-0 flex-1">
+        <ErrorBoundary className="m-4">{children}</ErrorBoundary>
+      </div>
     </section>
   );
 }
@@ -339,7 +342,7 @@ export function BusyButton({
     setState("busy");
     try {
       const r = await onClick();
-      if (r && typeof r === "object" && "error" in r && typeof (r as { error: unknown }).error === "string") throw new Error((r as { error: string }).error);
+      if (r && typeof r === "object" && "error" in r && typeof (r as { error: unknown }).error === "string") throw r;
       if (!live.current) return;
       // done={null}: the work shows its own result (a notice, a new row), so the button only goes back.
       if (typeof r !== "string" && done === null) return setState("idle");
@@ -347,7 +350,7 @@ export function BusyButton({
       setState("done");
     } catch (e) {
       if (live.current) setState("idle");
-      toast(e instanceof Error ? e.message : String(e), "error");
+      toast(errorText(e), "error");
     }
   }
   return (
@@ -364,6 +367,60 @@ export function BusyButton({
       {state === "done" ? (doneText ?? done) : children}
     </button>
   );
+}
+
+/**
+ * The error box (aw-error, docs/brand.md › Errors): plain words from errorText, the ref with Copy when there is one,
+ * Try again when the work can run again, and Close when it can be dismissed. Pass anything: a message, an Error, a
+ * failed reply or a saved error.
+ */
+export function ErrorNote({ error, onRetry, onClose, className = "" }: { error: unknown; onRetry?: () => void; onClose?: () => void; className?: string }) {
+  const [copied, setCopied] = useState(false);
+  if (!error) return null;
+  const { words, ref } = splitRef(errorText(error));
+  return (
+    <div className={`aw-error ${className}`} role="alert">
+      <span className="min-w-0 flex-1">{words}</span>
+      {ref ? (
+        <button
+          type="button"
+          className="aw-error__ref"
+          title="Copy the ref to send to support"
+          onClick={() => {
+            void navigator.clipboard?.writeText(`Ref ${ref}`).catch(() => {});
+            setCopied(true);
+          }}
+        >
+          {copied ? "Copied ✓" : `Ref ${ref}`}
+        </button>
+      ) : null}
+      {onRetry ? (
+        <button type="button" className="aw-error__retry" onClick={onRetry}>
+          Try again
+        </button>
+      ) : null}
+      {onClose ? (
+        <button type="button" className="aw-error__retry" onClick={onClose}>
+          Close
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+/** Keeps one broken panel or card from blanking the page: it shows the error box with Try again in its place. */
+export class ErrorBoundary extends Component<{ children: React.ReactNode; className?: string }, { error: unknown }> {
+  state = { error: null as unknown };
+  static getDerivedStateFromError(error: unknown) {
+    return { error: error ?? new Error("crash") };
+  }
+  componentDidCatch(error: unknown) {
+    console.error("A panel crashed:", error);
+  }
+  render() {
+    if (!this.state.error) return this.props.children;
+    return <ErrorNote error={new Error("This part of the page didn't load.")} onRetry={() => this.setState({ error: null })} className={this.props.className} />;
+  }
 }
 
 /** A list that is loading: grey bars in the shape of its rows, as docs/brand.md says. Never the word "Loading". */

@@ -5,11 +5,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 import { cleanGuidelines, cleanLinks, filePath, FILES_BUCKET, MAX_BODY, MAX_FILE_BYTES, MAX_FILES, type GuidelineFile, type GuidelinesRow } from "@/lib/brandGuidelines";
 import { Confirm } from "./reports/Dialog";
-import { Thinking, UploadIcon } from "./ui";
+import { ErrorNote, Thinking, UploadIcon } from "./ui";
+import { NOT_READY, errorText } from "@/lib/errors";
 
-const SETUP = "Run supabase/052_brand_guidelines.sql in Supabase to save guidelines.";
 const COLS = "brand_id, body, links, files, updated_at";
-const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 const size = (n: number) => (n >= 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
 
 /** Brand › Guidelines: the brand's written rules in Markdown, links, and up to 10 reference files. */
@@ -33,7 +32,7 @@ export function BrandGuidelines({ sb, workspaceId, brand, canEdit }: { sb: Supab
         if (!live) return;
         if (e) {
           if (/brand_guidelines/.test(e.message)) setSetup(true);
-          else setError(e.message);
+          else setError(errorText(e));
           setRow(null);
           return;
         }
@@ -54,7 +53,7 @@ export function BrandGuidelines({ sb, workspaceId, brand, canEdit }: { sb: Supab
       .upsert({ brand_id: brand.id, workspace_id: workspaceId, ...fields, updated_at: new Date().toISOString() }, { onConflict: "brand_id" })
       .select(COLS)
       .single();
-    if (e) throw new Error(/brand_guidelines/.test(e.message) ? SETUP : e.message);
+    if (e) throw e;
     const r = cleanGuidelines(data);
     setRow(r);
     return r;
@@ -71,7 +70,7 @@ export function BrandGuidelines({ sb, workspaceId, brand, canEdit }: { sb: Supab
       setLinks(r?.links.join("\n") ?? "");
       setSaved(true);
     } catch (e) {
-      setError(message(e));
+      setError(errorText(e));
     } finally {
       setBusy("");
     }
@@ -90,16 +89,16 @@ export function BrandGuidelines({ sb, workspaceId, brand, canEdit }: { sb: Supab
       for (const f of picked) {
         const path = filePath(workspaceId, brand.id, f.name);
         const { error: e } = await sb.storage.from(FILES_BUCKET).upload(path, f, { contentType: f.type || undefined, upsert: false });
-        if (e) throw new Error(/bucket|not found/i.test(e.message) ? SETUP : e.message);
+        if (e) throw e;
         added.push({ name: f.name.slice(0, 200), path, size: f.size, type: f.type, uploaded_at: new Date().toISOString() });
       }
     } catch (e) {
-      setError(message(e));
+      setError(errorText(e));
     }
     try {
       if (added.length) await write({ files: [...files, ...added] });
     } catch (e) {
-      setError(message(e));
+      setError(errorText(e));
       await sb.storage.from(FILES_BUCKET).remove(added.map((a) => a.path));
     } finally {
       setBusy("");
@@ -113,7 +112,7 @@ export function BrandGuidelines({ sb, workspaceId, brand, canEdit }: { sb: Supab
       await write({ files: (row?.files ?? []).filter((x) => x.path !== f.path) });
       await sb.storage.from(FILES_BUCKET).remove([f.path]);
     } catch (e) {
-      setError(message(e));
+      setError(errorText(e));
     } finally {
       setBusy("");
       setDropping(null);
@@ -125,19 +124,19 @@ export function BrandGuidelines({ sb, workspaceId, brand, canEdit }: { sb: Supab
     const { data, error: e } = await sb.storage.from(FILES_BUCKET).createSignedUrl(f.path, 3600);
     if (e || !data) {
       tab?.close();
-      return setError(e?.message ?? "That file is gone.");
+      return setError(e ? errorText(e) : "That file is gone.");
     }
     if (tab) tab.location.href = data.signedUrl;
   }
 
   if (row === undefined) return <Thinking text="Getting the brand guidelines..." />;
-  if (setup) return <div className="aw-callout max-w-xl">{SETUP}</div>;
+  if (setup) return <div className="aw-callout max-w-xl">{NOT_READY}</div>;
   const files = row?.files ?? [];
   const changed = body !== (row?.body ?? "") || links !== (row?.links.join("\n") ?? "");
 
   return (
     <section className="flex max-w-3xl flex-col gap-5">
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
 
       <div className="aw-frame flex flex-col gap-4 p-5">
         <label className="flex flex-col gap-1.5">

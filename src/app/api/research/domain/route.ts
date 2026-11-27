@@ -9,6 +9,7 @@ import { isEditor, requireRole } from "@/lib/serverAuth";
 import { meteredRoute } from "@/lib/meter";
 import { requireTrack, take } from "@/lib/entitlements";
 import { TASK_COST } from "@/lib/plans";
+import { errorResponse } from "@/lib/errorsServer";
 
 // Domain research: how big a domain, subdomain, folder or page is on Google, its top keywords and pages, and its competitors.
 // Shared and cached for 30 days, so the same domain again is free.
@@ -51,10 +52,8 @@ async function handle(request: Request) {
     }
     return Response.json(report);
   } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    if (message === NOT_SAVED) return Response.json({ error: message, notSaved: true }, { status: 404 });
-    console.error("Domain research failed:", message);
-    return Response.json({ error: message }, { status: 500 });
+    if (e instanceof Error && e.message === NOT_SAVED) return Response.json({ error: NOT_SAVED, notSaved: true }, { status: 404 });
+    return errorResponse(e, "api/research/domain");
   }
 }
 
@@ -86,9 +85,7 @@ async function bulk(sb: SupabaseClient, body: { workspaceId: string; targets?: u
     const id = await saveBulkRun(sb, { workspaceId: body.workspaceId, siteId: body.siteId, kind: "domains", country, items: lines, result });
     return Response.json({ ...result, id });
   } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    console.error("Bulk domain analysis failed:", message);
-    return Response.json({ error: message }, { status: 500 });
+    return errorResponse(e, "api/research/domain");
   }
 }
 

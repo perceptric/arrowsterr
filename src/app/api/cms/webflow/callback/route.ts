@@ -2,6 +2,7 @@ import { readState, stateReady } from "@/lib/google";
 import { callbackBase, mayConnect, oauthAnswer, saveSite } from "@/lib/oauthAnswer";
 import { adminClient } from "@/lib/serverAuth";
 import { webflowReady, webflowSetup, webflowToken } from "@/lib/webflowAuth";
+import { report } from "@/lib/errorsServer";
 
 // Webflow sends people back here after they allow access (a window opened by the connect wizard). Save the site,
 // then tell the wizard and close. Opened on its own, it goes back to Settings › Publishing sites.
@@ -24,6 +25,6 @@ export async function GET(request: Request) {
     await saveSite(db, state, "webflow", name, config, (old) => old.collectionId === config.collectionId);
     return answer({ ok: true, check });
   } catch (e) {
-    return answer({ ok: false, reason: e instanceof Error ? e.message.slice(0, 200) : "Could not connect Webflow." });
+    return answer({ ok: false, reason: report(e, "api/cms/webflow/callback", "Couldn't connect Webflow.").error });
   }
 }

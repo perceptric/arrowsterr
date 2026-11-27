@@ -8,13 +8,14 @@ import { siteForBrand, type Site } from "@/lib/db";
 import { answered, brandStats } from "@/lib/metrics";
 import type { View } from "@/lib/view";
 import type { RunAuth } from "@/lib/runner";
-import { Thinking } from "../ui";
+import { ErrorNote, Thinking } from "../ui";
 import { EditorialCalendar, type Refresh } from "./EditorialCalendar";
 import { DomainResearch, type SeoStart } from "./DomainResearch";
 import { KeywordGap } from "./KeywordGap";
 import { KeywordOverview } from "./KeywordOverview";
 import { AnalyzeSeo, ResearchKeyword } from "./shared";
 import type { WriterAccess } from "./shared";
+import { errorText } from "@/lib/errors";
 
 export type Tool = "keywords" | "domain" | "gap" | "calendar";
 /** Research's tabs (docs/content-v3-plan.md, section 1). Content Research joins them in phase 2. */
@@ -60,8 +61,7 @@ export function ResearchPage({
       .then((s) => live && setSite(s))
       .catch((e) => {
         if (!live) return;
-        const message = e instanceof Error ? e.message : String(e);
-        setError(/sites/.test(message) ? `${message}. Run supabase/006_research.sql in Supabase → SQL Editor.` : message);
+        setError(errorText(e));
         setSite(null);
       });
     return () => {
@@ -95,7 +95,7 @@ export function ResearchPage({
           </div>
         </header>
       )}
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
       {site === undefined ? (
         <Thinking text={`Loading ${brand.domain}...`} />
       ) : !site ? (

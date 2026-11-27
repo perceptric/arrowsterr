@@ -304,7 +304,8 @@ export async function getUsage(sb: SupabaseClient, workspaceId: string): Promise
 /** The workspace's plan and how much of each allowance it used. Null before 015_billing.sql. */
 export async function getPlanUsage(sb: SupabaseClient, workspaceId: string) {
   const { data, error } = await sb.from("workspaces").select("*").eq("id", workspaceId).maybeSingle();
-  if (error || !data?.plan) return null;
+  if (error) throw error;
+  if (!data?.plan) return null;
   const w = data as {
     plan: PlanId;
     plan_status: string;
@@ -541,7 +542,7 @@ export async function getDocMeta(sb: SupabaseClient, id: string): Promise<DocPub
 
 export async function saveDocMeta(sb: SupabaseClient, id: string, meta: DocPublishMeta) {
   const { error } = await sb.from("docs").update({ meta }).eq("id", id);
-  if (error) throw new Error(/meta/.test(error.message) ? "Run supabase/021_doc_meta.sql in Supabase to save publishing details." : error.message);
+  if (error) throw new Error(error.message);
 }
 
 export async function deleteDoc(sb: SupabaseClient, id: string) {

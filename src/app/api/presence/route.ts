@@ -5,6 +5,7 @@ import { TASK_COST } from "@/lib/plans";
 import { presenceList } from "@/lib/presence";
 import { brandPresence, marketFor, postChecks, toCheck, wikiPresence } from "@/lib/presenceServer";
 import { isEditor, requireRole } from "@/lib/serverAuth";
+import { errorResponse } from "@/lib/errorsServer";
 
 // Where AI gets its facts: Wikipedia, Wikidata, Trustpilot and Google Business Profile for a brand and its top competitors.
 //   { brandId, competitors: [{ name, domain }] }                  read: free, Wikipedia live and the rest as saved
@@ -15,7 +16,7 @@ async function handle(request: Request) {
   const auth = await requireRole(request, body.workspaceId, "viewer");
   if ("denied" in auth) return auth.denied;
   const { data: brand, error } = await auth.sb.from("brands").select("id, name, domain, profile").eq("id", body.brandId).eq("workspace_id", body.workspaceId).maybeSingle();
-  if (error) return Response.json({ error: error.message }, { status: 500 });
+  if (error) return errorResponse(error, "api/presence");
   if (!brand) return Response.json({ error: "Brand not found." }, { status: 404 });
 
   const market = await marketFor(auth.sb, body.workspaceId, brand);
@@ -40,9 +41,7 @@ async function handle(request: Request) {
     const unchecked = (await toCheck(list, market)).length;
     return Response.json({ brands, unchecked, taskCost: TASK_COST.presence, paidReady: dfsReady() });
   } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    console.error("Brand presence failed:", message);
-    return Response.json({ error: message }, { status: 500 });
+    return errorResponse(e, "api/presence");
   }
 }
 

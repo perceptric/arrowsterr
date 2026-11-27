@@ -14,12 +14,13 @@ import { useStash } from "@/lib/stash";
 import { Pop, SelectPop } from "../Pickers";
 import { post, STATUS_PICK } from "../research/shared";
 import { libraryGroup, writeState, type WriteState } from "@/lib/writeFlow";
-import { Seg, Thinking } from "../ui";
+import { ErrorNote, Seg, Thinking } from "../ui";
 import { usePoll, type LibraryOpen } from "./parts";
 import { ConnectWizard } from "../ConnectWizard";
 import { GenerateDialog } from "./GenerateDialog";
 import { SectionPanel } from "./SectionPanel";
 import { useWriteActions, WriteButton } from "./WriteButton";
+import { errorText } from "@/lib/errors";
 
 // The Library as a grid (docs/content-grid.md): one row per article, columns lettered like a sheet.
 // Metadata: Status (the same Content status as the Keyword Deep Dive), Meta title, Meta description, Slug.
@@ -81,7 +82,7 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
       setRows(await listGrid(sb, site.id));
       setError("");
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
       setRows((r) => (Array.isArray(r) ? r : []));
     }
   }, [sb, site.id, setRows]);
@@ -103,7 +104,7 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
     if (rowsRef.current) rowsRef.current = rowsRef.current.map((r) => (r.topic.id === id ? fn(r) : r));
     setRows((rs) => (Array.isArray(rs) ? rs.map((r) => (r.topic.id === id ? fn(r) : r)) : rs));
   };
-  const run = (p: Promise<unknown>) => p.catch((e) => setError(e instanceof Error ? e.message : String(e)));
+  const run = (p: Promise<unknown>) => p.catch((e) => setError(errorText(e)));
 
   function addPair() {
     const next = added + 1;
@@ -136,11 +137,11 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
       const out = await post<{ results: { itemId: string; ok: boolean; error?: string }[] }>(auth, "/api/agentic-writer/grid", { action: "generate", itemIds: ids });
       const failed = out.results.filter((x) => !x.ok);
       track("drafts_started", { rows: ids.length, failed: failed.length });
-      if (failed.length) setError(failed.map((f) => `${rowOf(f.itemId)?.topic.keyword ?? "A row"}: ${f.error}`).join(" "));
+      if (failed.length) setError(failed.map((f) => `${rowOf(f.itemId)?.topic.keyword ?? "A row"}: ${errorText(f.error)}`).join(" "));
       setSelected(new Set());
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     } finally {
       setBusy((b) => new Set([...b].filter((x) => !ids.includes(x))));
     }
@@ -155,7 +156,7 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
       setSynced((x) => ({ ...x, [r.topic.id]: { s: "done", url: out.published.url } }));
       track("article_synced", { from: "grid" });
     } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
+      const message = errorText(e);
       setSynced((x) => {
         const n = { ...x };
         delete n[r.topic.id];
@@ -190,7 +191,7 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
       await ensureDoc(r.topic.id);
       setPanel({ itemId: r.topic.id, pair });
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     } finally {
       setStarting("");
     }
@@ -250,7 +251,7 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
             face
           )}
           {job?.label === "Failed" ? (
-            <span className={`tw-tag ${job.tone}`} title={job.error}>
+            <span className={`tw-tag ${job.tone}`} title={job.error ? errorText(job.error) : undefined}>
               Failed
             </span>
           ) : null}
@@ -317,8 +318,8 @@ export function ContentGrid({ sb, auth, site, brandId, canEdit, onOpen }: { sb: 
           </>
         ) : null}
       </div>
-      {error ? <p className="aw-error">{error}</p> : null}
-      {actions.error ? <p className="aw-error">{actions.error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
+      {actions.error ? <ErrorNote error={actions.error} /> : null}
 
       <div className="aw-frame overflow-auto" style={{ maxHeight: "calc(100vh - 200px)" }}>
         <table className="aw-dgrid border-separate border-spacing-0 text-[13px]" style={{ tableLayout: "fixed", width }}>

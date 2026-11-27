@@ -7,6 +7,8 @@ import { merchantAccounts, saveCatalog, storeAdded, pickMerchantAccount, type Sh
 import { decide, rematch, reviewList } from "@/lib/shopMatchServer";
 import { shopReport } from "@/lib/shopReportServer";
 import { deepCheck, MAX_PROMPTS, postNew, promptKey, suggestPrompts } from "@/lib/shopRunsServer";
+import { NOT_READY } from "@/lib/errors";
+import { errorResponse } from "@/lib/errorsServer";
 
 // AI Shopping's catalog and switch for one brand (docs/ai-shopping-plan.md, sections 3 and 3.1).
 //   action "state" (viewers): the switch, the sources and the products.
@@ -194,7 +196,7 @@ export async function POST(request: Request) {
         const { data: src } = await db.from("shop_sources").select("id, account, name, status, error, synced_at").eq("brand_id", brand.id).eq("kind", "merchant").maybeSingle();
         if (!src) return Response.json({ connected: false, ready: googleReady() });
         const { data: h, error } = await db.from("shop_sources").select("health, health_at").eq("id", src.id).maybeSingle();
-        if (error) return Response.json({ connected: true, source: src, health: null, setup: "Run supabase/095_crawlers_merchant.sql on the database to see feed health." });
+        if (error) return Response.json({ connected: true, source: src, health: null, setup: NOT_READY });
         return Response.json({ connected: true, source: src, health: h?.health ?? null, healthAt: h?.health_at ?? null });
       }
       case "decide": {
@@ -222,7 +224,6 @@ export async function POST(request: Request) {
         return fail("Unknown action.");
     }
   } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
-    return fail(/shop_prompts|shop_runs|shop_daily|shop_retailers|shop_floor|source_key/.test(msg) ? "Run supabase/081_shop_runs.sql on the database." : /shop_cards|shop_ids|shop_aliases/.test(msg) ? "Run supabase/080_shop_matching.sql on the database." : /shop_sources|shop_catalog|shop_mode/.test(msg) ? "Run supabase/079_ai_shopping.sql on the database." : msg.slice(0, 300), 500);
+    return errorResponse(e, "api/shop");
   }
 }

@@ -8,9 +8,10 @@ import { BrandLogo } from "./BrandLogo";
 import { EmptyScreen } from "./Drawing";
 import { Dropdown } from "./Pickers";
 import { post } from "./research/shared";
-import { favicon, Seg, SidePanel, Thinking } from "./ui";
+import { ErrorNote, favicon, Seg, SidePanel, Thinking } from "./ui";
 import { ShoppingReport } from "./ShoppingReport";
 import { FeedHealth } from "./FeedHealth";
+import { errorText } from "@/lib/errors";
 
 // AI Shopping (docs/ai-shopping-plan.md). Phase 2: the switch, the Catalog side panel and the product list.
 
@@ -41,14 +42,14 @@ export function useShop(auth: RunAuth, brandId: string) {
       setState(await post<ShopState>(auth, "/api/shop", { action: "state", brandId }));
       setError("");
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     }
   }, [auth, brandId]);
   useEffect(() => {
     let live = true;
     post<ShopState>(auth, "/api/shop", { action: "state", brandId })
       .then((s) => live && setState(s))
-      .catch((e) => live && setError(e instanceof Error ? e.message : String(e)));
+      .catch((e) => live && setError(errorText(e)));
     return () => {
       live = false;
     };
@@ -63,7 +64,7 @@ export function ShoppingSwitch({ auth, brand, canEdit }: { auth: RunAuth; brand:
   const { state, error, reload, act } = useShop(auth, brand.id);
   const [busy, setBusy] = useState(false);
   const [fail, setFail] = useState("");
-  if (!state) return error ? <p className="aw-error max-w-2xl">{error}</p> : <Thinking text="Getting your shopping data..." />;
+  if (!state) return error ? <ErrorNote error={error} className="max-w-2xl" /> : <Thinking text="Getting your shopping data..." />;
   const pick = async (mode: ShopMode) => {
     setBusy(true);
     setFail("");
@@ -71,14 +72,14 @@ export function ShoppingSwitch({ auth, brand, canEdit }: { auth: RunAuth; brand:
       await act("mode", { mode });
       await reload();
     } catch (e) {
-      setFail(e instanceof Error ? e.message : String(e));
+      setFail(errorText(e));
     } finally {
       setBusy(false);
     }
   };
   return (
     <section className="flex max-w-2xl flex-col gap-4">
-      {fail ? <p className="aw-error">{fail}</p> : null}
+      {fail ? <ErrorNote error={fail} /> : null}
       <div className="aw-frame flex flex-col gap-3 p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <span className="text-[15px] font-medium text-ink">AI Shopping</span>
@@ -106,7 +107,7 @@ function Aliases({ saved, canEdit, onSave }: { saved: string[]; canEdit: boolean
     <div className="aw-frame flex flex-col gap-3 p-5">
       <span className="text-[15px] font-medium text-ink">Other names</span>
       <p className="aw-small">Names your brand goes by on product cards, separated by commas.</p>
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
       <div className="flex flex-wrap items-center gap-2">
         <input className="aw-input min-w-0 flex-1" value={text} onChange={(e) => setText(e.target.value)} placeholder="Fenty, Fenty by Rihanna" aria-label="Other names" disabled={!canEdit || busy} />
         {canEdit ? (
@@ -120,7 +121,7 @@ function Aliases({ saved, canEdit, onSave }: { saved: string[]; canEdit: boolean
               try {
                 await onSave(list);
               } catch (e) {
-                setError(e instanceof Error ? e.message : String(e));
+                setError(errorText(e));
               } finally {
                 setBusy(false);
               }
@@ -149,7 +150,7 @@ function StoreRules({ retailers, floor, canEdit, onSave }: { retailers: string[]
   };
   return (
     <section className="flex flex-col gap-4 border-t border-rule pt-4">
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
       <div className="flex flex-col gap-2">
         <span className="aw-label">Your retailers</span>
         <div className="flex flex-wrap items-center gap-1.5">
@@ -198,7 +199,7 @@ function StoreRules({ retailers, floor, canEdit, onSave }: { retailers: string[]
                 await onSave(name.trim() ? [...list, name.trim()] : list, pct || null);
                 setName("");
               } catch (e) {
-                setError(e instanceof Error ? e.message : String(e));
+                setError(errorText(e));
               } finally {
                 setBusy(false);
               }
@@ -246,7 +247,7 @@ function Review({ auth, brand, canEdit, products }: { auth: RunAuth; brand: Bran
     let live = true;
     post<{ groups: ReviewGroup[] }>(auth, "/api/shop", { action: "review", brandId: brand.id })
       .then((d) => live && setGroups(d.groups))
-      .catch((e) => live && setError(e instanceof Error ? e.message : String(e)));
+      .catch((e) => live && setError(errorText(e)));
     return () => {
       live = false;
     };
@@ -260,7 +261,7 @@ function Review({ auth, brand, canEdit, products }: { auth: RunAuth; brand: Bran
       await post(auth, "/api/shop", { action: "decide", brandId: brand.id, keys: g.keys, productId });
       setGroups((list) => (list ?? []).filter((x) => x.keys[0] !== id));
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     } finally {
       setBusy("");
     }
@@ -271,7 +272,7 @@ function Review({ auth, brand, canEdit, products }: { auth: RunAuth; brand: Bran
         <span className="aw-label">Is this yours?</span>
         {groups?.length ? <span className="aw-status aw-status--warn">{groups.length}</span> : null}
       </div>
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
       {(groups ?? []).map((g) => {
         const id = g.keys[0];
         const chosen = g.suggestion?.productId ?? pick[id] ?? "";
@@ -346,7 +347,7 @@ export function CatalogPanel({ auth, brand, canEdit, onClose, onPublishing, noti
         setAccounts(list);
         setAccount(list[0]?.id ?? "");
       })
-      .catch((e) => setFail(e instanceof Error ? e.message : String(e)));
+      .catch((e) => setFail(errorText(e)));
   }, [needsAccount, canEdit, act]);
 
   async function run(name: string, fn: () => Promise<unknown>) {
@@ -356,7 +357,7 @@ export function CatalogPanel({ auth, brand, canEdit, onClose, onPublishing, noti
       await fn();
       await reload();
     } catch (e) {
-      setFail(e instanceof Error ? e.message : String(e));
+      setFail(errorText(e));
     } finally {
       setBusy("");
     }
@@ -377,7 +378,7 @@ export function CatalogPanel({ auth, brand, canEdit, onClose, onPublishing, noti
         <span className="min-w-0 flex-1 text-[14px] font-medium text-ink">{title}</span>
         {s ? <SourceStatus s={s} /> : null}
       </div>
-      {s?.error ? <p className="aw-error text-[12.5px]">{s.error}</p> : null}
+      {s?.error ? <ErrorNote error={s.error} className="text-[12.5px]" /> : null}
       {s && s.name && s.kind !== "csv" ? <span className="aw-small">{s.name}</span> : null}
       {canEdit ? (
         <div className="flex flex-wrap items-center gap-2">
@@ -405,11 +406,11 @@ export function CatalogPanel({ auth, brand, canEdit, onClose, onPublishing, noti
   return (
     <SidePanel title="Catalog" onClose={onClose} narrow>
       {!state ? (
-        error ? <p className="aw-error">{error}</p> : <Thinking text="Getting your products..." />
+        error ? <ErrorNote error={error} /> : <Thinking text="Getting your products..." />
       ) : (
         <div className="flex flex-col gap-4">
           {notice ? <div className="aw-callout">{notice}</div> : null}
-          {fail || error ? <p className="aw-error">{fail || error}</p> : null}
+          {fail || error ? <ErrorNote error={fail || error} /> : null}
           {total ? <span className="aw-label">{total.toLocaleString()} products</span> : null}
           {state.products.length ? <Review auth={auth} brand={brand} canEdit={canEdit} products={state.products} /> : null}
 
@@ -511,7 +512,7 @@ export function ShoppingPage({ auth, brand, canEdit, onPublishing }: { auth: Run
   }, [reload]);
   const panel = open ? <CatalogPanel auth={auth} brand={brand} canEdit={canEdit} onClose={close} onPublishing={onPublishing} notice={notice} /> : null;
 
-  if (!state) return error ? <p className="aw-error">{error}</p> : <Thinking text="Getting your shopping data..." />;
+  if (!state) return error ? <ErrorNote error={error} /> : <Thinking text="Getting your shopping data..." />;
   if (!state.products.length) {
     const reading = state.sources.some((s) => s.status === "syncing" || s.status === "new");
     return (

@@ -11,8 +11,9 @@ import type { RunAuth } from "@/lib/runner";
 import { useStash } from "@/lib/stash";
 import { BrandLogo } from "../BrandLogo";
 import { Sheet, type Col } from "../Sheet";
-import { BusyButton, CalendarIcon, Card, favicon, RIVAL_COLOR, Thinking, YOU_COLOR } from "../ui";
+import { BusyButton, CalendarIcon, Card, ErrorNote, favicon, RIVAL_COLOR, Thinking, YOU_COLOR } from "../ui";
 import { BAR_BUTTON, BAR_INPUT, Difficulty, downloadCsv, fmtNum, KeywordLink, post } from "./shared";
+import { errorText } from "@/lib/errors";
 
 type Tab = "missing" | "shared" | "weaker" | "lead" | "only";
 const LABEL = (them: string): Record<Tab, string> => ({
@@ -82,7 +83,7 @@ export function KeywordGap({
       setResult({ gap: r.gap, them: r.them });
       setTab("missing");
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     } finally {
       setBusy(false);
     }
@@ -136,7 +137,7 @@ export function KeywordGap({
       setPicked(new Set());
       setNotice(n ? `${n} added to the Content Plan.` : "Already in the Content Plan.");
     } catch (e) {
-      setNotice(e instanceof Error ? e.message : String(e));
+      setNotice(errorText(e));
     }
   }
 
@@ -185,7 +186,7 @@ export function KeywordGap({
         ) : null}
       </form>
 
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
       {notice ? <div className="aw-callout">{notice}</div> : null}
       {busy ? <Thinking text={`Comparing ${me.name} with ${nameOf(query)}...`} /> : null}
 

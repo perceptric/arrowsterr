@@ -12,6 +12,7 @@ import { cached, DAY } from "@/lib/cache";
 import { normalizeSite } from "@/lib/site";
 import { knowledgeText, type AgentTask } from "@/lib/writerAgent";
 import type { Profile } from "@/lib/db";
+import { errorResponse } from "@/lib/errorsServer";
 
 const TASKS: AgentTask[] = ["write", "table", "widget", "stats", "links", "faq", "meta", "custom", "rewrite", "paragraph", "alt"];
 const str = (v: unknown, n: number) => String(v ?? "").slice(0, n);
@@ -273,9 +274,7 @@ Answer: {"links": [{"anchor": "exact words from the section", "url": "https://..
       .filter((x) => x.anchor && pages.includes(x.url));
     return Response.json({ task, links });
   } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    console.error("Writer agent failed:", message);
-    return Response.json({ error: message }, { status: 500 });
+    return errorResponse(e, "api/writer/agent");
   }
 }
 

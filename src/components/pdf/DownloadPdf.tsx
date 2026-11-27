@@ -9,7 +9,9 @@ import type { PdfPage } from "@/lib/pdf/pages";
 import type { RunAuth } from "@/lib/runner";
 import type { PdfTarget } from "../research/pdfTarget";
 import { Modal } from "../reports/Dialog";
-import { errText, post } from "../reports/reportApi";
+import { post } from "../reports/reportApi";
+import { errorText } from "@/lib/errors";
+import { ErrorNote } from "../ui";
 
 // Download PDF on every page (docs/reports.md, section 32.2): pick a design, the server makes the file,
 // it downloads and is kept in Reports.
@@ -81,7 +83,7 @@ export function DownloadPdf({
       }
       setState({ at: "stalled" });
     } catch (e) {
-      setState({ at: "failed", error: errText(e) });
+      setState({ at: "failed", error: errorText(e) });
     }
   }
 
@@ -102,7 +104,7 @@ export function DownloadPdf({
       {open ? (
         <Modal title="Download PDF" onClose={close} width="max-w-xl">
           {"error" in what ? (
-            <p className="aw-callout">{what.error}</p>
+            <p className="aw-callout">{errorText(what.error)}</p>
           ) : (
             <div className="flex flex-col gap-1">
               <h2 className="aw-h3 mb-0!">{what.title}</h2>
@@ -144,7 +146,7 @@ export function DownloadPdf({
               Set up your Brand Kit
             </button>
           ) : null}
-          {state.at === "failed" ? <p className="aw-error">{state.error}</p> : null}
+          {state.at === "failed" ? <ErrorNote error={state.error} /> : null}
           {state.at === "stalled" ? (
             <p className="aw-callout flex flex-wrap items-center gap-3 text-[13px]">
               The PDF is taking longer than usual.
