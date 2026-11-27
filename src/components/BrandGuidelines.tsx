@@ -130,7 +130,7 @@ export function BrandGuidelines({ sb, workspaceId, brand, canEdit }: { sb: Supab
     if (tab) tab.location.href = data.signedUrl;
   }
 
-  if (row === undefined) return <Thinking text="Loading..." />;
+  if (row === undefined) return <Thinking text="Getting the brand guidelines..." />;
   if (setup) return <div className="aw-callout max-w-xl">{SETUP}</div>;
   const files = row?.files ?? [];
   const changed = body !== (row?.body ?? "") || links !== (row?.links.join("\n") ?? "");

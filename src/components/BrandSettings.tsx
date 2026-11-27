@@ -100,7 +100,7 @@ function BrandGoogle({ auth, brand }: { auth: RunAuth; brand: BrandRef }) {
     <section className="flex max-w-2xl flex-col gap-3">
       {error ? <p className="aw-error">{error}</p> : null}
       {ga4 === undefined && !error ? (
-        <Thinking text="Loading..." />
+        <Thinking text="Getting the brand settings..." />
       ) : (
         <div className="aw-frame flex items-center justify-between gap-3 px-5 py-3">
           <span className="flex flex-col">
@@ -167,7 +167,7 @@ function BrandAlerts({ auth, brand, isAdmin }: { auth: RunAuth; brand: BrandRef;
     }
   }
 
-  if (!s) return error ? <p className="aw-error max-w-2xl">{error}</p> : <Thinking text="Loading..." />;
+  if (!s) return error ? <p className="aw-error max-w-2xl">{error}</p> : <Thinking text="Getting the brand settings..." />;
   const off = !s.allowed;
   const can = isAdmin && !off && !s.setup;
   return (

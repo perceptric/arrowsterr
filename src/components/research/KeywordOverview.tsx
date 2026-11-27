@@ -11,7 +11,7 @@ import { peek, putStash, useStash } from "@/lib/stash";
 import { BrandLogo } from "../BrandLogo";
 import { Sheet } from "../Sheet";
 import { EmptyScreen } from "../Drawing";
-import { CalendarIcon, Card, favicon, Seg, Thinking } from "../ui";
+import { BusyButton, CalendarIcon, Card, favicon, Seg, Thinking } from "../ui";
 import { BulkKeywords } from "./Bulk";
 import { OwnRank } from "../analytics/OwnRank";
 import { BAR_BUTTON, BAR_FIELD, BAR_INPUT, AnalyzeSeo, downloadCsv, fmtCpc, post, postLines, Sparkline } from "./shared";
@@ -269,10 +269,10 @@ export function KeywordOverview({ sb, auth, site, canEdit }: { sb: SupabaseClien
       {picked.size && canEdit ? (
         <div className="flex flex-wrap items-center gap-3 border-b border-rule-faint bg-brand-pale px-5 py-2.5">
           <span className="text-[13px] font-medium text-ink">{picked.size} selected</span>
-          <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => addToCalendar(rows.filter((r) => picked.has(r.keyword)))}>
+          <BusyButton className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => addToCalendar(rows.filter((r) => picked.has(r.keyword)))} done={null}>
             <CalendarIcon />
             Add to Content Plan
-          </button>
+          </BusyButton>
           <button type="button" className="aw-text-link text-[13px]" onClick={() => setPicked(new Set())}>
             Clear
           </button>
@@ -497,16 +497,16 @@ export function KeywordOverview({ sb, auth, site, canEdit }: { sb: SupabaseClien
             <div className="flex flex-col gap-1">
               <h2 className="aw-h3">{report.keyword}</h2>
               <span className="text-[13px] text-muted">
-                {flag(report.country)} {report.country}{live ? " · Loading..." : ""}
+                {flag(report.country)} {report.country}{live ? " · Getting the latest numbers..." : ""}
               </span>
               <OwnRank auth={auth} brandId={site.brand_id} keyword={report.keyword} />
             </div>
             {canEdit && o ? (
               <span className="flex flex-wrap gap-2">
-                <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => addToCalendar([o])}>
+                <BusyButton className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => addToCalendar([o])} done={null}>
                   <CalendarIcon />
                   Add to calendar
-                </button>
+                </BusyButton>
               </span>
             ) : null}
           </div>

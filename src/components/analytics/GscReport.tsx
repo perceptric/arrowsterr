@@ -27,7 +27,7 @@ import type { RunAuth } from "@/lib/runner";
 import type { View } from "@/lib/view";
 import { BrandLogo } from "../BrandLogo";
 import { Modal } from "../reports/Dialog";
-import { favicon, Thinking } from "../ui";
+import { favicon, SkeletonRows, Thinking } from "../ui";
 import { GA4_LOGO, propertyName, type Call, type Status } from "./google";
 import { AddFilter, ago, compact, FilterChips, GranPick, HeadTools, isoToday, LineChart, longKey, pathOf, shortKey, pinsAt, place, RangePicker, rate, ReportTable, Switch, TableTabs, Tiles, usePageActions, whole, type Col, type CsvRef, type Line, type Metric } from "./Report";
 import { ResearchPanel, type Researched } from "./ResearchPanel";
@@ -281,7 +281,7 @@ export function GscReport({ status, call, view, auth, sb, canEdit, title, onSetu
           initial={tab === "days" ? { key: "key", desc: true } : { key: shownOn.includes("clicks") ? "clicks" : shownOn[0], desc: !(shownOn[0] === "position" && !shownOn.includes("clicks")) }}
           name={TABS.find((t) => t.id === tab)!.label}
           csvRef={csvRef}
-          empty={busy ? "Loading..." : "No data for these settings."}
+          empty={busy ? <SkeletonRows rows={6} cols={4} /> : "No data for these settings."}
           action={
             tab === "query"
               ? (r) => (
@@ -328,7 +328,7 @@ export function GscReport({ status, call, view, auth, sb, canEdit, title, onSetu
           onAdd={actions.toCalendar}
           onRefresh={(page, query) => {
             setPanel(null);
-            actions.refreshPage(page, `It ranks #${panel.position?.toFixed(1) ?? "?"} for “${query}” with ${whole(panel.impressions)} impressions.`, query);
+            actions.refreshPage(page, `It ranks #${panel.position ? Math.round(panel.position) : "?"} for “${query}” with ${whole(panel.impressions)} impressions.`, query);
           }}
         />
       ) : null}

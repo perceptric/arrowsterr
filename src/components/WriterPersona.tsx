@@ -146,7 +146,7 @@ export function WriterPersonaSettings({ auth, brand, canEdit }: { auth: RunAuth;
     }
   }
 
-  if (persona === undefined) return <Thinking text="Loading..." />;
+  if (persona === undefined) return <Thinking text="Getting the writer persona..." />;
   return (
     <section className="flex max-w-3xl flex-col gap-4">
       <div className="flex flex-wrap items-center gap-2">

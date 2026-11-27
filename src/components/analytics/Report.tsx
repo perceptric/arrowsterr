@@ -12,7 +12,7 @@ import { BrandLogo } from "../BrandLogo";
 import { DateField, Dropdown, Pop, useAnchoredPop } from "../Pickers";
 import { Seg, sortRows, SortTh, Tip, useSort, type Sort } from "../ui";
 import { useZippieMaybe } from "../zippie/ZippieContext";
-import type { CalendarPick } from "./ResearchPanel";
+import type { CalendarPick, CalendarResult } from "./ResearchPanel";
 
 // The parts both Analytics reports share (GscReport.tsx, Ga4Report.tsx): the range picker, filters as chips, the
 // checkable number tiles that draw the chart, the line chart, the sortable paged table, the Export menu in the
@@ -465,7 +465,7 @@ export type CsvRef = React.RefObject<(() => { name: string; rows: (string | numb
  * A table of one tab: sorted by any column, paged with rows per page. The first column wraps (names are never cut
  * off) and can show an action on hover. Rows with `children` open to show them under the row, indented.
  */
-export function ReportTable<R extends { children?: R[] }>({ cols, rows, rowKey, initial, action, name, csvRef, empty }: { cols: Col<R>[]; rows: R[]; rowKey: (r: R) => string; initial: Sort; action?: (r: R) => React.ReactNode; name: string; csvRef: CsvRef; empty: string }) {
+export function ReportTable<R extends { children?: R[] }>({ cols, rows, rowKey, initial, action, name, csvRef, empty }: { cols: Col<R>[]; rows: R[]; rowKey: (r: R) => string; initial: Sort; action?: (r: R) => React.ReactNode; name: string; csvRef: CsvRef; empty: React.ReactNode }) {
   const [sort, setSort] = useSort(initial.key, initial.desc);
   const [per, setPer] = useState(10);
   const [page, setPage] = useState(0);
@@ -650,7 +650,8 @@ export function usePageActions({ view, sb, auth, canEdit }: { view: View; sb: Su
   const siteOf = useCallback(async () => site ?? (await siteForBrand(sb, brand, canEdit).then((s) => (setSite(s), s))), [site, sb, brand, canEdit]);
   const url = useCallback((page: string) => (/^https?:\/\//.test(page) ? page : `https://${brand.domain.replace(/^https?:\/\//, "").replace(/\/$/, "")}${page}`), [brand.domain]);
 
-  async function toCalendar(item: CalendarPick) {
+  /** Adds one keyword or page refresh. Resolves to "added", "exists" or an error message, so the button that asked can show it. */
+  async function toCalendar(item: CalendarPick): Promise<CalendarResult> {
     setError("");
     try {
       const s = await siteOf();
@@ -673,8 +674,11 @@ export function usePageActions({ view, sb, auth, canEdit }: { view: View; sb: Su
         },
       ]);
       setNotice(added ? (refresh ? `Added a refresh of ${item.page} to the Calendar.` : `Added “${item.keyword}” to the Calendar.`) : `“${item.keyword}” is already in the Calendar.`);
+      return added ? "added" : "exists";
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      const message = e instanceof Error ? e.message : String(e);
+      setError(message);
+      return { error: message };
     }
   }
 

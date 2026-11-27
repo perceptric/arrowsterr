@@ -7,7 +7,7 @@ import { IntegrationsSettings } from "./IntegrationsSettings";
 import type { RunAuth } from "@/lib/runner";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useState } from "react";
-import { Meter } from "./ui";
+import { Meter, SkeletonRows } from "./ui";
 import { WorkspaceAvatar, avatarFromFile } from "./WorkspaceAvatar";
 import {
   atLeast,
@@ -298,8 +298,8 @@ export function MembersPage({
               })}
               {members === null ? (
                 <tr>
-                  <td colSpan={3} className="aw-small">
-                    Loading...
+                  <td colSpan={3}>
+                    <SkeletonRows rows={3} cols={3} />
                   </td>
                 </tr>
               ) : null}

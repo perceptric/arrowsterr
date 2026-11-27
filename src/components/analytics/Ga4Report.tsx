@@ -8,7 +8,7 @@ import type { RunAuth } from "@/lib/runner";
 import type { View } from "@/lib/view";
 import { BrandLogo } from "../BrandLogo";
 import { Dropdown } from "../Pickers";
-import { Thinking } from "../ui";
+import { SkeletonRows, Thinking } from "../ui";
 import { AI_LOGO, GSC_LOGO, type Call, type Status } from "./google";
 import { AddFilter, ago, changeOf, compact, duration, FilterChips, GranPick, HeadTools, isoToday, LineChart, pinsAt, place, RangePicker, rate, ReportTable, Switch, TableTabs, Tiles, usePageActions, whole, type Col, type CsvRef, type Line, type Metric } from "./Report";
 
@@ -269,7 +269,7 @@ export function Ga4Report({ status, call, view, auth, sb, canEdit, title, onSetu
           initial={{ key: tab === "pages" ? "views" : tab === "events" ? "count" : "sessions", desc: true }}
           name={tab === "traffic" ? GROUPS.find((g) => g.id === group)!.label.replace("Group by: ", "") : TABS.find((t) => t.id === tab)!.label}
           csvRef={csvRef}
-          empty={busy ? "Loading..." : data.source === "synced" ? "Not in the daily sync. It shows again when Google answers." : "No data for these settings."}
+          empty={busy ? <SkeletonRows rows={6} cols={4} /> : data.source === "synced" ? "Not in the daily sync. It shows again when Google answers." : "No data for these settings."}
           action={
             tab === "landing" && canEdit
               ? (r) => (

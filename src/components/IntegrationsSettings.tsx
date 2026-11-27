@@ -512,8 +512,8 @@ export function IntegrationsSettings({ auth, isAdmin }: { auth: RunAuth; isAdmin
                   <span className="text-muted">{h.source === "zapier" ? "Zapier" : "API"} · {date(h.created_at)}</span>
                 </span>
                 {isAdmin ? (
-                  <button type="button" className="aw-text-link text-[13px] text-neg!" onClick={() => act("unhook", { action: "unhook", id: h.id })}>
-                    Remove
+                  <button type="button" className="aw-text-link text-[13px] text-neg!" disabled={Boolean(busy)} aria-busy={busy === "unhook" || undefined} onClick={() => act("unhook", { action: "unhook", id: h.id }, "Webhook removed.")}>
+                    {busy === "unhook" ? "Removing..." : "Remove"}
                   </button>
                 ) : null}
               </li>

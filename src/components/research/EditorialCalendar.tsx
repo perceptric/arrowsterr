@@ -14,7 +14,7 @@ import { usePoll } from "../writer/parts";
 import { useWriteActions, WriteButton } from "../writer/WriteButton";
 import { Sheet, type Col, type Edit } from "../Sheet";
 import { Confirm } from "../reports/Dialog";
-import { SidePanel, Thinking } from "../ui";
+import { BusyButton, SidePanel, Thinking } from "../ui";
 import { CalendarGrid, TopicSidebar } from "./CalendarGrid";
 import { KeywordDeepDive } from "./KeywordDeepDive";
 import { DayPanel } from "./DayPanel";
@@ -604,9 +604,9 @@ export function EditorialCalendar({
         <section className="aw-frame flex flex-col items-center gap-3 px-6 py-12 text-center">
           <span className="aw-h4">Your Content Plan is empty</span>
           {canEdit ? (
-            <button type="button" className="aw-btn aw-btn--accent" onClick={restore}>
+            <BusyButton className="aw-btn aw-btn--accent" onClick={restore} done={null}>
               Restore the AI&apos;s plan
-            </button>
+            </BusyButton>
           ) : null}
         </section>
       ) : null}

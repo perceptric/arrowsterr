@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Funnel_Display, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { DialogHost } from "@/components/Dialogs";
+import { Toasts } from "@/components/ui";
 
 // Every word in the app.
 const inter = Inter({
@@ -40,6 +41,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <div className="aw flex min-h-screen flex-col">
           {children}
           <DialogHost />
+          <Toasts />
         </div>
       </body>
     </html>

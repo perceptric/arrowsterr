@@ -1,6 +1,6 @@
 import { cached, DAY, readCache, writeCache } from "@/lib/cache";
 import { dfsReady } from "@/lib/dataforseo";
-import { competitors, research, Spend, type Mode } from "@/lib/keywords";
+import { competitors, overview, research, Spend, type Mode } from "@/lib/keywords";
 import type { Keyword } from "@/lib/research";
 import { broaderSeed } from "@/lib/kwReport";
 import { marketOf } from "@/lib/research";
@@ -43,8 +43,15 @@ async function handle(request: Request) {
       const { data } = await cached(key, 30 * DAY, () => competitors(query, market, spend));
       return Response.json({ competitors: data, cost: spend.total });
     }
+    // With exact: true, also Google's own numbers for this keyword, or null when Google has none. Never another keyword's.
+    const exact =
+      body.exact === true && !BY_DOMAIN.includes(mode)
+        ? await cached(`kr2:exact:${market.location}:${market.language}:${query}`, 30 * DAY, async () => (await overview([query], market, spend)).get(query) ?? null)
+            .then((r) => r.data)
+            .catch(() => null)
+        : undefined;
     const hit = await readCache<Keyword[]>(key, 30 * DAY);
-    if (hit) return Response.json({ rows: hit, cost: 0 });
+    if (hit) return Response.json({ rows: hit, exact, cost: spend.total });
     let rows = await research(mode, query, market, spend);
     // Long or new searches are often missing from the keyword database: widen the search before giving up.
     if (!rows.length && !BY_DOMAIN.includes(mode)) {
@@ -54,7 +61,7 @@ async function handle(request: Request) {
     }
     // Empty results are not saved, so the next search tries again.
     if (rows.length) await writeCache(key, rows);
-    return Response.json({ rows, cost: spend.total });
+    return Response.json({ rows, exact, cost: spend.total });
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     console.error("Keyword research failed:", message);

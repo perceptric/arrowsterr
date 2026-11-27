@@ -1,7 +1,7 @@
 "use client";
 
 // Small pieces every page shares.
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BrandLogo } from "./BrandLogo";
 
 export const favicon = (domain: string) => `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=64`;
@@ -212,8 +212,11 @@ export function Tip({ text }: { text: string }) {
   );
 }
 
-/** A full height panel that slides in from the right, like the prompt deep dive. Escape or a click outside closes it. */
-export function SidePanel({ title, kicker, onClose, children, narrow = false }: { title: React.ReactNode; kicker?: React.ReactNode; onClose: () => void; children: React.ReactNode; narrow?: boolean }) {
+/**
+ * A full height panel that slides in from the right, like the prompt deep dive. Escape or a click outside closes it.
+ * `footer` stays pinned to the bottom: put the panel's actions there.
+ */
+export function SidePanel({ title, kicker, onClose, children, footer, narrow = false }: { title: React.ReactNode; kicker?: React.ReactNode; onClose: () => void; children: React.ReactNode; footer?: React.ReactNode; narrow?: boolean }) {
   useEffect(() => {
     const keys = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", keys);
@@ -229,7 +232,7 @@ export function SidePanel({ title, kicker, onClose, children, narrow = false }: 
       <div role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()} className={`tw-side-panel ${narrow ? "tw-side-panel--narrow" : ""}`}>
         <div className="tw-side-panel__bar">
           <div className="tw-side-panel__title">
-            {kicker ? <span className="aw-micro">{kicker}</span> : null}
+            {kicker ? <span className="tw-side-panel__kicker">{kicker}</span> : null}
             <h2>{title}</h2>
           </div>
           <button type="button" aria-label="Close" title="Close (Esc)" onClick={onClose} className="aw-iconbtn shrink-0">
@@ -239,7 +242,141 @@ export function SidePanel({ title, kicker, onClose, children, narrow = false }: 
           </button>
         </div>
         <div className="tw-side-panel__body">{children}</div>
+        {footer ? <div className="tw-side-panel__foot">{footer}</div> : null}
       </div>
+    </div>
+  );
+}
+
+// ─────────────── feedback ───────────────
+
+type ToastNote = { id: number; text: string; tone: "ok" | "error" };
+const toastListeners = new Set<(t: ToastNote) => void>();
+let toastSeq = 0;
+
+/** Show a short note at the bottom right for 5 seconds: "ok" for something done, "error" for something that failed. */
+export function toast(text: string, tone: ToastNote["tone"] = "ok") {
+  const note = { id: ++toastSeq, text, tone };
+  toastListeners.forEach((l) => l(note));
+}
+
+/** Where toasts show. Mounted once, in the root layout. A newer toast takes the older one's place; hover pauses it. */
+export function Toasts() {
+  const [note, setNote] = useState<ToastNote | null>(null);
+  const [paused, setPaused] = useState(false);
+  useEffect(() => {
+    const show = (t: ToastNote) => setNote(t);
+    toastListeners.add(show);
+    return () => {
+      toastListeners.delete(show);
+    };
+  }, []);
+  useEffect(() => {
+    if (!note || paused) return;
+    const t = window.setTimeout(() => setNote(null), 5000);
+    return () => window.clearTimeout(t);
+  }, [note, paused]);
+  if (!note) return null;
+  return (
+    <div
+      key={note.id}
+      className={`aw-undo print:hidden ${note.tone === "error" ? "aw-undo--error" : ""}`}
+      role={note.tone === "error" ? "alert" : "status"}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      <span className="aw-undo__mark" aria-hidden="true">
+        {note.tone === "error" ? "!" : "✓"}
+      </span>
+      <span className="min-w-0 flex-1">{note.text}</span>
+      <button type="button" aria-label="Close" onClick={() => setNote(null)}>
+        Close
+      </button>
+    </div>
+  );
+}
+
+/**
+ * A button for work that takes a moment. While it runs: a spinner, aria-busy, and no second click. Then the done
+ * label for 2 seconds (or for good with `stay`). If the work throws, or resolves to { error }, the error shows as a toast.
+ * The work may resolve to a string to use as the done label. Pass done={null} when the work shows its own result.
+ */
+export function BusyButton({
+  onClick,
+  children,
+  done = "Done ✓",
+  stay = false,
+  className = "aw-btn aw-btn--secondary",
+  disabled,
+  title,
+  label,
+}: {
+  onClick: () => Promise<unknown> | unknown;
+  children: React.ReactNode;
+  done?: React.ReactNode;
+  stay?: boolean;
+  className?: string;
+  disabled?: boolean;
+  title?: string;
+  label?: string;
+}) {
+  const [state, setState] = useState<"idle" | "busy" | "done">("idle");
+  const [doneText, setDoneText] = useState<React.ReactNode>(null);
+  const live = useRef(true);
+  useEffect(() => {
+    live.current = true;
+    return () => {
+      live.current = false;
+    };
+  }, []);
+  useEffect(() => {
+    if (state !== "done" || stay) return;
+    const t = window.setTimeout(() => setState("idle"), 2000);
+    return () => window.clearTimeout(t);
+  }, [state, stay]);
+  async function run() {
+    if (state === "busy") return;
+    setState("busy");
+    try {
+      const r = await onClick();
+      if (r && typeof r === "object" && "error" in r && typeof (r as { error: unknown }).error === "string") throw new Error((r as { error: string }).error);
+      if (!live.current) return;
+      // done={null}: the work shows its own result (a notice, a new row), so the button only goes back.
+      if (typeof r !== "string" && done === null) return setState("idle");
+      setDoneText(typeof r === "string" ? r : null);
+      setState("done");
+    } catch (e) {
+      if (live.current) setState("idle");
+      toast(e instanceof Error ? e.message : String(e), "error");
+    }
+  }
+  return (
+    <button
+      type="button"
+      className={`${className} ${state === "done" ? "is-done" : ""}`}
+      aria-busy={state === "busy" || undefined}
+      aria-label={state === "done" ? undefined : label}
+      disabled={disabled || state === "busy" || (stay && state === "done")}
+      title={title}
+      onClick={run}
+    >
+      {state === "busy" ? <span className="aw-spin" aria-hidden="true" /> : null}
+      {state === "done" ? (doneText ?? done) : children}
+    </button>
+  );
+}
+
+/** A list that is loading: grey bars in the shape of its rows, as docs/brand.md says. Never the word "Loading". */
+export function SkeletonRows({ rows = 5, cols = 3 }: { rows?: number; cols?: number }) {
+  return (
+    <div className="aw-skel" aria-hidden="true">
+      {Array.from({ length: rows }, (_, r) => (
+        <div key={r} className="aw-skel__row">
+          {Array.from({ length: cols }, (_, c) => (
+            <i key={c} style={{ width: c === 0 ? `${48 + ((r * 37) % 32)}%` : `${40 + (((r + c) * 13) % 40)}px` }} />
+          ))}
+        </div>
+      ))}
     </div>
   );
 }

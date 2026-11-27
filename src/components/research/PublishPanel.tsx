@@ -249,7 +249,7 @@ export function PublishPanel({ sb, auth, docId, brandId, title, html, onClose }:
   return (
     <SidePanel narrow kicker="Drafts" title="Publish" onClose={onClose}>
       {!conns || !meta ? (
-        <Thinking text="Loading..." />
+        <Thinking text="Getting your publishing sites..." />
       ) : (
         <div className="flex flex-col gap-5">
           {setup ? <div className="aw-callout">{setup}</div> : null}
