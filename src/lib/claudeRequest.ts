@@ -75,3 +75,18 @@ export function thinkingFix(message: string, tried: ThinkingOff): ThinkingOff | 
   if (new RegExp(`thinking\\.type\\.${tried}\\\\?"? is not supported`, "i").test(message)) return tried === "between_tools" ? "disabled" : "omit";
   return null;
 }
+
+/**
+ * Earlier turns of a saved chat, ready to send again: thinking blocks come out. Each one is tied to the system prompt
+ * it was made under, and Zippie's prompt changes from message to message (the page, a picked skill), so the API
+ * refuses an old one ("bound to a different conversation"). Claude doesn't need them once a turn is over.
+ */
+export function withoutThinking<T extends { role: string; content: unknown }>(turns: T[]): T[] {
+  return turns.map((t) => {
+    if (t.role !== "assistant" || !Array.isArray(t.content)) return t;
+    const blocks = t.content as { type: string }[];
+    const kept = blocks.filter((b) => b.type !== "thinking" && b.type !== "redacted_thinking");
+    if (kept.length === blocks.length) return t;
+    return { ...t, content: kept.length ? kept : [{ type: "text", text: "(no reply)" }] };
+  });
+}
