@@ -281,7 +281,10 @@
 .aw .zp-wiz-tile:hover { border-color: var(--aw-brand); }
 .aw .zp-setup-card { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border: 1px solid var(--aw-rule); background: #fff; }
 .aw button { font-family: var(--font-sans); letter-spacing: 0; }
-.aw h1, .aw h2, .aw h3 { font-family: var(--font-sans); letter-spacing: 0; font-feature-settings: "ss07" 1, "ss08" 1, "liga" 0; }
+.aw h1, .aw h2, .aw h3, .aw h4 { font-family: var(--font-sans); letter-spacing: 0; font-feature-settings: "ss07" 1, "ss08" 1, "liga" 0; text-wrap: balance; }
+/* Body text never leaves one word alone on its last line; short centered text splits into even lines. */
+.aw p, .aw li, .aw dd, .aw label, .aw figcaption, .aw blockquote, .aw td, .aw th { text-wrap: pretty; }
+.aw .text-center p, .aw p.text-center, .aw .aw-empty p, .aw [role="dialog"] p { text-wrap: balance; }
 .aw h4, .aw h5, .aw h6, .aw input { font-family: var(--font-sans); letter-spacing: 0; }
 .aw textarea { font-family: var(--font-sans); }
 .aw .font-mono { letter-spacing: 0; font-variant-numeric: tabular-nums; }
@@ -824,7 +827,7 @@ body { background: var(--v10-canvas); }
 
 /* ── aw-display ── */
 .aw .aw-display {
-  font-size: 30px; line-height: 36px; text-wrap: balance; font-family: var(--aw-font); font-weight: 600; letter-spacing: -0.035em; color: var(--v10-ink);
+  font-size: 30px; line-height: 36px; font-family: var(--aw-font); font-weight: 600; letter-spacing: -0.035em; color: var(--v10-ink);
 }
 
 /* ── aw-dotgrid ── */
@@ -1028,7 +1031,7 @@ body { background: var(--v10-canvas); }
 
 /* ── aw-h2 ── */
 .aw .aw-h2 { font-family: var(--aw-font); }
-.aw h1.aw-h2 { font-size: 28px; line-height: 1.2; font-weight: 600; letter-spacing: -0.03em; color: var(--v10-ink); text-wrap: balance; }
+.aw h1.aw-h2 { font-size: 28px; line-height: 1.2; font-weight: 600; letter-spacing: -0.03em; color: var(--v10-ink); }
 .aw .aw-h2:not(h1) { font-size: 22px; line-height: 1.3; font-weight: 600; letter-spacing: -0.025em; color: var(--v10-ink); }
 
 /* ── aw-h3 ── */
@@ -1366,7 +1369,7 @@ body { background: var(--v10-canvas); }
   width: 100%; margin: -4px -6px; font-size: 14px; color: inherit; outline: none; border: 0; background: transparent; box-shadow: none; border-radius: var(--aw-r-md);
 }
 .aw .aw-onb__title {
-  margin: 0; font-size: 30px; line-height: 36px; text-wrap: balance; font-family: var(--aw-font); font-weight: 600; letter-spacing: -0.035em; color: var(--v10-ink);
+  margin: 0; font-size: 30px; line-height: 36px; font-family: var(--aw-font); font-weight: 600; letter-spacing: -0.035em; color: var(--v10-ink);
 }
 .aw .aw-onb__done {
   display: flex; flex-direction: column; align-items: center; max-width: 640px; margin: 24px auto 0; text-align: center; border-radius: var(--aw-r-lg); overflow: hidden; padding: 40px 32px; gap: 14px;

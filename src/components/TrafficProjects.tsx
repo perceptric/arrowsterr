@@ -125,7 +125,7 @@ export function TrafficProjects({ auth, canEdit, brandId, brandDomain }: { auth:
 
   const head = (
     <header className="flex flex-wrap items-center justify-between gap-3">
-      <h1 className="aw-h2 mb-0!">Traffic</h1>
+      <h1 className="aw-h2 mb-0!">Rank tracking</h1>
       {list.projects.length && canEdit ? (
         <span className="flex flex-wrap items-center gap-3">
           <span className="text-[13px] text-muted">
