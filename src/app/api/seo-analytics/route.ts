@@ -1,14 +1,14 @@
-import { analyticsOverview, articleResults, citedPages, googleFor, gscSitesFor, hasGscScope, ownRanks, queueSyncNow } from "@/lib/seoAnalyticsServer";
+import { analyticsDashboard, articleResults, dashboardRows, googleFor, gscSitesFor, hasGscScope, ownRanks, queueSyncNow } from "@/lib/seoAnalyticsServer";
 import { googleReady } from "@/lib/google";
 import { adminClient, requireRole } from "@/lib/serverAuth";
 
 // The Analytics page: Search Console and Google Analytics 4 for one brand, from the daily sync (seoAnalyticsServer.ts).
 //   { workspaceId, brandId, action }
 //   "status"    the Google sign-in, the picked properties and the sync. Viewers and up.
-//   "overview"  { days: 7 | 28 | 90 } numbers, chart, AI visits, queries, pages and Opportunities. Viewers and up.
+//   "dashboard" { days: 7 | 28 | 90 | 365, page? } everything on the Analytics page against the period before. Viewers and up.
+//   "rows"      { days, kind: "pages" | "queries", offset } 25 more rows of the Pages or Searches table. Viewers and up.
 //   "ranks"     { queries: string[] } where the brand ranks for each, from Search Console. Viewers and up.
 //   "results"   { itemId? } before and after for published articles and refreshes (all recent ones, or one). Viewers and up.
-//   "cited"     { days } the brand's pages: GA4 visits from AI next to the tracked AI answers that cite them. Viewers and up.
 //   "sites"     the Search Console properties the sign-in can read. Editors only.
 //   "site"      { property } use one for this brand and sync it. Editors only.
 //   "sync"      sync now. Editors only.
@@ -41,10 +41,9 @@ export async function POST(request: Request) {
         state,
       });
 
-    if (action === "overview") {
-      const days = [7, 28, 90].includes(Number(body.days)) ? Number(body.days) : 28;
-      return Response.json(await analyticsOverview(db, brand.id, days, state));
-    }
+    const days = [7, 28, 90, 365].includes(Number(body.days)) ? Number(body.days) : 28;
+    if (action === "dashboard") return Response.json(await analyticsDashboard(db, brand, days, state, typeof body.page === "string" ? body.page : null));
+    if (action === "rows") return Response.json(await dashboardRows(db, brand, body.kind === "queries" ? "queries" : "pages", days, state, Math.max(0, Math.floor(Number(body.offset) || 0))));
 
     if (action === "ranks") {
       const queries = Array.isArray(body.queries) ? body.queries.map(String).slice(0, 300) : [];
@@ -54,11 +53,6 @@ export async function POST(request: Request) {
     if (action === "results") {
       const itemId = typeof body.itemId === "string" ? body.itemId : undefined;
       return Response.json({ results: await articleResults(db, brand.id, state, { itemId, limit: itemId ? 1 : 20 }), connected: Boolean(conn && (brand.gsc_property || brand.ga4_property)) });
-    }
-
-    if (action === "cited") {
-      const days = [7, 28, 90].includes(Number(body.days)) ? Number(body.days) : 28;
-      return Response.json({ pages: await citedPages(db, brand, days, state) });
     }
 
     if (!conn) return Response.json({ error: "Connect Google first." }, { status: 400 });

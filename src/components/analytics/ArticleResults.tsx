@@ -13,12 +13,12 @@ import { Delta } from "../ui";
 const n = (v: number | null) => (v === null ? "–" : Math.round(v).toLocaleString("en-US"));
 
 /** A count's change as a percent, or a position's change in places (lower is better). */
-export function ResultDelta({ m, position = false }: { m: ResultMetric; position?: boolean }) {
+function ResultDelta({ m, position = false }: { m: ResultMetric; position?: boolean }) {
   if (m.change === null) return null;
   return position ? <Delta now={m.change} before={0} lowerIsBetter digits={1} /> : <Delta now={m.change * 100} before={0} unit="%" digits={0} />;
 }
 
-export const RESULT_COLS: { key: keyof Result; label: string; position?: boolean }[] = [
+const RESULT_COLS: { key: keyof Result; label: string; position?: boolean }[] = [
   { key: "clicks", label: "Clicks" },
   { key: "position", label: "Position", position: true },
   { key: "sessions", label: "Sessions" },
@@ -26,7 +26,7 @@ export const RESULT_COLS: { key: keyof Result; label: string; position?: boolean
   { key: "ai_sessions", label: "From AI" },
 ];
 
-export function resultSpan(r: Pick<ArticleResult, "event" | "days" | "full" | "at">) {
+function resultSpan(r: Pick<ArticleResult, "event" | "days" | "full" | "at">) {
   const since = r.event === "refreshed" ? "since the refresh" : "since it went live";
   return r.full ? `${r.days} days ${since}, against the ${r.days} days before` : `${r.days} ${r.days === 1 ? "day" : "days"} ${since}, against the same number of days before`;
 }
