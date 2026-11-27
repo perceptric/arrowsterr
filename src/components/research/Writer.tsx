@@ -16,7 +16,7 @@ import type { RunAuth } from "@/lib/runner";
 import { useStash } from "@/lib/stash";
 import { briefGuides, briefToDoc, type Guide } from "@/lib/writer";
 import type { BrandGuideline } from "@/lib/writerTypes";
-import { Thinking } from "../ui";
+import { BusyButton, Thinking } from "../ui";
 import { Pop, useAnchoredPop } from "../Pickers";
 import { GuideRail, railSections, type RailSection } from "./CommentRail";
 import { Embed, exportClean, Note } from "./writerNodes";
@@ -129,9 +129,9 @@ export function Writer({ sb, auth, site, canEdit }: { sb: SupabaseClient; auth: 
       <div className="flex flex-wrap items-center gap-2">
         <DraftMenu docs={docs} openId={openId} canEdit={canEdit} onOpen={setOpenId} onRemove={remove} onClose={() => setOpenId(null)} />
         {canEdit ? (
-          <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={blank}>
+          <BusyButton className="aw-btn aw-btn--secondary aw-btn--sm" onClick={blank} done={null}>
             + New draft
-          </button>
+          </BusyButton>
         ) : null}
       </div>
 

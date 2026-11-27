@@ -274,7 +274,8 @@ export function ChangeSetCard({ id, api, canEdit }: { id: string; api: ReturnTyp
   const [set, setSet] = useState<SetRow | null>(null);
   const [changes, setChanges] = useState<Change[]>([]);
   const [all, setAll] = useState(false);
-  const [busy, setBusy] = useState(false);
+  // Which action is running: "approve-all", "apply", "undo", or a change's id. Empty when none.
+  const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const load = useCallback(async () => {
     try {
@@ -295,9 +296,9 @@ export function ChangeSetCard({ id, api, canEdit }: { id: string; api: ReturnTyp
     const t = setInterval(load, 3000);
     return () => clearInterval(t);
   }, [set?.status, load]);
-  const act = async (body: Record<string, unknown>, ask?: string) => {
+  const act = async (key: string, body: Record<string, unknown>, ask?: string) => {
     if (ask && !(await askConfirm({ title: ask, action: "Continue", danger: false }))) return;
-    setBusy(true);
+    setBusy(key);
     setError("");
     try {
       await api("/api/ask/changes", { ...body, setId: id });
@@ -305,10 +306,10 @@ export function ChangeSetCard({ id, api, canEdit }: { id: string; api: ReturnTyp
     } catch (e) {
       setError(msgOf(e));
     } finally {
-      setBusy(false);
+      setBusy("");
     }
   };
-  if (!set) return <div className="zp-card text-[13px] text-muted">{error || "Loading changes..."}</div>;
+  if (!set) return <div className="zp-card text-[13px] text-muted">{error || "Getting the changes..."}</div>;
   const working = set.status === "preparing" || set.status === "applying";
   const open = changes.filter((c) => ["proposed", "rejected", "failed"].includes(c.status));
   const approved = changes.filter((c) => c.status === "approved");
@@ -331,17 +332,20 @@ export function ChangeSetCard({ id, api, canEdit }: { id: string; api: ReturnTyp
         {canEdit && !working ? (
           <div className="flex flex-wrap gap-2">
             {open.length ? (
-              <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={busy} onClick={() => act({ action: "review", approve: open.map((c) => c.id) })}>
+              <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={Boolean(busy)} aria-busy={busy === "approve-all" || undefined} onClick={() => act("approve-all", { action: "review", approve: open.map((c) => c.id) })}>
+                {busy === "approve-all" ? <span className="aw-spin" aria-hidden="true" /> : null}
                 Approve all ({open.length})
               </button>
             ) : null}
             {approved.length ? (
-              <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" disabled={busy} onClick={() => act({ action: "apply" }, `Make ${approved.length} change${approved.length === 1 ? "" : "s"} live on ${set.cms_connections?.name ?? "your site"}? You can undo them.`)}>
+              <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" disabled={Boolean(busy)} aria-busy={busy === "apply" || undefined} onClick={() => act("apply", { action: "apply" }, `Make ${approved.length} change${approved.length === 1 ? "" : "s"} live on ${set.cms_connections?.name ?? "your site"}? You can undo them.`)}>
+                {busy === "apply" ? <span className="aw-spin" aria-hidden="true" /> : null}
                 Apply {approved.length} to the site
               </button>
             ) : null}
             {live.length ? (
-              <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={busy} onClick={() => act({ action: "undo" }, `Put ${live.length} page${live.length === 1 ? "" : "s"} back the way they were?`)}>
+              <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={Boolean(busy)} aria-busy={busy === "undo" || undefined} onClick={() => act("undo", { action: "undo" }, `Put ${live.length} page${live.length === 1 ? "" : "s"} back the way they were?`)}>
+                {busy === "undo" ? <span className="aw-spin" aria-hidden="true" /> : null}
                 Undo
               </button>
             ) : null}
@@ -368,12 +372,12 @@ export function ChangeSetCard({ id, api, canEdit }: { id: string; api: ReturnTyp
                 {canEdit && !working && !["applied", "undone"].includes(c.status) ? (
                   <span className="flex shrink-0 gap-2">
                     {c.status !== "approved" ? (
-                      <button type="button" className="aw-text-link text-[13px]" disabled={busy} onClick={() => act({ action: "review", approve: [c.id] })}>
-                        Approve
+                      <button type="button" className="aw-text-link text-[13px]" disabled={Boolean(busy)} aria-busy={busy === String(c.id) || undefined} onClick={() => act(String(c.id), { action: "review", approve: [c.id] })}>
+                        {busy === String(c.id) ? "Saving..." : "Approve"}
                       </button>
                     ) : null}
                     {c.status !== "rejected" ? (
-                      <button type="button" className="aw-text-link text-[13px] text-muted!" disabled={busy} onClick={() => act({ action: "review", reject: [c.id] })}>
+                      <button type="button" className="aw-text-link text-[13px] text-muted!" disabled={Boolean(busy)} onClick={() => act(String(c.id), { action: "review", reject: [c.id] })}>
                         Skip
                       </button>
                     ) : null}

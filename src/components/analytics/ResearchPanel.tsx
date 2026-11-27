@@ -2,23 +2,33 @@
 
 import { useEffect, useState } from "react";
 import type { Site } from "@/lib/db";
+import { closeVariations, exactKeyword, rankSentence } from "@/lib/keywordPanel";
 import type { Keyword } from "@/lib/research";
 import type { RunAuth } from "@/lib/runner";
 import { expectedCtr } from "@/lib/seoAnalytics";
+import { KdDot } from "../research/KeywordOverview";
 import { post } from "../research/shared";
-import { SidePanel, Thinking } from "../ui";
+import { BusyButton, SidePanel, SkeletonRows } from "../ui";
 
 // Keyword research for one search from the Search Console report's Queries table: where the brand ranks, the
-// keyword's numbers, related keywords to add to the Calendar, and a refresh of the page that ranks.
+// keyword's own numbers, close variations to add to the Calendar, and a refresh of the page that ranks.
 
 export type Researched = { query: string; page: string | null; position: number | null; impressions: number; clicks: number };
 export type CalendarPick = { keyword: string; page?: string | null; position?: number | null; notes?: string; volume?: number | null; kd?: number | null; intent?: string | null; cpc?: number | null };
+/** What adding to the Calendar did: added, already there, or the error. */
+export type CalendarResult = "added" | "exists" | { error: string };
 
-const n = (v: number) => Math.round(v).toLocaleString("en-US");
-const pct = (r: number) => `${(r * 100).toFixed(r < 0.1 ? 1 : 0)}%`;
+const n = (v: number | null | undefined) => (v === null || v === undefined ? "–" : Math.round(v).toLocaleString("en-US"));
 
-export function ResearchPanel({ panel, days, auth, canEdit, siteOf, url, onClose, onAdd, onRefresh }: { panel: Researched; days: number; auth: RunAuth; canEdit: boolean; siteOf: () => Promise<Site | null>; url: (p: string) => string; onClose: () => void; onAdd: (item: CalendarPick) => void; onRefresh: (page: string, query: string) => void }) {
-  const [rows, setRows] = useState<Keyword[] | null>(null);
+/** Turns a Calendar add into a done label, or throws its error so the button shows it. */
+const added = async (r: Promise<CalendarResult>) => {
+  const out = await r;
+  if (typeof out === "object") throw new Error(out.error);
+  return out === "exists" ? "In Calendar ✓" : "Added ✓";
+};
+
+export function ResearchPanel({ panel, days, auth, canEdit, siteOf, url, onClose, onAdd, onRefresh }: { panel: Researched; days: number; auth: RunAuth; canEdit: boolean; siteOf: () => Promise<Site | null>; url: (p: string) => string; onClose: () => void; onAdd: (item: CalendarPick) => Promise<CalendarResult>; onRefresh: (page: string, query: string) => void }) {
+  const [data, setData] = useState<{ rows: Keyword[]; exact: Keyword | null } | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -27,8 +37,8 @@ export function ResearchPanel({ panel, days, auth, canEdit, siteOf, url, onClose
     siteOf()
       .then(async (site) => {
         if (!site) throw new Error("Set up the brand's website in Research first.");
-        const d = await post<{ rows: Keyword[] }>(auth, "/api/research/keywords", { mode: "ideas", query: panel.query, siteId: site.id });
-        if (live) setRows(d.rows ?? []);
+        const d = await post<{ rows: Keyword[]; exact?: Keyword | null }>(auth, "/api/research/keywords", { mode: "phrase", exact: true, query: panel.query, siteId: site.id });
+        if (live) setData({ rows: d.rows ?? [], exact: d.exact ?? null });
       })
       .catch((e) => live && setError(e instanceof Error ? e.message : String(e)));
     return () => {
@@ -36,8 +46,8 @@ export function ResearchPanel({ panel, days, auth, canEdit, siteOf, url, onClose
     };
   }, [panel.query, auth, canEdit, siteOf]);
 
-  const main = rows?.find((r) => r.keyword.toLowerCase() === panel.query.toLowerCase()) ?? rows?.[0] ?? null;
-  const related = (rows ?? []).filter((r) => r !== main).slice(0, 10);
+  const main = data ? exactKeyword(panel.query, data.rows, data.exact) : null;
+  const variations = data ? closeVariations(panel.query, data.rows, 10) : [];
   const trend =
     main?.trend?.length && main.trend.length >= 6
       ? (() => {
@@ -47,90 +57,119 @@ export function ResearchPanel({ panel, days, auth, canEdit, siteOf, url, onClose
           return a ? Math.round(((b - a) / a) * 100) : null;
         })()
       : null;
-  const ctr = panel.impressions ? panel.clicks / panel.impressions : 0;
-  const top3 = panel.position && panel.position > 3 ? Math.max(0, Math.round((expectedCtr(3) * panel.impressions - panel.clicks) * (30 / Math.max(1, days)))) : 0;
+  const rank = rankSentence({ position: panel.position, impressions: panel.impressions, clicks: panel.clicks, days, top3Ctr: expectedCtr(3) });
+
+  const footer = (
+    <>
+      {panel.page ? (
+        <span className="aw-small truncate" title={panel.page}>
+          {panel.page}
+        </span>
+      ) : null}
+      <div className="flex flex-wrap gap-2">
+        <BusyButton
+          stay
+          className="aw-btn aw-btn--secondary"
+          title="Add to your Calendar"
+          onClick={() => added(onAdd({ keyword: panel.query, volume: main?.volume, kd: main?.kd, intent: main?.intent, cpc: main?.cpc }))}
+        >
+          Add to Calendar
+        </BusyButton>
+        {panel.page ? (
+          <>
+            <button type="button" className="aw-btn aw-btn--primary" title={`Refresh ${panel.page}`} onClick={() => onRefresh(panel.page!, panel.query)}>
+              Refresh page
+            </button>
+            <a className="aw-btn aw-btn--ghost" href={url(panel.page)} target="_blank" rel="noopener noreferrer">
+              Open page ↗
+            </a>
+          </>
+        ) : null}
+      </div>
+      {canEdit ? <p className="aw-small">Each lookup uses 10 tasks from your plan.</p> : null}
+    </>
+  );
 
   return (
-    <SidePanel kicker="Keyword research" title={panel.query} onClose={onClose} narrow>
-      <div className="flex flex-col gap-5">
-        {panel.position ? (
-          <div className="aw-callout">
-            <b>You rank #{panel.position.toFixed(1)}</b> with {n(panel.impressions)} impressions and a {pct(ctr)} click rate.{" "}
-            {top3 ? `The top 3 usually get about ${pct(expectedCtr(3))} of clicks, so moving up could add about ${n(top3)} clicks a month.` : "You're already in the top 3."}
-          </div>
-        ) : null}
-        {!canEdit ? (
-          <p className="aw-small">Ask an editor to run keyword research.</p>
-        ) : error ? (
-          <p className="aw-error">{error}</p>
-        ) : !rows ? (
-          <Thinking text="Looking up this keyword..." />
-        ) : (
-          <>
-            {main ? (
-              <div className="aw-an-mini">
-                <div>
-                  <span>Volume</span>
-                  <b className="aw-num">{main.volume === null ? "–" : n(main.volume)}</b>
-                </div>
-                <div>
-                  <span>Difficulty</span>
-                  <b className="aw-num">{main.kd ?? "–"}</b>
-                </div>
-                <div>
-                  <span>CPC</span>
-                  <b className="aw-num">{main.cpc === null ? "–" : `$${main.cpc.toFixed(2)}`}</b>
-                </div>
-                <div>
-                  <span>Trend</span>
-                  <b className={`aw-num ${trend === null ? "" : trend >= 0 ? "text-pos" : "text-neg"}`}>{trend === null ? "–" : `${trend >= 0 ? "↑" : "↓"} ${Math.abs(trend)}%`}</b>
-                </div>
+    <SidePanel kicker="Keyword research" title={panel.query} onClose={onClose} narrow footer={footer}>
+      {rank ? <div className="aw-callout">{rank}</div> : null}
+      {!canEdit ? (
+        <p className="aw-small">Ask an editor to run keyword research.</p>
+      ) : error ? (
+        <p className="aw-error" role="alert">
+          {error}
+        </p>
+      ) : !data ? (
+        <div className="flex flex-col gap-4" role="status" aria-label="Looking up this keyword">
+          <SkeletonRows rows={1} cols={4} />
+          <SkeletonRows rows={6} cols={3} />
+        </div>
+      ) : (
+        <>
+          <div className="flex flex-col gap-2">
+            <div className="aw-an-mini">
+              <div>
+                <span title="Google searches a month">Searches</span>
+                <b className="aw-num">{n(main?.volume)}</b>
               </div>
-            ) : (
-              <p className="aw-small">No data for this keyword yet.</p>
-            )}
-            {related.length ? (
-              <div className="flex flex-col gap-2">
-                <span className="aw-label mb-0!">Related keywords</span>
-                <table className="aw-table aw-table--compact">
+              <div>
+                <span>Difficulty</span>
+                <b>{main?.kd === null || main?.kd === undefined ? "–" : <KdDot kd={main.kd} />}</b>
+              </div>
+              <div>
+                <span>CPC</span>
+                <b className="aw-num">{main?.cpc === null || main?.cpc === undefined ? "–" : `$${main.cpc.toFixed(2)}`}</b>
+              </div>
+              <div>
+                <span>Trend</span>
+                <b className={`aw-num ${trend === null ? "" : trend >= 0 ? "text-pos" : "text-neg"}`}>{trend === null ? "–" : `${trend >= 0 ? "↑" : "↓"} ${Math.abs(trend)}%`}</b>
+              </div>
+            </div>
+            {!main ? <p className="aw-small">Google has no numbers for this exact keyword yet.</p> : null}
+          </div>
+          <div className="flex flex-col gap-2">
+            <h3 className="aw-h4">Close variations</h3>
+            {variations.length ? (
+              <div className="overflow-x-auto">
+                <table className="aw-table aw-table--compact aw-table--keep" style={{ "--aw-table-min": "100%" } as React.CSSProperties}>
+                  <thead>
+                    <tr>
+                      <th>Keyword</th>
+                      <th className="w-24 text-right!">Searches</th>
+                      <th className="w-24">Difficulty</th>
+                      <th className="w-24" aria-label="Add to your Calendar" />
+                    </tr>
+                  </thead>
                   <tbody>
-                    {related.map((r) => (
+                    {variations.map((r) => (
                       <tr key={r.keyword}>
-                        <td>{r.keyword}</td>
-                        <td className="aw-num text-right">{r.volume === null ? "–" : n(r.volume)}</td>
-                        <td className="aw-num text-right">{r.kd ?? "–"}</td>
+                        <td className="text-ink">{r.keyword}</td>
+                        <td className="aw-num text-right">{n(r.volume)}</td>
+                        <td>
+                          <KdDot kd={r.kd} />
+                        </td>
                         <td className="text-right">
-                          <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" aria-label={`Add ${r.keyword} to the Calendar`} onClick={() => onAdd({ keyword: r.keyword, volume: r.volume, kd: r.kd, intent: r.intent, cpc: r.cpc })}>
-                            +
-                          </button>
+                          <BusyButton
+                            stay
+                            className="aw-btn aw-btn--secondary aw-btn--sm"
+                            title="Add to your Calendar"
+                            label={`Add ${r.keyword} to your Calendar`}
+                            onClick={() => added(onAdd({ keyword: r.keyword, volume: r.volume, kd: r.kd, intent: r.intent, cpc: r.cpc }))}
+                          >
+                            Add
+                          </BusyButton>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-            ) : null}
-            <div className="flex flex-wrap gap-2">
-              <button type="button" className="aw-btn aw-btn--secondary" onClick={() => onAdd({ keyword: panel.query, volume: main?.volume, kd: main?.kd, intent: main?.intent, cpc: main?.cpc })}>
-                Add to Calendar
-              </button>
-              {panel.page ? (
-                <button type="button" className="aw-btn aw-btn--primary" onClick={() => onRefresh(panel.page!, panel.query)}>
-                  Refresh {panel.page}
-                </button>
-              ) : null}
-            </div>
-            <p className="aw-small">
-              Uses 10 tasks from your plan.{" "}
-              {panel.page ? (
-                <a href={url(panel.page)} target="_blank" rel="noopener noreferrer">
-                  Open the page
-                </a>
-              ) : null}
-            </p>
-          </>
-        )}
-      </div>
+            ) : (
+              <p className="aw-small">No close variations of this keyword yet.</p>
+            )}
+          </div>
+        </>
+      )}
     </SidePanel>
   );
 }

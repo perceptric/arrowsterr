@@ -10,7 +10,7 @@ import type { RunAuth } from "@/lib/runner";
 import { Copy } from "./InstallGuide";
 import { Dropdown } from "./Pickers";
 import { EmptyScreen } from "./Drawing";
-import { Glyph, Thinking, type GlyphName } from "./ui";
+import { Glyph, SkeletonRows, Thinking, type GlyphName } from "./ui";
 
 // Brand Kits (docs/reports.md, section 31): the learning animation shown in onboarding and Settings,
 // and the Settings → Brand Kit page.
@@ -341,7 +341,7 @@ export function WorkspaceKitPanel({ sb, auth, canEdit, website, name }: { sb: Su
       .then(() => reload());
   }, [rows, own, canEdit, sb, auth.workspaceId, name, reload]);
 
-  if (rows === undefined) return <p className="aw-small">Loading…</p>;
+  if (rows === undefined) return <SkeletonRows rows={3} cols={2} />;
   if (rows === null) return <p className="aw-callout max-w-xl text-[15px]!">{NOT_RUN}</p>;
   if (learning)
     return (
@@ -358,7 +358,7 @@ export function WorkspaceKitPanel({ sb, auth, canEdit, website, name }: { sb: Su
         onSkip={() => setLearning(null)}
       />
     );
-  if (!own) return canEdit ? <p className="aw-small">Loading…</p> : <p className="aw-callout max-w-xl text-[15px]!">No Workspace Brand Kit yet.</p>;
+  if (!own) return canEdit ? <SkeletonRows rows={3} cols={2} /> : <p className="aw-callout max-w-xl text-[15px]!">No Workspace Brand Kit yet.</p>;
   const starter = !own.learned_at && !own.confirmed_at;
   return (
     <div className="flex flex-col gap-6">
@@ -444,7 +444,7 @@ export function BrandKitPanel({ sb, auth, canEdit, brand }: { sb: SupabaseClient
   const { rows, reload } = useKits(sb, auth.workspaceId);
   const [learning, setLearning] = useState<string | null>(null);
   const [error, setError] = useState("");
-  if (rows === undefined) return <p className="aw-small">Loading…</p>;
+  if (rows === undefined) return <SkeletonRows rows={3} cols={2} />;
   if (rows === null) return <p className="aw-callout max-w-xl text-[15px]!">{NOT_RUN}</p>;
   const row = rows.find((r) => r.key === brand.id);
   const ws = rows.find((r) => r.key === "workspace" && (r.learned_at || r.confirmed_at));

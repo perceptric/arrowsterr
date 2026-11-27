@@ -31,7 +31,7 @@ import { Markdown } from "./Markdown";
 import { PresencePanel } from "./PresencePanel";
 import { cleanAnswer } from "@/lib/answerText";
 import { homeOf, hostOf, isGenericTitle, nameFromTitle, siteName } from "@/lib/linkTitles";
-import { favicon, pct, Seg, SidePanel, sortRows, SortTh, Tip, TIPS, useSort } from "./ui";
+import { favicon, pct, Seg, SidePanel, SkeletonRows, sortRows, SortTh, Tip, TIPS, useSort } from "./ui";
 
 export const TYPE_COLORS: Record<SourceType, string> = {
   You: "#0943B0",
@@ -653,7 +653,7 @@ function LinkPanel({
                               <span className="aw-small">Full answer · {day(a.at)}</span>
                             </div>
                             <div className="max-h-[480px] overflow-y-auto px-5 py-4">
-                              {texts === null ? <span className="aw-small">Loading...</span> : a.text ? <Markdown text={cleanAnswer(a.text, a.engine)} /> : <span className="aw-small">No full answer saved for this check.</span>}
+                              {texts === null ? <SkeletonRows rows={4} cols={1} /> : a.text ? <Markdown text={cleanAnswer(a.text, a.engine)} /> : <span className="aw-small">No full answer saved for this check.</span>}
                             </div>
                           </div>
                         ))}

@@ -492,6 +492,8 @@ Each component lists its anatomy, sizes, states and rules. Class names are the v
 - Focus: `outline: 2px solid var(--signal); outline-offset: 2px`.
 - Disabled: 50% opacity, no hover.
 - Loading: the label stays, a 14px spinner replaces the icon.
+- Pressed: 1px down; primary turns `--signal-strong`, secondary and ghost a shade darker than hover.
+- Done: the label turns to what happened ("Added ✓") in `--success` for 2 seconds, or stays when the action can't repeat. `BusyButton` in `ui.tsx` does loading, done and errors.
 - One primary button per view. Secondary actions are secondary or ghost.
 - Full-width buttons only inside cards and on phones.
 - A primary button may end with a right arrow icon when it moves forward ("Choose a plan →").
@@ -606,6 +608,12 @@ A `--soft` panel, `--aw-r-md`, 16px padding, title 13px 600, then `<dl>` rows: 3
 - `--card`, `--aw-r-xl` (16px), `shadow-xl`, max 480px (small) or 640px, 24px padding.
 - Title h3, body 14px `--ink-2`, buttons right-aligned: secondary then primary (danger for deletes).
 - Backdrop `rgb(14 16 21 / 0.4)`.
+
+### Side panel
+
+- Slides in from the right: `--card`, `--aw-r-xl`, 720px (narrow) or 960px wide, full width on phones.
+- Bar: kicker 13px 500 `--muted`, title h3 (18px 600, −0.02em). 24px padding on the left, 16px top and bottom.
+- Body 24px padding. Actions go in the footer, pinned to the bottom, 24px padding, with a 1px `--border` line above.
 
 ### Toast
 

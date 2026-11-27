@@ -9,6 +9,7 @@ import { avatarFromFile } from "./WorkspaceAvatar";
 import { getProfile, saveProfile, type UserProfile } from "@/lib/db";
 import { recordUndo } from "@/lib/undo";
 import { passwordProblem } from "@/lib/passwordCheck";
+import { BusyButton } from "./ui";
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
@@ -247,9 +248,9 @@ function PasskeySection({ sb }: { sb: SupabaseClient }) {
                   Added {when(k.created_at)} · last used {when(k.last_used_at)}
                 </span>
               </span>
-              <button type="button" className="aw-text-link text-[13px] text-neg!" onClick={() => remove(k.id)}>
+              <BusyButton className="aw-text-link text-[13px] text-neg!" onClick={() => remove(k.id)} done={null}>
                 Remove
-              </button>
+              </BusyButton>
             </li>
           ))}
         </ul>

@@ -13,7 +13,7 @@ import { domainHref, keywordHref, plainClick, setUrl, urlParams } from "@/lib/re
 import { useStash } from "@/lib/stash";
 import { BrandLogo } from "../BrandLogo";
 import { Sheet } from "../Sheet";
-import { CalendarIcon, favicon, Thinking } from "../ui";
+import { BusyButton, CalendarIcon, favicon, Thinking } from "../ui";
 import { flag, KdDot, short } from "./KeywordOverview";
 import { BAR_BUTTON, BAR_FIELD, downloadCsv, fmtCpc, post, Sparkline } from "./shared";
 
@@ -309,10 +309,10 @@ export function BulkKeywords({ sb, auth, site, canEdit, onResearch }: { sb: Supa
             {picked.size && canEdit ? (
               <div className="flex flex-wrap items-center gap-3 border-b border-rule-faint bg-brand-pale px-5 py-2.5">
                 <span className="text-[13px] font-medium text-ink">{picked.size} selected</span>
-                <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => addToPlan(rows.filter((r) => picked.has(r.keyword)))}>
+                <BusyButton className="aw-btn aw-btn--primary aw-btn--sm" onClick={() => addToPlan(rows.filter((r) => picked.has(r.keyword)))} done={null}>
                   <CalendarIcon />
                   Add to Content Plan
-                </button>
+                </BusyButton>
                 <button type="button" className="aw-text-link text-[13px]" onClick={() => setPicked(new Set())}>
                   Clear
                 </button>

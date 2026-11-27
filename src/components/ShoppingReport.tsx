@@ -8,7 +8,7 @@ import { askConfirm } from "./Dialogs";
 import { EmptyScreen } from "./Drawing";
 import { post } from "./research/shared";
 import { TrendChart, type Line } from "./TrendChart";
-import { favicon, OTHER_COLORS, Seg, StatStrip, Thinking, YOU_COLOR } from "./ui";
+import { favicon, OTHER_COLORS, Seg, StatStrip, Thinking, toast, YOU_COLOR } from "./ui";
 
 // AI Shopping's tabs (docs/ai-shopping-plan.md, sections 6 to 8): Overview, Products, Prompts, Stores and Sources.
 
@@ -100,7 +100,7 @@ export function ShoppingReport({ auth, brand, canEdit, onCatalog }: { auth: RunA
     </div>
   );
 
-  if (!report) return error ? <p className="aw-error">{error}</p> : <Thinking text="Loading..." />;
+  if (!report) return error ? <p className="aw-error">{error}</p> : <Thinking text="Getting the shopping report..." />;
   const noPrompts = !report.prompts.length;
   return (
     <div className="flex flex-col gap-5">
@@ -261,11 +261,13 @@ function Prompts({ auth, brand, canEdit, report: r, onChange, empty }: { auth: R
   const [picked, setPicked] = useState<Set<number>>(new Set());
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
-  async function run(name: string, fn: () => Promise<unknown>) {
+  /** Runs one action. `done` shows as a toast when it worked. */
+  async function run(name: string, fn: () => Promise<unknown>, done?: string) {
     setBusy(name);
     setError("");
     try {
       await fn();
+      if (done) toast(done);
       onChange();
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -387,10 +389,11 @@ function Prompts({ auth, brand, canEdit, report: r, onChange, empty }: { auth: R
                     {q.deep ? <span className="aw-num text-[12.5px]">{q.deep.cardRuns ? `${q.deep.you} of ${q.deep.cardRuns}` : `0 of ${q.deep.runs}`}</span> : null}
                     {canEdit ? (
                       <>
-                        <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={busy === `deep-${q.id}`} onClick={() => run(`deep-${q.id}`, () => post(auth, "/api/shop", { action: "deep", brandId: brand.id, promptId: q.id, engine: "gpt" }))} title="20 runs on ChatGPT">
+                        <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={busy === `deep-${q.id}`} aria-busy={busy === `deep-${q.id}` || undefined} onClick={() => run(`deep-${q.id}`, () => post(auth, "/api/shop", { action: "deep", brandId: brand.id, promptId: q.id, engine: "gpt" }), "Started 20 runs on ChatGPT.")} title="20 runs on ChatGPT">
+                          {busy === `deep-${q.id}` ? <span className="aw-spin" aria-hidden="true" /> : null}
                           ChatGPT
                         </button>
-                        <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={busy === `deep-${q.id}`} onClick={() => run(`deep-${q.id}`, () => post(auth, "/api/shop", { action: "deep", brandId: brand.id, promptId: q.id, engine: "aim" }))} title="20 runs on Google AI Mode">
+                        <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={busy === `deep-${q.id}`} onClick={() => run(`deep-${q.id}`, () => post(auth, "/api/shop", { action: "deep", brandId: brand.id, promptId: q.id, engine: "aim" }), "Started 20 runs on Google AI Mode.")} title="20 runs on Google AI Mode">
                           AI Mode
                         </button>
                       </>
@@ -400,7 +403,7 @@ function Prompts({ auth, brand, canEdit, report: r, onChange, empty }: { auth: R
                 {canEdit ? (
                   <td>
                     <span className="flex items-center gap-1">
-                      <button type="button" className="aw-text-link text-[12.5px]" onClick={() => run(`act-${q.id}`, () => post(auth, "/api/shop", { action: "prompt_update", brandId: brand.id, id: q.id, active: !q.active }))}>
+                      <button type="button" className="aw-text-link text-[12.5px]" disabled={busy === `act-${q.id}`} aria-busy={busy === `act-${q.id}` || undefined} onClick={() => run(`act-${q.id}`, () => post(auth, "/api/shop", { action: "prompt_update", brandId: brand.id, id: q.id, active: !q.active }), q.active ? "Prompt paused." : "Prompt resumed.")}>
                         {q.active ? "Pause" : "Resume"}
                       </button>
                       <button
@@ -408,8 +411,9 @@ function Prompts({ auth, brand, canEdit, report: r, onChange, empty }: { auth: R
                         className="aw-iconbtn"
                         aria-label={`Delete ${q.prompt}`}
                         title="Delete"
+                        disabled={busy === `rm-${q.id}`}
                         onClick={async () => {
-                          if (await askConfirm({ title: "Delete this prompt?", text: "Its runs and numbers go with it.", action: "Delete", danger: true })) run(`rm-${q.id}`, () => post(auth, "/api/shop", { action: "prompt_remove", brandId: brand.id, id: q.id }));
+                          if (await askConfirm({ title: "Delete this prompt?", text: "Its runs and numbers go with it.", action: "Delete", danger: true })) run(`rm-${q.id}`, () => post(auth, "/api/shop", { action: "prompt_remove", brandId: brand.id, id: q.id }), "Prompt deleted.");
                         }}
                       >
                         <svg className="aw-icon" viewBox="0 0 24 24" aria-hidden="true">

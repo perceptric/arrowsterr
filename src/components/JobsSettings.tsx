@@ -7,6 +7,7 @@ import { Dropdown } from "./Pickers";
 import { downloadCsv } from "./research/shared";
 import { atLeast, getUsage, getWorkspaceSettings, topicsOf, type Brand, type Workspace } from "@/lib/db";
 import { mergePrompts, promptsFromCsv } from "@/lib/csvImport";
+import { BusyButton, SkeletonRows } from "./ui";
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 const day = () => new Date().toISOString().slice(0, 10);
@@ -353,13 +354,13 @@ export function JobsSettings({ sb, ws, brands }: { sb: SupabaseClient; ws: Works
     <div className="flex max-w-4xl flex-col gap-4">
       <div className="flex items-center justify-between gap-4">
         <p className="text-[15px] text-body">The last 50 things Arrowsterr ran for this workspace.</p>
-        <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={load}>
+        <BusyButton className="aw-btn aw-btn--secondary aw-btn--sm" onClick={load} done={null}>
           Refresh
-        </button>
+        </BusyButton>
       </div>
       {error ? <p className="aw-error">{error}</p> : null}
       {list === null ? (
-        <p className="aw-small">Loading...</p>
+        <SkeletonRows rows={6} cols={4} />
       ) : !list.length ? (
         <EmptyScreen drawing="gears" title="Nothing has run yet" fill={false}>
           Checks, plan builds and drafts show up here.

@@ -387,8 +387,9 @@ export function CompetitorPanel({
                 {flag(report.country)} {report.country} · {report.domain}
               </span>
             ) : auth ? (
-              <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={busy} onClick={load}>
-                {busy ? "Loading…" : "Load SEO stats"}
+              <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={busy} aria-busy={busy || undefined} onClick={load}>
+                {busy ? <span className="aw-spin" aria-hidden="true" /> : null}
+                Load SEO stats
               </button>
             ) : null}
           </div>

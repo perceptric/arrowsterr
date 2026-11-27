@@ -84,7 +84,7 @@ export function BrandVoiceSettings({ auth, brand, canEdit }: { auth: RunAuth; br
     }
   }
 
-  if (row === undefined) return <Thinking text="Loading..." />;
+  if (row === undefined) return <Thinking text="Getting the brand voice..." />;
   const lines = urls.split(/[\s,]+/).filter(Boolean).length;
   return (
     <section className="flex max-w-2xl flex-col gap-5">

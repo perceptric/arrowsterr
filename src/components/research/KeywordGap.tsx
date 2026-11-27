@@ -11,7 +11,7 @@ import type { RunAuth } from "@/lib/runner";
 import { useStash } from "@/lib/stash";
 import { BrandLogo } from "../BrandLogo";
 import { Sheet, type Col } from "../Sheet";
-import { CalendarIcon, Card, favicon, RIVAL_COLOR, Thinking, YOU_COLOR } from "../ui";
+import { BusyButton, CalendarIcon, Card, favicon, RIVAL_COLOR, Thinking, YOU_COLOR } from "../ui";
 import { BAR_BUTTON, BAR_INPUT, Difficulty, downloadCsv, fmtNum, KeywordLink, post } from "./shared";
 
 type Tab = "missing" | "shared" | "weaker" | "lead" | "only";
@@ -226,10 +226,10 @@ export function KeywordGap({
             {picked.size && canEdit ? (
               <div className="flex flex-wrap items-center gap-3 border-b border-rule-faint bg-brand-pale px-5 py-2.5">
                 <span className="text-[13px] font-medium text-ink">{picked.size} selected</span>
-                <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={bank}>
+                <BusyButton className="aw-btn aw-btn--primary aw-btn--sm" onClick={bank} done={null}>
                   <CalendarIcon />
                   Add to Content Plan
-                </button>
+                </BusyButton>
               </div>
             ) : null}
             <Sheet<GapRow>

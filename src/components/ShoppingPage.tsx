@@ -63,7 +63,7 @@ export function ShoppingSwitch({ auth, brand, canEdit }: { auth: RunAuth; brand:
   const { state, error, reload, act } = useShop(auth, brand.id);
   const [busy, setBusy] = useState(false);
   const [fail, setFail] = useState("");
-  if (!state) return error ? <p className="aw-error max-w-2xl">{error}</p> : <Thinking text="Loading..." />;
+  if (!state) return error ? <p className="aw-error max-w-2xl">{error}</p> : <Thinking text="Getting your shopping data..." />;
   const pick = async (mode: ShopMode) => {
     setBusy(true);
     setFail("");
@@ -405,7 +405,7 @@ export function CatalogPanel({ auth, brand, canEdit, onClose, onPublishing, noti
   return (
     <SidePanel title="Catalog" onClose={onClose} narrow>
       {!state ? (
-        error ? <p className="aw-error">{error}</p> : <Thinking text="Loading..." />
+        error ? <p className="aw-error">{error}</p> : <Thinking text="Getting your products..." />
       ) : (
         <div className="flex flex-col gap-4">
           {notice ? <div className="aw-callout">{notice}</div> : null}
@@ -511,7 +511,7 @@ export function ShoppingPage({ auth, brand, canEdit, onPublishing }: { auth: Run
   }, [reload]);
   const panel = open ? <CatalogPanel auth={auth} brand={brand} canEdit={canEdit} onClose={close} onPublishing={onPublishing} notice={notice} /> : null;
 
-  if (!state) return error ? <p className="aw-error">{error}</p> : <Thinking text="Loading..." />;
+  if (!state) return error ? <p className="aw-error">{error}</p> : <Thinking text="Getting your shopping data..." />;
   if (!state.products.length) {
     const reading = state.sources.some((s) => s.status === "syncing" || s.status === "new");
     return (

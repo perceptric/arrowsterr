@@ -16,7 +16,7 @@ import { ENGINE_LOGOS, EngineName } from "./Engines";
 import { Markdown } from "./Markdown";
 import { cleanAnswer } from "@/lib/answerText";
 import { TrendChart } from "./TrendChart";
-import { BrandName, Delta, favicon, OTHER_COLORS, pct, Seg, Tip, TIPS, YOU_COLOR } from "./ui";
+import { BrandName, Delta, favicon, OTHER_COLORS, pct, Seg, SkeletonRows, Tip, TIPS, YOU_COLOR } from "./ui";
 
 type Props = {
   sb: SupabaseClient;
@@ -776,7 +776,7 @@ function Detail({
             </div>
             <div className="max-h-[640px] overflow-y-auto px-5 py-4">
               {texts === null ? (
-                <span className="aw-small">Loading...</span>
+                <SkeletonRows rows={6} cols={1} />
               ) : full ? (
                 <Markdown text={cleanAnswer(full.text, full.engine)} />
               ) : (
