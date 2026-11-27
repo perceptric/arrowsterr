@@ -756,7 +756,7 @@ function PromptsStep(p: { plan: PlanTopic[]; setPlan: (v: PlanTopic[]) => void; 
           <b className="text-brand">{cost.right}</b>
         </div>
       ) : null}
-      {p.used > p.cap ? <p className="aw-error">You picked {p.used} prompts. Your plan allows {p.cap}. Untick some to continue.</p> : null}
+      {p.used > p.cap ? <ErrorNote error={`You picked ${p.used} prompts. Your plan allows ${p.cap}. Untick some to continue.`} /> : null}
 
       <section className="aw-frame overflow-x-auto">
         <table className="aw-table aw-table--compact aw-table--tight">

@@ -1,7 +1,7 @@
 "use client";
 
 // Small pieces every page shares.
-import { Component, useEffect, useRef, useState } from "react";
+import { Component, useEffect, useMemo, useRef, useState } from "react";
 import { errorText, splitRef } from "@/lib/errors";
 import { BrandLogo } from "./BrandLogo";
 
@@ -376,31 +376,39 @@ export function BusyButton({
  */
 export function ErrorNote({ error, onRetry, onClose, className = "" }: { error: unknown; onRetry?: () => void; onClose?: () => void; className?: string }) {
   const [copied, setCopied] = useState(false);
+  // An error nobody planned for gets a new ref each time it's read, so read it once per error: the ref stays put.
+  const { words, ref } = useMemo(() => splitRef(error ? errorText(error) : ""), [error]);
   if (!error) return null;
-  const { words, ref } = splitRef(errorText(error));
   return (
     <div className={`aw-error ${className}`} role="alert">
-      <span className="min-w-0 flex-1">{words}</span>
-      {ref ? (
-        <button
-          type="button"
-          className="aw-error__ref"
-          title="Copy the ref to send to support"
-          onClick={() => {
-            void navigator.clipboard?.writeText(`Ref ${ref}`).catch(() => {});
-            setCopied(true);
-          }}
-        >
-          {copied ? "Copied ✓" : `Ref ${ref}`}
-        </button>
-      ) : null}
+      <span className="aw-error__icon" aria-hidden="true">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round">
+          <path d="M12 7v6M12 17h.01" />
+        </svg>
+      </span>
+      <span className="aw-error__body">
+        {words}
+        {ref ? (
+          <button
+            type="button"
+            className="aw-error__ref"
+            title="Copy the ref to send to support"
+            onClick={() => {
+              void navigator.clipboard?.writeText(`Ref ${ref}`).catch(() => {});
+              setCopied(true);
+            }}
+          >
+            {copied ? "Copied ✓" : `Ref ${ref}`}
+          </button>
+        ) : null}
+      </span>
       {onRetry ? (
-        <button type="button" className="aw-error__retry" onClick={onRetry}>
+        <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm aw-error__act" onClick={onRetry}>
           Try again
         </button>
       ) : null}
       {onClose ? (
-        <button type="button" className="aw-error__retry" onClick={onClose}>
+        <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm aw-error__act" onClick={onClose}>
           Close
         </button>
       ) : null}
