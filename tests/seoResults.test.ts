@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { citedByAi, compareResult, findOpportunities, linkSuggestions, NO_TOTALS, ownCitations, planSections, resultWindows, type PageAgg } from "../src/lib/seoAnalytics.ts";
+import { compareResult, findOpportunities, linkSuggestions, NO_TOTALS, ownCitations, planSections, resultWindows, type PageAgg } from "../src/lib/seoAnalytics.ts";
 import { addSections, applyEdits } from "../src/lib/draftEdits.ts";
 import { pageOutline } from "../src/lib/pageText.ts";
 import { outlineToDoc } from "../src/lib/writer.ts";
@@ -95,7 +95,7 @@ test("pages at 5 to 15 get links from busier pages on the same topic", () => {
   assert.deepEqual(links!.data.sources, s[0].sources.map((x) => x.page));
 });
 
-test("GA4 visits from AI join the tracked AI answers that cite the brand's pages", () => {
+test("the tracked AI answers that cite the brand's own pages", () => {
   const chats = [
     { engine: "ChatGPT", prompt: "best guest feedback tool", sources: [{ url: "https://www.momos.com/blog/how-to-calculate-nps?utm=x" }, { url: "https://rival.com/x" }] },
     { engine: "Perplexity", prompt: "best guest feedback tool", sources: [{ url: "https://momos.com/blog/how-to-calculate-nps/" }, { url: "https://help.momos.com/guest-feedback" }] },
@@ -107,11 +107,4 @@ test("GA4 visits from AI join the tracked AI answers that cite the brand's pages
   assert.deepEqual(nps, { page: "/blog/how-to-calculate-nps", engines: ["ChatGPT", "Perplexity"], prompts: 1, answers: 2 });
   assert.equal(own.find((c) => c.page === "/pricing")?.answers, 1, "one answer citing a page twice counts once");
   assert.ok(own.some((c) => c.page === "/guest-feedback"), "subdomains are the brand's own");
-  const cited = citedByAi([page("/blog/how-to-calculate-nps", { ai_sessions: 184 }), page("/pricing", { ai_sessions: 2 }), page("/blog/unreasonable-hospitality", { ai_sessions: 96 }), page("/about", { ai_sessions: 1 })], own);
-  const bucket = (p: string) => cited.find((c) => c.page === p)?.bucket;
-  assert.equal(bucket("/blog/how-to-calculate-nps"), "cited_visits");
-  assert.equal(bucket("/pricing"), "cited_few");
-  assert.equal(bucket("/blog/unreasonable-hospitality"), "visits_uncited");
-  assert.equal(bucket("/about"), undefined, "too few visits and never cited");
-  assert.equal(cited[0].page, "/blog/how-to-calculate-nps");
 });

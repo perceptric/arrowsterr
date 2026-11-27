@@ -1,7 +1,8 @@
 # Analytics: Search Console and GA4
 
 Visibility › Analytics (`/analytics`, `src/components/AnalyticsPage.tsx`) puts a brand's Google Search Console and
-Google Analytics 4 in one place, and turns them into Opportunities. It is the only view: the old visitor breakdowns
+Google Analytics 4 in one place, and turns them into Opportunities. `AnalyticsPage.tsx` keeps the connect and pick
+screens; the dashboard itself is `src/components/analytics/Dashboard.tsx` (below). It is the only view: the old visitor breakdowns
 ("Site traffic") and Rank tracking were removed in November 2026. `/traffic` opens Analytics. The rank tables
 (`rank_projects`, `rank_keywords`, `rank_checks`) stay in the database but nothing writes to them any more.
 
@@ -28,6 +29,9 @@ Google Analytics 4 in one place, and turns them into Opportunities. It is the on
   seconds to walk back a month at a time to 16 months.
 - GA4: sessions, key events and visits from AI by day and landing page into `analytics_ga4`. The first run saves 90
   days; after that the last few days again (GA4 fills in late data).
+- GA4 extras (`syncGa4Extras`): sessions by day and default channel group into `analytics_ga4_channels` (90 days the
+  first time), and each page's title (the one with the most views in the last 90 days) into `analytics_page_titles`.
+  Tables and functions: `supabase/106_analytics_dashboard.sql`.
 - Pages join on a normalised path (`pagePath` in `src/lib/seoAnalytics.ts`): no host, query or trailing slash.
 - Totals come from SQL functions (`analytics_queries`, `analytics_pages`, `analytics_query_pages`, `analytics_ga4_days`,
   `analytics_ai`) so the app never pulls every row. Tables and functions: `supabase/104_analytics.sql`.
@@ -48,6 +52,28 @@ Worked out after every sync from the last 28 days against the 28 before, saved i
 Gains are extra clicks a month. Sign-ups use the page's own GA4 conversion rate when it has 50 or more sessions.
 "Refresh the page" asks Zippie to run `refresh_page` (below); without Zippie it adds a Calendar update piece.
 
+## The dashboard (`components/analytics/Dashboard.tsx`)
+
+One API call, `{ action: "dashboard", days }` on `/api/seo-analytics` (`analyticsDashboard` in seoAnalyticsServer.ts),
+for 7, 28, 90 or 365 days against the same number of days before. Every number is real; nothing is made up.
+
+1. **Header**: the site, the connected sources (or a link to pick one), the range and the Compare switch.
+2. **Chart**: six metric tabs (clicks, impressions, CTR, position, sessions, sign-ups), each with its change. The line is
+   this period day by day (`daySeries`, `periodTotals`), the dashed line the period before, and violet pins the days a
+   piece was published or refreshed (`calendar_items.published_at` / `refreshed_at`). Hover shows the day. GA4 tabs show
+   "–" and a link to pick a property when there is none.
+3. **What to do next**: the top 4 Opportunities with their gain, and "See all N".
+4. **What changed**: searches and pages gaining and losing the most clicks (`movers`), each with a 12-point trend over
+   both periods (`analytics_trends`, `trendPoints`).
+5. **Where visitors come from**: GA4 sessions by channel (`analytics_channels`, `channelMix`). Visits from AI assistants
+   are moved out of Referral into their own channel, with a chip per AI.
+   **Where you rank**: searches averaging positions 1–3, 4–10 and 11–20, week by week for 12 weeks
+   (`analytics_rank_weeks`, `rankWeeks`).
+6. **Pages / Searches table**: clicks, impressions, CTR (red under 60% of `expectedCtr`), position and its change,
+   sessions, sign-ups, conversion rate, visits from AI with the AIs citing the page in tracked answers, and a 28-day
+   trend. Pages show a Published/Refreshed tag. Searches open the Research panel. 8 rows, then View all, then 25 more at
+   a time (`{ action: "rows", kind, days, offset }`, `dashboardRows`). `?page=/path` puts that page first.
+
 ## Results: before and after (phase 3)
 
 - `calendar_items.published_at` and `refreshed_at` (`supabase/105_analytics_results.sql`) are set by a trigger whenever a
@@ -56,8 +82,8 @@ Gains are extra clicks a month. Sign-ups use the page's own GA4 conversion rate 
 - `articleResults` (seoAnalyticsServer.ts) compares the 28 days before the change with the days since, up to 28
   (`resultWindows`, `compareResult` in seoAnalytics.ts). While a page is younger than 28 days, the days before are
   scaled to the same length. Clicks, impressions, position, sessions, key events and visits from AI.
-- Shown on the article in Drafts and its Zippie card (`components/analytics/ArticleResults.tsx`), and as Results on the
-  Analytics page. Pages down 25% or more after a full 28 days get a Refresh button. Autopilot's daily chat names the
+- Shown on the article in Drafts and its Zippie card (`components/analytics/ArticleResults.tsx`). On the Analytics
+  page each change shows as a pin on the chart and a tag in the Pages table. Pages down 25% or more after a full 28 days get a Refresh button. Autopilot's daily chat names the
   best performer.
 
 ## Refresh the page (`src/lib/pageRefreshServer.ts`, Zippie's `refresh_page`)
@@ -74,10 +100,9 @@ Gains are extra clicks a month. Sign-ups use the page's own GA4 conversion rate 
 
 ## Cited by AI
 
-`citedPages` joins GA4's visits from AI per page with the brand's own pages cited in the tracked AI answers
-(`runs.chats`, `ownCitations` and `citedByAi` in seoAnalytics.ts): cited and sending visits, cited but few visits, and
-visits from AI with no tracked answer citing the page yet (questions worth tracking). Sources links each of the brand's own
-pages to `/analytics?page=/path`, which opens that page's numbers first.
+The Pages table's "From AI" column shows GA4's visits from AI per page next to the AIs that cite the page in the tracked
+AI answers (`runs.chats`, `ownCitations` in seoAnalytics.ts). Sources links each of the brand's own pages to
+`/analytics?page=/path`, which puts that page first in the table.
 
 ## Elsewhere
 
