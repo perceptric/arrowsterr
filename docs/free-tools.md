@@ -109,7 +109,7 @@ Seven more tools. Four are research tools that lead into the paid research scree
 **How each one works:**
 - **Website Traffic Checker:** shares saved results with Domain Snapshot (12), so a run of one fills the other. The number is labelled "Google visits (estimate)". "See every page and keyword" opens Website Research in the app with the domain loaded (`?from=traffic&q={domain}`).
 - **Backlink Checker:** a page address checks that one page, a bare domain checks the whole site. Spam scores from DataForSEO hide links above 60. It links to the Domain Authority Checker for the same domain. The app has no backlinks screen yet, so "See all backlinks" opens Website Research until one exists.
-- **Keyword Rank Checker:** the Google and AI Mode results are saved per keyword and country for 1 day, shared across domains. A second domain checking the same keyword costs $0. Desktop results only. "Track this keyword daily" opens rank tracking in the app with the keyword and domain filled in.
+- **Keyword Rank Checker:** the Google and AI Mode results are saved per keyword and country for 1 day, shared across domains. A second domain checking the same keyword costs $0. Desktop results only. "Track this keyword daily" links into the app; rank tracking was removed in November 2026, so `/traffic` now opens Analytics.
 - **Keyword Gap Tool:** the two domains must differ, and both go through `cleanDomain()`. The cache key keeps the order, rival first. "See the full gap" opens Competitors in the app with the rival added.
 
 **DataForSEO setup:** Backlinks API access has to be turned on in the DataForSEO account. A third-party summary says the $100 monthly minimum ended on July 1, 2026, with Backlinks prices up 20%. Check both on dataforseo.com before launch.

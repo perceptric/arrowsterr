@@ -53,7 +53,6 @@ import { MembersPage } from "./MembersPage";
 import { NavIcon } from "./NavIcon";
 import { isBrandTab, SettingsPage, SETTINGS_TABS, type SettingsTab } from "./SettingsPage";
 import { BrandSettings } from "./BrandSettings";
-import { TrafficProjects } from "./TrafficProjects";
 import { CmsSettings } from "./CmsSettings";
 import { NotificationSettings, ProfileSettings, SecuritySettings } from "./AccountSettings";
 import { AccessSettings, AiSettingsPage, RetentionSettings, TimezoneSetting } from "./WorkspaceSettings";
@@ -87,7 +86,7 @@ import { shopOn, type ShopMode } from "@/lib/shopDetect";
 import { CONTENT_ALIASES, CONTENT_SLUGS, type ContentPage } from "@/lib/contentRoutes";
 
 export type { Brand } from "@/lib/db";
-type Page = "prompts" | "competitors" | "domains" | "urls" | "shopping" | "rank" | "traffic" | "visitors" | "keywords" | "domain" | "gap" | ContentPage | "summary" | ZippiePageId | SettingsTab;
+type Page = "prompts" | "competitors" | "domains" | "urls" | "shopping" | "traffic" | "visitors" | "keywords" | "domain" | "gap" | ContentPage | "summary" | ZippiePageId | SettingsTab;
 type ZippiePageId = "zippie" | "skills" | "knowledge";
 /** Zippie's own pages, in the sidebar's Zippie tab (docs/zippie-skills-plan.md). */
 const ZIPPIE_PAGES: Page[] = ["zippie", "skills", "knowledge"];
@@ -107,7 +106,6 @@ const SLUGS: Record<Page, string> = {
   domains: "/sources",
   urls: "/sources/urls",
   shopping: "/ai-shopping",
-  rank: "/traffic",
   traffic: "/analytics",
   visitors: "/visitors",
   keywords: "/research/keywords",
@@ -142,6 +140,7 @@ const SLUGS: Record<Page, string> = {
 /** Older addresses still open the right page. */
 const ALIASES: Record<string, Page> = {
   "/ask": "zippie",
+  "/traffic": "traffic",
   "/agent": "zippie",
   "/overview": "prompts",
   "/domains": "domains",
@@ -1029,8 +1028,6 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
               }}
               onPlans={() => go("billing")}
             />
-          ) : page === "rank" ? (
-            <TrafficProjects key={ws.id} auth={auth} canEdit={canEdit} brandId={view.brand.id} brandDomain={view.brand.domain} />
           ) : (page as string) === "publishing" ? (
             <div className="flex flex-col gap-6">
               <h1 className="aw-h2 mb-0!">Integrations</h1>
@@ -1134,7 +1131,6 @@ const NAV: { group: string; icon: string; items: { id: Page; label: string; icon
     icon: "radar",
     items: [
       { id: "traffic", label: "Analytics", icon: "trend", badge: "New" },
-      { id: "rank", label: "Rank tracking", icon: "pulse" },
       { id: "prompts", label: "Prompts", icon: "prompts" },
       { id: "competitors", label: "Competitors", icon: "competitors" },
       { id: "domains", label: "Sources", icon: "sources", also: ["urls"] },

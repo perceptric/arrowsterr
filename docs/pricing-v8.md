@@ -30,7 +30,7 @@ What changed from v7:
 | Slack, Zapier, API | – | Yes | Yes | Yes + SSO |
 | White-label reports | – | – | Yes | Yes |
 
-Kept the same as v7 on each plan: on-demand checks a day (3, 10, 30), tracked visits (25k, 250k, 2M), tracked keywords, report templates and the Content Plan. Enterprise is unchanged and still counts articles (150 a month).
+Kept the same as v7 on each plan: on-demand checks a day (3, 10, 30), tracked visits (25k, 250k, 2M), report templates and the Content Plan. Enterprise is unchanged and still counts articles (150 a month).
 
 ## Add-ons on the card
 

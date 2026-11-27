@@ -1,8 +1,9 @@
 # Analytics: Search Console and GA4
 
 Visibility › Analytics (`/analytics`, `src/components/AnalyticsPage.tsx`) puts a brand's Google Search Console and
-Google Analytics 4 in one place, and turns them into Opportunities. Rank tracking moved to Visibility › Rank tracking
-(`/traffic`). The old visitor breakdowns and the tracking script live on the page's "Site traffic" tab.
+Google Analytics 4 in one place, and turns them into Opportunities. It is the only view: the old visitor breakdowns
+("Site traffic") and Rank tracking were removed in November 2026. `/traffic` opens Analytics. The rank tables
+(`rank_projects`, `rank_keywords`, `rank_checks`) stay in the database but nothing writes to them any more.
 
 ## Connecting
 
@@ -11,7 +12,6 @@ Google Analytics 4 in one place, and turns them into Opportunities. Rank trackin
 - After sign-in the callback picks the Search Console property that fits the brand's domain (`pickGscProperty`) and
   starts the first sync. People can change it, and pick the GA4 property, on the page.
 - Brands connected before this keep GA4. The page asks them to sign in again to add Search Console.
-- Brands with no Google sign-in can still read Search Console through Composio (Apps for Zippie) on the Site traffic tab.
 
 ### Google Cloud, once
 
@@ -83,6 +83,5 @@ pages to `/analytics?page=/path`, which opens that page's numbers first.
 
 - Research › keyword report shows "You rank #X" from the synced data (`OwnRank`).
 - Zippie's `get_site_analytics` tool reads the totals, top queries, pages gaining and losing clicks, Opportunities,
-  recent articles' before and after, and refresh candidates. The rank-drop and content-refresh skills use it, and
+  recent articles' before and after, and refresh candidates. The rank-drop, monthly-report, cannibalization and content-refresh skills use it, and
   content-refresh can call `refresh_page`.
-- The Search Console card on Site traffic reads the synced data when the brand signed in to Google directly.

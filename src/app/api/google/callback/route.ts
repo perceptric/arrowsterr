@@ -10,7 +10,7 @@ export async function GET(request: Request) {
   const base = host ? `https://${host}` : url.origin;
   const go = (path: string, q: Record<string, string>) => Response.redirect(`${base}${path}?${new URLSearchParams(q)}`, 302);
   const state = googleReady() ? readState(url.searchParams.get("state") ?? "") : null;
-  if (!state) return go("/traffic", { ga4: "error", reason: "The sign-in link expired. Try again." });
+  if (!state) return go("/analytics", { ga4: "error", reason: "The sign-in link expired. Try again." });
   if (url.searchParams.get("error")) return go(state.back, { [state.kind === "merchant" ? "catalog" : "ga4"]: "error", reason: "Google access was not allowed." });
 
   const db = adminClient();

@@ -228,15 +228,15 @@ function SetupCard({ id, auth, canEdit, onSend }: { id: string; auth: RunAuth; c
       <div className="zp-setup-card">
         <Zippie size={34} mood="happy" />
         <span className="flex min-w-0 flex-1 flex-col">
-          <span className="text-[14px] font-medium text-ink">Set up website tracking</span>
-          <span className="text-[13px] text-muted">Add the tracking script or connect Google Analytics.</span>
+          <span className="text-[14px] font-medium text-ink">Connect your Google data</span>
+          <span className="text-[13px] text-muted">Connect Google Analytics and Search Console.</span>
         </span>
         <button
           type="button"
           className="aw-btn aw-btn--primary aw-btn--sm"
-          onClick={() => goTo("/traffic")}
+          onClick={() => goTo("/analytics")}
         >
-          Open Traffic
+          Open Analytics
         </button>
       </div>
     );

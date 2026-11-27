@@ -10,7 +10,6 @@ import { Dropdown } from "./Pickers";
 import { Confirm } from "./reports/Dialog";
 import { post } from "./research/shared";
 import type { BrandTab } from "./SettingsPage";
-import { Ga4Connect, type SiteStatus } from "./TrafficPage";
 import { BrandLogo } from "./BrandLogo";
 import { BrandGuidelines } from "./BrandGuidelines";
 import { BrandKitPanel } from "./BrandKit";
@@ -66,7 +65,7 @@ export function BrandSettings({
       ) : tab === "publishing" ? (
         <CmsSettings key={brand.id} auth={auth} isAdmin={isAdmin} brand={brand} brands={brands} />
       ) : tab === "google" ? (
-        <BrandGoogle key={brand.id} auth={auth} brand={brand} canEdit={canEdit} />
+        <BrandGoogle key={brand.id} auth={auth} brand={brand} />
       ) : tab === "shopsettings" ? (
         <ShoppingSwitch key={brand.id} auth={auth} brand={brand} canEdit={canEdit} />
       ) : (
@@ -76,65 +75,59 @@ export function BrandSettings({
   );
 }
 
-/** Google Analytics for this brand, the same connect flow as the Traffic page. */
-function BrandGoogle({ auth, brand, canEdit }: { auth: RunAuth; brand: BrandRef; canEdit: boolean }) {
-  const [status, setStatus] = useState<SiteStatus | null>(null);
+/** Google Analytics for this brand. Connecting happens on Analytics, where Search Console joins the same sign-in. */
+function BrandGoogle({ auth, brand }: { auth: RunAuth; brand: BrandRef }) {
+  const [ga4, setGa4] = useState<Ga4 | null | undefined>(undefined);
   const [error, setError] = useState("");
-  // Back from Google's sign-in: say how it went, then tidy the address.
-  const [back] = useState(() => (typeof window === "undefined" ? null : new URLSearchParams(window.location.search)));
-  const result = back?.get("ga4");
   useEffect(() => {
-    if (!result) return;
-    const q = new URLSearchParams(window.location.search);
-    q.delete("ga4");
-    q.delete("reason");
-    window.history.replaceState(null, "", window.location.pathname + (q.size ? `?${q}` : ""));
-  }, [result]);
-
-  const call = useCallback(
-    async (path: string, body: Record<string, unknown>) => {
-      const res = await fetch(path, {
+    let live = true;
+    (async () => {
+      const res = await fetch("/api/site", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${await auth.token()}` },
-        body: JSON.stringify({ ...body, workspaceId: auth.workspaceId, brandId: brand.id }),
+        body: JSON.stringify({ action: "status", workspaceId: auth.workspaceId, brandId: brand.id }),
       });
       const data = await res.json().catch(() => ({ error: `The server returned ${res.status}.` }));
       if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
-      return data;
-    },
-    [auth, brand.id],
-  );
-  const load = useCallback(
-    () =>
-      call("/api/site", { action: "status" })
-        .then((s) => setStatus(s as SiteStatus))
-        .catch((e) => setError(e instanceof Error ? e.message : String(e))),
-    [call],
-  );
-  useEffect(() => {
-    load();
-  }, [load]);
+      if (live) setGa4((data as { ga4?: Ga4 | null }).ga4 ?? null);
+    })().catch((e) => live && setError(e instanceof Error ? e.message : String(e)));
+    return () => {
+      live = false;
+    };
+  }, [auth, brand.id]);
 
   return (
     <section className="flex max-w-2xl flex-col gap-3">
-      {result === "error" ? <p className="aw-error">{back?.get("reason") ?? "Could not connect Google Analytics."}</p> : null}
       {error ? <p className="aw-error">{error}</p> : null}
-      {!status ? (
+      {ga4 === undefined && !error ? (
         <Thinking text="Loading..." />
-      ) : status.ga4?.property ? (
+      ) : (
         <div className="aw-frame flex items-center justify-between gap-3 px-5 py-3">
           <span className="flex flex-col">
-            <span className="text-[15px] text-ink">{status.ga4.name ?? status.ga4.property}</span>
-            <span className="text-[12px] text-muted">{status.ga4.email}</span>
+            <span className="text-[15px] text-ink">{ga4?.property ? (ga4.name ?? ga4.property) : "Not connected"}</span>
+            <span className="text-[12px] text-muted">{ga4?.email ?? "Connect Google Analytics and Search Console on Analytics."}</span>
           </span>
-          <span className="aw-status aw-status--ranked">Connected</span>
+          {ga4?.property ? (
+            <span className="aw-status aw-status--ranked">Connected</span>
+          ) : (
+            <button
+              type="button"
+              className="aw-btn aw-btn--secondary aw-btn--sm"
+              onClick={() => {
+                window.history.pushState(null, "", "/analytics");
+                window.dispatchEvent(new PopStateEvent("popstate"));
+              }}
+            >
+              Open Analytics
+            </button>
+          )}
         </div>
-      ) : (
-        <Ga4Connect status={status} canEdit={canEdit} call={call} onDone={load} />
       )}
     </section>
   );
 }
+
+type Ga4 = { email: string; property: string | null; name: string | null };
 
 type AlertState = { allowed: boolean; setup?: string; slack?: boolean; workspaceSlack?: boolean; points?: number | null; defaultPoints?: number };
 

@@ -40,11 +40,6 @@ async function api<T>(path: string, init: { method?: string; body?: unknown; que
   return res.json();
 }
 
-export async function createWebsite(name: string, domain: string): Promise<string> {
-  const w = await api<{ id: string }>("/websites", { method: "POST", body: { name: name.slice(0, 100), domain } });
-  return w.id;
-}
-
 export type Range = { startAt: number; endAt: number };
 export type Row = { x: string; y: number };
 const num = (v: unknown) => (typeof v === "number" ? v : typeof v === "object" && v ? Number((v as { value?: number }).value ?? 0) : 0);

@@ -10,7 +10,7 @@ import { active, activity, aiSourceOf, AI_SOURCES, events, metrics, series, sess
 // The Traffic and Visitors pages ask for the last N days; reports ask for exact dates.
 
 const PAGES = ["path", "url"];
-// Each breakdown on the Traffic page and the names Umami uses for it.
+// Each breakdown (for client reports and the traffic API) and the names Umami uses for it.
 const BREAKDOWNS: Record<string, string[]> = {
   pages: PAGES,
   entry: ["entry"],

@@ -164,38 +164,6 @@ const BASE_TOOLS: ZippieTool[] = [
     },
   },
   {
-    name: "get_rankings",
-    label: "Reading rankings",
-    description: "The rank tracker's keywords for a brand: each keyword's latest Google position, the page that ranks, the change over 7 and 30 days, and every URL that ranked in the last 30 days (two URLs means two pages compete).",
-    input_schema: { type: "object", properties: { brand: { type: "string" }, keyword: { type: "string", description: "Only keywords containing this." } } },
-    async run(ctx, args) {
-      const brand = await brandOf(ctx, args.brand);
-      const { data: projects } = await ctx.db.from("rank_projects").select("id, name, target").eq("workspace_id", ctx.ws).or(`brand_id.eq.${brand.id},target.ilike.*${brand.domain.replace(/[%,*()]/g, "")}*`);
-      if (!projects?.length) return { brand: brand.name, keywords: [], note: "No rank tracking for this brand yet. It starts on the Rank tracking page (Visibility › Rank tracking)." };
-      let kq = ctx.db.from("rank_keywords").select("id, keyword, volume, project_id").in("project_id", projects.map((p) => p.id)).limit(500);
-      const want = str(args.keyword, 100);
-      if (want) kq = kq.ilike("keyword", `%${want.replace(/[%,]/g, "")}%`);
-      const { data: kws } = await kq;
-      if (!kws?.length) return { brand: brand.name, keywords: [] };
-      const since = new Date(Date.now() - 31 * 864e5).toISOString().slice(0, 10);
-      const { data: checks } = await ctx.db.from("rank_checks").select("keyword_id, day, position, url").in("keyword_id", kws.map((k) => k.id)).gte("day", since).not("checked_at", "is", null).order("day", { ascending: false }).limit(20_000);
-      const by = new Map<string, { day: string; position: number | null; url: string | null }[]>();
-      for (const c of checks ?? []) by.set(c.keyword_id, [...(by.get(c.keyword_id) ?? []), c]);
-      const at = (rows: { day: string; position: number | null }[], daysAgo: number) => {
-        const day = new Date(Date.now() - daysAgo * 864e5).toISOString().slice(0, 10);
-        return rows.find((r) => r.day <= day)?.position ?? null;
-      };
-      const out = kws.map((k) => {
-        const rows = by.get(k.id) ?? [];
-        const now = rows[0]?.position ?? null;
-        const w = at(rows, 7);
-        const m = at(rows, 30);
-        return { keyword: k.keyword, volume: k.volume, position: now, url: rows[0]?.url ?? null, change_7d: now && w ? w - now : null, change_30d: now && m ? m - now : null, urls_seen: [...new Set(rows.map((r) => r.url).filter(Boolean))] };
-      });
-      return { brand: brand.name, keywords: out.sort((a, b) => (a.position ?? 999) - (b.position ?? 999)).slice(0, 200) };
-    },
-  },
-  {
     name: "get_site_analytics",
     label: "Reading Search Console and GA4",
     description:
