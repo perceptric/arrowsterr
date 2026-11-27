@@ -854,6 +854,9 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
                   whiteLabel={plan?.limits.reports === "whitelabel"}
                   onBrandKit={() => go("brandkit")}
                 />
+              ) : page === "traffic" ? (
+                // Analytics puts its Export menu here (analytics/Report.tsx, HeadTools).
+                <span id="aw-head-tools" className="flex items-center gap-3" />
               ) : undefined
             }
           />

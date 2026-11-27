@@ -1,8 +1,8 @@
 # Analytics: Search Console and GA4
 
 Visibility › Analytics (`/analytics`, `src/components/AnalyticsPage.tsx`) puts a brand's Google Search Console and
-Google Analytics 4 in one place, and turns them into Opportunities. `AnalyticsPage.tsx` keeps the connect and pick
-screens; the dashboard itself is `src/components/analytics/Dashboard.tsx` (below). It is the only view: the old visitor breakdowns
+Google Analytics 4 in one place. `AnalyticsPage.tsx` keeps the connect and pick screens and a switch between the two
+reports (below), read live from Google. It is the only view: the old visitor breakdowns
 ("Site traffic") and Rank tracking were removed in November 2026. `/traffic` opens Analytics. The rank tables
 (`rank_projects`, `rank_keywords`, `rank_checks`) stay in the database but nothing writes to them any more.
 
@@ -29,9 +29,9 @@ screens; the dashboard itself is `src/components/analytics/Dashboard.tsx` (below
   seconds to walk back a month at a time to 16 months.
 - GA4: sessions, key events and visits from AI by day and landing page into `analytics_ga4`. The first run saves 90
   days; after that the last few days again (GA4 fills in late data).
-- GA4 extras (`syncGa4Extras`): sessions by day and default channel group into `analytics_ga4_channels` (90 days the
-  first time), and each page's title (the one with the most views in the last 90 days) into `analytics_page_titles`.
-  Tables and functions: `supabase/106_analytics_dashboard.sql`.
+- The sync feeds Drafts' before and after, Zippie's `get_site_analytics`, Opportunities and reports. The page itself
+  reads Google live (below). `supabase/106_analytics_dashboard.sql` (channels, page titles, trends, rank weeks) was for
+  the old dashboard; nothing reads or writes it now.
 - Pages join on a normalised path (`pagePath` in `src/lib/seoAnalytics.ts`): no host, query or trailing slash.
 - Totals come from SQL functions (`analytics_queries`, `analytics_pages`, `analytics_query_pages`, `analytics_ga4_days`,
   `analytics_ai`) so the app never pulls every row. Tables and functions: `supabase/104_analytics.sql`.
@@ -52,27 +52,30 @@ Worked out after every sync from the last 28 days against the 28 before, saved i
 Gains are extra clicks a month. Sign-ups use the page's own GA4 conversion rate when it has 50 or more sessions.
 "Refresh the page" asks Zippie to run `refresh_page` (below); without Zippie it adds a Calendar update piece.
 
-## The dashboard (`components/analytics/Dashboard.tsx`)
+## The reports (`components/analytics/GscReport.tsx`, `Ga4Report.tsx`)
 
-One API call, `{ action: "dashboard", days }` on `/api/seo-analytics` (`analyticsDashboard` in seoAnalyticsServer.ts),
-for 7, 28, 90 or 365 days against the same number of days before. Every number is real; nothing is made up.
+Google's own Performance and GA4 reports, inside Arrowsterr. A switch by the title picks one; the last pick is kept for
+each person on the device. Each report is one call on `/api/seo-analytics` (`gscReport`, `ga4Report` in
+`src/lib/googleReportsServer.ts`), read from Google and kept for 3 hours per brand and settings (20 minutes for hours).
+When Google fails, they fall back to the synced tables with fewer parts. The pure parts (dates, filters turned into API
+bodies, the AI assistants channel, joining by path, weeks, CSV) are in `src/lib/googleReports.ts`.
 
-1. **Header**: the site, the connected sources (or a link to pick one), the range and the Compare switch.
-2. **Chart**: six metric tabs (clicks, impressions, CTR, position, sessions, sign-ups), each with its change. The line is
-   this period day by day (`daySeries`, `periodTotals`), the dashed line the period before, and violet pins the days a
-   piece was published or refreshed (`calendar_items.published_at` / `refreshed_at`). Hover shows the day. GA4 tabs show
-   "–" and a link to pick a property when there is none.
-3. **What to do next**: the top 4 Opportunities with their gain, and "See all N".
-4. **What changed**: searches and pages gaining and losing the most clicks (`movers`), each with a 12-point trend over
-   both periods (`analytics_trends`, `trendPoints`).
-5. **Where visitors come from**: GA4 sessions by channel (`analytics_channels`, `channelMix`). Visits from AI assistants
-   are moved out of Referral into their own channel, with a chip per AI.
-   **Where you rank**: searches averaging positions 1–3, 4–10 and 11–20, week by week for 12 weeks
-   (`analytics_rank_weeks`, `rankWeeks`).
-6. **Pages / Searches table**: clicks, impressions, CTR (red under 60% of `expectedCtr`), position and its change,
-   sessions, sign-ups, conversion rate, visits from AI with the AIs citing the page in tracked answers, and a 28-day
-   trend. Pages show a Published/Refreshed tag. Searches open the Research panel. 8 rows, then View all, then 25 more at
-   a time (`{ action: "rows", kind, days, offset }`, `dashboardRows`). `?page=/path` puts that page first.
+- **Search Console** (`{ action: "gsc", range, compare, type, filters, hourly }`): 24 hours (by hour, `hourly_all`;
+  hidden when the property has no hourly data), 7 and 28 days, 3 months, and 6, 12, 16 months or exact dates. Search type
+  (Web, Image, Video, News, Discover, Google News) and Compare (previous period, last year, none) in one dialog.
+  Filters on query, page, country, device and search appearance. Four checkable totals draw the lines; tables for
+  queries, pages, countries, devices, search appearance and days. Research → on a query opens the keyword research
+  panel (the page that ranks comes from `{ action: "toppage" }`). Pages can add GA4 sessions, sign-ups and conversion
+  rate by path (`{ action: "join", source: "ga4" }`).
+- **Google Analytics** (`{ action: "ga4", range, compare, filters, hourly }`): today (by hour), 7 and 28 days, 3, 6 and 12
+  months or exact dates. Filters on channel, source / medium, landing page, country, device and event. Five checkable
+  totals. Traffic sources by channel, source / medium or campaign, with **AI assistants** as its own channel
+  (`trafficChannels`: visits from AI hosts move out of the channel GA4 gave them) that opens to each AI. Landing pages can
+  add Search Console clicks and position (`{ action: "join", source: "gsc" }`) and Refresh page → (Zippie's
+  `refresh_page`, or a Calendar update item). Pages, key events, countries and devices. People on the site now come
+  from the realtime report (`{ action: "now" }`).
+- Both: daily or weekly lines, purple pins for pieces published or refreshed from Arrowsterr, sorting, rows per page,
+  and Export › This table as CSV in the header bar.
 
 ## Results: before and after (phase 3)
 
@@ -83,8 +86,7 @@ for 7, 28, 90 or 365 days against the same number of days before. Every number i
   (`resultWindows`, `compareResult` in seoAnalytics.ts). While a page is younger than 28 days, the days before are
   scaled to the same length. Clicks, impressions, position, sessions, key events and visits from AI.
 - Shown on the article in Drafts and its Zippie card (`components/analytics/ArticleResults.tsx`). On the Analytics
-  page each change shows as a pin on the chart and a tag in the Pages table. Pages down 25% or more after a full 28 days get a Refresh button. Autopilot's daily chat names the
-  best performer.
+  page each change shows as a pin on the chart. Autopilot's daily chat names the best performer.
 
 ## Refresh the page (`src/lib/pageRefreshServer.ts`, Zippie's `refresh_page`)
 

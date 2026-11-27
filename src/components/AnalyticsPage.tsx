@@ -7,16 +7,32 @@ import type { View } from "@/lib/view";
 import { BrandLogo } from "./BrandLogo";
 import { EmptyScreen } from "./Drawing";
 import { Dropdown } from "./Pickers";
-import { Dashboard, type Call, type Status } from "./analytics/Dashboard";
-import { ga4Properties, propertyName } from "./analytics/google";
-import { favicon, Thinking } from "./ui";
+import { Ga4Report } from "./analytics/Ga4Report";
+import { ga4Properties, GA4_LOGO, GSC_LOGO, propertyName, type Call, type Status } from "./analytics/google";
+import { GscReport } from "./analytics/GscReport";
+import { favicon, Seg, Thinking } from "./ui";
 
-// Visibility › Analytics: Search Console and Google Analytics 4 in one place, from the daily sync
-// (seoAnalyticsServer.ts). One Google sign-in, then pick the site and the GA4 property. Opportunities turn into
-// title fixes (Zippie's meta play), refreshes and Calendar items; any query opens Keyword Research in a side panel.
+// Visibility › Analytics: Search Console and Google Analytics 4 inside Arrowsterr, each as its own report read live
+// from Google (analytics/GscReport.tsx, analytics/Ga4Report.tsx). One Google sign-in, then pick the site and the GA4
+// property. A switch by the title picks the report; the last pick is remembered for each person on this device.
 
-const GSC_LOGO = "/logos/search-console.png";
-const GA4_LOGO = "/logos/google-analytics.svg";
+type Source = "gsc" | "ga4";
+const SOURCE_KEY = "arrowsterr.analytics.source";
+const readSource = (user: string): Source | null => {
+  try {
+    const v = localStorage.getItem(`${SOURCE_KEY}:${user}`);
+    return v === "gsc" || v === "ga4" ? v : null;
+  } catch {
+    return null;
+  }
+};
+const saveSource = (user: string, v: Source) => {
+  try {
+    localStorage.setItem(`${SOURCE_KEY}:${user}`, v);
+  } catch {
+    // Private windows can block storage. The pick just isn't remembered.
+  }
+};
 
 export function AnalyticsPage({ view, auth, sb, canEdit }: { view: View; auth: RunAuth; sb: SupabaseClient; canEdit: boolean }) {
   const { brand } = view;
@@ -51,13 +67,82 @@ export function AnalyticsPage({ view, auth, sb, canEdit }: { view: View; auth: R
     load();
   }, [load]);
 
+  // The report last picked by this person, on this device.
+  const [user, setUser] = useState<string | null>(null);
+  const [source, setSource] = useState<Source>("gsc");
+  useEffect(() => {
+    let live = true;
+    sb.auth
+      .getSession()
+      .then(({ data }) => data.session?.user.id ?? "me")
+      .catch(() => "me")
+      .then((id) => {
+        if (!live) return;
+        setUser(id);
+        const v = readSource(id);
+        if (v) setSource(v);
+      });
+    return () => {
+      live = false;
+    };
+  }, [sb]);
+  const pick = (v: Source) => {
+    setSource(v);
+    if (user) saveSource(user, v);
+  };
+
   const picked = Boolean(status?.connected && (status.gscProperty || status.ga4Property));
-  if (!status) return error ? <p className="aw-error">{error}</p> : <Thinking text="Checking your Google connection..." />;
+  if (!status || !user) return error ? <p className="aw-error">{error}</p> : <Thinking text="Checking your Google connection..." />;
+
+  const title = (
+    <>
+      <h1 className="aw-h2 mb-0!">Analytics</h1>
+      {picked && !setup ? (
+        <Seg
+          label="Report"
+          value={source}
+          onChange={pick}
+          options={[
+            {
+              id: "gsc",
+              label: (
+                <span className="inline-flex items-center gap-2">
+                  <BrandLogo src={GSC_LOGO} name="" size={16} />
+                  Search Console
+                </span>
+              ),
+            },
+            {
+              id: "ga4",
+              label: (
+                <span className="inline-flex items-center gap-2">
+                  <BrandLogo src={GA4_LOGO} name="" size={16} />
+                  Google Analytics
+                </span>
+              ),
+            },
+          ]}
+        />
+      ) : null}
+    </>
+  );
+  const props = { status, call, view, auth, sb, canEdit, title, onSetup: () => setSetup(true) };
+  // A report without its property shows the pick card.
+  const missing = source === "gsc" ? !status.gscProperty : !status.ga4Property;
 
   return (
     <div className="flex flex-col gap-5">
       {back?.get("ga4") === "error" ? <p className="aw-error">{back.get("reason") ?? "Could not connect Google."}</p> : null}
-      {!picked || setup ? <Setup status={status} canEdit={canEdit} call={call} brandName={brand.name} onDone={() => load().then(() => setSetup(false))} onClose={picked ? () => setSetup(false) : undefined} /> : <Dashboard status={status} call={call} sb={sb} auth={auth} view={view} canEdit={canEdit} onSetup={() => setSetup(true)} onReload={load} />}
+      {!picked || setup || missing ? (
+        <>
+          {picked ? <div className="aw-rep-title">{title}</div> : null}
+          <Setup status={status} canEdit={canEdit} call={call} brandName={brand.name} onDone={() => load().then(() => setSetup(false))} onClose={picked && setup && !missing ? () => setSetup(false) : undefined} />
+        </>
+      ) : source === "gsc" ? (
+        <GscReport {...props} />
+      ) : (
+        <Ga4Report {...props} />
+      )}
     </div>
   );
 }
@@ -123,7 +208,7 @@ function Setup({ status, canEdit, call, brandName, onDone, onClose }: { status: 
           </div>
         }
       >
-        See Search Console and Google Analytics in one place, with fixes ranked by the traffic they bring.
+        See your Search Console and Google Analytics reports inside Arrowsterr.
       </EmptyScreen>
     );
 
@@ -149,7 +234,7 @@ function Setup({ status, canEdit, call, brandName, onDone, onClose }: { status: 
           {error ? <p className="aw-error">{error}</p> : null}
           {onClose ? (
             <button type="button" className="aw-btn aw-btn--secondary self-center" onClick={onClose}>
-              Back to the dashboard
+              Back to the report
             </button>
           ) : null}
         </div>

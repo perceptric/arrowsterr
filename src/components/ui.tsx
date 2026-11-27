@@ -93,7 +93,8 @@ export function StatStrip({ stats, spark, extra }: { stats: StripStat[]; spark?:
   );
 }
 
-export function Seg<T extends string>({ value, options, onChange, label }: { value: T; options: { id: T; label: React.ReactNode }[]; onChange: (v: T) => void; label: string }) {
+/** Pick one of a few options. `extra` sits at the end of the group, like a "More" button that opens a menu. */
+export function Seg<T extends string>({ value, options, onChange, label, extra }: { value: T; options: { id: T; label: React.ReactNode }[]; onChange: (v: T) => void; label: string; extra?: React.ReactNode }) {
   return (
     <div role="tablist" aria-label={label} className="aw-seg inline-flex max-w-full flex-wrap">
       {options.map((o) => (
@@ -107,6 +108,7 @@ export function Seg<T extends string>({ value, options, onChange, label }: { val
           {o.label}
         </button>
       ))}
+      {extra}
     </div>
   );
 }

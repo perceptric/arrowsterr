@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { compareResult, findOpportunities, linkSuggestions, NO_TOTALS, ownCitations, planSections, resultWindows, type PageAgg } from "../src/lib/seoAnalytics.ts";
+import { compareResult, findOpportunities, linkSuggestions, NO_TOTALS, planSections, resultWindows, type PageAgg } from "../src/lib/seoAnalytics.ts";
 import { addSections, applyEdits } from "../src/lib/draftEdits.ts";
 import { pageOutline } from "../src/lib/pageText.ts";
 import { outlineToDoc } from "../src/lib/writer.ts";
@@ -93,18 +93,4 @@ test("pages at 5 to 15 get links from busier pages on the same topic", () => {
   const links = opps.find((o) => o.kind === "links");
   assert.ok(links && links.gain_clicks > 0);
   assert.deepEqual(links!.data.sources, s[0].sources.map((x) => x.page));
-});
-
-test("the tracked AI answers that cite the brand's own pages", () => {
-  const chats = [
-    { engine: "ChatGPT", prompt: "best guest feedback tool", sources: [{ url: "https://www.momos.com/blog/how-to-calculate-nps?utm=x" }, { url: "https://rival.com/x" }] },
-    { engine: "Perplexity", prompt: "best guest feedback tool", sources: [{ url: "https://momos.com/blog/how-to-calculate-nps/" }, { url: "https://help.momos.com/guest-feedback" }] },
-    { engine: "Gemini", prompt: "restaurant nps", sources: [{ url: "https://momos.com/pricing" }, { url: "https://momos.com/pricing#plans" }] },
-    { engine: "Claude", prompt: "x", sources: null },
-  ];
-  const own = ownCitations(chats, "momos.com");
-  const nps = own.find((c) => c.page === "/blog/how-to-calculate-nps");
-  assert.deepEqual(nps, { page: "/blog/how-to-calculate-nps", engines: ["ChatGPT", "Perplexity"], prompts: 1, answers: 2 });
-  assert.equal(own.find((c) => c.page === "/pricing")?.answers, 1, "one answer citing a page twice counts once");
-  assert.ok(own.some((c) => c.page === "/guest-feedback"), "subdomains are the brand's own");
 });

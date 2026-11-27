@@ -1,12 +1,18 @@
-import { analyticsDashboard, articleResults, dashboardRows, googleFor, gscSitesFor, hasGscScope, ownRanks, queueSyncNow } from "@/lib/seoAnalyticsServer";
+import { articleResults, googleFor, gscSitesFor, hasGscScope, ownRanks, queueSyncNow } from "@/lib/seoAnalyticsServer";
 import { googleReady } from "@/lib/google";
+import { compareRange, GA4_DIMS, GSC_DIMS, GSC_TYPES, readFilters, readRange, type CompareMode, type GscType } from "@/lib/googleReports";
+import { ga4ByPath, ga4Now, ga4Report, gscByPath, gscReport, gscTopPage } from "@/lib/googleReportsServer";
 import { adminClient, requireRole } from "@/lib/serverAuth";
 
-// The Analytics page: Search Console and Google Analytics 4 for one brand, from the daily sync (seoAnalyticsServer.ts).
+// The Analytics page: Search Console and Google Analytics 4 for one brand, live from Google (googleReportsServer.ts),
+// and the daily sync (seoAnalyticsServer.ts) for Drafts, Zippie and reports.
 //   { workspaceId, brandId, action }
 //   "status"    the Google sign-in, the picked properties and the sync. Viewers and up.
-//   "dashboard" { days: 7 | 28 | 90 | 365, page? } everything on the Analytics page against the period before. Viewers and up.
-//   "rows"      { days, kind: "pages" | "queries", offset } 25 more rows of the Pages or Searches table. Viewers and up.
+//   "gsc"       { range: { from, to }, compare: "prev" | "year" | "none", type, filters, hourly } the Search Console report. Viewers and up.
+//   "ga4"       { range, compare, filters, hourly } the Google Analytics report. Viewers and up.
+//   "now"       people on the site right now, from GA4. Viewers and up.
+//   "join"      { source: "gsc" | "ga4", range } the other side's numbers by page path, for the extra table columns. Viewers and up.
+//   "toppage"   { query, range } the page with the most impressions for one search. Viewers and up.
 //   "ranks"     { queries: string[] } where the brand ranks for each, from Search Console. Viewers and up.
 //   "results"   { itemId? } before and after for published articles and refreshes (all recent ones, or one). Viewers and up.
 //   "sites"     the Search Console properties the sign-in can read. Editors only.
@@ -41,9 +47,31 @@ export async function POST(request: Request) {
         state,
       });
 
-    const days = [7, 28, 90, 365].includes(Number(body.days)) ? Number(body.days) : 28;
-    if (action === "dashboard") return Response.json(await analyticsDashboard(db, brand, days, state, typeof body.page === "string" ? body.page : null));
-    if (action === "rows") return Response.json(await dashboardRows(db, brand, body.kind === "queries" ? "queries" : "pages", days, state, Math.max(0, Math.floor(Number(body.offset) || 0))));
+    if (action === "gsc" || action === "ga4" || action === "now" || action === "join" || action === "toppage") {
+      if (!conn) return Response.json({ error: "Connect Google first." }, { status: 400 });
+      const today = new Date().toISOString().slice(0, 10);
+      // Google's day can be ahead of the server's, so allow tomorrow.
+      const range = readRange(body.range, new Date(Date.now() + 864e5).toISOString().slice(0, 10)) ?? { from: today, to: today };
+      const mode: CompareMode = body.compare === "year" || body.compare === "none" ? body.compare : "prev";
+      const hourly = body.hourly === true;
+      if (action === "gsc") {
+        if (!brand.gsc_property) return Response.json({ error: "Pick a Search Console site first." }, { status: 400 });
+        const type: GscType = GSC_TYPES.some((t) => t.id === body.type) ? (body.type as GscType) : "web";
+        try {
+          return Response.json(await gscReport(db, brand, conn, { range, prev: compareRange(range, mode), type, filters: readFilters(body.filters, GSC_DIMS), hourly }));
+        } catch (e) {
+          // No hourly data on this property: the page hides 24 hours.
+          if (hourly) return Response.json({ noHourly: true, error: e instanceof Error ? e.message : String(e) });
+          throw e;
+        }
+      }
+      if (action === "toppage") return Response.json({ page: brand.gsc_property && typeof body.query === "string" && body.query.trim() ? await gscTopPage(brand, conn, body.query.trim().slice(0, 300), range) : null });
+      if (!brand.ga4_property && action !== "join") return Response.json({ error: "Pick a GA4 property first." }, { status: 400 });
+      if (action === "ga4") return Response.json(await ga4Report(db, brand, conn, { range, prev: compareRange(range, mode), filters: readFilters(body.filters, GA4_DIMS), hourly }));
+      if (action === "now") return Response.json({ now: await ga4Now(brand, conn) });
+      if (body.source === "gsc") return Response.json({ rows: brand.gsc_property ? await gscByPath(brand, conn, range) : [] });
+      return Response.json({ rows: brand.ga4_property ? await ga4ByPath(brand, conn, range) : [] });
+    }
 
     if (action === "ranks") {
       const queries = Array.isArray(body.queries) ? body.queries.map(String).slice(0, 300) : [];

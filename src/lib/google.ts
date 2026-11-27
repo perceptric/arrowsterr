@@ -1,4 +1,5 @@
 import "server-only";
+import type { GscQueryBody } from "./googleReports";
 import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 
 // Google sign-in for Google Analytics 4 and Search Console: the sign-in link, token storage, and both read-only APIs.
@@ -155,7 +156,7 @@ export async function listGscSites(accessTok: string): Promise<unknown> {
   return api("https://www.googleapis.com/webmasters/v3/sites", accessTok, undefined, "Search Console");
 }
 
-/** One Search Analytics query for a property. Rows come back in the shape gscRows() reads. */
-export async function gscQuery(accessTok: string, site: string, body: { startDate: string; endDate: string; dimensions: string[]; rowLimit?: number; startRow?: number; dataState?: "all" | "final" }) {
+/** One Search Analytics query for a property (web unless `type` says otherwise). Rows come back in the shape gscRows() reads. */
+export async function gscQuery(accessTok: string, site: string, body: Omit<GscQueryBody, "type"> & { type?: GscQueryBody["type"] }) {
   return api<unknown>(`https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(site)}/searchAnalytics/query`, accessTok, { type: "web", ...body }, "Search Console");
 }
