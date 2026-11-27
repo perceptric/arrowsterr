@@ -6,6 +6,7 @@ import { meteredRoute, streamed } from "@/lib/meter";
 import { requireTrack, take } from "@/lib/entitlements";
 import { TASK_COST } from "@/lib/plans";
 import { saveBulkRun } from "@/lib/bulkRuns";
+import { errorResponse, report } from "@/lib/errorsServer";
 
 // Keyword overview, bulk analysis and the "View all" lists.
 // Editors run searches, which can cost money. Viewers opening a shared link see saved results only.
@@ -61,19 +62,15 @@ async function handle(request: Request) {
     const work = run(() => keywordReport(keyword, country, device, false, line))
       .then((report) => (line({ part: "done", report }), true))
       .catch((e) => {
-        const message = e instanceof Error ? e.message : String(e);
-        if (message !== NOT_SAVED) console.error("Keyword report failed:", message);
-        line({ part: "error", error: message });
+        line({ part: "error", error: e instanceof Error && e.message === NOT_SAVED ? NOT_SAVED : report(e, "api/research/report").error });
         return false;
       })
       .finally(() => writer.close().catch(() => {}));
     const headers = { "Content-Type": "application/x-ndjson", "Cache-Control": "no-store, no-transform", "X-Accel-Buffering": "no" };
     return streamed(new Response(out.readable.pipeThrough(new TextEncoderStream()), { headers }), work);
   } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    if (message === NOT_SAVED) return Response.json({ error: message, notSaved: true }, { status: 404 });
-    console.error("Keyword report failed:", message);
-    return Response.json({ error: message }, { status: 500 });
+    if (e instanceof Error && e.message === NOT_SAVED) return Response.json({ error: NOT_SAVED, notSaved: true }, { status: 404 });
+    return errorResponse(e, "api/research/report");
   }
 }
 

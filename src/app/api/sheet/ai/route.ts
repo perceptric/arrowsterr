@@ -4,6 +4,7 @@ import { cleanOps, type SheetKind } from "@/lib/sheetAi";
 import { meteredRoute } from "@/lib/meter";
 import { take } from "@/lib/entitlements";
 import { TASK_COST } from "@/lib/plans";
+import { errorResponse } from "@/lib/errorsServer";
 
 // Turn a plain request, like "schedule the BOFU pages 2 a week", into changes to the Planner or the Calendar.
 // Nothing changes here. The page shows the changes and applies them when the user clicks Apply. One AI answer.
@@ -57,9 +58,7 @@ Return JSON only: {"reply": "...", "ops": [...]}`,
     const ids = new Set(rows.map((r) => String(r.id)));
     return Response.json({ reply: String(out.reply ?? ""), ops: cleanOps(out.ops, kind, ids, custom.map((c: { id: string }) => c.id)) });
   } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    console.error("Sheet AI failed:", message);
-    return Response.json({ error: message }, { status: 500 });
+    return errorResponse(e, "api/sheet/ai");
   }
 }
 

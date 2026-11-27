@@ -3,6 +3,7 @@ import { googleReady } from "@/lib/google";
 import { compareRange, GA4_DIMS, GSC_DIMS, GSC_TYPES, readFilters, readRange, type CompareMode, type GscType } from "@/lib/googleReports";
 import { ga4ByPath, ga4Now, ga4Report, gscByPath, gscReport, gscTopPage } from "@/lib/googleReportsServer";
 import { adminClient, requireRole } from "@/lib/serverAuth";
+import { errorResponse, report } from "@/lib/errorsServer";
 
 // The Analytics page: Search Console and Google Analytics 4 for one brand, live from Google (googleReportsServer.ts),
 // and the daily sync (seoAnalyticsServer.ts) for Drafts, Zippie and reports.
@@ -61,7 +62,7 @@ export async function POST(request: Request) {
           return Response.json(await gscReport(db, brand, conn, { range, prev: compareRange(range, mode), type, filters: readFilters(body.filters, GSC_DIMS), hourly }));
         } catch (e) {
           // No hourly data on this property: the page hides 24 hours.
-          if (hourly) return Response.json({ noHourly: true, error: e instanceof Error ? e.message : String(e) });
+          if (hourly) return Response.json({ noHourly: true, error: report(e, "api/seo-analytics").error });
           throw e;
         }
       }
@@ -113,6 +114,6 @@ export async function POST(request: Request) {
     }
     return Response.json({ error: "Unknown action." }, { status: 400 });
   } catch (e) {
-    return Response.json({ error: e instanceof Error ? e.message : String(e) }, { status: 500 });
+    return errorResponse(e, "api/seo-analytics");
   }
 }

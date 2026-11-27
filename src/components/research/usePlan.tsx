@@ -9,6 +9,7 @@ import { quietly, recordUndo } from "@/lib/undo";
 import { canImport, importPatch } from "@/lib/writerImport";
 import { Confirm } from "../reports/Dialog";
 import type { NewPiece } from "./DayPanel";
+import { errorText } from "@/lib/errors";
 
 /**
  * The Content Plan's pieces for the Editorial Calendar's list and calendar views: load, edit with Undo, add,
@@ -27,8 +28,7 @@ export function usePlan({ sb, auth, site }: { sb: SupabaseClient; auth: RunAuth;
     try {
       setItems(await listCalendar(sb, site.id));
     } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
-      setError(/action|brief|current_/.test(message) ? `${message}. Run supabase/007_briefs_and_pages.sql in Supabase → SQL Editor.` : message);
+      setError(errorText(e));
       setItems([]);
     }
   }, [sb, site.id, setItems]);
@@ -45,7 +45,7 @@ export function usePlan({ sb, auth, site }: { sb: SupabaseClient; auth: RunAuth;
     if (!p) return;
     clearTimeout(p.timer);
     pending.current = null;
-    deleteCalendarItems(sb, p.ids).catch((e) => setError(e instanceof Error ? e.message : String(e)));
+    deleteCalendarItems(sb, p.ids).catch((e) => setError(errorText(e)));
   }, [sb]);
   useEffect(() => commit, [commit]);
 
@@ -65,7 +65,7 @@ export function usePlan({ sb, auth, site }: { sb: SupabaseClient; auth: RunAuth;
     try {
       await updateCalendarItem(sb, id, p);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
       load();
     }
   }
@@ -91,7 +91,7 @@ export function usePlan({ sb, auth, site }: { sb: SupabaseClient; auth: RunAuth;
       ]);
       load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(errorText(err));
     }
   }
 

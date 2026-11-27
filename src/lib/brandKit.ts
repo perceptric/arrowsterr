@@ -44,7 +44,7 @@ export type KitPart =
   | { part: "fonts"; fonts: string[] }
   | { part: "logo"; logo: string; onDark: boolean }
   | { part: "done"; kit: BrandKit; why: string; saved: boolean }
-  | { part: "error"; error: string };
+  | { part: "error"; error: string; ref?: string | null };
 
 /**
  * Read the learner's reply: one KitPart per line. A line may arrive split across chunks.
@@ -57,7 +57,7 @@ export async function readKitStream(body: ReadableStream<string>, onPart: (p: Ki
   const take = (raw: string) => {
     if (!raw.trim()) return;
     const p = JSON.parse(raw) as KitPart;
-    if (p.part === "error") throw new Error(p.error);
+    if (p.part === "error") throw Object.assign(new Error(p.error), { ref: p.ref ?? undefined });
     if (p.part === "done") out.done = p;
     onPart(p);
   };

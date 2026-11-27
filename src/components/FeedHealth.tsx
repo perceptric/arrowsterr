@@ -4,7 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import type { FeedHealth as Health, MissingKey } from "@/lib/merchantHealth";
 import type { RunAuth } from "@/lib/runner";
 import { post } from "./research/shared";
-import { Card, StatStrip, Thinking } from "./ui";
+import { Card, ErrorNote, StatStrip, Thinking } from "./ui";
+import { errorText } from "@/lib/errors";
 
 // Merchant Center feed health on the AI Shopping page: items approved, limited or disapproved, the top item
 // issues, and missing details that AI shopping answers use. Saved by each catalog sync (merchantHealth.ts).
@@ -38,7 +39,7 @@ export function FeedHealth({ auth, brandId, canEdit, onCatalog }: { auth: RunAut
       setData(await post<Data>(auth, "/api/shop", { action: "health", brandId }));
       setError("");
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     }
   }, [auth, brandId]);
   useEffect(() => {
@@ -61,13 +62,13 @@ export function FeedHealth({ auth, brandId, canEdit, onCatalog }: { auth: RunAut
       await post(auth, "/api/shop", { action: "sync", brandId, sourceId: data.source.id });
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     } finally {
       setBusy(false);
     }
   };
 
-  if (!data) return error ? <p className="aw-error">{error}</p> : <Thinking text="Reading your product feed..." />;
+  if (!data) return error ? <ErrorNote error={error} /> : <Thinking text="Reading your product feed..." />;
 
   if (!data.connected)
     return (
@@ -98,9 +99,9 @@ export function FeedHealth({ auth, brandId, canEdit, onCatalog }: { auth: RunAut
     return (
       <Card title="Product feed health" action={action}>
         <div className="flex flex-col gap-3 p-5">
-          {error ? <p className="aw-error">{error}</p> : null}
+          {error ? <ErrorNote error={error} /> : null}
           {data.setup ? <p className="aw-callout">{data.setup}</p> : null}
-          {src.status === "error" && src.error ? <p className="aw-error">{src.error}</p> : null}
+          {src.status === "error" && src.error ? <ErrorNote error={src.error} /> : null}
           {!src.account ? (
             <>
               <p className="aw-small">Pick which Merchant Center account to read.</p>
@@ -125,7 +126,7 @@ export function FeedHealth({ auth, brandId, canEdit, onCatalog }: { auth: RunAut
           <span className="aw-chip">Merchant Center{src.name ? ` · ${src.name}` : ""}</span>
           {data.healthAt ? <span>Checked {when(data.healthAt)}</span> : null}
         </div>
-        {error ? <p className="aw-error">{error}</p> : null}
+        {error ? <ErrorNote error={error} /> : null}
         {!h.items ? (
           <p className="aw-small">This Merchant Center account has no products yet.</p>
         ) : (

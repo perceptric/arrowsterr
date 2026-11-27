@@ -13,6 +13,7 @@ import { post } from "../research/shared";
 import { brandTables } from "../research/Writer";
 import { exportClean } from "../research/writerNodes";
 import { openInLibrary } from "./parts";
+import { errorText } from "@/lib/errors";
 
 // The Write cell (docs/agentic-writing.md, section 1, and docs/drafts-plan.md): Write draft, Publish content and View
 // post, with the open button beside it. Write draft researches and outlines in the background, then writes the draft;
@@ -101,7 +102,7 @@ export function useWriteActions({
   const [replacing, setReplacing] = useState(false);
 
   const mark = (id: string, on: boolean) => setBusy((b) => (on ? new Set([...b, id]) : new Set([...b].filter((x) => x !== id))));
-  const fail = (keyword: string, e: unknown) => setError(`${keyword}: ${e instanceof Error ? e.message : String(e)}`);
+  const fail = (keyword: string, e: unknown) => setError(`${keyword}: ${errorText(e)}`);
 
   async function writeOutline(p: Piece) {
     await beforeOutline?.(p.id);
@@ -116,7 +117,7 @@ export function useWriteActions({
       track("draft_started", {});
       return true;
     } catch (e) {
-      if (/edited by hand/i.test(e instanceof Error ? e.message : String(e))) {
+      if (/edited by hand/i.test(errorText(e))) {
         setReplace({ itemId: p.id, briefId });
         return false;
       }
@@ -167,7 +168,7 @@ export function useWriteActions({
         if (s.kind === "outline" || (s.kind === "retry" && s.target === "outline")) await writeOutline(piece);
         else if ((s.kind === "draft" || s.kind === "review" || s.kind === "retry") && s.briefId) await post(auth, "/api/agentic-writer", { action: "draft", briefId: s.briefId });
       } catch (e) {
-        errors.push(`${piece.keyword}: ${e instanceof Error ? e.message : String(e)}`);
+        errors.push(`${piece.keyword}: ${errorText(e)}`);
       } finally {
         mark(piece.id, false);
       }
@@ -213,7 +214,7 @@ export function useWriteActions({
               setReplace(null);
               onChanged();
             } catch (e) {
-              setError(e instanceof Error ? e.message : String(e));
+              setError(errorText(e));
               setReplace(null);
             } finally {
               setReplacing(false);

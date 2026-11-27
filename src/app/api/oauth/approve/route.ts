@@ -1,6 +1,7 @@
 import { entitlement } from "@/lib/entitlements";
 import { CODE_TTL, sha256, token } from "@/lib/oauth";
 import { adminClient, requireRole } from "@/lib/serverAuth";
+import { errorResponse } from "@/lib/errorsServer";
 
 // The person approved an app for one workspace. Admins only, the same as making an API key.
 // Returns where to send the browser: back to the app with a one-time code.
@@ -35,7 +36,7 @@ export async function POST(request: Request) {
       user_id: user.user.id,
       expires_at: new Date(Date.now() + CODE_TTL).toISOString(),
     });
-    if (error) return Response.json({ error: error.message }, { status: 500 });
+    if (error) return errorResponse(error, "api/oauth/approve");
     back.searchParams.set("code", code);
   }
   if (state) back.searchParams.set("state", state);

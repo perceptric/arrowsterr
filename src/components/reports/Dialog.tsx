@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { ErrorNote } from "../ui";
 
 /** Tailwind width names the callers pass, as Twenty's modal sizes. */
 const MODAL_SIZE: Record<string, string> = { "max-w-sm": "tw-modal--sm", "max-w-md": "", "max-w-lg": "tw-modal--md", "max-w-xl": "tw-modal--md", "max-w-2xl": "tw-modal--lg", "max-w-3xl": "tw-modal--lg", "max-w-4xl": "tw-modal--lg" };
@@ -34,7 +35,7 @@ export function Confirm({ title, text, action, busy, error, onConfirm, onClose }
   return (
     <Modal title={title} onClose={onClose} width="max-w-md">
       <p className="tw-modal__body">{text}</p>
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
       <div className="tw-modal__actions">
         <button type="button" className="aw-btn aw-btn--secondary" onClick={onClose}>
           Cancel

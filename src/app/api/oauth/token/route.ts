@@ -1,6 +1,7 @@
 import { newKey } from "@/lib/integrations";
 import { OAUTH_CORS, oauthError, pkceOk, SCOPE, sha256, token } from "@/lib/oauth";
 import { adminClient } from "@/lib/serverAuth";
+import { report } from "@/lib/errorsServer";
 
 // Swap a one-time code (or a refresh token) for an access token. The access token is a workspace
 // API key, so it shows in Settings → Integrations, where it can be revoked like any other key.
@@ -41,7 +42,7 @@ export async function POST(request: Request) {
     };
     let { error } = await db.from("api_keys").insert({ ...row, expires_at: expiry() });
     if (noColumn(error)) ({ error } = await db.from("api_keys").insert(row));
-    if (error) return oauthError("server_error", error.message, 500);
+    if (error) return oauthError("server_error", report(error, "api/oauth/token").error, 500);
     return issue(k.key, refresh);
   }
 
@@ -55,7 +56,7 @@ export async function POST(request: Request) {
     const next = { prefix: k.prefix, hash: k.hash, refresh_hash: sha256(refresh) };
     let { error } = await db.from("api_keys").update({ ...next, expires_at: expiry() }).eq("id", row.id);
     if (noColumn(error)) ({ error } = await db.from("api_keys").update(next).eq("id", row.id));
-    if (error) return oauthError("server_error", error.message, 500);
+    if (error) return oauthError("server_error", report(error, "api/oauth/token").error, 500);
     return issue(k.key, refresh);
   }
 

@@ -2,6 +2,7 @@ import { APP_GROUPS, APPS, appLogo, composioReady, connectLink, connections, dis
 import { entitlement } from "@/lib/entitlements";
 import { requireRole } from "@/lib/serverAuth";
 import { appUrl } from "@/lib/emailKit";
+import { errorResponse } from "@/lib/errorsServer";
 
 const err = (error: string, status = 400) => Response.json({ error }, { status });
 
@@ -23,7 +24,7 @@ export async function POST(request: Request) {
     try {
       rows = await connections(ws, true);
     } catch (x) {
-      return err(`Couldn't reach Composio: ${x instanceof Error ? x.message : String(x)}`, 502);
+      return errorResponse(x, "api/ask/apps", { status: 502, hint: "Couldn't load your apps." });
     }
     return Response.json({
       ready: true,
@@ -45,14 +46,14 @@ export async function POST(request: Request) {
     try {
       return Response.json({ url: await connectLink(ws, slug, `${appUrl()}/settings/integrations?app=${slug}`) });
     } catch (x) {
-      return err(x instanceof Error ? x.message : String(x), 502);
+      return errorResponse(x, "api/ask/apps", { status: 502 });
     }
   }
   if (body.action === "disconnect") {
     try {
       if (!(await disconnect(ws, String(body.id ?? "")))) return err("That app isn't connected to this workspace.", 404);
     } catch (x) {
-      return err(x instanceof Error ? x.message : String(x), 502);
+      return errorResponse(x, "api/ask/apps", { status: 502 });
     }
     return Response.json({ ok: true });
   }

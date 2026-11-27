@@ -8,7 +8,7 @@ import type { DocPublishMeta } from "@/lib/writerAgent";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { enqueue } from "@/lib/jobs";
 import { PublishError, publishToWp, scheduleKey, statusFor, syncPub, versionAtLeast, PLUGIN_MIN, type Mode, type Pub } from "@/lib/wpSync";
-import { mirrorMeta, PUB_COLS, pubStore, pubView, SYNC_SETUP, wpClient } from "@/lib/wpSyncServer";
+import { mirrorMeta, PUB_COLS, pubStore, pubView, wpClient } from "@/lib/wpSyncServer";
 import { docToHtml } from "@/lib/docHtml";
 import { framedModules } from "@/lib/wpModules";
 import { cmsScheduleKey, publishPlan } from "@/lib/cmsSchedule";
@@ -16,6 +16,8 @@ import { signState, stateReady } from "@/lib/google";
 import { webflowAuthUrl, webflowReady } from "@/lib/webflowAuth";
 import { freshConfig, oauthReady, oauthUrl } from "@/lib/cmsTokens";
 import { shopDomain } from "@/lib/cmsOauth";
+import { errorResponse, report } from "@/lib/errorsServer";
+import { NOT_READY } from "@/lib/errors";
 
 /** Which sites connect with a sign-in instead of pasted keys, on this server. */
 const oauth = () => ({ webflow: webflowReady() && stateReady(), shopify: oauthReady("shopify") && stateReady(), hubspot: oauthReady("hubspot") && stateReady() });
@@ -23,7 +25,6 @@ const oauth = () => ({ webflow: webflowReady() && stateReady(), shopify: oauthRe
 const str = (v: unknown, n: number) => String(v ?? "").trim().slice(0, n);
 const err = (error: string, status = 400) => Response.json({ error }, { status });
 const COLS = "id, kind, name, created_at, brand_id, backfilled";
-const SETUP = "Run supabase/048_brand_integrations.sql in Supabase so each brand has its own publishing sites.";
 
 /** A draft and the brand it belongs to (draft → website → brand), read with the person's own access. */
 async function draftBrand(
@@ -85,9 +86,9 @@ export async function POST(request: Request) {
       if (!brandId) return err("That brand is not in this workspace.", 404);
     }
     const { data, error } = await db.from("cms_connections").select(COLS).eq("workspace_id", ws).order("created_at");
-    if (noBrandCol(error)) return Response.json({ connections: [], setup: SETUP });
-    if (missing(error)) return Response.json({ connections: [], setup: "Run supabase/021_doc_meta.sql in Supabase to connect a CMS." });
-    if (error) return err(error.message, 500);
+    if (noBrandCol(error)) return Response.json({ connections: [], setup: NOT_READY });
+    if (missing(error)) return Response.json({ connections: [], setup: NOT_READY });
+    if (error) return errorResponse(error, "api/cms");
     const all = data ?? [];
     if (!brandId) return Response.json({ connections: all, oauth: oauth() });
     const { count } = await auth.sb.from("brands").select("id", { count: "exact", head: true }).eq("workspace_id", ws);
@@ -136,13 +137,13 @@ export async function POST(request: Request) {
     try {
       check = await CMS_API[spec.id].test(config);
     } catch (e) {
-      return err(`${spec.label} said no: ${e instanceof Error ? e.message : String(e)}`);
+      return errorResponse(e, "api/cms", { status: 400, hint: `${spec.label} didn't accept these details. Check them.` });
     }
     const name = str(body.name, 80) || config.siteUrl || config.shop || spec.label;
     const { data, error } = await db.from("cms_connections").insert({ workspace_id: ws, brand_id: brandId, kind: spec.id, name, config }).select(COLS).single();
-    if (noBrandCol(error)) return err(SETUP, 500);
-    if (missing(error)) return err("Run supabase/021_doc_meta.sql in Supabase first.", 500);
-    if (error) return err(error.message, 500);
+    if (noBrandCol(error)) return err(NOT_READY, 500);
+    if (missing(error)) return err(NOT_READY, 500);
+    if (error) return errorResponse(error, "api/cms");
     return Response.json({ connection: data, check });
   }
 
@@ -150,21 +151,21 @@ export async function POST(request: Request) {
     const brandId = await brandIn(body.brandId);
     if (!brandId) return err("That brand is not in this workspace.", 404);
     const { data, error } = await db.from("cms_connections").update({ brand_id: brandId, backfilled: false }).eq("id", str(body.id, 60)).eq("workspace_id", ws).select(COLS).maybeSingle();
-    if (noBrandCol(error)) return err(SETUP, 500);
-    if (error) return err(error.message, 500);
+    if (noBrandCol(error)) return err(NOT_READY, 500);
+    if (error) return errorResponse(error, "api/cms");
     if (!data) return err("Site not found.", 404);
     return Response.json({ connection: data });
   }
 
   if (body.action === "dismiss") {
     const { error } = await db.from("cms_connections").update({ backfilled: false }).eq("workspace_id", ws).eq("backfilled", true);
-    if (error && !noBrandCol(error)) return err(error.message, 500);
+    if (error && !noBrandCol(error)) return errorResponse(error, "api/cms");
     return Response.json({ ok: true });
   }
 
   if (body.action === "remove") {
     const { error } = await db.from("cms_connections").delete().eq("id", str(body.id, 60)).eq("workspace_id", ws);
-    if (error) return err(error.message, 500);
+    if (error) return errorResponse(error, "api/cms");
     return Response.json({ ok: true });
   }
 
@@ -184,7 +185,7 @@ export async function POST(request: Request) {
     const ids = (conns ?? []).map((c) => c.id as string);
     if (!ids.length) return none;
     const { data, error } = await db.from("doc_publications").select(PUB_COLS).eq("doc_id", docId).in("connection_id", ids);
-    if (error) throw new Error(/doc_publications/.test(error.message) ? SYNC_SETUP : error.message);
+    if (error) throw error;
     return { pubs: (data ?? []) as Pub[], conns: new Map((conns ?? []).map((c) => [c.id as string, c.config as Record<string, string>])) };
   };
 
@@ -192,14 +193,14 @@ export async function POST(request: Request) {
     const d = await draftBrand(auth.sb, str(body.docId, 60));
     if (!d || "failed" in d) return err("Draft not found.", 404);
     const { data: all, error } = await db.from("cms_connections").select(COLS).eq("workspace_id", ws).order("created_at");
-    if (noBrandCol(error)) return Response.json({ connections: [], publications: [], defaults: {}, setup: SETUP });
+    if (noBrandCol(error)) return Response.json({ connections: [], publications: [], defaults: {}, setup: NOT_READY });
     const connections = d.brand_id ? (all ?? []).filter((c) => c.brand_id === d.brand_id) : [];
     let publications: ReturnType<typeof pubView>[] = [];
     let setup = "";
     try {
       publications = (await docPubs(d.doc.id, d.brand_id)).pubs.map(pubView);
     } catch (e) {
-      setup = e instanceof Error ? e.message : String(e);
+      setup = report(e, "api/cms").error;
     }
     // Defaults from the plan piece the draft was written for: its date, and the brief's slug, title and description.
     let plan: { due_date?: string | null; slug?: string | null; meta?: string | null; titles?: unknown } = {};
@@ -238,7 +239,7 @@ export async function POST(request: Request) {
       const categories = Array.isArray(cats.data) ? (cats.data as { id: number; name: string }[]).map((c) => ({ id: c.id, name: c.name.replace(/&amp;/g, "&").replace(/&#0?39;/g, "'") })) : [];
       return Response.json({ categories, plugin: version ? { version, current: versionAtLeast(version, PLUGIN_MIN) } : null });
     } catch (e) {
-      return err(`Could not reach ${s.conn.name}: ${e instanceof Error ? e.message : String(e)}`, 502);
+      return errorResponse(e, "api/cms", { status: 502, hint: `Couldn't reach ${s.conn.name}.` });
     }
   }
 
@@ -249,7 +250,7 @@ export async function POST(request: Request) {
     try {
       found = await docPubs(d.doc.id, d.brand_id);
     } catch (e) {
-      return Response.json({ publications: [], setup: e instanceof Error ? e.message : String(e) });
+      return Response.json({ publications: [], setup: report(e, "api/cms").error });
     }
     const store = pubStore(db);
     const errors: Record<string, string> = {};
@@ -260,7 +261,7 @@ export async function POST(request: Request) {
         try {
           return await syncPub(wpClient(config), store, p);
         } catch (e) {
-          errors[p.connection_id] = e instanceof Error ? e.message : String(e);
+          errors[p.connection_id] = report(e, "api/cms").error;
           return p;
         }
       }),
@@ -276,10 +277,10 @@ export async function POST(request: Request) {
     const locked = await requireWriter(ws);
     if (locked) return locked;
     const d = await draftBrand(auth.sb, str(body.docId, 60));
-    if (d && "failed" in d) return err(missing(d.failed) ? "Run supabase/021_doc_meta.sql in Supabase first." : d.failed.message, 500);
+    if (d && "failed" in d) return errorResponse(d.failed, "api/cms");
     if (!d) return err("Article not found.", 404);
     const { data: sites, error: sitesErr } = await db.from("cms_connections").select("id, brand_id, kind, config, created_at").eq("workspace_id", ws).order("created_at");
-    if (noBrandCol(sitesErr)) return err(SETUP, 500);
+    if (noBrandCol(sitesErr)) return err(NOT_READY, 500);
     const mine = (sites ?? []).filter((c) => mayPublish({ workspace_id: ws, brand_id: (c.brand_id as string | null) ?? null }, d));
     if (!mine.length) return Response.json({ error: "Connect a publishing site for this brand first.", connect: true }, { status: 409 });
     const meta = (d.doc.meta ?? {}) as DocPublishMeta & { published?: Published[] };
@@ -310,9 +311,7 @@ export async function POST(request: Request) {
       await auth.sb.from("docs").update({ meta: { ...meta, published: [...(meta.published ?? []).filter((p) => p.connectionId !== pick.id), rec] } }).eq("id", d.doc.id);
       return Response.json({ published: rec });
     } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
-      console.error("Sync failed:", message);
-      return err(`Could not sync: ${message}`, 502);
+      return errorResponse(e, "api/cms", { status: 502, hint: "Couldn't sync." });
     }
   }
 
@@ -320,11 +319,11 @@ export async function POST(request: Request) {
     const locked = await requireWriter(ws);
     if (locked) return locked;
     const { data: conn, error: connErr } = await db.from("cms_connections").select("id, brand_id, kind, config").eq("id", str(body.connectionId, 60)).eq("workspace_id", ws).maybeSingle();
-    if (noBrandCol(connErr)) return err(SETUP, 500);
+    if (noBrandCol(connErr)) return err(NOT_READY, 500);
     if (!conn) return err("Connect a publishing site in Settings → Brand first.", 404);
     // The draft must belong to this workspace; read it with the person's own access.
     const d = await draftBrand(auth.sb, str(body.docId, 60));
-    if (d && "failed" in d) return err(missing(d.failed) ? "Run supabase/021_doc_meta.sql in Supabase first." : d.failed.message, 500);
+    if (d && "failed" in d) return errorResponse(d.failed, "api/cms");
     if (!d) return err("Draft not found.", 404);
     // A brand's article publishes only to that brand's sites.
     if (!mayPublish({ workspace_id: ws, brand_id: (conn.brand_id as string | null) ?? null }, d)) return err("That site belongs to another brand. Pick one of this brand's sites.", 403);
@@ -366,9 +365,7 @@ export async function POST(request: Request) {
       if (input.live) indexNow(ws, rec.url);
       return Response.json({ published: rec });
     } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
-      console.error("Publish failed:", message);
-      return err(`Could not publish: ${message}`, 502);
+      return errorResponse(e, "api/cms", { status: 502, hint: "Couldn't publish." });
     }
   }
 
@@ -423,9 +420,7 @@ async function publishWordPress(
     const published: Published = { connectionId: conn.id, kind: "wordpress", id: pub.remote_id ?? "", url: pub.url, live, at: pub.pushed_at ?? new Date().toISOString(), status: pub.remote_status ?? undefined };
     return Response.json({ published, publication: pubView(pub), warnings });
   } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    if (e instanceof PublishError && (e.code === "busy" || e.code === "deleted")) return Response.json({ error: message, code: e.code }, { status: 409 });
-    console.error("Publish failed:", message);
-    return err(message.startsWith("WordPress") || message === SYNC_SETUP ? message : `Could not publish: ${message}`, 502);
+    if (e instanceof PublishError && (e.code === "busy" || e.code === "deleted")) return Response.json({ error: report(e, "api/cms").error, code: e.code }, { status: 409 });
+    return errorResponse(e, "api/cms", { status: 502, hint: "Couldn't publish." });
   }
 }

@@ -10,9 +10,10 @@ import type { RunAuth } from "@/lib/runner";
 import type { View } from "@/lib/view";
 import { BrandLogo } from "../BrandLogo";
 import { DateField, Dropdown, Pop, useAnchoredPop } from "../Pickers";
-import { Seg, sortRows, SortTh, Tip, useSort, type Sort } from "../ui";
+import { ErrorNote, Seg, sortRows, SortTh, Tip, useSort, type Sort } from "../ui";
 import { useZippieMaybe } from "../zippie/ZippieContext";
 import type { CalendarPick, CalendarResult } from "./ResearchPanel";
+import { errorText } from "@/lib/errors";
 
 // The parts both Analytics reports share (GscReport.tsx, Ga4Report.tsx): the range picker, filters as chips, the
 // checkable number tiles that draw the chart, the line chart, the sortable paged table, the Export menu in the
@@ -676,7 +677,7 @@ export function usePageActions({ view, sb, auth, canEdit }: { view: View; sb: Su
       setNotice(added ? (refresh ? `Added a refresh of ${item.page} to the Calendar.` : `Added “${item.keyword}” to the Calendar.`) : `“${item.keyword}” is already in the Calendar.`);
       return added ? "added" : "exists";
     } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
+      const message = errorText(e);
       setError(message);
       return { error: message };
     }
@@ -690,7 +691,7 @@ export function usePageActions({ view, sb, auth, canEdit }: { view: View; sb: Su
 
   const banner = (
     <>
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
       {notice ? (
         <div className="aw-callout flex items-center justify-between gap-3">
           <span>{notice}</span>

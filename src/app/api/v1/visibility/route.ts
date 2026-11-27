@@ -1,5 +1,6 @@
 import { apiAuth } from "@/lib/integrations";
 import { brandById } from "@/lib/keyScope";
+import { errorResponse } from "@/lib/errorsServer";
 
 type Row = { day: string; engine: string; named: string; is_you: boolean; answers: number; mentions: number };
 
@@ -14,7 +15,7 @@ export async function GET(request: Request) {
   if (!brand) return Response.json({ error: "Brand not found. Get its id from /api/v1/brands." }, { status: 404 });
   const since = new Date(Date.now() - days * 864e5).toISOString().slice(0, 10);
   const { data, error } = await a.db.from("daily_metrics").select("day, engine, named, is_you, answers, mentions").eq("brand_id", brand.id).gte("day", since).order("day");
-  if (error) return Response.json({ error: error.message }, { status: 500 });
+  if (error) return errorResponse(error, "api/v1/visibility");
   const byDay = new Map<string, Row[]>();
   for (const r of (data ?? []) as Row[]) byDay.set(r.day, [...(byDay.get(r.day) ?? []), r]);
   const series = [...byDay.entries()].map(([day, rows]) => {

@@ -1,6 +1,7 @@
 import { esc } from "@/lib/email";
 import { KINDS, signedOk, type Kind } from "@/lib/notify";
 import { adminClient } from "@/lib/serverAuth";
+import { report } from "@/lib/errorsServer";
 
 // The unsubscribe link in notification emails. Opening it shows a button, so a mail scanner that follows links
 // can't turn emails off. Email apps that support one-click unsubscribe POST here directly.
@@ -43,6 +44,6 @@ export async function POST(request: Request) {
   const db = adminClient();
   if (!db) return page("Something went wrong", `<p>Try again in a moment.</p>${link}`, 500);
   const { error } = await db.from("notification_prefs").upsert({ workspace_id: p.w, user_id: p.u, [p.k]: false, updated_at: new Date().toISOString() }, { onConflict: "workspace_id,user_id" });
-  if (error) return page("Something went wrong", `<p style="font-size:15px">${esc(error.message)}</p>${link}`, 500);
+  if (error) return page("Something went wrong", `<p style="font-size:15px">${esc(report(error, "api/notifications/unsubscribe").error)}</p>${link}`, 500);
   return page("You're unsubscribed", `<p style="font-size:15px;line-height:1.6">You won't get ${esc(KINDS[p.k])} for this workspace anymore.</p>${link}`);
 }

@@ -639,6 +639,15 @@ A `--soft` panel, `--aw-r-md`, 16px padding, title 13px 600, then `<dl>` rows: 3
 - Inside a panel or a list, an empty state is the 120px picture and one line (`EmptyNote`).
 - `tests/emptyScreens.test.ts` holds these rules. The plan behind them is `docs/empty-screens-plan.md`.
 
+### Errors
+
+- An error is one or two short sentences: what happened, then what to do. "The connection dropped. Check your internet and try again." "Your Google connection expired. Connect Google again in Settings → Integrations." Never JSON, a stack trace, a status code, a request id, SQL, or the name of a service we run on. Name Google, Stripe or a CMS only when the person has to act there.
+- Every error goes through `friendly()` in `src/lib/errors.ts`. Screens use `errorText(e)` or the `ErrorNote` box; API routes answer with `errorResponse(e, where)` or `report(e, where)` from `src/lib/errorsServer.ts`, which log the raw error on one JSON line.
+- The box is `ErrorNote` (`aw-error`): `--danger` words on `--bg-danger`, `--aw-r-md`. When the work can run again it has Try again. An error nobody planned for says "Something went wrong. Try again." with a short ref ("Ref 7KQ2M") the person can copy and send us; the same ref is in the server log.
+- A crash in one panel shows the box in its place (`ErrorBoundary`), so the rest of the page keeps working. A crash of the whole page shows the error page with Reload and the ref.
+- Zippie never pastes error text either: a failed tool comes back to it in plain words, and it says what didn't work.
+- `tests/noRawErrors.test.ts` fails the build when a screen or a route shows raw error text.
+
 ### Skill cards
 
 - The Skills page shows each skill as a card (`zp-skill`): the skill's picture on a `--signal-soft` to `--soft` plate, a Quick or Deep tag (Deep has a Signal Blue dot), the name, its one opening line and what it hands back. Clicking the card opens the skill. Use shows on hover and puts the skill in the chat box.

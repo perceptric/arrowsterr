@@ -4,6 +4,7 @@ import { requireRole, takeAnswer } from "@/lib/serverAuth";
 import { take } from "@/lib/entitlements";
 import { TASK_COST } from "@/lib/plans";
 import { meteredRoute } from "@/lib/meter";
+import { errorResponse } from "@/lib/errorsServer";
 
 // Onboarding step 3: write 10 prompts per topic, each from a different angle, best fit first.
 async function handle(request: Request) {
@@ -30,9 +31,7 @@ async function handle(request: Request) {
     const result = topics.map((topic, i) => ({ name: topic, prompts: cleanPrompts(byName.get(topic.toLowerCase()) ?? out.topics?.[i]?.prompts ?? [], topic, seen, name) }));
     return Response.json({ topics: result });
   } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    console.error("Prompts failed:", message);
-    return Response.json({ error: message }, { status: 500 });
+    return errorResponse(e, "api/prompts");
   }
 }
 

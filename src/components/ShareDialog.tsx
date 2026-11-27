@@ -6,7 +6,9 @@ import { fitSnapshot } from "@/lib/shareSnapshot";
 import type { CompetitorsSnapshot, PromptsSnapshot } from "@/lib/reportTypes";
 import { Modal } from "./reports/Dialog";
 import { LinkSettings, type LinkLock } from "./reports/LinkSettings";
-import { errText, post } from "./reports/reportApi";
+import { post } from "./reports/reportApi";
+import { errorText } from "@/lib/errors";
+import { ErrorNote } from "./ui";
 
 // Share on Prompts and Competitors (docs/reports.md, section 32.7): the window opens at once, the page is frozen
 // into a link, and the link is copied as soon as it is ready.
@@ -57,7 +59,7 @@ export function ShareButton({
       const copied = await copy(url);
       setState((s) => s && { ...s, busy: false, url, copied, link: { id, locked: false, expires_at: null } });
     } catch (e) {
-      setState((s) => s && { ...s, busy: false, error: errText(e) });
+      setState((s) => s && { ...s, busy: false, error: errorText(e) });
     }
   }
 
@@ -69,7 +71,7 @@ export function ShareButton({
       {state ? (
         <Modal title={`Share ${title}`} onClose={() => setState(null)} width="max-w-lg">
           {state.error ? (
-            <p className="aw-error">{state.error}</p>
+            <ErrorNote error={state.error} />
           ) : (
             <div className="flex items-center gap-2">
               <input readOnly value={state.busy ? "Creating link…" : state.url} aria-label="Share link" onFocus={(e) => e.target.select()} className="aw-input min-w-0 flex-1" />

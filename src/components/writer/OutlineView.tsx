@@ -8,10 +8,11 @@ import type { WriterBrief } from "@/lib/writerBrief";
 import { getBrief, type FullBrief } from "@/lib/writerLibrary";
 import { Modal } from "../reports/Dialog";
 import { post } from "../research/shared";
-import { Thinking } from "../ui";
+import { ErrorNote, Thinking } from "../ui";
 import { CommandMenu, type Command } from "./CommandMenu";
 import { StateTag, usePoll } from "./parts";
 import { VisualSketch } from "./VisualSketch";
+import { errorText } from "@/lib/errors";
 
 // The outline screen (docs/draft-and-write-build.md, Phase 1), one calm reading column: the title and the piece's goal,
 // the Google preview (Edit opens the title, URL and description), then the outline as headings with their H3s. A
@@ -69,7 +70,7 @@ export function OutlineView({
     try {
       setRow(await getBrief(sb, id));
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
       setRow((r) => r ?? null);
     }
   }, [sb, id]);
@@ -107,7 +108,7 @@ export function OutlineView({
       setRow((r) => (r ? { ...r, brief: out.brief } : r));
       setError("");
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     } finally {
       setSaving(false);
     }
@@ -120,7 +121,7 @@ export function OutlineView({
       const out = await post<{ draftId: string }>(auth, "/api/agentic-writer", { action: "draft", briefId: id });
       onDraft(out.draftId);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
       setWriting(false);
       setAsking(false);
     }
@@ -158,8 +159,8 @@ export function OutlineView({
     return (
       <div className="flex flex-col gap-5">
         {top}
-        {row.error ? <p className="aw-error">{row.error}</p> : null}
-        {error ? <p className="aw-error">{error}</p> : null}
+        {row.error ? <ErrorNote error={row.error} /> : null}
+        {error ? <ErrorNote error={error} /> : null}
         {row.status === "generating" ? <Thinking text="Writing the outline..." /> : null}
       </div>
     );
@@ -199,8 +200,8 @@ export function OutlineView({
         ]}
       />
       {top}
-      {row.error ? <p className="aw-error">{row.error}</p> : null}
-      {error ? <p className="aw-error">{error}</p> : null}
+      {row.error ? <ErrorNote error={row.error} /> : null}
+      {error ? <ErrorNote error={error} /> : null}
 
       <header className="flex flex-col gap-3">
         <h1 className="text-[28px] leading-tight font-semibold tracking-tight text-ink [overflow-wrap:anywhere]">{head}</h1>

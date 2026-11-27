@@ -8,6 +8,7 @@ import { requireRole, takeAnswer } from "@/lib/serverAuth";
 import { meteredRoute } from "@/lib/meter";
 import { requireTrack, take } from "@/lib/entitlements";
 import { TASK_COST } from "@/lib/plans";
+import { errorResponse } from "@/lib/errorsServer";
 
 type Idea = { keyword: string; action: "new" | "update"; url: string | null; stage: "bofu" | "mofu" | "tofu" | null; why: string; prompt: string };
 
@@ -52,7 +53,7 @@ async function handle(request: Request) {
   if (!dfsReady()) return Response.json({ error: "DataForSEO is not set up. Add DFS_LOGIN and DFS_PASSWORD to the server's settings." }, { status: 500 });
 
   const { data: site, error } = await auth.sb.from("sites").select("id, domain, profile, pages").eq("id", body.siteId).eq("workspace_id", body.workspaceId).maybeSingle();
-  if (error || !site) return Response.json({ error: error?.message ?? "Website not found." }, { status: 404 });
+  if (error || !site) return errorResponse(error ?? new Error("Website not found."), "api/content-ideas", { status: 404 });
   const limited = await takeAnswer(auth.sb, body.workspaceId);
   if (limited) return limited;
 
@@ -102,7 +103,7 @@ async function handle(request: Request) {
       .sort((a, b) => (b.volume ?? 0) - (a.volume ?? 0));
     return Response.json({ ideas: out, pages: pages.length, cost: Math.round(spend.total * 1000) / 1000, at: new Date().toISOString() });
   } catch (e) {
-    return Response.json({ error: e instanceof Error ? e.message : String(e) }, { status: 500 });
+    return errorResponse(e, "api/content-ideas");
   }
 }
 

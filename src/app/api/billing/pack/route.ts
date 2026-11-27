@@ -1,6 +1,7 @@
 import { TASK_PACKS } from "@/lib/plans";
 import { adminClient, requireRole } from "@/lib/serverAuth";
 import { originOf, stripe, stripeReady } from "@/lib/stripe";
+import { errorResponse } from "@/lib/errorsServer";
 
 // Buy a task pack with a one-time Stripe Checkout payment. The webhook adds the tasks once it is paid.
 //   { pack: "t1k" | "t5k" | "t20k" }
@@ -15,7 +16,7 @@ export async function POST(request: Request) {
   if (!pack) return Response.json({ error: "Pick a task pack." }, { status: 400 });
 
   const { data: ws, error } = await db.from("workspaces").select("id, name, stripe_customer_id").eq("id", body.workspaceId).maybeSingle();
-  if (error || !ws) return Response.json({ error: error?.message ?? "Workspace not found." }, { status: 500 });
+  if (error || !ws) return errorResponse(error ?? new Error("Workspace not found."), "api/billing/pack");
   try {
     let customer = ws.stripe_customer_id as string | null;
     if (!customer) {
@@ -41,6 +42,6 @@ export async function POST(request: Request) {
     });
     return Response.json({ url: session.url });
   } catch (e) {
-    return Response.json({ error: e instanceof Error ? e.message : String(e) }, { status: 500 });
+    return errorResponse(e, "api/billing/pack");
   }
 }

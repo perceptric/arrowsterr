@@ -17,7 +17,7 @@ export default function GlobalError({ error }: { error: Error & { digest?: strin
         <main style={{ maxWidth: 420, margin: 16, padding: 32, textAlign: "center", background: "#fff", borderRadius: 8, boxShadow: "0 0 0 1px #E6E8F0" }}>
           <h1 style={{ margin: "0 0 8px", fontSize: 20, fontWeight: 700 }}>Something went wrong</h1>
           <p style={{ margin: "0 0 20px", fontSize: 14, lineHeight: 1.6, color: "#46557A" }}>
-            We&apos;ve been told about it. Try again, and if it keeps happening, email support@arrowsterr.com
+            We&apos;ve been told about it. Try again, and if it keeps happening, email support@arrowsterr.com with the ref below.
           </p>
           <button
             type="button"
@@ -26,7 +26,7 @@ export default function GlobalError({ error }: { error: Error & { digest?: strin
           >
             Try again
           </button>
-          {error.digest ? <p style={{ margin: "16px 0 0", fontSize: 12, color: "#5C6B89", fontFamily: "ui-monospace, Menlo, monospace" }}>Ref {error.digest}</p> : null}
+          {error.digest ? <p style={{ margin: "16px 0 0", fontSize: 12, color: "#5C6B89", fontFamily: "ui-monospace, Menlo, monospace" }}>Ref {error.digest.slice(0, 10).toUpperCase()}</p> : null}
         </main>
       </body>
     </html>

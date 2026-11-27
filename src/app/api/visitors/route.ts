@@ -2,6 +2,7 @@ import type { Step } from "@/lib/journey";
 import { requireRole } from "@/lib/serverAuth";
 import { umamiVisitors } from "@/lib/traffic";
 import { activity, umamiReady, type Activity } from "@/lib/umami";
+import { errorResponse } from "@/lib/errorsServer";
 
 // Visitors and buyer journeys for one brand's website, from Umami.
 //   list: every visitor in the period, with a fun name, source, actions and buyer score. Cached 5 minutes.
@@ -17,7 +18,7 @@ export async function POST(request: Request) {
   if (!umamiReady()) return Response.json({ error: "Website tracking is not set up yet." }, { status: 500 });
 
   const { data: brand, error } = await auth.sb.from("brands").select("domain, umami_website_id").eq("id", body.brandId).eq("workspace_id", body.workspaceId).maybeSingle();
-  if (error) return Response.json({ error: error.message }, { status: 500 });
+  if (error) return errorResponse(error, "api/visitors");
   const b = brand as { domain: string; umami_website_id: string | null } | null;
   if (!b?.umami_website_id) return Response.json({ error: "connect", message: "Connect the website in Analytics first." }, { status: 400 });
   const id = b.umami_website_id;
@@ -43,8 +44,6 @@ export async function POST(request: Request) {
     cache.set(key, { at: now, data });
     return Response.json(data);
   } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    console.error("Visitors failed:", message);
-    return Response.json({ error: message }, { status: 500 });
+    return errorResponse(e, "api/visitors");
   }
 }

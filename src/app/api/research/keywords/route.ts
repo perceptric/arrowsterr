@@ -9,6 +9,7 @@ import { normalizeSite } from "@/lib/site";
 import { meteredRoute } from "@/lib/meter";
 import { requireTrack, take } from "@/lib/entitlements";
 import { TASK_COST } from "@/lib/plans";
+import { errorResponse } from "@/lib/errorsServer";
 
 const MODES: Mode[] = ["ideas", "phrase", "related", "site", "ranked", "competitors"];
 const BY_DOMAIN: Mode[] = ["site", "ranked", "competitors"];
@@ -31,7 +32,7 @@ async function handle(request: Request) {
   if (!query) return Response.json({ error: BY_DOMAIN.includes(mode) ? "Enter a domain, like acme.com." : "Enter a keyword." }, { status: 400 });
 
   const { data: site, error } = await auth.sb.from("sites").select("profile").eq("id", body.siteId).eq("workspace_id", body.workspaceId).maybeSingle();
-  if (error) return Response.json({ error: error.message + (/sites/.test(error.message) ? " Run supabase/006_research.sql in Supabase." : "") }, { status: 500 });
+  if (error) return errorResponse(error, "api/research/keywords");
   if (!site) return Response.json({ error: "Website not found." }, { status: 404 });
 
   try {
@@ -63,9 +64,7 @@ async function handle(request: Request) {
     if (rows.length) await writeCache(key, rows);
     return Response.json({ rows, exact, cost: spend.total });
   } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    console.error("Keyword research failed:", message);
-    return Response.json({ error: message }, { status: 500 });
+    return errorResponse(e, "api/research/keywords");
   }
 }
 

@@ -8,6 +8,7 @@ import type { DraftDeps } from "./writerDraft";
 import { sectionPlain } from "./writerDraft";
 import { imagePath, imageTasks, imagesResult, planRenders, specPrompt, SPECS_SCHEMA, isDrawn, type ImageRow } from "./writerImages";
 import type { ImagesOut } from "./writerImageTypes";
+import { NOT_READY } from "@/lib/errors";
 
 // The database, storage and Claude behind a draft's images (writerImages.ts), and the Fly worker's side:
 // /api/writer/image-next leases one image, /api/writer/image-done saves it (docs/agentic-writing.md, section 5).
@@ -15,9 +16,8 @@ import type { ImagesOut } from "./writerImageTypes";
 const BUCKET = "doc-images";
 const LEASE_S = 90; // 20 seconds a page and the frame, plus the trip
 const MAX_BYTES = 9_000_000; // under the bucket's 10 MB
-const SETUP = "Run supabase/057_writer_images.sql in Supabase.";
 const must = <T>(r: { data: T; error: { message: string } | null }) => {
-  if (r.error) throw new Error(r.error.message + (/writer_images|lease_writer_image/.test(r.error.message) ? ` ${SETUP}` : ""));
+  if (r.error) throw new Error(r.error.message + (/writer_images|lease_writer_image/.test(r.error.message) ? ` ${NOT_READY}` : ""));
   return r.data;
 };
 const stamp = () => new Date().toISOString();

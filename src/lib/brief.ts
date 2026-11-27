@@ -231,7 +231,7 @@ export async function runSerp(sb: SupabaseClient, itemId: string) {
   const patch: Record<string, unknown> = { serp, serp_at: at };
   if (item.brief) patch.brief = { ...(item.brief as Brief), serp };
   const { error: e2 } = await sb.from("calendar_items").update(patch).eq("id", itemId);
-  if (e2) throw new Error(e2.message + (/serp/.test(e2.message) ? " Run supabase/027_serp.sql in Supabase." : ""));
+  if (e2) throw new Error(e2.message);
   return { serp, at, cost, intoBrief: Boolean(item.brief) };
 }
 

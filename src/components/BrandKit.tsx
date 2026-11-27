@@ -10,13 +10,12 @@ import type { RunAuth } from "@/lib/runner";
 import { Copy } from "./InstallGuide";
 import { Dropdown } from "./Pickers";
 import { EmptyScreen } from "./Drawing";
-import { Glyph, SkeletonRows, Thinking, type GlyphName } from "./ui";
+import { ErrorNote, Glyph, SkeletonRows, Thinking, type GlyphName } from "./ui";
+import { NOT_READY, errorText, httpError } from "@/lib/errors";
 
 // Brand Kits (docs/reports.md, section 31): the learning animation shown in onboarding and Settings,
 // and the Settings → Brand Kit page.
 
-const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
-const NOT_RUN = "Run supabase/045_brand_kits.sql in Supabase to save Brand Kits.";
 
 /** Learn a kit. onPart gets each part as the agent finds it; the promise ends with the finished kit. */
 export async function streamKit(auth: RunAuth, website: string, brandId: string | null, onPart: (p: KitPart) => void) {
@@ -26,8 +25,7 @@ export async function streamKit(auth: RunAuth, website: string, brandId: string 
     body: JSON.stringify({ workspaceId: auth.workspaceId, website, brandId }),
   });
   if (!res.ok || !res.body) {
-    const d = await res.json().catch(() => ({}));
-    throw new Error(d.error || `The server returned ${res.status}.`);
+    throw httpError(res.status, await res.json().catch(() => ({})));
   }
   return readKitStream(res.body.pipeThrough(new TextDecoderStream()), onPart);
 }
@@ -157,7 +155,7 @@ export function KitLearn({ auth, website, brandId = null, onDone, onAnother, onS
     setError("");
     streamKit(auth, website, brandId, () => {})
       .then(setDone)
-      .catch((e) => setError(message(e)));
+      .catch((e) => setError(errorText(e)));
   }, [auth, website, brandId, tries]);
 
   if (error)
@@ -165,7 +163,7 @@ export function KitLearn({ auth, website, brandId = null, onDone, onAnother, onS
       <section className="aw-kit" aria-label="Brand Kit">
         <p className="aw-h4">We could not read that site.</p>
         <div className="aw-kit__actions">
-          <p className="aw-error">{error}</p>
+          <ErrorNote error={error} />
           <button type="button" className="aw-btn aw-btn--accent" onClick={() => setTries((n) => n + 1)}>
             Try again
           </button>
@@ -199,7 +197,7 @@ export function KitLearn({ auth, website, brandId = null, onDone, onAnother, onS
     <section className="aw-kit" aria-label="Brand Kit">
       <div className="flex flex-col items-center gap-1 text-center">
         <h1 className="aw-onb__title">Your Brand Kit</h1>
-        <p className="text-[15px] text-body">{done.saved === false ? NOT_RUN : "Every report and article uses this look."}</p>
+        <p className="text-[15px] text-body">{done.saved === false ? NOT_READY : "Every report and article uses this look."}</p>
       </div>
       <div className="aw-kit__show">
         <KitSpecimen kit={kit} />
@@ -342,7 +340,7 @@ export function WorkspaceKitPanel({ sb, auth, canEdit, website, name }: { sb: Su
   }, [rows, own, canEdit, sb, auth.workspaceId, name, reload]);
 
   if (rows === undefined) return <SkeletonRows rows={3} cols={2} />;
-  if (rows === null) return <p className="aw-callout max-w-xl text-[15px]!">{NOT_RUN}</p>;
+  if (rows === null) return <p className="aw-callout max-w-xl text-[15px]!">{NOT_READY}</p>;
   if (learning)
     return (
       <KitLearn
@@ -445,7 +443,7 @@ export function BrandKitPanel({ sb, auth, canEdit, brand }: { sb: SupabaseClient
   const [learning, setLearning] = useState<string | null>(null);
   const [error, setError] = useState("");
   if (rows === undefined) return <SkeletonRows rows={3} cols={2} />;
-  if (rows === null) return <p className="aw-callout max-w-xl text-[15px]!">{NOT_RUN}</p>;
+  if (rows === null) return <p className="aw-callout max-w-xl text-[15px]!">{NOT_READY}</p>;
   const row = rows.find((r) => r.key === brand.id);
   const ws = rows.find((r) => r.key === "workspace" && (r.learned_at || r.confirmed_at));
 
@@ -473,7 +471,7 @@ export function BrandKitPanel({ sb, auth, canEdit, brand }: { sb: SupabaseClient
         fill={false}
         action={
           <div className="flex flex-col items-center gap-3">
-            {error ? <p className="aw-error">{error}</p> : null}
+            {error ? <ErrorNote error={error} /> : null}
             <LearnForm website={brand.domain} canEdit={canEdit} label="Learn the brand" onLearn={setLearning} />
             {ws && canEdit ? (
               <button
@@ -484,7 +482,7 @@ export function BrandKitPanel({ sb, auth, canEdit, brand }: { sb: SupabaseClient
                   const { error: e } = await sb
                     .from("brand_kits")
                     .upsert({ workspace_id: auth.workspaceId, key: brand.id, brand_id: brand.id, website: ws.website, kit: ws.kit, learned_at: ws.learned_at, confirmed_at: now, updated_at: now }, { onConflict: "workspace_id,key" });
-                  if (e) setError(e.message);
+                  if (e) setError(errorText(e));
                   else void reload();
                 }}
               >
@@ -618,7 +616,7 @@ function KitEditor({ sb, workspaceId, row, canEdit, onLearn }: { sb: SupabaseCli
     const clean = cleanKit(kit, row.kit);
     const now = new Date().toISOString();
     const { error: e } = await sb.from("brand_kits").update({ kit: clean, confirmed_at: now, updated_at: now }).eq("workspace_id", workspaceId).eq("key", row.key);
-    if (e) setError(e.message);
+    if (e) setError(errorText(e));
     else {
       setKit(clean);
       setSaved(clean);
@@ -635,7 +633,7 @@ function KitEditor({ sb, workspaceId, row, canEdit, onLearn }: { sb: SupabaseCli
           if (changed) void save();
         }}
       >
-        {error ? <p className="aw-error">{error}</p> : null}
+        {error ? <ErrorNote error={error} /> : null}
 
         <Part title="Identity">
           <div className="grid gap-4 sm:grid-cols-2">

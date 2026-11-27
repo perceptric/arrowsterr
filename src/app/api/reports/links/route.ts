@@ -1,8 +1,9 @@
 import { entitlement } from "@/lib/entitlements";
 import { reportLimits } from "@/lib/plans";
 import { linkSettingsProblem } from "@/lib/reportLinks";
-import { hashPassword, migrationHint } from "@/lib/reportServer";
+import { hashPassword } from "@/lib/reportServer";
 import { adminClient, requireRole } from "@/lib/serverAuth";
+import { errorResponse } from "@/lib/errorsServer";
 
 // Shared links (docs/reports.md, section 32.7): a password, an expiry date, or revoke. Editors only.
 //   update: { id, password?: string | null, expires?: "YYYY-MM-DD" | null }  null or "" removes it; leaving a field out keeps it.
@@ -19,7 +20,7 @@ export async function POST(request: Request) {
 
   if (body.action === "revoke") {
     const { error } = await db.from("report_links").update({ revoked_at: new Date().toISOString() }).eq("id", link.id);
-    return error ? Response.json({ error: migrationHint(error.message) }, { status: 500 }) : Response.json({ ok: true });
+    return error ? errorResponse(error, "api/reports/links") : Response.json({ ok: true });
   }
 
   if (link.revoked_at) return Response.json({ error: "This link was revoked. Share the page again for a new one." }, { status: 400 });
@@ -30,5 +31,5 @@ export async function POST(request: Request) {
   if (ask.password !== undefined) patch.password_hash = ask.password ? await hashPassword(ask.password) : null;
   if (ask.expires !== undefined) patch.expires_at = ask.expires ? `${ask.expires}T23:59:59Z` : null;
   const { data, error } = await db.from("report_links").update(patch).eq("id", link.id).select("id, locked, expires_at").single();
-  return error ? Response.json({ error: migrationHint(error.message) }, { status: 500 }) : Response.json({ link: data });
+  return error ? errorResponse(error, "api/reports/links") : Response.json({ link: data });
 }

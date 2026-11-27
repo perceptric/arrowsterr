@@ -7,6 +7,8 @@ import type { RunAuth } from "@/lib/runner";
 import { Confirm } from "./reports/Dialog";
 import { post } from "./research/shared";
 import { useZippieMaybe } from "./zippie/ZippieContext";
+import { errorText } from "@/lib/errors";
+import { ErrorNote, SkeletonRows } from "./ui";
 
 type Key = { id: string; name: string; prefix: string; created_at: string; last_used_at: string | null; partner?: boolean };
 type Hook = { id: string; url: string; event: string; source: string; created_at: string };
@@ -176,7 +178,7 @@ function AppsCard({ auth, isAdmin }: { auth: RunAuth; isAdmin: boolean }) {
   const load = () =>
     post<AppsState>(auth, "/api/ask/apps", { action: "list" })
       .then(setS)
-      .catch((e) => setError(e instanceof Error ? e.message : String(e)));
+      .catch((e) => setError(errorText(e)));
   useEffect(() => {
     load();
     // Loading once on open is the point of this effect.
@@ -190,7 +192,7 @@ function AppsCard({ auth, isAdmin }: { auth: RunAuth; isAdmin: boolean }) {
       const r = await post<{ url: string }>(auth, "/api/ask/apps", { action: "connect", slug });
       window.location.assign(r.url);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
       setBusy("");
     }
   }
@@ -202,7 +204,7 @@ function AppsCard({ auth, isAdmin }: { auth: RunAuth; isAdmin: boolean }) {
       await post(auth, "/api/ask/apps", { action: "disconnect", id: a.connection.id });
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     } finally {
       setBusy("");
     }
@@ -226,7 +228,7 @@ function AppsCard({ auth, isAdmin }: { auth: RunAuth; isAdmin: boolean }) {
       </div>
       {!s.allowed ? <div className="aw-callout text-[13px]">Apps for Zippie are on Starter and up.</div> : null}
       {returned ? <div className="aw-callout text-[13px]">{returned.connection ? `${returned.name} is connected. Ask Zippie about it below.` : `${returned.name} didn't finish connecting. Try again.`}</div> : null}
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
 
       {connected.length ? (
         <section className="flex flex-col gap-2">
@@ -328,7 +330,7 @@ export function IntegrationsSettings({ auth, isAdmin }: { auth: RunAuth; isAdmin
         setS(r);
         if (r.points) setPoints(r.points);
       })
-      .catch((e) => setError(e instanceof Error ? e.message : String(e)));
+      .catch((e) => setError(errorText(e)));
   useEffect(() => {
     load();
     // Loading once on open is the point of this effect.
@@ -345,13 +347,13 @@ export function IntegrationsSettings({ auth, isAdmin }: { auth: RunAuth; isAdmin
       if (done) setNotice(done);
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     } finally {
       setBusy("");
     }
   }
 
-  if (!s) return null;
+  if (!s) return error ? <ErrorNote error={error} onRetry={() => (setError(""), load())} /> : <SkeletonRows rows={4} cols={2} />;
   const off = !s.allowed;
   return (
     <section className="flex flex-col gap-4">
@@ -361,7 +363,7 @@ export function IntegrationsSettings({ auth, isAdmin }: { auth: RunAuth; isAdmin
       </div>
       {off ? <div className="aw-callout max-w-2xl">{s.mcp ? "Slack, Zapier and the API are on Pro and up." : "AI apps are on Starter and up. Slack, Zapier and the API are on Pro and up."}</div> : null}
       {s.setup ? <div className="aw-callout max-w-2xl">{s.setup}</div> : null}
-      {error ? <p className="aw-error max-w-2xl">{error}</p> : null}
+      {error ? <ErrorNote error={error} className="max-w-2xl" /> : null}
       {notice ? <div className="aw-callout max-w-2xl">{notice}</div> : null}
 
       <McpCard off={!s.mcp && off} />

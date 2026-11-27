@@ -12,6 +12,7 @@ import { queueReady } from "@/lib/jobs";
 import { checkDue, promptAllowance } from "@/lib/plans";
 import { metered } from "@/lib/meter";
 import { adminClient } from "@/lib/serverAuth";
+import { errorResponse, report } from "@/lib/errorsServer";
 
 // The old daily job, kept for setups without the job queue. Once supabase/016_queue.sql has run,
 // the worker (/api/worker) does this work spread over the day, and this route answers done right away.
@@ -83,7 +84,7 @@ export async function POST(request: Request) {
   if (await queueReady()) return Response.json({ done: true, message: "The job queue runs daily checks now." });
   const engines = availableEngines();
   if (!engines.length) return Response.json({ done: true, message: "No engine keys are set." });
-  const fail = (error: { message: string }) => Response.json({ error: error.message }, { status: 500 });
+  const fail = (error: { message: string }) => errorResponse(error, "api/cron");
 
   // Close daily runs that never finished, so a crashed job does not block tomorrow.
   const stale = new Date(Date.now() - DAY_MS).toISOString();
@@ -179,7 +180,7 @@ export async function POST(request: Request) {
 
       await pool(toCheck, async (q) => {
         if (!q.id) return void results.push(failed(q.engine, q.prompt, `${q.engine}: DataForSEO did not accept this task.`));
-        const t = await getTask(q.engine, q.id).catch((e) => ({ state: "failed" as const, error: e instanceof Error ? e.message : String(e) }));
+        const t = await getTask(q.engine, q.id).catch((e) => ({ state: "failed" as const, error: report(e, "api/cron").error }));
         if (t.state === "done") results.push(await readAnswer(q.engine, q.prompt, t.answer, brand.name, brand.domain));
         else if (t.state === "failed") results.push(failed(q.engine, q.prompt, t.error));
         else if (Date.now() - new Date(q.at).getTime() > GIVE_UP_MS) results.push(failed(q.engine, q.prompt, `${q.engine}: DataForSEO took too long.`));
@@ -200,6 +201,6 @@ export async function POST(request: Request) {
     const waiting = !queuedNow && !answeredNow;
     return Response.json({ done: false, run: run.id, queued: queuedNow, answered: answeredNow, waitingOn: queued.length, left, status, waiting });
   } catch (e) {
-    return Response.json({ error: e instanceof Error ? e.message : String(e) }, { status: 500 });
+    return errorResponse(e, "api/cron");
   }
 }

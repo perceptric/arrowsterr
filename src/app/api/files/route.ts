@@ -4,6 +4,8 @@ import { requireTrack } from "@/lib/entitlements";
 import { isAiPage, isPdfPage } from "@/lib/pdf/pages";
 import { makeSnapshot } from "@/lib/pdf/server";
 import { adminClient, requireRole } from "@/lib/serverAuth";
+import { errorResponse } from "@/lib/errorsServer";
+import { NOT_READY } from "@/lib/errors";
 
 // A page's PDF (docs/reports.md, section 32). Members of the workspace only.
 //   make: { page, brandId, design, params }  build the numbers now, save the file row, queue the PDF.
@@ -20,17 +22,16 @@ export async function POST(request: Request) {
   const db = adminClient();
   if (!db) return Response.json({ error: "Add SUPABASE_SECRET_KEY to the server's settings." }, { status: 500 });
   const workspaceId = body.workspaceId as string;
-  const missing = (m: string) => (/report_files/.test(m) ? `${m} Run supabase/046_report_files.sql in Supabase.` : m);
 
   if (body.action === "status") {
     const { data, error } = await auth.sb.from("report_files").select("id, status, pdf_path, error, title, snapshot, job_id, created_at").eq("id", body.fileId).eq("workspace_id", workspaceId).maybeSingle();
-    if (error) return Response.json({ error: missing(error.message) }, { status: 500 });
+    if (error) return errorResponse(error, "api/files");
     if (!data) return Response.json({ error: "That file is gone." }, { status: 404 });
     const f = data as { id: string; status: string; pdf_path: string | null; error: string | null; title: string; snapshot: { brand?: { name?: string } }; job_id: number | null; created_at: string };
     if (f.status === "ready" && f.pdf_path) {
       const name = fileName(f.title, f.snapshot.brand?.name ?? "", new Date(f.created_at));
       const { data: signed, error: e } = await db.storage.from("report-pdfs").createSignedUrl(f.pdf_path, 3600, { download: name });
-      if (e || !signed) return Response.json({ status: "failed", error: e?.message ?? "The PDF is gone." });
+      if (e || !signed) return Response.json({ status: "failed", error: "The PDF is gone. Make it again." });
       return Response.json({ status: "ready", url: signed.signedUrl });
     }
     if (f.status === "failed") return Response.json({ status: "failed", error: f.error ?? "The PDF failed." });
@@ -54,7 +55,7 @@ export async function POST(request: Request) {
     const f = data as { id: string; pdf_path: string | null };
     if (f.pdf_path) await db.storage.from("report-pdfs").remove([f.pdf_path]);
     const { error } = await editor.sb.from("report_files").delete().eq("id", f.id);
-    return error ? Response.json({ error: error.message }, { status: 500 }) : Response.json({ ok: true });
+    return error ? errorResponse(error, "api/files") : Response.json({ ok: true });
   }
 
   if (!isPdfPage(body.page)) return Response.json({ error: "This page has no PDF yet." }, { status: 400 });
@@ -64,7 +65,7 @@ export async function POST(request: Request) {
     const paid = await requireTrack(workspaceId, "seo");
     if (paid) return paid;
   }
-  if (!(await queueReady())) return Response.json({ error: "Run supabase/016_queue.sql in Supabase." }, { status: 500 });
+  if (!(await queueReady())) return Response.json({ error: NOT_READY }, { status: 500 });
   try {
     const made = await makeSnapshot(db, workspaceId, body.brandId, body.page, isDesign(body.design) ? body.design : "arrowsterr", body.params);
     const userId = (await auth.sb.auth.getUser(request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? "")).data.user?.id ?? null;
@@ -73,14 +74,12 @@ export async function POST(request: Request) {
       .insert({ workspace_id: workspaceId, brand_id: made.brandId, page: body.page, title: made.title, design: made.design, params: made.params, snapshot: made.snapshot, created_by: userId })
       .select("id")
       .single();
-    if (error) return Response.json({ error: missing(error.message) }, { status: 500 });
+    if (error) return errorResponse(error, "api/files");
     const fileId = (row as { id: string }).id;
     const jobId = await enqueue("report_pdf", { fileId, workspaceId }, { workspaceId, key: `file:${fileId}`, maxAttempts: 3 });
     if (jobId) await db.from("report_files").update({ job_id: jobId }).eq("id", fileId);
     return Response.json({ fileId, design: made.design });
   } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    console.error("PDF file failed:", message);
-    return Response.json({ error: missing(message) }, { status: 500 });
+    return errorResponse(e, "api/files");
   }
 }

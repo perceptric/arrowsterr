@@ -1,5 +1,6 @@
 import { adminClient, requireRole } from "@/lib/serverAuth";
 import { originOf, stripe, stripeReady } from "@/lib/stripe";
+import { errorResponse } from "@/lib/errorsServer";
 
 // Stripe's billing portal: card, invoices, tax details and canceling.
 export async function POST(request: Request) {
@@ -15,6 +16,6 @@ export async function POST(request: Request) {
     const session = await stripe<{ url: string }>("POST", "billing_portal/sessions", { customer: ws.stripe_customer_id, return_url: `${originOf(request)}/billing` });
     return Response.json({ url: session.url });
   } catch (e) {
-    return Response.json({ error: e instanceof Error ? e.message : String(e) }, { status: 500 });
+    return errorResponse(e, "api/billing/portal");
   }
 }

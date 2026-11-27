@@ -7,6 +7,7 @@ import { normalizeSite } from "@/lib/site";
 import { meteredRoute } from "@/lib/meter";
 import { requireTrack, take } from "@/lib/entitlements";
 import { TASK_COST } from "@/lib/plans";
+import { errorResponse } from "@/lib/errorsServer";
 
 const strip = (u: string) => u.toLowerCase().replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
 
@@ -22,7 +23,7 @@ async function handle(request: Request) {
   if (!dfsReady()) return Response.json({ error: "DataForSEO is not set up. Add DFS_LOGIN and DFS_PASSWORD to the server's settings." }, { status: 500 });
 
   const { data: site, error } = await auth.sb.from("sites").select("domain, profile").eq("id", body.siteId).eq("workspace_id", body.workspaceId).maybeSingle();
-  if (error) return Response.json({ error: error.message }, { status: 500 });
+  if (error) return errorResponse(error, "api/research/pages");
   if (!site) return Response.json({ error: "Website not found." }, { status: 404 });
   const domain = normalizeSite(site.domain)?.domain ?? site.domain;
   const target = parseTarget(domain, "domain");
@@ -50,9 +51,7 @@ async function handle(request: Request) {
     });
     return Response.json({ pages: data, domain, cost: spend.total });
   } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    console.error("Site pages failed:", message);
-    return Response.json({ error: message }, { status: 500 });
+    return errorResponse(e, "api/research/pages");
   }
 }
 

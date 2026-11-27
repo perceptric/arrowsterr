@@ -47,7 +47,7 @@ export async function startDoc(sb: SupabaseClient, r: { workspaceId: string; sit
   if (made.error) {
     // Two people started at once: use the one that won.
     if (made.error.code === "23505") return startDoc(sb, r);
-    throw new Error(/meta/.test(made.error.message) ? "Run supabase/021_doc_meta.sql in Supabase." : made.error.message);
+    throw new Error(made.error.message);
   }
   return { ...(made.data as GridDoc), meta: (made.data as GridDoc).meta ?? meta };
 }
@@ -63,5 +63,5 @@ export async function saveGridDoc(sb: SupabaseClient, id: string, content: PmNod
 /** Save a doc's publishing details: meta title, meta description and slug, which Publish reads. */
 export async function saveGridMeta(sb: SupabaseClient, id: string, meta: DocPublishMeta) {
   const { error } = await sb.from("docs").update({ meta }).eq("id", id);
-  if (error) throw new Error(/meta/.test(error.message) ? "Run supabase/021_doc_meta.sql in Supabase to save publishing details." : error.message);
+  if (error) throw new Error(error.message);
 }

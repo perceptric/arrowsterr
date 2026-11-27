@@ -8,7 +8,8 @@ import { askConfirm } from "./Dialogs";
 import { EmptyScreen } from "./Drawing";
 import { post } from "./research/shared";
 import { TrendChart, type Line } from "./TrendChart";
-import { favicon, OTHER_COLORS, Seg, StatStrip, Thinking, toast, YOU_COLOR } from "./ui";
+import { ErrorNote, favicon, OTHER_COLORS, Seg, StatStrip, Thinking, toast, YOU_COLOR } from "./ui";
+import { errorText } from "@/lib/errors";
 
 // AI Shopping's tabs (docs/ai-shopping-plan.md, sections 6 to 8): Overview, Products, Prompts, Stores and Sources.
 
@@ -72,7 +73,7 @@ export function ShoppingReport({ auth, brand, canEdit, onCatalog }: { auth: RunA
     let live = true;
     post<ShopReport>(auth, "/api/shop", { action: "report", brandId: brand.id, days: Number(days), engine })
       .then((r) => live && (setReport(r), setError("")))
-      .catch((e) => live && setError(e instanceof Error ? e.message : String(e)));
+      .catch((e) => live && setError(errorText(e)));
     return () => {
       live = false;
     };
@@ -100,12 +101,12 @@ export function ShoppingReport({ auth, brand, canEdit, onCatalog }: { auth: RunA
     </div>
   );
 
-  if (!report) return error ? <p className="aw-error">{error}</p> : <Thinking text="Getting the shopping report..." />;
+  if (!report) return error ? <ErrorNote error={error} /> : <Thinking text="Getting the shopping report..." />;
   const noPrompts = !report.prompts.length;
   return (
     <div className="flex flex-col gap-5">
       {head}
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
       {tab === "prompts" || noPrompts ? (
         <Prompts auth={auth} brand={brand} canEdit={canEdit} report={report} onChange={reload} empty={noPrompts} />
       ) : !report.totals.runs ? (
@@ -270,7 +271,7 @@ function Prompts({ auth, brand, canEdit, report: r, onChange, empty }: { auth: R
       if (done) toast(done);
       onChange();
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     } finally {
       setBusy("");
     }
@@ -336,7 +337,7 @@ function Prompts({ auth, brand, canEdit, report: r, onChange, empty }: { auth: R
   if (empty)
     return (
       <div className="flex flex-col gap-4">
-        {error ? <p className="aw-error">{error}</p> : null}
+        {error ? <ErrorNote error={error} /> : null}
         {ideas ? adder : null}
         {!ideas ? (
           <EmptyScreen
@@ -358,7 +359,7 @@ function Prompts({ auth, brand, canEdit, report: r, onChange, empty }: { auth: R
 
   return (
     <div className="flex flex-col gap-4">
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
       {adder}
       <section className="aw-frame overflow-x-auto">
         <table className="aw-table aw-table--keep">

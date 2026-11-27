@@ -11,6 +11,8 @@ import { ConnectWizard } from "../ConnectWizard";
 import { Markdown } from "../Markdown";
 import { Zippie } from "../Zippie";
 import { OutlineEditCard, PicksCard, PieceCard, ReviseCard } from "./WriterCards";
+import { errorText, httpError } from "@/lib/errors";
+import { ErrorNote } from "../ui";
 
 // Zippie's replies and the cards inside them: a change set to review, a Connect card, and a skill or Knowledge page to
 // save. Shared by the chat bar's panel and the Zippie page.
@@ -63,15 +65,13 @@ export function useApi(auth: RunAuth) {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${await auth.token()}` },
         body: JSON.stringify({ ...body, workspaceId: auth.workspaceId }),
       });
-      const out = await res.json().catch(() => ({ error: `The server returned ${res.status}.` }));
-      if (!res.ok) throw new Error(out.error ?? `The server returned ${res.status}.`);
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) throw httpError(res.status, out);
       return out as T;
     },
     [auth],
   );
 }
-
-export const msgOf = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
 // ─────────────── Icons ───────────────
 
@@ -283,7 +283,7 @@ export function ChangeSetCard({ id, api, canEdit }: { id: string; api: ReturnTyp
       setSet(r.set);
       setChanges(r.changes);
     } catch (e) {
-      setError(msgOf(e));
+      setError(errorText(e));
     }
   }, [api, id]);
   useEffect(() => {
@@ -304,7 +304,7 @@ export function ChangeSetCard({ id, api, canEdit }: { id: string; api: ReturnTyp
       await api("/api/ask/changes", { ...body, setId: id });
       await load();
     } catch (e) {
-      setError(msgOf(e));
+      setError(errorText(e));
     } finally {
       setBusy("");
     }
@@ -353,7 +353,7 @@ export function ChangeSetCard({ id, api, canEdit }: { id: string; api: ReturnTyp
         ) : null}
       </div>
       {working ? <span className="aw-agent-working text-[13px]">{set.step || "Working"}...</span> : null}
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
       {shown.length ? (
         <div className="flex flex-col divide-y divide-rule-faint">
           {shown.map((c) => (
@@ -385,7 +385,7 @@ export function ChangeSetCard({ id, api, canEdit }: { id: string; api: ReturnTyp
                 ) : null}
               </div>
               <Diff c={c} />
-              {c.error ? <p className="text-[12px] text-neg">{c.error}</p> : null}
+              {c.error ? <p className="text-[12px] text-neg">{errorText(c.error)}</p> : null}
             </div>
           ))}
         </div>
@@ -490,7 +490,7 @@ function ProposalCard({ proposal, api, canEdit }: { proposal: Proposal; api: Ret
       setState("saved");
       window.dispatchEvent(new Event("zippie:library"));
     } catch (e) {
-      setError(msgOf(e));
+      setError(errorText(e));
       setState("");
     }
   };
@@ -509,7 +509,7 @@ function ProposalCard({ proposal, api, canEdit }: { proposal: Proposal; api: Ret
       </div>
       {isSkill && head?.head.description ? <p className="text-[12.5px] text-body wrap-break-word">{head.head.description}</p> : null}
       {open ? <pre className="zp-pcard__pre">{isSkill ? proposal.files[MAIN] : proposal.body}</pre> : null}
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
       <div className="flex flex-wrap items-center gap-2">
         {state === "saved" ? (
           <span className="aw-status aw-status--ranked">Saved</span>

@@ -84,6 +84,8 @@ import { LibraryPage } from "./writer/LibraryPage";
 import { ShoppingPage } from "./ShoppingPage";
 import { shopOn, type ShopMode } from "@/lib/shopDetect";
 import { CONTENT_ALIASES, CONTENT_SLUGS, type ContentPage } from "@/lib/contentRoutes";
+import { errorText } from "@/lib/errors";
+import { ErrorBoundary, ErrorNote } from "./ui";
 
 export type { Brand } from "@/lib/db";
 type Page = "prompts" | "competitors" | "domains" | "urls" | "shopping" | "traffic" | "visitors" | "keywords" | "domain" | "gap" | ContentPage | "summary" | ZippiePageId | SettingsTab;
@@ -413,7 +415,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
           setWsId(joined);
           setNotice("You joined the workspace.");
         } catch (e) {
-          setError(e instanceof Error ? e.message : String(e));
+          setError(errorText(e));
         }
       }
       let list = await listWorkspaces(sb, userId);
@@ -432,7 +434,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
       }
       setWorkspaces(list);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
       setWorkspaces([]);
     }
   }, [sb, userId, email]);
@@ -499,7 +501,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
         const linked = new URLSearchParams(window.location.search).get("brand");
         setActiveId((id) => [linked, pending, id, saved].find((x) => x && list.some((b) => b.id === x)) ?? list[0]?.id ?? null);
       })
-      .catch((e) => live && setError(e instanceof Error ? e.message : String(e)));
+      .catch((e) => live && setError(errorText(e)));
     return () => {
       live = false;
     };
@@ -554,7 +556,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
     loaded.current[active.id] = want;
     listRuns(sb, active.id, want)
       .then((list) => setRuns((r) => ({ ...r, [active.id]: list })))
-      .catch((e) => setError(e instanceof Error ? e.message : String(e)));
+      .catch((e) => setError(errorText(e)));
   }, [sb, active, runs, days, plan]);
 
   // Free checks only the AIs its plan names (ChatGPT and AI Overviews).
@@ -574,7 +576,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
     try {
       runId = await startSavedRun(sb, ws.id, brand.id, userId, { at: new Date().toISOString(), engines: usable, chats: [] });
     } catch (e) {
-      setError(`Could not save this run: ${e instanceof Error ? e.message : String(e)}`);
+      setError(`Could not save this run: ${errorText(e)}`);
     }
     const finished = await runAll({ ...brand, prompts: brand.prompts.slice(0, room) }, usable, { workspaceId: ws.id, token }, (run, done, total) => {
       setRuns((r) => ({ ...r, [brand.id]: [...past, { ...run, id: runId ?? "live" }] }));
@@ -588,7 +590,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
         await saveRunChats(sb, runId, finished.chats);
         await saveAnswers(sb, answerRows(finished.chats, { workspace_id: ws.id, brand_id: brand.id, run_id: runId, at: finished.at }));
       } catch (e) {
-        setError(`Could not save this run: ${e instanceof Error ? e.message : String(e)}`);
+        setError(`Could not save this run: ${errorText(e)}`);
       }
     }
     const { limited, ...done } = finished;
@@ -629,7 +631,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
     } catch (e) {
       // Put the brand back the way it was, like when a limit blocks the change.
       if (before) setBrands((list) => list?.map((b) => (b.id === brand.id ? before : b)) ?? null);
-      setError(`Could not save: ${e instanceof Error ? e.message : String(e)}`);
+      setError(`Could not save: ${errorText(e)}`);
     }
   }
 
@@ -640,7 +642,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
       setBrands(next);
       setActiveId(next[0]?.id ?? null);
     } catch (e) {
-      setError(`Could not remove: ${e instanceof Error ? e.message : String(e)}`);
+      setError(`Could not remove: ${errorText(e)}`);
     }
   }
 
@@ -669,7 +671,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
       setRuns({});
       setBrands(await listBrands(sb, ws.id));
     } catch (e) {
-      setError(`Import failed: ${e instanceof Error ? e.message : String(e)}`);
+      setError(`Import failed: ${errorText(e)}`);
     }
   }
   const legacyCount = (() => {
@@ -683,7 +685,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
   if (!workspaces || !ws || brands === null) {
     return (
       <main className="flex min-h-screen items-center justify-center p-6">
-        {error ? <p className="aw-error max-w-lg">{error}</p> : <p className="aw-small">Loading your workspace...</p>}
+        {error ? <ErrorNote error={error} className="max-w-lg" /> : <p className="aw-small">Loading your workspace...</p>}
       </main>
     );
   }
@@ -867,9 +869,10 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
           </div>
         )}
         <main className={`aw-page-body min-w-0 flex-1 ${isZippie(page) ? "zp-page-body" : "px-4 py-5 pb-44 sm:px-6"}`}>
+          <ErrorBoundary key={page}>
           {limitHit || (plan && plan.status === "read_only" && page !== "billing") ? (
             <div className="aw-callout aw-callout--warn mb-5 flex flex-wrap items-center justify-between gap-3">
-              <span>{limitHit?.error || (plan?.plan === "trial" ? "Your free trial has ended. Pick a plan to keep going. Your data is safe." : "This workspace is read-only. Pick a plan to keep going. Your data is safe.")}</span>
+              <span>{limitHit?.error ? errorText(limitHit.error) : (plan?.plan === "trial" ? "Your free trial has ended. Pick a plan to keep going. Your data is safe." : "This workspace is read-only. Pick a plan to keep going. Your data is safe.")}</span>
               <span className="flex items-center gap-3">
                 {limitHit?.packs ? (
                   <button
@@ -898,7 +901,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
                           loadPlan();
                         }
                       } catch (e) {
-                        setError(e instanceof Error ? e.message : String(e));
+                        setError(errorText(e));
                       } finally {
                         setBoosting(false);
                       }
@@ -934,14 +937,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
               </button>
             </div>
           ) : null}
-          {error ? (
-            <div className="aw-error mb-5 flex items-center justify-between gap-4">
-              {error}
-              <button type="button" className="aw-text-link" onClick={() => setError("")}>
-                Close
-              </button>
-            </div>
-          ) : null}
+          <ErrorNote error={error} onClose={() => setError("")} className="mb-5" />
           {page === "zippie" ? (
             <ZippieHome />
           ) : page === "skills" ? (
@@ -1025,7 +1021,7 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
                     loadPlan();
                   }
                 } catch (e) {
-                  setError(e instanceof Error ? e.message : String(e));
+                  setError(errorText(e));
                 } finally {
                   setBoosting(false);
                 }
@@ -1109,10 +1105,17 @@ function Shell({ sb, session }: { sb: SupabaseClient; session: Session }) {
               }}
             />
           )}
+          </ErrorBoundary>
         </main>
-        {page !== "zippie" && page !== "writer" ? <ZippieDock offset={page === "knowledge" ? TREE_W : 0} /> : null}
+        {page !== "zippie" && page !== "writer" ? (
+          <ErrorBoundary>
+            <ZippieDock offset={page === "knowledge" ? TREE_W : 0} />
+          </ErrorBoundary>
+        ) : null}
       </div>
-      <ZippiePanel onOpenFull={() => go("zippie")} />
+      <ErrorBoundary>
+        <ZippiePanel onOpenFull={() => go("zippie")} />
+      </ErrorBoundary>
     </div>
     </ZippieProvider>
   );

@@ -8,13 +8,14 @@ import { take } from "@/lib/entitlements";
 import { meteredRoute, streamed } from "@/lib/meter";
 import { TASK_COST } from "@/lib/plans";
 import { adminClient, isEditor, requireRole } from "@/lib/serverAuth";
+import { errorResponse, report } from "@/lib/errorsServer";
+import { NOT_READY } from "@/lib/errors";
 
 export const maxDuration = 300;
 
 const str = (v: unknown, n: number) => String(v ?? "").trim().slice(0, n);
 const err = (error: string, status = 400) => Response.json({ error }, { status });
 const missing = (e: { message: string } | null) => e && /ask_threads|ask_messages|change_sets/.test(e.message);
-const SETUP = "Run supabase/036_ask.sql in Supabase to turn on Zippie.";
 
 type Block = { type: string; text?: string; name?: string; content?: unknown };
 type Card = { kind: "changeset" | "setup"; id: string } | { kind: "proposal"; id: string; proposal: Proposal } | { kind: "writer"; id: string; card: WriterCard };
@@ -47,8 +48,8 @@ async function handle(request: Request) {
     const list = (cols: string) => db.from("ask_threads").select(cols).eq("workspace_id", ws).order("updated_at", { ascending: false }).limit(100);
     let { data, error } = await list("id, title, created_by, updated_at, project_id, kind");
     if (before103(error)) ({ data, error } = await list("id, title, created_by, updated_at, project_id"));
-    if (missing(error)) return Response.json({ threads: [], setup: SETUP });
-    if (error) return err(error.message, 500);
+    if (missing(error)) return Response.json({ threads: [], setup: NOT_READY });
+    if (error) return errorResponse(error, "api/ask");
     const threads = (data ?? []) as unknown as { id: string }[];
     const [projectId, pieces] = await Promise.all([writingProjectId(db, ws), writingPieces(db, ws, threads.map((t) => t.id)).catch(() => ({}))]);
     return Response.json({ threads, writing: { projectId, pieces } });
@@ -68,7 +69,7 @@ async function handle(request: Request) {
     const t = await threadOf(body.threadId);
     if (!t) return err("Chat not found.", 404);
     const { data, error } = await db.from("ask_messages").select("id, role, content, text, created_at").eq("thread_id", t.id).order("id").limit(400);
-    if (error) return err(error.message, 500);
+    if (error) return errorResponse(error, "api/ask");
     // Show people the words and which tools ran. Tool results stay on the server, except the change sets
     // they started, which show as cards under the reply that started them.
     type Out = { id: number; role: string; text: string; tools: string[]; cards: Card[]; skill?: string; created_at: string };
@@ -139,7 +140,7 @@ async function handle(request: Request) {
           ? db.from("ask_threads").update({ project_id: projectId })
           : db.from("ask_threads").update({ title: str(body.title, 80) || "New chat" });
     const { error } = await q.eq("id", t.id);
-    if (error) return err(error.message, 500);
+    if (error) return errorResponse(error, "api/ask");
     return Response.json({ ok: true });
   }
 
@@ -162,8 +163,8 @@ async function handle(request: Request) {
       const kind = kindOf(body.where);
       if (!projectId && kind) projectId = await writingProject(db, ws, userId);
       const { data, error } = await insertThread(db, { workspace_id: ws, title, created_by: userId, project_id: projectId, kind });
-      if (missing(error)) return err(SETUP, 500);
-      if (error || !data) return err(error?.message ?? "Could not start a chat.", 500);
+      if (missing(error)) return err(NOT_READY, 500);
+      if (error || !data) return errorResponse(error ?? new Error("Could not start a chat."), "api/ask");
       thread = data;
     }
     const canEdit = await isEditor(auth.sb, ws);
@@ -176,9 +177,8 @@ async function handle(request: Request) {
     const work = answer({ db, ws, userId, canEdit, threadId: thread.id, projectId: thread.project_id, where }, message, line, str(body.skill, 120) || null)
       .then(() => true)
       .catch((e) => {
-        const error = e instanceof Error ? e.message : String(e);
-        console.error("Ask failed:", error);
-        line({ type: "error", error: /overloaded|529/i.test(error) ? "Claude is busy right now. Try again in a minute." : error });
+        const r = report(e, "api/ask");
+        line({ type: "error", error: r.error, ref: r.ref });
         return false;
       })
       .finally(() => writer.close().catch(() => {}));

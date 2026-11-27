@@ -7,9 +7,9 @@ import { Dropdown } from "./Pickers";
 import { downloadCsv } from "./research/shared";
 import { atLeast, getUsage, getWorkspaceSettings, topicsOf, type Brand, type Workspace } from "@/lib/db";
 import { mergePrompts, promptsFromCsv } from "@/lib/csvImport";
-import { BusyButton, SkeletonRows } from "./ui";
+import { BusyButton, ErrorNote, SkeletonRows } from "./ui";
+import { errorText } from "@/lib/errors";
 
-const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 const day = () => new Date().toISOString().slice(0, 10);
 const slug = (s: string) =>
   s
@@ -18,7 +18,7 @@ const slug = (s: string) =>
     .replace(/^-|-$/g, "") || "workspace";
 
 function Status({ error, saved }: { error: string; saved: string }) {
-  if (error) return <p className="aw-error">{error}</p>;
+  if (error) return <ErrorNote error={error} />;
   if (saved) return <p className="aw-callout text-[15px]!">{saved}</p>;
   return null;
 }
@@ -42,7 +42,7 @@ export function ExportsSettings({ sb, ws, brands, onBrand }: { sb: SupabaseClien
       const note = await fn();
       if (note) setSaved(note);
     } catch (e) {
-      setError(message(e));
+      setError(errorText(e));
     } finally {
       setBusy("");
     }
@@ -75,7 +75,7 @@ export function ExportsSettings({ sb, ws, brands, onBrand }: { sb: SupabaseClien
       if (!brand) throw new Error("Add a brand first.");
       const since = new Date(Date.now() - days * 86_400_000).toISOString();
       const { data, error: err } = await sb.from("answers").select("at, engine, prompt, text").eq("brand_id", brand.id).gte("at", since).order("at", { ascending: false }).limit(5000);
-      if (err) throw new Error(err.message);
+      if (err) throw err;
       if (!data?.length) throw new Error(`No AI answers for ${brand.name} in the last ${days} days.`);
       downloadCsv(
         `${slug(brand.name)}-ai-answers-${day()}.csv`,
@@ -96,7 +96,7 @@ export function ExportsSettings({ sb, ws, brands, onBrand }: { sb: SupabaseClien
           .order("due_date", { ascending: true, nullsFirst: false })
           .limit(5000),
       ]);
-      if (err) throw new Error(err.message);
+      if (err) throw err;
       if (!data?.length) throw new Error("The Content Plan is empty.");
       const site = new Map((sites ?? []).map((s) => [s.id as string, s.name as string]));
       downloadCsv(
@@ -275,7 +275,7 @@ export function JobsSettings({ sb, ws, brands }: { sb: SupabaseClient; ws: Works
         sb.from("bulk_runs").select("id, kind, count, created_at").eq("workspace_id", ws.id).order("created_at", { ascending: false }).limit(15),
         sb.from("sites").select("id, name").eq("workspace_id", ws.id),
       ]);
-      if (runs.error) throw new Error(runs.error.message);
+      if (runs.error) throw runs.error;
       const site = new Map((sites.data ?? []).map((s) => [s.id as string, s.name as string]));
       const out: Action[] = [
         ...(runs.data ?? []).map((r) => ({
@@ -311,7 +311,7 @@ export function JobsSettings({ sb, ws, brands }: { sb: SupabaseClient; ws: Works
       ].sort((a, b) => b.at.localeCompare(a.at));
       setList(out.slice(0, 50));
     } catch (e) {
-      setError(message(e));
+      setError(errorText(e));
       setList([]);
     }
   }, [sb, ws.id, brands]);
@@ -358,7 +358,7 @@ export function JobsSettings({ sb, ws, brands }: { sb: SupabaseClient; ws: Works
           Refresh
         </BusyButton>
       </div>
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} onRetry={() => (setError(""), void load())} /> : null}
       {list === null ? (
         <SkeletonRows rows={6} cols={4} />
       ) : !list.length ? (
@@ -381,7 +381,7 @@ export function JobsSettings({ sb, ws, brands }: { sb: SupabaseClient; ws: Works
                   <td>
                     <div className="line-clamp-2 text-ink">{a.what}</div>
                     {a.detail ? <div className="aw-small">{a.detail}</div> : null}
-                    {a.status === "failed" && a.error ? <div className="text-[12px] text-neg">{a.error}</div> : null}
+                    {a.status === "failed" && a.error ? <div className="text-[12px] text-neg">{errorText(a.error)}</div> : null}
                   </td>
                   <td className="whitespace-nowrap">
                     <span className={`aw-status ${STATUS[a.status]?.tone ?? ""}`}>{STATUS[a.status]?.label ?? a.status}</span>

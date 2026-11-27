@@ -6,6 +6,7 @@ import { I, Icon, Reply } from "./Cards";
 import { Composer } from "./Composer";
 import { WorkingOn } from "./WritingChats";
 import { useZippie } from "./ZippieContext";
+import { ErrorNote } from "../ui";
 
 // Zippie on every page, the way Lightfield and Omniscient do it: a chat box floating at the bottom of the page names
 // what's on screen; sending opens Zippie as a panel on the right that stays open from page to page. The Zippie page
@@ -123,7 +124,7 @@ function Thread({ compact = false, content }: { compact?: boolean; content: Reac
           <Reply key={m.id} m={m} api={z.api} auth={z.auth} canEdit={z.canEdit} onSend={(t, k) => z.send(t, k ?? null)} />
         ),
       )}
-      {z.error ? <div className="aw-error">{z.error}</div> : null}
+      {z.error ? <ErrorNote error={z.error} onRetry={z.retry} /> : null}
     </div>
   );
 }
@@ -251,7 +252,7 @@ export function ZippieHome({
           })}
         </div>
         {footer}
-        {z.error ? <div className="aw-error w-full max-w-2xl">{z.error}</div> : null}
+        {z.error ? <ErrorNote error={z.error} onRetry={z.retry} className="w-full max-w-2xl" /> : null}
       </div>
     );
   return (

@@ -6,13 +6,13 @@ import { indexNow } from "./indexing";
 import { finish, retry, type Job } from "./jobs";
 import { safeFetch } from "./safeFetch";
 import { editedInWp, runScheduled, type Pub, type PubStore, type Wp, type WpRes } from "./wpSync";
+import { NOT_READY } from "@/lib/errors";
 
 // WordPress and the database behind wpSync.ts: the signed-in REST client, image uploads, the doc_publications
 // store (051_wp_sync.sql), the mirror in docs.meta.published the library reads, and the wp_publish job.
 
 type Config = Record<string, string>;
 const MAX_IMAGE = 15_000_000;
-export const SYNC_SETUP = "Run supabase/051_wp_sync.sql in Supabase to publish to WordPress.";
 export const PUB_COLS = "id, workspace_id, doc_id, connection_id, remote_id, url, remote_status, remote_modified, pushed_modified, mode, scheduled_for, options, media, creating_since, last_error, pushed_at, synced_at";
 
 const base = (u: string) => (/^https?:\/\//i.test(u) ? u : `https://${u}`).replace(/\/+$/, "");
@@ -98,7 +98,7 @@ export function wpClient(c: Config): Wp {
 export function pubStore(db: SupabaseClient): PubStore {
   const one = async (q: PromiseLike<{ data: unknown; error: { message: string } | null }>) => {
     const { data, error } = await q;
-    if (error) throw new Error(/doc_publications|lock_publication/.test(error.message) ? SYNC_SETUP : error.message);
+    if (error) throw new Error(/doc_publications|lock_publication/.test(error.message) ? NOT_READY : error.message);
     return (data as Pub | null) ?? null;
   };
   return {
@@ -106,14 +106,14 @@ export function pubStore(db: SupabaseClient): PubStore {
     byId: (id) => one(db.from("doc_publications").select(PUB_COLS).eq("id", id).maybeSingle()),
     ensure: async (row) => {
       const { error } = await db.from("doc_publications").upsert({ ...row, kind: "wordpress" }, { onConflict: "doc_id,connection_id", ignoreDuplicates: true });
-      if (error) throw new Error(/doc_publications/.test(error.message) ? SYNC_SETUP : error.message);
+      if (error) throw new Error(/doc_publications/.test(error.message) ? NOT_READY : error.message);
       const pub = await one(db.from("doc_publications").select(PUB_COLS).eq("doc_id", row.doc_id).eq("connection_id", row.connection_id).maybeSingle());
       if (!pub) throw new Error("Could not save the publishing record.");
       return pub;
     },
     lock: async (id, seconds) => {
       const { data, error } = await db.rpc("lock_publication", { p_id: id, p_seconds: seconds });
-      if (error) throw new Error(/lock_publication/.test(error.message) ? SYNC_SETUP : error.message);
+      if (error) throw new Error(/lock_publication/.test(error.message) ? NOT_READY : error.message);
       return Boolean(data);
     },
     update: async (id, patch) => {

@@ -8,7 +8,8 @@ import { Sheet, type Col } from "./Sheet";
 import { useStash } from "@/lib/stash";
 import { AiCrawlers } from "./AiCrawlers";
 import { EmptyScreen } from "./Drawing";
-import { Card, Thinking } from "./ui";
+import { Card, ErrorNote, Thinking } from "./ui";
+import { errorText, httpError } from "@/lib/errors";
 
 const LABEL_CLASS: Record<Label, string> = { Hot: "aw-status--missed", Warm: "aw-status--warn", Cold: "aw-status--pending" };
 const KIND: Record<SourceKind, string> = { ai: "AI", search: "Search", social: "Social", referral: "Link", direct: "Direct" };
@@ -67,10 +68,10 @@ export function VisitorsPage({ view, auth }: { view: View; auth: RunAuth }) {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${await auth.token()}` },
         body: JSON.stringify({ ...body, workspaceId: auth.workspaceId, brandId: brand.id }),
       });
-      const out = await res.json().catch(() => ({ error: `The server returned ${res.status}.` }));
+      const out = await res.json().catch(() => ({}));
       if (!res.ok) {
         if (out.error === "connect") setNeedsConnect(true);
-        throw new Error(out.message || out.error || `Error ${res.status}`);
+        throw httpError(res.status, out.message ? { ...out, error: out.message } : out);
       }
       return out;
     },
@@ -83,7 +84,7 @@ export function VisitorsPage({ view, auth }: { view: View; auth: RunAuth }) {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     call({ action: "list", days })
       .then((d) => live && setSaved((x) => ({ ...x, [days]: d })))
-      .catch((e) => live && setError(e instanceof Error ? e.message : String(e)));
+      .catch((e) => live && setError(errorText(e)));
     return () => {
       live = false;
     };
@@ -114,7 +115,7 @@ export function VisitorsPage({ view, auth }: { view: View; auth: RunAuth }) {
         <AiCrawlers auth={auth} brand={brand} days={days} />
       </div>
     );
-  if (!data) return error ? <p className="aw-error">{error}</p> : <Thinking text="Meeting your visitors..." />;
+  if (!data) return error ? <ErrorNote error={error} /> : <Thinking text="Meeting your visitors..." />;
 
   const vs = data.visitors;
   const cols: Col<Visitor>[] = [
@@ -193,7 +194,7 @@ export function VisitorsPage({ view, auth }: { view: View; auth: RunAuth }) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="aw-h2">Visitors</h1>
       </div>
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
 
       <div className="aw-stats" style={{ ["--cols" as string]: 4 }}>
         {[
@@ -229,7 +230,7 @@ function Journey({ v, domain, load, onClose }: { v: Visitor; domain: string; loa
     let live = true;
     load(v.id)
       .then((d) => live && setSteps(d.steps))
-      .catch((e) => live && setError(e instanceof Error ? e.message : String(e)));
+      .catch((e) => live && setError(errorText(e)));
     const esc = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", esc);
     return () => {
@@ -280,7 +281,7 @@ function Journey({ v, domain, load, onClose }: { v: Visitor; domain: string; loa
             </p>
           ) : null}
 
-          {error ? <p className="aw-error">{error}</p> : null}
+          {error ? <ErrorNote error={error} /> : null}
           {!steps && !error ? <p className="aw-small">Loading the journey...</p> : null}
           {steps && !steps.length ? <p className="aw-small">No pages recorded for this visitor yet.</p> : null}
 

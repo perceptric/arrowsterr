@@ -27,10 +27,11 @@ import type { RunAuth } from "@/lib/runner";
 import type { View } from "@/lib/view";
 import { BrandLogo } from "../BrandLogo";
 import { Modal } from "../reports/Dialog";
-import { favicon, SkeletonRows, Thinking } from "../ui";
+import { ErrorNote, favicon, SkeletonRows, Thinking } from "../ui";
 import { GA4_LOGO, propertyName, type Call, type Status } from "./google";
 import { AddFilter, ago, compact, FilterChips, GranPick, HeadTools, isoToday, LineChart, longKey, pathOf, shortKey, pinsAt, place, RangePicker, rate, ReportTable, Switch, TableTabs, Tiles, usePageActions, whole, type Col, type CsvRef, type Line, type Metric } from "./Report";
 import { ResearchPanel, type Researched } from "./ResearchPanel";
+import { errorText } from "@/lib/errors";
 
 // Visibility › Analytics › Search Console: Google's Performance report inside Arrowsterr, read live from the
 // Search Analytics API (googleReportsServer.ts). Ranges, search type, filters, four checkable totals that draw the
@@ -84,6 +85,7 @@ export function GscReport({ status, call, view, auth, sb, canEdit, title, onSetu
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState("");
   const [loaded, setLoaded] = useState("");
+  const [tries, setTries] = useState(0);
   const [noHourly, setNoHourly] = useState(false);
   const [visits, setVisits] = useState<Map<string, PageVisits> | null>(null);
   const [panel, setPanel] = useState<Researched | null>(null);
@@ -113,12 +115,12 @@ export function GscReport({ status, call, view, auth, sb, canEdit, title, onSetu
         setData(d as unknown as Data);
         setError("");
       })
-      .catch((e) => live && setError(e instanceof Error ? e.message : String(e)))
+      .catch((e) => live && setError(errorText(e)))
       .finally(() => live && setLoaded(asked));
     return () => {
       live = false;
     };
-  }, [call, range, compare, type, filters, hourly, asked]);
+  }, [call, range, compare, type, filters, hourly, asked, tries]);
 
   // GA4's sessions and key events by landing page, for the Pages table's GA4 columns.
   useEffect(() => {
@@ -126,7 +128,7 @@ export function GscReport({ status, call, view, auth, sb, canEdit, title, onSetu
     let live = true;
     call("/api/seo-analytics", { action: "join", source: "ga4", range })
       .then((d) => live && setVisits(new Map((d.rows as PageVisits[]).map((r) => [r.path, r]))))
-      .catch((e) => live && setError(e instanceof Error ? e.message : String(e)));
+      .catch((e) => live && setError(errorText(e)));
     return () => {
       live = false;
     };
@@ -166,7 +168,7 @@ export function GscReport({ status, call, view, auth, sb, canEdit, title, onSetu
     return (
       <div className="aw-rep">
         {head}
-        {error ? <p className="aw-error">{error}</p> : <Thinking text="Reading Search Console..." />}
+        {error ? <ErrorNote error={error} onRetry={() => (setError(""), setTries((t) => t + 1))} /> : <Thinking text="Reading Search Console..." />}
       </div>
     );
 
@@ -245,7 +247,7 @@ export function GscReport({ status, call, view, auth, sb, canEdit, title, onSetu
         </span>
       </div>
       {actions.banner}
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} onRetry={() => (setError(""), setTries((t) => t + 1))} /> : null}
 
       <section className="aw-frame">
         <Tiles

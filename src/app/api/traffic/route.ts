@@ -3,6 +3,7 @@ import { accessToken } from "@/lib/google";
 import { adminClient, requireRole } from "@/lib/serverAuth";
 import { umamiNow, umamiTraffic } from "@/lib/traffic";
 import { active, umamiReady, type Range } from "@/lib/umami";
+import { errorResponse } from "@/lib/errorsServer";
 
 // Everything Umami knows about one brand's website, plus visits from AI assistants. Cached for 10 minutes.
 const cache = new Map<string, { at: number; data: unknown }>();
@@ -27,9 +28,7 @@ export async function POST(request: Request) {
       cache.set(key, { at: Date.now(), data });
       return Response.json(data);
     } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
-      console.error("GA4 traffic failed:", message);
-      return Response.json({ error: message }, { status: 500 });
+      return errorResponse(e, "api/traffic");
     }
   }
   if (!umamiReady()) return Response.json({ error: "Website tracking is not set up yet." }, { status: 500 });
@@ -40,7 +39,7 @@ export async function POST(request: Request) {
     .eq("id", body.brandId)
     .eq("workspace_id", body.workspaceId)
     .maybeSingle();
-  if (error) return Response.json({ error: error.message }, { status: 500 });
+  if (error) return errorResponse(error, "api/traffic");
   const id = (brand as { umami_website_id: string | null } | null)?.umami_website_id;
   if (!id) return Response.json({ error: "This brand has no website connected." }, { status: 400 });
 
@@ -56,8 +55,6 @@ export async function POST(request: Request) {
     cache.set(key, { at: Date.now(), data });
     return Response.json({ ...data, now: visitorsNow });
   } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    console.error("Traffic failed:", message);
-    return Response.json({ error: message }, { status: 500 });
+    return errorResponse(e, "api/traffic");
   }
 }

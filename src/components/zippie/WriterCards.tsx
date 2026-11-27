@@ -20,7 +20,9 @@ import { brandTables } from "../research/Writer";
 import { exportClean } from "../research/writerNodes";
 import { VisualSketch } from "../writer/VisualSketch";
 import { ArticleResults } from "../analytics/ArticleResults";
-import { I, Icon, msgOf, type SendFn, type useApi } from "./Cards";
+import { I, Icon, type SendFn, type useApi } from "./Cards";
+import { errorText } from "@/lib/errors";
+import { ErrorNote } from "../ui";
 
 const WRITE_ARTICLE = "system:write-article";
 const WRITE_OUTLINE = "system:write-outline";
@@ -77,7 +79,7 @@ export function PieceCard({ itemId, keyword, api, auth, canEdit, onSend, publish
       setPiece((await api<{ piece: PieceStatus }>("/api/ask", { action: "writer_piece", itemId })).piece);
       setError("");
     } catch (e) {
-      setError(msgOf(e));
+      setError(errorText(e));
     }
   }, [api, itemId]);
   const busy = !piece || piece.outline?.busy || piece.draft?.busy || (!piece.outline && !piece.draft && fresh);
@@ -118,7 +120,7 @@ export function PieceCard({ itemId, keyword, api, auth, canEdit, onSend, publish
     </div>
   );
 
-  if (error && !piece) return <p className="aw-error">{error}</p>;
+  if (error && !piece) return <ErrorNote error={error} />;
   if (d?.status === "ready")
     return (
       <div className={`${frame} gap-3 px-4 py-4`}>
@@ -145,7 +147,7 @@ export function PieceCard({ itemId, keyword, api, auth, canEdit, onSend, publish
             </button>
           ) : null}
         </span>
-        {pub.error ? <p className="aw-error pl-[42px]">{pub.error}</p> : null}
+        {pub.error ? <ErrorNote error={pub.error} className="pl-[42px]" /> : null}
         {pub.panel}
         <div className="pl-[42px] empty:hidden">
           <ArticleResults itemId={itemId} brandId={piece?.brand_id ?? null} auth={auth} />
@@ -196,7 +198,7 @@ function OutlineCard({ outline: o, title, itemId, keyword, auth, canEdit, onSend
       await onSaved();
       setEdit(null);
     } catch (e) {
-      setError(msgOf(e));
+      setError(errorText(e));
     } finally {
       setBusy(false);
     }
@@ -290,7 +292,7 @@ function OutlineCard({ outline: o, title, itemId, keyword, auth, canEdit, onSend
           + Add section
         </button>
       ) : null}
-      {error ? <p className="aw-error mx-4 mb-3">{error}</p> : null}
+      {error ? <ErrorNote error={error} className="mx-4 mb-3" /> : null}
       <div className="flex flex-wrap items-center gap-2 border-t border-rule-faint bg-surface-2 px-4 py-3">
         {edit ? (
           <>
@@ -377,7 +379,7 @@ export function OutlineEditCard({ briefId, before, sections, why, auth, canEdit 
       await post(auth, "/api/agentic-writer", { action: "edit", briefId, patch: { sections } });
       setState("done");
     } catch (e) {
-      setError(msgOf(e));
+      setError(errorText(e));
       setState("waiting");
     }
   }
@@ -434,7 +436,7 @@ export function OutlineEditCard({ briefId, before, sections, why, auth, canEdit 
             <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" disabled={state === "busy"} onClick={() => setState("dismissed")}>
               Dismiss
             </button>
-            {error ? <span className="text-[13px] text-neg">{error}</span> : null}
+            {error ? <span className="text-[13px] text-neg">{errorText(error)}</span> : null}
           </>
         ) : (
           <span className="text-[13px] text-muted">Ask an editor to apply these changes.</span>
@@ -460,7 +462,7 @@ function usePublish(auth: RunAuth) {
         const [doc, guideline] = await Promise.all([getDoc(sb, docId), getGuideline(sb, siteId).catch(() => null)]);
         setOpen({ docId, title: doc.title, html: brandTables(exportClean(docToHtml(doc.content)), guideline), brandId });
       } catch (e) {
-        setError(msgOf(e));
+        setError(errorText(e));
       } finally {
         setBusy(false);
       }
@@ -501,7 +503,7 @@ export function ReviseCard({ docId, title, edits, canEdit, refresh, auth }: { do
       setNote(`Applied ${count === 1 ? "the change" : `${count - out.missed.length} changes`}.${missed}${refresh ? " Publish it to send the refreshed page live." : ""}`);
       setState("done");
     } catch (e) {
-      setNote(msgOf(e));
+      setNote(errorText(e));
       setState("waiting");
     }
   }
@@ -588,7 +590,7 @@ export function ReviseCard({ docId, title, edits, canEdit, refresh, auth }: { do
               Open in Drafts
             </button>
             <span className="text-[13px] text-pos">{note}</span>
-            {pub.error ? <span className="text-[13px] text-neg">{pub.error}</span> : null}
+            {pub.error ? <span className="text-[13px] text-neg">{errorText(pub.error)}</span> : null}
             {pub.panel}
           </>
         ) : state === "done" || state === "dismissed" ? (

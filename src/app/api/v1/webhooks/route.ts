@@ -1,5 +1,6 @@
 import { apiAuth } from "@/lib/integrations";
 import { EVENTS } from "@/lib/integrationTypes";
+import { errorResponse } from "@/lib/errorsServer";
 
 // Webhook subscriptions (Zapier REST hooks). POST { url, event } to subscribe; DELETE /api/v1/webhooks/{id} to stop.
 export async function GET(request: Request) {
@@ -21,6 +22,6 @@ export async function POST(request: Request) {
   if ((count ?? 0) >= 50) return Response.json({ error: "A workspace can have up to 50 webhooks." }, { status: 400 });
   const source = /zapier\.com/.test(url) ? "zapier" : "api";
   const { data, error } = await a.db.from("webhooks").insert({ workspace_id: a.ws, url, event, source }).select("id, url, event, created_at").single();
-  if (error) return Response.json({ error: error.message }, { status: 500 });
+  if (error) return errorResponse(error, "api/v1/webhooks");
   return Response.json(data, { status: 201 });
 }

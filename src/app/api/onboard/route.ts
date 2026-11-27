@@ -5,6 +5,7 @@ import { take } from "@/lib/entitlements";
 import { TASK_COST } from "@/lib/plans";
 import { fetchSitePages, logoFor, normalizeSite } from "@/lib/site";
 import { meteredRoute } from "@/lib/meter";
+import { errorResponse } from "@/lib/errorsServer";
 
 // Onboarding: research the brand, then return it with its 5 BOFU topics.
 async function handle(request: Request) {
@@ -41,9 +42,7 @@ async function handle(request: Request) {
       topics,
     });
   } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    console.error("Onboarding research failed:", message);
-    return Response.json({ error: message }, { status: 500 });
+    return errorResponse(e, "api/onboard");
   }
 }
 

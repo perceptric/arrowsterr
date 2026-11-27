@@ -4,6 +4,7 @@ import { meteredRoute, streamed } from "@/lib/meter";
 import { TASK_COST } from "@/lib/plans";
 import { requireRole, takeAnswer } from "@/lib/serverAuth";
 import { normalizeSite } from "@/lib/site";
+import { errorResponse, report } from "@/lib/errorsServer";
 
 // Learn a Brand Kit from a website and save it (docs/reports.md, section 31). Every plan has a Brand Kit.
 //   { website, brandId? }  brandId learns a client brand's kit; without it, the workspace's own.
@@ -17,7 +18,7 @@ async function handle(request: Request) {
   if (body.action === "confirm") {
     const key = typeof body.brandId === "string" && body.brandId ? body.brandId : "workspace";
     const { error } = await auth.sb.from("brand_kits").update({ confirmed_at: new Date().toISOString() }).eq("workspace_id", body.workspaceId).eq("key", key);
-    return error ? Response.json({ error: error.message }, { status: 500 }) : Response.json({ ok: true });
+    return error ? errorResponse(error, "api/brand-kit") : Response.json({ ok: true });
   }
   if (!process.env.ANTHROPIC_API_KEY) return Response.json({ error: "ANTHROPIC_API_KEY is not set on the server." }, { status: 500 });
   const site = normalizeSite(String(body.website ?? ""));
@@ -48,9 +49,8 @@ async function handle(request: Request) {
       return true;
     })
     .catch((e) => {
-      const message = e instanceof Error ? e.message : String(e);
-      console.error("Brand Kit failed:", message);
-      line({ part: "error", error: message });
+      const r = report(e, "api/brand-kit");
+      line({ part: "error", error: r.error, ref: r.ref });
       return false;
     })
     .finally(() => writer.close().catch(() => {}));

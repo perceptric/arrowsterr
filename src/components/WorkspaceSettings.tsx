@@ -5,8 +5,9 @@ import { useEffect, useMemo, useState } from "react";
 import { Dropdown } from "./Pickers";
 import { recordUndo } from "@/lib/undo";
 import { atLeast, getWorkspaceSettings, saveWorkspaceSettings, type AiSettings, type PlanUsage, type Workspace, type WorkspaceSettings } from "@/lib/db";
+import { errorText } from "@/lib/errors";
+import { ErrorNote } from "./ui";
 
-const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 const NOT_RUN = "These settings turn on once supabase/034_settings.sql has been run in Supabase → SQL Editor.";
 /** Shared email services. A workspace can't let everyone at one of these in. */
 const SHARED_EMAIL = new Set([
@@ -50,7 +51,7 @@ function useSettings(sb: SupabaseClient, ws: Workspace) {
 }
 
 function Status({ error, saved }: { error: string; saved: string }) {
-  if (error) return <p className="aw-error">{error}</p>;
+  if (error) return <ErrorNote error={error} />;
   if (saved) return <p className="aw-callout text-[15px]!">{saved}</p>;
   return null;
 }
@@ -78,7 +79,7 @@ export function TimezoneSetting({ sb, ws }: { sb: SupabaseClient; ws: Workspace 
         redo: () => save(next, was),
       });
     } catch (e) {
-      setError(message(e));
+      setError(errorText(e));
     }
   }
 
@@ -109,7 +110,7 @@ export function TimezoneSetting({ sb, ws }: { sb: SupabaseClient; ws: Workspace 
           <p className="aw-small">Used for dates in Background actions and exports.</p>
         </>
       )}
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
     </section>
   );
 }
@@ -172,7 +173,7 @@ export function AiSettingsPage({ sb, ws }: { sb: SupabaseClient; ws: Workspace }
         redo: () => save(next, was, "AI notes saved."),
       });
     } catch (e) {
-      setError(message(e));
+      setError(errorText(e));
     } finally {
       setBusy(false);
     }
@@ -265,7 +266,7 @@ export function AccessSettings({ sb, ws, email }: { sb: SupabaseClient; ws: Work
           redo: () => save(patch, note),
         });
     } catch (e) {
-      setError(message(e));
+      setError(errorText(e));
     } finally {
       setBusy(false);
     }

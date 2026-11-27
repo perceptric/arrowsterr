@@ -1,5 +1,6 @@
 import { OAUTH_CORS, oauthError, redirectOk, token } from "@/lib/oauth";
 import { adminClient } from "@/lib/serverAuth";
+import { report } from "@/lib/errorsServer";
 
 // Dynamic client registration (RFC 7591): an AI app tells us its name and where to send people back.
 export async function POST(request: Request) {
@@ -11,7 +12,7 @@ export async function POST(request: Request) {
   const name = typeof body.client_name === "string" && body.client_name.trim() ? body.client_name.trim().slice(0, 80) : "An AI app";
   const id = `awc_${token(18)}`;
   const { error } = await db.from("oauth_clients").insert({ id, name, redirect_uris: uris });
-  if (error) return oauthError("server_error", error.message + (/oauth_clients/.test(error.message) ? " Run supabase/032_oauth.sql in Supabase." : ""), 500);
+  if (error) return oauthError("server_error", report(error, "api/oauth/register").error, 500);
   return Response.json(
     {
       client_id: id,

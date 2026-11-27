@@ -10,8 +10,9 @@ import { getDocMeta } from "@/lib/db";
 import type { RunAuth } from "@/lib/runner";
 import type { DocPublishMeta } from "@/lib/writerAgent";
 import { ConnectWizard } from "../ConnectWizard";
-import { SidePanel, Thinking } from "../ui";
+import { ErrorNote, SidePanel, Thinking } from "../ui";
 import { post } from "./shared";
+import { errorText } from "@/lib/errors";
 
 const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -82,7 +83,7 @@ export function PublishPanel({ sb, auth, docId, brandId, title, html, onClose }:
       if (r.setup) setSetup(r.setup);
       setPubs(r.publications);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     } finally {
       setSyncing(false);
     }
@@ -93,7 +94,7 @@ export function PublishPanel({ sb, auth, docId, brandId, title, html, onClose }:
     void reload; // a site connected from here loads the list again
     // Only the sites of the draft's own brand.
     Promise.all([
-      post<{ connections: CmsConnection[]; publications: Publication[]; defaults: Defaults; setup?: string }>(auth, "/api/cms", { action: "publish_info", docId }).catch((e) => ({ connections: [] as CmsConnection[], publications: [] as Publication[], defaults: {}, setup: e instanceof Error ? e.message : String(e) })),
+      post<{ connections: CmsConnection[]; publications: Publication[]; defaults: Defaults; setup?: string }>(auth, "/api/cms", { action: "publish_info", docId }).catch((e) => ({ connections: [] as CmsConnection[], publications: [] as Publication[], defaults: {}, setup: errorText(e) })),
       getDocMeta(sb, docId),
     ]).then(([c, m]) => {
       if (!on) return;
@@ -129,7 +130,7 @@ export function PublishPanel({ sb, auth, docId, brandId, title, html, onClose }:
     let on = true;
     post<Site>(auth, "/api/cms", { action: "wp_site", docId, connectionId: to })
       .then((s) => on && setSiteFor({ id: to, site: s }))
-      .catch((e) => on && setSiteFor({ id: to, error: e instanceof Error ? e.message : String(e) }));
+      .catch((e) => on && setSiteFor({ id: to, error: errorText(e) }));
     return () => {
       on = false;
     };
@@ -202,7 +203,7 @@ export function PublishPanel({ sb, auth, docId, brandId, title, html, onClose }:
       if (p) setPubs((l) => [...l.filter((x) => x.connectionId !== to), p]);
       setMeta((m) => ({ ...(m ?? {}), published: [...(m?.published ?? []).filter((x) => x.connectionId !== to), r.published] }));
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
       if (wp) void sync();
     } finally {
       setBusy(false);
@@ -287,7 +288,7 @@ export function PublishPanel({ sb, auth, docId, brandId, title, html, onClose }:
                 </a>
               ) : null}
               {pub.syncedAt ? <span className="text-[12px] text-muted">Synced {when(pub.syncedAt)}</span> : null}
-              {pub.syncError ? <p className="aw-error">{pub.syncError}</p> : null}
+              {pub.syncError ? <ErrorNote error={pub.syncError} /> : null}
             </div>
           ) : null}
 
@@ -337,7 +338,7 @@ export function PublishPanel({ sb, auth, docId, brandId, title, html, onClose }:
             </>
           ) : null}
           {field("schema", "Schema (JSON-LD)", f.schema ? "Added to the post" : "Optional", true)}
-          {siteError ? <p className="aw-error">{siteError}</p> : null}
+          {siteError ? <ErrorNote error={siteError} /> : null}
           {wp && site && hasModules && !site.plugin?.current ? (
             <div className="aw-callout flex flex-col gap-2 text-[13px]">
               <span>{site.plugin ? `Arrowsterr Connector ${site.plugin.version} is out of date.` : "Arrowsterr Connector is not installed."} Modules publish at a fixed height without version 1.1.</span>
@@ -368,11 +369,9 @@ export function PublishPanel({ sb, auth, docId, brandId, title, html, onClose }:
               </button>
             </div>
           ) : null}
-          {error ? <p className="aw-error">{error}</p> : null}
+          {error ? <ErrorNote error={error} /> : null}
           {warnings.map((w) => (
-            <p key={w} className="aw-error">
-              {w}
-            </p>
+            <ErrorNote key={w} error={w} />
           ))}
           {done ? (
             <div className="aw-callout flex flex-col gap-1">

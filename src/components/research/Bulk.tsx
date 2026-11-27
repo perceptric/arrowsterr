@@ -13,9 +13,10 @@ import { domainHref, keywordHref, plainClick, setUrl, urlParams } from "@/lib/re
 import { useStash } from "@/lib/stash";
 import { BrandLogo } from "../BrandLogo";
 import { Sheet } from "../Sheet";
-import { BusyButton, CalendarIcon, favicon, Thinking } from "../ui";
+import { BusyButton, CalendarIcon, ErrorNote, favicon, Thinking } from "../ui";
 import { flag, KdDot, short } from "./KeywordOverview";
 import { BAR_BUTTON, BAR_FIELD, downloadCsv, fmtCpc, post, Sparkline } from "./shared";
+import { errorText } from "@/lib/errors";
 
 const HEADER = /^(keywords?|domains?|urls?|sites?|websites?|pages?|query|queries|term|terms)$/i;
 
@@ -229,7 +230,7 @@ export function BulkKeywords({ sb, auth, site, canEdit, onResearch }: { sb: Supa
       setUrl({ mode: "bulk", bulk: r.id }, true);
       saved.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     } finally {
       setBusy("");
     }
@@ -246,7 +247,7 @@ export function BulkKeywords({ sb, auth, site, canEdit, onResearch }: { sb: Supa
       setNotice(`${n} added to the Content Plan.${n < rows.length ? ` ${rows.length - n} were already in it.` : ""}`);
       setPicked(new Set());
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     }
   }
 
@@ -280,7 +281,7 @@ export function BulkKeywords({ sb, auth, site, canEdit, onResearch }: { sb: Supa
         <RecentRuns runs={saved.recent} current={result?.id} noun="keywords" path="/keywords" onOpen={(id) => saved.open(id, true)} />
       </form>
 
-      {error || saved.error ? <p className="aw-error">{error || saved.error}</p> : null}
+      {error || saved.error ? <ErrorNote error={error || saved.error} /> : null}
       {notice ? <div className="aw-callout">{notice}</div> : null}
       {busy ? <Thinking text={busy} /> : null}
 
@@ -416,7 +417,7 @@ export function BulkDomains({ sb, auth, site, canEdit, onOpen }: { sb: SupabaseC
       setUrl({ mode: "bulk", bulk: r.id }, true);
       saved.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     } finally {
       setBusy("");
     }
@@ -447,7 +448,7 @@ export function BulkDomains({ sb, auth, site, canEdit, onOpen }: { sb: SupabaseC
         <RecentRuns runs={saved.recent} current={result?.id} noun="sites" path="/domain-research" onOpen={(id) => saved.open(id, true)} />
       </form>
 
-      {error || saved.error ? <p className="aw-error">{error || saved.error}</p> : null}
+      {error || saved.error ? <ErrorNote error={error || saved.error} /> : null}
       {busy ? <Thinking text={busy} /> : null}
 
       {!busy && result ? (

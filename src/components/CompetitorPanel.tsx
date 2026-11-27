@@ -11,7 +11,8 @@ import { siteNameOf, useSiteNames } from "./useSiteNames";
 import { EngineName } from "./Engines";
 import { flag, short } from "./research/KeywordOverview";
 import { post } from "./research/shared";
-import { Delta, favicon, Seg, guessDomain, pct, pos, RIVAL_COLOR, score, SidePanel, Thinking, Tip, TIPS, YOU_COLOR } from "./ui";
+import { Delta, ErrorNote, favicon, guessDomain, pct, pos, RIVAL_COLOR, score, Seg, SidePanel, Thinking, Tip, TIPS, YOU_COLOR } from "./ui";
+import { errorText } from "@/lib/errors";
 
 /** Side B of the battle card, and the competitor in its deep dive. */
 export const B_COLOR = RIVAL_COLOR;
@@ -137,7 +138,7 @@ export function CompetitorPanel({
     try {
       onReport(await post<DomainReport>(auth, "/api/research/domain", { domain, scope: "domain", country }));
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     } finally {
       setBusy(false);
     }
@@ -393,7 +394,7 @@ export function CompetitorPanel({
               </button>
             ) : null}
           </div>
-          {error ? <p className="aw-error m-5">{error}</p> : null}
+          {error ? <ErrorNote error={error} className="m-5" /> : null}
           {busy ? (
             <div className="p-5">
               <Thinking text={`Loading ${domain}`} />

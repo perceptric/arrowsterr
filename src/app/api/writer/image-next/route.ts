@@ -1,6 +1,7 @@
 import { allowed } from "@/lib/cronAuth";
 import { adminClient } from "@/lib/serverAuth";
 import { leaseNextImage } from "@/lib/writerImagesServer";
+import { errorResponse } from "@/lib/errorsServer";
 
 // The Fly worker asks for the next image a draft needs (docs/agentic-writing.md, section 5): a screenshot of a page
 // (url, and the frame page in html) or a drawn image (its page in html). Leased to that worker for 90 seconds.
@@ -15,6 +16,6 @@ export async function POST(request: Request) {
     const task = await leaseNextImage(db, worker);
     return Response.json(task ?? { idle: true });
   } catch (e) {
-    return Response.json({ error: e instanceof Error ? e.message : String(e) }, { status: 500 });
+    return errorResponse(e, "api/writer/image-next");
   }
 }

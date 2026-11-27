@@ -2,6 +2,7 @@ import { allowed } from "@/lib/cronAuth";
 import { finish } from "@/lib/jobs";
 import { isPdf, runningPdf } from "@/lib/pdfJobs";
 import { adminClient } from "@/lib/serverAuth";
+import { errorResponse } from "@/lib/errorsServer";
 
 // The PDF worker sends the finished file. It is kept in the private report-pdfs bucket (docs/reports.md, section 32).
 export const maxDuration = 60;
@@ -19,7 +20,7 @@ export async function POST(request: Request) {
   const fileId = String(job.payload.fileId);
   const filePath = `files/${job.workspace_id}/${fileId}.pdf`;
   const { error } = await db.storage.from("report-pdfs").upload(filePath, bytes, { contentType: "application/pdf", upsert: true });
-  if (error) return Response.json({ error: error.message }, { status: 500 });
+  if (error) return errorResponse(error, "api/pdf/done");
   await db.from("report_files").update({ status: "ready", pdf_path: filePath, error: null }).eq("id", fileId).eq("workspace_id", job.workspace_id);
   await db.from("jobs").update({ payload: { ...job.payload, path: filePath } }).eq("id", job.id);
   await finish(job.id);

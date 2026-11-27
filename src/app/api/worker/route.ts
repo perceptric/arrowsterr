@@ -8,6 +8,9 @@ import { sendWeekly } from "@/lib/notify";
 import { adminClient } from "@/lib/serverAuth";
 import { reportSend } from "@/lib/scheduleServer";
 import { apply, article_research, brief, check, clean_brands, link_check, perception, perception_probe, plan, play, rollup, schedule, writer_brief, writer_draft, wp_publish, cms_publish, shop_detect, shop_catalog_sync, shop_match, shop_lookup, shop_runs_post, shop_runs_collect, analytics_sync } from "@/lib/worker/handlers";
+import { errorResponse } from "@/lib/errorsServer";
+import { rawText } from "@/lib/errors";
+import { NOT_READY } from "@/lib/errors";
 
 // One worker tick. scripts/worker.mjs calls this over and over.
 // Each tick queues the scheduler for this 10-minute window, then claims a batch of jobs and runs them a few at a time.
@@ -31,7 +34,7 @@ export async function POST(request: Request) {
   if (!allowed(request)) return Response.json({ error: "Wrong or missing CRON_SECRET." }, { status: 401 });
   const db = adminClient();
   if (!db) return Response.json({ error: "Add SUPABASE_SECRET_KEY to the server's settings." }, { status: 500 });
-  if (!(await queueReady())) return Response.json({ error: "Run supabase/016_queue.sql in Supabase." }, { status: 500 });
+  if (!(await queueReady())) return Response.json({ error: NOT_READY }, { status: 500 });
 
   const url = new URL(request.url);
   const limit = Math.min(50, Math.max(1, Number(url.searchParams.get("limit")) || 20));
@@ -56,13 +59,13 @@ export async function POST(request: Request) {
         done[job.kind] = (done[job.kind] ?? 0) + 1;
       } catch (e) {
         failed++;
-        const message = e instanceof Error ? e.message : String(e);
+        const message = rawText(e); // kept raw on the job for the logs; the Jobs screen shows friendly words
         console.error(`Job ${job.id} (${job.kind}) failed:`, message);
         await retry(job.id, message, Math.min(3600, 30 * 2 ** job.attempts)).catch(() => {});
       }
     });
     return Response.json({ claimed: jobs.length, done, failed, idle: !jobs.length });
   } catch (e) {
-    return Response.json({ error: e instanceof Error ? e.message : String(e) }, { status: 500 });
+    return errorResponse(e, "api/worker");
   }
 }

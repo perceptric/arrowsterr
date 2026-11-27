@@ -16,11 +16,12 @@ import type { RunAuth } from "@/lib/runner";
 import { useStash } from "@/lib/stash";
 import { briefGuides, briefToDoc, type Guide } from "@/lib/writer";
 import type { BrandGuideline } from "@/lib/writerTypes";
-import { BusyButton, Thinking } from "../ui";
+import { BusyButton, ErrorNote, Thinking } from "../ui";
 import { Pop, useAnchoredPop } from "../Pickers";
 import { GuideRail, railSections, type RailSection } from "./CommentRail";
 import { Embed, exportClean, Note } from "./writerNodes";
 import { PublishPanel } from "./PublishPanel";
+import { errorText } from "@/lib/errors";
 
 const wi = (d: React.ReactNode) => (
   <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -72,8 +73,7 @@ export function Writer({ sb, auth, site, canEdit }: { sb: SupabaseClient; auth: 
       setDocs(list);
       setGuideline(await getGuideline(sb, site.id));
     } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
-      setError(/docs|guideline/.test(message) ? `${message}. Run supabase/010_writer.sql in Supabase → SQL Editor.` : message);
+      setError(errorText(e));
       setDocs([]);
     }
   }, [sb, site.id, setDocs, setGuideline]);
@@ -105,7 +105,7 @@ export function Writer({ sb, auth, site, canEdit }: { sb: SupabaseClient; auth: 
         setDoc(null);
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     }
   }
 
@@ -118,14 +118,14 @@ export function Writer({ sb, auth, site, canEdit }: { sb: SupabaseClient; auth: 
       setDocs([{ ...d }, ...docs!]);
       setOpenId(d.id);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     }
   }
 
   const open = doc && doc.id === openId ? doc : null;
   return (
     <div className="flex flex-col gap-4">
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
       <div className="flex flex-wrap items-center gap-2">
         <DraftMenu docs={docs} openId={openId} canEdit={canEdit} onOpen={setOpenId} onRemove={remove} onClose={() => setOpenId(null)} />
         {canEdit ? (
@@ -200,7 +200,7 @@ function FromCalendar({ sb, auth, site, canEdit, onBlank, onOpen }: { sb: Supaba
       if (i.status === "planned" || i.status === "brief") await updateCalendarItem(sb, i.id, { status: "writing" }).catch(() => {});
       onOpen(doc);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     }
   }
 
@@ -221,7 +221,7 @@ function FromCalendar({ sb, auth, site, canEdit, onBlank, onOpen }: { sb: Supaba
 
   return (
     <div className="flex flex-col gap-6">
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
       <section className="aw-frame flex flex-wrap items-center justify-between gap-4 p-8">
         <span className="flex flex-col gap-1">
           <h2 className="aw-h3">Start writing</h2>

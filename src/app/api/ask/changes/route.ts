@@ -3,6 +3,8 @@ import { requireWriter } from "@/lib/entitlements";
 import { enqueue, queueReady } from "@/lib/jobs";
 import { applySet, undoSet } from "@/lib/plays";
 import { adminClient, requireRole } from "@/lib/serverAuth";
+import { errorResponse } from "@/lib/errorsServer";
+import { NOT_READY } from "@/lib/errors";
 
 export const maxDuration = 300;
 
@@ -31,8 +33,8 @@ export async function POST(request: Request) {
       .eq("workspace_id", ws)
       .order("created_at", { ascending: false })
       .limit(50);
-    if (error && /change_sets/.test(error.message)) return Response.json({ sets: [], setup: "Run supabase/036_ask.sql in Supabase to turn on Zippie." });
-    if (error) return err(error.message, 500);
+    if (error && /change_sets/.test(error.message)) return Response.json({ sets: [], setup: NOT_READY });
+    if (error) return errorResponse(error, "api/ask/changes");
     return Response.json({ sets: data });
   }
 
@@ -42,7 +44,7 @@ export async function POST(request: Request) {
 
   if (body.action === "get") {
     const { data: changes, error } = await db.from("changes").select("id, target_type, target_id, url, label, field, before, after, note, status, error, applied_at").eq("change_set_id", set.id).order("id");
-    if (error) return err(error.message, 500);
+    if (error) return errorResponse(error, "api/ask/changes");
     return Response.json({ set, changes });
   }
 
@@ -52,7 +54,7 @@ export async function POST(request: Request) {
     for (const [list, status] of [[ids(body.approve), "approved"], [ids(body.reject), "rejected"]] as const) {
       if (!list.length) continue;
       const { error } = await db.from("changes").update({ status }).eq("change_set_id", set.id).in("status", ["proposed", "approved", "rejected", "failed"]).in("id", list);
-      if (error) return err(error.message, 500);
+      if (error) return errorResponse(error, "api/ask/changes");
     }
     return Response.json({ ok: true });
   }
@@ -80,7 +82,7 @@ export async function POST(request: Request) {
     const { count } = await db.from("changes").select("id", { count: "exact", head: true }).eq("change_set_id", set.id).eq("status", "applied");
     if (count) return err("Some of these changes are live. Undo them first.", 409);
     const { error } = await db.from("change_sets").delete().eq("id", set.id);
-    if (error) return err(error.message, 500);
+    if (error) return errorResponse(error, "api/ask/changes");
     return Response.json({ ok: true });
   }
 

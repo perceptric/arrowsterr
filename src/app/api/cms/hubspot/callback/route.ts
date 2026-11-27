@@ -2,6 +2,7 @@ import { oauthExchange, oauthReady, oauthSetup } from "@/lib/cmsTokens";
 import { readState, stateReady } from "@/lib/google";
 import { callbackBase, mayConnect, oauthAnswer, saveSite } from "@/lib/oauthAnswer";
 import { adminClient } from "@/lib/serverAuth";
+import { report } from "@/lib/errorsServer";
 
 // HubSpot sends people back here after they allow access. Save the account's blog with its tokens, then close.
 export async function GET(request: Request) {
@@ -22,6 +23,6 @@ export async function GET(request: Request) {
     await saveSite(db, state, "hubspot", name, config, (old) => old.blogId === config.blogId);
     return answer({ ok: true, check });
   } catch (e) {
-    return answer({ ok: false, reason: e instanceof Error ? e.message.slice(0, 200) : "Could not connect HubSpot." });
+    return answer({ ok: false, reason: report(e, "api/cms/hubspot/callback", "Couldn't connect HubSpot.").error });
   }
 }

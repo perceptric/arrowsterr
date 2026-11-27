@@ -1,5 +1,6 @@
 import { apiAuth } from "@/lib/integrations";
 import { brandById } from "@/lib/keyScope";
+import { errorResponse } from "@/lib/errorsServer";
 
 // A brand's Editorial Calendar.  ?brand_id=…
 export async function GET(request: Request) {
@@ -15,6 +16,6 @@ export async function GET(request: Request) {
     .select("id, keyword, stage, volume, difficulty, status, due_date, owner, url, action, brief_status")
     .eq("site_id", site.id)
     .order("due_date", { nullsFirst: false });
-  if (error) return Response.json({ error: error.message }, { status: 500 });
+  if (error) return errorResponse(error, "api/v1/calendar");
   return Response.json({ items: data });
 }

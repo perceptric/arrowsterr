@@ -4,7 +4,8 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import type { RunAuth } from "@/lib/runner";
 import type { Skill } from "@/lib/skills/format";
 import type { WritingPiece } from "@/lib/writingChats";
-import { msgOf, useApi, type Msg } from "./Cards";
+import { useApi, type Msg } from "./Cards";
+import { errorText, httpError } from "@/lib/errors";
 
 // Zippie's chat, shared by everything that shows it (docs/zippie-skills-plan.md): the chat bar on every page, the panel
 // that opens on the right and stays open from page to page, the Zippie page, and the Chats list in the sidebar. One
@@ -34,6 +35,8 @@ type Ctx = {
   panel: boolean;
   setPanel: (open: boolean) => void;
   send: (text: string, skillKey?: string | null, opts?: { here?: boolean }) => void;
+  /** Send the last message again, after it failed: the failed turn comes off the screen first. */
+  retry: () => void;
   openThread: (id: string) => void;
   newChat: () => void;
   stop: () => void;
@@ -94,7 +97,7 @@ export function ZippieProvider({ auth, canEdit, where, onZippiePage, children }:
   const reloadLib = useCallback(() => {
     api<Library>("/api/ask/library", { action: "list" })
       .then(setLib)
-      .catch((e) => setError(msgOf(e)));
+      .catch((e) => setError(errorText(e)));
   }, [api]);
   useEffect(() => {
     loadThreads();
@@ -125,7 +128,7 @@ export function ZippieProvider({ auth, canEdit, where, onZippiePage, children }:
         const r = await api<{ messages: Msg[] }>("/api/ask", { action: "thread", threadId: id });
         setMessages(r.messages);
       } catch (e) {
-        setError(msgOf(e));
+        setError(errorText(e));
       }
     },
     [api, loadThreads],
@@ -138,7 +141,7 @@ export function ZippieProvider({ auth, canEdit, where, onZippiePage, children }:
         setThreads((t) => t.filter((x) => x.id !== id));
         if (id === threadId) newChat();
       } catch (e) {
-        setError(msgOf(e));
+        setError(errorText(e));
       }
     },
     [api, threadId, newChat],
@@ -166,8 +169,7 @@ export function ZippieProvider({ auth, canEdit, where, onZippiePage, children }:
           body: JSON.stringify({ action: "send", workspaceId: auth.workspaceId, threadId, message, skill: skillKey, where: at && !onZippiePage ? at : at ? { brand: at.brand, page: at.page === "Writer" ? "Writer" : "Zippie" } : null }),
         });
         if (!res.ok || !res.body) {
-          const out = await res.json().catch(() => ({}));
-          throw new Error(out.error ?? `The server returned ${res.status}.`);
+          throw httpError(res.status, await res.json().catch(() => ({})));
         }
         const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
         let buf = "";
@@ -195,11 +197,11 @@ export function ZippieProvider({ auth, canEdit, where, onZippiePage, children }:
               // A writer tool just linked a piece to this chat: show it in Working on.
               loadThreads();
             }
-            else if (e.type === "error") setError(e.error);
+            else if (e.type === "error") setError(errorText(e));
           }
         }
       } catch (e) {
-        if (!ctrl.signal.aborted) setError(msgOf(e));
+        if (!ctrl.signal.aborted) setError(errorText(e));
       } finally {
         patch((m) => ({ ...m, working: undefined, text: m.text || (ctrl.signal.aborted ? "_Stopped._" : m.text) }));
         setBusy(false);
@@ -209,6 +211,13 @@ export function ZippieProvider({ auth, canEdit, where, onZippiePage, children }:
     },
     [auth, busy, here, lib.skills, loadThreads, onZippiePage, setPanel, threadId],
   );
+  const retry = useCallback(() => {
+    const at = messages.map((m) => m.role).lastIndexOf("user");
+    if (at < 0 || busy) return;
+    const last = messages[at];
+    setMessages((all) => all.slice(0, at));
+    send(last.text, lib.skills.find((s) => s.title === last.skill)?.key ?? null);
+  }, [busy, lib.skills, messages, send]);
 
   const value: Ctx = {
     auth,
@@ -225,6 +234,7 @@ export function ZippieProvider({ auth, canEdit, where, onZippiePage, children }:
     panel: panel && !onZippiePage,
     setPanel,
     send,
+    retry,
     openThread,
     newChat,
     stop: () => stopRef.current?.abort(),

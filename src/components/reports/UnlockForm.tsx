@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { errorText } from "@/lib/errors";
 
 /** The password form for a protected share link. */
 export function UnlockForm({ token }: { token: string }) {
@@ -23,7 +24,7 @@ export function UnlockForm({ token }: { token: string }) {
     <form onSubmit={submit} className="flex w-full max-w-sm flex-col gap-4 rounded-aw-lg border border-rule bg-surface p-6">
       <h1 className="text-lg font-semibold text-ink">This report has a password</h1>
       <input type="password" className="aw-input" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" autoFocus autoComplete="off" />
-      {error ? <p className="text-sm text-neg">{error}</p> : null}
+      {error ? <p className="text-sm text-neg">{errorText(error)}</p> : null}
       <button type="submit" className="aw-btn aw-btn--primary" disabled={busy || !password}>
         {busy ? "Opening…" : "Open report"}
       </button>

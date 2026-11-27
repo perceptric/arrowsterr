@@ -3,6 +3,7 @@ import { oauthExchange, oauthReady, oauthSetup } from "@/lib/cmsTokens";
 import { readState, stateReady } from "@/lib/google";
 import { callbackBase, mayConnect, oauthAnswer, saveSite } from "@/lib/oauthAnswer";
 import { adminClient } from "@/lib/serverAuth";
+import { report } from "@/lib/errorsServer";
 
 // Shopify sends people back here after they install the app on their store. The callback is checked twice: Shopify's
 // signature over its values, and our own signed state, which names the same store. Then the store and its blog are saved.
@@ -26,6 +27,6 @@ export async function GET(request: Request) {
     await saveSite(db, state, "shopify", name, config, (old) => old.shop === shop);
     return answer({ ok: true, check });
   } catch (e) {
-    return answer({ ok: false, reason: e instanceof Error ? e.message.slice(0, 200) : "Could not connect Shopify." });
+    return answer({ ok: false, reason: report(e, "api/cms/shopify/callback", "Couldn't connect Shopify.").error });
   }
 }

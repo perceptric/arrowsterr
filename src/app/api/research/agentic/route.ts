@@ -7,6 +7,7 @@ import { adminClient, requireRole, takeAnswer } from "@/lib/serverAuth";
 import { metered, meteredRoute } from "@/lib/meter";
 import { entitlement, requireContentPlan, requireTrack } from "@/lib/entitlements";
 import { enqueue, queueReady } from "@/lib/jobs";
+import { errorResponse } from "@/lib/errorsServer";
 
 const REFRESH_DAYS = 30; // paid plans can refresh the Content Plan once a month
 const TRIAL_PLAN_SIZE = 10; // Content Plan items on the free trial
@@ -21,7 +22,7 @@ async function handle(request: Request) {
   if (body.action === "stop") {
     // Stop a running plan: mark it stopped and drop its queued job. A worker still on it stops saving.
     const { error } = await auth.sb.from("keyword_runs").update({ status: "failed", error: "Stopped." }).eq("id", String(body.runId ?? "")).eq("workspace_id", body.workspaceId).eq("status", "running");
-    if (error) return Response.json({ error: error.message }, { status: 500 });
+    if (error) return errorResponse(error, "api/research/agentic");
     const db = adminClient();
     if (db && (await queueReady())) await db.from("jobs").update({ status: "dead", finished_at: new Date().toISOString(), last_error: "Stopped." }).eq("key", `plan:${body.runId}`).in("status", ["queued", "running"]);
     return Response.json({ ok: true });
@@ -42,7 +43,7 @@ async function handle(request: Request) {
     .eq("id", body.siteId)
     .eq("workspace_id", body.workspaceId)
     .maybeSingle();
-  if (error) return Response.json({ error: error.message + (/sites/.test(error.message) ? " Run supabase/006_research.sql in Supabase." : "") }, { status: 500 });
+  if (error) return errorResponse(error, "api/research/agentic");
   if (!site) return Response.json({ error: "Website not found." }, { status: 404 });
 
   const { data: done } = await auth.sb.from("keyword_runs").select("id, created_at").eq("site_id", site.id).eq("status", "done").order("created_at", { ascending: false }).limit(1);
@@ -66,7 +67,7 @@ async function handle(request: Request) {
     .insert({ workspace_id: body.workspaceId, site_id: site.id, step: "Starting" })
     .select("id")
     .single();
-  if (err || !run) return Response.json({ error: err?.message ?? "Could not start." }, { status: 500 });
+  if (err || !run) return errorResponse(err ?? new Error("Could not start."), "api/research/agentic");
 
   // Paid plans get the full-size plan, bottom of the funnel first. The trial gets a 10-item taste,
   // with no page updates on top, so the whole plan is 10 items.

@@ -15,8 +15,9 @@ import { BrandGuidelines } from "./BrandGuidelines";
 import { BrandKitPanel } from "./BrandKit";
 import { BrandVoiceSettings } from "./BrandVoice";
 import { WriterPersonaSettings } from "./WriterPersona";
-import { favicon, Thinking } from "./ui";
+import { ErrorNote, favicon, Thinking } from "./ui";
 import { ShoppingSwitch } from "./ShoppingPage";
+import { errorText, httpError } from "@/lib/errors";
 
 type BrandRef = { id: string; name: string; domain: string };
 
@@ -87,10 +88,10 @@ function BrandGoogle({ auth, brand }: { auth: RunAuth; brand: BrandRef }) {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${await auth.token()}` },
         body: JSON.stringify({ action: "status", workspaceId: auth.workspaceId, brandId: brand.id }),
       });
-      const data = await res.json().catch(() => ({ error: `The server returned ${res.status}.` }));
-      if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw httpError(res.status, data);
       if (live) setGa4((data as { ga4?: Ga4 | null }).ga4 ?? null);
-    })().catch((e) => live && setError(e instanceof Error ? e.message : String(e)));
+    })().catch((e) => live && setError(errorText(e)));
     return () => {
       live = false;
     };
@@ -98,7 +99,7 @@ function BrandGoogle({ auth, brand }: { auth: RunAuth; brand: BrandRef }) {
 
   return (
     <section className="flex max-w-2xl flex-col gap-3">
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
       {ga4 === undefined && !error ? (
         <Thinking text="Getting the brand settings..." />
       ) : (
@@ -144,7 +145,7 @@ function BrandAlerts({ auth, brand, isAdmin }: { auth: RunAuth; brand: BrandRef;
     () =>
       post<AlertState>(auth, "/api/integrations", { action: "brandGet", brandId: brand.id })
         .then(setS)
-        .catch((e) => setError(e instanceof Error ? e.message : String(e))),
+        .catch((e) => setError(errorText(e))),
     [auth, brand.id],
   );
   useEffect(() => {
@@ -161,20 +162,20 @@ function BrandAlerts({ auth, brand, isAdmin }: { auth: RunAuth; brand: BrandRef;
       setUrl("");
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     } finally {
       setBusy("");
     }
   }
 
-  if (!s) return error ? <p className="aw-error max-w-2xl">{error}</p> : <Thinking text="Getting the brand settings..." />;
+  if (!s) return error ? <ErrorNote error={error} className="max-w-2xl" /> : <Thinking text="Getting the brand settings..." />;
   const off = !s.allowed;
   const can = isAdmin && !off && !s.setup;
   return (
     <section className="flex max-w-2xl flex-col gap-4">
       {off ? <div className="aw-callout">Slack alerts are on Pro and up.</div> : null}
       {s.setup ? <div className="aw-callout">{s.setup}</div> : null}
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
       {notice ? <div className="aw-callout">{notice}</div> : null}
 
       <div className="aw-frame flex flex-col gap-3 p-5">

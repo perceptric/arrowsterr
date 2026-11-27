@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { cleanVoice, MAX_URLS, type BrandVoice, type VoiceRow } from "@/lib/brandVoice";
 import type { RunAuth } from "@/lib/runner";
 import { post } from "./research/shared";
-import { Thinking } from "./ui";
+import { ErrorNote, Thinking } from "./ui";
+import { errorText } from "@/lib/errors";
 
 type Form = { tone: string; sentences: string; use: string; avoid: string; naming: string; reader: string };
 const toForm = (v: BrandVoice): Form => ({ tone: v.tone.join(", "), sentences: v.sentences, use: v.use.join(", "), avoid: v.avoid.join(", "), naming: v.naming, reader: v.reader });
@@ -44,7 +45,7 @@ export function BrandVoiceSettings({ auth, brand, canEdit }: { auth: RunAuth; br
       .catch((e) => {
         if (!live) return;
         setRow(null);
-        setError(e instanceof Error ? e.message : String(e));
+        setError(errorText(e));
       });
     return () => {
       live = false;
@@ -62,7 +63,7 @@ export function BrandVoiceSettings({ auth, brand, canEdit }: { auth: RunAuth; br
       setSkipped(r.skipped);
       setFresh(true);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     } finally {
       setBusy("");
     }
@@ -78,7 +79,7 @@ export function BrandVoiceSettings({ auth, brand, canEdit }: { auth: RunAuth; br
       setFresh(false);
       setSaved(true);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     } finally {
       setBusy("");
     }
@@ -90,7 +91,7 @@ export function BrandVoiceSettings({ auth, brand, canEdit }: { auth: RunAuth; br
     <section className="flex max-w-2xl flex-col gap-5">
       <p className="text-[13px] text-muted">How {brand.name} writes. Every article is written from it.</p>
       {setup ? <div className="aw-callout">{setup}</div> : null}
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
 
       <div className="aw-frame flex flex-col gap-4 p-5">
         <label className="flex flex-col gap-1.5">
@@ -110,7 +111,7 @@ export function BrandVoiceSettings({ auth, brand, canEdit }: { auth: RunAuth; br
           <ul className="flex flex-col gap-1 text-[12px] text-muted">
             {skipped.map((s) => (
               <li key={s.url}>
-                Skipped {s.url}: {s.error}
+                Skipped {s.url}: {errorText(s.error)}
               </li>
             ))}
           </ul>

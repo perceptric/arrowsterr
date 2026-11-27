@@ -4,9 +4,10 @@ import { TASK_COST } from "@/lib/plans";
 import { adminClient, requireRole, takeAnswer } from "@/lib/serverAuth";
 import { cleanPersona, cleanStats } from "@/lib/writerPersona";
 import { buildPersona, savePersona } from "@/lib/writerPersonaServer";
+import { errorResponse } from "@/lib/errorsServer";
+import { NOT_READY } from "@/lib/errors";
 
 const err = (error: string, status = 400) => Response.json({ error }, { status });
-const SETUP = "Run supabase/087_writer_persona.sql first.";
 
 // The writer persona (docs/zippie-skills-plan.md, section 4).
 //   build: { domain, name, urls?, text? }            editors: read the site and build the persona. Nothing is saved yet,
@@ -37,9 +38,7 @@ async function handle(request: Request) {
     try {
       return Response.json(await buildPersona({ name, domain }, { urls, text }));
     } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
-      console.error("Writer persona failed:", message);
-      return err(message, 502);
+      return errorResponse(e, "api/writer-persona", { status: 502 });
     }
   }
 
@@ -48,8 +47,8 @@ async function handle(request: Request) {
 
   if (body.action === "get") {
     const { data, error } = await auth.sb.from("brand_voices").select("persona, persona_stats, persona_at").eq("brand_id", brand.id).maybeSingle();
-    if (error && /persona/.test(error.message)) return Response.json({ persona: null, setup: SETUP });
-    if (error) return err(error.message, 500);
+    if (error && /persona/.test(error.message)) return Response.json({ persona: null, setup: NOT_READY });
+    if (error) return errorResponse(error, "api/writer-persona");
     const row = data as { persona: unknown; persona_stats: unknown; persona_at: string | null } | null;
     return Response.json({ persona: row?.persona ? cleanPersona(row.persona, null) : null, stats: cleanStats(row?.persona_stats), at: row?.persona_at ?? null });
   }
@@ -64,7 +63,7 @@ async function handle(request: Request) {
       const out = await savePersona(auth.sb, admin, brand as { id: string; workspace_id: string; name: string }, { persona, stats: cleanStats(body.stats), postText: String(body.postText ?? "") }, who.user?.id ?? null);
       return Response.json({ ok: true, ...out });
     } catch (e) {
-      return err(e instanceof Error ? e.message : String(e), 500);
+      return errorResponse(e, "api/writer-persona");
     }
   }
 

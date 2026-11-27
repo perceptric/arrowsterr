@@ -9,9 +9,10 @@ import type { RunAuth } from "@/lib/runner";
 import { MAX_MONTHDAY, recipientList, WEEKDAYS, whenLine, type Cadence } from "@/lib/schedules";
 import { Dropdown } from "../Pickers";
 import { EmptyScreen } from "../Drawing";
-import { Seg, Thinking } from "../ui";
+import { ErrorNote, Seg, Thinking } from "../ui";
 import { Confirm, Modal } from "./Dialog";
-import { errText, openFile, post } from "./reportApi";
+import { openFile, post } from "./reportApi";
+import { errorText } from "@/lib/errors";
 
 // Reports → Schedules (docs/reports.md, section 32.4): a brand's pages emailed weekly or monthly as PDFs, one email
 // per send. Editors add, change, pause and delete; everyone sees the history. Research pages are download-only.
@@ -69,7 +70,7 @@ export function SchedulesTab({
 
   const load = useCallback(async () => {
     const { data, error: e } = await sb.from("report_schedules").select(COLS).eq("workspace_id", auth.workspaceId).order("created_at");
-    if (e) setError(/report_schedules/.test(e.message) ? "Run supabase/046_report_files.sql in Supabase." : e.message);
+    if (e) setError(errorText(e));
     else setList((data ?? []) as Schedule[]);
   }, [sb, auth.workspaceId]);
   useEffect(() => {
@@ -79,7 +80,7 @@ export function SchedulesTab({
   }, [load]);
 
   const fail = (e: unknown) => {
-    setError(errText(e));
+    setError(errorText(e));
     setLimitHit(Boolean((e as { limit?: boolean }).limit));
   };
 
@@ -109,7 +110,7 @@ export function SchedulesTab({
     }
   }
 
-  if (!list) return error ? <p className="aw-error max-w-2xl">{error}</p> : <Thinking text="Loading your schedules..." />;
+  if (!list) return error ? <ErrorNote error={error} className="max-w-2xl" /> : <Thinking text="Loading your schedules..." />;
   const max = limits?.schedules ?? 0;
   const brandName = (id: string) => brands.find((b) => b.id === id)?.name ?? "–";
   const pageTitle = (p: string) => AI_PAGES.find((x) => x.id === p)?.title ?? p;
@@ -129,7 +130,7 @@ export function SchedulesTab({
     <>
       {error ? (
         <div className="flex flex-wrap items-center gap-3">
-          <p className="aw-error">{error}</p>
+          <ErrorNote error={error} />
           {limitHit ? upgrade : null}
         </div>
       ) : null}
@@ -268,7 +269,7 @@ function Editor({
       const { schedule: s } = await post<{ schedule: Schedule }>(auth, "/api/schedules", { id: start?.id, schedule });
       onSaved(s);
     } catch (e) {
-      setError({ text: errText(e), limit: Boolean((e as { limit?: boolean }).limit) });
+      setError({ text: errorText(e), limit: Boolean((e as { limit?: boolean }).limit) });
     } finally {
       setBusy(false);
     }
@@ -341,7 +342,7 @@ function Editor({
       {label("Subject", <input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder={`${brands.find((b) => b.id === brandId)?.name ?? "Brand"}: ${name || (cadence === "weekly" ? "Weekly report" : "Monthly report")}`} maxLength={200} className="aw-input w-full" />)}
       {error ? (
         <div className="flex flex-wrap items-center gap-3">
-          <p className="aw-error">{error.text}</p>
+          <ErrorNote error={error.text} />
           {error.limit ? (
             <button type="button" className="aw-btn aw-btn--primary aw-btn--sm" onClick={onUpgrade}>
               Upgrade
@@ -377,7 +378,7 @@ function History({ sb, auth, schedule, onClose }: { sb: SupabaseClient; auth: Ru
       .limit(30)
       .then(({ data, error: e }) => {
         if (!live) return;
-        if (e) setError(e.message);
+        if (e) setError(errorText(e));
         else setSends((data ?? []) as Send[]);
       });
     return () => {
@@ -392,7 +393,7 @@ function History({ sb, auth, schedule, onClose }: { sb: SupabaseClient; auth: Ru
       const why = await openFile(auth, fileId);
       if (why) setError(why);
     } catch (e) {
-      setError(errText(e));
+      setError(errorText(e));
     } finally {
       setBusy("");
     }
@@ -400,7 +401,7 @@ function History({ sb, auth, schedule, onClose }: { sb: SupabaseClient; auth: Ru
 
   return (
     <Modal title={schedule.name} onClose={onClose} width="max-w-2xl">
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
       {!sends ? (
         error ? null : <Thinking text="Loading the history..." />
       ) : !sends.length ? (
@@ -424,13 +425,13 @@ function History({ sb, auth, schedule, onClose }: { sb: SupabaseClient; auth: Ru
                     {s.status === "sent" ? (
                       <span className="aw-status aw-status--ranked">Sent</span>
                     ) : s.status === "failed" ? (
-                      <span className="aw-status aw-status--missed" title={s.error ?? undefined}>
+                      <span className="aw-status aw-status--missed" title={s.error ? errorText(s.error) : undefined}>
                         Failed
                       </span>
                     ) : (
                       <span className="aw-status aw-status--pending">Sending</span>
                     )}
-                    {s.status === "failed" && s.error ? <span className="block text-[12px] text-muted">{s.error}</span> : null}
+                    {s.status === "failed" && s.error ? <span className="block text-[12px] text-muted">{errorText(s.error)}</span> : null}
                   </td>
                   <td className="whitespace-nowrap text-[13px]" title={s.recipients?.join(", ")}>
                     {s.recipients?.length ? (s.recipients.length === 1 ? s.recipients[0] : `${s.recipients.length} people`) : "–"}

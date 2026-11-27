@@ -3,6 +3,8 @@ import { dfsReady } from "@/lib/dataforseo";
 import { requireTrack } from "@/lib/entitlements";
 import { queueReady } from "@/lib/jobs";
 import { adminClient, requireRole } from "@/lib/serverAuth";
+import { errorResponse } from "@/lib/errorsServer";
+import { NOT_READY } from "@/lib/errors";
 
 // Research for one content plan item (docs/content-v2.md, steps 1 to 3), run on the job queue and the Fly worker.
 //   { workspaceId, itemId }  start it, or get the run already open or finished for the same keyword
@@ -16,7 +18,7 @@ export async function POST(request: Request) {
   if (!dfsReady()) return Response.json({ error: "DataForSEO is not set up. Add DFS_LOGIN and DFS_PASSWORD to the server's settings." }, { status: 500 });
   const db = adminClient();
   if (!db) return Response.json({ error: "Add SUPABASE_SECRET_KEY to the server's settings." }, { status: 500 });
-  if (!(await queueReady())) return Response.json({ error: "Run supabase/016_queue.sql in Supabase." }, { status: 500 });
+  if (!(await queueReady())) return Response.json({ error: NOT_READY }, { status: 500 });
 
   // Checked as the caller, so another workspace's item is not found.
   const { data: item } = await auth.sb.from("calendar_items").select("id").eq("id", String(body.itemId ?? "")).eq("workspace_id", body.workspaceId).maybeSingle();
@@ -26,6 +28,6 @@ export async function POST(request: Request) {
     const run = await startArticleResearch(db, { workspaceId: body.workspaceId, itemId: item.id, userId: me.user?.id ?? null });
     return Response.json({ ok: true, ...run });
   } catch (e) {
-    return Response.json({ error: e instanceof Error ? e.message : String(e) }, { status: 500 });
+    return errorResponse(e, "api/research/article");
   }
 }

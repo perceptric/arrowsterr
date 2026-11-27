@@ -1,6 +1,7 @@
-import { migrationHint, userIdOf } from "@/lib/reportServer";
+import { userIdOf } from "@/lib/reportServer";
 import { shareProblem, SHARE_MAX_BYTES } from "@/lib/shareSnapshot";
 import { adminClient, requireRole } from "@/lib/serverAuth";
+import { errorResponse } from "@/lib/errorsServer";
 
 // Share on Prompts and Competitors (docs/reports.md, section 32.7): freeze the page the browser sends into a
 // report_links row and return a private link anyone can open at /r/<token>. Editors only, on every plan.
@@ -27,7 +28,7 @@ export async function POST(request: Request) {
     .insert({ workspace_id: body.workspaceId, brand_id: brand.id, mode: "frozen", snapshot: body.data, created_by: await userIdOf(auth.sb, request) })
     .select("id, token")
     .single();
-  if (error) return Response.json({ error: migrationHint(error.message) }, { status: 500 });
+  if (error) return errorResponse(error, "api/reports/share");
   const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
   const origin = process.env.APP_URL?.trim().replace(/\/+$/, "") || (host ? `https://${host}` : "https://app.arrowsterr.com");
   const made = link as { id: string; token: string };

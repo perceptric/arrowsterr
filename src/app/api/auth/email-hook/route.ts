@@ -3,6 +3,7 @@ import { emailReady, sendBuilt } from "@/lib/email";
 import { appUrl } from "@/lib/emailKit";
 import { authEmail, securityNoticeEmail, type AuthKind } from "@/lib/emails";
 import { supabaseUrl } from "@/lib/serverAuth";
+import { report } from "@/lib/errorsServer";
 
 // Supabase's Send Email hook: Supabase calls this for every sign-in email, and Arrowsterr designs and sends it
 // through Resend. Turn it on in Supabase: Authentication, Hooks, Send Email, HTTPS, with this address and a
@@ -72,7 +73,7 @@ export async function POST(request: Request) {
       if (mail) await send(to, mail);
     }
   } catch (e) {
-    return fail(`Couldn't send the email: ${e instanceof Error ? e.message : String(e)}`, 500);
+    return fail(report(e, "api/auth/email-hook", "Couldn't send the email.").error, 500);
   }
   return Response.json({});
 }

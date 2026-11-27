@@ -15,6 +15,8 @@ import { openInLibrary } from "../writer/parts";
 import { useWriteActions, WriteButton } from "../writer/WriteButton";
 import type { WriterAccess } from "./shared";
 import { FIELD, fmtCpc, slugify, slugOf, STAGE_LABEL, STATUS_PICK, Tick } from "./shared";
+import { errorText } from "@/lib/errors";
+import { ErrorNote } from "../ui";
 
 const isoDay = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
@@ -79,7 +81,7 @@ export function KeywordDeepDive({
       wasMaking.current = now;
       setWs(next);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     }
   }, [sb, item.id, onRefresh]);
 
@@ -159,9 +161,9 @@ export function KeywordDeepDive({
           <WriteButton state={state} busy={actions.busy.has(item.id)} canEdit={canEdit} onAct={() => void actions.act(item, state)} onOpen={() => actions.open(item, state)} />
         </span>
       </header>
-      {error ? <p className="aw-error">{error}</p> : null}
-      {actions.error ? <p className="aw-error">{actions.error}</p> : null}
-      {brief?.status === "failed" && brief.error ? <p className="aw-error">{brief.error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
+      {actions.error ? <ErrorNote error={actions.error} /> : null}
+      {brief?.status === "failed" && brief.error ? <ErrorNote error={brief.error} /> : null}
       {actions.overlays}
 
       <Details item={item} site={site} members={members} features={features} canEdit={canEdit} onPatch={onPatch} />

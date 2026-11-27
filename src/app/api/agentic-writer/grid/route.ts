@@ -10,6 +10,8 @@ import { take } from "@/lib/entitlements";
 import { brandOf, generateSection } from "@/lib/gridServer";
 import { meteredRoute } from "@/lib/meter";
 import { TASK_COST } from "@/lib/plans";
+import { errorResponse } from "@/lib/errorsServer";
+import { NOT_READY } from "@/lib/errors";
 
 // The Library grid's actions (docs/content-grid.md).
 //   { action: "generate", itemIds }   Write drafts: research and outline each row, then its draft starts on its own
@@ -20,7 +22,6 @@ import { TASK_COST } from "@/lib/plans";
 //                                     The brand's voice, guidelines and kit are filled in first when missing.
 const ACTIONS = ["generate", "brand", "section"];
 const fail = (error: string, status: number) => Response.json({ error }, { status });
-const NOT_RUN = (m: string) => (/writer_/.test(m) ? "Run supabase/050_agentic_writer.sql in Supabase." : m);
 
 async function handle(request: Request) {
   const body = await request.json().catch(() => ({}));
@@ -44,14 +45,14 @@ async function handle(request: Request) {
   };
   const briefOf = async (itemId: string) => {
     const { data, error } = await auth.sb.from("writer_briefs").select("*").eq("item_id", itemId).eq("workspace_id", ws).maybeSingle();
-    if (error) throw new Error(NOT_RUN(error.message));
+    if (error) throw error;
     return data as BriefRow | null;
   };
 
   try {
     if (action === "generate") {
       if (!process.env.ANTHROPIC_API_KEY) return fail("ANTHROPIC_API_KEY is not set on the server.", 500);
-      if (!(await queueReady())) return fail("Run supabase/016_queue.sql in Supabase.", 500);
+      if (!(await queueReady())) return fail(NOT_READY, 500);
       const ids = (Array.isArray(body.itemIds) ? body.itemIds : []).map(String).slice(0, 50);
       if (!ids.length) return fail("Pick the rows to generate.", 400);
       const results: { itemId: string; ok: boolean; error?: string }[] = [];
@@ -100,7 +101,7 @@ async function handle(request: Request) {
     });
     return Response.json(out);
   } catch (err) {
-    return fail(err instanceof Error ? NOT_RUN(err.message) : String(err), 500);
+    return errorResponse(err, "api/agentic-writer/grid");
   }
 }
 

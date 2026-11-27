@@ -12,7 +12,7 @@ import { cleanRead, readSerp, research, vetPage, type Deps, type NewPage, type R
 // and the Fly worker's side of reading pages (/api/research/render-next and render-done).
 
 const must = <T>(r: { data: T; error: { message: string } | null }) => {
-  if (r.error) throw new Error(r.error.message + (/article_/.test(r.error.message) ? " Run supabase/049_article_research.sql in Supabase." : ""));
+  if (r.error) throw new Error(r.error.message);
   return r.data;
 };
 

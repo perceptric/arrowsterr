@@ -6,11 +6,12 @@ import { fileLine, PDF_PAGES } from "@/lib/pdf/pages";
 import type { ReportLimits } from "@/lib/plans";
 import type { RunAuth } from "@/lib/runner";
 import { EmptyScreen } from "../Drawing";
-import { Seg, Thinking } from "../ui";
+import { ErrorNote, Seg, Thinking } from "../ui";
 import { Confirm } from "./Dialog";
 import { LinksTab } from "./LinksTab";
-import { errText, openFile, post } from "./reportApi";
+import { openFile, post } from "./reportApi";
 import { SchedulesTab } from "./SchedulesTab";
+import { errorText } from "@/lib/errors";
 
 // Reports (docs/reports.md, section 32.4): every PDF made from a page's Download PDF or a schedule, newest first;
 // the schedules that email them; and the links shared from Prompts and Competitors.
@@ -72,7 +73,7 @@ function Downloads({ sb, auth, brands, canEdit }: { sb: SupabaseClient; auth: Ru
 
   const load = useCallback(async () => {
     const { data, error: e } = await sb.from("report_files").select(COLS).eq("workspace_id", auth.workspaceId).order("created_at", { ascending: false }).limit(200);
-    if (e) setError(/report_files/.test(e.message) ? "Run supabase/046_report_files.sql in Supabase." : e.message);
+    if (e) setError(errorText(e));
     else setFiles((data ?? []) as FileRow[]);
   }, [sb, auth.workspaceId]);
   useEffect(() => {
@@ -88,7 +89,7 @@ function Downloads({ sb, auth, brands, canEdit }: { sb: SupabaseClient; auth: Ru
       const why = await openFile(auth, f.id);
       if (why) setError(why);
     } catch (e) {
-      setError(errText(e));
+      setError(errorText(e));
     } finally {
       setBusy("");
     }
@@ -101,18 +102,18 @@ function Downloads({ sb, auth, brands, canEdit }: { sb: SupabaseClient; auth: Ru
       setFiles((x) => x?.filter((y) => y.id !== f.id) ?? null);
       setDeleting(null);
     } catch (e) {
-      setError(errText(e));
+      setError(errorText(e));
     } finally {
       setBusy("");
     }
   }
 
-  if (!files) return error ? <p className="aw-error max-w-2xl">{error}</p> : <Thinking text="Loading your reports..." />;
+  if (!files) return error ? <ErrorNote error={error} className="max-w-2xl" /> : <Thinking text="Loading your reports..." />;
   const brandName = (id: string | null) => brands.find((b) => b.id === id)?.name ?? "–";
 
   return (
     <>
-      {error ? <p className="aw-error">{error}</p> : null}
+      {error ? <ErrorNote error={error} /> : null}
       {!files.length ? (
         <EmptyScreen drawing="reports" title="Your reports land here" fill={false}>
           Download a PDF from any page and it shows up here.
@@ -148,7 +149,7 @@ function Downloads({ sb, auth, brands, canEdit }: { sb: SupabaseClient; auth: Ru
                           Download
                         </button>
                       ) : f.status === "failed" ? (
-                        <span className="aw-status aw-status--missed" title={f.error ?? undefined}>
+                        <span className="aw-status aw-status--missed" title={f.error ? errorText(f.error) : undefined}>
                           Failed
                         </span>
                       ) : (

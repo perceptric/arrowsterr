@@ -9,6 +9,7 @@ import { guideKey, type Guide } from "@/lib/writer";
 import { AGENT_TASKS, tasksFor, type AgentTask, type WriterAgentResult } from "@/lib/writerAgent";
 import { AiIcon } from "../ui";
 import { post } from "./shared";
+import { errorText } from "@/lib/errors";
 
 /** A heading of the draft and what sits under it. */
 export type RailSection = { pos: number; level: number; heading: string; text: string; subs: string[]; notes: string[] };
@@ -153,7 +154,7 @@ export function GuideRail({
       else if (out.task === "faq") await saveDocMeta(sb, docId, { ...(await getDocMeta(sb, docId)), schema: out.schema });
       setState((r) => ({ ...r, [key]: out }));
     } catch (e) {
-      setState((r) => ({ ...r, [key]: { error: e instanceof Error ? e.message : String(e) } }));
+      setState((r) => ({ ...r, [key]: { error: errorText(e) } }));
     }
   }
 
@@ -329,7 +330,7 @@ function GuideCard({
           The agent is working on this section...
         </span>
       ) : state && "error" in state ? (
-        <span className="text-[12px] text-neg">{state.error}</span>
+        <span className="text-[12px] text-neg">{errorText(state.error)}</span>
       ) : state ? (
         <div className="aw-guide__done">
           <span className="flex items-center gap-1.5">

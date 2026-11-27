@@ -7,6 +7,8 @@ import { keywordRunResult, listKeywordRuns, saveKeywordRunResult, type BankRow, 
 import { STAGES, type AgentResult } from "@/lib/research";
 import { useStash } from "@/lib/stash";
 import { StopButton } from "./shared";
+import { errorText } from "@/lib/errors";
+import { ErrorNote } from "../ui";
 
 const STEPS = [
   "Reading the sitemap",
@@ -111,7 +113,7 @@ export function PlanProgress({
       setRuns(await listKeywordRuns(sb, site.id));
       setNow(Date.now());
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
       setRuns([]);
     }
   }, [sb, site.id, setRuns]);
@@ -150,9 +152,9 @@ export function PlanProgress({
     }
   }, [runs, onRows, setRuns, sb]);
 
-  if (error) return <p className="aw-error">{error}</p>;
+  if (error) return <ErrorNote error={error} />;
   if (run && run.status === "failed" && run.error === "Stopped.") return null;
-  if (run && (run.status === "failed" || stale)) return <p className="aw-error">{stale ? "The last content plan stopped before it finished." : `Content plan failed: ${run.error ?? "unknown error"}`}</p>;
+  if (run && (run.status === "failed" || stale)) return <ErrorNote error={stale ? "The last content plan stopped before it finished." : `Content plan failed: ${run.error ?? "unknown error"}`} />;
   if (!running || !run) return null;
 
   const at = stepIndex(run.step);
@@ -172,7 +174,7 @@ export function PlanProgress({
                   try {
                     await onStop(run.id);
                   } catch (e) {
-                    setError(e instanceof Error ? e.message : String(e));
+                    setError(errorText(e));
                   }
                   load();
                 }}

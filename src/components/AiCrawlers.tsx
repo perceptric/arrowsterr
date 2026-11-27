@@ -4,7 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import type { BotKind, BotLine, PageLine } from "@/lib/aiCrawlers";
 import type { RunAuth } from "@/lib/runner";
 import { post } from "./research/shared";
-import { Card, StatStrip, Thinking } from "./ui";
+import { Card, ErrorNote, StatStrip, Thinking } from "./ui";
+import { errorText } from "@/lib/errors";
 
 // The AI crawler report on the Visitors page: which AI bots read the brand's site, how often, and which key
 // pages they skip. Data comes from /api/crawlers (Cloudflare first, then the WordPress connector plugin).
@@ -104,7 +105,7 @@ export function AiCrawlers({ auth, brand, days }: { auth: RunAuth; brand: { id: 
       try {
         setData(await post<Data>(auth, "/api/crawlers", { brandId: brand.id, days, fresh }));
       } catch (e) {
-        setError(e instanceof Error ? e.message : String(e));
+        setError(errorText(e));
       } finally {
         setBusy(false);
       }
@@ -127,7 +128,7 @@ export function AiCrawlers({ auth, brand, days }: { auth: RunAuth; brand: { id: 
     if (error)
       return (
         <Card title="AI crawlers" action={refresh}>
-          <p className="aw-error m-5">{error}</p>
+          <ErrorNote error={error} className="m-5" />
         </Card>
       );
     return <Thinking text="Checking which AI bots read your site..." />;
@@ -135,7 +136,7 @@ export function AiCrawlers({ auth, brand, days }: { auth: RunAuth; brand: { id: 
   if (!data.source)
     return (
       <Card title="AI crawlers" action={data.cloudflare.state !== "off" || data.wordpress.state !== "off" ? refresh : undefined}>
-        {error ? <p className="aw-error mx-5 mt-5">{error}</p> : null}
+        {error ? <ErrorNote error={error} className="mx-5 mt-5" /> : null}
         <Setup data={data} />
       </Card>
     );
@@ -156,7 +157,7 @@ export function AiCrawlers({ auth, brand, days }: { auth: RunAuth; brand: { id: 
             {data.days < days ? ` (your Cloudflare plan looks back ${data.days} days)` : ""}
           </span>
         </div>
-        {error ? <p className="aw-error">{error}</p> : null}
+        {error ? <ErrorNote error={error} /> : null}
 
         {!data.total ? (
           <div className="rounded-aw border border-rule-faint bg-surface-2 p-4">

@@ -10,7 +10,8 @@ import { Dropdown } from "./Pickers";
 import { Ga4Report } from "./analytics/Ga4Report";
 import { ga4Properties, GA4_LOGO, GSC_LOGO, propertyName, type Call, type Status } from "./analytics/google";
 import { GscReport } from "./analytics/GscReport";
-import { favicon, Seg, Thinking } from "./ui";
+import { ErrorNote, favicon, Seg, Thinking } from "./ui";
+import { errorText, httpError } from "@/lib/errors";
 
 // Visibility › Analytics: Search Console and Google Analytics 4 inside Arrowsterr, each as its own report read live
 // from Google (analytics/GscReport.tsx, analytics/Ga4Report.tsx). One Google sign-in, then pick the site and the GA4
@@ -56,13 +57,13 @@ export function AnalyticsPage({ view, auth, sb, canEdit }: { view: View; auth: R
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${await auth.token()}` },
         body: JSON.stringify({ ...body, workspaceId: auth.workspaceId, brandId: brand.id }),
       });
-      const data = await res.json().catch(() => ({ error: `The server returned ${res.status}.` }));
-      if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw httpError(res.status, data);
       return data;
     },
     [auth, brand.id],
   );
-  const load = useCallback(() => call("/api/seo-analytics", { action: "status" }).then((s) => setStatus(s as unknown as Status)).catch((e) => setError(e instanceof Error ? e.message : String(e))), [call]);
+  const load = useCallback(() => call("/api/seo-analytics", { action: "status" }).then((s) => setStatus(s as unknown as Status)).catch((e) => setError(errorText(e))), [call]);
   useEffect(() => {
     load();
   }, [load]);
@@ -92,7 +93,7 @@ export function AnalyticsPage({ view, auth, sb, canEdit }: { view: View; auth: R
   };
 
   const picked = Boolean(status?.connected && (status.gscProperty || status.ga4Property));
-  if (!status || !user) return error ? <p className="aw-error">{error}</p> : <Thinking text="Checking your Google connection..." />;
+  if (!status || !user) return error ? <ErrorNote error={error} onRetry={() => (setError(""), load())} /> : <Thinking text="Checking your Google connection..." />;
 
   const title = (
     <>
@@ -132,7 +133,7 @@ export function AnalyticsPage({ view, auth, sb, canEdit }: { view: View; auth: R
 
   return (
     <div className="flex flex-col gap-5">
-      {back?.get("ga4") === "error" ? <p className="aw-error">{back.get("reason") ?? "Could not connect Google."}</p> : null}
+      {back?.get("ga4") === "error" ? <ErrorNote error={back.get("reason") ?? "Could not connect Google."} /> : null}
       {!picked || setup || missing ? (
         <>
           {picked ? <div className="aw-rep-title">{title}</div> : null}
@@ -172,7 +173,7 @@ function Setup({ status, canEdit, call, brandName, onDone, onClose }: { status: 
       const d = await call("/api/google/connect", { back: "/analytics" });
       window.location.href = String(d.url);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
       setBusy(false);
     }
   }
@@ -204,7 +205,7 @@ function Setup({ status, canEdit, call, brandName, onDone, onClose }: { status: 
                 {busy ? "Opening Google..." : status.connected ? "Sign in again to add Search Console" : "Continue with Google"}
               </button>
             )}
-            {error ? <p className="aw-error">{error}</p> : null}
+            {error ? <ErrorNote error={error} /> : null}
           </div>
         }
       >
@@ -231,7 +232,7 @@ function Setup({ status, canEdit, call, brandName, onDone, onClose }: { status: 
             ) : null}
           </div>
           {canEdit ? <Picks status={status} call={call} onDone={onDone} /> : <p className="aw-small text-center">Ask an editor to pick the site and GA4 property.</p>}
-          {error ? <p className="aw-error">{error}</p> : null}
+          {error ? <ErrorNote error={error} /> : null}
           {onClose ? (
             <button type="button" className="aw-btn aw-btn--secondary self-center" onClick={onClose}>
               Back to the report
@@ -254,7 +255,7 @@ function Picks({ status, call, onDone }: { status: Status; call: Call; onDone: (
 
   useEffect(() => {
     let live = true;
-    const fail = (set: typeof setGsc) => (e: unknown) => live && set({ list: [], pick: "", error: e instanceof Error ? e.message : String(e) });
+    const fail = (set: typeof setGsc) => (e: unknown) => live && set({ list: [], pick: "", error: errorText(e) });
     call("/api/seo-analytics", { action: "sites" })
       .then((d) => {
         if (!live) return;
@@ -287,7 +288,7 @@ function Picks({ status, call, onDone }: { status: Status; call: Call; onDone: (
       if (gsc.pick === status.gscProperty && ga4.pick === status.ga4Property) await call("/api/seo-analytics", { action: "sync" });
       onDone();
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
       setBusy(false);
     }
   }
@@ -322,9 +323,7 @@ function Picks({ status, call, onDone }: { status: Status; call: Call; onDone: (
         {card("Google Analytics", GA4_LOGO, "Sessions, sign-ups and AI visits", ga4, setGa4, "No GA4 properties on this account.", "https://analytics.google.com/")}
       </div>
       {[gsc.error, ga4.error, error].filter(Boolean).map((m) => (
-        <p key={m} className="aw-error">
-          {m}
-        </p>
+        <ErrorNote key={m} error={m} />
       ))}
       <button type="button" className="aw-btn aw-btn--primary aw-btn--block" onClick={start} disabled={busy || !loaded || (!gsc.pick && !ga4.pick)}>
         {busy ? "Starting..." : "Start syncing"}

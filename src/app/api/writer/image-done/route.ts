@@ -1,6 +1,7 @@
 import { allowed } from "@/lib/cronAuth";
 import { adminClient } from "@/lib/serverAuth";
 import { failImage, saveImage } from "@/lib/writerImagesServer";
+import { errorResponse } from "@/lib/errorsServer";
 
 // The Fly worker sends the image it made: the PNG or JPEG bytes, with ?id, &worker, &w and &h.
 // Or, as JSON, why it could not: { error, final } (final for a page that blocked the bot or came back blank).
@@ -23,6 +24,6 @@ export async function POST(request: Request) {
     const out = await saveImage(db, worker, id, bytes, { width: Number(url.searchParams.get("w")) || 0, height: Number(url.searchParams.get("h")) || 0 });
     return Response.json(out, { status: out.ok ? 200 : 409 });
   } catch (e) {
-    return Response.json({ error: e instanceof Error ? e.message : String(e) }, { status: 500 });
+    return errorResponse(e, "api/writer/image-done");
   }
 }

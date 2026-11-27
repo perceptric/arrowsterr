@@ -3,6 +3,7 @@ import { reportLimits } from "@/lib/plans";
 import { userIdOf } from "@/lib/reportServer";
 import { cleanSchedule, nextRun, scheduleProblem, type When } from "@/lib/schedules";
 import { adminClient, requireRole } from "@/lib/serverAuth";
+import { errorResponse } from "@/lib/errorsServer";
 
 // Scheduled reports (docs/reports.md, section 32.4). Editors only; members read schedules and their sends directly.
 // The plan decides how many schedules may be on (Free 0, Starter 2, Pro 10, Agency unlimited).
@@ -18,7 +19,6 @@ export async function POST(request: Request) {
   const db = adminClient();
   if (!db) return Response.json({ error: "Add SUPABASE_SECRET_KEY to the server's settings." }, { status: 500 });
   const workspaceId = body.workspaceId as string;
-  const missing = (m: string) => (/report_schedules/.test(m) ? `${m} Run supabase/046_report_files.sql in Supabase.` : m);
   const ent = await entitlement(workspaceId);
   const limit = reportLimits(ent.plan).schedules;
   const id = typeof body.id === "string" && body.id ? body.id : null;
@@ -27,14 +27,14 @@ export async function POST(request: Request) {
     let q = db.from("report_schedules").select("id", { count: "exact", head: true }).eq("workspace_id", workspaceId).eq("active", true);
     if (id) q = q.neq("id", id);
     const { count, error } = await q;
-    if (error) throw new Error(missing(error.message));
+    if (error) throw error;
     return count ?? 0;
   };
 
   try {
     if (body.action === "delete") {
       const { error } = await db.from("report_schedules").delete().eq("id", id ?? "").eq("workspace_id", workspaceId);
-      return error ? Response.json({ error: missing(error.message) }, { status: 500 }) : Response.json({ ok: true });
+      return error ? errorResponse(error, "api/schedules") : Response.json({ ok: true });
     }
 
     if (body.action === "pause") {
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
       }
       const patch = { active, updated_at: new Date().toISOString(), ...(active ? { next_run_at: nextRun(data as When, Date.now()).toISOString() } : {}) };
       const { data: row, error } = await db.from("report_schedules").update(patch).eq("id", id!).select(COLS).single();
-      return error ? Response.json({ error: missing(error.message) }, { status: 500 }) : Response.json({ schedule: row });
+      return error ? errorResponse(error, "api/schedules") : Response.json({ schedule: row });
     }
 
     const clean = cleanSchedule(body.schedule, ent.limits.historyDays);
@@ -73,7 +73,7 @@ export async function POST(request: Request) {
     };
     if (id) {
       const { data: row, error } = await db.from("report_schedules").update(fields).eq("id", id).eq("workspace_id", workspaceId).select(COLS).maybeSingle();
-      if (error) return Response.json({ error: missing(error.message) }, { status: 500 });
+      if (error) return errorResponse(error, "api/schedules");
       return row ? Response.json({ schedule: row }) : Response.json({ error: "That schedule is gone." }, { status: 404 });
     }
     const problem = scheduleProblem(await activeOthers(), limit);
@@ -83,8 +83,8 @@ export async function POST(request: Request) {
       .insert({ ...fields, workspace_id: workspaceId, active: true, created_by: await userIdOf(auth.sb, request) })
       .select(COLS)
       .single();
-    return error ? Response.json({ error: missing(error.message) }, { status: 500 }) : Response.json({ schedule: row });
+    return error ? errorResponse(error, "api/schedules") : Response.json({ schedule: row });
   } catch (e) {
-    return Response.json({ error: e instanceof Error ? e.message : String(e) }, { status: 500 });
+    return errorResponse(e, "api/schedules");
   }
 }

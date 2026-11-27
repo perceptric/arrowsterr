@@ -16,6 +16,8 @@ import { I, Icon } from "./Cards";
 import { ZippieHome, type Suggestion } from "./Chat";
 import { RecentWriting } from "./WritingChats";
 import { useZippie } from "./ZippieContext";
+import { errorText } from "@/lib/errors";
+import { ErrorNote } from "../ui";
 
 const START: Suggestion[] = [
   { text: "Write today's top pick", skill: "system:write-article" },
@@ -91,7 +93,7 @@ function AutopilotDialog({ sb, site, brand, tz, userId, canEdit, onClose }: { sb
       putStash(`site:${brand.id}`, next);
       onClose();
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorText(e));
     } finally {
       setBusy(false);
     }
@@ -155,7 +157,7 @@ function AutopilotDialog({ sb, site, brand, tz, userId, canEdit, onClose }: { sb
           {next}{" "}
           {a.stop === "outline" || a.after === "keep" ? "Finished pieces wait in Drafts for you to publish." : a.after === "draft" ? "Finished drafts go to the brand's first connected site as unpublished drafts." : "Finished drafts go live on the brand's first connected site on their Calendar date (9:00 UTC), or right away when the date has passed."}
         </p>
-        {error ? <p className="aw-error">{error}</p> : null}
+        {error ? <ErrorNote error={error} /> : null}
         <div className="flex justify-end gap-2">
           <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={onClose}>
             Cancel
