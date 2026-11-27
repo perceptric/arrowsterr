@@ -1125,12 +1125,12 @@ const trackOf = (page: Page): Track | null =>
   ["prompts", "competitors", "domains", "urls", "shopping"].includes(page) ? "visibility" : ["keywords", "domain", "gap", "calendar", "writer", "library"].includes(page) ? "seo" : null;
 
 /** The big modules of the app. Each opens to its own pages. */
-const NAV: { group: string; icon: string; items: { id: Page; label: string; icon: string; also?: Page[]; badge?: string }[] }[] = [
+const NAV: { group: string; icon: string; items: { id: Page; label: string; icon: string; also?: Page[] }[] }[] = [
   {
     group: "Visibility",
     icon: "radar",
     items: [
-      { id: "traffic", label: "Analytics", icon: "trend", badge: "New" },
+      { id: "traffic", label: "Analytics", icon: "trend" },
       { id: "prompts", label: "Prompts", icon: "prompts" },
       { id: "competitors", label: "Competitors", icon: "competitors" },
       { id: "domains", label: "Sources", icon: "sources", also: ["urls"] },
@@ -1450,7 +1450,6 @@ function Sidebar({
               >
                 <NavIcon name={item.icon} />
                 <span className="aw-nav-label min-w-0">{item.label}</span>
-                {item.badge ? <span className="aw-badge ml-auto">{item.badge}</span> : null}
               </button>
             );
           };
