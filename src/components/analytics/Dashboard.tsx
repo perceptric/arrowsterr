@@ -713,7 +713,7 @@ function Ranks({ weeks }: { weeks: Record<RankBucket, number>[] }) {
   const page1 = last.top3 + last.top10;
   const since = has ? page1 - (weeks[first].top3 + weeks[first].top10) : 0;
   const ago = weeks.length - 1 - first;
-  const mx = Math.max(1, ...weeks.map(total)) * 1.05;
+  const mx = Math.max(10, ...weeks.map(total)) * 1.05;
   const step = W ? (W - 8) / weeks.length : 0;
   const bw = Math.max(4, step - 10);
   return (
