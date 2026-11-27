@@ -86,7 +86,7 @@ export function Ga4Connect({ status, canEdit, call, onDone, bare = false }: { st
 
 /** The GA4 properties the brand's Google sign-in can read, for PropertyPicker. */
 export const ga4Properties = async (call: (path: string, body: Record<string, unknown>) => Promise<Record<string, unknown>>) =>
-  ((await call("/api/ga4", { action: "properties" })).properties as { id: string; name: string; account: string }[]).map((p) => ({ id: p.id, label: `${p.name} · ${p.account}` }));
+  ((await call("/api/ga4", { action: "properties" })).properties as { id: string; name: string; account: string }[]).map((p) => ({ id: p.id, label: p.name, sub: p.account }));
 
 type Totals = { pageviews: number; visitors: number; visits: number; bounces: number; totaltime: number };
 type Row = { x: string; y: number };
