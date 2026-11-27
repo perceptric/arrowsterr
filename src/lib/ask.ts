@@ -3,6 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { after } from "next/server";
 import { claudeModel } from "./claude";
+import { withoutThinking } from "./claudeRequest";
 import { zippieApps, type ZippieApps } from "./composio";
 import { capsOf, EDITABLE, faqsIn, imagesWithoutAlt, linksIn, listItems } from "./cmsEdit";
 import type { CmsKind } from "./cmsTypes";
@@ -370,7 +371,7 @@ async function history(db: SupabaseClient, threadId: string): Promise<Anthropic.
   const { data } = await db.from("ask_messages").select("role, content").eq("thread_id", threadId).order("id", { ascending: false }).limit(40);
   const rows = ((data ?? []) as { role: "user" | "assistant"; content: Anthropic.MessageParam["content"] }[]).reverse();
   const start = rows.findIndex((r) => r.role === "user" && (typeof r.content === "string" || !(r.content as { type: string }[]).some((b) => b.type === "tool_result")));
-  return start < 0 ? [] : rows.slice(start).map((r) => ({ role: r.role, content: r.content }));
+  return start < 0 ? [] : withoutThinking(rows.slice(start).map((r): Anthropic.MessageParam => ({ role: r.role, content: r.content })));
 }
 
 async function save(ctx: AskCtx, role: "user" | "assistant", content: Anthropic.MessageParam["content"], text: string) {

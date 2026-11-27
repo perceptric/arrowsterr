@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { replyText, requestBody, thinkingFix, thinkingOffFor } from "../src/lib/claudeRequest.ts";
+import { replyText, requestBody, thinkingFix, thinkingOffFor, withoutThinking } from "../src/lib/claudeRequest.ts";
 
 test("a JSON request turns thinking off and keeps the schema, the cache marks and the token limit", () => {
   const b = requestBody("Write the brief.", { schema: { type: "object" }, prefix: "brand and research", system: "editor", maxTokens: 12000 }, "claude-sonnet-5-5");
@@ -51,4 +51,18 @@ test("each model starts with the thinking-off it takes, and Haiku's refusal of b
   assert.equal(thinkingFix(haiku, "disabled"), null);
   assert.equal(thinkingFix('"thinking.type.disabled" is not supported for this model.', "disabled"), "omit");
   assert.equal(thinkingFix('"thinking.type.disabled" is not supported for this model.', "omit"), null);
+});
+
+test("withoutThinking drops old thinking blocks so a changed system prompt can't break a chat", () => {
+  const turns = [
+    { role: "user" as const, content: "Suggest what to write" },
+    { role: "assistant" as const, content: [{ type: "thinking", thinking: "x", signature: "s" }, { type: "text", text: "Here are 5" }] },
+    { role: "assistant" as const, content: [{ type: "redacted_thinking", data: "d" }] },
+    { role: "user" as const, content: [{ type: "tool_result", tool_use_id: "t", content: "ok" }] },
+  ];
+  const out = withoutThinking(turns);
+  assert.deepEqual(out[1].content, [{ type: "text", text: "Here are 5" }]);
+  assert.deepEqual(out[2].content, [{ type: "text", text: "(no reply)" }]);
+  assert.equal(out[0], turns[0]);
+  assert.equal(out[3], turns[3]);
 });
