@@ -484,6 +484,7 @@ export function ReportTable<R extends { children?: R[] }>({ cols, rows, rowKey, 
     <td key={c.id} className={`${k ? "aw-num text-right" : ""} ${c.tone ?? ""}`}>
       {k === 0 ? (
         <span className={`aw-rep-name ${sub ? "is-sub" : ""}`}>
+          <span className="min-w-0">{c.show ? c.show(r) : (c.get(r) ?? "–")}</span>
           {r.children?.length ? (
             <button
               type="button"
@@ -492,10 +493,12 @@ export function ReportTable<R extends { children?: R[] }>({ cols, rows, rowKey, 
               aria-label={open.has(rowKey(r)) ? "Hide the rows under this one" : "Show the rows under this one"}
               onClick={() => setOpen((s) => (s.has(rowKey(r)) ? new Set([...s].filter((x) => x !== rowKey(r))) : new Set([...s, rowKey(r)])))}
             >
-              {open.has(rowKey(r)) ? "▾" : "▸"}
+              <span>{r.children.length}</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="m6 9 6 6 6-6" />
+              </svg>
             </button>
           ) : null}
-          <span className="min-w-0 flex-1">{c.show ? c.show(r) : (c.get(r) ?? "–")}</span>
           {action && !sub ? <span className="aw-rep-act">{action(r)}</span> : null}
         </span>
       ) : c.show ? (

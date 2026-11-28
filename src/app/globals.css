@@ -697,10 +697,17 @@ body { background: var(--v10-canvas); }
 .aw .aw-rep-tabbar > .aw-tabs { flex: 1 1 auto; width: auto; box-shadow: none; }
 .aw .aw-rep-tabbar__tools { display: flex; align-items: center; gap: 10px; padding-bottom: 4px; }
 .aw .aw-rep td.is-c1, .aw .aw-rep td.is-c2, .aw .aw-rep td.is-c3, .aw .aw-rep td.is-c4, .aw .aw-rep td.is-c5 { color: var(--c); }
-.aw .aw-rep-name { display: flex; align-items: flex-start; gap: 8px; min-width: 220px; overflow-wrap: anywhere; }
-.aw .aw-rep-name.is-sub { padding-left: 26px; color: var(--v10-ink-2); }
-.aw .aw-rep-open { flex: none; width: 18px; padding: 0; border: 0; background: none; color: var(--v10-muted); cursor: pointer; }
-.aw .aw-rep-act { flex: none; opacity: 0; transition: opacity var(--aw-fast) var(--aw-ease); }
+.aw .aw-rep-name { display: flex; align-items: center; gap: 8px; min-width: 220px; overflow-wrap: anywhere; }
+.aw .aw-rep-name.is-sub { padding-left: 14px; margin-left: 2px; box-shadow: inset 2px 0 0 var(--v10-border); color: var(--v10-ink-2); }
+.aw .aw-rep-open {
+  display: inline-flex; flex: none; align-items: center; gap: 3px; height: 20px; padding: 0 6px; border: 0; border-radius: var(--aw-r-pill); background: var(--v10-soft);
+  font-size: 11.5px; font-weight: 500; color: var(--v10-muted); cursor: pointer; transition: background-color var(--aw-fast) var(--aw-ease), color var(--aw-fast) var(--aw-ease);
+}
+.aw .aw-rep-open:hover { background: var(--v10-signal-soft); color: var(--v10-signal); }
+.aw .aw-rep-open svg { transition: transform var(--aw-fast) var(--aw-ease); }
+.aw .aw-rep-open[aria-expanded="true"] { background: var(--v10-signal-soft); color: var(--v10-signal); }
+.aw .aw-rep-open[aria-expanded="true"] svg { transform: rotate(180deg); }
+.aw .aw-rep-act { flex: none; margin-left: auto; opacity: 0; transition: opacity var(--aw-fast) var(--aw-ease); }
 .aw .aw-table tr:hover .aw-rep-act, .aw .aw-rep-act:focus-within { opacity: 1; }
 .aw .aw-rep-subrow > td { background: var(--v10-canvas); }
 .aw .aw-rep-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px 16px; padding: 12px 20px; border-top: 1px solid var(--v10-border); font-size: 13px; color: var(--v10-muted); }
