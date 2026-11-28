@@ -1621,7 +1621,9 @@ body { background: var(--v10-canvas); }
   transition: background 0.1s ease, border-color 0.1s ease, box-shadow 0.1s ease; min-height: 36px; padding: 0 var(--space-3); font-size: 14px;
   letter-spacing: -0.01em; background: var(--bg-primary); border: 1px solid var(--border-medium); border-radius: var(--aw-r-md);
 }
-.aw .aw-pop__list { max-height: 280px; overflow-y: auto; padding: 0 6px; display: flex; flex-direction: column; gap: var(--space-0_5); }
+.aw .aw-pop__list { max-height: 320px; overflow-y: auto; padding: 0 6px; display: flex; flex-direction: column; gap: var(--space-0_5); }
+.aw .aw-pop__group { padding: 8px 8px 2px; font-size: 12px; font-weight: 500; color: var(--v10-faint); }
+.aw .aw-pop__group:first-child { padding-top: 2px; }
 .aw .aw-pop__opt {
   justify-content: space-between; display: flex; align-items: center; gap: var(--space-2); width: 100%; min-height: 32px; margin: 0; padding: 0 var(--space-2);
   border: 0; background: transparent; font-weight: 400; color: var(--text-primary); text-align: left; cursor: pointer; transition: background 0.1s ease;
