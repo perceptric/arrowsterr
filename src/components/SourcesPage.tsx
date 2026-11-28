@@ -31,7 +31,7 @@ import { Markdown } from "./Markdown";
 import { PresencePanel } from "./PresencePanel";
 import { cleanAnswer } from "@/lib/answerText";
 import { homeOf, hostOf, isGenericTitle, nameFromTitle, siteName } from "@/lib/linkTitles";
-import { favicon, pct, Seg, SidePanel, SkeletonRows, sortRows, SortTh, Tip, TIPS, useSort } from "./ui";
+import { Chevron, favicon, pct, Seg, SidePanel, SkeletonRows, sortRows, SortTh, Tip, TIPS, useSort } from "./ui";
 
 export const TYPE_COLORS: Record<SourceType, string> = {
   You: "#0943B0",
@@ -256,7 +256,7 @@ export function SourcesPage({ sb, view, auth, reader, onSeo }: { sb: SupabaseCli
                             Analyze SEO
                           </button>
                           <span className="text-muted" aria-hidden="true">
-                            {isOpen ? "▴" : "▾"}
+                            <Chevron dir={isOpen ? "up" : "down"} />
                           </span>
                         </td>
                       </tr>
@@ -623,7 +623,7 @@ function LinkPanel({
                     <span className="flex flex-col gap-0.5">
                       <span className="flex items-start gap-2 text-[14px] text-ink">
                         <span aria-hidden="true" className="text-muted">
-                          {shown === p.prompt ? "▾" : "▸"}
+                          <Chevron dir={shown === p.prompt ? "down" : "right"} />
                         </span>
                         {p.prompt}
                       </span>

@@ -500,6 +500,29 @@ export function Glyph({ name, bare }: { name: GlyphName; bare?: boolean }) {
   return bare ? svg : <span className="aw-ico">{svg}</span>;
 }
 
+// ─────────────── chevrons and arrows ───────────────
+
+const CHEV = { down: "m6 9 6 6 6-6", up: "m6 15 6-6 6 6", right: "m9 6 6 6-6 6", left: "m15 6-6 6 6 6" } as const;
+const ARROW = { right: "M5 12h14M13 6l6 6-6 6", up: "M12 19V5M6 11l6-6 6 6", down: "M12 5v14M6 13l6 6 6-6" } as const;
+
+/** The one chevron for menus, pickers and rows that open: a thin line, never a solid triangle. */
+export function Chevron({ dir = "down", size = 14, className = "aw-chev" }: { dir?: keyof typeof CHEV; size?: number; className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={className}>
+      <path d={CHEV[dir]} />
+    </svg>
+  );
+}
+
+/** A thin arrow inside text, like a position moving from #4 to #11. */
+export function Arrow({ dir = "right", size = 12 }: { dir?: keyof typeof ARROW; size?: number }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="aw-arrow">
+      <path d={ARROW[dir]} />
+    </svg>
+  );
+}
+
 // ─────────────── button icons ───────────────
 
 const ICON = { width: 14, height: 14, viewBox: "0 0 16 16", "aria-hidden": true, className: "aw-icon shrink-0" } as const;

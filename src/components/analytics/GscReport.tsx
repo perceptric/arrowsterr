@@ -27,7 +27,7 @@ import type { RunAuth } from "@/lib/runner";
 import type { View } from "@/lib/view";
 import { BrandLogo } from "../BrandLogo";
 import { Modal } from "../reports/Dialog";
-import { ErrorNote, favicon, SkeletonRows, Thinking } from "../ui";
+import { Chevron, ErrorNote, favicon, SkeletonRows, Thinking } from "../ui";
 import { GA4_LOGO, propertyName, type Call, type Status } from "./google";
 import { AddFilter, ago, compact, FilterChips, GranPick, HeadTools, isoToday, LineChart, longKey, pathOf, shortKey, pinsAt, place, RangePicker, rate, ReportTable, Switch, TableTabs, Tiles, usePageActions, whole, type Col, type CsvRef, type Line, type Metric } from "./Report";
 import { ResearchPanel, type Researched } from "./ResearchPanel";
@@ -234,7 +234,7 @@ export function GscReport({ status, call, view, auth, sb, canEdit, title, onSetu
         />
         <span className="aw-rep-bar__sep" aria-hidden="true" />
         <button type="button" className="aw-ctl" aria-haspopup="dialog" onClick={() => setDialog(true)}>
-          Search type: {typeLabel} ▾
+          Search type: {typeLabel} <Chevron size={12} />
         </button>
         <AddFilter
           dims={GSC_DIMS.filter((d) => queries || (d.id !== "query" && d.id !== "searchAppearance"))}
@@ -282,6 +282,7 @@ export function GscReport({ status, call, view, auth, sb, canEdit, title, onSetu
           rowKey={(r) => r.key}
           initial={tab === "days" ? { key: "key", desc: true } : { key: shownOn.includes("clicks") ? "clicks" : shownOn[0], desc: !(shownOn[0] === "position" && !shownOn.includes("clicks")) }}
           name={TABS.find((t) => t.id === tab)!.label}
+          search={`Search ${TABS.find((t) => t.id === tab)!.label.toLowerCase()}`}
           csvRef={csvRef}
           empty={busy ? <SkeletonRows rows={6} cols={4} /> : "No data for these settings."}
           action={

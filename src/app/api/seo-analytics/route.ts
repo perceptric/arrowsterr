@@ -1,7 +1,7 @@
 import { articleResults, googleFor, gscSitesFor, hasGscScope, ownRanks, queueSyncNow } from "@/lib/seoAnalyticsServer";
 import { googleReady } from "@/lib/google";
 import { compareRange, GA4_DIMS, GSC_DIMS, GSC_TYPES, readFilters, readRange, type CompareMode, type GscType } from "@/lib/googleReports";
-import { ga4ByPath, ga4Now, ga4Report, gscByPath, gscReport, gscTopPage } from "@/lib/googleReportsServer";
+import { ga4ByPath, ga4Now, ga4Report, gscByPath, gscDeclines, gscReport, gscTopPage } from "@/lib/googleReportsServer";
 import { adminClient, requireRole } from "@/lib/serverAuth";
 import { errorResponse, report } from "@/lib/errorsServer";
 
@@ -11,7 +11,8 @@ import { errorResponse, report } from "@/lib/errorsServer";
 //   "status"    the Google sign-in, the picked properties and the sync. Viewers and up.
 //   "gsc"       { range: { from, to }, compare: "prev" | "year" | "none", type, filters, hourly } the Search Console report. Viewers and up.
 //   "ga4"       { range, compare, filters, hourly } the Google Analytics report. Viewers and up.
-//   "now"       people on the site right now, from GA4. Viewers and up.
+//   "now"       active users in the last 30 minutes, by page and country, from GA4. Viewers and up.
+//   "declines"  { range, compare } Search Console clicks by page in both periods and the search each lost most. Viewers and up.
 //   "join"      { source: "gsc" | "ga4", range } the other side's numbers by page path, for the extra table columns. Viewers and up.
 //   "toppage"   { query, range } the page with the most impressions for one search. Viewers and up.
 //   "ranks"     { queries: string[] } where the brand ranks for each, from Search Console. Viewers and up.
@@ -48,7 +49,7 @@ export async function POST(request: Request) {
         state,
       });
 
-    if (action === "gsc" || action === "ga4" || action === "now" || action === "join" || action === "toppage") {
+    if (action === "gsc" || action === "ga4" || action === "now" || action === "join" || action === "toppage" || action === "declines") {
       if (!conn) return Response.json({ error: "Connect Google first." }, { status: 400 });
       const today = new Date().toISOString().slice(0, 10);
       // Google's day can be ahead of the server's, so allow tomorrow.
@@ -66,10 +67,14 @@ export async function POST(request: Request) {
           throw e;
         }
       }
+      if (action === "declines") {
+        const prev = compareRange(range, mode === "none" ? "prev" : mode);
+        return Response.json({ rows: brand.gsc_property && prev ? await gscDeclines(brand, conn, range, prev) : [] });
+      }
       if (action === "toppage") return Response.json({ page: brand.gsc_property && typeof body.query === "string" && body.query.trim() ? await gscTopPage(brand, conn, body.query.trim().slice(0, 300), range) : null });
       if (!brand.ga4_property && action !== "join") return Response.json({ error: "Pick a GA4 property first." }, { status: 400 });
       if (action === "ga4") return Response.json(await ga4Report(db, brand, conn, { range, prev: compareRange(range, mode), filters: readFilters(body.filters, GA4_DIMS), hourly }));
-      if (action === "now") return Response.json({ now: await ga4Now(brand, conn) });
+      if (action === "now") return Response.json(await ga4Now(brand, conn));
       if (body.source === "gsc") return Response.json({ rows: brand.gsc_property ? await gscByPath(brand, conn, range) : [] });
       return Response.json({ rows: brand.ga4_property ? await ga4ByPath(brand, conn, range) : [] });
     }

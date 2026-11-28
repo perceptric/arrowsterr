@@ -3,7 +3,7 @@
 import { Fragment, useEffect, useRef, useState } from "react";
 import { quietly, recordUndo } from "@/lib/undo";
 import { DateField, DatePop, Dropdown, Pop, SelectPop, useAnchoredPop, type Option } from "./Pickers";
-import { sortRows, useSort, type Sort } from "./ui";
+import { Chevron, sortRows, useSort, type Sort } from "./ui";
 
 // A spreadsheet that works like Google Sheets.
 // Click a cell to edit it. Lists and dates open a picker in Arrowsterr's style.
@@ -225,7 +225,9 @@ function ColumnMenu<T>({
           <>
             <span className="my-1 border-t border-rule-faint" />
             <button type="button" className="aw-pop__item" aria-expanded={open === "cond"} onClick={() => setOpen(open === "cond" ? null : "cond")}>
-              <span className="text-[10px] text-muted">{open === "cond" ? "▼" : "▶"}</span>
+              <span className="text-muted">
+                <Chevron dir={open === "cond" ? "down" : "right"} size={12} />
+              </span>
               Filter by condition
               {useCond && condReady(cond) ? <span className="aw-pop__dot" /> : null}
             </button>
@@ -276,7 +278,9 @@ function ColumnMenu<T>({
               </div>
             ) : null}
             <button type="button" className="aw-pop__item" aria-expanded={open === "vals"} onClick={() => setOpen(open === "vals" ? null : "vals")}>
-              <span className="text-[10px] text-muted">{open === "vals" ? "▼" : "▶"}</span>
+              <span className="text-muted">
+                <Chevron dir={open === "vals" ? "down" : "right"} size={12} />
+              </span>
               Filter by values
               {picked.size < all.length ? <span className="aw-pop__dot" /> : null}
             </button>

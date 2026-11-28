@@ -16,7 +16,7 @@ import { ENGINE_LOGOS, EngineName } from "./Engines";
 import { Markdown } from "./Markdown";
 import { cleanAnswer } from "@/lib/answerText";
 import { TrendChart } from "./TrendChart";
-import { BrandName, Delta, favicon, OTHER_COLORS, pct, Seg, SkeletonRows, Tip, TIPS, YOU_COLOR } from "./ui";
+import { BrandName, Chevron, Delta, favicon, OTHER_COLORS, pct, Seg, SkeletonRows, Tip, TIPS, YOU_COLOR } from "./ui";
 
 type Props = {
   sb: SupabaseClient;
@@ -385,7 +385,7 @@ function Results({
                         className="flex items-center gap-2 text-left text-[15px] font-medium text-ink"
                       >
                         <span aria-hidden="true" className="text-muted">
-                          {isClosed ? "▸" : "▾"}
+                          <Chevron dir={isClosed ? "right" : "down"} />
                         </span>
                         {t.name}
                         <span className="font-normal text-muted">· {t.prompts.length} prompts</span>
@@ -431,7 +431,7 @@ function Results({
                           <td>
                             <span className="flex items-start gap-2 pl-5">
                               <span aria-hidden="true" className="text-muted">
-                                ▸
+                                <Chevron dir="right" />
                               </span>
                               {edit && editing === key ? (
                                 <InlineInput

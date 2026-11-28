@@ -624,25 +624,35 @@ body { background: var(--v10-canvas); }
 .aw .aw-an-results__list dd { display: flex; align-items: baseline; gap: 6px; margin: 2px 0 0; font-size: 17px; font-weight: 600; color: var(--v10-ink); }
 
 /* ── aw-rep (Visibility › Analytics: the Search Console and Google Analytics reports, analytics/Report.tsx) ──
-   Each metric keeps one color in its tile, its line and its column (is-c1 to is-c5). Purple pins mark pieces published
+   Each metric keeps one color in its tile, its line and its column (is-c1 to is-c6). Purple pins mark pieces published
    or refreshed from Arrowsterr. */
 .aw .aw-rep {
   display: flex; flex-direction: column; gap: 20px; transition: opacity var(--aw-fast) var(--aw-ease);
-  --aw-rep-c1: #0943B0; --aw-rep-c2: #6D28D9; --aw-rep-c3: #0F766E; --aw-rep-c4: #C2410C; --aw-rep-c5: #0369A1; --aw-rep-pin: #7C3AED;
+  --aw-rep-c1: #0943B0; --aw-rep-c2: #6D28D9; --aw-rep-c3: #0F766E; --aw-rep-c4: #C2410C; --aw-rep-c5: #0369A1; --aw-rep-c6: #4D7C0F; --aw-rep-pin: #7C3AED;
 }
-[data-theme="dark"] .aw .aw-rep { --aw-rep-c1: #6E95E6; --aw-rep-c2: #A78BFA; --aw-rep-c3: #2DD4BF; --aw-rep-c4: #FB923C; --aw-rep-c5: #38BDF8; --aw-rep-pin: #C084FC; }
+[data-theme="dark"] .aw .aw-rep { --aw-rep-c1: #6E95E6; --aw-rep-c2: #A78BFA; --aw-rep-c3: #2DD4BF; --aw-rep-c4: #FB923C; --aw-rep-c5: #38BDF8; --aw-rep-c6: #A3E635; --aw-rep-pin: #C084FC; }
 .aw .aw-rep.is-busy .aw-frame { opacity: .6; }
 .aw .aw-rep .is-c1 { --c: var(--aw-rep-c1); }
 .aw .aw-rep .is-c2 { --c: var(--aw-rep-c2); }
 .aw .aw-rep .is-c3 { --c: var(--aw-rep-c3); }
 .aw .aw-rep .is-c4 { --c: var(--aw-rep-c4); }
 .aw .aw-rep .is-c5 { --c: var(--aw-rep-c5); }
+.aw .aw-rep .is-c6 { --c: var(--aw-rep-c6); }
 .aw .aw-rep-title { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; }
 .aw .aw-rep-title__end { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; font-size: 13px; color: var(--v10-muted); overflow-wrap: anywhere; }
 .aw .aw-rep-now {
-  display: inline-flex; align-items: center; gap: 8px; height: 32px; margin-left: auto; padding: 0 12px; border-radius: var(--aw-r-md);
-  background: var(--v10-success-soft); color: var(--v10-success); font-size: 13px; font-weight: 600;
+  display: inline-flex; align-items: center; gap: 8px; height: 32px; margin-left: auto; padding: 0 12px; border: 0; border-radius: var(--aw-r-md);
+  background: var(--v10-success-soft); color: var(--v10-success); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
 }
+.aw .aw-rep-now:hover, .aw .aw-rep-now[aria-expanded="true"] { box-shadow: inset 0 0 0 1px currentColor; }
+/* Realtime: active users by page, in the pill's pop-up */
+.aw .aw-rep-live { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; font-size: 12.5px; color: var(--v10-muted); }
+.aw .aw-rep-live > b { font-size: 13px; font-weight: 600; color: var(--v10-ink); }
+.aw .aw-rep-live .aw-table { margin: 2px 0; }
+/* The key events note over the tiles */
+.aw .aw-rep-note { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.aw .aw-rep-note b { display: block; font-weight: 600; color: var(--v10-ink); }
+.aw .aw-rep-note b + span { font-size: 13px; color: var(--v10-muted); }
 .aw .aw-rep-now i { width: 8px; height: 8px; border-radius: var(--aw-r-pill); background: currentColor; box-shadow: 0 0 0 4px rgb(21 128 61 / .18); animation: aw-pulse 2.4s var(--aw-ease) infinite; }
 .aw .aw-rep-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .aw .aw-rep-bar__sep { width: 1px; height: 24px; margin: 0 2px; background: var(--v10-border); }
@@ -696,7 +706,18 @@ body { background: var(--v10-canvas); }
 .aw .aw-rep-tabbar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; padding: 4px 20px 0; box-shadow: inset 0 -1px 0 var(--v10-border); }
 .aw .aw-rep-tabbar > .aw-tabs { flex: 1 1 auto; width: auto; box-shadow: none; }
 .aw .aw-rep-tabbar__tools { display: flex; align-items: center; gap: 10px; padding-bottom: 4px; }
-.aw .aw-rep td.is-c1, .aw .aw-rep td.is-c2, .aw .aw-rep td.is-c3, .aw .aw-rep td.is-c4, .aw .aw-rep td.is-c5 { color: var(--c); }
+.aw .aw-rep td.is-c1, .aw .aw-rep td.is-c2, .aw .aw-rep td.is-c3, .aw .aw-rep td.is-c4, .aw .aw-rep td.is-c5, .aw .aw-rep td.is-c6 { color: var(--c); }
+/* Over each table: a search box on the first column, filters on any column, the row count */
+.aw .aw-rep-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 12px 20px; border-bottom: 1px solid var(--v10-border); }
+.aw .aw-rep-search { position: relative; display: flex; align-items: center; width: min(280px, 100%); }
+.aw .aw-rep-search svg { position: absolute; left: 10px; color: var(--v10-faint); pointer-events: none; }
+.aw .aw-rep-search .aw-input { width: 100%; height: 32px; padding-left: 32px; font-size: 13px; }
+.aw .aw-rep-tools__count { margin-left: auto; font-size: 12.5px; color: var(--v10-muted); white-space: nowrap; }
+.aw .aw-rep-sub { display: block; font-size: 12px; color: var(--v10-faint); }
+.aw .aw-rep-sub .aw-arrow { margin: 0 2px; }
+.aw .aw-rep-query { display: inline-block; text-align: left; }
+.aw .aw-rep-prompts { display: flex; flex-direction: column; margin: 12px 0 0; padding: 0; list-style: none; }
+.aw .aw-rep-prompts li { padding: 10px 0; border-top: 1px solid var(--v10-border); font-size: 14px; color: var(--v10-ink); }
 .aw .aw-rep-name { display: flex; align-items: center; gap: 8px; min-width: 220px; overflow-wrap: anywhere; }
 .aw .aw-rep-name.is-sub { padding-left: 14px; margin-left: 2px; box-shadow: inset 2px 0 0 var(--v10-border); color: var(--v10-ink-2); }
 .aw .aw-rep-open {
@@ -711,6 +732,7 @@ body { background: var(--v10-canvas); }
 .aw .aw-table tr:hover .aw-rep-act, .aw .aw-rep-act:focus-within { opacity: 1; }
 .aw .aw-rep-subrow > td { background: var(--v10-canvas); }
 .aw .aw-rep-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px 16px; padding: 12px 20px; border-top: 1px solid var(--v10-border); font-size: 13px; color: var(--v10-muted); }
+.aw .aw-rep-foot--note { justify-content: flex-start; margin: 0; font-size: 12.5px; }
 .aw .aw-rep-switch { display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 4px; border: 0; background: none; font-size: 13px; font-weight: 500; color: var(--v10-ink-2); cursor: pointer; }
 .aw .aw-rep-switch__track { position: relative; width: 30px; height: 17px; flex: none; border-radius: var(--aw-r-pill); background: var(--v10-border-strong); transition: background var(--aw-fast) var(--aw-ease); }
 .aw .aw-rep-switch__track::after { content: ""; position: absolute; top: 2px; left: 2px; width: 13px; height: 13px; border-radius: var(--aw-r-pill); background: #FFFFFF; transition: left var(--aw-fast) var(--aw-ease); }
@@ -737,6 +759,8 @@ body { background: var(--v10-canvas); }
   .aw .aw-rep-tile__value { font-size: 22px; }
   .aw .aw-rep-tabbar { padding: 4px 16px 0; }
   .aw .aw-rep-title__end, .aw .aw-rep-now, .aw .aw-rep-bar__end { margin-left: 0; }
+  .aw .aw-rep-tools { padding: 12px 16px; }
+  .aw .aw-rep-tools__count { margin-left: 0; }
 }
 
 /* ── aw-avatar-xs ── */
@@ -998,6 +1022,8 @@ body { background: var(--v10-canvas); }
 .aw .aw-dropdown:disabled { opacity: .5; cursor: not-allowed; }
 .aw .aw-dropdown:active:not(:disabled) { background-color: var(--v10-soft); }
 .aw .aw-dropdown__chev { flex: none; color: var(--text-tertiary); }
+/* The shared thin chevron and arrow (Chevron, Arrow in ui.tsx). */
+.aw .aw-chev, .aw .aw-arrow { display: inline-block; flex: none; vertical-align: -2px; }
 .aw .aw-dropdown[aria-expanded="true"] .aw-dropdown__chev { color: var(--aw-brand); }
 .aw .aw-dropdown--sm {
   border: 1px solid var(--aw-rule); background: #fff; display: inline-flex; align-items: center; justify-content: space-between; gap: var(--space-1_5);
@@ -1945,6 +1971,8 @@ body { background: var(--v10-canvas); }
 .aw .aw-stats .aw-stat { padding: var(--space-4) var(--space-5); border: 0;
 }
 .aw .aw-stats--tight .aw-stat { padding: var(--space-3) var(--space-4); }
+/* Inside a frame (a report tab): no card of its own, a line under it. */
+.aw .aw-stats--flat { border-radius: 0; box-shadow: 0 1px 0 var(--v10-border); }
 .aw .aw-stat__num {
   font-family: var(--aw-font); font-variant-numeric: tabular-nums; font-size: 24px; line-height: 1.2; font-weight: 600; letter-spacing: -0.025em; color: var(--v10-ink);
 }

@@ -43,13 +43,15 @@ export function compareRange(r: DateRange, mode: CompareMode): DateRange | null 
 // ─────────────── Filters ───────────────
 
 export type FilterOp = "contains" | "equals" | "notContains" | "notEquals" | "includingRegex" | "excludingRegex";
-export const OP_LABEL: Record<FilterOp, string> = { contains: "contains", equals: "is", notContains: "doesn't contain", notEquals: "isn't", includingRegex: "matches regex", excludingRegex: "doesn't match regex" };
+/** How a table filter matches: text columns by words, number columns by size. */
+export type TableOp = "contains" | "equals" | "notContains" | "notEquals" | "gt" | "lt";
+export const OP_LABEL: Record<FilterOp | TableOp, string> = { contains: "contains", equals: "is", notContains: "doesn't contain", notEquals: "isn't", includingRegex: "matches regex", excludingRegex: "doesn't match regex", gt: "is greater than", lt: "is less than" };
 const TEXT_OPS: FilterOp[] = ["contains", "equals", "notContains", "notEquals", "includingRegex", "excludingRegex"];
 const PICK_OPS: FilterOp[] = ["equals", "notEquals"];
 
 export type GscDim = "query" | "page" | "country" | "device" | "searchAppearance";
 export type Ga4Dim = "channel" | "sourceMedium" | "landingPage" | "country" | "device" | "event";
-export type Filter<D extends string = string> = { dim: D; op: FilterOp; value: string };
+export type Filter<D extends string = string, O extends string = FilterOp> = { dim: D; op: O; value: string };
 
 export const GSC_DIMS: { id: GscDim; label: string; ops: FilterOp[] }[] = [
   { id: "query", label: "Query", ops: TEXT_OPS },
@@ -208,20 +210,26 @@ export function ga4Filter(filters: Filter<Ga4Dim>[]): unknown {
 export type Ga4Request = { dateRanges: { startDate: string; endDate: string; name?: string }[]; dimensions?: { name: string }[]; metrics: { name: string }[]; dimensionFilter?: unknown; orderBys?: unknown[]; limit?: number };
 
 /** The numbers every GA4 table adds up. Rates come from these, so weeks and channels can be summed. */
-export type Ga4Sums = { users: number; sessions: number; engaged: number; duration: number; active: number; keyEvents: number };
-export const NO_SUMS: Ga4Sums = { users: 0, sessions: 0, engaged: 0, duration: 0, active: 0, keyEvents: 0 };
+export type Ga4Sums = { users: number; sessions: number; engaged: number; duration: number; active: number; keyEvents: number; newUsers: number };
+export const NO_SUMS: Ga4Sums = { users: 0, sessions: 0, engaged: 0, duration: 0, active: 0, keyEvents: 0, newUsers: 0 };
+const SUM_KEYS = Object.keys(NO_SUMS) as (keyof Ga4Sums)[];
 /** Metric names in Ga4Sums order. Properties made before 2024 call key events "conversions". */
-export const ga4Metrics = (keyMetric = "keyEvents") => ["totalUsers", "sessions", "engagedSessions", "userEngagementDuration", "activeUsers", keyMetric].map((name) => ({ name }));
-export const sumsOf = (m: number[]): Ga4Sums => ({ users: m[0] ?? 0, sessions: m[1] ?? 0, engaged: m[2] ?? 0, duration: m[3] ?? 0, active: m[4] ?? 0, keyEvents: m[5] ?? 0 });
-export const addSums = (a: Ga4Sums, b: Ga4Sums): Ga4Sums => ({ users: a.users + b.users, sessions: a.sessions + b.sessions, engaged: a.engaged + b.engaged, duration: a.duration + b.duration, active: a.active + b.active, keyEvents: a.keyEvents + b.keyEvents });
-const less = (a: Ga4Sums, b: Ga4Sums): Ga4Sums => ({ users: Math.max(0, a.users - b.users), sessions: Math.max(0, a.sessions - b.sessions), engaged: Math.max(0, a.engaged - b.engaged), duration: Math.max(0, a.duration - b.duration), active: Math.max(0, a.active - b.active), keyEvents: Math.max(0, a.keyEvents - b.keyEvents) });
+export const ga4Metrics = (keyMetric = "keyEvents") => ["totalUsers", "sessions", "engagedSessions", "userEngagementDuration", "activeUsers", keyMetric, "newUsers"].map((name) => ({ name }));
+export const sumsOf = (m: number[]): Ga4Sums => Object.fromEntries(SUM_KEYS.map((k, i) => [k, m[i] ?? 0])) as Ga4Sums;
+export const addSums = (a: Ga4Sums, b: Ga4Sums): Ga4Sums => Object.fromEntries(SUM_KEYS.map((k) => [k, a[k] + b[k]])) as Ga4Sums;
+const less = (a: Ga4Sums, b: Ga4Sums): Ga4Sums => Object.fromEntries(SUM_KEYS.map((k) => [k, Math.max(0, a[k] - b[k])])) as Ga4Sums;
 /** Engagement rate, average engagement time (seconds per active user) and key events per session. Null with no sessions. */
 export const engagementRate = (s: Ga4Sums) => (s.sessions ? s.engaged / s.sessions : null);
 export const avgTime = (s: Ga4Sums) => (s.active ? s.duration / s.active : null);
 export const convRate = (s: Ga4Sums) => (s.sessions ? s.keyEvents / s.sessions : null);
+/** Users who had visited before, and their share of all users. */
+export const returningUsers = (s: Ga4Sums) => Math.max(0, s.users - s.newUsers);
+export const returningRate = (s: Ga4Sums) => (s.users ? returningUsers(s) / s.users : null);
+/** GA4's newVsReturning values as the table shows them. */
+export const nvrLabel = (v: string) => (v === "new" ? "New" : v === "returning" ? "Returning" : "(not set)");
 
 /** The GA4 report's requests, in this order. With two date ranges, GA4 adds the range name as the last dimension. */
-export const GA4_PARTS = ["totals", "series", "channels", "ai", "sourceMedium", "campaigns", "landing", "pages", "events", "countries", "devices"] as const;
+export const GA4_PARTS = ["totals", "series", "channels", "ai", "sourceMedium", "campaigns", "landing", "pages", "events", "countries", "devices", "nvr", "aiPages", "aiSeries"] as const;
 export type Ga4Part = (typeof GA4_PARTS)[number];
 
 export function ga4Requests(o: { range: DateRange; prev: DateRange | null; filters: Filter<Ga4Dim>[]; hourly: boolean; keyMetric?: string }): Ga4Request[] {
@@ -246,11 +254,15 @@ export function ga4Requests(o: { range: DateRange; prev: DateRange | null; filte
     ai: by(["sessionSource", "sessionDefaultChannelGroup"], 200, { dimensionFilter: aiOnly }),
     sourceMedium: by(["sessionSourceMedium"], 1000),
     campaigns: by(["sessionCampaignName"], 1000),
-    landing: by(["landingPage"], 1000),
+    // Both periods, for Declining pages. GA4 adds the period's name as the last dimension.
+    landing: { ...by(["landingPage"], 2000), dateRanges: both },
     pages: { ...by(["pagePath"], 1000), metrics: ["screenPageViews", "totalUsers", "userEngagementDuration", "activeUsers", o.keyMetric ?? "keyEvents"].map((name) => ({ name })), orderBys: [{ metric: { metricName: "screenPageViews" }, desc: true }] },
     events: { dateRanges: both, dimensions: [{ name: "eventName" }], metrics: [{ name: o.keyMetric ?? "keyEvents" }], ...(dimensionFilter ? { dimensionFilter } : {}), limit: 200 },
     countries: by(["country"], 300),
     devices: by(["deviceCategory"], 20),
+    nvr: by(["newVsReturning"], 10),
+    aiPages: { ...by(["landingPage", "sessionSource"], 2000, { dimensionFilter: aiOnly }), dateRanges: both },
+    aiSeries: { ...by([o.hourly ? "dateHour" : "date", "sessionSource"], 5000, { dimensionFilter: aiOnly }), orderBys: undefined },
   };
   return GA4_PARTS.map((k) => {
     const r = parts[k];
@@ -285,6 +297,169 @@ export function trafficChannels(channels: { channel: string; sums: Ga4Sums }[], 
     rows.push({ key: AI_CHANNEL, sums: children.reduce((a, c) => addSums(a, c.sums), NO_SUMS), children });
   }
   return rows.sort((a, b) => b.sums.sessions - a.sums.sessions);
+}
+
+// ─────────────── AI referrals ───────────────
+
+export type AiPage = { path: string; sums: Ga4Sums; prevSessions: number | null; by: Record<string, number> };
+export type AiReferrals = { sums: Ga4Sums; prevSessions: number | null; share: number | null; assistants: string[]; series: { key: string; by: Record<string, number> }[]; pages: AiPage[] };
+export const NO_AI: AiReferrals = { sums: NO_SUMS, prevSessions: null, share: null, assistants: [], series: [], pages: [] };
+
+/**
+ * Sessions from AI assistants: the total and its share of all sessions, a line per assistant over time, and the landing
+ * pages they send people to, each split by assistant. `period` is "prev" for rows of the period before.
+ */
+export function aiReferrals(pages: { path: string; source: string; period: string; sums: Ga4Sums }[], series: { key: string; source: string; sums: Ga4Sums }[], totalSessions: number, compared: boolean): AiReferrals {
+  const out = new Map<string, AiPage>();
+  const per = new Map<string, number>();
+  let sums = NO_SUMS;
+  let prev = 0;
+  for (const r of pages) {
+    const name = aiSourceOf(r.source);
+    if (!name) continue;
+    const k = pathKey(r.path);
+    const row = out.get(k) ?? { path: k, sums: NO_SUMS, prevSessions: compared ? 0 : null, by: {} };
+    if (r.period === "prev") {
+      row.prevSessions = (row.prevSessions ?? 0) + r.sums.sessions;
+      prev += r.sums.sessions;
+    } else {
+      row.sums = addSums(row.sums, r.sums);
+      row.by[name] = (row.by[name] ?? 0) + r.sums.sessions;
+      sums = addSums(sums, r.sums);
+      per.set(name, (per.get(name) ?? 0) + r.sums.sessions);
+    }
+    out.set(k, row);
+  }
+  const days = new Map<string, Record<string, number>>();
+  for (const r of series) {
+    const name = aiSourceOf(r.source);
+    if (!name) continue;
+    const d = days.get(r.key) ?? {};
+    d[name] = (d[name] ?? 0) + r.sums.sessions;
+    days.set(r.key, d);
+  }
+  return {
+    sums,
+    prevSessions: compared ? prev : null,
+    share: totalSessions ? sums.sessions / totalSessions : null,
+    assistants: [...per.entries()].sort((a, b) => b[1] - a[1]).map(([n]) => n),
+    series: [...days.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([key, by]) => ({ key, by })),
+    pages: [...out.values()].filter((p) => p.sums.sessions > 0).sort((a, b) => b.sums.sessions - a.sums.sessions),
+  };
+}
+
+/** Each page on the brand's site and the tracked prompts whose AI answers cite it, from the brand's own runs. */
+export function citedPrompts(chats: { prompt: string; sources?: { url: string }[] }[], domain: string): Map<string, string[]> {
+  const host = domain.replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/.*$/, "").toLowerCase();
+  const out = new Map<string, Set<string>>();
+  for (const c of chats)
+    for (const src of c.sources ?? []) {
+      let h = "";
+      try {
+        h = new URL(src.url).hostname.toLowerCase().replace(/^www\./, "");
+      } catch {
+        continue;
+      }
+      if (h !== host) continue;
+      const k = pathKey(src.url);
+      out.set(k, (out.get(k) ?? new Set<string>()).add(c.prompt));
+    }
+  return new Map([...out.entries()].map(([k, v]) => [k, [...v]]));
+}
+
+// ─────────────── Declining pages ───────────────
+
+export type Declining = { path: string; sessions: number; prev: number; change: number };
+
+/** Landing pages that lost at least 10% of their sessions against the period before, from at least `min` sessions. Most lost first. */
+export function decliningPages(landing: { key: string; sums: Ga4Sums; prev: Ga4Sums | null }[], min = 10): Declining[] {
+  const by = new Map<string, { sessions: number; prev: number }>();
+  for (const r of landing) {
+    if (!r.prev) continue;
+    const k = pathKey(r.key);
+    const x = by.get(k) ?? { sessions: 0, prev: 0 };
+    by.set(k, { sessions: x.sessions + r.sums.sessions, prev: x.prev + r.prev.sessions });
+  }
+  return [...by.entries()]
+    .filter(([, x]) => x.prev >= min && x.sessions <= x.prev * 0.9)
+    .map(([path, x]) => ({ path, sessions: x.sessions, prev: x.prev, change: (x.sessions - x.prev) / x.prev }))
+    .sort((a, b) => b.prev - b.sessions - (a.prev - a.sessions));
+}
+
+export type SearchDecline = { path: string; clicks: number; prevClicks: number; query: string | null; from: number | null; to: number | null };
+export type QueryRow = { page: string; query: string; clicks: number; impressions: number; position: number | null };
+
+/** For each page: Search Console clicks in both periods, and the search that lost the most clicks (or slipped the most), with its position before and now. */
+export function searchDeclines(cur: QueryRow[], prev: QueryRow[]): SearchDecline[] {
+  type Page = { clicks: number; prevClicks: number; q: Map<string, { now?: QueryRow; was?: QueryRow }> };
+  const pages = new Map<string, Page>();
+  const at = (r: QueryRow) => {
+    const k = pathKey(r.page);
+    const p = pages.get(k) ?? { clicks: 0, prevClicks: 0, q: new Map() };
+    pages.set(k, p);
+    return p;
+  };
+  for (const r of cur) {
+    const p = at(r);
+    p.clicks += r.clicks;
+    p.q.set(r.query, { ...p.q.get(r.query), now: r });
+  }
+  for (const r of prev) {
+    const p = at(r);
+    p.prevClicks += r.clicks;
+    p.q.set(r.query, { ...p.q.get(r.query), was: r });
+  }
+  return [...pages.entries()].map(([path, p]) => {
+    let best: { query: string; lost: number; slip: number; from: number | null; to: number | null } | null = null;
+    for (const [query, { now, was }] of p.q) {
+      if (!was) continue;
+      const lost = was.clicks - (now?.clicks ?? 0);
+      const slip = (now?.position ?? 100) - (was.position ?? 100);
+      if (lost <= 0 && slip <= 0) continue;
+      if (!best || lost > best.lost || (lost === best.lost && slip > best.slip)) best = { query, lost, slip, from: was.position, to: now?.position ?? null };
+    }
+    return { path, clicks: p.clicks, prevClicks: p.prevClicks, query: best?.query ?? null, from: best?.from ?? null, to: best?.to ?? null };
+  });
+}
+
+// ─────────────── Published content ───────────────
+
+export type ContentStatus = "New" | "Growing" | "Declining";
+
+/**
+ * A published or refreshed article's status. Under 14 days live it is New. After that it is Growing when it gets at
+ * least as many clicks as before it went live (sessions when there are no clicks either way), and Declining otherwise.
+ */
+export function contentStatus(r: { days: number; clicksBefore: number; clicksAfter: number; sessionsBefore: number; sessionsAfter: number }): ContentStatus {
+  if (r.days < 14) return "New";
+  const [before, after] = r.clicksBefore || r.clicksAfter ? [r.clicksBefore, r.clicksAfter] : [r.sessionsBefore, r.sessionsAfter];
+  return after >= before ? "Growing" : "Declining";
+}
+
+// ─────────────── Table search and filters ───────────────
+
+/** A number as people type it in a filter: "1,200", "−20%" (a share: −0.2), "3.5". Null when it isn't one. */
+export function typedNumber(text: string): number | null {
+  const t = text.trim().replace(/[−–]/g, "-").replace(/,/g, "");
+  const pct = t.endsWith("%");
+  const n = Number(pct ? t.slice(0, -1) : t);
+  return t && Number.isFinite(n) ? (pct ? n / 100 : n) : null;
+}
+
+/** Whether one cell passes one table filter. Text matches ignore case; numbers compare by size. */
+export function cellMatches(cell: string | number | null, op: TableOp, value: string): boolean {
+  if (op === "gt" || op === "lt") {
+    const want = typedNumber(value);
+    const have = typeof cell === "number" ? cell : cell === null ? null : typedNumber(cell);
+    if (want === null || have === null) return false;
+    return op === "gt" ? have > want : have < want;
+  }
+  const a = String(cell ?? "").toLowerCase();
+  const b = value.trim().toLowerCase();
+  if (op === "contains") return a.includes(b);
+  if (op === "notContains") return !a.includes(b);
+  if (op === "equals") return a === b;
+  return a !== b;
 }
 
 // ─────────────── Joining the two by page ───────────────

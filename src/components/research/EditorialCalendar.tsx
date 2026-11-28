@@ -14,7 +14,7 @@ import { usePoll } from "../writer/parts";
 import { useWriteActions, WriteButton } from "../writer/WriteButton";
 import { Sheet, type Col, type Edit } from "../Sheet";
 import { Confirm } from "../reports/Dialog";
-import { BusyButton, ErrorNote, SidePanel, Thinking } from "../ui";
+import { BusyButton, Chevron, ErrorNote, SidePanel, Thinking } from "../ui";
 import { CalendarGrid, TopicSidebar } from "./CalendarGrid";
 import { KeywordDeepDive } from "./KeywordDeepDive";
 import { DayPanel } from "./DayPanel";
@@ -363,7 +363,7 @@ export function EditorialCalendar({
       cell: (i) => (
         <span className="aw-cellpick">
           <span className={`aw-status ${STATUS_PICK.find((s) => s.label === statusLabel(i))?.tone ?? "aw-status--pending"}`}>{statusLabel(i)}</span>
-          {canEdit ? <span className="aw-cellpick__caret">▾</span> : null}
+          {canEdit ? <Chevron size={12} className="aw-cellpick__caret" /> : null}
         </span>
       ),
       edit: ed<Edit<CalendarItem>>({
@@ -387,7 +387,7 @@ export function EditorialCalendar({
       cell: (i) => (
         <span className="aw-cellpick">
           {i.due_date ? parse(i.due_date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }) : <span className="text-muted">No date</span>}
-          {canEdit ? <span className="aw-cellpick__caret">▾</span> : null}
+          {canEdit ? <Chevron size={12} className="aw-cellpick__caret" /> : null}
         </span>
       ),
       edit: ed<Edit<CalendarItem>>({ kind: "date", value: (i) => i.due_date ?? "", save: (i, v) => patch(i.id, { due_date: v }) }),
@@ -403,11 +403,11 @@ export function EditorialCalendar({
           <span className="aw-cellpick">
             <span className="aw-avatar-xs">{i.owner.slice(0, 1)}</span>
             <span className="truncate">{i.owner.split("@")[0]}</span>
-            {canEdit ? <span className="aw-cellpick__caret">▾</span> : null}
+            {canEdit ? <Chevron size={12} className="aw-cellpick__caret" /> : null}
           </span>
         ) : (
           <span className="aw-cellpick text-muted">
-            Unassigned{canEdit ? <span className="aw-cellpick__caret">▾</span> : null}
+            Unassigned{canEdit ? <Chevron size={12} className="aw-cellpick__caret" /> : null}
           </span>
         ),
       edit: ed<Edit<CalendarItem>>({ kind: "select", options: owners, value: (i) => i.owner ?? "", save: (i, v) => patch(i.id, { owner: v }) }),

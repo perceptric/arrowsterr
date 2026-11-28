@@ -9,7 +9,7 @@ import { KitLearn } from "./BrandKit";
 import { ENGINE_LOGOS } from "./Engines";
 import { Dropdown } from "./Pickers";
 import { Logo } from "./Logo";
-import { ErrorNote, Thinking } from "./ui";
+import { Chevron, ErrorNote, Thinking } from "./ui";
 import { PersonaCard, SharperBox, type Built } from "./WriterPersona";
 import { errorText, httpError } from "@/lib/errors";
 
@@ -772,7 +772,7 @@ function PromptsStep(p: { plan: PlanTopic[]; setPlan: (v: PlanTopic[]) => void; 
                 <td colSpan={2}>
                   <span className="flex items-center gap-2 text-[15px] font-medium text-ink">
                     <span aria-hidden="true" className="text-muted">
-                      ▾
+                      <Chevron />
                     </span>
                     {t.name}
                     <span className="font-normal text-muted">· {t.prompts.filter((x) => x.on).length} prompts</span>
