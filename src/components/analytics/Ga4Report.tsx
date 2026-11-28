@@ -568,7 +568,16 @@ export function Ga4Report({ status, call, view, auth, sb, canEdit, title, onSetu
         ? [
             first("Landing page"),
             num("aiSessions", "AI sessions", (r) => r.s.sessions, whole),
-            ...assistants.map((a) => num(`ai:${a}`, a, (r) => r.aiBy?.[a] ?? 0, whole)),
+            ...assistants.map((a) => ({
+              ...num(`ai:${a}`, a, (r) => r.aiBy?.[a] ?? 0, whole),
+              csv: a,
+              label: (
+                <span className="inline-flex items-center gap-1.5">
+                  <BrandLogo src={AI_LOGO[a] ?? ""} name={a} size={14} />
+                  {a}
+                </span>
+              ),
+            })),
             time,
             ...(compared ? [change("change", "Change", (r) => (r.prev ? (r.s.sessions - r.prev) / r.prev : null))] : []),
             tool("prompts", "Prompts", (r) =>
@@ -818,6 +827,7 @@ export function Ga4Report({ status, call, view, auth, sb, canEdit, title, onSetu
               lines={ai.assistants.slice(0, 5).map((a, i) => ({
                 key: a,
                 label: a,
+                logo: AI_LOGO[a] ?? "",
                 tone: `is-c${i + 1}`,
                 fmt: whole,
                 whole: true,

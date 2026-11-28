@@ -159,7 +159,7 @@ function scaleOf(values: number[], lower: boolean, whole: boolean): Scale {
   return { lo: 0, hi: top, lower, ticks: Array.from({ length: Math.round(top / step) + 1 }, (_, i) => i * step) };
 }
 
-export type Line = { key: string; label: string; tone: string; values: (number | null)[]; fmt: (v: number | null) => string; lower?: boolean; whole?: boolean; kind: ChangeKind };
+export type Line = { key: string; label: string; logo?: string; tone: string; values: (number | null)[]; fmt: (v: number | null) => string; lower?: boolean; whole?: boolean; kind: ChangeKind };
 export type ChartPin = { i: number; title: string; event: "published" | "refreshed" };
 
 /**
@@ -257,6 +257,7 @@ export function LineChart({ keys, lines, pins, axis }: { keys: string[]; lines: 
             {lines.map((l) => (
               <span key={l.key} className="aw-rep-chart__tiprow">
                 <i className={l.tone} />
+                {l.logo !== undefined ? <BrandLogo src={l.logo} name={l.label} size={14} /> : null}
                 {l.label}
                 <b>{l.fmt(l.values[h])}</b>
               </span>
@@ -274,6 +275,7 @@ export function LineChart({ keys, lines, pins, axis }: { keys: string[]; lines: 
           {lines.map((l) => (
             <span key={l.key} className={l.tone}>
               <i />
+              {l.logo !== undefined ? <BrandLogo src={l.logo} name={l.label} size={14} /> : null}
               {l.label}
             </span>
           ))}
