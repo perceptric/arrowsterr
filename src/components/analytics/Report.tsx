@@ -1,7 +1,7 @@
 "use client";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { addCalendarItems, siteForBrand, type Site } from "@/lib/db";
 import { cellMatches, RANGE_LABEL, toCsv, type DateRange, type Filter, type FilterOp, OP_LABEL, type RangeId, type TableOp } from "@/lib/googleReports";
@@ -401,15 +401,24 @@ export function AddFilter<D extends string, O extends FilterOp | TableOp = Filte
         + Add filter
       </button>
       {pop.anchor ? (
-        <Pop anchor={pop.anchor} onClose={close} label="Add filter" width={dim ? 300 : 240}>
+        <Pop anchor={pop.anchor} onClose={close} label="Add filter" width={dim ? 300 : 260}>
           {!dim ? (
             <div className="aw-pop__list">
-              {dims.map((d) => (
-                <button key={d.id} type="button" className="aw-pop__opt" onClick={() => pick(d)}>
-                  {d.label}
-                  <span className="aw-rep-form__hint">{d.ops.slice(0, 2).map((o) => OP_LABEL[o]).join(", ")}</span>
-                </button>
-              ))}
+              {[
+                { label: "Dimensions", items: dims.filter((d) => !d.ops.includes("gt" as O)) },
+                { label: "Metrics", items: dims.filter((d) => d.ops.includes("gt" as O)) },
+              ].map((g) =>
+                g.items.length ? (
+                  <Fragment key={g.label}>
+                    <span className="aw-pop__group">{g.label}</span>
+                    {g.items.map((d) => (
+                      <button key={d.id} type="button" className="aw-pop__opt" onClick={() => pick(d)}>
+                        {d.label}
+                      </button>
+                    ))}
+                  </Fragment>
+                ) : null,
+              )}
             </div>
           ) : (
             <form
