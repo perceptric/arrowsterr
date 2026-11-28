@@ -145,10 +145,18 @@ export async function runReports(accessTok: string, property: string, requests: 
   return out;
 }
 
-/** People on the site right now. */
-export async function activeNow(accessTok: string, property: string) {
-  const data = await api<{ rows?: ReportRow[] }>(`https://analyticsdata.googleapis.com/v1beta/properties/${property}:runRealtimeReport`, accessTok, { metrics: [{ name: "activeUsers" }] });
-  return Number(data.rows?.[0]?.metricValues?.[0]?.value ?? 0);
+export type Realtime = { now: number; pages: { name: string; users: number }[]; countries: { name: string; users: number }[] };
+
+/** Active users in the last 30 minutes: the total, the top pages (by page title) and the top countries. */
+export async function activeNow(accessTok: string, property: string): Promise<Realtime> {
+  const url = `https://analyticsdata.googleapis.com/v1beta/properties/${property}:runRealtimeReport`;
+  const metrics = [{ name: "activeUsers" }];
+  const by = (name: string, limit: number) =>
+    api<{ rows?: ReportRow[] }>(url, accessTok, { dimensions: [{ name }], metrics, limit, orderBys: [{ metric: { metricName: "activeUsers" }, desc: true }] }).then((d) =>
+      (d.rows ?? []).map((r) => ({ name: r.dimensionValues?.[0]?.value || "(not set)", users: Number(r.metricValues?.[0]?.value ?? 0) })),
+    );
+  const [total, pages, countries] = await Promise.all([api<{ rows?: ReportRow[] }>(url, accessTok, { metrics }), by("unifiedScreenName", 6), by("country", 4)]);
+  return { now: Number(total.rows?.[0]?.metricValues?.[0]?.value ?? 0), pages, countries };
 }
 
 /** Every Search Console property the signed-in account can read, in the shape searchEngines.ts reads. */

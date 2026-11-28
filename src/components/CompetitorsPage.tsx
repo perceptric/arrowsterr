@@ -11,7 +11,7 @@ import { BrandLogo } from "./BrandLogo";
 import { B_COLOR, Bar, CompetitorPanel } from "./CompetitorPanel";
 import { EngineName } from "./Engines";
 import { TrendChart } from "./TrendChart";
-import { BrandName, Card, Delta, favicon, guessDomain, pct, pos, score, Seg, sortRows, SidePanel, SortTh, Tip, TIPS, useSort, YOU_COLOR } from "./ui";
+import { BrandName, Card, Chevron, Delta, favicon, guessDomain, pct, pos, score, Seg, sortRows, SidePanel, SortTh, Tip, TIPS, useSort, YOU_COLOR } from "./ui";
 
 const MAX_BRANDS = 50;
 const SHOWN = 10; // brands on the chart at first
@@ -72,7 +72,9 @@ export function Quadrant({
       </div>
       <div className="flex min-h-0 flex-1 gap-2">
         <div className="flex w-7 shrink-0 flex-col items-center">
-          <span className="text-[12px] leading-none text-ink">▲</span>
+          <span className="leading-none text-ink">
+            <Chevron dir="up" size={12} />
+          </span>
           <span className="w-0.5 flex-1 bg-ink" />
           <span className="flex rotate-180 items-center gap-1.5 py-2 text-[12px] font-medium whitespace-nowrap text-ink [writing-mode:vertical-rl]">
             <EyeIcon />
@@ -148,7 +150,9 @@ export function Quadrant({
           Ranking
         </span>
         <span className="h-0.5 flex-1 bg-ink" />
-        <span className="-ml-2 leading-none">▶</span>
+        <span className="-ml-2 leading-none text-ink">
+          <Chevron dir="right" size={12} />
+        </span>
       </div>
       <div className="flex justify-between gap-3 pl-[76px]">
         <span className={quadLabel}>Rising Stars</span>

@@ -6,6 +6,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { BrandLogo } from "./BrandLogo";
+import { Chevron } from "./ui";
 
 export type Option = {
   id: string;
@@ -234,12 +235,6 @@ export function DatePop({ anchor, value, onPick, onClose, label, clear = "Clear 
   );
 }
 
-const Chevron = () => (
-  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="aw-dropdown__chev">
-    <path d="m6 9 6 6 6-6" />
-  </svg>
-);
-
 /** A field-like button that opens a pop-up below it, and closes it again on a second click. */
 function PickerButton({
   label,
@@ -343,7 +338,7 @@ export function Dropdown<V extends string | number>({
     >
       {current?.icon ? <OptIcon src={current.icon} /> : null}
       <span className={`truncate ${current ? "" : "text-muted"} ${current?.icon ? "flex-1" : ""}`}>{current?.label ?? placeholder}</span>
-      <Chevron />
+      <Chevron className="aw-dropdown__chev" />
     </PickerButton>
   );
 }

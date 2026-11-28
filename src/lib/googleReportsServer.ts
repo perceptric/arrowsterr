@@ -5,14 +5,19 @@ import { accessToken, activeNow, gscQuery, runReports, type ReportRow } from "./
 import {
   addDay,
   addSearch,
+  aiReferrals,
   addVisits,
   byPath,
   ga4Requests,
   gscBody,
   gscHasQueries,
+  NO_AI,
   NO_SUMS,
+  nvrLabel,
+  searchDeclines,
   sumsOf,
   trafficChannels,
+  type AiReferrals,
   type ChannelRow,
   type DateRange,
   type Filter,
@@ -22,6 +27,8 @@ import {
   type GscType,
   type PageSearch,
   type PageVisits,
+  type QueryRow,
+  type SearchDecline,
 } from "./googleReports";
 import { gscRows } from "./searchEngines";
 import { liveItems, pagesIn, queriesIn, type BrandRow, type Conn } from "./seoAnalyticsServer";
@@ -135,6 +142,8 @@ export async function gscReport(db: SupabaseClient, brand: BrandRow, conn: Conn,
 
 export type Ga4Params = { range: DateRange; prev: DateRange | null; filters: Filter<Ga4Dim>[]; hourly: boolean };
 export type Ga4Item = { key: string; sums: Ga4Sums };
+/** A landing page with its numbers in the period before, when the report compares. */
+export type Ga4Landing = Ga4Item & { prev: Ga4Sums | null };
 export type Ga4Page = { key: string; views: number; users: number; duration: number; active: number; keyEvents: number };
 export type Ga4Event = { key: string; count: number; prev: number | null };
 export type Ga4Report = {
@@ -146,7 +155,9 @@ export type Ga4Report = {
   channels: ChannelRow[];
   sourceMedium: Ga4Item[];
   campaigns: Ga4Item[];
-  landing: Ga4Item[];
+  landing: Ga4Landing[];
+  newVsReturning: Ga4Item[];
+  ai: AiReferrals;
   pages: Ga4Page[];
   events: Ga4Event[];
   countries: Ga4Item[];
@@ -161,14 +172,16 @@ const dayKey = (s: string) => (s.length >= 8 ? `${s.slice(0, 4)}-${s.slice(4, 6)
 
 async function ga4Live(token: string, property: string, p: Ga4Params): Promise<Omit<Ga4Report, "pins" | "source" | "at">> {
   const run = (keyMetric: string) => runReports(token, property, ga4Requests({ ...p, keyMetric }));
-  const [totals, series, channels, ai, sourceMedium, campaigns, landing, pages, events, countries, devices] = await run("keyEvents").catch(() => run("conversions"));
+  const [totals, series, channels, ai, sourceMedium, campaigns, landing, pages, events, countries, devices, nvr, aiPages, aiSeries] = await run("keyEvents").catch(() => run("conversions"));
   const ranged = (rows: ReportRow[], name: string, at: number) => rows.filter((r) => (p.prev ? dim(r, at) === name : true));
   const one = (rows: ReportRow[], name: string) => (ranged(rows, name, 0)[0] ? sumsOf(mets(ranged(rows, name, 0)[0])) : { ...NO_SUMS });
   const list = (rows: ReportRow[]) => rows.map((r) => ({ key: dim(r, 0) || "(not set)", sums: sumsOf(mets(r)) }));
   const eventPrev = new Map(p.prev ? ranged(events, "prev", 1).map((r) => [dim(r, 0), mets(r)[0]]) : []);
+  const landingPrev = new Map(p.prev ? ranged(landing, "prev", 1).map((r) => [dim(r, 0), sumsOf(mets(r))]) : []);
+  const cur = one(totals, "cur");
   return {
     hourly: p.hourly,
-    totals: { cur: one(totals, "cur"), prev: p.prev ? one(totals, "prev") : null },
+    totals: { cur, prev: p.prev ? one(totals, "prev") : null },
     series: series.map((r) => ({ key: dayKey(dim(r, 0)), ...sumsOf(mets(r)) })).sort((a, b) => a.key.localeCompare(b.key)),
     channels: trafficChannels(
       channels.map((r) => ({ channel: dim(r, 0), sums: sumsOf(mets(r)) })),
@@ -176,7 +189,14 @@ async function ga4Live(token: string, property: string, p: Ga4Params): Promise<O
     ),
     sourceMedium: list(sourceMedium),
     campaigns: list(campaigns),
-    landing: list(landing),
+    landing: ranged(landing, "cur", 1).map((r) => ({ key: dim(r, 0) || "(not set)", sums: sumsOf(mets(r)), prev: p.prev ? (landingPrev.get(dim(r, 0)) ?? { ...NO_SUMS }) : null })),
+    newVsReturning: nvr.map((r) => ({ key: nvrLabel(dim(r, 0)), sums: sumsOf(mets(r)) })),
+    ai: aiReferrals(
+      aiPages.map((r) => ({ path: dim(r, 0), source: dim(r, 1), period: p.prev ? dim(r, 2) : "cur", sums: sumsOf(mets(r)) })),
+      aiSeries.map((r) => ({ key: dayKey(dim(r, 0)), source: dim(r, 1), sums: sumsOf(mets(r)) })),
+      cur.sessions,
+      Boolean(p.prev),
+    ),
     pages: pages.map((r) => {
       const m = mets(r);
       return { key: dim(r, 0) || "(not set)", views: m[0], users: m[1], duration: m[2], active: m[3], keyEvents: m[4] };
@@ -205,7 +225,9 @@ async function ga4Synced(db: SupabaseClient, brandId: string, p: Ga4Params): Pro
     channels: [],
     sourceMedium: [],
     campaigns: [],
-    landing: pages.filter((x) => x.sessions).map((x) => ({ key: x.page, sums: { ...NO_SUMS, sessions: x.sessions, keyEvents: x.conversions } })),
+    landing: pages.filter((x) => x.sessions).map((x) => ({ key: x.page, sums: { ...NO_SUMS, sessions: x.sessions, keyEvents: x.conversions }, prev: null })),
+    newVsReturning: [],
+    ai: NO_AI,
     pages: [],
     events: [],
     countries: [],
@@ -216,7 +238,7 @@ async function ga4Synced(db: SupabaseClient, brandId: string, p: Ga4Params): Pro
 /** The GA4 report for these settings. Read from Google at most every 3 hours (20 minutes for today). */
 export async function ga4Report(db: SupabaseClient, brand: BrandRow, conn: Conn, p: Ga4Params): Promise<Ga4Report> {
   const property = brand.ga4_property!;
-  const key = `ga4-report:v1:${brand.id}:${property}:${JSON.stringify(p)}`;
+  const key = `ga4-report:v2:${brand.id}:${property}:${JSON.stringify(p)}`;
   try {
     const { data } = await cached(key, p.hourly ? HOURS / 3 : 3 * HOURS, async () => ({ ...(await ga4Live(await accessToken(conn.refresh_token), property, p)), at: new Date().toISOString() }));
     return { ...data, source: "live", pins: await pinsFor(db, brand.id, p.range) };
@@ -229,9 +251,9 @@ export async function ga4Report(db: SupabaseClient, brand: BrandRow, conn: Conn,
   }
 }
 
-/** People on the site now, from GA4's realtime report. Kept for a minute. */
+/** Active users in the last 30 minutes, by page and by country, from GA4's realtime report. Kept for a minute. */
 export async function ga4Now(brand: BrandRow, conn: Conn) {
-  const { data } = await cached(`ga4-now:${brand.id}:${brand.ga4_property}`, 60_000, async () => activeNow(await accessToken(conn.refresh_token), brand.ga4_property!));
+  const { data } = await cached(`ga4-now:v2:${brand.id}:${brand.ga4_property}`, 60_000, async () => activeNow(await accessToken(conn.refresh_token), brand.ga4_property!));
   return data;
 }
 
@@ -255,6 +277,18 @@ export async function ga4ByPath(brand: BrandRow, conn: Conn, range: DateRange): 
     const [rows] = await run("keyEvents").catch(() => run("conversions"));
     const list = rows.map((r) => ({ path: dim(r, 0), sessions: mets(r)[0] ?? 0, keyEvents: mets(r)[1] ?? 0 }));
     return [...byPath(list, (r) => r.path, addVisits).entries()].map(([path, r]) => ({ ...r, path }));
+  });
+  return data;
+}
+
+/** Search Console clicks by page in both periods, and the search each page lost most, for Declining pages. */
+export async function gscDeclines(brand: BrandRow, conn: Conn, range: DateRange, prev: DateRange): Promise<SearchDecline[]> {
+  const { data } = await cached(`gsc-declines:v1:${brand.id}:${brand.gsc_property}:${range.from}:${range.to}:${prev.from}:${prev.to}`, 3 * HOURS, async () => {
+    const token = await accessToken(conn.refresh_token);
+    const read = async (r: DateRange): Promise<QueryRow[]> =>
+      gscRows(await gscQuery(token, brand.gsc_property!, gscBody({ range: r, type: "web", filters: [], dims: ["page", "query"], rowLimit: 5000 }))).map((x) => ({ page: x.keys[0] ?? "", query: x.keys[1] ?? "", clicks: x.clicks, impressions: x.impressions, position: x.position || null }));
+    const [cur, before] = await Promise.all([read(range), read(prev)]);
+    return searchDeclines(cur, before);
   });
   return data;
 }

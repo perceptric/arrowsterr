@@ -438,7 +438,8 @@ Never more than two devices at once. Never a gradient on a button, a heading or 
 - An icon in a button sits 8px from its label. Icon-only buttons are 36px square with a tooltip.
 - **Check:** a 20px circle in `--success` at 10% with a 12px check in `--success` means "included".
 - **Not included:** an em dash in `--muted` at 70%.
-- **Arrow:** a right arrow (→ or a 16px arrow icon) ends every link that moves forward; a down arrow means "jump to this section".
+- **Arrow:** a right arrow (→ or a 16px arrow icon) ends every link that moves forward; a down arrow means "jump to this section". Inside text, like a position moving from #4 to #11, use the thin `Arrow` from `src/components/ui.tsx`.
+- **Chevron:** menus, pickers and rows that open use the one thin `Chevron` from `src/components/ui.tsx` (down, up, right or left). Never a solid triangle glyph; `tests/noSolidArrows.test.ts` holds this.
 - **Plus/minus:** FAQ rows open with a plus that turns 45° into an ×.
 
 ### Logos of AI platforms and other tools
@@ -583,6 +584,7 @@ A `--soft` panel, `--aw-r-md`, 16px padding, title 13px 600, then `<dl>` rows: 3
 - A term with a definition has a dashed underline (`decoration-dashed`, 30% muted) and a tooltip.
 - **Highlighted column** (your plan, your brand): every cell gets `--signal-tint`; the header gets a 2px `--signal` bar across its top.
 - Check circle for included, an em dash for not included, "Custom" in text.
+- **Report tables** (Analytics, `ReportTable` in `src/components/analytics/Report.tsx`) work like GA4's: a search box on the first column ("Search landing pages"), "+ Add filter" on any column (text columns: contains, is; number columns: is greater than, is less than, with shares typed as percents), filter chips with ×, and the row count on the right ("1 of 4 rows"). A second line under a name, in 12px `--faint`, gives context ("Cited in 4 tracked prompts", "was #18"). Button columns (Refresh, Prompts) are secondary buttons with no sort.
 
 ### Tooltip and popover
 
@@ -681,6 +683,8 @@ One card, `--aw-r-xl`, 3 columns split by 1px dividers. Each column: a 240px ill
 ### Dashboard screen (app)
 
 Page title, then a row of equal tiles, then the main card (often list plus chart or map), then a row of equal cards whose bottoms align. Detail panels open from the right or as a floating card that closes with ×.
+
+**Analytics › Google Analytics** uses GA4's own terms. By the title, a green pill shows "N active users · last 30 min" and opens Realtime (active users by page, then by country). When the period has no key events, a calm callout over the tiles says "No key events set up" with Dismiss and Set up. Tiles: Users, Sessions, Engagement rate, Avg. engagement time, Returning users, Key events. Tables: Traffic sources (with New users and Returning users, and Group by: New / returning), AI referrals, Landing pages, Declining pages, Published content, Pages, Key events, Countries, Devices.
 
 ---
 

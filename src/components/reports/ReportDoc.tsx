@@ -80,7 +80,7 @@ function Change({ now, before, unit = "", lowerIsBetter = false }: { now: number
   const good = lowerIsBetter ? d < 0 : d > 0;
   return (
     <span className={`chg ${good ? "up" : "down"}`}>
-      {d > 0 ? "▲ +" : "▼ "}
+      {d > 0 ? "+" : "−"}
       {Math.abs(d)}
       {unit}
     </span>

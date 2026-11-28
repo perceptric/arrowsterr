@@ -16,7 +16,7 @@ import type { RunAuth } from "@/lib/runner";
 import { useStash } from "@/lib/stash";
 import { briefGuides, briefToDoc, type Guide } from "@/lib/writer";
 import type { BrandGuideline } from "@/lib/writerTypes";
-import { BusyButton, ErrorNote, Thinking } from "../ui";
+import { BusyButton, Chevron, ErrorNote, Thinking } from "../ui";
 import { Pop, useAnchoredPop } from "../Pickers";
 import { GuideRail, railSections, type RailSection } from "./CommentRail";
 import { Embed, exportClean, Note } from "./writerNodes";
@@ -271,7 +271,7 @@ function DraftMenu({ docs, openId, canEdit, onOpen, onRemove, onClose }: { docs:
           onMouseDown={(e) => e.stopPropagation()}
           aria-expanded={Boolean(menu.anchor)}
         >
-          <span className="truncate">{cur ? cur.title || "Untitled" : `All drafts · ${docs.length}`}</span> ▾
+          <span className="truncate">{cur ? cur.title || "Untitled" : `All drafts · ${docs.length}`}</span> <Chevron size={12} />
         </button>
       </span>
       {menu.anchor ? (

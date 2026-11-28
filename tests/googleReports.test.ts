@@ -4,8 +4,13 @@ import {
   addSearch,
   addVisits,
   AI_CHANNEL,
+  aiReferrals,
   byPath,
+  cellMatches,
+  citedPrompts,
   compareRange,
+  contentStatus,
+  decliningPages,
   countryCode,
   countryName,
   GA4_DIMS,
@@ -15,11 +20,15 @@ import {
   GSC_DIMS,
   gscBody,
   NO_SUMS,
+  nvrLabel,
   rangeOf,
   readFilters,
   readRange,
+  returningRate,
+  searchDeclines,
   toCsv,
   trafficChannels,
+  typedNumber,
   weekly,
   type Ga4Sums,
 } from "../src/lib/googleReports.ts";
@@ -130,9 +139,12 @@ test("GA4 requests: two ranges for totals and events, by hour for today, filters
   const part = (k: (typeof GA4_PARTS)[number]) => reqs[GA4_PARTS.indexOf(k)];
   assert.equal(part("totals").dateRanges.length, 2);
   assert.equal(part("events").dateRanges.length, 2);
-  assert.equal(part("landing").dateRanges.length, 1);
+  assert.equal(part("landing").dateRanges.length, 2, "landing pages carry the period before, for Declining pages");
+  assert.equal(part("aiPages").dateRanges.length, 2);
+  assert.equal(part("countries").dateRanges.length, 1);
   assert.deepEqual(part("series").dimensions, [{ name: "date" }]);
-  assert.deepEqual(part("totals").metrics.map((m) => m.name), ["totalUsers", "sessions", "engagedSessions", "userEngagementDuration", "activeUsers", "keyEvents"]);
+  assert.deepEqual(part("nvr").dimensions, [{ name: "newVsReturning" }]);
+  assert.deepEqual(part("totals").metrics.map((m) => m.name), ["totalUsers", "sessions", "engagedSessions", "userEngagementDuration", "activeUsers", "keyEvents", "newUsers"]);
   assert.ok(reqs.every((r) => r.dimensionFilter), "every part keeps the filters");
   const ai = part("ai").dimensionFilter as { andGroup: { expressions: unknown[] } };
   assert.equal(ai.andGroup.expressions.length, 2, "the AI part adds the AI hosts to the filters");
@@ -211,4 +223,100 @@ test("weeks fold seven days into one, and CSV quotes what it must", () => {
     { key: "2026-11-08", n: 2 },
   ]);
   assert.equal(toCsv([["Query", "Clicks"], ['say "hi", now', 3], ["empty", null]]), 'Query,Clicks\n"say ""hi"", now",3\nempty,');
+});
+
+test("new and returning: GA4's values as labels, and the returning share of users", () => {
+  assert.equal(nvrLabel("new"), "New");
+  assert.equal(nvrLabel("returning"), "Returning");
+  assert.equal(nvrLabel(""), "(not set)");
+  assert.equal(returningRate({ ...NO_SUMS, users: 200, newUsers: 150 }), 0.25);
+  assert.equal(returningRate(NO_SUMS), null);
+});
+
+test("AI referrals: sessions by assistant and page, the share of all sessions, and the period before", () => {
+  const ai = aiReferrals(
+    [
+      { path: "https://momos.com/blog/a/", source: "chatgpt.com", period: "cur", sums: sums(30) },
+      { path: "/blog/a", source: "perplexity.ai", period: "cur", sums: sums(10) },
+      { path: "/pricing", source: "chatgpt.com", period: "cur", sums: sums(10) },
+      { path: "/blog/a", source: "chatgpt.com", period: "prev", sums: sums(20) },
+      { path: "/blog/a", source: "example.com", period: "cur", sums: sums(99) }, // not an AI host: ignored
+    ],
+    [
+      { key: "2026-11-01", source: "chatgpt.com", sums: sums(25) },
+      { key: "2026-11-01", source: "perplexity.ai", sums: sums(5) },
+    ],
+    1000,
+    true,
+  );
+  assert.equal(ai.sums.sessions, 50);
+  assert.equal(ai.share, 0.05);
+  assert.equal(ai.prevSessions, 20);
+  assert.deepEqual(ai.assistants, ["ChatGPT", "Perplexity"]);
+  assert.deepEqual(ai.pages[0], { path: "/blog/a", sums: { ...NO_SUMS, sessions: 40, users: 40 }, prevSessions: 20, by: { ChatGPT: 30, Perplexity: 10 } });
+  assert.deepEqual(ai.series, [{ key: "2026-11-01", by: { ChatGPT: 25, Perplexity: 5 } }]);
+  assert.equal(aiReferrals([], [], 0, false).share, null);
+});
+
+test("cited prompts: the brand's own pages each answer cites, by path", () => {
+  const map = citedPrompts(
+    [
+      { prompt: "best survey tools", sources: [{ url: "https://www.momos.com/blog/a?utm=x" }, { url: "https://other.com/blog/a" }] },
+      { prompt: "qualtrics alternatives", sources: [{ url: "https://momos.com/blog/a/" }] },
+      { prompt: "best survey tools", sources: [{ url: "https://momos.com/blog/a" }] },
+      { prompt: "no sources" },
+    ],
+    "momos.com",
+  );
+  assert.deepEqual(map.get("/blog/a"), ["best survey tools", "qualtrics alternatives"]);
+  assert.equal(map.size, 1);
+});
+
+test("declining pages: 10% or more lost from at least 10 sessions, most lost first", () => {
+  const rows = decliningPages([
+    { key: "/a", sums: sums(140), prev: sums(300) },
+    { key: "/b", sums: sums(95), prev: sums(100) }, // lost 5%: kept out
+    { key: "/c", sums: sums(2), prev: sums(8) }, // too small
+    { key: "/d", sums: sums(40), prev: sums(80) },
+    { key: "/e", sums: sums(50), prev: null }, // no period before
+  ]);
+  assert.deepEqual(
+    rows.map((r) => r.path),
+    ["/a", "/d"],
+  );
+  assert.equal(Math.round(rows[0].change * 100), -53);
+});
+
+test("search declines: clicks in both periods and the search that lost the most", () => {
+  const [page] = searchDeclines(
+    [
+      { page: "https://momos.com/blog/nps", query: "nps survey questions", clicks: 10, impressions: 900, position: 11 },
+      { page: "https://momos.com/blog/nps", query: "nps meaning", clicks: 30, impressions: 500, position: 3 },
+    ],
+    [
+      { page: "https://momos.com/blog/nps/", query: "nps survey questions", clicks: 60, impressions: 1000, position: 4 },
+      { page: "https://momos.com/blog/nps", query: "nps meaning", clicks: 28, impressions: 480, position: 3 },
+    ],
+  );
+  assert.deepEqual(page, { path: "/blog/nps", clicks: 40, prevClicks: 88, query: "nps survey questions", from: 4, to: 11 });
+});
+
+test("content status: New under 14 days, then Growing or Declining on clicks, or sessions without clicks", () => {
+  assert.equal(contentStatus({ days: 9, clicksBefore: 0, clicksAfter: 50, sessionsBefore: 0, sessionsAfter: 0 }), "New");
+  assert.equal(contentStatus({ days: 28, clicksBefore: 40, clicksAfter: 90, sessionsBefore: 0, sessionsAfter: 0 }), "Growing");
+  assert.equal(contentStatus({ days: 28, clicksBefore: 40, clicksAfter: 12, sessionsBefore: 0, sessionsAfter: 0 }), "Declining");
+  assert.equal(contentStatus({ days: 20, clicksBefore: 0, clicksAfter: 0, sessionsBefore: 30, sessionsAfter: 10 }), "Declining");
+});
+
+test("table filters: words ignore case, numbers compare by size, shares typed as percents", () => {
+  assert.equal(typedNumber("1,200"), 1200);
+  assert.equal(typedNumber("−20%"), -0.2);
+  assert.equal(typedNumber("abc"), null);
+  assert.equal(cellMatches("/blog/NPS-guide", "contains", "nps"), true);
+  assert.equal(cellMatches("/blog/nps-guide", "notContains", "nps"), false);
+  assert.equal(cellMatches("Organic Search", "equals", "organic search"), true);
+  assert.equal(cellMatches(-0.53, "lt", "-25%"), true);
+  assert.equal(cellMatches(-0.1, "lt", "-25%"), false);
+  assert.equal(cellMatches(140, "gt", "100"), true);
+  assert.equal(cellMatches(null, "gt", "1"), false);
 });

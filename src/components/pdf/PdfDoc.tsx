@@ -19,7 +19,7 @@ function Change({ now, before, unit = "", lowerIsBetter = false }: { now: number
   const good = lowerIsBetter ? d < 0 : d > 0;
   return (
     <span className={`pdf-chg ${good ? "is-good" : "is-bad"}`}>
-      {d > 0 ? "▲" : "▼"} {d > 0 ? "+" : "−"}
+      {d > 0 ? "+" : "−"}
       {Math.abs(d).toFixed(unit === "%" ? 1 : 1)}
       {unit === "%" ? " pts" : ""}
     </span>
@@ -550,7 +550,7 @@ function KeywordBody({ d }: { d: KeywordPdf }) {
             { label: "Difficulty", value: t.kd === null ? "–" : String(t.kd), note: t.kdWord ?? undefined },
             { label: "Intent", value: t.intent ? t.intent[0].toUpperCase() + t.intent.slice(1) : "–", text: Boolean(t.intent) },
             { label: "CPC", value: money(t.cpc) },
-            { label: "12-month trend", value: t.trendChange === null ? "–" : `${t.trendChange > 0 ? "+" : t.trendChange < 0 ? "−" : ""}${Math.abs(t.trendChange)}%`, note: t.trendChange === null ? undefined : t.trendChange >= 0 ? "▲ Growing" : "▼ Falling" },
+            { label: "12-month trend", value: t.trendChange === null ? "–" : `${t.trendChange > 0 ? "+" : t.trendChange < 0 ? "−" : ""}${Math.abs(t.trendChange)}%`, note: t.trendChange === null ? undefined : t.trendChange >= 0 ? "Growing" : "Falling" },
           ]}
         />
       ) : (

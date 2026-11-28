@@ -4,13 +4,13 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { addCalendarItems, siteForBrand, type Site } from "@/lib/db";
-import { RANGE_LABEL, toCsv, type DateRange, type Filter, type FilterOp, OP_LABEL, type RangeId } from "@/lib/googleReports";
+import { cellMatches, RANGE_LABEL, toCsv, type DateRange, type Filter, type FilterOp, OP_LABEL, type RangeId, type TableOp } from "@/lib/googleReports";
 import { stageFromIntent } from "@/lib/research";
 import type { RunAuth } from "@/lib/runner";
 import type { View } from "@/lib/view";
 import { BrandLogo } from "../BrandLogo";
 import { DateField, Dropdown, Pop, useAnchoredPop } from "../Pickers";
-import { ErrorNote, Seg, sortRows, SortTh, Tip, useSort, type Sort } from "../ui";
+import { Chevron, ErrorNote, Seg, sortRows, SortTh, Tip, useSort, type Sort } from "../ui";
 import { useZippieMaybe } from "../zippie/ZippieContext";
 import type { CalendarPick, CalendarResult } from "./ResearchPanel";
 import { errorText } from "@/lib/errors";
@@ -165,14 +165,14 @@ export type ChartPin = { i: number; title: string; event: "published" | "refresh
 /**
  * The checked metrics as lines. Counts close in size share one axis; otherwise each line gets its own scale and the
  * first two show theirs, left and right. Position runs upside down, with 1 at the top. Purple pins mark pieces
- * published or refreshed from Arrowsterr.
+ * published or refreshed from Arrowsterr. `axis` puts every line on one scale under that name, with a key below.
  */
-export function LineChart({ keys, lines, pins }: { keys: string[]; lines: Line[]; pins: ChartPin[] }) {
+export function LineChart({ keys, lines, pins, axis }: { keys: string[]; lines: Line[]; pins: ChartPin[]; axis?: string }) {
   const [ref, W] = useWidth<HTMLDivElement>();
   const [hover, setHover] = useState<number | null>(null);
   const counts = lines.every((l) => l.kind === "pct" && !l.lower && l.whole);
   const maxes = lines.map((l) => Math.max(0, ...l.values.filter((v): v is number => v !== null)));
-  const shared = lines.length > 1 && counts && Math.max(...maxes) <= 4 * Math.max(1, Math.min(...maxes));
+  const shared = lines.length > 1 && (Boolean(axis) || (counts && Math.max(...maxes) <= 4 * Math.max(1, Math.min(...maxes))));
   const one = shared ? scaleOf(lines.flatMap((l) => l.values.filter((v): v is number => v !== null)), false, true) : null;
   const scales: Scale[] = lines.map((l) => one ?? scaleOf(l.values.filter((v): v is number => v !== null), Boolean(l.lower), Boolean(l.whole)));
   const right = !shared && lines.length > 1;
@@ -208,7 +208,7 @@ export function LineChart({ keys, lines, pins }: { keys: string[]; lines: Line[]
   return (
     <div className="aw-rep-chart">
       <div className="aw-rep-chart__axes">
-        <span>{lines[0]?.label}</span>
+        <span>{axis ?? lines[0]?.label}</span>
         {right ? <span>{lines[1]?.label}</span> : null}
       </div>
       <div ref={ref} className="aw-rep-chart__box">
@@ -269,6 +269,16 @@ export function LineChart({ keys, lines, pins }: { keys: string[]; lines: Line[]
           </div>
         ) : null}
       </div>
+      {axis ? (
+        <span className="aw-rep-chart__keys">
+          {lines.map((l) => (
+            <span key={l.key} className={l.tone}>
+              <i />
+              {l.label}
+            </span>
+          ))}
+        </span>
+      ) : null}
       {pins.length ? (
         <span className="aw-rep-chart__legend">
           <i />
@@ -313,7 +323,7 @@ export function RangePicker({ main, more, value, custom, onChange }: { main: Ran
         options={main.map((id) => ({ id, label: RANGE_LABEL[id] }))}
         extra={
           <button type="button" role="tab" aria-selected={inMore} aria-haspopup="dialog" onClick={(e) => pop.toggle(e.currentTarget)}>
-            {moreLabel} ▾
+            {moreLabel} <Chevron size={12} />
           </button>
         }
       />
@@ -357,13 +367,16 @@ export function RangePicker({ main, more, value, custom, onChange }: { main: Ran
   );
 }
 
-export type DimDef<D extends string> = { id: D; label: string; ops: FilterOp[] };
+export type DimDef<D extends string, O extends FilterOp | TableOp = FilterOp> = { id: D; label: string; ops: O[] };
 
-/** "+ Add filter": pick what to filter, how, and the value. Lists (`choices`) show as a dropdown; the rest is typed. */
-export function AddFilter<D extends string>({ dims, choices, onAdd }: { dims: DimDef<D>[]; choices: (d: D) => string[] | null; onAdd: (f: Filter<D>) => void }) {
+/**
+ * "+ Add filter": pick a dimension or metric, a condition and the value. Lists (`choices`) show as a dropdown; the rest
+ * is typed. The report bar filters what Google sends; each table filters its own rows the same way.
+ */
+export function AddFilter<D extends string, O extends FilterOp | TableOp = FilterOp>({ dims, choices, onAdd }: { dims: DimDef<D, O>[]; choices: (d: D) => string[] | null; onAdd: (f: Filter<D, O>) => void }) {
   const pop = useAnchoredPop();
-  const [dim, setDim] = useState<DimDef<D> | null>(null);
-  const [op, setOp] = useState<FilterOp>("contains");
+  const [dim, setDim] = useState<DimDef<D, O> | null>(null);
+  const [op, setOp] = useState<O>("contains" as O);
   const [value, setValue] = useState("");
   const list = dim ? choices(dim.id) : null;
   const close = () => {
@@ -371,7 +384,7 @@ export function AddFilter<D extends string>({ dims, choices, onAdd }: { dims: Di
     setDim(null);
     setValue("");
   };
-  const pick = (d: DimDef<D>) => {
+  const pick = (d: DimDef<D, O>) => {
     setDim(d);
     setOp(d.ops[0]);
     const c = choices(d.id);
@@ -407,11 +420,11 @@ export function AddFilter<D extends string>({ dims, choices, onAdd }: { dims: Di
               }}
             >
               <span className="aw-label mb-0!">{dim.label}</span>
-              <Dropdown label="How to match" value={op} onChange={setOp} options={dim.ops.map((o) => ({ id: o, label: OP_LABEL[o] }))} />
+              <Dropdown label="Condition" value={op} onChange={setOp} options={dim.ops.map((o) => ({ id: o, label: OP_LABEL[o] }))} />
               {list ? (
                 <Dropdown label="Value" value={value} onChange={setValue} options={list.map((v) => ({ id: v, label: v }))} />
               ) : (
-                <input autoFocus className="aw-input w-full" value={value} onChange={(e) => setValue(e.target.value)} placeholder={dim.id === "country" ? "United States" : "Type a value"} aria-label="Value" />
+                <input autoFocus className="aw-input w-full" value={value} onChange={(e) => setValue(e.target.value)} placeholder={dim.id === "country" ? "United States" : op === "gt" || op === "lt" ? "A number, like 100 or 20%" : "Type a value"} aria-label="Value" />
               )}
               <span className="flex justify-between gap-2">
                 <button type="button" className="aw-btn aw-btn--secondary aw-btn--sm" onClick={() => setDim(null)}>
@@ -430,7 +443,7 @@ export function AddFilter<D extends string>({ dims, choices, onAdd }: { dims: Di
 }
 
 /** The active filters as chips. ✕ removes one. */
-export function FilterChips<D extends string>({ filters, dims, onRemove }: { filters: Filter<D>[]; dims: DimDef<D>[]; onRemove: (i: number) => void }) {
+export function FilterChips<D extends string, O extends FilterOp | TableOp = FilterOp>({ filters, dims, onRemove }: { filters: Filter<D, O>[]; dims: DimDef<D, O>[]; onRemove: (i: number) => void }) {
   return (
     <>
       {filters.map((f, i) => (
@@ -458,30 +471,40 @@ export function Switch({ on, onChange, logo, children }: { on: boolean; onChange
 
 // ─────────────── Table ───────────────
 
-export type Col<R> = { id: string; label: React.ReactNode; get: (r: R) => string | number | null; show?: (r: R) => React.ReactNode; text?: boolean; tone?: string; csv?: string };
+/** A table column. `text` sorts A to Z and filters by words; `tool` is a button column with no sort, filter or export. */
+export type Col<R> = { id: string; label: React.ReactNode; get: (r: R) => string | number | null; show?: (r: R) => React.ReactNode; text?: boolean; tone?: string; csv?: string; tool?: boolean };
+const TEXT_OPS: TableOp[] = ["contains", "notContains", "equals", "notEquals"];
+const NUM_OPS: TableOp[] = ["gt", "lt", "equals"];
 /** What the Export menu downloads: the current table, every row, in its sort order. */
 export type CsvRef = React.RefObject<(() => { name: string; rows: (string | number | null)[][] }) | null>;
 
 /**
- * A table of one tab: sorted by any column, paged with rows per page. The first column wraps (names are never cut
- * off) and can show an action on hover. Rows with `children` open to show them under the row, indented.
+ * A table of one tab, like GA4's: a search box over the first column, filters on any column, sorted by any column,
+ * paged with rows per page. The first column wraps (names are never cut off) and can show an action on hover. Rows
+ * with `children` open to show them under the row, indented.
  */
-export function ReportTable<R extends { children?: R[] }>({ cols, rows, rowKey, initial, action, name, csvRef, empty }: { cols: Col<R>[]; rows: R[]; rowKey: (r: R) => string; initial: Sort; action?: (r: R) => React.ReactNode; name: string; csvRef: CsvRef; empty: React.ReactNode }) {
+export function ReportTable<R extends { children?: R[] }>({ cols, rows, rowKey, initial, action, name, csvRef, empty, search }: { cols: Col<R>[]; rows: R[]; rowKey: (r: R) => string; initial: Sort; action?: (r: R) => React.ReactNode; name: string; csvRef: CsvRef; empty: React.ReactNode; search: string }) {
   const [sort, setSort] = useSort(initial.key, initial.desc);
   const [per, setPer] = useState(10);
   const [page, setPage] = useState(0);
   const [open, setOpen] = useState<Set<string>>(new Set());
-  const sorted = sortRows(rows, sort, Object.fromEntries(cols.map((c) => [c.id, c.get])));
+  const [q, setQ] = useState("");
+  const [filters, setFilters] = useState<Filter<string, TableOp>[]>([]);
+  const dims: DimDef<string, TableOp>[] = cols.filter((c) => !c.tool).map((c) => ({ id: c.id, label: typeof c.label === "string" ? c.label : (c.csv ?? c.id), ops: c.text ? TEXT_OPS : NUM_OPS }));
+  const name0 = cols[0];
+  const kept = rows.filter((r) => (!q.trim() || String(name0?.get(r) ?? "").toLowerCase().includes(q.trim().toLowerCase())) && filters.every((f) => cellMatches(cols.find((c) => c.id === f.dim)?.get(r) ?? null, f.op, f.value)));
+  const sorted = sortRows(kept, sort, Object.fromEntries(cols.map((c) => [c.id, c.get])));
   const pages = Math.max(1, Math.ceil(sorted.length / per));
   const at = Math.min(page, pages - 1);
   const shown = sorted.slice(at * per, at * per + per);
 
   useEffect(() => {
-    csvRef.current = () => ({ name, rows: [cols.map((c) => c.csv ?? (typeof c.label === "string" ? c.label : c.id)), ...sorted.flatMap((r) => [r, ...(r.children ?? [])]).map((r) => cols.map((c) => c.get(r)))] });
+    const out = cols.filter((c) => !c.tool);
+    csvRef.current = () => ({ name, rows: [out.map((c) => c.csv ?? (typeof c.label === "string" ? c.label : c.id)), ...sorted.flatMap((r) => [r, ...(r.children ?? [])]).map((r) => out.map((c) => c.get(r)))] });
   });
 
   const cell = (r: R, c: Col<R>, k: number, sub: boolean) => (
-    <td key={c.id} className={`${k ? "aw-num text-right" : ""} ${c.tone ?? ""}`}>
+    <td key={c.id} className={`${k && !c.text ? "aw-num text-right" : ""} ${c.tone ?? ""}`}>
       {k === 0 ? (
         <span className={`aw-rep-name ${sub ? "is-sub" : ""}`}>
           <span className="min-w-0">{c.show ? c.show(r) : (c.get(r) ?? "–")}</span>
@@ -494,9 +517,7 @@ export function ReportTable<R extends { children?: R[] }>({ cols, rows, rowKey, 
               onClick={() => setOpen((s) => (s.has(rowKey(r)) ? new Set([...s].filter((x) => x !== rowKey(r))) : new Set([...s, rowKey(r)])))}
             >
               <span>{r.children.length}</span>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="m6 9 6 6 6-6" />
-              </svg>
+              <Chevron size={12} />
             </button>
           ) : null}
           {action && !sub ? <span className="aw-rep-act">{action(r)}</span> : null}
@@ -509,19 +530,41 @@ export function ReportTable<R extends { children?: R[] }>({ cols, rows, rowKey, 
     </td>
   );
 
+  const toPage0 = <T,>(set: (v: T) => void) => (v: T) => {
+    set(v);
+    setPage(0);
+  };
   return (
     <>
+      <div className="aw-rep-tools">
+        <label className="aw-rep-search">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.5-3.5" />
+          </svg>
+          <span className="sr-only">{search}</span>
+          <input className="aw-input" value={q} onChange={(e) => toPage0(setQ)(e.target.value)} placeholder={search} />
+        </label>
+        <AddFilter<string, TableOp> dims={dims} choices={() => null} onAdd={(f) => toPage0(setFilters)([...filters, f])} />
+        <FilterChips<string, TableOp> filters={filters} dims={dims} onRemove={(i) => toPage0(setFilters)(filters.filter((_, k) => k !== i))} />
+        <span className="aw-rep-tools__count aw-num">{q.trim() || filters.length ? `${kept.length.toLocaleString("en-US")} of ${rows.length.toLocaleString("en-US")} rows` : `${rows.length.toLocaleString("en-US")} ${rows.length === 1 ? "row" : "rows"}`}</span>
+      </div>
       <div className="overflow-x-auto">
         <table className="aw-table aw-table--keep">
           <thead>
             <tr>
-              {cols.map((c, k) => (
+              {cols.map((c, k) =>
+                c.tool ? (
+                  <th key={c.id}>
+                    <span className="sr-only">{c.csv ?? c.id}</span>
+                  </th>
+                ) : (
                 <SortTh
                   key={c.id}
                   id={c.id}
                   sort={sort}
                   text={c.text}
-                  className={k ? "text-right" : ""}
+                  className={k && !c.text ? "text-right" : ""}
                   onSort={(s) => {
                     setSort(s);
                     setPage(0);
@@ -529,7 +572,8 @@ export function ReportTable<R extends { children?: R[] }>({ cols, rows, rowKey, 
                 >
                   {c.label}
                 </SortTh>
-              ))}
+                ),
+              )}
             </tr>
           </thead>
           <tbody>
@@ -539,7 +583,7 @@ export function ReportTable<R extends { children?: R[] }>({ cols, rows, rowKey, 
             {!shown.length ? (
               <tr>
                 <td colSpan={cols.length} className="text-muted">
-                  {empty}
+                  {rows.length ? "No rows match the search and filters." : empty}
                 </td>
               </tr>
             ) : null}
@@ -625,7 +669,7 @@ export function HeadTools({ csvRef, file }: { csvRef: CsvRef; file: string }) {
   return createPortal(
     <>
       <button type="button" className="aw-ctl" aria-haspopup="menu" onClick={(e) => pop.toggle(e.currentTarget)}>
-        Export ▾
+        Export <Chevron size={12} />
       </button>
       {pop.anchor ? (
         <Pop anchor={pop.anchor} onClose={pop.close} label="Export" width={240}>
