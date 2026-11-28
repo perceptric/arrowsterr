@@ -207,7 +207,7 @@ export function Tip({ text }: { text: string }) {
       </span>
       <span
         role="tooltip"
-        className="aw-tip pointer-events-none absolute top-full left-1/2 z-40 mt-1.5 w-56 -translate-x-1/2 whitespace-normal text-left opacity-0 transition-opacity group-hover/tip:opacity-100"
+        className="aw-tip pointer-events-none absolute top-full left-1/2 z-40 mt-1.5 hidden w-56 -translate-x-1/2 whitespace-normal text-left group-hover/tip:block"
       >
         {text}
       </span>
