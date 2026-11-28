@@ -701,6 +701,9 @@ body { background: var(--v10-canvas); }
 .aw .aw-rep-chart__tiprow b { margin-left: auto; font-weight: 600; color: var(--v10-ink); font-variant-numeric: tabular-nums; }
 .aw .aw-rep-chart__tippin { font-weight: 500; color: var(--aw-rep-pin); }
 .aw .aw-rep-chart__legend { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--v10-muted); }
+.aw .aw-rep-chart__keys { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12.5px; color: var(--v10-muted); }
+.aw .aw-rep-chart__keys span { display: inline-flex; align-items: center; gap: 6px; }
+.aw .aw-rep-chart__keys i { width: 10px; height: 3px; border-radius: var(--aw-r-pill); background: var(--c); }
 .aw .aw-rep-chart__legend i { width: 9px; height: 9px; border: 2px solid var(--aw-rep-pin); border-radius: var(--aw-r-pill); background: var(--v10-card); }
 /* The table: tabs with their tools, names that wrap, an action on hover, rows per page */
 .aw .aw-rep-tabbar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; padding: 4px 20px 0; box-shadow: inset 0 -1px 0 var(--v10-border); }
@@ -1971,8 +1974,6 @@ body { background: var(--v10-canvas); }
 .aw .aw-stats .aw-stat { padding: var(--space-4) var(--space-5); border: 0;
 }
 .aw .aw-stats--tight .aw-stat { padding: var(--space-3) var(--space-4); }
-/* Inside a frame (a report tab): no card of its own, a line under it. */
-.aw .aw-stats--flat { border-radius: 0; box-shadow: 0 1px 0 var(--v10-border); }
 .aw .aw-stat__num {
   font-family: var(--aw-font); font-variant-numeric: tabular-nums; font-size: 24px; line-height: 1.2; font-weight: 600; letter-spacing: -0.025em; color: var(--v10-ink);
 }
@@ -1985,6 +1986,8 @@ body { background: var(--v10-canvas); }
 .aw .aw-stats {
   display: grid; grid-template-columns: repeat(var(--cols, 4), minmax(0,1fr)); gap: 0; padding: 0; background: var(--v10-card); border: 0; border-radius: var(--aw-r-lg); box-shadow: var(--shadow-rest); overflow: hidden;
 }
+/* Inside a frame (a report tab): no card of its own, a line under it. */
+.aw .aw-stats--flat { border-radius: 0; box-shadow: 0 1px 0 var(--v10-border); }
 @media (max-width: 1024px) {
   .aw .aw-stats { grid-template-columns: repeat(2,1fr); }
 }

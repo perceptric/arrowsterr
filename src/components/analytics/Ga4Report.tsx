@@ -825,6 +825,7 @@ export function Ga4Report({ status, call, view, auth, sb, canEdit, title, onSetu
                 values: aiKeys.map((k) => aiDays.get(k)?.[a] ?? 0),
               }))}
               pins={[]}
+              axis="AI sessions"
             />
           </>
         ) : null}

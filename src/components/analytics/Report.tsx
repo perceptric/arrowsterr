@@ -165,14 +165,14 @@ export type ChartPin = { i: number; title: string; event: "published" | "refresh
 /**
  * The checked metrics as lines. Counts close in size share one axis; otherwise each line gets its own scale and the
  * first two show theirs, left and right. Position runs upside down, with 1 at the top. Purple pins mark pieces
- * published or refreshed from Arrowsterr.
+ * published or refreshed from Arrowsterr. `axis` puts every line on one scale under that name, with a key below.
  */
-export function LineChart({ keys, lines, pins }: { keys: string[]; lines: Line[]; pins: ChartPin[] }) {
+export function LineChart({ keys, lines, pins, axis }: { keys: string[]; lines: Line[]; pins: ChartPin[]; axis?: string }) {
   const [ref, W] = useWidth<HTMLDivElement>();
   const [hover, setHover] = useState<number | null>(null);
   const counts = lines.every((l) => l.kind === "pct" && !l.lower && l.whole);
   const maxes = lines.map((l) => Math.max(0, ...l.values.filter((v): v is number => v !== null)));
-  const shared = lines.length > 1 && counts && Math.max(...maxes) <= 4 * Math.max(1, Math.min(...maxes));
+  const shared = lines.length > 1 && (Boolean(axis) || (counts && Math.max(...maxes) <= 4 * Math.max(1, Math.min(...maxes))));
   const one = shared ? scaleOf(lines.flatMap((l) => l.values.filter((v): v is number => v !== null)), false, true) : null;
   const scales: Scale[] = lines.map((l) => one ?? scaleOf(l.values.filter((v): v is number => v !== null), Boolean(l.lower), Boolean(l.whole)));
   const right = !shared && lines.length > 1;
@@ -208,7 +208,7 @@ export function LineChart({ keys, lines, pins }: { keys: string[]; lines: Line[]
   return (
     <div className="aw-rep-chart">
       <div className="aw-rep-chart__axes">
-        <span>{lines[0]?.label}</span>
+        <span>{axis ?? lines[0]?.label}</span>
         {right ? <span>{lines[1]?.label}</span> : null}
       </div>
       <div ref={ref} className="aw-rep-chart__box">
@@ -269,6 +269,16 @@ export function LineChart({ keys, lines, pins }: { keys: string[]; lines: Line[]
           </div>
         ) : null}
       </div>
+      {axis ? (
+        <span className="aw-rep-chart__keys">
+          {lines.map((l) => (
+            <span key={l.key} className={l.tone}>
+              <i />
+              {l.label}
+            </span>
+          ))}
+        </span>
+      ) : null}
       {pins.length ? (
         <span className="aw-rep-chart__legend">
           <i />
@@ -494,7 +504,7 @@ export function ReportTable<R extends { children?: R[] }>({ cols, rows, rowKey, 
   });
 
   const cell = (r: R, c: Col<R>, k: number, sub: boolean) => (
-    <td key={c.id} className={`${k ? "aw-num text-right" : ""} ${c.tone ?? ""}`}>
+    <td key={c.id} className={`${k && !c.text ? "aw-num text-right" : ""} ${c.tone ?? ""}`}>
       {k === 0 ? (
         <span className={`aw-rep-name ${sub ? "is-sub" : ""}`}>
           <span className="min-w-0">{c.show ? c.show(r) : (c.get(r) ?? "–")}</span>
@@ -554,7 +564,7 @@ export function ReportTable<R extends { children?: R[] }>({ cols, rows, rowKey, 
                   id={c.id}
                   sort={sort}
                   text={c.text}
-                  className={k ? "text-right" : ""}
+                  className={k && !c.text ? "text-right" : ""}
                   onSort={(s) => {
                     setSort(s);
                     setPage(0);
